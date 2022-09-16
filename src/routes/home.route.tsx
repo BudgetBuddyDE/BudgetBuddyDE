@@ -104,7 +104,7 @@ export const Home = () => {
 
           <Grid container spacing={3} sx={{ mt: 0 }}>
             {repos.map((repo) => (
-              <Grid key={repo.id} item xs={12} md={12} lg={6} xl={4}>
+              <Grid key={repo.id} item xs={12} md={6} lg={4} xl={4}>
                 <Repository repo={repo} />
               </Grid>
             ))}
