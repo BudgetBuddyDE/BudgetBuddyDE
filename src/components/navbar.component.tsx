@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -10,13 +11,14 @@ import {
   Button,
   MenuItem,
 } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Menu as MenuIcon, GitHub as GitHubIcon } from '@mui/icons-material';
 import { StackedCoins } from './coins-icon.component';
 import { NavbarLinks as pages } from '../constants/navbar-links.constant';
 
 const brand = 'Budget-Buddy';
 
 export const Navbar = () => {
+  const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -128,6 +130,19 @@ export const Navbar = () => {
                 {page.name}
               </Button>
             ))}
+          </Box>
+
+          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+            <IconButton
+              size="large"
+              color="inherit"
+              sx={{ ml: 'auto' }}
+              onClick={() => {
+                window.location.href = 'https://github.com/BudgetBuddyDE/Webapp';
+              }}
+            >
+              <GitHubIcon />
+            </IconButton>
           </Box>
         </Toolbar>
       </Container>
