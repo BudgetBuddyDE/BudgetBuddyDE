@@ -3,26 +3,11 @@ import { Grid, Box, Button, Typography } from '@mui/material';
 import { NavbarLinks as pages } from '../constants/navbar-links.constant';
 import { TRepo } from '../types/repo.type';
 import { Repository } from '../components/repository.component';
-import { Image } from '../components/image.component';
-import { useScreenSize } from '../hooks/useScreenSize.hook';
-import mockup from '../assets/mockup.png';
+import { AppMockup } from '../components/AppMockup.component';
 
 export const Home = () => {
-  const screenSize = useScreenSize();
   const [loading, setLoading] = useState(true);
   const [repos, setRepos] = useState<TRepo[]>([]);
-  const [rotateXDeg, setXDeg] = useState(10);
-  const [rotateYDeg, setYDeg] = useState(-10);
-
-  // FIXME: Don't use any
-  function mockupMouseMove(event: any) {
-    const multiplier = 25;
-    const bodyWidth = document.body.offsetWidth;
-    const bodyHeight = document.body.offsetHeight;
-
-    setXDeg(-((event.pageY / bodyHeight) * 2 - 1) * multiplier);
-    setYDeg(((event.pageX / bodyWidth) * 2 - 1) * multiplier);
-  }
 
   useEffect(() => {
     fetch('https://api.github.com/orgs/BudgetBuddyDE/repos')
@@ -32,43 +17,11 @@ export const Home = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (screenSize !== 'small') {
-      document
-        .querySelector('body .mockup-container')
-        ?.addEventListener('mousemove', mockupMouseMove);
-
-      return () => {
-        document
-          .querySelector('body .mockup-container')
-          ?.removeEventListener('mousemove', mockupMouseMove);
-      };
-    }
-  }, []);
-
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <Box sx={{ my: { sm: 5 } }}>
-          <Box
-            className="mockup-container"
-            sx={{
-              width: '100%',
-              perspective: '800px',
-            }}
-          >
-            <Image
-              className="mockup"
-              sx={{
-                width: { xs: '60%', md: '20%' },
-                mx: { xs: '20%', md: '40%' },
-                transformStyle: 'preserve-3d',
-                transform: `rotateX(${rotateXDeg}deg) rotateY(${rotateYDeg}deg)`,
-              }}
-              src={mockup}
-              alt="mockup"
-            />
-          </Box>
+          <AppMockup />
           <Typography variant="h1" sx={{ mb: 3, textAlign: 'center' }}>
             Budget-Buddy
           </Typography>

@@ -34,7 +34,7 @@ export const Navbar = () => {
       position="sticky"
       sx={{ backgroundColor: 'rgba(200, 200, 150, .05)', backdropFilter: 'blur(80px)' }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth="lg">
         <Toolbar disableGutters>
           <Box sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }}>
             <StackedCoins />

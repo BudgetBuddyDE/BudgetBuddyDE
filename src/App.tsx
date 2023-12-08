@@ -4,6 +4,7 @@ import { Box, Container } from '@mui/material';
 import { Navbar } from './components/navbar.component';
 import { Copyright } from './components/copyright.component';
 import { Home } from './routes/home.route';
+import { Blog } from './routes/blog.route';
 
 export const App: React.FC = () => {
   return (
@@ -19,9 +20,10 @@ export const App: React.FC = () => {
         }}
       >
         <Navbar />
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/blog" element={<Blog />} />
           </Routes>
         </Container>
         <Box
