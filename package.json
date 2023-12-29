@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "description": "BudgetBuddy Typescript Types",
+  "description": "Budget Buddy Typescript Types",
   "keywords": [
     "typescript",
     "types",
@@ -16,10 +16,10 @@
   },
   "author": "Thorben",
   "license": "MIT",
-  "homepage": "https://github.com/BudegtBuddyDE",
+  "homepage": "https://github.com/BudgetBuddyDE",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BudegtBuddyDE/types.git"
+    "url": "https://github.com/BudgetBuddyDE/types.git"
   },
   "bugs": {
     "url": "https://github.com/BudgetBuddyDE/types/issues"
