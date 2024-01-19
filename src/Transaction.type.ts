@@ -52,6 +52,6 @@ export const ZDeleteTransactionPayload = z.array(
 export type TDeleteTransactionPayload = z.infer<typeof ZDeleteTransactionPayload>;
 export const ZDeleteTransactionResponsePayload = z.object({
   success: z.array(ZTransaction),
-  failed: z.array(ZDeleteTransactionPayload),
+  failed: ZDeleteTransactionPayload,
 });
 export type TDeleteTransactionResponsePayload = z.infer<typeof ZDeleteTransactionResponsePayload>;

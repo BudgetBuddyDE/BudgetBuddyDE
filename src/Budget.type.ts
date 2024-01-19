@@ -36,7 +36,7 @@ export const ZDeleteBudgetPayload = z.array(
 export type TDeleteBudgetPayload = z.infer<typeof ZDeleteBudgetPayload>;
 export const ZDeleteBudgetResponsePayload = z.object({
   success: z.array(ZBudget),
-  failed: z.array(ZDeleteBudgetPayload),
+  failed: ZDeleteBudgetPayload,
 });
 export type TDeleteBudgetResponsePayload = z.infer<typeof ZDeleteBudgetResponsePayload>;
 

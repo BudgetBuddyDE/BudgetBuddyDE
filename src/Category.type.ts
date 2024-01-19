@@ -35,6 +35,6 @@ export const ZDeleteCategoryPayload = z.array(
 export type TDeleteCategoryPayload = z.infer<typeof ZDeleteCategoryPayload>;
 export const ZDeleteCategoryResponsePayload = z.object({
   success: z.array(ZCategory),
-  failed: z.array(ZDeleteCategoryPayload),
+  failed: ZDeleteCategoryPayload,
 });
 export type TDeleteCategoryResponsePayload = z.infer<typeof ZDeleteCategoryResponsePayload>;
