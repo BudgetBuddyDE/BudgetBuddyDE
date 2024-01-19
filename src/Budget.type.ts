@@ -28,10 +28,17 @@ export const ZUpdateBudgetPayload = z.object({
 });
 export type TUpdateBudgetPayload = z.infer<typeof ZUpdateBudgetPayload>;
 
-export const ZDeleteBudgetPayload = z.object({
-  budgetId: z.number(),
-});
+export const ZDeleteBudgetPayload = z.array(
+  z.object({
+    budgetId: z.number(),
+  }),
+);
 export type TDeleteBudgetPayload = z.infer<typeof ZDeleteBudgetPayload>;
+export const ZDeleteBudgetResponsePayload = z.object({
+  success: z.array(ZBudget),
+  failed: z.array(ZDeleteBudgetPayload),
+});
+export type TDeleteBudgetResponsePayload = z.infer<typeof ZDeleteBudgetResponsePayload>;
 
 export const ZBudgetProgress = ZBudget.extend({
   amount_spent: z.number(),

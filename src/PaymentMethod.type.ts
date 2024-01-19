@@ -35,7 +35,14 @@ export const ZUpdatePaymentMethodPayload = z.object({
 });
 export type TUpdatePaymentMethodPayload = z.infer<typeof ZUpdatePaymentMethodPayload>;
 
-export const ZDeletePaymentMethodPayload = z.object({
-  paymentMethodId: z.number(),
-});
+export const ZDeletePaymentMethodPayload = z.array(
+  z.object({
+    paymentMethodId: z.number(),
+  }),
+);
 export type TDeletePaymentMethodPayload = z.infer<typeof ZDeletePaymentMethodPayload>;
+export const ZDeletePaymentMethodResponsePayload = z.object({
+  success: z.array(ZPaymentMethod),
+  failed: z.array(ZDeletePaymentMethodPayload),
+});
+export type TDeletePaymentMethodResponsePayload = z.infer<typeof ZDeletePaymentMethodResponsePayload>;

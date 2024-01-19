@@ -27,7 +27,14 @@ export const ZUpdateCategoryPayload = z.object({
 });
 export type TUpdateCategoryPayload = z.infer<typeof ZUpdateCategoryPayload>;
 
-export const ZDeleteCategoryPayload = z.object({
-  categoryId: z.number(),
-});
+export const ZDeleteCategoryPayload = z.array(
+  z.object({
+    categoryId: z.number(),
+  }),
+);
 export type TDeleteCategoryPayload = z.infer<typeof ZDeleteCategoryPayload>;
+export const ZDeleteCategoryResponsePayload = z.object({
+  success: z.array(ZCategory),
+  failed: z.array(ZDeleteCategoryPayload),
+});
+export type TDeleteCategoryResponsePayload = z.infer<typeof ZDeleteCategoryResponsePayload>;

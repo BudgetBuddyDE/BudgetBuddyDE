@@ -61,7 +61,14 @@ export const ZUpdateSubscriptionPayload = z.object({
 });
 export type TUpdateSubscriptionPayload = z.infer<typeof ZUpdateSubscriptionPayload>;
 
-export const ZDeleteSubscriptionPayload = z.object({
-  subscriptionId: z.number(),
-});
+export const ZDeleteSubscriptionPayload = z.array(
+  z.object({
+    subscriptionId: z.number(),
+  }),
+);
 export type TDeleteSubscriptionPayload = z.infer<typeof ZDeleteSubscriptionPayload>;
+export const ZDeleteSubscriptionResponsePayload = z.object({
+  success: z.array(ZSubscription),
+  failed: z.array(ZDeleteSubscriptionPayload),
+});
+export type TDeleteSubscriptionResponsePayload = z.infer<typeof ZDeleteSubscriptionResponsePayload>;
