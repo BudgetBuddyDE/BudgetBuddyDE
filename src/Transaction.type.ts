@@ -4,6 +4,25 @@ import {ZCategory} from './Category.type';
 import {ZPaymentMethod} from './PaymentMethod.type';
 import {ZCreatedAt, ZDescription} from './Base.type';
 
+/**
+ * TransactionFile
+ */
+
+export const ZTransactionFile = z.object({
+  uuid: z.string().uuid(),
+  // owner: ZUser,
+  // transaction: ZTransaction,
+  fileName: z.string(),
+  fileSize: z.number(),
+  mimetype: z.string().max(20, {message: 'Mimetype is too long'}),
+  location: z.string().max(100, {message: 'Location is too long'}),
+  createdAt: ZCreatedAt,
+});
+export type TTransactionFile = z.infer<typeof ZTransactionFile>;
+
+/**
+ * Transaction
+ */
 const ZTransferAmount = z
   .number()
   .or(z.string())
@@ -18,6 +37,7 @@ export const ZTransaction = z.object({
   receiver: z.string(),
   description: ZDescription,
   transferAmount: ZTransferAmount,
+  attachedFiles: z.array(ZTransactionFile),
   createdAt: ZCreatedAt,
 });
 export type TTransaction = z.infer<typeof ZTransaction>;

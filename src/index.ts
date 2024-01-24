@@ -10,3 +10,4 @@ export * from './Budget.type';
 export * from './DailyTransaction.type';
 export * from './Role.type';
 export * from './HttpStatusCode.type';
+export * from './File.type';
