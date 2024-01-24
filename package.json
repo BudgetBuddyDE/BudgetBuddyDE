@@ -1,6 +1,6 @@
 {
   "name": "@budgetbuddyde/types",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "description": "Budget Buddy Typescript Types",
