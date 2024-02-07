@@ -19,3 +19,5 @@ export type TDate = z.infer<typeof ZDate>;
 export const ZEmail = z.string().min(1, {message: 'This field has to be filled.'}).email('This is not a valid email.');
 
 export type TEmail = z.infer<typeof ZEmail>;
+
+export type TServiceResponse<T> = [T, null] | [null, Error];

@@ -21,10 +21,11 @@ export const ZTransactionFile = z.object({
 export type TTransactionFile = z.infer<typeof ZTransactionFile>;
 
 export const ZCreateTransactionFilePayload = z.object({
+  transactionId: z.number(),
   fileName: z.string(),
   fileSize: z.number(),
   mimeType: z.string().max(20, {message: 'Mimetype is too long'}),
-  fileUrl: z.string().max(100, {message: 'FileURL is too long'}),
+  fileUrl: z.string().max(255, {message: 'FileURL is too long'}),
 });
 export type TCreateTransactionFilePayload = z.infer<typeof ZCreateTransactionFilePayload>;
 
