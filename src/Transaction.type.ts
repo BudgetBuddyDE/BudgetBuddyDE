@@ -70,7 +70,6 @@ export const ZUpdateTransactionPayload = z.object({
   receiver: z.string(),
   description: ZDescription,
   transferAmount: ZTransferAmount,
-  attachedFiles: z.array(ZCreateTransactionFilePayload).default([]),
 });
 export type TUpdateTransactionPayload = z.infer<typeof ZUpdateTransactionPayload>;
 
