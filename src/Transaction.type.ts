@@ -15,7 +15,7 @@ export const ZTransactionFile = z.object({
   fileName: z.string(),
   fileSize: z.number(),
   mimeType: z.string().max(20, {message: 'Mimetype is too long'}),
-  location: z.string().max(100, {message: 'Location is too long'}),
+  location: z.string().max(255, {message: 'Location is too long'}),
   createdAt: ZCreatedAt,
 });
 export type TTransactionFile = z.infer<typeof ZTransactionFile>;
