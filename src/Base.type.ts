@@ -10,6 +10,7 @@ export type TDescription = z.infer<typeof ZDescription>;
 export const ZCreatedAt = z
   .date()
   .or(z.number())
+  .or(z.string())
   .transform(val => new Date(val));
 export type TCreatedAt = z.infer<typeof ZCreatedAt>;
 
