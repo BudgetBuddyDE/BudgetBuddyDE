@@ -1,0 +1,100 @@
+name: Auto Tagging
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: 'Custom Tag'
+        required: false
+        type: string
+      conventional_commits:
+        description: 'Conventional Commits'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  CUSTOM_TAG: ${{ github.event.inputs.custom_tag }}
+  CONVENTIONAL_COMMITS: ${{ github.event.inputs.conventional_commits || true }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-tags: true
+          fetch-depth: 0
+
+      - name: Create Tag
+        if: env.CONVENTIONAL_COMMITS == 'false'
+        run: |
+          cstm_tag=$CUSTOM_TAG
+          if [ -n "$cstm_tag" ]; then
+            if [[ ! $cstm_tag =~ ^v ]]; then
+              cstm_tag="v$cstm_tag"
+            fi
+
+            echo "TAG=v$cstm_tag" >> $GITHUB_ENV
+          else
+            echo "TAG=v1.0.${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Define Tag Increment
+        id: define_increment
+        if: env.CONVENTIONAL_COMMITS == 'true'
+        run: |
+          latest_tag=$(git tag --sort=taggerdate | tail -1)
+          echo "Latest Tag: $latest_tag"
+
+          if [ -z "$latest_tag" ]; then
+            echo ::set-output name=latest_tag::v0.0.0
+            echo ::set-output name=increment::patch
+            exit 0
+          fi
+
+          increment="patch"
+          while read commit; do 
+            # echo "commit: $commit"; 
+            if [[ $commit =~ ^BREAKING ]]; then
+              increment="major"
+              break
+            elif [[ $commit =~ ^feat ]]; then
+              increment="minor"
+              break
+            fi
+          done <<< "$(git log --pretty=format:"%s" $latest_tag..HEAD)"
+
+          echo "Change Type: $increment"
+          echo ::set-output name=latest_tag::$latest_tag
+          echo ::set-output name=increment::$increment
+
+      - uses: actions-ecosystem/action-bump-semver@v1
+        id: increment_tag
+        if: steps.define_increment.outcome == 'success'
+        with:
+          current_version: ${{ steps.define_increment.outputs.latest_tag }}
+          level: ${{ steps.define_increment.outputs.increment }}
+
+      - name: Check Existing Tag
+        id: check_existing_tag
+        if: steps.increment_tag.outcome == 'success'
+        run: |
+          if [ $(git tag -l "${{ steps.increment_tag.outputs.new_version }}") ]; then
+            echo "Tag ${{ steps.increment_tag.outputs.new_version }} already exists."
+            exit 1
+          fi
+
+          echo ::set-output name=validated_tag::${{ steps.increment_tag.outputs.new_version }}
+
+      - name: Push Tag
+        run: |
+          tag=${{ steps.check_existing_tag.outputs.validated_tag }}
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git tag -a $tag -m "chore(release): $tag"
+          git push origin $tag
