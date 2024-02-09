@@ -1,8 +1,8 @@
-# ExpressJS-Template
+# Stock-Service
 
 ## ToC
 
-- [ExpressJS-Template](#expressjs-template)
+- [Stock-Service](#stock-service)
   - [ToC](#toc)
   - [Installation](#installation)
     - [Development / Manual](#development--manual)
@@ -15,7 +15,7 @@
 1.  Clone the repository
 
     ```bash
-    git clone git@github.com:budgetbuddyde/expressjs-template.git
+    git clone git@github.com:budgetbuddyde/stock-service.git
     ```
 
 2.  Install requried dependencies
@@ -47,5 +47,5 @@
 2.  Start an container
     ```bash
     # will expose the server on port 80 on your local machine
-    docker run -p 80:8080 --env-file .env ghcr.io/budgetbuddyde/expressjs-template
+    docker run -p 80:7080 --env-file .env ghcr.io/budgetbuddyde/stock-service
     ```

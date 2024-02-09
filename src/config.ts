@@ -15,13 +15,13 @@ export type TConfig = {
   /**
    * The port to listen on.
    *
-   * 8080 - Production
+   * 7080 - Production
    *
-   * 8070 - Test || Development
+   * 7070 - Test || Development
    *
    * any number when set by `proces.env.PORT`
    */
-  port: 8080 | 8070 | number;
+  port: 7080 | 7070 | number;
   cors: CorsOptions;
 };
 
@@ -39,10 +39,10 @@ export const config: TConfig = {
     process.env.PORT != undefined
       ? Number(process.env.PORT)
       : isRunningInProduction()
-      ? 8080
-      : 8070,
+      ? 7080
+      : 7070,
   cors: {
-    origin: isRunningInProduction() ? 'https://*budget-buddy.de' : '*',
+    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   },
