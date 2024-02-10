@@ -4,9 +4,59 @@
 
 - [Stock-Service](#stock-service)
   - [ToC](#toc)
+  - [Features](#features)
   - [Installation](#installation)
     - [Development / Manual](#development--manual)
     - [Docker](#docker)
+
+## Features
+
+> [!IMPORTANT]
+> Currently supported stock-exchanges by this service are...
+> |Exchange|Value|
+> |--|--|
+> |Lang & Schwarz Exchange (LSX)|`langschwarz`|
+> |Gettex (GETTEX)|`gettex`|
+
+<details>
+<summary>
+<strong>Manage your "BudgetBuddy stock positions*"</strong>
+</summary>
+<small>*In the form of a watchlist that allows you to track current price information for selected securities</small>
+</details>
+
+<details>
+<summary>
+<strong>Get the latest stock prices</strong>
+</summary>
+Retrieve the latest security prices
+</details>
+
+<details>
+<summary>
+<strong>Subscribe to a specific security for real-time stock price updates</strong>
+</summary>
+Stay updated with real-time price changes by subscribing to a websocket endpoint for a specific security.
+
+**Subscribe to Security Price Updates**
+
+> By emitting the `stock:subscribe` event to the socket, you will add securities (provided in the payload) to your personal live update subscriptions.
+
+**Unsubscribe from Security Price Updates**
+
+> By emitting the `stock:unsubscribe` event to the socket, you will unsubscribe from all live price updates.
+
+**Receive Security Price Updates**
+
+> By listening to the `stock:update:<CLIENT_ID>` event, you will receive updates for the securities you have subscribed to.
+
+</details>
+
+<details>
+<summary>
+<strong>Retrieve historical and future dividend information</strong>
+</summary>
+</details>
 
 ## Installation
 

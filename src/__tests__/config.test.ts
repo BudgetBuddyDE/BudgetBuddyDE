@@ -1,4 +1,4 @@
-import { getCurrentRuntimeEnvironment, getPort } from './utils';
+import {getCurrentRuntimeEnvironment, getPort} from '../utils';
 
 describe('should always choose the correct environment', () => {
   beforeEach(() => {

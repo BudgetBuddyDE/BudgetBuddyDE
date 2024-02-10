@@ -1,4 +1,4 @@
-import { type TConfig } from 'config';
+import {type TConfig} from '../config';
 
 /**
  * Retrieves the current runtime environment.

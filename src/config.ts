@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { getCurrentRuntimeEnvironment, isRunningInProduction } from './utils';
-import { type CorsOptions } from 'cors';
+import {type CorsOptions} from 'cors';
+import {getCurrentRuntimeEnvironment, isRunningInProduction} from './utils';
 
 /**
  * Represents the configuration options for the application.
@@ -23,6 +23,17 @@ export type TConfig = {
    */
   port: 7080 | 7070 | number;
   cors: CorsOptions;
+  stocks: {
+    /**
+     * The interval (in minutes) in which the stock prices are fetched from the API.
+     */
+    fetchInterval: number;
+  };
+  log: {
+    default: string;
+    test: string;
+  };
+  enableBackgroundJobs: boolean;
 };
 
 /**
@@ -33,17 +44,23 @@ export const config: TConfig = {
   environment: getCurrentRuntimeEnvironment(),
   environmentVariables: [
     'ENV',
+    'BACKEND_HOST',
+    'DATABASE_URL',
+    'STOCK_API_URL',
     // 'PORT',
   ],
-  port:
-    process.env.PORT != undefined
-      ? Number(process.env.PORT)
-      : isRunningInProduction()
-      ? 7080
-      : 7070,
-  cors: {
-    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+  port: process.env.PORT != undefined ? Number(process.env.PORT) : isRunningInProduction() ? 7080 : 7070,
+  stocks: {
+    fetchInterval: 1,
   },
+  cors: {
+    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : ['*'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    // allowedHeaders: ['Content-Type', 'Authorization'],
+  },
+  log: {
+    default: 'info',
+    test: 'error',
+  },
+  enableBackgroundJobs: process.env.ENABLE_BACKGROUND_JOBS ? process.env.ENABLE_BACKGROUND_JOBS === 'true' : false,
 };

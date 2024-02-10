@@ -1,4 +1,4 @@
-import { getCurrentRuntimeEnvironment } from './getCurrentRuntimeEnvironment.util';
+import {getCurrentRuntimeEnvironment} from './getCurrentRuntimeEnvironment.util';
 
 /**
  * Checks if the application is running in production mode.
