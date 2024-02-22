@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {ZUser} from './User.type';
 import {ZCategory} from './Category.type';
 import {ZPaymentMethod} from './PaymentMethod.type';
-import {ZCreatedAt, ZDescription} from './Base.type';
+import {ZCreatedAt, ZDate, ZDescription} from './Base.type';
 
 /**
  * TransactionFile
@@ -42,7 +42,7 @@ export const ZTransaction = z.object({
   owner: ZUser,
   category: ZCategory,
   paymentMethod: ZPaymentMethod,
-  processedAt: ZCreatedAt,
+  processedAt: ZDate,
   receiver: z.string(),
   description: ZDescription,
   transferAmount: ZTransferAmount,
@@ -55,7 +55,7 @@ export const ZCreateTransactionPayload = z.object({
   owner: z.string().uuid(),
   categoryId: z.number(),
   paymentMethodId: z.number(),
-  processedAt: ZCreatedAt,
+  processedAt: ZDate,
   receiver: z.string(),
   description: ZDescription,
   transferAmount: ZTransferAmount,
@@ -66,7 +66,7 @@ export const ZUpdateTransactionPayload = z.object({
   transactionId: z.number(),
   categoryId: z.number(),
   paymentMethodId: z.number(),
-  processedAt: ZCreatedAt,
+  processedAt: ZDate,
   receiver: z.string(),
   description: ZDescription,
   transferAmount: ZTransferAmount,
@@ -84,3 +84,9 @@ export const ZDeleteTransactionResponsePayload = z.object({
   failed: ZDeleteTransactionPayload,
 });
 export type TDeleteTransactionResponsePayload = z.infer<typeof ZDeleteTransactionResponsePayload>;
+
+export const ZMonthlyBalance = z.object({
+  month: ZDate,
+  balance: z.number(),
+});
+export type TMonthlyBalance = z.infer<typeof ZMonthlyBalance>;
