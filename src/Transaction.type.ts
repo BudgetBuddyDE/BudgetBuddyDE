@@ -87,6 +87,8 @@ export type TDeleteTransactionResponsePayload = z.infer<typeof ZDeleteTransactio
 
 export const ZMonthlyBalance = z.object({
   month: ZDate,
+  income: z.number(),
+  expenses: z.number(),
   balance: z.number(),
 });
 export type TMonthlyBalance = z.infer<typeof ZMonthlyBalance>;
