@@ -1,5 +1,5 @@
 import { useState, useEffect, MouseEvent } from 'react';
-import { Grid, Box, Button, Typography } from '@mui/material';
+import { Grid, Box, Button, Typography, Link } from '@mui/material';
 import { NavbarLinks as pages } from '../constants/navbar-links.constant';
 import { TRepo } from '../types/repo.type';
 import { Repository } from '../components/repository.component';
@@ -30,6 +30,10 @@ export const Home = () => {
             {pages.map((page) => (
               <Button
                 key={page.name}
+                LinkComponent={Link}
+                href={page.link}
+                data-umami-event="click-header-button"
+                data-umami-event-link={page.link}
                 variant="contained"
                 size="large"
                 sx={{
@@ -39,9 +43,6 @@ export const Home = () => {
                   ':hover': {
                     backgroundColor: (theme) => theme.palette.common.white,
                   },
-                }}
-                onClick={() => {
-                  window.location.href = page.link;
                 }}
               >
                 {page.name}

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Typography, Box } from '@mui/material';
-import { TRepo } from '../types/repo.type';
+import { type TRepo } from '../types/repo.type';
 
 export const Repository: FC<{ repo: TRepo }> = ({ repo }) => {
   return (
@@ -22,6 +22,9 @@ export const Repository: FC<{ repo: TRepo }> = ({ repo }) => {
       onClick={() => {
         window.location.href = repo.html_url;
       }}
+      data-umami-event="click-project"
+      data-umami-event-repository={repo.full_name}
+      data-umami-event-link={repo.html_url}
     >
       <Typography
         variant="h6"
