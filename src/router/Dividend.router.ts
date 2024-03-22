@@ -31,7 +31,6 @@ router.get('/', async (req, res) => {
       .status(HTTPStatusCode.InternalServerError)
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build());
   }
-
   return res.json(ApiResponse.builder().withData(dividends).build());
 });
 

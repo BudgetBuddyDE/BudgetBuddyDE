@@ -6,7 +6,7 @@ import {ZDate} from '@budgetbuddyde/types';
 export const ZCurrency = z.string().max(3, {message: 'Currency must be 3 characters long'});
 export type TCurrency = z.infer<typeof ZCurrency>;
 
-export const ZTimeframe = z.enum(['1d', '1m', '1y', '5y']);
+export const ZTimeframe = z.enum(['1d', '1m', '3m', '1y', '5y', 'ytd']);
 export type TTimeframe = z.infer<typeof ZTimeframe>;
 
 // Assets
@@ -90,6 +90,20 @@ export type TAssetSearchEntity = {
     }
 );
 
+export const ZStockType = z.enum(['Aktie', 'ETF']).or(z.string());
+export type TStockType = z.infer<typeof ZStockType>;
+
+export const ZAssetSearchResult = z.object({
+  type: ZStockType,
+  name: z.string(),
+  identifier: z.string(),
+  logo: z.string(),
+  domicile: z.string().optional(),
+  wkn: z.string(),
+  website: z.string().optional(),
+});
+export type TAssetSearchResult = z.infer<typeof ZAssetSearchResult>;
+
 export type TAssetQuote = {
   currency: string;
   exchange: string;
@@ -153,9 +167,6 @@ export type TAssetChartQuote = z.infer<typeof ZAssetChartQuote>;
 // Dividends
 
 export const ZDividend = z.object({
-  /**
-   * Eq. `Dividend`
-   */
   type: z.string(),
   security: z.string(),
   price: z.number(),
@@ -175,19 +186,41 @@ export type TDividend = z.infer<typeof ZDividend>;
 export const ZDividendDetails = z.object({
   identifier: z.string(),
   payoutInterval: z.string(),
+  asset: z
+    .object({
+      _id: z.object({
+        identifier: z.string(),
+        assetType: z.string(),
+      }),
+      assetType: z.string(),
+      name: z.string(),
+      logo: z.string(),
+      security: z.object({
+        website: z.string(),
+        type: z.string(),
+        wkn: z.string(),
+        isin: z.string(),
+        etfDomicile: z.string().optional(),
+        etfCompany: z.string().optional(),
+      }),
+    })
+    .nullable()
+    .default(null),
+  historyDividends: z.array(ZDividend).nullable().default([]),
   futureDividends: z.array(ZDividend).nullable().default([]),
-  historicalDividends: z.array(ZDividend).nullable().default([]),
-  asset: ZAsset.nullable().default(null),
-  dividendKPIs: z.object({
-    cagr3Y: z.number(),
-    cagr5Y: z.number(),
-    cagr10Y: z.number(),
-    dividendYieldPercentageTTM: z.number(),
-    dividendPerShareTTM: z.number(),
-  }),
+  dividendKPIs: z
+    .object({
+      cagr3Y: z.number(),
+      cagr5Y: z.number(),
+      cagr10Y: z.number(),
+      dividendYieldPercentageTTM: z.number(),
+      dividendPerShareTTM: z.number(),
+    })
+    .optional(),
 });
-
 export type TDividendDetails = z.infer<typeof ZDividendDetails>;
+
 export const ZDividendDetailList = z.object({
   dividendDetails: z.record(z.string(), ZDividendDetails),
 });
+export type TDividendDetailList = z.infer<typeof ZDividendDetailList>;

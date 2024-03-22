@@ -1,17 +1,31 @@
 import {z} from 'zod';
 import express from 'express';
-import {ApiResponse, HTTPStatusCode, type TApiResponse} from '@budgetbuddyde/types';
+import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
 import {StockService, DatabaseService} from '../services';
-import {
-  type TSearchEntity,
-  ZOpenPositionPayload,
-  ZClosePositionPayload,
-  ZUpdatePositionPayload,
-  type TStockServiceResponse,
-} from '../types';
-import {ZTimeframe} from '../types/StockService.types';
+import {ZOpenPositionPayload, ZClosePositionPayload, ZUpdatePositionPayload, type TStockExchanges} from '../types';
+import {type TAssetSearchResult, ZTimeframe} from '../types/StockService.types';
 
 const router = express.Router();
+
+// FIXME: Retrieve supported exchanges from database
+router.get('/exchanges', async (req, res) => {
+  return res
+    .json(
+      ApiResponse.builder()
+        .withData({
+          langschwarz: {
+            label: 'Lang & Schwarz Exchange',
+            ticker: 'LSX',
+          },
+          gettex: {
+            label: 'Gettex',
+            ticker: 'GETTEX',
+          },
+        } as TStockExchanges)
+        .build(),
+    )
+    .end();
+});
 
 router.get('/search', async (req, res) => {
   if (!req.query.q) {
@@ -37,13 +51,14 @@ router.get('/search', async (req, res) => {
         name: match.name,
         identifier: match.assetId.identifier,
         logo: match.asset.logo,
+        domicil: match.asset.security.etfDomicile,
+        wkn: match.asset.security.wkn,
+        website: match.asset.security.website,
       };
     })
-    .filter(match => match !== null) as TSearchEntity[];
+    .filter(match => match !== null) as TAssetSearchResult[];
 
-  const response: TStockServiceResponse<'GET_SearchAsset'> = ApiResponse.builder<TSearchEntity[]>()
-    .withData(searchResults)
-    .build() as TApiResponse<TSearchEntity[]>;
+  const response = ApiResponse.builder<TAssetSearchResult[]>().withData(searchResults).build();
   return res.json(response).end();
 });
 
@@ -88,7 +103,7 @@ router.post('/position', async (req, res) => {
           };
         }),
       )
-      .build() as TStockServiceResponse<'POST_OpenPosition'>;
+      .build();
     return res.json(response).end();
   } catch (error) {
     return res
@@ -138,7 +153,7 @@ router.get('/position', async (req, res) => {
           };
         }),
       )
-      .build() as TStockServiceResponse<'GET_Position'>;
+      .build();
     return res.json(response).end();
   } catch (error) {
     return res
@@ -179,7 +194,7 @@ router.put('/position', async (req, res) => {
     const response = ApiResponse.builder()
       .withMessage(`Updated position for ${parsingResult.data.map(entry => entry.id).join(',')}!`)
       .withData(updateResult)
-      .build() as TStockServiceResponse<'PUT_UpdatePosition'>;
+      .build();
     return res.json(response).end();
   } catch (error) {
     return res
@@ -219,7 +234,7 @@ router.delete('/position', async (req, res) => {
     const response = ApiResponse.builder()
       .withMessage(`Closed position for ${parsingResult.data.map(entry => entry.id).join(',')}!`)
       .withData(deleteResult)
-      .build() as TStockServiceResponse<'DELETE_ClosePosition'>;
+      .build();
     return res.json(response).end();
   } catch (error) {
     return res
@@ -236,6 +251,7 @@ router.delete('/position', async (req, res) => {
 
 router.get('/quote', async (req, res) => {
   const query = req.query;
+  const exchange = query.exchange;
   if (!query || !query.asset) {
     return res
       .status(HTTPStatusCode.BadRequest)
@@ -251,12 +267,27 @@ router.get('/quote', async (req, res) => {
       .json(
         ApiResponse.builder().withStatus(HTTPStatusCode.BadRequest).withMessage("Invalid 'asset' provided").build(),
       );
+  } else if (!exchange) {
+    return res
+      .status(HTTPStatusCode.BadRequest)
+      .json(
+        ApiResponse.builder()
+          .withStatus(HTTPStatusCode.BadRequest)
+          .withMessage("Missing 'exchange' query parameter")
+          .build(),
+      );
+  } else if (!z.string().safeParse(exchange).success) {
+    return res
+      .status(HTTPStatusCode.BadRequest)
+      .json(
+        ApiResponse.builder().withStatus(HTTPStatusCode.BadRequest).withMessage("Invalid 'exchange' provided").build(),
+      );
   }
 
   const asset = query.asset as string;
   const [quote, error] = await StockService.getQuote({
     isin: asset,
-    exchange: 'langschwarz',
+    exchange: exchange as string,
   });
   if (error) {
     return res

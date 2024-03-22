@@ -1,31 +1,21 @@
 import {z} from 'zod';
 import {ZCreatedAt, ZDate} from '@budgetbuddyde/types';
+import {ZCurrency} from './StockService.types';
 
-export type TStockType = 'Aktie' | 'ETF' | string;
-
-export type TSearchEntity = {
-  type: TStockType;
-  name: string;
-  identifier: string;
-  logo: string;
-};
-
-export type TStock = {
-  type: TStockType;
-  name: string;
-  isin: string;
-  wkn?: string;
-  logo: string;
-  website?: string;
-};
+/**
+ * Represents a collection of stock exchanges.
+ * The keys are exchange names (used by the API), and the values are objects containing the exchange label and ticker symbol.
+ */
+export const ZStockExchanges = z.record(z.string(), z.object({label: z.string(), ticker: z.string()}));
+export type TStockExchanges = z.infer<typeof ZStockExchanges>;
 
 export const ZStockQuote = z.object({
-  currency: z.string().length(3),
+  currency: z.string().max(3),
   exchange: z.string().max(100),
   date: ZDate,
   datetime: ZDate,
   price: z.number(),
-  isin: z.string().length(12),
+  isin: z.string().max(12),
   cachedAt: ZDate,
 });
 export type TStockQuote = z.infer<typeof ZStockQuote>;
@@ -34,10 +24,10 @@ export type TStockQuote = z.infer<typeof ZStockQuote>;
  * Represents a stock exchange table.
  */
 export const ZStockExchangeTable = z.object({
-  symbol: z.string().length(5),
-  name: z.string().length(100),
-  exchange: z.string().length(100),
-  country: z.string().length(100),
+  symbol: z.string().max(5),
+  name: z.string().max(100),
+  exchange: z.string().max(100),
+  country: z.string().max(100),
   created_at: ZCreatedAt,
 });
 /**
@@ -56,9 +46,9 @@ export const ZStockPositionTable = z.object({
   owner: z.string().uuid(),
   bought_at: ZDate,
   exchange: z.string(),
-  isin: z.string().length(12),
+  isin: z.string().max(12),
   buy_in: z.number(),
-  currency: z.string().length(3),
+  currency: z.string().max(3),
   quantity: z.number(),
   created_at: ZCreatedAt,
 });
@@ -75,14 +65,14 @@ export const ZMaterializedStockPositionTable = z.object({
   owner: z.string(),
   bought_at: ZDate,
   exchange: z.object({
-    symbol: z.string().length(5),
+    symbol: z.string().max(5),
     name: z.string().length(100),
     exchange: z.string().length(100),
     country: z.string().length(100),
   }),
-  isin: z.string().length(12),
+  isin: z.string().max(12),
   buy_in: z.number(),
-  currency: z.string().length(3),
+  currency: z.string().max(3),
   quantity: z.number(),
   created_at: ZCreatedAt,
 });
@@ -98,9 +88,9 @@ export const ZOpenPositionPayload = z.object({
   owner: z.string().uuid(),
   bought_at: ZDate,
   exchange: z.string(),
-  isin: z.string().length(12),
+  isin: z.string().max(12),
   buy_in: z.number(),
-  currency: z.string().length(3),
+  currency: z.string().max(3),
   quantity: z.number(),
 });
 /**
@@ -115,7 +105,7 @@ export const ZUpdatePositionPayload = z.object({
   id: z.number(),
   bought_at: ZDate,
   exchange: z.string(),
-  isin: z.string().length(12),
+  isin: z.string().max(12),
   buy_in: z.number(),
   quantity: z.number(),
 });
@@ -135,13 +125,32 @@ export const ZClosePositionPayload = z.object({
  */
 export type TClosePositionPayload = z.infer<typeof ZClosePositionPayload>;
 
-export const ZStockPosition = z.union([
-  ZMaterializedStockPositionTable,
-  z.object({
+export const ZStockPosition = z.object({
+  id: z.number(),
+  owner: z.string().uuid(),
+  bought_at: ZDate,
+  exchange: z.object({
+    symbol: z.string(),
     name: z.string(),
-    logo: z.string(),
-    quote: ZStockQuote,
-    volume: z.number(),
+    exchange: z.string(),
+    country: z.string(),
   }),
-]);
+  isin: z.string(),
+  buy_in: z.number(),
+  currency: ZCurrency,
+  quantity: z.number(),
+  created_at: ZDate,
+  name: z.string(),
+  logo: z.string(),
+  volume: z.number(),
+  quote: z.object({
+    currency: ZCurrency,
+    exchange: z.string(),
+    date: ZDate,
+    datetime: ZDate,
+    price: z.number(),
+    isin: z.string(),
+    cachedAt: ZDate,
+  }),
+});
 export type TStockPosition = z.infer<typeof ZStockPosition>;

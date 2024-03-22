@@ -3,15 +3,15 @@ import {type TApiResponse, type TServiceResponse} from '@budgetbuddyde/types';
 import fetch from 'node-fetch';
 import {format} from 'date-fns';
 import {
-  type TStockQuote,
   ZStockQuote,
-  type TTimeframe,
   ZAssetChartQuote,
+  ZDividendDetailList,
+  type TStockQuote,
+  type TTimeframe,
   type TAssetSearchEntity,
   type TAssetWithQuote,
   type TAssetChartQuote,
-  type TDividendDetails,
-  ZDividendDetailList,
+  type TDividendDetailList,
 } from '../types';
 import {type TStockSubscription} from '../core';
 
@@ -112,6 +112,7 @@ export class StockService {
         ),
       });
       const json = (await response.json()) as TAssetChartQuote[];
+
       const parsingResult = z.array(ZAssetChartQuote).safeParse(json);
       if (!parsingResult.success) throw new Error(parsingResult.error.message);
       return [parsingResult.data, null];
@@ -125,7 +126,7 @@ export class StockService {
    * @param isin - An array of ISINs for which dividend details are to be retrieved.
    * @returns A promise that resolves to a tuple containing the dividend details and any error that occurred during the retrieval.
    */
-  static async getDividends(isin: string[]): Promise<TServiceResponse<Record<string, TDividendDetails>>> {
+  static async getDividends(isin: string[]): Promise<TServiceResponse<TDividendDetailList['dividendDetails']>> {
     if (isin.length === 0) return [null, new Error('No ISIN provided')];
     try {
       const query = new URLSearchParams();
@@ -136,6 +137,7 @@ export class StockService {
 
       const response = await fetch(`${this.host}/v1/assets/dividends?${query.toString()}`);
       const json = await response.json();
+
       const parsingResult = ZDividendDetailList.safeParse(json);
       if (!parsingResult.success) throw new Error(parsingResult.error.message);
       return [parsingResult.data.dividendDetails, null];
