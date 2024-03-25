@@ -7,7 +7,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "start": "npm run build && node src/build/server.js",
+    "start": "node build/src/server.js",
     "start:ts": "ts-node src/server.ts",
     "dev": "nodemon --watch .env --watch src src/server.ts",
     "test": "jest --passWithNoTests --detectOpenHandles",
