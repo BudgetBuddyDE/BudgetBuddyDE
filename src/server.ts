@@ -78,7 +78,7 @@ io.on('connection', socket => {
   //   console.log('disconnecting', socket.rooms);
   // });
 
-  socket.on('stock:subscribe', ([stocks, userId]: [{isin: string; exchange: string}[], TUser['uuid']]) => {
+  socket.on('stock:subscribe', (stocks: {isin: string; exchange: string}[], userId: TUser['uuid']) => {
     logger.info(`Subscribing to stocks ${stocks.map(({isin}) => isin).join(', ')} for client ${userId}`, {
       category: ELogCategory.STOCK,
     });
@@ -91,7 +91,7 @@ io.on('connection', socket => {
     });
   });
 
-  socket.on('stock:unsubscribe', ([stocks, userId]: [{isin: string; exchange: string}[], TUser['uuid']]) => {
+  socket.on('stock:unsubscribe', (stocks: {isin: string; exchange: string}[], userId: TUser['uuid']) => {
     logger.info(`Remove subscription from stocks ${stocks.map(({isin}) => isin).join(', ')} for client ${userId}`, {
       category: ELogCategory.STOCK,
     });
