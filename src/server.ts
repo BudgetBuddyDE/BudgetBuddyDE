@@ -28,20 +28,28 @@ import {AssetRouter, DividendRouter} from './router';
 import {AssetSubscriptionHandler} from './handler';
 import {AuthService} from './services';
 import {StockStore, logger} from './core';
+import {isRunningInProduction} from './utils';
 
 export const app = express();
 export const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     ...config.cors,
-    // @ts-ignore
-    origin: config.cors.origin[0],
+    origin: isRunningInProduction()
+      ? ['https://app.budget-buddy.de', 'https://dev.app.budget-buddy.de', /\.budget-buddy\.de$/]
+      : ['http://localhost:3000'],
   },
 });
+
 app.use(cors(config.cors));
 app.use(logMiddleware);
 app.use(bodyParser.json());
 app.use(checkAuthorizationHeader);
+app.use((req, res, next) => {
+  res.setHeader('X-Served-By', `${name}::${version}`);
+  next();
+});
 
 app.use('/v1/asset', AssetRouter);
 app.use('/v1/dividend', DividendRouter);

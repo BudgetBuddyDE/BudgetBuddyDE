@@ -54,9 +54,10 @@ export const config: TConfig = {
     fetchInterval: 1,
   },
   cors: {
-    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : ['*'],
+    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    // allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   },
   log: {
     default: 'info',
