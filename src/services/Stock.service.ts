@@ -1,20 +1,18 @@
 import {z} from 'zod';
-import {type TApiResponse, type TServiceResponse} from '@budgetbuddyde/types';
-import fetch from 'node-fetch';
-import {format} from 'date-fns';
 import {
-  ZStockQuote,
+  type TApiResponse,
+  type TServiceResponse,
   ZAssetChartQuote,
   ZDividendDetailList,
   ZAssetDetails,
-  type TStockQuote,
   type TTimeframe,
-  type TAssetSearchEntity,
-  type TAssetWithQuote,
   type TAssetChartQuote,
   type TDividendDetailList,
   type TAssetDetails,
-} from '../types';
+} from '@budgetbuddyde/types';
+import fetch from 'node-fetch';
+import {format} from 'date-fns';
+import {ZStockQuote, type TStockQuote, type TAssetSearchEntity, type TAssetWithQuote} from '../types';
 import {type TStockSubscription} from '../core';
 
 export class StockService {

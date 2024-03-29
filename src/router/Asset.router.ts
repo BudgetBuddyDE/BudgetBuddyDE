@@ -3,7 +3,7 @@ import express from 'express';
 import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
 import {StockService, DatabaseService} from '../services';
 import {ZOpenPositionPayload, ZClosePositionPayload, ZUpdatePositionPayload, type TStockExchanges} from '../types';
-import {type TAssetSearchResult, ZTimeframe} from '../types/StockService.types';
+import {type TAssetSearchResult, ZTimeframe} from '@budgetbuddyde/types';
 
 const router = express.Router();
 

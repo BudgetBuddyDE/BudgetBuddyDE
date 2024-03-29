@@ -1,6 +1,5 @@
 import {z} from 'zod';
-import {ZCreatedAt, ZDate} from '@budgetbuddyde/types';
-import {ZCurrency} from './StockService.types';
+import {ZCreatedAt, ZCurrency, ZDate} from '@budgetbuddyde/types';
 
 /**
  * Represents a collection of stock exchanges.
