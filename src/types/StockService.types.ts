@@ -18,11 +18,11 @@ export const ZDividend = z.object({
   currency: ZCurrency,
   date: ZDate,
   datetime: ZDate,
-  originalPrice: z.number(),
-  originalCurrency: ZCurrency,
+  originalPrice: z.number().optional(),
+  originalCurrency: ZCurrency.optional(),
   paymentDate: ZDate,
   declarationDate: ZDate.nullable(),
-  recordDate: ZDate,
+  recordDate: ZDate.nullable(),
   exDate: ZDate,
   isEstimated: z.boolean(),
 });
@@ -335,10 +335,26 @@ export const ZAssetDetails = z.object({
       ceo: z.string(),
     }),
     etfBreakdown: z.null(),
-    analystEstimates: z.null(),
-    historyDividends: z.array(ZDividend).nullable().default([]),
+    analystEstimates: z
+      .object({
+        strongBuy: z.number(),
+        buy: z.number(),
+        hold: z.number(),
+        sell: z.number(),
+        strongSell: z.number(),
+      })
+      .nullable(),
+    historicalDividends: z.array(ZDividend).nullable().default([]),
     futureDividends: z.array(ZDividend).nullable().default([]),
-    priceTargetConsensus: z.null(),
+    priceTargetConsensus: z
+      .object({
+        currency: ZCurrency,
+        high: z.number(),
+        low: z.number(),
+        consensus: z.number(),
+        median: z.number(),
+      })
+      .nullable(),
     analysis: z.object({
       entries: z.array(
         z.object({
@@ -352,7 +368,15 @@ export const ZAssetDetails = z.object({
         }),
       ),
     }),
-    news: z.array(z.any()),
+    news: z.array(
+      z.object({
+        publishedAt: ZDate,
+        title: z.string(),
+        description: z.string(),
+        image: z.string().url(),
+        url: z.string().url(),
+      }),
+    ),
     scorings: z.array(
       z.object({
         source: z.string(),
