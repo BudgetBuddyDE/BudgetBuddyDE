@@ -9,6 +9,67 @@ export type TCurrency = z.infer<typeof ZCurrency>;
 export const ZTimeframe = z.enum(['1d', '1m', '3m', '1y', '5y', 'ytd']);
 export type TTimeframe = z.infer<typeof ZTimeframe>;
 
+// Dividends
+
+export const ZDividend = z.object({
+  type: z.string(),
+  security: z.string(),
+  price: z.number(),
+  currency: ZCurrency,
+  date: ZDate,
+  datetime: ZDate,
+  originalPrice: z.number(),
+  originalCurrency: ZCurrency,
+  paymentDate: ZDate,
+  declarationDate: ZDate.nullable(),
+  recordDate: ZDate,
+  exDate: ZDate,
+  isEstimated: z.boolean(),
+});
+export type TDividend = z.infer<typeof ZDividend>;
+
+export const ZDividendDetails = z.object({
+  identifier: z.string(),
+  payoutInterval: z.string(),
+  asset: z
+    .object({
+      _id: z.object({
+        identifier: z.string(),
+        assetType: z.string(),
+      }),
+      assetType: z.string(),
+      name: z.string(),
+      logo: z.string(),
+      security: z.object({
+        website: z.string(),
+        type: z.string(),
+        wkn: z.string(),
+        isin: z.string(),
+        etfDomicile: z.string().optional(),
+        etfCompany: z.string().optional(),
+      }),
+    })
+    .nullable()
+    .default(null),
+  historyDividends: z.array(ZDividend).nullable().default([]),
+  futureDividends: z.array(ZDividend).nullable().default([]),
+  dividendKPIs: z
+    .object({
+      cagr3Y: z.number(),
+      cagr5Y: z.number(),
+      cagr10Y: z.number(),
+      dividendYieldPercentageTTM: z.number(),
+      dividendPerShareTTM: z.number(),
+    })
+    .optional(),
+});
+export type TDividendDetails = z.infer<typeof ZDividendDetails>;
+
+export const ZDividendDetailList = z.object({
+  dividendDetails: z.record(z.string(), ZDividendDetails),
+});
+export type TDividendDetailList = z.infer<typeof ZDividendDetailList>;
+
 // Assets
 
 type TStockAssetType = 'security' | 'Security' | 'crypto' | 'Crypto';
@@ -104,15 +165,16 @@ export const ZAssetSearchResult = z.object({
 });
 export type TAssetSearchResult = z.infer<typeof ZAssetSearchResult>;
 
-export type TAssetQuote = {
-  currency: string;
-  exchange: string;
-  date: string | Date;
-  datetime: string | Date;
-  price: number;
-  isin: string;
-  cachedAt: string | Date;
-};
+export const ZAssetQuote = z.object({
+  currency: ZCurrency,
+  exchange: z.string(),
+  date: ZDate,
+  datetime: ZDate,
+  price: z.number(),
+  isin: z.string(),
+  cachedAt: ZDate,
+});
+export type TAssetQuote = z.infer<typeof ZAssetQuote>;
 
 export type TAssetWithQuote = {
   asset: {
@@ -164,63 +226,152 @@ export const ZAssetChartQuote = z.object({
 });
 export type TAssetChartQuote = z.infer<typeof ZAssetChartQuote>;
 
-// Dividends
-
-export const ZDividend = z.object({
-  type: z.string(),
-  security: z.string(),
-  price: z.number(),
-  currency: ZCurrency,
-  date: ZDate,
-  datetime: ZDate,
-  originalPrice: z.number(),
-  originalCurrency: ZCurrency,
-  paymentDate: ZDate,
-  declarationDate: ZDate,
-  recordDate: ZDate,
-  exDate: ZDate,
-  isEstimated: z.boolean(),
-});
-export type TDividend = z.infer<typeof ZDividend>;
-
-export const ZDividendDetails = z.object({
-  identifier: z.string(),
-  payoutInterval: z.string(),
-  asset: z
-    .object({
-      _id: z.object({
-        identifier: z.string(),
-        assetType: z.string(),
-      }),
+export const ZAssetDetails = z.object({
+  asset: z.object({
+    _id: z.object({
+      identifier: z.string(),
       assetType: z.string(),
-      name: z.string(),
-      logo: z.string(),
-      security: z.object({
-        website: z.string(),
-        type: z.string(),
-        wkn: z.string(),
-        isin: z.string(),
-        etfDomicile: z.string().optional(),
-        etfCompany: z.string().optional(),
+    }),
+    assetType: z.string(),
+    name: z.string(),
+    logo: z.string(),
+    createdAt: ZDate,
+    updatedAt: ZDate,
+    security: z.object({
+      regions: z.array(
+        z.object({
+          share: z.number(),
+          id: z.string(),
+        }),
+      ),
+      sectors: z.array(
+        z.object({
+          share: z.number(),
+          id: z.string(),
+        }),
+      ),
+      countries: z.array(
+        z.object({
+          share: z.number(),
+          id: z.string(),
+        }),
+      ),
+      industries: z.array(
+        z.object({
+          share: z.number(),
+          id: z.string(),
+        }),
+      ),
+      isin: z.string(),
+      symbols: z.array(
+        z.object({
+          exchange: z.string(),
+          symbol: z.string(),
+        }),
+      ),
+      website: z.string().url(),
+      wkn: z.string(),
+      type: z.string(),
+      ipoDate: ZDate,
+      etfDomicile: z.string(),
+      etfCompany: z.string(),
+      hasDividends: z.boolean(),
+    }),
+  }),
+  quote: ZAssetQuote,
+  details: z.object({
+    securityDetails: z.object({
+      description: z.string(),
+      currency: ZCurrency,
+      marketCap: z.number(),
+      shares: z.number(),
+      fullTimeEmployees: z.number(),
+      beta: z.number(),
+      peRatioTTM: z.number(),
+      priceSalesRatioTTM: z.number(),
+      priceToBookRatioTTM: z.number(),
+      pegRatioTTM: z.number(),
+      priceFairValueTTM: z.number(),
+      dividendYielPercentageTTM: z.number(),
+      dividendPerShareTTM: z.number(),
+      payoutRatioTTM: z.number(),
+      fiftyTwoWeekRange: z.object({
+        from: z.number(),
+        to: z.number(),
       }),
-    })
-    .nullable()
-    .default(null),
-  historyDividends: z.array(ZDividend).nullable().default([]),
-  futureDividends: z.array(ZDividend).nullable().default([]),
-  dividendKPIs: z
-    .object({
+      address: z.object({
+        addressLine: z.string(),
+        city: z.string(),
+        state: z.string(),
+        zip: z.string(),
+      }),
+      incomeStatementGrowth: z.array(
+        z.object({
+          date: ZDate,
+          growthRevenue: z.number(),
+          growthNetIncome: z.number(),
+        }),
+      ),
+      annualFinancials: z.array(
+        z.object({
+          currency: ZCurrency,
+          date: ZDate,
+          revenue: z.number(),
+          grossProfit: z.number(),
+          netIncome: z.number(),
+          ebitda: z.number(),
+        }),
+      ),
+      quarterlyFinancials: z.array(
+        z.object({
+          currency: ZCurrency,
+          date: ZDate,
+          revenue: z.number(),
+          grossProfit: z.number(),
+          netIncome: z.number(),
+          ebitda: z.number(),
+        }),
+      ),
+      ceo: z.string(),
+    }),
+    etfBreakdown: z.null(),
+    analystEstimates: z.null(),
+    historyDividends: z.array(ZDividend).nullable().default([]),
+    futureDividends: z.array(ZDividend).nullable().default([]),
+    priceTargetConsensus: z.null(),
+    analysis: z.object({
+      entries: z.array(
+        z.object({
+          analysisDate: ZDate,
+          mediaType: z.string(), // video, article
+          ratingCount: z.number(),
+          rating: z.number(),
+          author: z.string(),
+          title: z.string(),
+          url: z.string().url(),
+        }),
+      ),
+    }),
+    news: z.array(z.any()),
+    scorings: z.array(
+      z.object({
+        source: z.string(),
+        type: z.string(),
+        value: z.number(),
+        maxValue: z.number(),
+        badgeColor: z.string(), // hex color
+      }),
+    ),
+    payoutInterval: z.string(),
+    payoutIntervalSource: z.string(),
+    dividendKPIs: z.object({
       cagr3Y: z.number(),
       cagr5Y: z.number(),
       cagr10Y: z.number(),
       dividendYieldPercentageTTM: z.number(),
       dividendPerShareTTM: z.number(),
-    })
-    .optional(),
+    }),
+    dividendYearlyTTM: z.record(z.string(), z.number()),
+  }),
 });
-export type TDividendDetails = z.infer<typeof ZDividendDetails>;
-
-export const ZDividendDetailList = z.object({
-  dividendDetails: z.record(z.string(), ZDividendDetails),
-});
-export type TDividendDetailList = z.infer<typeof ZDividendDetailList>;
+export type TAssetDetails = z.infer<typeof ZAssetDetails>;

@@ -6,17 +6,43 @@ import {
   ZStockQuote,
   ZAssetChartQuote,
   ZDividendDetailList,
+  ZAssetDetails,
   type TStockQuote,
   type TTimeframe,
   type TAssetSearchEntity,
   type TAssetWithQuote,
   type TAssetChartQuote,
   type TDividendDetailList,
+  type TAssetDetails,
 } from '../types';
 import {type TStockSubscription} from '../core';
 
 export class StockService {
   private static host = process.env.STOCK_API_URL as string;
+
+  /**
+   * Retrieves the details of an asset based on its ISIN.
+   * @param isin - The ISIN of the asset.
+   * @param currency - The currency in which the asset details should be returned (default: 'EUR').
+   * @returns A promise that resolves to a tuple containing the asset details and any error that occurred during the retrieval.
+   */
+  static async getAssetDetails(isin: string, currency: string = 'EUR'): Promise<TServiceResponse<TAssetDetails>> {
+    try {
+      const query = new URLSearchParams();
+      query.append('currency', currency);
+      query.append('expand', 'details');
+      query.append('expand', 'yieldTTM');
+
+      const response = await fetch(`${this.host}/v1/assets/${isin}?${query.toString()}`);
+      const json = (await response.json()) as TAssetDetails;
+
+      const parsingResult = ZAssetDetails.safeParse(json);
+      if (!parsingResult.success) throw new Error(parsingResult.error.message);
+      return [parsingResult.data, null];
+    } catch (error) {
+      return [null, error as Error];
+    }
+  }
 
   /**
    * Searches for an asset based on the provided search term.

@@ -62,6 +62,26 @@ router.get('/search', async (req, res) => {
   return res.json(response).end();
 });
 
+router.get('/details/:isin', async (req, res) => {
+  const isin = req.params.isin;
+  if (!isin) {
+    return res
+      .status(HTTPStatusCode.BadRequest)
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.BadRequest).withMessage('Missing ISIN').build())
+      .end();
+  }
+
+  const [details, error] = await StockService.getAssetDetails(isin);
+  if (error) {
+    return res
+      .status(HTTPStatusCode.InternalServerError)
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build())
+      .end();
+  }
+
+  return res.json(ApiResponse.builder().withData(details).build()).end();
+});
+
 router.post('/position', async (req, res) => {
   if (!req.user) {
     return res
