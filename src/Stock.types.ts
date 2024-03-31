@@ -337,66 +337,110 @@ export const ZAssetDetails = z.object({
       ipoDate: ZDate,
       etfDomicile: z.string(),
       etfCompany: z.string(),
-      hasDividends: z.boolean(),
+      hasDividends: z.boolean().optional(),
     }),
   }),
   quote: ZStockQuote,
   details: z.object({
-    securityDetails: z.object({
-      description: z.string(),
-      currency: ZCurrency,
-      marketCap: z.number(),
-      shares: z.number(),
-      fullTimeEmployees: z.number(),
-      beta: z.number(),
-      peRatioTTM: z.number(),
-      priceSalesRatioTTM: z.number(),
-      priceToBookRatioTTM: z.number(),
-      pegRatioTTM: z.number(),
-      priceFairValueTTM: z.number(),
-      dividendYielPercentageTTM: z.number(),
-      dividendPerShareTTM: z.number(),
-      payoutRatioTTM: z.number(),
-      fiftyTwoWeekRange: z.object({
-        from: z.number(),
-        to: z.number(),
-      }),
-      address: z.object({
-        addressLine: z.string(),
-        city: z.string(),
-        state: z.string(),
-        zip: z.string(),
-      }),
-      incomeStatementGrowth: z.array(
-        z.object({
-          date: ZDate,
-          growthRevenue: z.number(),
-          growthNetIncome: z.number(),
+    securityDetails: z
+      .object({
+        description: z.string(),
+        currency: ZCurrency,
+        marketCap: z.number(),
+        shares: z.number(),
+        fullTimeEmployees: z.number(),
+        beta: z.number(),
+        peRatioTTM: z.number(),
+        priceSalesRatioTTM: z.number(),
+        priceToBookRatioTTM: z.number(),
+        pegRatioTTM: z.number(),
+        priceFairValueTTM: z.number(),
+        dividendYielPercentageTTM: z.number(),
+        dividendPerShareTTM: z.number(),
+        payoutRatioTTM: z.number(),
+        fiftyTwoWeekRange: z.object({
+          from: z.number(),
+          to: z.number(),
         }),
-      ),
-      annualFinancials: z.array(
-        z.object({
-          currency: ZCurrency,
-          date: ZDate,
-          revenue: z.number(),
-          grossProfit: z.number(),
-          netIncome: z.number(),
-          ebitda: z.number(),
+        address: z.object({
+          addressLine: z.string(),
+          city: z.string(),
+          state: z.string(),
+          zip: z.string(),
         }),
-      ),
-      quarterlyFinancials: z.array(
-        z.object({
-          currency: ZCurrency,
-          date: ZDate,
-          revenue: z.number(),
-          grossProfit: z.number(),
-          netIncome: z.number(),
-          ebitda: z.number(),
-        }),
-      ),
-      ceo: z.string(),
-    }),
-    etfBreakdown: z.null(),
+        incomeStatementGrowth: z.array(
+          z.object({
+            date: ZDate,
+            growthRevenue: z.number(),
+            growthNetIncome: z.number(),
+          }),
+        ),
+        annualFinancials: z.array(
+          z.object({
+            currency: ZCurrency,
+            date: ZDate,
+            revenue: z.number(),
+            grossProfit: z.number(),
+            netIncome: z.number(),
+            ebitda: z.number(),
+          }),
+        ),
+        quarterlyFinancials: z.array(
+          z.object({
+            currency: ZCurrency,
+            date: ZDate,
+            revenue: z.number(),
+            grossProfit: z.number(),
+            netIncome: z.number(),
+            ebitda: z.number(),
+          }),
+        ),
+        ceo: z.string(),
+      })
+      .optional(),
+    eftDetails: z
+      .object({
+        currency: ZCurrency,
+        nav: z.number(),
+        description: z.string(),
+        priceToBook: z.number(),
+        priceToEarnings: z.number(),
+        aum: z.number(),
+        expenseRatio: z.number(),
+      })
+      .optional(),
+    etfBreakdown: z
+      .object({
+        currency: ZCurrency,
+        updatedAt: ZDate,
+        holdings: z.array(
+          z.object({
+            share: z.number(),
+            marketValue: z.number(),
+            amountOfShares: z.number(),
+            name: z.string(),
+            asset: z.object({
+              _id: z.object({
+                identifier: z.string(),
+                assetType: z.string(),
+              }),
+              assetType: z.string(),
+              name: z.string(),
+              logo: z.string(),
+              security: z.object({
+                website: z.string(),
+                type: z.string(),
+                wkn: z.string(),
+                isin: z.string(),
+                etfDomicile: z.string(),
+                etfCompany: z.string(),
+              }),
+            }),
+          }),
+        ),
+      })
+      .nullable()
+      .optional(),
     analystEstimates: z
       .object({
         strongBuy: z.number(),
@@ -449,16 +493,19 @@ export const ZAssetDetails = z.object({
         badgeColor: z.string(), // hex color
       }),
     ),
-    payoutInterval: z.string(),
-    payoutIntervalSource: z.string(),
-    dividendKPIs: z.object({
-      cagr3Y: z.number(),
-      cagr5Y: z.number(),
-      cagr10Y: z.number(),
-      dividendYieldPercentageTTM: z.number(),
-      dividendPerShareTTM: z.number(),
-    }),
-    dividendYearlyTTM: z.record(z.string(), z.number()),
+    payoutInterval: z.string().nullable(),
+    payoutIntervalSource: z.string().nullable(),
+    dividendKPIs: z
+      .object({
+        cagr3Y: z.number(),
+        cagr5Y: z.number(),
+        cagr10Y: z.number(),
+        dividendYieldPercentageTTM: z.number(),
+        dividendPerShareTTM: z.number(),
+      })
+      .nullable()
+      .optional(),
+    dividendYearlyTTM: z.record(z.string(), z.number()).nullable(),
   }),
 });
 export type TAssetDetails = z.infer<typeof ZAssetDetails>;
