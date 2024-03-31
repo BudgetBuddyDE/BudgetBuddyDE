@@ -93,8 +93,8 @@ export const ZDividend = z.object({
   originalPrice: z.number().optional(),
   originalCurrency: ZCurrency.optional(),
   paymentDate: ZDate,
-  declarationDate: ZDate.nullable(),
-  recordDate: ZDate.nullable(),
+  declarationDate: ZDate.nullable().optional(),
+  recordDate: ZDate.nullable().optional(),
   exDate: ZDate,
   isEstimated: z.boolean(),
 });
