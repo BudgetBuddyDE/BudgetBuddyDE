@@ -4,6 +4,7 @@ import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
 import {StockService, DatabaseService} from '../services';
 import {ZOpenPositionPayload, ZClosePositionPayload, ZUpdatePositionPayload, type TStockExchanges} from '../types';
 import {type TAssetSearchResult, ZTimeframe} from '@budgetbuddyde/types';
+import {logger} from '../core';
 
 const router = express.Router();
 
@@ -73,6 +74,7 @@ router.get('/details/:isin', async (req, res) => {
 
   const [details, error] = await StockService.getAssetDetails(isin);
   if (error) {
+    logger.error(error.message);
     return res
       .status(HTTPStatusCode.InternalServerError)
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build())
