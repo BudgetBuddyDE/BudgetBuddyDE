@@ -47,6 +47,7 @@ export const config: TConfig = {
     'BACKEND_HOST',
     'DATABASE_URL',
     'STOCK_API_URL',
+    'POCKETBASE_URL',
     // 'PORT',
   ],
   port: process.env.PORT != undefined ? Number(process.env.PORT) : isRunningInProduction() ? 7080 : 7070,
