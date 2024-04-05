@@ -1,8 +1,7 @@
-import express from 'express';
-import type {TUser} from '@budgetbuddyde/types';
+import {type TUser} from './src/types/Pocketbase.types';
 
 declare module 'express-serve-static-core' {
   export interface Request {
-    user: TUser | null; // replace 'any' with your desired type
+    user: TUser;
   }
 }

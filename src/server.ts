@@ -21,7 +21,6 @@ import {Server} from 'socket.io';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import cron from 'node-cron';
-import {type TUser} from '@budgetbuddyde/types';
 import {name, version} from '../package.json';
 import {checkAuthorizationHeader, logMiddleware} from './middleware';
 import {AssetRouter, DividendRouter} from './router';
@@ -29,6 +28,8 @@ import {AssetSubscriptionHandler} from './handler';
 import {AuthService} from './services';
 import {StockStore, logger} from './core';
 import {isRunningInProduction} from './utils';
+import {pb} from './pocketbase';
+import {type TUser} from '@budgetbuddyde/types';
 
 export const app = express();
 export const server = http.createServer(app);
@@ -57,9 +58,14 @@ app.use('/v1/dividend', DividendRouter);
 app.get('/', (req, res) => res.redirect('https://budget-buddy.de'));
 app.get('/status', (req, res) => res.json({status: 'OK'}));
 
+io.engine.on('headers', (headers, req) => {
+  headers['X-Served-By'] = `${name}::${version}`;
+});
+
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
-  const [user, err] = await AuthService.validateAuthHeader(token);
+  const userId = socket.handshake.auth.userId;
+  const [user, err] = await AuthService.verifyToken(token.split('Bearer')[1].trimStart(), userId);
   if (err) {
     logger.warn(err.message, {category: ELogCategory.AUTHENTIFICATION});
     return next(err);
@@ -69,7 +75,7 @@ io.use(async (socket, next) => {
     return next(new Error(msg));
   }
 
-  logger.info(`Connection authenticated with user ${user.uuid} (${user.email})`, {category: ELogCategory.WEBSOCKET});
+  logger.info(`Connection authenticated with user ${user.id} (${user.email})`, {category: ELogCategory.WEBSOCKET});
   next();
 });
 
@@ -86,7 +92,7 @@ io.on('connection', socket => {
   //   console.log('disconnecting', socket.rooms);
   // });
 
-  socket.on('stock:subscribe', (stocks: {isin: string; exchange: string}[], userId: TUser['uuid']) => {
+  socket.on('stock:subscribe', (stocks: {isin: string; exchange: string}[], userId: NonNullable<TUser>['id']) => {
     logger.info(`Subscribing to stocks ${stocks.map(({isin}) => isin).join(', ')} for client ${userId}`, {
       category: ELogCategory.STOCK,
     });
@@ -99,7 +105,7 @@ io.on('connection', socket => {
     });
   });
 
-  socket.on('stock:unsubscribe', (stocks: {isin: string; exchange: string}[], userId: TUser['uuid']) => {
+  socket.on('stock:unsubscribe', (stocks: {isin: string; exchange: string}[], userId: NonNullable<TUser>['id']) => {
     logger.info(`Remove subscription from stocks ${stocks.map(({isin}) => isin).join(', ')} for client ${userId}`, {
       category: ELogCategory.STOCK,
     });
@@ -113,7 +119,7 @@ io.on('connection', socket => {
   });
 });
 
-export const listen = server.listen(config.port, process.env.HOSTNAME || 'localhost', () => {
+export const listen = server.listen(config.port, process.env.HOSTNAME || 'localhost', async () => {
   console.table({
     'Application Name': name,
     'Application Version': version,
@@ -121,6 +127,37 @@ export const listen = server.listen(config.port, process.env.HOSTNAME || 'localh
     'Node Version': process.version,
     'Server Port': config.port,
     'Background Jobs': config.enableBackgroundJobs,
+  });
+
+  if (config.environment !== 'test') {
+    try {
+      const {SERVICE_ACCOUNT_EMAIL, SERVICE_ACCOUNT_PASSWORD} = process.env;
+      if (!SERVICE_ACCOUNT_EMAIL || !SERVICE_ACCOUNT_PASSWORD) {
+        throw new Error('SERVICE_ACCOUNT_EMAIL or SERVICE_ACCOUNT_PASSWORD is not set!');
+      }
+      const authStatus = await pb.admins.authWithPassword(SERVICE_ACCOUNT_EMAIL, SERVICE_ACCOUNT_PASSWORD);
+
+      logger.info(
+        'Successfully authenticated as a admin-account against Pocketbase! Account: ' + authStatus.admin.email,
+        {
+          session: authStatus,
+          category: ELogCategory.POCKETBASE,
+        },
+      );
+    } catch (error) {
+      const err = error as Error;
+      logger.error(`Wasn't able to verify as a admin-account against Pocketbase! Reason: ${err.message}`, {
+        name: err.name,
+        error: err.message,
+        stack: err.stack,
+        category: ELogCategory.POCKETBASE,
+      });
+    }
+  }
+
+  logger.info('The application is available under http://localhost:{port}', {
+    category: ELogCategory.SETUP,
+    port: config.port,
   });
 
   if (config.enableBackgroundJobs) {

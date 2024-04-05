@@ -1,11 +1,8 @@
 import type {NextFunction, Request, Response} from 'express';
-import {z} from 'zod';
 import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
 import {AuthService} from '../services';
 import {ELogCategory} from './log.middleware';
 import {logger} from '../core';
-
-export const ZUuid = z.string().uuid();
 
 /**
  * Middleware function to check the authorization header in the request.
@@ -17,51 +14,50 @@ export const ZUuid = z.string().uuid();
  * @param next - The next middleware function.
  */
 export async function checkAuthorizationHeader(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.header('Authorization'),
+    userId = req.header('X-User-ID');
   const requestPath = req.path;
 
   if (requestPath === '/status' || requestPath === '/') {
     return next();
   }
 
-  if (!authHeader) {
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
     return res
       .status(HTTPStatusCode.Unauthorized)
       .json(
         ApiResponse.builder().withStatus(HTTPStatusCode.Unauthorized).withMessage('No Bearer token provided').build(),
       )
       .end();
-  }
-
-  const [user, err] = await AuthService.validateAuthHeader(authHeader as string);
-  if (err) {
-    logger.error('Error validating auth header', {
-      stack: err.stack,
-      error: err.message,
-      header: {authorization: authHeader},
-    });
+  } else if (!userId) {
     return res
       .status(HTTPStatusCode.Unauthorized)
-      .json(
-        ApiResponse.builder()
-          .withStatus(HTTPStatusCode.Unauthorized)
-          .withMessage('Invalid Bearer token provided by header')
-          .build(),
-      )
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.Unauthorized).withMessage('No user ID provided').build())
       .end();
-  } else if (!user) {
-    logger.warn('No user found', {
+  }
+  const [user, err] = await AuthService.verifyToken(authHeader.split('Bearer')[1].trimStart(), userId);
+  if (err) {
+    logger.warn(err.message, {
+      path: requestPath,
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
       category: ELogCategory.AUTHENTIFICATION,
       header: {authorization: req.headers.authorization},
     });
     return res
       .status(HTTPStatusCode.Unauthorized)
-      .json(
-        ApiResponse.builder()
-          .withStatus(HTTPStatusCode.Unauthorized)
-          .withMessage('No user found for Bearer token provided by header')
-          .build(),
-      )
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.Unauthorized).withMessage(err.message).build())
+      .end();
+  } else if (!user) {
+    const msg = 'No user found';
+    logger.warn(msg, {
+      category: ELogCategory.AUTHENTIFICATION,
+      header: {authorization: req.headers.authorization},
+    });
+    return res
+      .status(HTTPStatusCode.NotFound)
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.NotFound).withMessage(msg).build())
       .end();
   }
 

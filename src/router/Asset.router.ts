@@ -1,31 +1,39 @@
-import {z} from 'zod';
 import express from 'express';
-import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
-import {StockService, DatabaseService} from '../services';
-import {ZOpenPositionPayload, ZClosePositionPayload, ZUpdatePositionPayload, type TStockExchanges} from '../types';
-import {type TAssetSearchResult, ZTimeframe} from '@budgetbuddyde/types';
+import {
+  ApiResponse,
+  HTTPStatusCode,
+  ZCreateStockPositionPayload,
+  ZId,
+  ZStockPosition,
+  ZTimeframe,
+  ZUpdateStockPositionPayload,
+  PocketBaseCollection,
+  type TAssetSearchResult,
+  type TStockPosition,
+} from '@budgetbuddyde/types';
+import {pb} from '../pocketbase';
+import {StockService} from '../services';
 import {logger} from '../core';
+import {z} from 'zod';
 
 const router = express.Router();
 
-// FIXME: Retrieve supported exchanges from database
 router.get('/exchanges', async (req, res) => {
-  return res
-    .json(
-      ApiResponse.builder()
-        .withData({
-          langschwarz: {
-            label: 'Lang & Schwarz Exchange',
-            ticker: 'LSX',
-          },
-          gettex: {
-            label: 'Gettex',
-            ticker: 'GETTEX',
-          },
-        } as TStockExchanges)
-        .build(),
-    )
-    .end();
+  try {
+    const exchanges = await pb.collection(PocketBaseCollection.STOCK_EXCHANGE).getFullList();
+    return res.json(ApiResponse.builder().withData(exchanges).build()).end();
+  } catch (error) {
+    const err = error as Error;
+    logger.error(err.message, {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    });
+    return res
+      .status(HTTPStatusCode.InternalServerError)
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(err.message).build())
+      .end();
+  }
 });
 
 router.get('/search', async (req, res) => {
@@ -38,6 +46,11 @@ router.get('/search', async (req, res) => {
 
   const [matches, error] = await StockService.searchAsset(req.query.q as string);
   if (error) {
+    logger.error(error.message, {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build())
@@ -74,7 +87,11 @@ router.get('/details/:isin', async (req, res) => {
 
   const [details, error] = await StockService.getAssetDetails(isin);
   if (error) {
-    logger.error(error.message);
+    logger.error(error.message, {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build())
@@ -99,21 +116,25 @@ router.post('/position', async (req, res) => {
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.BadRequest).withMessage('Missing payload').build())
       .end();
   }
-  try {
-    const parsingResult = z.array(ZOpenPositionPayload).safeParse(payload);
-    if (!parsingResult.success) throw new Error(parsingResult.error.message);
-    const [saveResult, error] = await DatabaseService.createPosition(
-      parsingResult.data.filter(({owner}) => owner === req.user?.uuid),
-    );
-    if (error) throw error;
 
-    const [quotes, quoteError] = await StockService.getAssets(saveResult.map(entry => entry.isin));
+  try {
+    const parsingResult = ZCreateStockPositionPayload.safeParse(payload);
+    if (!parsingResult.success) throw parsingResult.error;
+
+    const createdRecord = await pb.collection(PocketBaseCollection.STOCK_POSITION).create(parsingResult.data);
+    const expandedCreatedRecord = await pb.collection(PocketBaseCollection.STOCK_POSITION).getOne(createdRecord.id, {
+      expand: 'exchange',
+    });
+    const parsedRecord = ZStockPosition.safeParse(expandedCreatedRecord);
+    if (!parsedRecord.success) throw parsedRecord.error;
+
+    const [quotes, quoteError] = await StockService.getAssets([parsedRecord.data.isin]);
     if (quoteError) throw quoteError;
 
     const response = ApiResponse.builder()
-      .withMessage(`Opened position for ${parsingResult.data.map(entry => entry.isin).join(',')}!`)
+      .withMessage(`Opened position for ${[parsingResult.data].map(entry => entry.isin).join(',')}!`)
       .withData(
-        saveResult.map((position, index) => {
+        [parsedRecord.data].map((position, index) => {
           const asset = quotes[index].asset;
           const quote = quotes[index].quote;
           return {
@@ -128,14 +149,15 @@ router.post('/position', async (req, res) => {
       .build();
     return res.json(response).end();
   } catch (error) {
+    const err = error as Error;
+    logger.error(err.message, {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
-      .json(
-        ApiResponse.builder()
-          .withStatus(HTTPStatusCode.InternalServerError)
-          .withMessage((error as Error).message)
-          .build(),
-      )
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(err.message).build())
       .end();
   }
 });
@@ -150,20 +172,25 @@ router.get('/position', async (req, res) => {
   }
 
   try {
-    const [positions, error] = await DatabaseService.getPositionsByOwner({uuid: user.uuid});
-    if (error) throw error;
+    const records = await pb.collection(PocketBaseCollection.STOCK_POSITION).getFullList({
+      expand: 'exchange',
+      filter: pb.filter('owner = {:userId}', {userId: req.user?.id}),
+    });
+    const parsedRecord = z.array(ZStockPosition).safeParse(records);
+    if (!parsedRecord.success) throw parsedRecord.error;
+    const parsedPositions = parsedRecord.data as TStockPosition[];
 
-    const isins = positions.map(position => position.isin);
+    const isins = parsedPositions.map(({isin}) => isin);
     const [quotes, quoteError] = await StockService.getAssets(isins);
     if (quoteError) throw quoteError;
 
-    if (positions.length !== quotes.length) {
+    if (parsedPositions.length !== quotes.length) {
       throw new Error('Mismatch between positions and quotes');
     }
 
     const response = ApiResponse.builder()
       .withData(
-        positions.map((position, index) => {
+        parsedPositions.map((position, index) => {
           const asset = quotes[index].asset;
           const quote = quotes[index].quote;
           return {
@@ -178,14 +205,15 @@ router.get('/position', async (req, res) => {
       .build();
     return res.json(response).end();
   } catch (error) {
+    const err = error as Error;
+    logger.error(err.message, {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
-      .json(
-        ApiResponse.builder()
-          .withStatus(HTTPStatusCode.InternalServerError)
-          .withMessage((error as Error).message)
-          .build(),
-      )
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(err.message).build())
       .end();
   }
 });
@@ -207,26 +235,47 @@ router.put('/position', async (req, res) => {
   }
 
   try {
-    const parsingResult = z.array(ZUpdatePositionPayload).safeParse(payload);
-    if (!parsingResult.success) throw new Error(parsingResult.error.message);
+    const parsingResult = ZUpdateStockPositionPayload.safeParse(payload);
+    if (!parsingResult.success) throw parsingResult.error;
+    const parsedPayload = parsingResult.data;
 
-    const [updateResult, error] = await DatabaseService.updatePosition(parsingResult.data, req.user);
-    if (error) throw error;
+    await pb.collection(PocketBaseCollection.STOCK_POSITION).update(parsedPayload.id, parsingResult.data);
+    const expandedUpdatedRecord = await pb.collection(PocketBaseCollection.STOCK_POSITION).getOne(parsedPayload.id, {
+      expand: 'exchange',
+    });
+    const parsedRecord = ZStockPosition.safeParse(expandedUpdatedRecord);
+    if (!parsedRecord.success) throw parsedRecord.error;
+
+    const [quotes, quoteError] = await StockService.getAssets([parsedRecord.data.isin]);
+    if (quoteError) throw quoteError;
 
     const response = ApiResponse.builder()
-      .withMessage(`Updated position for ${parsingResult.data.map(entry => entry.id).join(',')}!`)
-      .withData(updateResult)
+      .withMessage(`Updated position for ${[parsingResult.data].map(entry => entry.isin).join(',')}!`)
+      .withData(
+        [parsedRecord.data].map((position, index) => {
+          const asset = quotes[index].asset;
+          const quote = quotes[index].quote;
+          return {
+            ...position,
+            name: asset.name,
+            logo: asset.logo,
+            volume: quote.price * position.quantity,
+            quote: quote,
+          };
+        }),
+      )
       .build();
     return res.json(response).end();
   } catch (error) {
+    const err = error as Error;
+    logger.error(err.message, {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
-      .json(
-        ApiResponse.builder()
-          .withStatus(HTTPStatusCode.InternalServerError)
-          .withMessage((error as Error).message)
-          .build(),
-      )
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(err.message).build())
       .end();
   }
 });
@@ -246,27 +295,28 @@ router.delete('/position', async (req, res) => {
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.BadRequest).withMessage('Missing payload').build())
       .end();
   }
-  try {
-    const parsingResult = z.array(ZClosePositionPayload).safeParse(payload);
-    if (!parsingResult.success) throw new Error(parsingResult.error.message);
 
-    const [deleteResult, error] = await DatabaseService.deletePositions(parsingResult.data, req.user);
-    if (error) throw error;
+  try {
+    const parsingResult = z.object({id: ZId}).safeParse(payload);
+    if (!parsingResult.success) throw parsingResult.error;
+
+    await pb.collection(PocketBaseCollection.STOCK_POSITION).delete(parsingResult.data.id);
 
     const response = ApiResponse.builder()
-      .withMessage(`Closed position for ${parsingResult.data.map(entry => entry.id).join(',')}!`)
-      .withData(deleteResult)
+      .withMessage(`Closed position for ${[parsingResult.data].map(id => id).join(',')}!`)
+      .withData({success: true})
       .build();
     return res.json(response).end();
   } catch (error) {
+    const err = error as Error;
+    logger.error(err.message, {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
-      .json(
-        ApiResponse.builder()
-          .withStatus(HTTPStatusCode.InternalServerError)
-          .withMessage((error as Error).message)
-          .build(),
-      )
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(err.message).build())
       .end();
   }
 });
@@ -312,6 +362,11 @@ router.get('/quote', async (req, res) => {
     exchange: exchange as string,
   });
   if (error) {
+    logger.error(error.message, {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build());
@@ -363,6 +418,11 @@ router.get('/quotes', async (req, res) => {
     parsedTimeframe.success ? parsedTimeframe.data : '1d',
   );
   if (error) {
+    logger.error(error.message, {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
     return res
       .status(HTTPStatusCode.InternalServerError)
       .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build());

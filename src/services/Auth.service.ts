@@ -1,42 +1,52 @@
-import {type TUser, ZUser, type TApiResponse} from '@budgetbuddyde/types';
-import fetch from 'node-fetch';
 import {logger} from '../core';
+import {type TUser, ZUser, type TServiceResponse} from '@budgetbuddyde/types';
+import fetch from 'node-fetch';
 
 export class AuthService {
-  private static host: string = process.env.BACKEND_HOST + '/v1/auth';
-
-  static buildBearerToken(user: Pick<TUser, 'uuid' | 'password'> | TUser): string {
-    return `Bearer ${user.uuid}:${user.password}`;
-  }
-
-  /**
-   * Validates the provided auth header
-   * @param uuid The uuid of the user
-   * @param password The password of the user
-   * @returns A tuple with the first value being the user object and the second value being an error
-   */
-  static async validateAuthHeader(authHeader: string): Promise<[TUser | null, Error | null]> {
+  static async verifyToken(token: string, userId: NonNullable<TUser>['id']): Promise<TServiceResponse<TUser>> {
     try {
-      const response = await fetch(this.host + '/verify/token', {
-        method: 'POST',
+      const response = await fetch(`${process.env.POCKETBASE_URL}/api/collections/users/records/${userId}`, {
         headers: {
-          Authorization: authHeader,
+          'Content-Type': 'application/json;charset=utf-8',
+          Authorization: `Bearer ${token}`,
         },
       });
-      const json = (await response.json()) as TApiResponse<TUser>;
-      if (json.status !== 200) {
-        throw new Error(json.message!);
+      const json = (await response.json()) as
+        | {
+            id: string;
+            collectionId: string;
+            collectionName: string;
+            username: string;
+            verified: boolean;
+            emailVisibility: boolean;
+            email: string;
+            created: string;
+            updated: string;
+            name: string;
+            surname: string;
+            avatar: string;
+          }
+        | {
+            code: 404;
+            message: string;
+            data: {};
+          };
+      if (!response.ok && 'code' in json && json.code === 404) {
+        return [null, new Error(json.message)];
       }
 
-      const parsingResult = ZUser.safeParse(json.data);
-      if (parsingResult.success === false) {
-        throw new Error(parsingResult.error.message);
-      }
-      const parsedData = parsingResult.data;
-
-      return [parsedData, null];
+      const parsingResult = ZUser.safeParse(json);
+      if (!parsingResult.success) throw parsingResult.error;
+      return [parsingResult.data, null];
     } catch (error) {
-      return [null, error as Error];
+      const err = error as Error;
+      logger.error(err.message, {
+        name: err.name,
+        error: err.message,
+        stack: err.stack,
+        header: {token},
+      });
+      return [null, err];
     }
   }
 }

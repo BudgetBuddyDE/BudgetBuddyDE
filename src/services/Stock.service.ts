@@ -9,10 +9,12 @@ import {
   type TAssetChartQuote,
   type TDividendDetailList,
   type TAssetDetails,
+  ZStockQuote,
+  TStockQuote,
 } from '@budgetbuddyde/types';
 import fetch from 'node-fetch';
 import {format} from 'date-fns';
-import {ZStockQuote, type TStockQuote, type TAssetSearchEntity, type TAssetWithQuote} from '../types';
+import {type TAssetSearchEntity, type TAssetWithQuote} from '../types';
 import {type TStockSubscription} from '../core';
 
 export class StockService {

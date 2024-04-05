@@ -30,5 +30,9 @@ export const logger = winston.createLogger({
       ),
       level: config.environment === 'test' ? config.log.test : config.log.default,
     }),
+    new winston.transports.File({
+      dirname: 'logs',
+      filename: 'error.log',
+    }),
   ],
 });

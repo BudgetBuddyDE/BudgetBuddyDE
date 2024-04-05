@@ -14,6 +14,7 @@ export enum ELogCategory {
   STOCK_SUBSCRIPTION = 'stock:subscription',
   WEBSOCKET = 'websocket',
   BACKGROUND_JOB = 'background:job',
+  POCKETBASE = 'pocketbase',
 }
 
 /**
@@ -28,47 +29,31 @@ export function logMiddleware(req: Request, res: Response, next: NextFunction) {
     const statusCode = res.statusCode;
     const type: TLogType =
       statusCode >= 200 && statusCode < 400 ? 'INFO' : statusCode >= 400 && statusCode < 500 ? 'WARN' : 'ERROR';
-    const category = res.statusCode.toString();
-    const message = {
+    const logMetaInformation = {
       method: req.method,
       ip: req.ip,
       location: req.originalUrl,
       body: req.body,
       query: req.query,
       header: {authorization: req.headers.authorization},
-      user: req.user,
+      statusCode,
+      requestMethod: req.method,
+      path: req.originalUrl,
+      user: req.user?.id ?? 'anonymous',
     };
 
     switch (type) {
       case 'ERROR':
-        logger.error('{requestMethod} {statusCode} /{path}', {
-          category: category,
-          ...message,
-          statusCode,
-          requestMethod: req.method,
-          path: req.originalUrl,
-        });
+        logger.error('{requestMethod} {statusCode} /{path}', logMetaInformation);
         break;
 
       case 'WARN':
-        logger.warn('{requestMethod} {statusCode} /{path}', {
-          category: category,
-          ...message,
-          statusCode,
-          requestMethod: req.method,
-          path: req.originalUrl,
-        });
+        logger.warn('{requestMethod} {statusCode} /{path}', logMetaInformation);
         break;
 
       case 'INFO':
       default:
-        logger.info('{requestMethod} {statusCode} /{path}', {
-          category: category,
-          ...message,
-          statusCode,
-          requestMethod: req.method,
-          path: req.originalUrl,
-        });
+        logger.info('{requestMethod} {statusCode} /{path}', logMetaInformation);
         break;
     }
   });

@@ -44,10 +44,10 @@ export const config: TConfig = {
   environment: getCurrentRuntimeEnvironment(),
   environmentVariables: [
     'ENV',
-    'BACKEND_HOST',
-    'DATABASE_URL',
     'STOCK_API_URL',
     'POCKETBASE_URL',
+    'SERVICE_ACCOUNT_EMAIL',
+    'SERVICE_ACCOUNT_PASSWORD',
     // 'PORT',
   ],
   port: process.env.PORT != undefined ? Number(process.env.PORT) : isRunningInProduction() ? 7080 : 7070,
@@ -57,7 +57,7 @@ export const config: TConfig = {
   cors: {
     origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
   },
   log: {

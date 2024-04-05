@@ -1,11 +1,11 @@
 import {createStore} from 'zustand/vanilla';
-import {type TStockQuote, type TStockExchangeTable} from '../types';
+import {type TStockExchange, type TStockQuote} from '@budgetbuddyde/types';
 import {ELogCategory} from '../middleware';
 import {logger} from './logger';
 
 export type TStockSubscription = {
   isin: string;
-  exchange: TStockExchangeTable['exchange'];
+  exchange: TStockExchange['exchange'];
   quote: Pick<TStockQuote, 'datetime' | 'cachedAt' | 'price' | 'currency'> | null;
   /**
    * A list of client IDs that are subscribed toa this stock.

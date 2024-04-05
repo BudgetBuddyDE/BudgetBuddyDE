@@ -1,3 +1,2 @@
 export * from './Auth.service';
 export * from './Stock.service';
-export * from './Database.service';
