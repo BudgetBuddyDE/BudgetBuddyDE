@@ -335,8 +335,8 @@ export const ZAssetDetails = z.object({
       wkn: z.string(),
       type: z.string(),
       ipoDate: ZDate,
-      etfDomicile: z.string(),
-      etfCompany: z.string(),
+      etfDomicile: z.string().optional(),
+      etfCompany: z.string().optional(),
       hasDividends: z.boolean().optional(),
     }),
   }),
@@ -355,8 +355,8 @@ export const ZAssetDetails = z.object({
         priceToBookRatioTTM: z.number(),
         pegRatioTTM: z.number(),
         priceFairValueTTM: z.number(),
-        dividendYielPercentageTTM: z.number(),
-        dividendPerShareTTM: z.number(),
+        dividendYielPercentageTTM: z.number().nullable(),
+        dividendPerShareTTM: z.number().nullable(),
         payoutRatioTTM: z.number(),
         fiftyTwoWeekRange: z.object({
           from: z.number(),
@@ -432,8 +432,8 @@ export const ZAssetDetails = z.object({
                 type: z.string(),
                 wkn: z.string(),
                 isin: z.string(),
-                etfDomicile: z.string(),
-                etfCompany: z.string(),
+                etfDomicile: z.string().optional(),
+                etfCompany: z.string().optional(),
               }),
             }),
           }),
@@ -450,7 +450,6 @@ export const ZAssetDetails = z.object({
         strongSell: z.number(),
       })
       .nullable(),
-
     historicalDividends: z.array(ZDividend).nullable().default([]),
     futureDividends: z.array(ZDividend).nullable().default([]),
     priceTargetConsensus: z
