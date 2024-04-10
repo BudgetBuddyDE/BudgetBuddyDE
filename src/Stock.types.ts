@@ -127,9 +127,9 @@ export const ZDividendDetails = z.object({
   futureDividends: z.array(ZDividend).nullable().default([]),
   dividendKPIs: z
     .object({
-      cagr3Y: z.number(),
-      cagr5Y: z.number(),
-      cagr10Y: z.number(),
+      cagr3Y: z.number().nullable(),
+      cagr5Y: z.number().nullable(),
+      cagr10Y: z.number().nullable(),
       dividendYieldPercentageTTM: z.number(),
       dividendPerShareTTM: z.number(),
     })
@@ -496,9 +496,9 @@ export const ZAssetDetails = z.object({
     payoutIntervalSource: z.string().nullable(),
     dividendKPIs: z
       .object({
-        cagr3Y: z.number(),
-        cagr5Y: z.number(),
-        cagr10Y: z.number(),
+        cagr3Y: z.number().nullable(),
+        cagr5Y: z.number().nullable(),
+        cagr10Y: z.number().nullable(),
         dividendYieldPercentageTTM: z.number(),
         dividendPerShareTTM: z.number(),
       })
