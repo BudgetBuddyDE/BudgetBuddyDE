@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {ZUser} from './User.type';
 import {ZCategory} from './Category.type';
 import {ZPaymentMethod} from './PaymentMethod.type';
-import {ZCreatedAt, ZDescription} from './Base.type';
+import {ZCreatedAt, ZDescription} from '../Base.type';
 
 const ZExecuteAt = z
   .union([z.number(), z.date()])

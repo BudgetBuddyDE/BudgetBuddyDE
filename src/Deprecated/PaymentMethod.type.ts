@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {ZUser} from './User.type';
-import {ZCreatedAt, ZDescription} from './Base.type';
+import {ZCreatedAt, ZDescription} from '../Base.type';
 
 const ZName = z.string().max(100, {message: 'Name is too long'});
 const ZAddress = z.string().max(100, {message: 'Address is too long'});

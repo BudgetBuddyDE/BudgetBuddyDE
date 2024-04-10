@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {ZDescription, ZCreatedAt} from './Base.type';
+import {ZDescription, ZCreatedAt} from '../Base.type';
 
 export const ZRole = z.object({
   id: z.number(),

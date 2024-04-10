@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {ZCreatedAt, ZDate} from './Base.type';
+import {ZCreatedAt, ZDate} from '../Base.type';
 
 export const ZFile = z.object({
   name: z.string(),

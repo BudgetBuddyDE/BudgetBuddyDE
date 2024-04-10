@@ -1,7 +1,6 @@
 import {z} from 'zod';
-import {ZCreatedAt, ZDate} from './Base.type';
-
-// Base
+import {ZBaseModel, ZId} from '../PocketBase.types';
+import {ZDate} from '../Base.type';
 
 export const ZCurrency = z.string().max(3, {message: 'Currency must be 3 characters long'});
 export type TCurrency = z.infer<typeof ZCurrency>;
@@ -12,12 +11,20 @@ export type TTimeframe = z.infer<typeof ZTimeframe>;
 export const ZStockType = z.enum(['Aktie', 'ETF']).or(z.string());
 export type TStockType = z.infer<typeof ZStockType>;
 
-// Exchanges
+/**
+ * Stock API Types
+ */
 
-export const ZStockExchanges = z.record(z.string(), z.object({label: z.string(), ticker: z.string()}));
-export type TStockExchanges = z.infer<typeof ZStockExchanges>;
-
-// Assets
+export const ZStockQuote = z.object({
+  currency: z.string().max(3),
+  exchange: z.string().max(100),
+  date: ZDate,
+  datetime: ZDate,
+  price: z.number(),
+  isin: z.string().max(12),
+  cachedAt: ZDate,
+});
+export type TStockQuote = z.infer<typeof ZStockQuote>;
 
 export const ZAsset = z.object({
   _id: z.object({
@@ -81,8 +88,6 @@ export const ZAssetChartQuote = z.object({
 });
 export type TAssetChartQuote = z.infer<typeof ZAssetChartQuote>;
 
-// Dividends
-
 export const ZDividend = z.object({
   type: z.string(),
   security: z.string(),
@@ -140,153 +145,6 @@ export const ZDividendDetailList = z.object({
   dividendDetails: z.record(z.string(), ZDividendDetails),
 });
 export type TDividendDetailList = z.infer<typeof ZDividendDetailList>;
-
-// SORT
-export const ZStockQuote = z.object({
-  currency: z.string().max(3),
-  exchange: z.string().max(100),
-  date: ZDate,
-  datetime: ZDate,
-  price: z.number(),
-  isin: z.string().max(12),
-  cachedAt: ZDate,
-});
-export type TStockQuote = z.infer<typeof ZStockQuote>;
-
-/**
- * Represents a stock exchange table.
- */
-export const ZStockExchangeTable = z.object({
-  symbol: z.string().max(5),
-  name: z.string().max(100),
-  exchange: z.string().max(100),
-  country: z.string().max(100),
-  created_at: ZCreatedAt,
-});
-/**
- * Represents the type of the stock exchange table.
- */
-export type TStockExchangeTable = z.infer<typeof ZStockExchangeTable>;
-
-/**
- * Represents a stock position table.
- *
- * @remarks
- * This type defines the structure of a stock position table, including properties such as id, owner, bought_at, exchange, isin, buy_in, and currency.
- */
-export const ZStockPositionTable = z.object({
-  id: z.number(),
-  owner: z.string().uuid(),
-  bought_at: ZDate,
-  exchange: z.string(),
-  isin: z.string().max(12),
-  buy_in: z.number(),
-  currency: z.string().max(3),
-  quantity: z.number(),
-  created_at: ZCreatedAt,
-});
-/**
- * Represents the type of the stock position table.
- */
-export type TStockPositionTable = z.infer<typeof ZStockPositionTable>;
-
-/**
- * Represents a stock position table with resolved joins.
- */
-export const ZMaterializedStockPositionTable = z.object({
-  id: z.number(),
-  owner: z.string(),
-  bought_at: ZDate,
-  exchange: z.object({
-    symbol: z.string().max(5),
-    name: z.string().max(100),
-    exchange: z.string().max(100),
-    country: z.string().max(100),
-  }),
-  isin: z.string().max(12),
-  buy_in: z.number(),
-  currency: z.string().max(3),
-  quantity: z.number(),
-  created_at: ZCreatedAt,
-});
-/**
- * Represents the type of a stock position table with resolved join.
- */
-export type TMaterializedStockPositionTable = z.infer<typeof ZMaterializedStockPositionTable>;
-
-/**
- * Represents the payload for opening a position.
- */
-export const ZOpenPositionPayload = z.object({
-  owner: z.string().uuid(),
-  bought_at: ZDate,
-  exchange: z.string(),
-  isin: z.string().max(12),
-  buy_in: z.number(),
-  currency: z.string().max(3),
-  quantity: z.number(),
-});
-/**
- * Represents the type of the payload for opening a position.
- */
-export type TOpenPositionPayload = z.infer<typeof ZOpenPositionPayload>;
-
-/**
- * Represents the payload for updating a position.
- */
-export const ZUpdatePositionPayload = z.object({
-  id: z.number(),
-  bought_at: ZDate,
-  exchange: z.string(),
-  isin: z.string().max(12),
-  buy_in: z.number(),
-  quantity: z.number(),
-});
-/**
- * Represents the payload for updating a position.
- */
-export type TUpdatePositionPayload = z.infer<typeof ZUpdatePositionPayload>;
-
-/**
- * Represents the payload for closing a position.
- */
-export const ZClosePositionPayload = z.object({
-  id: z.number(),
-});
-/**
- * Represents the payload for closing a position.
- */
-export type TClosePositionPayload = z.infer<typeof ZClosePositionPayload>;
-
-export const ZStockPosition = z.object({
-  id: z.number(),
-  owner: z.string().uuid(),
-  bought_at: ZDate,
-  exchange: z.object({
-    symbol: z.string(),
-    name: z.string(),
-    exchange: z.string(),
-    country: z.string(),
-  }),
-  isin: z.string(),
-  buy_in: z.number(),
-  currency: ZCurrency,
-  quantity: z.number(),
-  created_at: ZDate,
-  name: z.string(),
-  logo: z.string(),
-  volume: z.number(),
-  quote: z.object({
-    currency: ZCurrency,
-    exchange: z.string(),
-    date: ZDate,
-    datetime: ZDate,
-    price: z.number(),
-    isin: z.string(),
-    cachedAt: ZDate,
-  }),
-});
-export type TStockPosition = z.infer<typeof ZStockPosition>;
 
 export const ZAssetDetails = z.object({
   asset: z.object({
@@ -508,3 +366,78 @@ export const ZAssetDetails = z.object({
   }),
 });
 export type TAssetDetails = z.infer<typeof ZAssetDetails>;
+
+/**
+ * Pocketbase Table Types
+ */
+
+export const ZStockExchange = z.object({
+  ...ZBaseModel.shape,
+  ...z.object({
+    name: z.string(),
+    symbol: z.string(),
+    exchange: z.string(),
+  }).shape,
+});
+export type TStockExchange = z.infer<typeof ZStockExchange>;
+
+export const ZStockPosition = z.object({
+  ...ZBaseModel.shape,
+  ...z.object({
+    owner: ZId,
+    exchange: ZId,
+    bought_at: ZDate,
+    isin: z.string(),
+    buy_in: z.number(),
+    currency: ZCurrency,
+    quantity: z.number(),
+    expand: z.object({
+      exchange: ZStockExchange,
+    }),
+  }).shape,
+});
+export type TStockPosition = z.infer<typeof ZStockPosition>;
+
+export const ZStockPositionWithQuote = z.object({
+  ...ZBaseModel.shape,
+  ...z.object({
+    owner: ZId,
+    exchange: ZId,
+    bought_at: ZDate,
+    isin: z.string(),
+    buy_in: z.number(),
+    currency: ZCurrency,
+    quantity: z.number(),
+    expand: z.object({
+      exchange: ZStockExchange,
+    }),
+    name: z.string(),
+    logo: z.string().url(),
+    volume: z.number(),
+    quote: ZStockQuote,
+  }).shape,
+});
+export type TStockPositionWithQuote = z.infer<typeof ZStockPositionWithQuote>;
+
+export const ZCreateStockPositionPayload = z.object({
+  owner: ZId,
+  exchange: ZId,
+  bought_at: ZDate,
+  isin: z.string(),
+  buy_in: z.number(),
+  currency: ZCurrency,
+  quantity: z.number(),
+});
+export type TCreateStockPositionPayload = z.infer<typeof ZCreateStockPositionPayload>;
+
+export const ZUpdateStockPositionPayload = z.object({
+  id: ZId,
+  owner: ZId,
+  exchange: ZId,
+  bought_at: ZDate,
+  isin: z.string(),
+  buy_in: z.number(),
+  currency: ZCurrency,
+  quantity: z.number(),
+});
+export type TUpdateStockPositionPayload = z.infer<typeof ZUpdateStockPositionPayload>;

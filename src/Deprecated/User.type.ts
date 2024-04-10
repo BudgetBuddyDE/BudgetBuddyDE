@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {ZRole} from './Role.type';
-import {ZCreatedAt, ZEmail} from './index';
+import {ZCreatedAt, ZEmail} from '../index';
 
 export const ZUser = z.object({
   uuid: z.string().uuid(),

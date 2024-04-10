@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {ZDate} from './Base.type';
+import {ZDate} from '../Base.type';
 
 export enum EDailyTransactionType {
   INCOME = 'INCOME',

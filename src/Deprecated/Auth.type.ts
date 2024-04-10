@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {ZUser, type TUser} from './User.type';
-import {ZCreatedAt, ZEmail} from './Base.type';
+import {ZCreatedAt, ZEmail} from '../Base.type';
 
 export type TSession = TUser;
 

@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {ZCategory} from './Category.type';
 import {ZUser} from './User.type';
-import {ZCreatedAt} from './Base.type';
+import {ZCreatedAt} from '../Base.type';
 
 const ZBudgetAmount = z.number().min(0, {message: 'Budget must be positive'});
 

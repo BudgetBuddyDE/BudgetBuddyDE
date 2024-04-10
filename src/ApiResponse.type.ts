@@ -1,8 +1,5 @@
 import {HTTPStatusCode} from './HttpStatusCode.type';
 
-/**
- * @deprecated Use ApiResponse and ApiResponseBuilder instead.
- */
 export type TApiResponse<T> = {status: 200 | HTTPStatusCode.Ok; message: null; data: T | null} & {
   status: number | HTTPStatusCode;
   message: string | null;
