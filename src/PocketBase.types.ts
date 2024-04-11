@@ -21,6 +21,8 @@ export const ZId = z.string().length(15);
 export type TId = z.infer<typeof ZId>;
 
 export const ZBaseModel = z.object({
+  collectionId: ZId,
+  collectionName: z.string(),
   id: ZId,
   created: ZDate,
   updated: ZDate,
