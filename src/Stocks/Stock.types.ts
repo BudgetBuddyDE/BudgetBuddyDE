@@ -2,6 +2,12 @@ import {z} from 'zod';
 import {ZBaseModel, ZId} from '../PocketBase.types';
 import {ZDate} from '../Base.type';
 
+export const ZIsin = z.string().length(12, {message: 'ISIN must be 12 characters long'});
+export type TIsin = z.infer<typeof ZIsin>;
+
+export const ZWKN = z.string().length(6, {message: 'WKN must be 6 characters long'});
+export type TWKN = z.infer<typeof ZWKN>;
+
 export const ZCurrency = z.string().max(3, {message: 'Currency must be 3 characters long'});
 export type TCurrency = z.infer<typeof ZCurrency>;
 
@@ -441,3 +447,24 @@ export const ZUpdateStockPositionPayload = z.object({
   quantity: z.number(),
 });
 export type TUpdateStockPositionPayload = z.infer<typeof ZUpdateStockPositionPayload>;
+
+export const ZRelatedStock = z.object({
+  asset: z.object({
+    _id: z.object({
+      identifier: ZIsin,
+      assetType: z.string(),
+    }),
+    assetType: z.string(),
+    name: z.string(),
+    logo: z.string().url(),
+    security: z.object({
+      website: z.string().url(),
+      type: z.string(),
+      wkn: ZWKN,
+      isin: ZIsin,
+      etfDomicile: z.string().nullable().default(null),
+      etfCompany: z.string().nullable().default(null),
+    }),
+  }),
+});
+export type TRelatedStock = z.infer<typeof ZRelatedStock>;
