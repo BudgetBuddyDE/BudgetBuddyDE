@@ -101,6 +101,59 @@ router.get('/details/:isin', async (req, res) => {
   return res.json(ApiResponse.builder().withData(details).build()).end();
 });
 
+router.get('/details/:isin/related', async (req, res) => {
+  try {
+    const limit = (req.query.limit as unknown as number) ?? 8;
+    const [relatedStocks, error] = await StockService.getRelatedStocks(req.params.isin, limit);
+    if (error) throw error;
+    if (!relatedStocks) throw new Error('No related stocks found');
+
+    const isins: string[] = relatedStocks
+      .filter(stock => stock.asset.security)
+      .map(stock => stock.asset.security!.isin);
+    const [quotes, quotesError] = await StockService.getQuotes(
+      isins.map(isin => ({isin, exchange: 'langschwarz'})),
+      '1m',
+    );
+    if (quotesError) throw quotesError;
+    if (!quotes) throw new Error('No quotes found');
+
+    return res
+      .status(HTTPStatusCode.Ok)
+      .json(
+        ApiResponse.builder()
+          .withStatus(HTTPStatusCode.Ok)
+          .withData(
+            relatedStocks.map(stock => {
+              const stockQuotes = quotes!.find(quote => quote.assetIdentifier === stock.asset._id.identifier);
+              if (!stockQuotes) return;
+              return {
+                ...stock,
+                quotes: stockQuotes.quotes.map(quote => ({
+                  ...quote,
+                  exchange: stockQuotes.exchange,
+                  currency: stockQuotes.currency,
+                })),
+              };
+            }),
+          )
+          .build(),
+      )
+      .end();
+  } catch (error) {
+    logger.error('Something went wrong', error);
+    return res
+      .status(HTTPStatusCode.InternalServerError)
+      .json(
+        ApiResponse.builder()
+          .withStatus(HTTPStatusCode.InternalServerError)
+          .withMessage((error as Error).message)
+          .build(),
+      )
+      .end();
+  }
+});
+
 router.post('/position', async (req, res) => {
   if (!req.user) {
     return res

@@ -1,16 +1,18 @@
 import {z} from 'zod';
 import {
-  type TApiResponse,
-  type TServiceResponse,
   ZAssetChartQuote,
   ZDividendDetailList,
   ZAssetDetails,
+  ZStockQuote,
+  ZRelatedStock,
+  type TApiResponse,
   type TTimeframe,
+  type TServiceResponse,
   type TAssetChartQuote,
   type TDividendDetailList,
   type TAssetDetails,
-  ZStockQuote,
-  TStockQuote,
+  type TStockQuote,
+  type TRelatedStock,
 } from '@budgetbuddyde/types';
 import fetch from 'node-fetch';
 import {format} from 'date-fns';
@@ -37,7 +39,7 @@ export class StockService {
       const json = (await response.json()) as TAssetDetails;
 
       const parsingResult = ZAssetDetails.safeParse(json);
-      if (!parsingResult.success) throw new Error(parsingResult.error.message);
+      if (!parsingResult.success) throw parsingResult.error;
       return [parsingResult.data, null];
     } catch (error) {
       return [null, error as Error];
@@ -101,8 +103,9 @@ export class StockService {
 
       const response = await fetch(`${this.host}/v1/quotes/${format(new Date(), 'yyyy-MM-dd')}?${query.toString()}`);
       const json = (await response.json()) as TApiResponse<TStockQuote>;
+
       const parsingResult = ZStockQuote.safeParse(json);
-      if (!parsingResult.success) throw new Error(parsingResult.error.message);
+      if (!parsingResult.success) throw parsingResult.error;
       return [parsingResult.data, null];
     } catch (error) {
       return [null, error as Error];
@@ -120,6 +123,7 @@ export class StockService {
     assets: {isin: string; exchange: string}[],
     timeframe: TTimeframe = '1d',
   ): Promise<TServiceResponse<TAssetChartQuote[]>> {
+    console.log('timeframe', timeframe);
     try {
       const query = new URLSearchParams();
       query.append('currency', 'EUR');
@@ -140,7 +144,7 @@ export class StockService {
       const json = (await response.json()) as TAssetChartQuote[];
 
       const parsingResult = z.array(ZAssetChartQuote).safeParse(json);
-      if (!parsingResult.success) throw new Error(parsingResult.error.message);
+      if (!parsingResult.success) throw parsingResult.error;
       return [parsingResult.data, null];
     } catch (error) {
       return [null, error as Error];
@@ -165,8 +169,30 @@ export class StockService {
       const json = await response.json();
 
       const parsingResult = ZDividendDetailList.safeParse(json);
-      if (!parsingResult.success) throw new Error(parsingResult.error.message);
+      if (!parsingResult.success) throw parsingResult.error;
       return [parsingResult.data.dividendDetails, null];
+    } catch (error) {
+      return [null, error as Error];
+    }
+  }
+
+  /**
+   * Retrieves related stocks based on the provided ISIN.
+   * @param isin - The ISIN of the stock.
+   * @param amount - The number of related stocks to retrieve. Default is 8.
+   * @returns A promise that resolves to a tuple containing the related stocks and any error that occurred during the retrieval.
+   */
+  static async getRelatedStocks(isin: string, amount = 8): Promise<TServiceResponse<TRelatedStock[]>> {
+    try {
+      const query = new URLSearchParams();
+      query.append('limit', amount + '');
+
+      const response = await fetch(`${this.host}/v1/assets/${isin}/related?${query.toString()}`);
+      const json = (await response.json()) as {searchStrategy: string; relatedAssets: TRelatedStock[]};
+
+      const parsingResult = z.array(ZRelatedStock).safeParse(json.relatedAssets);
+      if (!parsingResult.success) throw parsingResult.error;
+      return [parsingResult.data, null];
     } catch (error) {
       return [null, error as Error];
     }
