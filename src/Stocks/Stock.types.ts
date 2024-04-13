@@ -2,10 +2,10 @@ import {z} from 'zod';
 import {ZBaseModel, ZId} from '../PocketBase.types';
 import {ZDate} from '../Base.type';
 
-export const ZIsin = z.string().length(12, {message: 'ISIN must be 12 characters long'});
+export const ZIsin = z.string().max(12, {message: 'ISIN can only be 12 characters long'});
 export type TIsin = z.infer<typeof ZIsin>;
 
-export const ZWKN = z.string().length(6, {message: 'WKN must be 6 characters long'});
+export const ZWKN = z.string().max(6, {message: 'WKN can only be 6 characters long'});
 export type TWKN = z.infer<typeof ZWKN>;
 
 export const ZCurrency = z.string().max(3, {message: 'Currency must be 3 characters long'});
@@ -457,14 +457,29 @@ export const ZRelatedStock = z.object({
     assetType: z.string(),
     name: z.string(),
     logo: z.string().url(),
-    security: z.object({
-      website: z.string().url(),
-      type: z.string(),
-      wkn: ZWKN,
-      isin: ZIsin,
-      etfDomicile: z.string().nullable().default(null),
-      etfCompany: z.string().nullable().default(null),
-    }),
+    security: z
+      .object({
+        website: z.string().url(),
+        type: z.string(),
+        wkn: ZWKN,
+        isin: ZIsin,
+        etfDomicile: z.string().nullable().default(null),
+        etfCompany: z.string().nullable().default(null),
+      })
+      .optional(),
   }),
 });
 export type TRelatedStock = z.infer<typeof ZRelatedStock>;
+
+export const ZRelatedStockWithQuotes = z.object({
+  ...ZRelatedStock.shape,
+  quotes: z.array(
+    z.object({
+      date: ZDate,
+      price: z.number(),
+      exchange: z.string(),
+      currency: ZCurrency,
+    }),
+  ),
+});
+export type TRelatedStockWithQuotes = z.infer<typeof ZRelatedStockWithQuotes>;
