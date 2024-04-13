@@ -111,29 +111,29 @@ export const ZDividend = z.object({
 });
 export type TDividend = z.infer<typeof ZDividend>;
 
+const ZPayoutInterval = z.enum(['none', 'month', 'quarter', 'year']);
+export type TPayoutInterval = z.infer<typeof ZPayoutInterval>;
+
 export const ZDividendDetails = z.object({
-  identifier: z.string(),
-  payoutInterval: z.string(),
-  asset: z
-    .object({
-      _id: z.object({
-        identifier: z.string(),
-        assetType: z.string(),
-      }),
+  identifier: ZIsin,
+  payoutInterval: ZPayoutInterval,
+  asset: z.object({
+    _id: z.object({
+      identifier: ZIsin,
       assetType: z.string(),
-      name: z.string(),
-      logo: z.string(),
-      security: z.object({
-        website: z.string(),
-        type: z.string(),
-        wkn: z.string(),
-        isin: z.string(),
-        etfDomicile: z.string().optional(),
-        etfCompany: z.string().optional(),
-      }),
-    })
-    .nullable()
-    .default(null),
+    }),
+    assetType: z.string(),
+    name: z.string(),
+    logo: z.string().url(),
+    security: z.object({
+      website: z.string().url(),
+      type: z.string(),
+      wkn: ZWKN,
+      isin: ZIsin,
+      etfDomicile: z.string().optional(),
+      etfCompany: z.string().optional(),
+    }),
+  }),
   historyDividends: z.array(ZDividend).nullable().default([]),
   futureDividends: z.array(ZDividend).nullable().default([]),
   dividendKPIs: z
