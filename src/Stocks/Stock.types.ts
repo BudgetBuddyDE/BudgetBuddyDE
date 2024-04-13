@@ -111,7 +111,7 @@ export const ZDividend = z.object({
 });
 export type TDividend = z.infer<typeof ZDividend>;
 
-const ZPayoutInterval = z.enum(['none', 'month', 'quarter', 'year']);
+export const ZPayoutInterval = z.enum(['none', 'month', 'quarter', 'year']);
 export type TPayoutInterval = z.infer<typeof ZPayoutInterval>;
 
 export const ZDividendDetails = z.object({
