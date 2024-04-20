@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import {ZBaseModel, ZId} from '../PocketBase.types';
 import {ZDate} from '../Base.type';
+import {ZUser} from '../User.types';
 
 export const ZIsin = z.string().max(12, {message: 'ISIN can only be 12 characters long'});
 export type TIsin = z.infer<typeof ZIsin>;
@@ -419,6 +420,7 @@ export const ZStockPositionWithQuote = z.object({
     }),
     name: z.string(),
     logo: z.string().url(),
+    wkn: ZWKN,
     volume: z.number(),
     quote: ZStockQuote,
   }).shape,
@@ -483,3 +485,41 @@ export const ZRelatedStockWithQuotes = z.object({
   ),
 });
 export type TRelatedStockWithQuotes = z.infer<typeof ZRelatedStockWithQuotes>;
+
+const ZAssetWatchlist = z.object({
+  ...ZBaseModel.shape,
+  ...z.object({
+    owner: ZId,
+    exchange: ZId,
+    isin: ZIsin,
+  }).shape,
+});
+export type TAssetWatchlist = z.infer<typeof ZAssetWatchlist>;
+
+const ZAssetWatchlistWithQuote = z.object({
+  ...ZBaseModel.shape,
+  ...z.object({
+    owner: ZId,
+    exchange: ZId,
+    isin: ZIsin,
+    name: z.string(),
+    logo: z.string().url(),
+    wkn: ZWKN,
+    expand: z.object({
+      owner: ZUser,
+      exchange: ZStockExchange,
+    }),
+    quote: ZStockQuote,
+  }).shape,
+});
+export type TAssetWatchlistWithQuote = z.infer<typeof ZAssetWatchlistWithQuote>;
+
+export const ZAddWatchlistAssetPayload = z.object({
+  owner: ZId,
+  isin: ZIsin,
+  exchange: ZId,
+});
+export type TAddWatchlistAssetPayload = z.infer<typeof ZAddWatchlistAssetPayload>;
+
+export const ZDeleteWatchlistAssetPayload = z.object({id: ZId});
+export type TDeleteWatchlistAssetPayload = z.infer<typeof ZDeleteWatchlistAssetPayload>;
