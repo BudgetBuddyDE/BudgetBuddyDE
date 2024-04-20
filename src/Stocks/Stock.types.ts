@@ -486,7 +486,7 @@ export const ZRelatedStockWithQuotes = z.object({
 });
 export type TRelatedStockWithQuotes = z.infer<typeof ZRelatedStockWithQuotes>;
 
-const ZAssetWatchlist = z.object({
+export const ZAssetWatchlist = z.object({
   ...ZBaseModel.shape,
   ...z.object({
     owner: ZId,
