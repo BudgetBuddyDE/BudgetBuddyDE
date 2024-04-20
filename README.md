@@ -11,13 +11,6 @@
 
 ## Features
 
-> [!IMPORTANT]
-> Currently supported stock-exchanges by this service are...
-> |Exchange|Value|
-> |--|--|
-> |Lang & Schwarz Exchange (LSX)|`langschwarz`|
-> |Gettex (GETTEX)|`gettex`|
-
 <details>
 <summary>
 <strong>Manage your "BudgetBuddy stock positions*"</strong>
@@ -91,7 +84,7 @@ Stay updated with real-time price changes by subscribing to a websocket endpoint
 1.  Pull the image
 
     ```bash
-    docker pull ghcr.io/budgetbuddyde/latest
+    docker pull ghcr.io/budgetbuddyde/stock-service/latest
     ```
 
 2.  Start an container

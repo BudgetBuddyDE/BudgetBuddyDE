@@ -1,20 +1,21 @@
 import express from 'express';
+import {z} from 'zod';
 import {
   ApiResponse,
   HTTPStatusCode,
+  PocketBaseCollection,
   ZCreateStockPositionPayload,
   ZId,
   ZStockPosition,
   ZTimeframe,
   ZUpdateStockPositionPayload,
-  PocketBaseCollection,
   type TAssetSearchResult,
   type TStockPosition,
+  type TStockPositionWithQuote,
 } from '@budgetbuddyde/types';
 import {pb} from '../pocketbase';
 import {StockService} from '../services';
 import {logger} from '../core';
-import {z} from 'zod';
 
 const router = express.Router();
 
@@ -190,13 +191,15 @@ router.post('/position', async (req, res) => {
         [parsedRecord.data].map((position, index) => {
           const asset = quotes[index].asset;
           const quote = quotes[index].quote;
-          return {
+          const obj: TStockPositionWithQuote = {
             ...position,
             name: asset.name,
             logo: asset.logo,
+            wkn: asset.security.wkn,
             volume: quote.price * position.quantity,
             quote: quote,
           };
+          return obj;
         }),
       )
       .build();
@@ -246,13 +249,15 @@ router.get('/position', async (req, res) => {
         parsedPositions.map((position, index) => {
           const asset = quotes[index].asset;
           const quote = quotes[index].quote;
-          return {
+          const obj: TStockPositionWithQuote = {
             ...position,
             name: asset.name,
             logo: asset.logo,
+            wkn: asset.security.wkn,
             volume: quote.price * position.quantity,
             quote: quote,
           };
+          return obj;
         }),
       )
       .build();
@@ -308,13 +313,15 @@ router.put('/position', async (req, res) => {
         [parsedRecord.data].map((position, index) => {
           const asset = quotes[index].asset;
           const quote = quotes[index].quote;
-          return {
+          const obj: TStockPositionWithQuote = {
             ...position,
             name: asset.name,
             logo: asset.logo,
+            wkn: asset.security.wkn,
             volume: quote.price * position.quantity,
             quote: quote,
           };
+          return obj;
         }),
       )
       .build();
