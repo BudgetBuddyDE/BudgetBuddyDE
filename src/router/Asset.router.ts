@@ -184,13 +184,16 @@ router.post('/position', async (req, res) => {
 
     const [quotes, quoteError] = await StockService.getAssets([parsedRecord.data.isin]);
     if (quoteError) throw quoteError;
+    if (!quotes) throw new Error('No quotes found for the given ISINs.');
 
     const response = ApiResponse.builder()
       .withMessage(`Opened position for ${[parsingResult.data].map(entry => entry.isin).join(',')}!`)
       .withData(
         [parsedRecord.data].map((position, index) => {
-          const asset = quotes[index].asset;
-          const quote = quotes[index].quote;
+          const matchingQuote = quotes.find(quote => quote.asset._id.identifier === position.isin);
+          if (!matchingQuote) throw new Error(`No quote found for ISIN ${position.isin}`);
+          const asset = matchingQuote.asset;
+          const quote = matchingQuote.quote;
           const obj: TStockPositionWithQuote = {
             ...position,
             name: asset.name,
@@ -239,6 +242,7 @@ router.get('/position', async (req, res) => {
     const isins = parsedPositions.map(({isin}) => isin);
     const [quotes, quoteError] = await StockService.getAssets(isins);
     if (quoteError) throw quoteError;
+    if (!quotes) throw new Error('No quotes found for the given ISINs.');
 
     if (parsedPositions.length !== quotes.length) {
       throw new Error('Mismatch between positions and quotes');
@@ -247,8 +251,10 @@ router.get('/position', async (req, res) => {
     const response = ApiResponse.builder()
       .withData(
         parsedPositions.map((position, index) => {
-          const asset = quotes[index].asset;
-          const quote = quotes[index].quote;
+          const matchingQuote = quotes.find(quote => quote.asset._id.identifier === position.isin);
+          if (!matchingQuote) throw new Error(`No quote found for ISIN ${position.isin}`);
+          const asset = matchingQuote.asset;
+          const quote = matchingQuote.quote;
           const obj: TStockPositionWithQuote = {
             ...position,
             name: asset.name,
@@ -311,8 +317,10 @@ router.put('/position', async (req, res) => {
       .withMessage(`Updated position for ${[parsingResult.data].map(entry => entry.isin).join(',')}!`)
       .withData(
         [parsedRecord.data].map((position, index) => {
-          const asset = quotes[index].asset;
-          const quote = quotes[index].quote;
+          const matchingQuote = quotes.find(quote => quote.asset._id.identifier === position.isin);
+          if (!matchingQuote) throw new Error(`No quote found for ISIN ${position.isin}`);
+          const asset = matchingQuote.asset;
+          const quote = matchingQuote.quote;
           const obj: TStockPositionWithQuote = {
             ...position,
             name: asset.name,
