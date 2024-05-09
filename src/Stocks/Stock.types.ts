@@ -496,7 +496,7 @@ export const ZAssetWatchlist = z.object({
 });
 export type TAssetWatchlist = z.infer<typeof ZAssetWatchlist>;
 
-const ZAssetWatchlistWithQuote = z.object({
+export const ZAssetWatchlistWithQuote = z.object({
   ...ZBaseModel.shape,
   ...z.object({
     owner: ZId,
