@@ -4,6 +4,7 @@ export type TApiResponse<T> = {status: 200 | HTTPStatusCode.Ok; message: null; d
   status: number | HTTPStatusCode;
   message: string | null;
   data: T | null;
+  from: 'db' | 'cache';
 };
 
 /**
@@ -24,7 +25,7 @@ export class ApiResponse<T> {
   public status: number | HTTPStatusCode = 200;
   public message: string | null = null;
   public data: T | null = null;
-
+  public from: 'db' | 'cache' = 'db';
   private constructor() {}
 
   /**
@@ -71,6 +72,16 @@ export class ApiResponseBuilder<T> {
    */
   public withData(data: T | null): ApiResponseBuilder<T> {
     this.response.data = data;
+    return this;
+  }
+
+  /**
+   * Sets the source of the response data.
+   * @param from The source of the response data. Must be either "db" or "cache".
+   * @returns The ApiResponseBuilder instance.
+   */
+  public withFrom(from: 'db' | 'cache'): ApiResponseBuilder<T> {
+    this.response.from = from;
     return this;
   }
 
