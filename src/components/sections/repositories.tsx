@@ -35,7 +35,7 @@ export const Repositories = async () => {
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Our Repositories</h2>
             <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-              Take a look at our public repositories on GitHub to see some of the projects we've been working on.
+              Take a look at our public repositories on GitHub to see some of the projects we&apos;ve been working on.
             </p>
           </div>
         </div>

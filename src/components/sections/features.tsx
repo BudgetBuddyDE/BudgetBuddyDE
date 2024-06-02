@@ -45,7 +45,7 @@ export const Features = () => {
         </div>
         <div className="mx-auto grid items-start gap-8 sm:max-w-4xl sm:grid-cols-2 md:gap-12 lg:max-w-5xl lg:grid-cols-3">
           {features.map(feature => (
-            <div className="grid gap-1">
+            <div key={feature.heading.replaceAll(' ', '_').toLowerCase()} className="grid gap-1">
               <h3 className="text-lg font-bold">{feature.heading}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">{feature.description}</p>
             </div>
