@@ -23,7 +23,7 @@ import cors from 'cors';
 import cron from 'node-cron';
 import {name, version} from '../package.json';
 import {checkAuthorizationHeader, logMiddleware} from './middleware';
-import {AssetRouter, AssetWatchlistRouter, DividendRouter} from './router';
+import {AssetRouter, AssetWatchlistRouter, DividendRouter, MetalRouter} from './router';
 import {AssetSubscriptionHandler} from './handler';
 import {AuthService} from './services';
 import {StockStore, logger} from './core';
@@ -55,6 +55,7 @@ app.use((req, res, next) => {
 app.use('/v1/asset', AssetRouter);
 app.use('/v1/asset/watchlist', AssetWatchlistRouter);
 app.use('/v1/dividend', DividendRouter);
+app.use('/v1/metal', MetalRouter);
 
 app.get('/', (req, res) => res.redirect('https://budget-buddy.de'));
 app.get('/status', (req, res) => res.json({status: 'OK'}));

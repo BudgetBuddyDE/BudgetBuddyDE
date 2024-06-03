@@ -51,6 +51,12 @@ Stay updated with real-time price changes by subscribing to a websocket endpoint
 </summary>
 </details>
 
+<details>
+<summary>
+<strong>Retrieve quotes for Gold, Platinum and Silver</strong>
+</summary>
+</details>
+
 ## Installation
 
 ### Development / Manual

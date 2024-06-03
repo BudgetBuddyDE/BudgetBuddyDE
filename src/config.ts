@@ -48,6 +48,7 @@ export const config: TConfig = {
     'POCKETBASE_URL',
     'SERVICE_ACCOUNT_EMAIL',
     'SERVICE_ACCOUNT_PASSWORD',
+    'METAL_API_KEY',
     // 'PORT',
   ],
   port: process.env.PORT != undefined ? Number(process.env.PORT) : isRunningInProduction() ? 7080 : 7070,
