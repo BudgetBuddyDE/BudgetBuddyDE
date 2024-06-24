@@ -11,6 +11,7 @@ export enum PocketBaseCollection {
   STOCK_WATCHLIST = 'stock_watchlists',
   SUBSCRIPTION = 'subscriptions',
   TRANSACTION = 'transactions',
+  NEWSLETTER = 'newsletters',
   V_MONTHLY_BALANCES = 'v_monthly_balances',
 }
 
