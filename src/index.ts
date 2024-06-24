@@ -12,3 +12,4 @@ export * from './Budget.types';
 export * from './DailyBalance.types';
 export * from './MonthlyBalance.types';
 export * from './Stocks';
+export * from './Newsletter.types';

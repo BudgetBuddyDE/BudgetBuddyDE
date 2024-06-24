@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {ZBaseModel, ZNullableString} from './PocketBase.types';
+import {ZBaseModel, ZId, ZNullableString} from './PocketBase.types';
 
 export const ZUser = z
   .object({
@@ -12,6 +12,7 @@ export const ZUser = z
       name: ZNullableString,
       surname: ZNullableString,
       verified: z.boolean(),
+      newsletter: z.array(ZId),
     }).shape,
   })
   .nullable();
