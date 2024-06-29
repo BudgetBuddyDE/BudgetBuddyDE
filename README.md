@@ -1,80 +1,51 @@
 # Mail-Service
 
-The email dispatching is facilitated by Resend and our email templates have been implemented using React-Email. This system relies on Express to provide this REST-Service, which provides us with the capacity to send emails to our users efficiently.
+The Mail-Service is based on [React-Email](https://react.email) and [Resend](https://resend.com), and uses [Bun](https://bun.sh) as the underlying framework. In the future, the service will be rebuilt as a native solution without relying on an external SaaS, in order to prevent dependency on external providers and to avoid sharing data with Resend.
 
-## ToC
+## Todo
 
-- [Mail-Service](#mail-service)
-  - [ToC](#toc)
-  - [Installation](#installation)
-    - [Mail-Service](#mail-service-1)
-    - [React-Email](#react-email)
-  - [Example](#example)
+- Workflow for deployment
+- Re-strucure code and make it a bit "better"
+- Providing tests for reporting and opt-in and opt-out
+- Send logs to baselime
+- Add routers for code splitting
 
-## Installation
+## Getting started
 
-### Mail-Service
-
-1. Set environment variables as defined in the `.env.example`
-2. Install dependencies
+1. Clone the repo
 
    ```bash
-   npm install
+   git clone git@github.com:BudgetBuddyDE/Mail-Service.git
    ```
 
-3. Start your application
-   ```bash
-   npm run dev
-   # or run the production build with
-   npm start
-   ```
-
-### React-Email
-
-> [!NOTE]
-> React-Email is only required for the templating process and building our Email-Templates
-
-1. Switch to react-email
+2. Install required dependencies
 
    ```bash
-   cd ./transactional
+   bun install
    ```
 
-2. Install & Start
-
-   > [!NOTE]
-   > If it's the your first start it can take up some time until the react-email tool is setup and installed
+3. Set all required environment variables as defined in the `.env.example`
+4. Start the application
 
    ```bash
-   npm install
-   # Start React-Email
-   npm run dev
+   bun run dev
    ```
 
-3. Start templating
-
-   You can now start templating by simply creating an `.tsx`-file which contains your defined mail-template in form of an React-Component.
-
-4. Export templates
-
-   > Not neccessary for the current setup
+5. _(Optional)_ Execute an compiled binary
 
    ```bash
-   npm run export
+   # Compile to binary
+   bun build ./src/server.ts --compile --outfile cli
+   # Execute binary
+   ./cli
    ```
 
-## Example
+## Templating
 
-How to send an email, by requesting the `/send`-endpoint
+1. Start the react-email server with
 
-```curl
-curl -X POST \
-  http://localhost:3000/send \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "to": ["example1@example.com"],
-    "mail": "welcome",
-    "email": "example1@example.com"
-    "uuid": "123e4567-e89b-12d3-a456-426614174000"
-}'
-```
+   ```bash
+   bun run email:dev
+   ```
+
+2. Edit the templates in the `transactional/email` folder

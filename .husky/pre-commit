@@ -1,2 +1,3 @@
-npm test
-npm run build
+npx prettier --check .
+bun build ./src/server.ts --compile --outfile app
+rm ./app*

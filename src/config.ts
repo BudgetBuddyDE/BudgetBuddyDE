@@ -1,50 +1,66 @@
-import { type CorsOptions } from 'cors';
+import {type CorsOptions} from 'cors';
+import 'dotenv/config';
 
-export type TAppConfig = {
-  environment: 'PROD' | 'DEV';
-  environmentVariables: string[];
+import {getCurrentRuntimeEnvironment, getPort, isRunningInProduction} from './utils';
+
+/**
+ * Represents the configuration options for the application.
+ */
+export type TConfig = {
   production: boolean;
-  /*
-   * `8080` = PROD
-   * `8090` = DEV
+  environment: 'production' | 'test' | 'development';
+  /**
+   * Define required environment variables to load from the `.env` file.
    */
-  port: 8080 | 8090 | number;
+  environmentVariables: string[];
+  port: number;
   cors: CorsOptions;
+  stocks: {
+    /**
+     * The interval (in minutes) in which the stock prices are fetched from the API.
+     */
+    fetchInterval: number;
+  };
+  log: {
+    default: string;
+    test: string;
+  };
+  sender: string;
+  host: string;
+  company: string;
 };
 
-export const AppConfig: TAppConfig = {
-  environment: determineEnvironment(),
+/**
+ * The configuration object for the application.
+ */
+export const config: TConfig = {
+  production: isRunningInProduction(),
+  environment: getCurrentRuntimeEnvironment(),
   environmentVariables: [
     'ENV',
+    'POCKETBASE_URL',
+    'SERVICE_ACCOUNT_EMAIL',
+    'SERVICE_ACCOUNT_PASSWORD',
+    'HOST',
+    'MAIL_SENDER',
     'RESEND_API_KEY',
-    'BACKEND_HOST',
-    'SERVICE_USER_UUID',
-    'SERVICE_USER_PASSWORD',
+    // 'PORT',
   ],
-  production: determineEnvironment() === 'PROD',
-  port:
-    process.env.PORT != undefined
-      ? Number(process.env.PORT)
-      : determineEnvironment() === 'PROD'
-      ? 8080
-      : 8090,
-  cors: {
-    origin: determineEnvironment() === 'PROD' ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
-    credentials: false,
+  port: getPort(),
+  stocks: {
+    fetchInterval: 1,
   },
+  cors: {
+    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+    credentials: true,
+  },
+  log: {
+    default: 'info',
+    test: 'error',
+  },
+  sender: process.env.MAIL_SENDER || 'delivered@resend.dev',
+  host: isRunningInProduction() ? (process.env.HOST as string) : `http://localhost:${getPort()}`,
+  company: 'Budget-Buddy',
 };
-
-export function determineEnvironment(): TAppConfig['environment'] {
-  const env = process.env.ENV as string | undefined;
-
-  switch (env) {
-    case 'PROD':
-    case 'prod':
-      return 'PROD';
-
-    case 'DEV':
-    case 'dev':
-    default:
-      return 'DEV';
-  }
-}
