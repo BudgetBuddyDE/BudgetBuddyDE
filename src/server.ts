@@ -1,4 +1,11 @@
 import {ApiResponse, HTTPStatusCode, PocketBaseCollection, type TNewsletter, type TUser} from '@budgetbuddyde/types';
+import {
+  ZMailOptInPayload,
+  ZMailOptOutPayload,
+  ZTriggerMonthlyReportPayload,
+  ZTriggerWeeklyReportPayload,
+  ZVerifyMailOptInPayload,
+} from '@budgetbuddyde/types/lib/Mail.types';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import {subDays} from 'date-fns';
@@ -17,13 +24,6 @@ import {sendWeeklyReports} from './core/sendWeeklyReports';
 import {logger} from './logger';
 import {pb} from './pocketbase';
 import {resend} from './resend';
-import {
-  TriggerMonthlyReportPayload,
-  TriggerWeeklyReportPayload,
-  ZMailOptInPayload,
-  ZMailOptOutPayload,
-  ZVerifyMailOptInPayload,
-} from './types';
 import {generateRandomId} from './utils';
 
 /**
@@ -320,7 +320,7 @@ app.post('/trigger/daily-stock-report', async (req, res) => {
 
 app.post('/trigger/weekly-report', async (req, res) => {
   const body = await req.body;
-  const parsedBody = TriggerWeeklyReportPayload.safeParse(body);
+  const parsedBody = ZTriggerWeeklyReportPayload.safeParse(body);
   if (!parsedBody.success) {
     return res
       .status(HTTPStatusCode.BadRequest)
@@ -353,7 +353,7 @@ app.post('/trigger/weekly-report', async (req, res) => {
 
 app.post('/trigger/monthly-report', async (req, res) => {
   const body = await req.body;
-  const parsedBody = TriggerMonthlyReportPayload.safeParse(body);
+  const parsedBody = ZTriggerMonthlyReportPayload.safeParse(body);
   if (!parsedBody.success) {
     return res
       .status(HTTPStatusCode.BadRequest)

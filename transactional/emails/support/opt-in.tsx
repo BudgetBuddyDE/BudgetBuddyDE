@@ -17,7 +17,7 @@ export const OptIn: React.FC<OptInProps> = ({name, company, newsletter, newslett
     userId: userId,
     newsletterId: newsletterId,
   });
-  const redirectUrl = `${endpointHost}/api/opt-in/verify?${query.toString()}`;
+  const redirectUrl = `${endpointHost}/opt-in/verify?${query.toString()}`;
 
   return (
     <Html>
