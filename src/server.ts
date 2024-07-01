@@ -22,6 +22,7 @@ import {config} from './config';
 import {sendMonthlyReports} from './core/sendMonthlyReports';
 import {sendWeeklyReports} from './core/sendWeeklyReports';
 import {logger} from './logger';
+import {logMiddleware} from './middleware';
 import {pb} from './pocketbase';
 import {resend} from './resend';
 import {generateRandomId} from './utils';
@@ -48,6 +49,7 @@ if (MISSING_ENVIRONMENT_VARIABLES.length >= 1) {
 const app = express();
 
 app.use('/static', express.static(path.join(__dirname, '../public')));
+app.use(logMiddleware);
 app.use(cors(config.cors));
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -407,7 +409,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     }
 
     cron.schedule(
-      '0 9 * * 1',
+      '0 9 * * *',
       async () => {
         const startDate = subDays(new Date(), 7);
         const endDate = new Date();
@@ -440,5 +442,8 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     logger.info(`Scheduled jobs: ${Array.from(cron.getTasks().keys()).join(', ')}`);
   }
 
-  logger.info(`The application is available under http://localhost:${config.port}`, {port: config.port});
+  logger.info(`The application is available under ${process.env.HOST || 'http://localhost:' + config.port}`, {
+    host: process.env.HOST,
+    port: config.port,
+  });
 });
