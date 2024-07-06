@@ -1,5 +1,7 @@
 # Stock-Service
 
+The Stock-Service is based on [ExpressJS](https://expressjs.com/de/) and [NodeJS](https://nodejs.org/en) as a runtime environment (possibly [Bun](https://bun.sh) in the future). The service manages access to the user's documented securities positions and retrieves current metal prices using the [Metalprice API](https://metalpriceapi.com/), which offers a generous free tier that is sufficient for caching the most important metal prices in the application using a Redis instance. The securities data is real-time and updated every 60 seconds through the service. As the data source is not aware that we are accessing and tapping into their interface, it is not made public.
+
 ## ToC
 
 - [Stock-Service](#stock-service)
