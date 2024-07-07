@@ -25,18 +25,16 @@ export async function sendMonthlyReports(
   if (users.length === 0) {
     return [null, new Error('No users subscribed to this newsletter')];
   }
-  const now = new Date();
   const results = await Promise.all(
     users.map(user => retrieveTransactionReportData(user as NonNullable<TUser>, startDate, endDate)),
   );
-  console.log(results);
 
   for (const {user, income, spendings, balance, grouped} of results) {
     // @ts-expect-error
-    const data = await resend.emails.send({
+    const response = await resend.emails.send({
       from: config.sender,
       to: user.email,
-      subject: `Monthly Report ${format(startDate, 'dd-MM-yyyy')} - ${format(endDate, 'dd-MM-yyyy')}`,
+      subject: `Monthly Report for ${format(month, 'MMMM yy')}`,
       react: MonthlyReport({
         month: month,
         name: user.name ?? 'Buddy',
@@ -47,7 +45,11 @@ export async function sendMonthlyReports(
         grouped: grouped,
       }),
     });
-    logger.info(`Mail ${data.data?.id} was send`, data);
+    if (response.error) {
+      logger.error(response.error);
+      break;
+    }
+    logger.info(`Monthly report sent to ${user.email} via mail ${response.data?.id}`);
   }
 
   return [results, null];

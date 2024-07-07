@@ -8,7 +8,7 @@ import {
 } from '@budgetbuddyde/types/lib/Mail.types';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import {subDays} from 'date-fns';
+import {format, subDays} from 'date-fns';
 import 'dotenv/config';
 import express from 'express';
 import cron from 'node-cron';
@@ -402,6 +402,8 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     } catch (error) {
       const err = error as Error;
       logger.error(`Wasn't able to verify as a admin-account against Pocketbase! Reason: ${err.message}`, {
+        target: process.env.POCKETBASE_URL,
+        email: process.env.SERVICE_ACCOUNT_EMAIL,
         name: err.name,
         error: err.message,
         stack: err.stack,

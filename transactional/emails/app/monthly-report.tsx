@@ -24,7 +24,7 @@ export const MonthlyReport: React.FC<MonthlyReportProps> = ({
   month,
   grouped,
 }) => {
-  const formattedDate = format(month, 'MM-yyyy');
+  const formattedDate = format(month, 'MMMM yy');
   return (
     <Html>
       <Head />

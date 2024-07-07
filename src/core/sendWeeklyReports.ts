@@ -39,11 +39,10 @@ export async function sendWeeklyReports(
   const results = await Promise.all(
     users.map(user => retrieveTransactionReportData(user as NonNullable<TUser>, startDate, endDate)),
   );
-  console.log(results);
 
   for (const {user, income, spendings, balance, grouped} of results) {
     // @ts-expect-error
-    const data = await resend.emails.send({
+    const response = await resend.emails.send({
       from: config.sender,
       to: user.email,
       subject: `Weekly Report ${format(startDate, 'dd-M M-yyyy')} - ${format(endDate, 'dd-MM-yyyy')}`,
@@ -58,7 +57,11 @@ export async function sendWeeklyReports(
         grouped: grouped,
       }),
     });
-    logger.info(`Mail ${data.data?.id} was send`, data);
+    if (response.error) {
+      logger.error(response.error);
+      break;
+    }
+    logger.info(`Weekly report sent to ${user.email} via mail ${response.data?.id}`);
   }
 
   return [results, null];
