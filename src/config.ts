@@ -1,5 +1,6 @@
-import 'dotenv/config';
 import {type CorsOptions} from 'cors';
+import 'dotenv/config';
+
 import {getCurrentRuntimeEnvironment, isRunningInProduction} from './utils';
 
 /**

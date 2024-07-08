@@ -1,5 +1,5 @@
-import {z} from 'zod';
 import {ZCurrency, ZDate} from '@budgetbuddyde/types';
+import {z} from 'zod';
 
 export const ZAssetQuote = z.object({
   currency: ZCurrency,

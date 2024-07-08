@@ -1,5 +1,5 @@
+import {StockStore, type TStockSubscription, logger} from '../core';
 import {ELogCategory} from '../middleware';
-import {logger, StockStore, type TStockSubscription} from '../core';
 import {StockService} from '../services';
 
 export const AssetSubscriptionHandler = {

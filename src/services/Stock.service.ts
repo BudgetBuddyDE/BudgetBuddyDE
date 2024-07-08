@@ -1,23 +1,24 @@
-import {z} from 'zod';
 import {
-  ZAssetChartQuote,
-  ZDividendDetailList,
-  ZAssetDetails,
-  ZStockQuote,
-  ZRelatedStock,
   type TApiResponse,
-  type TTimeframe,
-  type TServiceResponse,
   type TAssetChartQuote,
-  type TDividendDetailList,
   type TAssetDetails,
-  type TStockQuote,
+  type TDividendDetailList,
   type TRelatedStock,
+  type TServiceResponse,
+  type TStockQuote,
+  type TTimeframe,
+  ZAssetChartQuote,
+  ZAssetDetails,
+  ZDividendDetailList,
+  ZRelatedStock,
+  ZStockQuote,
 } from '@budgetbuddyde/types';
-import fetch from 'node-fetch';
 import {format} from 'date-fns';
-import {type TAssetSearchEntity, type TAssetWithQuote} from '../types';
+import fetch from 'node-fetch';
+import {z} from 'zod';
+
 import {type TStockSubscription} from '../core';
+import {type TAssetSearchEntity, type TAssetWithQuote} from '../types';
 
 export class StockService {
   private static host = process.env.STOCK_API_URL as string;

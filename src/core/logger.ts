@@ -1,7 +1,8 @@
-import winston from 'winston';
 import {BaselimeTransport} from '@baselime/winston-transport';
-import {config} from '../config';
+import winston from 'winston';
+
 import {name} from '../../package.json';
+import {config} from '../config';
 
 /**
  * The logger instance for the stock service.

@@ -1,8 +1,9 @@
-import type {NextFunction, Request, Response} from 'express';
 import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
+import type {NextFunction, Request, Response} from 'express';
+
+import {logger} from '../core';
 import {AuthService} from '../services';
 import {ELogCategory} from './log.middleware';
-import {logger} from '../core';
 
 /**
  * Middleware function to check the authorization header in the request.

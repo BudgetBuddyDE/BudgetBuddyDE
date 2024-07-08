@@ -1,4 +1,3 @@
-import express from 'express';
 import {
   ApiResponse,
   HTTPStatusCode,
@@ -7,12 +6,14 @@ import {
   type TAssetWatchlistWithQuote,
   type TDeleteWatchlistAssetPayload,
   ZAddWatchlistAssetPayload,
+  ZAssetWatchlist,
   ZDeleteWatchlistAssetPayload,
   ZStockExchange,
   ZUser,
-  ZAssetWatchlist,
 } from '@budgetbuddyde/types';
+import express from 'express';
 import {z} from 'zod';
+
 import {logger} from '../core';
 import {pb} from '../pocketbase';
 import {StockService} from '../services';

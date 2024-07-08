@@ -1,6 +1,22 @@
+import {type TUser} from '@budgetbuddyde/types';
+import bodyParser from 'body-parser';
+import cors from 'cors';
 import 'dotenv/config';
+import express from 'express';
+import http from 'http';
+import cron from 'node-cron';
+import {Server} from 'socket.io';
+
+import {name, version} from '../package.json';
 import {config} from './config';
+import {StockStore, logger} from './core';
+import {AssetSubscriptionHandler} from './handler';
 import {ELogCategory} from './middleware';
+import {checkAuthorizationHeader, logMiddleware} from './middleware';
+import {pb} from './pocketbase';
+import {AssetRouter, AssetWatchlistRouter, DividendRouter, MetalRouter} from './router';
+import {AuthService} from './services';
+import {isRunningInProduction} from './utils';
 
 /**
  * Check if all required environment-variables are set
@@ -14,22 +30,6 @@ if (MISSING_ENVIRONMENT_VARIABLES.length >= 1) {
   console.error('error', `Missing environment-variables: ${MISSING_ENVIRONMENT_VARIABLES.join(', ')}`);
   process.exit(1);
 }
-
-import http from 'http';
-import express from 'express';
-import {Server} from 'socket.io';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import cron from 'node-cron';
-import {name, version} from '../package.json';
-import {checkAuthorizationHeader, logMiddleware} from './middleware';
-import {AssetRouter, AssetWatchlistRouter, DividendRouter, MetalRouter} from './router';
-import {AssetSubscriptionHandler} from './handler';
-import {AuthService} from './services';
-import {StockStore, logger} from './core';
-import {isRunningInProduction} from './utils';
-import {pb} from './pocketbase';
-import {type TUser} from '@budgetbuddyde/types';
 
 export const app = express();
 export const server = http.createServer(app);

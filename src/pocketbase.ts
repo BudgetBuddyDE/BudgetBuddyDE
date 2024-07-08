@@ -1,4 +1,5 @@
 import Client from 'pocketbase';
+
 import {logger} from './core';
 import {ELogCategory} from './middleware';
 

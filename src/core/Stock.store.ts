@@ -1,5 +1,6 @@
-import {createStore} from 'zustand/vanilla';
 import {type TStockExchange, type TStockQuote} from '@budgetbuddyde/types';
+import {createStore} from 'zustand/vanilla';
+
 import {ELogCategory} from '../middleware';
 import {logger} from './logger';
 

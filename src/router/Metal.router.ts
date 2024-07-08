@@ -1,7 +1,8 @@
 import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
 import express from 'express';
-import {MetalOptions, MetalService} from '../services/Metal.service';
+
 import {Cache} from '../cache';
+import {MetalOptions, MetalService} from '../services/Metal.service';
 
 const router = express.Router();
 

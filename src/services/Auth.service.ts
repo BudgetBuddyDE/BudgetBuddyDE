@@ -1,8 +1,18 @@
-import {logger} from '../core';
-import {type TUser, ZUser, type TServiceResponse} from '@budgetbuddyde/types';
+import {type TServiceResponse, type TUser, ZUser} from '@budgetbuddyde/types';
 import fetch from 'node-fetch';
 
+import {logger} from '../core';
+
+/**
+ * Service responsible for token verification and user retrieval.
+ */
 export class AuthService {
+  /**
+   * Verifies the token and retrieves user information from the server.
+   * @param token - The token to be verified.
+   * @param userId - The ID of the user.
+   * @returns A promise that resolves to a tuple containing the user data and any potential error.
+   */
   static async verifyToken(token: string, userId: NonNullable<TUser>['id']): Promise<TServiceResponse<TUser>> {
     try {
       const response = await fetch(`${process.env.POCKETBASE_URL}/api/collections/users/records/${userId}`, {

@@ -20,6 +20,9 @@ export type TMetalQuote =
       };
     };
 
+/**
+ * Service class for interacting with metal-related functionality.
+ */
 export class MetalService {
   private static host = 'https://api.metalpriceapi.com/v1';
   private static apiKey = process.env.METAL_API_KEY!;
@@ -33,6 +36,12 @@ export class MetalService {
     return code in MetalOptions;
   }
 
+  /**
+   * Retrieves the price of a specific metal.
+   * @param metal - The metal code to get the price for.
+   * @returns The metal quote containing the price in EUR and USD.
+   * @throws Error if the metal code is invalid or if an error occurs during the API request.
+   */
   public static async getPrice(metal: keyof typeof MetalOptions) {
     if (!this.isValidMetalCode(metal)) {
       throw new Error('Invalid metal code');
@@ -72,6 +81,12 @@ export class MetalService {
     return unit === 'troy_oz' ? 'Troy Ounce' : 'Ounce';
   }
 
+  /**
+   * Returns the metal with its corresponding quote.
+   * @param metal - The metal code.
+   * @param quote - The metal quote containing the price in EUR and USD.
+   * @returns An object containing the metal code, name, and quote.
+   */
   public static getMetalWithQuote(metal: keyof typeof MetalOptions, quote: {EUR: number; USD: number}) {
     return {
       code: metal,

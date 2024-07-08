@@ -1,4 +1,5 @@
 import type {NextFunction, Request, Response} from 'express';
+
 import {logger} from '../core';
 
 export type TLogType = 'LOG' | 'INFO' | 'WARN' | 'ERROR';
@@ -25,7 +26,13 @@ export enum ELogCategory {
  */
 export function logMiddleware(req: Request, res: Response, next: NextFunction) {
   if (req.path.includes('favicon') || req.path === '/status') return next();
+
+  const start = process.hrtime();
+
   res.on('finish', async () => {
+    const [seconds, nanoseconds] = process.hrtime(start);
+    const durationMs = (seconds * 1000 + nanoseconds / 1e6).toFixed(2); // Convert to milliseconds and format
+
     const statusCode = res.statusCode;
     const type: TLogType =
       statusCode >= 200 && statusCode < 400 ? 'INFO' : statusCode >= 400 && statusCode < 500 ? 'WARN' : 'ERROR';
@@ -40,6 +47,8 @@ export function logMiddleware(req: Request, res: Response, next: NextFunction) {
       requestMethod: req.method,
       path: req.originalUrl,
       user: req.user?.id ?? 'anonymous',
+      responseTime: `${durationMs} ms`,
+      responseTimeInMillis: durationMs,
     };
 
     switch (type) {
