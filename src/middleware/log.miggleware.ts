@@ -33,6 +33,7 @@ export function logMiddleware(req: Request, res: Response, next: NextFunction) {
       requestMethod: req.method,
       path: req.originalUrl,
       responseTime: `${durationMs} ms`,
+      responseTimeInMillis: durationMs,
     };
 
     const msg = `${req.method} ${statusCode} ${req.originalUrl} - ${durationMs} ms`;
