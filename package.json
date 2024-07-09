@@ -7,14 +7,13 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "start": "node build/src/server.js",
-    "start:ts": "ts-node src/server.ts",
-    "dev": "nodemon --watch .env --watch src src/server.ts",
+    "start": "bun src/server.ts",
+    "dev": "nodemon",
+    "build": "bun build ./src/server.ts --compile --outfile stock-service",
     "test": "jest --passWithNoTests --detectOpenHandles",
     "lint": "eslint --fix --ext .ts ./src",
-    "build": "rimraf build && npm run test && tsc --pretty",
     "format": "prettier --write . --log-level silent",
-    "prepare": "husky"
+    "prepare": "bun .husky/install.mjs"
   },
   "keywords": [],
   "author": "Thorben",

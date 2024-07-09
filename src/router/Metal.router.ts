@@ -1,8 +1,7 @@
 import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
 import express from 'express';
 
-import {Cache} from '../cache';
-import {MetalOptions, MetalService} from '../services/Metal.service';
+import {CacheService, MetalOptions, MetalService} from '../services';
 
 const router = express.Router();
 
@@ -11,13 +10,13 @@ router.get('/quotes', async (req, res) => {
   const prices = await Promise.all(
     metals
       .map(async metal => {
-        const cachedValue = await Cache.getMetalPrice(metal);
-        if (cachedValue) return MetalService.getMetalWithQuote(metal, cachedValue);
+        const CacheServicedValue = await CacheService.getMetalPrice(metal);
+        if (CacheServicedValue) return MetalService.getMetalWithQuote(metal, CacheServicedValue);
 
         const price = await MetalService.getPrice(metal);
         if (!price || !price.success) return null;
 
-        await Cache.setMetalPrice(metal, price.rates);
+        await CacheService.setMetalPrice(metal, price.rates);
         return MetalService.getMetalWithQuote(metal, price.rates);
       })
       .filter(Boolean),
@@ -30,19 +29,19 @@ router.get('/quote/:metal', async (req, res) => {
   const metal = req.params.metal;
   let prices = {EUR: 0, USD: 0};
 
-  const cachedValue = await Cache.getMetalPrice(metal);
+  const CacheServicedValue = await CacheService.getMetalPrice(metal);
 
-  if (!cachedValue) {
+  if (!CacheServicedValue) {
     const price = await MetalService.getPrice(metal);
     if (!price || !price.success) {
       return res
         .status(HTTPStatusCode.NotFound)
         .json(ApiResponse.builder().withStatus(HTTPStatusCode.NotFound).withMessage('Metal not found').build());
     }
-    await Cache.setMetalPrice(metal, price.rates);
+    await CacheService.setMetalPrice(metal, price.rates);
     prices = price.rates;
   }
-  prices = cachedValue || prices;
+  prices = CacheServicedValue || prices;
 
   return res.json(ApiResponse.builder().withData(MetalService.getMetalWithQuote(metal, prices)).build());
 });

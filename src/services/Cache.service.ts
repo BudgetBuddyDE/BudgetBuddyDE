@@ -1,13 +1,13 @@
 import {differenceInSeconds, endOfDay} from 'date-fns';
 
-import {logger} from './core';
-import {redisClient} from './redis';
-import {MetalOptions, MetalService} from './services/Metal.service';
+import {logger} from '../core';
+import {redisClient} from '../redis';
+import {MetalOptions, MetalService} from './Metal.service';
 
 /**
  * Represents a cache for storing metal prices.
  */
-export class Cache {
+export class CacheService {
   private static logger = logger.child({service: 'redis-cache'});
 
   /**

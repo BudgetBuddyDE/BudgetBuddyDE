@@ -1,4 +1,4 @@
-build/
+stock-service*
 .idea/
 .DS_Store
 

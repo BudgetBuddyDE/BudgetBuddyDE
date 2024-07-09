@@ -73,6 +73,8 @@ Stay updated with real-time price changes by subscribing to a websocket endpoint
 
     ```bash
     npm install
+    # or
+    bun install
     ```
 
 3.  Setup environment-variables as defined in the `.env.example`
@@ -82,6 +84,9 @@ Stay updated with real-time price changes by subscribing to a websocket endpoint
     npm run dev
     # or run the finished build
     npm run start
+
+    # or with bun
+    bun run src/server.ts
     ```
 
 ### Docker
