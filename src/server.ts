@@ -411,7 +411,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     }
 
     cron.schedule(
-      '0 9 * * *',
+      '0 7 * * *',
       async () => {
         const startDate = subDays(new Date(), 7);
         const endDate = new Date();
@@ -426,7 +426,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     );
 
     cron.schedule(
-      '0 9 1 * *',
+      '0 7 1 * *',
       async () => {
         const month = new Date();
         const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
