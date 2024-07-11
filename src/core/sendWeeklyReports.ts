@@ -45,7 +45,7 @@ export async function sendWeeklyReports(
     const response = await resend.emails.send({
       from: config.sender,
       to: user.email,
-      subject: `Weekly Report ${format(startDate, 'dd-M M-yyyy')} - ${format(endDate, 'dd-MM-yyyy')}`,
+      subject: `Weekly Report ${format(startDate, 'MMMM yy')} - ${format(endDate, 'dd-MM-yyyy')}`,
       react: WeeklyReport({
         startDate: startDate,
         endDate: endDate,
@@ -58,10 +58,12 @@ export async function sendWeeklyReports(
       }),
     });
     if (response.error) {
-      logger.error(response.error);
-      break;
+      return [null, response.error];
     }
-    logger.info(`Weekly report sent to ${user.email} via mail ${response.data?.id}`);
+    logger.info(`Weekly report sent to ${user.email} via mail ${response.data?.id}`, {
+      startDate: startDate,
+      endDate: endDate,
+    });
   }
 
   return [results, null];
