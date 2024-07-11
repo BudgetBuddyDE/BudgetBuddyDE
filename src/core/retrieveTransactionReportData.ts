@@ -28,15 +28,18 @@ export async function retrieveTransactionReportData(
     expand: 'category',
   });
 
+  /// FIXME: Not working as expected
   const categoryGroupedTransactions = new Map<TId, TTransaction[]>();
   for (const transaction of userTransactions) {
     if (!categoryGroupedTransactions.has(transaction.category)) {
       categoryGroupedTransactions.set(transaction.category, [transaction]);
+      continue;
     }
 
     const currEntry = categoryGroupedTransactions.get(transaction.category)!;
     categoryGroupedTransactions.set(transaction.category, [...currEntry, transaction]);
   }
+  ///
 
   const categoryStats = Array.from(categoryGroupedTransactions.entries()).map(([_, transactions]) => {
     const expandedCategory = transactions[0].expand.category;

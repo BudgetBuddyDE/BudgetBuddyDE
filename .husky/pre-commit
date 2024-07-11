@@ -1,3 +1,4 @@
 npx prettier --check .
+bun run test:run
 bun build ./src/server.ts --compile --outfile app
 rm ./app*
