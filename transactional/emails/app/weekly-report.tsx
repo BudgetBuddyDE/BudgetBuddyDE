@@ -26,8 +26,8 @@ export const WeeklyReport: React.FC<WeeklyReportProps> = ({
   grouped,
 }) => {
   const balance = income - spendings;
-  const formattedStartDate = format(startDate, 'dd-MM-yy');
-  const formattedEndDate = format(endDate, 'dd-MM-yy');
+  const formattedStartDate = format(startDate, 'dd.MM');
+  const formattedEndDate = format(endDate, 'dd.MM');
   return (
     <Html>
       <Head />
