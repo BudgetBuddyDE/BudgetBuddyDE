@@ -22,7 +22,7 @@ import {config} from './config';
 import {sendMonthlyReports} from './core/sendMonthlyReports';
 import {sendWeeklyReports} from './core/sendWeeklyReports';
 import {logger} from './logger';
-import {logMiddleware} from './middleware';
+import {AuthMiddleware, logMiddleware} from './middleware';
 import {pb} from './pocketbase';
 import {resend} from './resend';
 import {generateRandomId} from './utils';
@@ -59,6 +59,7 @@ app.use((req, res, next) => {
   res.setHeader('X-Served-By', `${name}::${version}`);
   next();
 });
+app.use(AuthMiddleware);
 
 const NEWSLETTER = {
   WEEKLY_REPORT: '1f9763pp1k8gxx0',
