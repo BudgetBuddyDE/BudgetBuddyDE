@@ -8,7 +8,7 @@ import {
 } from '@budgetbuddyde/types/lib/Mail.types';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import {format, subDays} from 'date-fns';
+import {subDays} from 'date-fns';
 import 'dotenv/config';
 import express from 'express';
 import cron from 'node-cron';
@@ -19,6 +19,7 @@ import OptIn from '../transactional/emails/support/opt-in';
 import OptInNotification from '../transactional/emails/support/opt-in-notification';
 import OptOutNotification from '../transactional/emails/support/opt-out-notification';
 import {config} from './config';
+import {sendDailyStockReport} from './core/sendDailyStockReport';
 import {sendMonthlyReports} from './core/sendMonthlyReports';
 import {sendWeeklyReports} from './core/sendWeeklyReports';
 import {logger} from './logger';
@@ -64,6 +65,7 @@ app.use(AuthMiddleware);
 const NEWSLETTER = {
   WEEKLY_REPORT: '1f9763pp1k8gxx0',
   MONTHLY_REPORT: '4hughmgyyzgkine',
+  DAILY_STOCK_REPORT: 'q8uhgles4ywmzoh',
 };
 
 app.get('/', (req, res) => res.redirect('https://budget-buddy.de'));
@@ -96,7 +98,6 @@ app.post('/opt-in', async (req, res) => {
           .build(),
       );
   }
-  console.log('User', user);
 
   const newsletter: TNewsletter = await pb.collection(PocketBaseCollection.NEWSLETTER).getOne(newsletterId);
   if (!newsletter) {
@@ -118,10 +119,9 @@ app.post('/opt-in', async (req, res) => {
           .build(),
       );
   }
-  console.log('Newsletter', newsletter);
 
   if (user.newsletter.includes(newsletterId)) {
-    console.log('User already subscribed to newsletter', newsletterId);
+    logger.info('User already subscribed to newsletter', newsletterId);
     return res
       .status(HTTPStatusCode.BadRequest)
       .json(
@@ -182,7 +182,6 @@ app.get('/opt-in/verify', async (req, res) => {
           .build(),
       );
   }
-  console.log('User', user);
 
   const newsletter: TNewsletter = await pb.collection(PocketBaseCollection.NEWSLETTER).getOne(newsletterId);
   if (!newsletter) {
@@ -204,7 +203,6 @@ app.get('/opt-in/verify', async (req, res) => {
           .build(),
       );
   }
-  console.log('Newsletter', newsletter);
 
   if (user.newsletter.includes(newsletterId)) {
     logger.info('User already subscribed to newsletter', {newsletterId, userId});
@@ -265,7 +263,6 @@ app.post('/opt-out', async (req, res) => {
           .build(),
       );
   }
-  console.log('User', user);
 
   const newsletter: TNewsletter = await pb.collection(PocketBaseCollection.NEWSLETTER).getOne(newsletterId);
   if (!newsletter) {
@@ -278,7 +275,6 @@ app.post('/opt-out', async (req, res) => {
           .build(),
       );
   }
-  console.log('Newsletter', newsletter);
 
   if (!user.newsletter.includes(newsletterId)) {
     logger.info('User not subscribed to newsletter', {newsletterId, userId});
@@ -316,9 +312,15 @@ app.post('/opt-out', async (req, res) => {
 });
 
 app.post('/trigger/daily-stock-report', async (req, res) => {
-  return res
-    .status(HTTPStatusCode.NotImplemented)
-    .json(ApiResponse.builder().withStatus(HTTPStatusCode.NotImplemented).withMessage('Not implemented').build());
+  const [_, error] = await sendDailyStockReport(NEWSLETTER.DAILY_STOCK_REPORT);
+  if (error) {
+    logger.error('Was not able to send daily stock reports!', error);
+    return res
+      .status(HTTPStatusCode.InternalServerError)
+      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build());
+  }
+
+  return res.json(ApiResponse.builder().withData({successfull: true}).build());
 });
 
 app.post('/trigger/weekly-report', async (req, res) => {
@@ -412,7 +414,20 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     }
 
     cron.schedule(
-      '0 7 * * *',
+      '0 7 * * 1-5',
+      async () => {
+        const [_, error] = await sendDailyStockReport(NEWSLETTER.DAILY_STOCK_REPORT);
+        if (error) {
+          logger.error('Was not able to send daily stock reports!', error);
+          return;
+        }
+        logger.info('Daily stock reports were sent!');
+      },
+      {name: 'TriggerDailyStockReport'},
+    );
+
+    cron.schedule(
+      '0 7 * * 1',
       async () => {
         const startDate = subDays(new Date(), 7);
         const endDate = new Date();

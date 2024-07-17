@@ -13,16 +13,20 @@ export type MonthlyReportProps = {
   spendings: number;
   balance: number;
   grouped: {category: string; income: number; spendings: number; balance: number}[];
+  viewMoreLink?: string;
 };
 
+const today = new Date();
+
 export const MonthlyReport: React.FC<MonthlyReportProps> = ({
-  name,
+  name = 'Buddy',
   company = 'Budget-Buddy',
-  income,
-  spendings,
-  balance,
-  month,
-  grouped,
+  income = 0,
+  spendings = 0,
+  balance = 0,
+  month = today,
+  grouped = [],
+  viewMoreLink = 'https://app.budget-buddy.de/transactions',
 }) => {
   const formattedDate = format(month, 'MMMM yy');
   return (
@@ -61,7 +65,7 @@ export const MonthlyReport: React.FC<MonthlyReportProps> = ({
                 </Column>
               </Row>
 
-              {grouped.map(({category, income, spendings, balance}, idx, arr) => (
+              {grouped.map(({category, income, spendings, balance}, idx) => (
                 <Row
                   key={category.toLowerCase()}
                   style={{
@@ -93,7 +97,7 @@ export const MonthlyReport: React.FC<MonthlyReportProps> = ({
             </Section>
 
             <ButtonContainer>
-              <StyledButton href={'https://app.budget-buddy.de'}>View more</StyledButton>
+              <StyledButton href={viewMoreLink}>View more</StyledButton>
             </ButtonContainer>
 
             <Text style={paragraph}>

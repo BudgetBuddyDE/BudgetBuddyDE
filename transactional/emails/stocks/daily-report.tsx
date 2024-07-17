@@ -1,22 +1,40 @@
+import {type TStockPositionWithQuote} from '@budgetbuddyde/types';
 import {Column, Head, Html, Preview, Row, Section, Text} from '@react-email/components';
 import {format} from 'date-fns';
 import React from 'react';
 
-import {ButtonContainer, Layout, StyledBody, StyledButton} from '../../components';
+import {type TMetalQuote} from '../../../src/services';
+import {ButtonContainer, Layout, NumBox, StyledBody, StyledButton} from '../../components';
 import {Formatter} from '../../utils';
 
-export type DailyReport = {
+export type DailyReportProps = {
   name: string;
   company: string;
+  day?: Date;
+  assets: TStockPositionWithQuote[];
+  metals: TMetalQuote[];
+  viewMoreLink?: string;
 };
 
-export const DailyReport: React.FC<DailyReport> = ({name = 'John', company = 'Budget-Buddy'}) => {
-  const today = new Date();
-  const formattedToday = format(today, 'dd-MM-yyyy');
+export const DailyReport: React.FC<DailyReportProps> = ({
+  name = 'Buddy',
+  company = 'Budget-Buddy',
+  day = new Date(),
+  assets = [],
+  metals = [],
+  viewMoreLink = 'https://app.budget-buddy.de/dashboard/stocks',
+}) => {
+  const formattedToday = format(day, 'dd MMMM yy');
+  const depotValue: number = assets.reduce((acc, position) => {
+    return acc + position.quote.price * position.quantity;
+  }, 0);
+  const totalProfit: number = assets.reduce((acc, position) => {
+    return acc + (position.quote.price - position.buy_in) * position.quantity;
+  }, 0);
   return (
     <Html>
       <Head />
-      <Preview>Portfolio report {formattedToday}</Preview>
+      <Preview>Portfolio Report {formattedToday}</Preview>
       <StyledBody>
         <Layout>
           <Section style={{padding: '1rem'}}>
@@ -25,58 +43,99 @@ export const DailyReport: React.FC<DailyReport> = ({name = 'John', company = 'Bu
             </Text>
 
             <Section style={{marginBottom: '1rem'}}>
+              <Row style={{columnGap: '1rem', gap: '1rem'}}>
+                <Column>
+                  <NumBox label="Depot Value" value={depotValue} style={{marginLeft: '0'}} />
+                </Column>
+                <Column>
+                  <NumBox label="Unrealised Profit" value={totalProfit} style={{marginRight: '0'}} />
+                </Column>
+              </Row>
+            </Section>
+
+            <Section style={{marginBottom: '1rem'}}>
               <Row>
                 <Column style={{width: '30%'}}>
                   <Text style={label}>Position</Text>
                 </Column>
                 <Column style={{width: '17.5%'}}>
-                  <Text style={{...label, textAlign: 'right'}}>Open</Text>
+                  <Text style={{...label, textAlign: 'right'}}>Buy In</Text>
                 </Column>
                 <Column style={{width: '17.5%'}}>
-                  <Text style={{...label, textAlign: 'right'}}>Close</Text>
+                  <Text style={{...label, textAlign: 'right'}}>Shares</Text>
+                </Column>
+                <Column style={{width: '17.5%'}}>
+                  <Text style={{...label, textAlign: 'right'}}>Value</Text>
                 </Column>
                 <Column style={{width: '17.5%'}}>
                   <Text style={{...label, textAlign: 'right'}}>+/-</Text>
                 </Column>
-                <Column style={{width: '17.5%'}}>
-                  <Text style={{...label, textAlign: 'right'}}>Total</Text>
-                </Column>
               </Row>
 
-              {[
-                {amount: 100, name: 'VOW3', open: 100.45, close: 108.34},
-                {amount: 100, name: 'RHM', open: 100, close: 110},
-              ].map(({amount, name, open, close}) => {
-                const change = close - open;
-                const changePerc = (change / open) * 100;
-                const totalVolume = amount * close;
-                return (
-                  <Row key={name.toLowerCase()}>
-                    <Column style={{width: '30%'}}>
-                      <Text style={text}>
-                        {amount}x {name}
-                      </Text>
-                    </Column>
-                    <Column style={{width: '17.5%'}}>
-                      <Text style={{...text, textAlign: 'right'}}>{Formatter.currency(open)}</Text>
-                    </Column>
-                    <Column style={{width: '17.5%'}}>
-                      <Text style={{...text, textAlign: 'right'}}>{Formatter.currency(close)}</Text>
-                    </Column>
-                    <Column style={{width: '17.5%'}}>
-                      <Text style={{...text, textAlign: 'right'}}>{Formatter.currency(change)}</Text>
-                      <Text style={{...text, textAlign: 'right'}}>{changePerc.toFixed(2)}%</Text>
-                    </Column>
-                    <Column style={{width: '17.5%'}}>
-                      <Text style={{...text, textAlign: 'right'}}>{Formatter.currency(totalVolume)}</Text>
-                    </Column>
-                  </Row>
-                );
-              })}
+              {assets
+                .sort((a, b) => b.volume - a.volume)
+                .map((position, idx) => {
+                  const currency = position.quote.currency;
+                  const currentPrice = position.quote.price;
+
+                  const profit = position.quantity * currentPrice - position.quantity * position.buy_in;
+                  const profitPercentage = (profit / (position.quantity * position.buy_in)) * 100;
+                  return (
+                    <Row
+                      key={name.toLowerCase()}
+                      style={{
+                        borderColor: '#dadce0',
+                        borderStyle: 'solid',
+                        borderTopWidth: `${idx === 0 ? 0 : 1}px`,
+                      }}>
+                      <Column style={{width: '30%'}}>
+                        <Text style={{...text, fontSize: '90%'}}>{position.isin}</Text>
+                        <Text style={text}>{position.name}</Text>
+                      </Column>
+                      <Column style={{width: '17.5%'}}>
+                        <Text style={{...text, fontWeight: 'bolder', textAlign: 'right'}}>
+                          {Formatter.currency(position.buy_in * position.quantity, currency)}
+                        </Text>
+                        <Text style={{...text, fontSize: '90%', textAlign: 'right'}}>
+                          {Formatter.currency(position.buy_in, currency)}
+                        </Text>
+                      </Column>
+                      <Column style={{width: '17.5%'}}>
+                        <Text style={{...text, textAlign: 'right'}}>{position.quantity.toFixed(2)} x</Text>
+                      </Column>
+                      <Column style={{width: '17.5%'}}>
+                        <Text style={{...text, fontWeight: 'bolder', textAlign: 'right'}}>
+                          {Formatter.currency(currentPrice * position.quantity, currency)}
+                        </Text>
+                        <Text style={{...text, fontSize: '90%', textAlign: 'right'}}>
+                          {Formatter.currency(currentPrice, currency)}
+                        </Text>
+                      </Column>
+                      <Column style={{width: '17.5%'}}>
+                        <Text style={{...text, fontWeight: 'bolder', textAlign: 'right'}}>
+                          {Formatter.currency(profit, currency)}
+                        </Text>
+                        <Text style={{...text, fontSize: '90%', textAlign: 'right'}}>
+                          {profitPercentage.toFixed(2)} %
+                        </Text>
+                      </Column>
+                    </Row>
+                  );
+                })}
+            </Section>
+
+            <Section style={{marginBottom: '1rem'}}>
+              <Row style={{columnGap: '1rem', gap: '1rem'}}>
+                {metals.map(metal => (
+                  <Column key={metal.name.toLowerCase()}>
+                    <NumBox label={metal.name} value={metal.quote.EUR} style={{marginLeft: '0'}} />
+                  </Column>
+                ))}
+              </Row>
             </Section>
 
             <ButtonContainer>
-              <StyledButton href={'https://app.budget-buddy.de/dashboard/stocks'}>View more</StyledButton>
+              <StyledButton href={viewMoreLink}>View more</StyledButton>
             </ButtonContainer>
 
             <Text style={paragraph}>

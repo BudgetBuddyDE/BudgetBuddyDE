@@ -1,5 +1,5 @@
 import {Column, Head, Html, Preview, Row, Section, Text} from '@react-email/components';
-import {format} from 'date-fns';
+import {format, subDays} from 'date-fns';
 import React from 'react';
 
 import {ButtonContainer, Layout, NumBox, StyledBody, StyledButton} from '../../components';
@@ -14,16 +14,20 @@ export type WeeklyReportProps = {
   spendings: number;
   balance: number;
   grouped: {category: string; income: number; spendings: number; balance: number}[];
+  viewMoreLink?: string;
 };
 
+const today = new Date();
+
 export const WeeklyReport: React.FC<WeeklyReportProps> = ({
-  name,
+  name = 'Buddy',
   company = 'Budget-Buddy',
-  income,
-  spendings,
-  startDate,
-  endDate,
-  grouped,
+  income = 0,
+  spendings = 0,
+  startDate = subDays(today, 7),
+  endDate = today,
+  grouped = [],
+  viewMoreLink = 'https://app.budget-buddy.de/transactions',
 }) => {
   const balance = income - spendings;
   const formattedStartDate = format(startDate, 'dd.MM');
@@ -70,7 +74,7 @@ export const WeeklyReport: React.FC<WeeklyReportProps> = ({
                 </Column>
               </Row>
 
-              {grouped.map(({category, income, spendings, balance}, idx, arr) => (
+              {grouped.map(({category, income, spendings, balance}, idx) => (
                 <Row
                   key={category.toLowerCase()}
                   style={{
@@ -102,7 +106,7 @@ export const WeeklyReport: React.FC<WeeklyReportProps> = ({
             </Section>
 
             <ButtonContainer>
-              <StyledButton href={'https://app.budget-buddy.de'}>View more</StyledButton>
+              <StyledButton href={viewMoreLink}>View more</StyledButton>
             </ButtonContainer>
 
             <Text style={paragraph}>

@@ -44,6 +44,8 @@ export const config: TConfig = {
     'HOST',
     'MAIL_SENDER',
     'RESEND_API_KEY',
+    'STOCK_SERVICE_HOST',
+    'STOCK_SERVICE_BEARER_TOKEN',
     // 'PORT',
   ],
   port: getPort(),
