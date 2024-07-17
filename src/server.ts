@@ -83,16 +83,10 @@ io.use(async (socket, next) => {
 
 io.on('connection', socket => {
   logger.info(`Client (${socket.client.conn.remoteAddress}) connected`, {category: ELogCategory.WEBSOCKET});
-  // console.log(socket.rooms);
 
   socket.on('disconnect', () => {
     logger.info(`Client (${socket.client.conn.remoteAddress}) disconnected`, {category: ELogCategory.WEBSOCKET});
-    // console.log('disconnected', socket.rooms);
   });
-
-  // socket.on('disconnecting', () => {
-  //   console.log('disconnecting', socket.rooms);
-  // });
 
   socket.on('stock:subscribe', (stocks: {isin: string; exchange: string}[], userId: NonNullable<TUser>['id']) => {
     logger.info(`Subscribing to stocks ${stocks.map(({isin}) => isin).join(', ')} for client ${userId}`, {
@@ -129,6 +123,7 @@ export const listen = server.listen(config.port, process.env.HOSTNAME || 'localh
     'Node Version': process.version,
     'Server Port': config.port,
     'Background Jobs': config.enableBackgroundJobs,
+    'Bearer Token': process.env.BEARER_TOKEN_SECRET,
   });
 
   if (config.environment !== 'test') {
@@ -166,21 +161,23 @@ export const listen = server.listen(config.port, process.env.HOSTNAME || 'localh
     logger.info(`Background jobs are enabled`, {category: ELogCategory.SETUP});
     const assetUpdateInterval = `*/${config.stocks.fetchInterval} * * * *`;
     if (cron.validate(assetUpdateInterval)) {
-      cron.schedule(
-        assetUpdateInterval,
-        async () => {
-          const subscriptionUpdateDetails = await AssetSubscriptionHandler.UpdateAssetSubscriptions();
-          if (subscriptionUpdateDetails.length > 0) {
-            for (const {exchange, isin, quote, subscribers} of subscriptionUpdateDetails) {
-              for (const subClientId of subscribers) {
-                io.emit('stock:update:' + subClientId, {exchange, isin, quote});
-              }
+      return logger.warn(`Invalid cron-expression: ${assetUpdateInterval}`, {category: ELogCategory.BACKGROUND_JOB});
+    }
+
+    cron.schedule(
+      assetUpdateInterval,
+      async () => {
+        const subscriptionUpdateDetails = await AssetSubscriptionHandler.UpdateAssetSubscriptions();
+        if (subscriptionUpdateDetails.length > 0) {
+          for (const {exchange, isin, quote, subscribers} of subscriptionUpdateDetails) {
+            for (const subClientId of subscribers) {
+              io.emit('stock:update:' + subClientId, {exchange, isin, quote});
             }
           }
-        },
-        {name: 'AssetSubscriptionHandler.UpdateAssetSubscriptions'},
-      );
-    } else logger.warn(`Invalid cron-expression: ${assetUpdateInterval}`, {category: ELogCategory.BACKGROUND_JOB});
+        }
+      },
+      {name: 'AssetSubscriptionHandler.UpdateAssetSubscriptions'},
+    );
 
     logger.info(`Scheduled jobs: ${Array.from(cron.getTasks().keys()).join(', ')}`, {
       category: ELogCategory.BACKGROUND_JOB,

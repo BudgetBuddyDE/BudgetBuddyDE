@@ -124,7 +124,6 @@ export class StockService {
     assets: {isin: string; exchange: string}[],
     timeframe: TTimeframe = '1d',
   ): Promise<TServiceResponse<TAssetChartQuote[]>> {
-    console.log('timeframe', timeframe);
     try {
       const query = new URLSearchParams();
       query.append('currency', 'EUR');

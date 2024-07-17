@@ -53,7 +53,7 @@ const StockStore = createStore<IStockStore>((set, get) => ({
           isin: stock.isin,
         });
         const stockSubscription = exchangeSubscriptions
-          ? exchangeSubscriptions.find(subscription => subscription.isin === stock.isin) ?? null
+          ? (exchangeSubscriptions.find(subscription => subscription.isin === stock.isin) ?? null)
           : null;
 
         if (!stockSubscription) {

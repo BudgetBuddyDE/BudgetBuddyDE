@@ -45,6 +45,7 @@ export const config: TConfig = {
   environment: getCurrentRuntimeEnvironment(),
   environmentVariables: [
     'ENV',
+    'BEARER_TOKEN_SECRET',
     'STOCK_API_URL',
     'POCKETBASE_URL',
     'SERVICE_ACCOUNT_EMAIL',
