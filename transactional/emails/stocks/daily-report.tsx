@@ -55,19 +55,13 @@ export const DailyReport: React.FC<DailyReportProps> = ({
 
             <Section style={{marginBottom: '1rem'}}>
               <Row>
-                <Column style={{width: '30%'}}>
+                <Column style={{width: '60%'}}>
                   <Text style={label}>Position</Text>
                 </Column>
-                <Column style={{width: '17.5%'}}>
-                  <Text style={{...label, textAlign: 'right'}}>Buy In</Text>
-                </Column>
-                <Column style={{width: '17.5%'}}>
-                  <Text style={{...label, textAlign: 'right'}}>Shares</Text>
-                </Column>
-                <Column style={{width: '17.5%'}}>
+                <Column style={{width: '20%'}}>
                   <Text style={{...label, textAlign: 'right'}}>Value</Text>
                 </Column>
-                <Column style={{width: '17.5%'}}>
+                <Column style={{width: '20%'}}>
                   <Text style={{...label, textAlign: 'right'}}>+/-</Text>
                 </Column>
               </Row>
@@ -88,22 +82,11 @@ export const DailyReport: React.FC<DailyReportProps> = ({
                         borderStyle: 'solid',
                         borderTopWidth: `${idx === 0 ? 0 : 1}px`,
                       }}>
-                      <Column style={{width: '30%'}}>
+                      <Column style={{width: '60%'}}>
                         <Text style={{...text, fontSize: '90%'}}>{position.isin}</Text>
-                        <Text style={text}>{position.name}</Text>
+                        <Text style={text}>{position.quantity.toFixed(2)} x {position.name}</Text>
                       </Column>
-                      <Column style={{width: '17.5%'}}>
-                        <Text style={{...text, fontWeight: 'bolder', textAlign: 'right'}}>
-                          {Formatter.currency(position.buy_in * position.quantity, currency)}
-                        </Text>
-                        <Text style={{...text, fontSize: '90%', textAlign: 'right'}}>
-                          {Formatter.currency(position.buy_in, currency)}
-                        </Text>
-                      </Column>
-                      <Column style={{width: '17.5%'}}>
-                        <Text style={{...text, textAlign: 'right'}}>{position.quantity.toFixed(2)} x</Text>
-                      </Column>
-                      <Column style={{width: '17.5%'}}>
+                      <Column style={{width: '20%'}}>
                         <Text style={{...text, fontWeight: 'bolder', textAlign: 'right'}}>
                           {Formatter.currency(currentPrice * position.quantity, currency)}
                         </Text>
@@ -111,7 +94,7 @@ export const DailyReport: React.FC<DailyReportProps> = ({
                           {Formatter.currency(currentPrice, currency)}
                         </Text>
                       </Column>
-                      <Column style={{width: '17.5%'}}>
+                      <Column style={{width: '20%'}}>
                         <Text style={{...text, fontWeight: 'bolder', textAlign: 'right'}}>
                           {Formatter.currency(profit, currency)}
                         </Text>
