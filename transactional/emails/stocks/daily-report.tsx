@@ -84,7 +84,7 @@ export const DailyReport: React.FC<DailyReportProps> = ({
                       }}>
                       <Column style={{width: '60%'}}>
                         <Text style={{...text, fontSize: '90%'}}>{position.isin}</Text>
-                        <Text style={text}>{position.quantity.toFixed(2)} x {position.name}</Text>
+                        <Text style={text}>{position.name}</Text>
                       </Column>
                       <Column style={{width: '20%'}}>
                         <Text style={{...text, fontWeight: 'bolder', textAlign: 'right'}}>
