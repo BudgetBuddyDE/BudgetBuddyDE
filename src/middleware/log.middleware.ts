@@ -51,18 +51,19 @@ export function logMiddleware(req: Request, res: Response, next: NextFunction) {
       responseTimeInMillis: durationMs,
     };
 
+    const msg = `${req.method} ${statusCode} ${req.originalUrl} - ${durationMs} ms`;
     switch (type) {
       case 'ERROR':
-        logger.error('{requestMethod} {statusCode} /{path}', logMetaInformation);
+        logger.error(msg, logMetaInformation);
         break;
 
       case 'WARN':
-        logger.warn('{requestMethod} {statusCode} /{path}', logMetaInformation);
+        logger.warn(msg, logMetaInformation);
         break;
 
       case 'INFO':
       default:
-        logger.info('{requestMethod} {statusCode} /{path}', logMetaInformation);
+        logger.info(msg, logMetaInformation);
         break;
     }
   });
