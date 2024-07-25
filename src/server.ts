@@ -160,7 +160,7 @@ export const listen = server.listen(config.port, process.env.HOSTNAME || 'localh
   if (config.enableBackgroundJobs) {
     logger.info(`Background jobs are enabled`, {category: ELogCategory.SETUP});
     const assetUpdateInterval = `*/${config.stocks.fetchInterval} * * * *`;
-    if (cron.validate(assetUpdateInterval)) {
+    if (!cron.validate(assetUpdateInterval)) {
       return logger.warn(`Invalid cron-expression: ${assetUpdateInterval}`, {category: ELogCategory.BACKGROUND_JOB});
     }
 
@@ -185,4 +185,18 @@ export const listen = server.listen(config.port, process.env.HOSTNAME || 'localh
   } else logger.warn('Background jobs are disabled', {category: ELogCategory.SETUP});
 
   // TODO: Retrieve persisted stock-prices from redis-database and store them in StockStore
+
+  setInterval(() => {
+    const memoryUsage = process.memoryUsage();
+    function bytesToMB(bytes: number) {
+      return (bytes / 1024 / 1024).toFixed(2);
+    }
+    logger.debug('Memory usage', {
+      rss: bytesToMB(memoryUsage.rss),
+      heapTotal: bytesToMB(memoryUsage.heapTotal),
+      heapUsed: bytesToMB(memoryUsage.heapUsed),
+      external: bytesToMB(memoryUsage.external),
+      arrayBuffers: bytesToMB(memoryUsage.arrayBuffers),
+    });
+  }, 30 * 1000);
 });
