@@ -1,4 +1,6 @@
-import StockStore, {type TStockSubscription} from '../core/Stock.store';
+import {beforeEach, describe, expect, it} from 'vitest';
+
+import {StockStore, type TStockSubscription} from '../core/Stock.store';
 
 // US56035L1044, MainStreet Capital
 // US04010L1035, Ares Capital

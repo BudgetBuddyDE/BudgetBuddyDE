@@ -9,8 +9,9 @@ import {Server} from 'socket.io';
 
 import {name, version} from '../package.json';
 import {config} from './config';
-import {StockStore, logger} from './core';
+import {StockStore} from './core';
 import {AssetSubscriptionHandler} from './handler';
+import {logger} from './logger';
 import {ELogCategory} from './middleware';
 import {checkAuthorizationHeader, logMiddleware} from './middleware';
 import {pb} from './pocketbase';
@@ -160,7 +161,7 @@ export const listen = server.listen(config.port, process.env.HOSTNAME || 'localh
   if (config.enableBackgroundJobs) {
     logger.info(`Background jobs are enabled`, {category: ELogCategory.SETUP});
     const assetUpdateInterval = `*/${config.stocks.fetchInterval} * * * *`;
-    if (cron.validate(assetUpdateInterval)) {
+    if (!cron.validate(assetUpdateInterval)) {
       return logger.warn(`Invalid cron-expression: ${assetUpdateInterval}`, {category: ELogCategory.BACKGROUND_JOB});
     }
 

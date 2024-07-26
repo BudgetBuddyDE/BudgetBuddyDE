@@ -14,7 +14,7 @@ import {
 import express from 'express';
 import {z} from 'zod';
 
-import {logger} from '../core';
+import {logger} from '../logger';
 import {pb} from '../pocketbase';
 import {StockService} from '../services';
 

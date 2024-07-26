@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/stock-ser
 
 WORKDIR /app
 
-COPY bun.lockb .
+#COPY bun.lockb .
 COPY package.json .
 COPY .husky ./.husky
 

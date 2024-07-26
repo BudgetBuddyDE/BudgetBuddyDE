@@ -1,6 +1,6 @@
 import {differenceInSeconds, endOfDay} from 'date-fns';
 
-import {logger} from '../core';
+import {logger} from '../logger';
 import {redisClient} from '../redis';
 import {MetalOptions, MetalService} from './Metal.service';
 

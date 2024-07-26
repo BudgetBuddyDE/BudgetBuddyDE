@@ -1,4 +1,5 @@
-import {StockStore, type TStockSubscription, logger} from '../core';
+import {StockStore, type TStockSubscription} from '../core';
+import {logger} from '../logger';
 import {ELogCategory} from '../middleware';
 import {StockService} from '../services';
 

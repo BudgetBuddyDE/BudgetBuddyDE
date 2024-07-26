@@ -1,7 +1,7 @@
 import {ApiResponse, HTTPStatusCode} from '@budgetbuddyde/types';
 import type {NextFunction, Request, Response} from 'express';
 
-import {logger} from '../core';
+import {logger} from '../logger';
 import {AuthService} from '../services';
 import {ELogCategory} from './log.middleware';
 

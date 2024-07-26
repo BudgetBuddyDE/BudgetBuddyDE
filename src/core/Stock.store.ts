@@ -1,8 +1,8 @@
 import {type TStockExchange, type TStockQuote} from '@budgetbuddyde/types';
 import {createStore} from 'zustand/vanilla';
 
+import {logger} from '../logger';
 import {ELogCategory} from '../middleware';
-import {logger} from './logger';
 
 export type TStockSubscription = {
   isin: string;
@@ -35,7 +35,7 @@ export interface IStockStore {
   clear: () => void;
 }
 
-const StockStore = createStore<IStockStore>((set, get) => ({
+export const StockStore = createStore<IStockStore>((set, get) => ({
   subscriptions: new Map(),
   addSubscription: (stocks, client) => {
     const subscriptions = get().subscriptions;
@@ -161,5 +161,3 @@ const StockStore = createStore<IStockStore>((set, get) => ({
     set({subscriptions: new Map()});
   },
 }));
-
-export default StockStore;

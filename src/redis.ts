@@ -1,6 +1,6 @@
 import {createClient} from 'redis';
 
-import {logger} from './core';
+import {logger} from './logger';
 
 const {CACHE_REDIS_URL} = process.env;
 

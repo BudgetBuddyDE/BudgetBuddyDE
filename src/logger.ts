@@ -1,8 +1,8 @@
 import {BaselimeTransport} from '@baselime/winston-transport';
 import winston from 'winston';
 
-import {name} from '../../package.json';
-import {config} from '../config';
+import {name} from '../package.json';
+import {config} from './config';
 
 /**
  * The logger instance for the stock service.
@@ -44,7 +44,7 @@ export const logger = winston.createLogger({
           new BaselimeTransport({
             baselimeApiKey: process.env.BASELIME_API_KEY,
             service: name,
-            namespace: 'de.budget-buddy',
+            namespace: 'de.budget-buddy.stock-service',
           }),
         ]
       : []),

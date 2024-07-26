@@ -5,6 +5,7 @@
 //     done();
 //   });
 // });
+import {describe, expect, it} from 'vitest';
 
 describe('uses correct server setup', () => {
   it('should use the correct port', () => {

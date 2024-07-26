@@ -1,6 +1,6 @@
 import type {NextFunction, Request, Response} from 'express';
 
-import {logger} from '../core';
+import {logger} from '../logger';
 
 export type TLogType = 'LOG' | 'INFO' | 'WARN' | 'ERROR';
 

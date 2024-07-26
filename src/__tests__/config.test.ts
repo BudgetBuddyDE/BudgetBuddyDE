@@ -1,3 +1,5 @@
+import {beforeEach, describe, expect, it} from 'vitest';
+
 import {getCurrentRuntimeEnvironment, getPort} from '../utils';
 
 describe('should always choose the correct environment', () => {
