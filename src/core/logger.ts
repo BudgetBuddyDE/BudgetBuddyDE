@@ -8,7 +8,7 @@ import {config} from '../config';
  * The logger instance for the stock service.
  */
 export const logger = winston.createLogger({
-  level: config.environment === 'test' ? config.log.test : config.log.default,
+  level: 'info',
   defaultMeta: {
     application: 'stock-service',
     environment: process.env.NODE_ENV || 'development',
@@ -32,6 +32,10 @@ export const logger = winston.createLogger({
         }),
       ),
       level: config.environment === 'test' ? config.log.test : config.log.default,
+    }),
+    new winston.transports.File({
+      dirname: 'logs',
+      filename: 'error.log',
     }),
     ...(config.environment === 'production' &&
     process.env.BASELIME_API_KEY !== undefined &&

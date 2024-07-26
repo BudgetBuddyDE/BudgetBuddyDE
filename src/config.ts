@@ -64,7 +64,7 @@ export const config: TConfig = {
     credentials: true,
   },
   log: {
-    default: 'debug',
+    default: 'info',
     test: 'error',
   },
   enableBackgroundJobs: process.env.ENABLE_BACKGROUND_JOBS ? process.env.ENABLE_BACKGROUND_JOBS === 'true' : false,
