@@ -6,8 +6,8 @@ export default withMermaid({
   title: 'Budget Buddy',
   titleTemplate: 'Budget Buddy - :title',
   description: 'Budget Buddy Documentation',
-  head:
-    process.env.NODE_ENV === 'production'
+  head: [
+    ...(process.env.NODE_ENV === 'production'
       ? [
           [
             'script',
@@ -17,7 +17,9 @@ export default withMermaid({
             },
           ],
         ]
-      : undefined,
+      : []),
+    ['link', { rel: 'icon', href: '/favicon.ico' }],
+  ],
   srcExclude: ['**/drawio/**'],
   themeConfig: {
     search: {
@@ -59,7 +61,7 @@ export default withMermaid({
     ],
 
     socialLinks: [{ icon: 'github', link: 'https://github.com/BudgetBuddyDE' }],
-    logo: 'https://app.budget-buddy.de/logo.png',
+    logo: '/logo.png',
     footer: {
       copyright: `© ${new Date().getFullYear()} Budget Buddy`,
     },
