@@ -414,7 +414,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     }
 
     cron.schedule(
-      '0 7 * * 1-5',
+      '0 6 * * 1-5',
       async () => {
         const [_, error] = await sendDailyStockReport(NEWSLETTER.DAILY_STOCK_REPORT);
         if (error) {
@@ -427,7 +427,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     );
 
     cron.schedule(
-      '0 7 * * 1',
+      '0 6 * * 1',
       async () => {
         const startDate = subDays(new Date(), 7);
         const endDate = new Date();
@@ -442,7 +442,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     );
 
     cron.schedule(
-      '0 7 1 * *',
+      '0 6 1 * *',
       async () => {
         const month = new Date();
         const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
