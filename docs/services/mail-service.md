@@ -45,3 +45,28 @@ The Mail-Service is based on [React-Email](https://react.email) and [Resend](htt
    ```
 
 2. Edit the templates in the `transactional/email` folder
+
+## Flows
+
+### Opt-in
+
+```mermaid
+flowchart TD
+   A{{User requests to join the mailing list}} --> B[Mail service checks if the newsletter exists]
+   B --> C((X))
+   C --> D{{Newsletter doesn't exist}} --> E((End))
+   C --> F{{Newsletter exists}}
+   F --> G[Check if newsletter is active]
+   G --> H((X))
+   H --> I{{Newsletter is inactive}} --> J((End))
+   H --> K{{Newsletter is active}}
+   K --> L[Send confirmation email]
+   L --> N{{User ignores mail}} --> O((X))
+   O -->|Yes| P((End))
+   O -->|No| Q{{User didn't ignore email}}
+   Q --> AA[User clicks 'subscribe' in the email]
+   AA --> AB{{User gets redirected to the mail service endpoitn}}
+   AB --> AC[Add user to mailing list]
+   AC --> AD{{User was added to mailing list}}
+   AD --> AE((End))
+```
