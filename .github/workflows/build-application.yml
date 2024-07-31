@@ -10,17 +10,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        bun-version: [1.0.0, 1.1.1]
+        os: [ubuntu-latest]
+        node-version: [18.x, 20.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Bun ${{ matrix.bun-version }}
-        uses: oven-sh/setup-bun@v2
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
-          bun-version: ${{ matrix.bun-version }}
+          node-version: ${{ matrix.node-version }}
       - run: |
-          bun install
-          bun run test
-          CI=false bun build ./src/server.ts --compile --outfile cli
+          npm install
+          npm run test:run
+          CI=false npm run build
