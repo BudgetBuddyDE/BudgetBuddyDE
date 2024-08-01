@@ -1,6 +1,0 @@
-{
-  "watch": ["src", ".env"],
-  "ext": ".ts,.js",
-  "ignore": [],
-  "exec": "bun ./src/server.ts"
-}

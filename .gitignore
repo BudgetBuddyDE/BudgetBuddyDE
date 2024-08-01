@@ -1,9 +1,8 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
-stock-service*
+build/
 .idea/
 .DS_Store
-bun.lockb
 
 # Logs
 
