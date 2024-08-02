@@ -1,3 +1,4 @@
+import {BaselimeTransport} from '@baselime/winston-transport';
 import winston from 'winston';
 
 import {config} from './config';
@@ -31,16 +32,16 @@ export const logger = winston.createLogger({
       ),
       level: config.environment === 'test' ? config.log.test : config.log.default,
     }),
-    // ...(config.environment === 'production' &&
-    // process.env.BASELIME_API_KEY !== undefined &&
-    // process.env.BASELIME_API_KEY !== ''
-    //   ? [
-    //       new BaselimeTransport({
-    //         baselimeApiKey: process.env.BASELIME_API_KEY,
-    //         service: name,
-    //         namespace: 'de.budget-buddy',
-    //       }),
-    //     ]
-    //   : []),
+    ...(config.environment === 'production' &&
+    process.env.BASELIME_API_KEY !== undefined &&
+    process.env.BASELIME_API_KEY !== ''
+      ? [
+          new BaselimeTransport({
+            baselimeApiKey: process.env.BASELIME_API_KEY,
+            service: name,
+            namespace: 'de.budget-buddy',
+          }),
+        ]
+      : []),
   ],
 });

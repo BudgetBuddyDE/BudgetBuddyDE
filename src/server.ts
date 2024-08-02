@@ -132,7 +132,6 @@ app.post('/opt-in', async (req, res) => {
       );
   }
 
-  // @ts-expect-error
   const data = await resend.emails.send({
     from: config.sender,
     to: user.email,
@@ -216,7 +215,6 @@ app.get('/opt-in/verify', async (req, res) => {
       );
   }
 
-  // @ts-expect-error
   const data = await resend.emails.send({
     from: config.sender,
     to: user.email,
@@ -288,7 +286,6 @@ app.post('/opt-out', async (req, res) => {
       );
   }
 
-  // @ts-expect-error
   const data = await resend.emails.send({
     from: config.sender,
     to: user.email,

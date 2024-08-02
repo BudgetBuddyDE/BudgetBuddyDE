@@ -1,4 +1,3 @@
-bunx prettier --check .
-bun run test:run
-bun build ./src/server.ts --compile --outfile app
-rm ./app*
+npx prettier --check .
+npm run test:run
+npm run build

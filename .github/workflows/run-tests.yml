@@ -1,9 +1,7 @@
 name: Run Tests
 on:
   push:
-    branches-ignore: [main, dev]
   pull_request:
-    branches-ignore: [main, dev]
   workflow_dispatch:
 jobs:
   build:
@@ -11,15 +9,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        bun-version: [1.0.0, 1.1.1]
+        node-version: [18.x, 20.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Bun ${{ matrix.bun-version }}
-        uses: oven-sh/setup-bun@v2
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
-          bun-version: ${{ matrix.bun-version }}
+          node-version: ${{ matrix.node-version }}
       - run: |
-          bun install
-          CI=false bun run test
+          npm install
+          CI=false npm run test:run

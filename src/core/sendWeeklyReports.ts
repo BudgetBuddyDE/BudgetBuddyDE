@@ -41,7 +41,6 @@ export async function sendWeeklyReports(
   );
 
   for (const {user, income, spendings, balance, grouped} of results) {
-    // @ts-expect-error
     const response = await resend.emails.send({
       from: config.sender,
       to: user.email,

@@ -49,7 +49,6 @@ export async function sendDailyStockReport(NEWSLETTER_ID: string): Promise<
   if (err) return [null, err];
 
   for (const {user, positions} of results) {
-    // @ts-expect-error
     const response = await resend.emails.send({
       from: config.sender,
       to: user.email,
