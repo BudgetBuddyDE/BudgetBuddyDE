@@ -990,7 +990,7 @@ CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8080"]
     "updateRule": null,
     "deleteRule": null,
     "options": {
-      "query": "SELECT \n  (ROW_NUMBER() OVER()) AS id,\n  strftime('%Y-%m',transactions.processed_at) AS date,\n  SUM(transactions.transfer_amount) AS balance,\n  SUM(CASE WHEN transactions.transfer_amount > 0 THEN transactions.transfer_amount ELSE 0 END) AS income,\n  SUM(CASE WHEN transactions.transfer_amount < 0 THEN ABS(transactions.transfer_amount) ELSE 0 END) AS expenses,\n  transactions.owner\nFROM transactions\nGROUP BY strftime('%Y-%m',transactions.processed_at), transactions.owner\nORDER BY transactions.processed_at DESC;"
+      "query": "SELECT \n  (ROW_NUMBER() OVER()) AS id,\n  strftime('%Y-%m',transactions.processed_at) AS date,\n  SUM(transactions.transfer_amount) AS balance,\n  SUM(CASE WHEN transactions.transfer_amount > 0 THEN transactions.transfer_amount ELSE 0 END) AS income,\n  SUM(CASE WHEN transactions.transfer_amount < 0 THEN ABS(transactions.transfer_amount) ELSE 0 END) AS expenses,\n  transactions.owner\nFROM transactions\nWHERE transactions.processed_at <= CURRENT_TIMESTAMP\nGROUP BY strftime('%Y-%m',transactions.processed_at), transactions.owner\nORDER BY transactions.processed_at DESC;"
     }
   }
 ]
@@ -1938,7 +1938,7 @@ CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8080"]
     "updateRule": null,
     "deleteRule": null,
     "options": {
-      "query": "SELECT \n  (ROW_NUMBER() OVER()) AS id,\n  strftime('%Y-%m',transactions.processed_at) AS date,\n  SUM(transactions.transfer_amount) AS balance,\n  SUM(CASE WHEN transactions.transfer_amount > 0 THEN transactions.transfer_amount ELSE 0 END) AS income,\n  SUM(CASE WHEN transactions.transfer_amount < 0 THEN ABS(transactions.transfer_amount) ELSE 0 END) AS expenses,\n  transactions.owner\nFROM transactions\nGROUP BY strftime('%Y-%m',transactions.processed_at), transactions.owner\nORDER BY transactions.processed_at DESC;"
+      "query": "SELECT \n  (ROW_NUMBER() OVER()) AS id,\n  strftime('%Y-%m',transactions.processed_at) AS date,\n  SUM(transactions.transfer_amount) AS balance,\n  SUM(CASE WHEN transactions.transfer_amount > 0 THEN transactions.transfer_amount ELSE 0 END) AS income,\n  SUM(CASE WHEN transactions.transfer_amount < 0 THEN ABS(transactions.transfer_amount) ELSE 0 END) AS expenses,\n  transactions.owner\nFROM transactions\nWHERE transactions.processed_at <= CURRENT_TIMESTAMP\nGROUP BY strftime('%Y-%m',transactions.processed_at), transactions.owner\nORDER BY transactions.processed_at DESC;"
     }
   }
 ]
