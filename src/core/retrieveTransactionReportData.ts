@@ -24,7 +24,7 @@ export async function retrieveTransactionReportData(
   });
 
   const userTransactions = await pb.collection<TTransaction>(PocketBaseCollection.TRANSACTION).getFullList({
-    filter: `owner = "${user.id}" && created >= "${format(startDate, 'yyyy-MM-dd')}" && created <= "${format(endDate, 'yyyy-MM-dd')}"`,
+    filter: `owner = "${user.id}" && processed_at >= "${format(startDate, 'yyyy-MM-dd')}" && processed_at <= "${format(endDate, 'yyyy-MM-dd')}"`,
     expand: 'category',
   });
 
