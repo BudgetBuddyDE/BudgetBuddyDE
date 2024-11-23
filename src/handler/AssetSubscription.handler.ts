@@ -47,7 +47,7 @@ async function UpdateAssetSubscriptions(): Promise<
     if (resolvedPromise.status === 'rejected') return [];
 
     const [quotes, error] = resolvedPromise.value;
-    if (error) logger.warn(`Error fetching stock prices: ${error.message}`, {category: ELogCategory.STOCK});
+    if (error) logger.warn(`Error fetching stock prices: ${error.message}`, {category: ELogCategory.STOCK, error});
     if (!quotes) {
       logger.info(`No quotes found`, {category: ELogCategory.STOCK});
       return [];
