@@ -1,0 +1,162 @@
+resources:
+  - name: node-image
+    type: registry-image
+    source:
+      repository: node
+      tag: 20
+
+  - name: repo
+    type: git
+    icon: github
+    source:
+      uri: ((repo_uri))
+      private_key: ((repo_private_key))
+      branch: main
+      paths: [((repo_path))/**]
+      depth: 1
+
+  - name: version
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.0.0-rc.0
+      bucket: ((version_bucket))
+      key: ((service))/version
+      region_name: ((version_bucket_region))
+      access_key_id: ((version_bucket_access_key))
+      secret_access_key: ((version_bucket_secret))
+
+jobs:
+  - name: build
+    public: true
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repo
+            trigger: true
+          - get: version
+            params: { pre: rc }
+      - task: build
+        image: node-image
+        config:
+          inputs:
+            - name: repo
+            - name: version
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+          platform: linux
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                input_version=$(cat version/version)
+                cd repo/((repo_path))
+                npm ci
+                npm test
+                npm run build
+                npm version $input_version --no-git-tag-version
+                npm publish --access public --dry-run
+      - put: version
+        params: { file: version/version }
+  - name: release-patch
+    plan:
+      - in_parallel:
+          - get: version
+            passed: [build]
+            params: { bump: patch }
+          - get: repo
+          - get: node-image
+      - task: build
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+            - name: version
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+          run:
+            path: sh
+            args:
+              - -evc
+              - |
+                input_version="$(cat version/version)"
+                cd repo/((repo_path))
+                npm ci
+                npm run build
+                npm version "$input_version" --no-git-tag-version
+                echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
+                npm publish --access public
+      - in_parallel:
+          - put: version
+            params: { file: version/version }
+  - name: release-minor
+    plan:
+      - in_parallel:
+          - get: version
+            passed: [build]
+            params: { bump: minor }
+          - get: repo
+          - get: node-image
+      - task: build
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+            - name: version
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+          run:
+            path: sh
+            args:
+              - -evc
+              - |
+                input_version="$(cat version/version)"
+                cd repo/((repo_path))
+                npm ci
+                npm run build
+                npm version "$input_version" --no-git-tag-version
+                echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
+                npm publish --access public
+      - in_parallel:
+          - put: version
+            params: { file: version/version }
+  - name: release-major
+    plan:
+      - in_parallel:
+          - get: version
+            passed: [build]
+            params: { bump: major }
+          - get: repo
+          - get: node-image
+      - task: build
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+            - name: version
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+          run:
+            path: sh
+            args:
+              - -evc
+              - |
+                input_version="$(cat version/version)"
+                cd repo/((repo_path))
+                npm ci
+                npm run build
+                npm version "$input_version" --no-git-tag-version
+                echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
+                npm publish --access public
+      - in_parallel:
+          - put: version
+            params: { file: version/version }
