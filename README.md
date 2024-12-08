@@ -12,7 +12,6 @@ BudgetBuddy is a modern ReactJS-based web application designed to help you manag
 - **Financial Reports:** Generate weekly and monthly reports to visualize your spending and identify trends.
 - **Income and Expense Analysis:** Gain insights into your financial situation and discover opportunities to save.
 
-
 ## Getting started
 
 1. Clone this repository
@@ -27,7 +26,9 @@ BudgetBuddy is a modern ReactJS-based web application designed to help you manag
 .github/
   ├── workflows/         # GitHub Actions workflows
   └── ISSUE_TEMPLATE/    # Templates for GitHub issues
-ci/                      # Concourse workflows
+ci/
+  ├── pipelines/         # Concourse workflows
+  └── secrets/           # Secrets for workflows
 docs/                    # Main documentation for the project
 apps/
   ├── webapp/            # Main frontend application
