@@ -22,6 +22,9 @@ export type TAppConfig = {
   auth: {
     cookieName: string;
   };
+  user: {
+    deletionThreshold: number;
+  };
   table: {
     cellSize: TableCellProps['size'];
   };
@@ -40,6 +43,9 @@ export const AppConfig: TAppConfig = {
   theme: BlueTheme,
   auth: {
     cookieName: 'budget-buddy.auth',
+  },
+  user: {
+    deletionThreshold: 30,
   },
   table: {
     cellSize: 'medium',
