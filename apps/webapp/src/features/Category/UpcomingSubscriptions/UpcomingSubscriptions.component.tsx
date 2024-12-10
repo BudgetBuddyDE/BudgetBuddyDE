@@ -6,6 +6,7 @@ import React from 'react';
 import {Card} from '@/components/Base/Card';
 import {ListWithIcon} from '@/components/Base/ListWithIcon';
 import {CircularProgress} from '@/components/Loading';
+import {NoResults} from '@/components/NoResults';
 import {useSubscriptions} from '@/features/Subscription';
 import {Formatter} from '@/services/Formatter';
 
@@ -31,17 +32,14 @@ export const UpcomingSubscriptions: React.FC<TUpcomingSubscriptionProps> = ({}) 
         <Box>
           <Card.Title>Upcoming subscriptions</Card.Title>
           <Card.Subtitle>
-            {Formatter.formatBalance(
-              groupedPayments.length > 0 ? groupedPayments.reduce((acc, curr) => acc + curr.total, 0) : 0,
-            )}{' '}
-            grouped by category
+            {Formatter.formatBalance(groupedPayments.reduce((acc, curr) => acc + curr.total, 0))} grouped by category
           </Card.Subtitle>
         </Box>
       </Card.Header>
       <Card.Body>
         {isLoadingSubscriptions ? (
           <CircularProgress />
-        ) : (
+        ) : groupedPayments.length > 0 ? (
           groupedPayments.map(({label, total}) => (
             <ListWithIcon
               key={'upc-sub-' + label.replaceAll(' ', '_').toLowerCase()}
@@ -50,6 +48,8 @@ export const UpcomingSubscriptions: React.FC<TUpcomingSubscriptionProps> = ({}) 
               amount={total}
             />
           ))
+        ) : (
+          <NoResults text="No upcoming subscriptions for this month!" sx={{mt: 1}} />
         )}
       </Card.Body>
     </Card>
