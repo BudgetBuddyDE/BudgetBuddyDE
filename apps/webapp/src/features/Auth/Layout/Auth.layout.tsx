@@ -6,6 +6,10 @@ import {EnvironmentDisclaimer} from '@/components/EnvironmentDisclaimer';
 import {FilterDrawer} from '@/components/Filter';
 import {AppBar, Footer} from '@/components/Layout';
 import {Drawer} from '@/components/Layout/Drawer';
+import {AccountDeletionAlert} from '@/components/Settings/AccountDeletionAlert.component';
+import {When} from '@/components/When';
+
+import {useAuthContext} from '../Auth.context';
 
 const Main = styled('main')(({theme}) => ({
   transition: theme.transitions.create('margin', {
@@ -20,6 +24,8 @@ const Main = styled('main')(({theme}) => ({
 export type TAuthLayout = React.PropsWithChildren;
 
 export const AuthLayout: React.FC<TAuthLayout> = ({children}) => {
+  const {sessionUser} = useAuthContext();
+
   return (
     <Box sx={{display: 'flex'}}>
       <Drawer />
@@ -38,6 +44,9 @@ export const AuthLayout: React.FC<TAuthLayout> = ({children}) => {
         <AppBar />
 
         <Container maxWidth="xl" sx={{mt: 2, mb: 4}}>
+          <When when={sessionUser && sessionUser.marked_for_deletion !== null}>
+            <AccountDeletionAlert sx={{mb: 2}} />
+          </When>
           {children}
         </Container>
 
