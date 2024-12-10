@@ -1,6 +1,5 @@
 import {z} from 'zod';
 import {ZBaseModel, ZId, ZNullableString} from './PocketBase.types';
-import {ZDate} from './Base.type';
 
 export const ZUser = z
   .object({
@@ -13,7 +12,12 @@ export const ZUser = z
       name: ZNullableString,
       surname: ZNullableString,
       verified: z.boolean(),
-      marked_for_deletion: ZDate.nullable(),
+      marked_for_deletion: z
+        .date()
+        .or(z.number())
+        .or(z.string())
+        .transform(val => (typeof val === 'string' && val.length === 0 ? null : new Date(val)))
+        .nullable(),
       newsletter: z.array(ZId),
     }).shape,
   })
