@@ -4,16 +4,18 @@ import {z} from 'zod';
 export const ZCategoryStats = z.object({
   startDate: ZDate,
   endDate: ZDate,
-  categories: z.array(
-    z.object({
-      category: z.object({
-        id: z.string(),
-        name: z.string(),
+  categories: z
+    .array(
+      z.object({
+        category: z.object({
+          id: z.string(),
+          name: z.string(),
+        }),
+        balance: z.number(),
+        expenses: z.number(),
+        income: z.number(),
       }),
-      balance: z.number(),
-      expenses: z.number(),
-      income: z.number(),
-    }),
-  ),
+    )
+    .nullable(),
 });
 export type TCategoryStats = z.infer<typeof ZCategoryStats>;

@@ -92,7 +92,7 @@ export const CategoryPieChart: React.FC<TCategoryPieChartProps> = ({
   const chartData: TPieChartData[] = React.useMemo(() => {
     if (!data[currentTimeframe]) return [];
     const stats = data[currentTimeframe].categories;
-    return stats
+    return (stats ?? [])
       .map(stat => ({
         label: stat.category.name,
         value: transactionsType === 'INCOME' ? stat.income : stat.expenses,

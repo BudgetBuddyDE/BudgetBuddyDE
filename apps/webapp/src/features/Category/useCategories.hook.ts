@@ -26,7 +26,6 @@ export function useCategories(): TGenericHook<TCategory[], AdditionalFuncs> {
       ...preparePockebaseRequestOptions(),
     });
     const json = await response.json();
-
     const parsedResult = ZCategoryStats.safeParse(json);
     return parsedResult.error ? [null, parsedResult.error] : [parsedResult.data, null];
   };
