@@ -1,4 +1,4 @@
-import {type TDividendDetails, TStockPositionWithQuote} from '@budgetbuddyde/types';
+import {type TDividendDetails, type TStockPositionWithQuote} from '@budgetbuddyde/types';
 import {AccountBalanceRounded, AddRounded, PaymentsRounded, RemoveRounded} from '@mui/icons-material';
 import {Button, Grid2 as Grid} from '@mui/material';
 import React from 'react';
