@@ -1,10 +1,8 @@
 import react from '@vitejs/plugin-react-swc';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import path from 'path';
 import {defineConfig} from 'vite';
 import {ViteEjsPlugin} from 'vite-plugin-ejs';
-
-dotenv.config();
 
 // import dns from 'dns';
 
@@ -12,11 +10,10 @@ dotenv.config();
 // dns.setDefaultResultOrder('verbatim');
 
 const production = process.env.NODE_ENV === 'production';
-
 const SHOW_ENVIRONMENT_DISCLAIMER = process.env.SHOW_ENVIRONMENT_DISCLAIMER || 'false';
 const STOCK_SERVICE_HOST = process.env.STOCK_SERVICE_HOST || 'http://localhost:7080';
-const MAIL_SERVICE_HOST = process.env.MAIL_SERVICE_HOST;
-const POCKETBASE_URL = process.env.POCKETBASE_URL || '';
+const MAIL_SERVICE_HOST = process.env.MAIL_SERVICE_HOST || 'https://localhost:7070';
+const POCKETBASE_URL = process.env.POCKETBASE_URL || 'https://localhost:7060';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -34,8 +31,9 @@ export default defineConfig({
     open: true,
     host: 'localhost',
     port: 3000,
-    proxy: !production
-      ? {
+    proxy: production
+      ? undefined
+      : {
           '/stock_service': {
             target: STOCK_SERVICE_HOST,
             changeOrigin: true,
@@ -52,14 +50,13 @@ export default defineConfig({
           //   ws: true,
           //   rewrite: (path) => path.replace("/socket", ""),
           // },
-        }
-      : undefined,
+        },
   },
   resolve: {
     alias: [{find: '@', replacement: path.resolve(__dirname, 'src')}],
   },
   build: {
-    outDir: 'build',
+    outDir: 'dist',
   },
   plugins: [
     react(),

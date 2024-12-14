@@ -11,7 +11,6 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "preview": "vite preview",
-    "prepare": "node .husky/install.mjs",
     "format": "prettier --write ./src --log-level silent"
   },
   "dependencies": {

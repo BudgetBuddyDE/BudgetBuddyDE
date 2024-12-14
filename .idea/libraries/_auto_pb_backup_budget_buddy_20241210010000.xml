@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="@auto_pb_backup_budget_buddy_20241210010000">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/services/pocketbase/pb_data/backups/@auto_pb_backup_budget_buddy_20241210010000.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
