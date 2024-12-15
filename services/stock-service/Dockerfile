@@ -5,7 +5,6 @@ LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/stock-ser
 WORKDIR /usr/src/stock-service/
 
 COPY package*.json ./
-COPY .husky ./.husky
 
 RUN npm install --frozen-lockfile
 
