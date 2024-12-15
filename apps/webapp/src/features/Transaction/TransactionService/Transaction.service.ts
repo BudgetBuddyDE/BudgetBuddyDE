@@ -98,7 +98,6 @@ export class TransactionService {
     const expand = 'category,payment_method';
     const sort = '-processed_at';
     const options: RecordFullListOptions = filters ? {expand, sort, filter: filters} : {expand, sort};
-    console.log('TransactionService - getTransactions - options', options);
     const records = await pb.collection(PocketBaseCollection.TRANSACTION).getFullList(options);
 
     const parsingResult = z.array(ZTransaction).safeParse(records);
