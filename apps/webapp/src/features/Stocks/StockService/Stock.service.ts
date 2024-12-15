@@ -88,8 +88,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = ZAssetDetails.safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -114,8 +113,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = z.array(ZStockPositionWithQuote).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -134,8 +132,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = z.array(ZStockPositionWithQuote).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -160,8 +157,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = z.array(ZStockPositionWithQuote).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -186,8 +182,7 @@ export class StockService {
       }
 
       const parsingResult = z.object({success: z.boolean()}).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -212,8 +207,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = ZStockQuote.safeParse(json.data);
-      if (!parsingResult.success) throw new Error(parsingResult.error.message);
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -245,8 +239,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = z.array(ZAssetChartQuote).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -269,8 +262,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = z.array(ZAssetSearchResult).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -289,8 +281,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error(json.message!)];
 
       const parsingResult = z.array(ZStockExchange).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -313,8 +304,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error('Something went wrong')];
 
       const parsingResult = z.record(ZDividendDetails).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -338,8 +328,7 @@ export class StockService {
       if (json.status != 200) return [null, new Error('Something went wrong')];
 
       const parsingResult = z.array(ZRelatedStockWithQuotes).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -357,8 +346,7 @@ export class StockService {
       const json = (await response.json()) as TApiResponse<TAssetWatchlistWithQuote[]>;
       if (json.status != 200) return [null, new Error(json.message!)];
       const parsingResult = z.array(ZAssetWatchlistWithQuote).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }
@@ -382,8 +370,7 @@ export class StockService {
       const json = (await response.json()) as TApiResponse<TAssetWatchlistWithQuote[]>;
       if (json.status != 200) return [null, new Error(json.message!)];
       const parsingResult = z.array(ZAssetWatchlistWithQuote).safeParse(json.data);
-      if (!parsingResult.success) throw parsingResult.error;
-      return [parsingResult.data, null];
+      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
     } catch (error) {
       return [null, error as Error];
     }

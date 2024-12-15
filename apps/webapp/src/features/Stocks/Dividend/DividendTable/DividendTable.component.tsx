@@ -47,7 +47,7 @@ export const DividendTable: React.FC<TDividendTableProps> = ({dividends, withRed
         const totalQuantity = matchingPositions.reduce((prev, cur) => prev + cur.quantity, 0);
         return (
           <TableRow
-            key={data.key}
+            key={data.key + data.companyInfo.security.isin}
             {...(withRedirect && {
               sx: {
                 ':hover': {
