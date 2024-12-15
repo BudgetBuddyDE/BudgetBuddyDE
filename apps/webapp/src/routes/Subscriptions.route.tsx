@@ -123,12 +123,11 @@ export const Subscriptions = () => {
       try {
         if (deleteSubscriptions.length === 0) return;
 
-        const deleteResponses = Promise.allSettled(
+        await Promise.allSettled(
           deleteSubscriptions.map(subscription =>
             pb.collection(PocketBaseCollection.SUBSCRIPTION).delete(subscription.id),
           ),
         );
-        console.debug('Deleting subscriptions', deleteResponses);
 
         setShowDeleteSubscriptionDialog(false);
         setDeleteSubscriptions([]);

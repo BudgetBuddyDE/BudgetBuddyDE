@@ -5,7 +5,7 @@ import React from 'react';
 import {type ISelectionHandler} from '@/components/Base/SelectAll';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {useFilterStore} from '@/components/Filter';
-import {ImageViewDialog} from '@/components/ImageViewDialog/ImageViewDialog.component';
+import {ImageViewDialog} from '@/components/ImageViewDialog';
 import {AddFab, ContentGrid, FabContainer, OpenFilterDrawerFab} from '@/components/Layout';
 import {withAuthLayout} from '@/features/Auth';
 import {DeleteDialog} from '@/features/DeleteDialog';
@@ -82,10 +82,7 @@ export const Transactions = () => {
       try {
         if (deleteTransactions.length === 0) return;
 
-        const deleteResponses = Promise.allSettled(
-          deleteTransactions.map(({id}) => TransactionService.deleteTransaction(id)),
-        );
-        console.debug('Deleting transactions', deleteResponses);
+        await Promise.allSettled(deleteTransactions.map(({id}) => TransactionService.deleteTransaction(id)));
 
         setShowDeleteTransactionDialog(false);
         setDeleteTransactions([]);

@@ -83,10 +83,7 @@ export const PaymentMethods = () => {
       try {
         if (deletePaymentMethods.length === 0) return;
 
-        const deleteResponses = Promise.allSettled(
-          deletePaymentMethods.map(({id}) => PaymentMethodService.deletePaymentMethod(id)),
-        );
-        console.debug('Deleting payment-methods', deleteResponses);
+        await Promise.allSettled(deletePaymentMethods.map(({id}) => PaymentMethodService.deletePaymentMethod(id)));
 
         setShowDeletePaymentMethodDialog(false);
         setDeletePaymentMethods([]);

@@ -77,8 +77,7 @@ export const Categories = () => {
       try {
         if (deleteCategories.length === 0) return;
 
-        const deleteResponses = Promise.allSettled(deleteCategories.map(({id}) => CategoryService.deleteCategory(id)));
-        console.debug('Deleting categories', deleteResponses);
+        await Promise.allSettled(deleteCategories.map(({id}) => CategoryService.deleteCategory(id)));
 
         setShowDeleteCategoryDialog(false);
         setDeleteCategories([]);
