@@ -5,6 +5,7 @@ import {AppConfig} from '@/app.config';
 import {DashboardStatsWrapper} from '@/components/DashboardStatsWrapper';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {CircularProgress} from '@/components/Loading';
+import {When} from '@/components/When';
 import {BudgetPieChart} from '@/features/Budget';
 import {CategoryExpenseChart, UpcomingSubscriptions} from '@/features/Category';
 import {
@@ -26,7 +27,7 @@ const LIST_ITEM_COUNT = 6;
 const DashboardView = () => {
   useDocumentTitle(`${AppConfig.appName} - Dashboard`, true);
   const {isLoading: isLoadingTransactions, getLatestTransactions, getUpcomingAsTransactions} = useTransactions();
-  const {isLoading: loadingSubscriptions, getUpcomingSubscriptions} = useSubscriptions();
+  const {isLoading: isLoadingSubscriptions, getUpcomingSubscriptions} = useSubscriptions();
   const [transactionDrawer, dispatchTransactionDrawer] = React.useReducer(
     useEntityDrawer<TTransactionDrawerValues>,
     UseEntityDrawerDefaultState<TTransactionDrawerValues>(),
@@ -51,7 +52,7 @@ const DashboardView = () => {
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
         <Stack spacing={AppConfig.baseSpacing}>
-          {loadingSubscriptions ? (
+          {isLoadingSubscriptions ? (
             <CircularProgress />
           ) : (
             <SubscriptionList
@@ -83,14 +84,16 @@ const DashboardView = () => {
           />
         )}
 
-        <Box sx={{mt: 2}}>
-          <TransactionList
-            title="Planned payments"
-            subtitle="What payments are upcoming?"
-            data={getUpcomingAsTransactions('EXPENSES').slice(0, LIST_ITEM_COUNT)}
-            onAddTransaction={handler.onAddTransaction}
-          />
-        </Box>
+        <When when={getUpcomingAsTransactions('EXPENSES').length > 0}>
+          <Box sx={{mt: 2}}>
+            <TransactionList
+              title="Planned payments"
+              subtitle="What payments are upcoming?"
+              data={getUpcomingAsTransactions('EXPENSES').slice(0, LIST_ITEM_COUNT)}
+              onAddTransaction={handler.onAddTransaction}
+            />
+          </Box>
+        </When>
       </Grid>
 
       <TransactionDrawer
