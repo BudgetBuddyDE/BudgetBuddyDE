@@ -29,7 +29,7 @@ export const ZStockQuote = z.object({
   datetime: ZDate,
   price: z.number(),
   isin: z.string().max(12),
-  cachedAt: ZDate,
+  cachedAt: ZDate.optional(),
 });
 export type TStockQuote = z.infer<typeof ZStockQuote>;
 
