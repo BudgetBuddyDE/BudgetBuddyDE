@@ -16,8 +16,7 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "lint": "eslint --fix --ext .ts ./src",
-    "format": "prettier --write . --log-level silent",
-    "prepare": "node .husky/install.mjs"
+    "format": "prettier --write . --log-level silent"
   },
   "dependencies": {
     "@baselime/winston-transport": "^0.1.2",
@@ -47,7 +46,6 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.8.0",
-    "husky": "^9.1.4",
     "nodemon": "^3.1.4",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
