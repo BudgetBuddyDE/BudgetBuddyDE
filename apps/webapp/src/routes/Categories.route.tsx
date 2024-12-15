@@ -12,8 +12,7 @@ import {SearchInput} from '@/components/Base/SearchInput';
 import {type ISelectionHandler} from '@/components/Base/SelectAll';
 import {Table} from '@/components/Base/Table';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
-import {ToggleFilterDrawerButton} from '@/components/Filter';
-import {AddFab, ContentGrid, FabContainer, OpenFilterDrawerFab} from '@/components/Layout';
+import {AddFab, ContentGrid, FabContainer} from '@/components/Layout';
 import {withAuthLayout} from '@/features/Auth';
 import {
   CategoryChip,
@@ -157,8 +156,6 @@ export const Categories = () => {
           )}
           tableActions={
             <React.Fragment>
-              <ToggleFilterDrawerButton />
-
               <SearchInput onSearch={handler.onSearch} />
 
               <IconButton color="primary" onClick={handler.showCreateDialog}>
@@ -231,7 +228,6 @@ export const Categories = () => {
       />
 
       <FabContainer>
-        <OpenFilterDrawerFab />
         <AddFab onClick={handler.showCreateDialog} />
       </FabContainer>
     </ContentGrid>
