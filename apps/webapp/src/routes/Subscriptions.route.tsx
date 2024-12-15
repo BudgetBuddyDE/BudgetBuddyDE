@@ -12,8 +12,7 @@ import {SearchInput} from '@/components/Base/SearchInput';
 import {type ISelectionHandler} from '@/components/Base/SelectAll';
 import {Table} from '@/components/Base/Table';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
-import {ToggleFilterDrawerButton, useFilterStore} from '@/components/Filter';
-import {AddFab, ContentGrid, FabContainer, OpenFilterDrawerFab} from '@/components/Layout';
+import {AddFab, ContentGrid, FabContainer} from '@/components/Layout';
 import {withAuthLayout} from '@/features/Auth';
 import {CategoryChip} from '@/features/Category';
 import {DeleteDialog} from '@/features/DeleteDialog';
@@ -45,7 +44,6 @@ interface ISubscriptionsHandler {
 
 export const Subscriptions = () => {
   const {showSnackbar} = useSnackbarContext();
-  const {filters} = useFilterStore();
   const {
     data: subscriptions,
     isLoading: isLoadingSubscriptions,
@@ -66,8 +64,8 @@ export const Subscriptions = () => {
   const [keyword, setKeyword] = React.useState('');
 
   const displayedSubscriptions: TSubscription[] = React.useMemo(() => {
-    return filterSubscriptions(keyword, filters, subscriptions ?? []);
-  }, [subscriptions, keyword, filters]);
+    return filterSubscriptions(keyword, undefined, subscriptions ?? []);
+  }, [subscriptions, keyword]);
 
   const handler: ISubscriptionsHandler = {
     showCreateTransactionDialog(subscription) {
@@ -260,8 +258,6 @@ export const Subscriptions = () => {
           )}
           tableActions={
             <React.Fragment>
-              <ToggleFilterDrawerButton />
-
               <SearchInput onSearch={handler.onSearch} />
 
               <IconButton color="primary" onClick={handler.showCreateSubscriptionDialog}>
@@ -332,7 +328,6 @@ export const Subscriptions = () => {
       />
 
       <FabContainer>
-        <OpenFilterDrawerFab />
         <AddFab onClick={handler.showCreateSubscriptionDialog} />
       </FabContainer>
     </ContentGrid>

@@ -74,13 +74,14 @@ export function filterTransactions(keyword: string, filter: TFilters, transactio
  */
 export function filterSubscriptions(
   keyword: string,
-  filter: TFilters,
+  filter: TFilters | undefined = undefined,
   subscriptions: TSubscription[],
 ): TSubscription[] {
   if (subscriptions.length === 0) return [];
 
   subscriptions = filterByKeyword(keyword, subscriptions) as TSubscription[];
 
+  if (!filter) return subscriptions;
   subscriptions = subscriptions.filter(({execute_at}) => execute_at >= filter.startDate.getDate());
 
   subscriptions = subscriptions.filter(({execute_at}) => execute_at <= filter.endDate.getDate());
