@@ -33,10 +33,16 @@ export function filterByKeyword(
  * @param transactions - The list of transactions to filter.
  * @returns The filtered list of transactions.
  */
-export function filterTransactions(keyword: string, filter: TFilters, transactions: TTransaction[]): TTransaction[] {
+export function filterTransactions(
+  keyword: string,
+  filter: TFilters | undefined,
+  transactions: TTransaction[],
+): TTransaction[] {
   if (transactions.length === 0) return [];
 
   transactions = filterByKeyword(keyword, transactions) as TTransaction[];
+
+  if (!filter) return transactions;
 
   transactions = transactions.filter(
     ({processed_at}) => processed_at > filter.startDate || isSameDay(processed_at, filter.startDate),

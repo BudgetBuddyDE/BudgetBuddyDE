@@ -5,3 +5,4 @@ export * from './TransactionList';
 export * from './TransactionDrawer';
 export * from './TransactionTable';
 export * from './CreateMultipleTransactionsDialog';
+export * from './buildFetchArgsFromFilter.util.ts';

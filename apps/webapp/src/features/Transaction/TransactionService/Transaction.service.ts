@@ -4,10 +4,11 @@ import {
   type TTransaction,
   ZTransaction,
 } from '@budgetbuddyde/types';
-import {isAfter, isSameMonth, subDays} from 'date-fns';
-import {type RecordModel} from 'pocketbase';
+import {format, isAfter, isSameMonth, subDays} from 'date-fns';
+import {RecordFullListOptions, type RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
+import {type TTransactionStoreFetchArgs} from '@/features/Transaction';
 import {pb} from '@/pocketbase';
 
 /**
@@ -49,8 +50,7 @@ export class TransactionService {
    * @returns A promise that resolves to the created transaction record.
    */
   static async createTransaction(payload: FormData | TCreateTransactionPayload): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.TRANSACTION).create(payload, {requestKey: null});
-    return record;
+    return await pb.collection(PocketBaseCollection.TRANSACTION).create(payload, {requestKey: null});
   }
 
   /**
@@ -60,8 +60,7 @@ export class TransactionService {
    * @returns A Promise that resolves to the updated record.
    */
   static async updateTransaction(transactionId: TTransaction['id'], payload: FormData): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.TRANSACTION).update(transactionId, payload);
-    return record;
+    return await pb.collection(PocketBaseCollection.TRANSACTION).update(transactionId, payload);
   }
 
   /**
@@ -72,10 +71,7 @@ export class TransactionService {
    * @returns A Promise that resolves to a RecordModel object representing the updated transaction record.
    */
   static async deleteImages(transactionId: TTransaction['id'], imageIds: string[]): Promise<RecordModel> {
-    const record = await pb
-      .collection(PocketBaseCollection.TRANSACTION)
-      .update(transactionId, {'attachments-': imageIds});
-    return record;
+    return await pb.collection(PocketBaseCollection.TRANSACTION).update(transactionId, {'attachments-': imageIds});
   }
 
   /**
@@ -84,8 +80,7 @@ export class TransactionService {
    * @returns A promise that resolves to a boolean indicating whether the transaction was successfully deleted.
    */
   static async deleteTransaction(transactionId: TTransaction['id']): Promise<boolean> {
-    const record = await pb.collection(PocketBaseCollection.TRANSACTION).delete(transactionId);
-    return record;
+    return await pb.collection(PocketBaseCollection.TRANSACTION).delete(transactionId);
   }
 
   /**
@@ -93,11 +88,18 @@ export class TransactionService {
    * @returns A promise that resolves to an array of transactions.
    * @throws If there is an error parsing the retrieved records.
    */
-  static async getTransactions(): Promise<TTransaction[]> {
-    const records = await pb.collection(PocketBaseCollection.TRANSACTION).getFullList({
-      expand: 'category,payment_method',
-      sort: '-processed_at',
-    });
+  static async getTransactions(args?: TTransactionStoreFetchArgs): Promise<TTransaction[]> {
+    const filters = args
+      ? pb.filter(`processed_at >= {:startDate} && processed_at <= {:endDate}`, {
+          startDate: format(args.startDate, 'yyyy-MM-dd'),
+          endDate: format(args.endDate, 'yyyy-MM-dd'),
+        })
+      : undefined;
+    const expand = 'category,payment_method';
+    const sort = '-processed_at';
+    const options: RecordFullListOptions = filters ? {expand, sort, filter: filters} : {expand, sort};
+    console.log('TransactionService - getTransactions - options', options);
+    const records = await pb.collection(PocketBaseCollection.TRANSACTION).getFullList(options);
 
     const parsingResult = z.array(ZTransaction).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;

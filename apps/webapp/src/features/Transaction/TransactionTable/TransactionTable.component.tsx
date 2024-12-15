@@ -11,16 +11,15 @@ import {Menu} from '@/components/Base/Menu';
 import {SearchInput} from '@/components/Base/SearchInput';
 import {type ISelectionHandler} from '@/components/Base/SelectAll';
 import {type TTableSelectionProps, Table} from '@/components/Base/Table';
-import {ToggleFilterDrawerButton, useFilterStore} from '@/components/Filter';
+import {ToggleFilterDrawerButton} from '@/components/Filter';
 import {When} from '@/components/When';
 import {useAuthContext} from '@/features/Auth';
 import {CategoryChip} from '@/features/Category';
 import {PaymentMethodChip} from '@/features/PaymentMethod';
+import {useTransactions} from '@/features/Transaction';
 import {pb} from '@/pocketbase';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
 import {downloadAsJson, filterTransactions} from '@/utils';
-
-import {useTransactions} from '../useTransactions.hook';
 
 export type TTransactionTableProps = {
   isLoading?: boolean;
@@ -46,17 +45,18 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
   onDelete,
 }) => {
   const {fileToken} = useAuthContext();
-  const {filters} = useFilterStore();
   const {isLoading: isLoadingTransactions, data: transactions} = useTransactions();
   const [keyword, setKeyword] = React.useState<string>('');
 
   const displayedTransactions: TTransaction[] = React.useMemo(() => {
-    return filterTransactions(keyword, filters, transactions ?? []);
-  }, [keyword, filters, transactions]);
+    // Instead of filtering client side for categories, payment-methods... we're gonna re-fetch transactions from the backend with our filters applied!
+    const data = filterTransactions(keyword, undefined, transactions ?? []);
+    return data;
+  }, [keyword, transactions]);
 
   return (
     <Table<TTransaction>
-      title="Transactions"
+      title={`Transactions (${displayedTransactions.length}/${transactions?.length})`}
       subtitle="Manage your transactions"
       isLoading={isLoading || isLoadingTransactions}
       data={displayedTransactions}

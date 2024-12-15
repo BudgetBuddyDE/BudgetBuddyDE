@@ -5,7 +5,6 @@ import {create} from 'zustand';
 import {getFirstDayOfMonth, getLastDayOfMonth} from '@/utils';
 
 export type TFilters = {
-  keyword: string | null;
   categories: TCategory['id'][] | null;
   paymentMethods: TPaymentMethod['id'][] | null;
   startDate: Date;
@@ -15,10 +14,9 @@ export type TFilters = {
 };
 
 export const DEFAULT_FILTERS: TFilters = {
-  keyword: null,
   categories: null,
   paymentMethods: null,
-  startDate: getFirstDayOfMonth(subMonths(new Date(), 12)),
+  startDate: getFirstDayOfMonth(subMonths(new Date(), 2)),
   endDate: getLastDayOfMonth(),
   priceFrom: null,
   priceTo: null,

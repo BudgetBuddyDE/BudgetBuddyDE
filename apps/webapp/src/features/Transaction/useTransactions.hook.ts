@@ -1,10 +1,11 @@
 import {type TServiceResponse, type TTransaction} from '@budgetbuddyde/types';
 import {format} from 'date-fns';
 
+import {useFilterStore} from '@/components/Filter';
 import {type TGenericHook} from '@/hooks/GenericHook';
 import {preparePockebaseRequestOptions} from '@/utils';
 
-import {useTransactionStore} from './Transaction.store';
+import {type TTransactionStoreFetchArgs, useTransactionStore} from './Transaction.store';
 import {
   type TTransactionBudget,
   type TTransactionStats,
@@ -12,6 +13,7 @@ import {
   ZTransactionStats,
 } from './Transaction.types';
 import {TransactionService} from './TransactionService';
+import {buildFetchArgsFromFilter} from './buildFetchArgsFromFilter.util';
 
 interface AdditionalFuncs<T> {
   getLatestTransactions: (count: number, offset?: number) => T;
@@ -23,9 +25,18 @@ interface AdditionalFuncs<T> {
   getBudget: (startDate: Date, endDate: Date) => Promise<TServiceResponse<TTransactionBudget>>;
 }
 
-export function useTransactions(): TGenericHook<TTransaction[], AdditionalFuncs<TTransaction[]>> {
+export function useTransactions(): TGenericHook<
+  TTransaction[],
+  AdditionalFuncs<TTransaction[]>,
+  TTransactionStoreFetchArgs
+> {
+  const {filters} = useFilterStore();
   const {getData, isLoading, isFetched, fetchedAt, fetchedBy, refreshData, hasError, error, resetStore} =
     useTransactionStore();
+
+  const triggerReFetch = async (updateLoadingState?: boolean, requestFilters = filters) => {
+    return await refreshData(updateLoadingState, buildFetchArgsFromFilter(requestFilters));
+  };
 
   const getLatestTransactions: AdditionalFuncs<TTransaction[]>['getLatestTransactions'] = (count, offset = 0) => {
     return TransactionService.getLatestTransactions(getData() ?? [], count, offset);
@@ -50,11 +61,7 @@ export function useTransactions(): TGenericHook<TTransaction[], AdditionalFuncs<
   };
 
   const getUpcoming: AdditionalFuncs<TTransaction[]>['getUpcoming'] = type => {
-    const acc: number = getUpcomingAsTransactions(type).reduce(
-      (prev, curr) => prev + Math.abs(curr.transfer_amount),
-      0,
-    );
-    return acc;
+    return getUpcomingAsTransactions(type).reduce((prev, curr) => prev + Math.abs(curr.transfer_amount), 0);
   };
 
   const getStats: AdditionalFuncs<TTransaction[]>['getStats'] = async (startDate, endDate) => {
@@ -90,13 +97,14 @@ export function useTransactions(): TGenericHook<TTransaction[], AdditionalFuncs<
   };
 
   return {
-    data: getData(),
+    data: getData(buildFetchArgsFromFilter(filters)),
     getLatestTransactions,
     getPaidExpenses,
     getReceivedIncome,
     getUpcomingAsTransactions,
     getUpcoming,
-    refreshData,
+    refreshData: triggerReFetch,
+    refreshDataWithFilter: triggerReFetch,
     getStats,
     getBudget,
     isLoading,

@@ -6,6 +6,7 @@ import {EnvironmentDisclaimer} from '@/components/EnvironmentDisclaimer';
 import {FilterDrawer} from '@/components/Filter';
 import {AppBar, Footer} from '@/components/Layout';
 import {Drawer} from '@/components/Layout/Drawer';
+import {useTransactions} from '@/features/Transaction';
 
 const Main = styled('main')(({theme}) => ({
   transition: theme.transitions.create('margin', {
@@ -20,6 +21,7 @@ const Main = styled('main')(({theme}) => ({
 export type TAuthLayout = React.PropsWithChildren;
 
 export const AuthLayout: React.FC<TAuthLayout> = ({children}) => {
+  const {refreshDataWithFilter, refreshData} = useTransactions();
   return (
     <Box sx={{display: 'flex'}}>
       <Drawer />
@@ -45,7 +47,14 @@ export const AuthLayout: React.FC<TAuthLayout> = ({children}) => {
         <CookieDisclaimer />
       </Main>
 
-      <FilterDrawer />
+      <FilterDrawer
+        // TODO: Needs some re-work
+        onFilterChange={async filter => {
+          if (refreshDataWithFilter) {
+            await refreshDataWithFilter(true, filter);
+          } else await refreshData(true);
+        }}
+      />
     </Box>
   );
 };

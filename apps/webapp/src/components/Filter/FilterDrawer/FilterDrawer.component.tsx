@@ -19,7 +19,7 @@ import {CreateCategoryAlert, useCategories} from '@/features/Category';
 import {CreatePaymentMethodAlert, usePaymentMethods} from '@/features/PaymentMethod';
 import {isRunningOnIOs} from '@/utils';
 
-import {DEFAULT_FILTERS, useFilterStore} from '../Filter.store';
+import {DEFAULT_FILTERS, type TFilters, useFilterStore} from '../Filter.store';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -45,9 +45,11 @@ interface IFilterDrawerHandler {
   onSubmit: (event: React.FormEvent) => void;
 }
 
-export type TFilterDrawerProps = {};
+export type TFilterDrawerProps = {
+  onFilterChange?: (filter: TFilters) => void;
+};
 
-export const FilterDrawer: React.FC<TFilterDrawerProps> = () => {
+export const FilterDrawer: React.FC<TFilterDrawerProps> = ({onFilterChange}) => {
   const {data: categories, isLoading: isLoadingCategories} = useCategories();
   const {data: paymentMethods, isLoading: isLoading} = usePaymentMethods();
   const {show: showFilterDrawer, filters, setFilters, toggleVisibility} = useFilterStore();
@@ -92,6 +94,7 @@ export const FilterDrawer: React.FC<TFilterDrawerProps> = () => {
     onSubmit(event) {
       event.preventDefault();
       setFilters(unappliedFilters);
+      if (onFilterChange) onFilterChange(unappliedFilters);
       handler.onClose();
     },
   };
