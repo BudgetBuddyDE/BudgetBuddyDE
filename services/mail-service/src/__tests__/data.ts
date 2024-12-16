@@ -3,6 +3,7 @@ import {PocketBaseCollection, type TTransaction, type TUser} from '@budgetbuddyd
 export const USER: NonNullable<TUser> = {
   collectionId: 'fl7u8slb64ladln',
   collectionName: PocketBaseCollection.USERS,
+  marked_for_deletion: null,
   avatar: null,
   created: new Date('2024-04-10T23:01:05.439Z'),
   email: 'john.doe@mail.budget-buddy.de',
