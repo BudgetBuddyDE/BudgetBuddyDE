@@ -6,9 +6,9 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/main.go",
+      "program": "${workspaceFolder}/services/pocketbase/main.go",
       "args": ["serve"],
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/services/pocketbase",
       "env": {},
       "buildFlags": "",
       "trace": "verbose"
