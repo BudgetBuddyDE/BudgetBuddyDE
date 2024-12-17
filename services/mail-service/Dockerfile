@@ -5,7 +5,6 @@ LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/mail-serv
 WORKDIR /usr/src/mail-service/
 
 COPY package*.json ./
-COPY .husky ./.husky
 
 RUN npm install --frozen-lockfile
 
