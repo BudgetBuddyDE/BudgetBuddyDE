@@ -13,3 +13,4 @@ export * from './DailyBalance.types';
 export * from './MonthlyBalance.types';
 export * from './Stocks';
 export * from './Newsletter.types';
+export * from './Mail.types';
