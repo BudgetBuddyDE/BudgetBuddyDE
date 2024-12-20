@@ -341,6 +341,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     cron.schedule(
       '0 6 * * 1-5',
       async () => {
+        logger.debug("Running 'TriggerDailyStockReport' job");
         const [_, error] = await sendDailyStockReport(NEWSLETTER.DAILY_STOCK_REPORT);
         if (error) {
           logger.error('Was not able to send daily stock reports!', error);
@@ -354,6 +355,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     cron.schedule(
       '0 6 * * 1',
       async () => {
+        logger.debug("Running 'TriggerWeeklyReports' job");
         const startDate = subDays(new Date(), 7);
         const endDate = new Date();
         const [_, error] = await sendWeeklyReports(NEWSLETTER.WEEKLY_REPORT, startDate, endDate);
@@ -369,6 +371,7 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     cron.schedule(
       '0 6 1 * *',
       async () => {
+        logger.debug("Running 'TriggerMonthlyReports' job");
         const month = new Date();
         const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
         const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
@@ -383,6 +386,8 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     );
 
     logger.info(`Scheduled jobs: ${Array.from(cron.getTasks().keys()).join(', ')}`);
+  } else {
+    logger.debug("The application is running in 'test'-mode. No scheduled jobs will be started.");
   }
 
   logger.info(`The application is available under ${process.env.HOST || 'http://localhost:' + config.port}`, {
