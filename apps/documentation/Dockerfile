@@ -1,5 +1,7 @@
 FROM node:18-alpine AS build
 
+LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
+
 WORKDIR /app
 
 COPY package*.json ./

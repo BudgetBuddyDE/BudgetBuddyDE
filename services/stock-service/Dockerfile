@@ -1,6 +1,6 @@
 FROM node:alpine AS builder
 
-LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/stock-service
+LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
 
 WORKDIR /usr/src/stock-service/
 

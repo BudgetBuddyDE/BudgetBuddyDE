@@ -1,5 +1,7 @@
 FROM node:20-alpine AS build
 
+LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
+
 ARG SHOW_ENVIRONMENT_DISCLAIMER
 ARG STOCK_SERVICE_HOST
 ARG MAIL_SERVICE_HOST

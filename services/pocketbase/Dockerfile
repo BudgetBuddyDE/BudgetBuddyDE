@@ -1,5 +1,7 @@
 FROM golang:latest
 
+LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
