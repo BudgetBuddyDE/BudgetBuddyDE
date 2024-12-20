@@ -1,11 +1,5 @@
 import {ApiResponse, HTTPStatusCode, PocketBaseCollection, type TNewsletter, type TUser} from '@budgetbuddyde/types';
-import {
-  ZMailOptInPayload,
-  ZMailOptOutPayload,
-  ZTriggerMonthlyReportPayload,
-  ZTriggerWeeklyReportPayload,
-  ZVerifyMailOptInPayload,
-} from '@budgetbuddyde/types/lib/Mail.types';
+import {ZMailOptInPayload, ZMailOptOutPayload, ZVerifyMailOptInPayload} from '@budgetbuddyde/types/lib/Mail.types';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import {subDays} from 'date-fns';
@@ -26,6 +20,7 @@ import {logger} from './logger';
 import {AuthMiddleware, logMiddleware} from './middleware';
 import {pb} from './pocketbase';
 import {resend} from './resend';
+import TriggerRouter from './router/TriggerReport.router';
 import {generateRandomId} from './utils';
 
 /**
@@ -61,8 +56,9 @@ app.use((req, res, next) => {
   next();
 });
 app.use(AuthMiddleware);
+app.use('/trigger', TriggerRouter);
 
-const NEWSLETTER = {
+export const NEWSLETTER = {
   WEEKLY_REPORT: '1f9763pp1k8gxx0',
   MONTHLY_REPORT: '4hughmgyyzgkine',
   DAILY_STOCK_REPORT: 'q8uhgles4ywmzoh',
@@ -306,74 +302,6 @@ app.post('/opt-out', async (req, res) => {
       .withData(updatedUser)
       .build(),
   );
-});
-
-app.post('/trigger/daily-stock-report', async (req, res) => {
-  const [_, error] = await sendDailyStockReport(NEWSLETTER.DAILY_STOCK_REPORT);
-  if (error) {
-    logger.error('Was not able to send daily stock reports!', error);
-    return res
-      .status(HTTPStatusCode.InternalServerError)
-      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build());
-  }
-
-  return res.json(ApiResponse.builder().withData({successfull: true}).build());
-});
-
-app.post('/trigger/weekly-report', async (req, res) => {
-  const body = await req.body;
-  const parsedBody = ZTriggerWeeklyReportPayload.safeParse(body);
-  if (!parsedBody.success) {
-    return res
-      .status(HTTPStatusCode.BadRequest)
-      .json(ApiResponse.builder().withStatus(HTTPStatusCode.BadRequest).withMessage('Invalid request body').build());
-  }
-  const {startDate, endDate} = parsedBody.data;
-
-  if (endDate < startDate || subDays(endDate, 7) > startDate || subDays(endDate, 7) < startDate) {
-    return res
-      .status(HTTPStatusCode.BadRequest)
-      .json(
-        ApiResponse.builder()
-          .withStatus(HTTPStatusCode.BadRequest)
-          .withMessage('Invalid date range provided')
-          .withData({startDate, endDate})
-          .build(),
-      );
-  }
-
-  const [_, error] = await sendWeeklyReports(NEWSLETTER.WEEKLY_REPORT, startDate, endDate);
-  if (error) {
-    logger.error('Was not able to send weekly reports', error);
-    return res
-      .status(HTTPStatusCode.InternalServerError)
-      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build());
-  }
-
-  return res.json(ApiResponse.builder().withData({startDate, endDate}).build());
-});
-
-app.post('/trigger/monthly-report', async (req, res) => {
-  const body = await req.body;
-  const parsedBody = ZTriggerMonthlyReportPayload.safeParse(body);
-  if (!parsedBody.success) {
-    return res
-      .status(HTTPStatusCode.BadRequest)
-      .json(ApiResponse.builder().withStatus(HTTPStatusCode.BadRequest).withMessage('Invalid request body').build());
-  }
-  const {month} = parsedBody.data;
-  const now = new Date();
-  const startDate = new Date(now.getFullYear(), month.getMonth(), 1);
-  const endDate = new Date(now.getFullYear(), month.getMonth() + 1, 0);
-  const [_, error] = await sendMonthlyReports(NEWSLETTER.MONTHLY_REPORT, month, startDate, endDate);
-  if (error) {
-    logger.error('Was not able to send monthly reports', error);
-    return res
-      .status(HTTPStatusCode.InternalServerError)
-      .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(error.message).build());
-  }
-
-  return res.json(ApiResponse.builder().withData({startDate, endDate}).build());
 });
 
 export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost', async () => {
