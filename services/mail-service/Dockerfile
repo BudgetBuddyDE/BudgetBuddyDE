@@ -20,4 +20,6 @@ COPY --from=builder /usr/src/mail-service/package*.json ./
 COPY --from=builder /usr/src/mail-service/node_modules ./node_modules
 COPY --from=builder /usr/src/mail-service/build ./build
 
+ENV NODE_ENV=production
+
 CMD ["npm", "start"]
