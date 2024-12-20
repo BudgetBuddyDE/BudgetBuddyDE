@@ -27,13 +27,13 @@ export type TCookieDisclaimerProps = {
  * @param {Object} [props.paperProps] - Additional props to be spread to the Paper component.
  * @returns {JSX.Element | null} The rendered CookieDisclaimer component.
  */
-export const CookieDisclaimer: React.FC<TCookieDisclaimerProps> = ({cookieName = 'bb:cookies', paperProps}) => {
+export const CookieDisclaimer: React.FC<TCookieDisclaimerProps> = ({cookieName = 'bb_cookies', paperProps}) => {
   const cookies = new Cookies(null, {path: '/'});
   const [showDisclaimer, setShowDisclaimer] = React.useState(false);
 
   const handleCookieAccept = () => {
     const expirationDate = new Date();
-    expirationDate.setFullYear(expirationDate.getFullYear() + 100); // Set the expiration date to 100 years in the future
+    expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Set the expiration date to 1 year in the future
     cookies.set(cookieName, 'true', {path: '/', expires: expirationDate});
     setShowDisclaimer(false);
   };
