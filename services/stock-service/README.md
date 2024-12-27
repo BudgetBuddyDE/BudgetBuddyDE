@@ -66,7 +66,8 @@ Stay updated with real-time price changes by subscribing to a websocket endpoint
 1.  Clone the repository
 
     ```bash
-    git clone git@github.com:budgetbuddyde/stock-service.git
+    git clone git@github.com:budgetbuddyde/budgetbuddyde.git
+    cd budgetbuddyde/services/stock-service
     ```
 
 2.  Install requried dependencies
