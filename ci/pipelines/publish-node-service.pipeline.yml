@@ -1,0 +1,236 @@
+groups:
+  - name: build
+    jobs:
+      - build
+  - name: release
+    jobs:
+      - 'release-*'
+
+resources:
+  - name: node-image
+    type: registry-image
+    source:
+      repository: node
+      tag: 20
+
+  - name: repo
+    type: git
+    icon: github
+    source:
+      uri: ((repo_uri))
+      private_key: ((repo_private_key))
+      branch: main
+      paths: [((repo_path))/**]
+      depth: 1
+
+  - name: container-registry
+    type: docker-image
+    icon: docker
+    source:
+      repository: ((docker_image))
+      username: ((docker_username))
+      password: ((docker_password))
+
+  - name: version
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.0.0-rc.0
+      bucket: ((version_bucket))
+      key: ((service))/version
+      region_name: ((version_bucket_region))
+      access_key_id: ((version_bucket_access_key))
+      secret_access_key: ((version_bucket_secret))
+
+  - name: version-prod
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.0.0-rc.0
+      bucket: ((version_bucket))
+      key: ((service))/prod
+      region_name: ((version_bucket_region))
+      access_key_id: ((version_bucket_access_key))
+      secret_access_key: ((version_bucket_secret))
+
+jobs:
+  - name: build
+    public: true
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repo
+            trigger: true
+          - get: version
+            params: { pre: rc }
+          - get: container-version
+            resource: version
+            params: { bump: final }
+      - task: build
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+            - name: version
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                NEW_VERSION=$(cat version/version)
+                cd repo/((repo_path))
+                npm ci
+                npm test
+                npm run build
+                npm version "$NEW_VERSION" --no-git-tag-version
+      - put: container-registry
+        get_params: { skip_download: true }
+        params:
+          build: repo/((repo_path))
+          dockerfile: repo/((repo_path))/Dockerfile
+          tag_file: version/version
+          additional_tags: container-version/version
+          tag_as_latest: true
+      - put: version
+        params: { file: version/version }
+
+  - name: release-patch
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repo
+          - get: version
+            passed: [build]
+            params: { bump: patch }
+      - task: build
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+            - name: version
+          outputs:
+            - name: repo
+          run:
+            path: sh
+            args:
+              - -evc
+              - |
+                NEW_VERSION=$(cat version/version)
+                cd repo/((repo_path))
+                git config --global user.name "Thorben Klein"
+                git config --global user.email "thorben@tklein.it"
+                npm version "$NEW_VERSION" --no-git-tag-version
+                git tag | xargs git tag -d > /dev/null
+                git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
+      - put: container-registry
+        get_params: { skip_download: true }
+        params:
+          build: repo/((repo_path))
+          dockerfile: repo/((repo_path))/Dockerfile
+          tag_file: version/version
+          tag_as_latest: true
+      - put: repo
+        params:
+          repository: repo
+          only_tags: true
+      - put: version
+        params: { file: version/version }
+      - put: version-prod
+        params: { file: version/version }
+
+  - name: release-minor
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repo
+          - get: version
+            passed: [build]
+            params: { bump: minor }
+      - task: build
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+            - name: version
+          outputs:
+            - name: repo
+          run:
+            path: sh
+            args:
+              - -evc
+              - |
+                NEW_VERSION=$(cat version/version)
+                cd repo/((repo_path))
+                git config --global user.name "Thorben Klein"
+                git config --global user.email "thorben@tklein.it"
+                npm version "$NEW_VERSION" --no-git-tag-version
+                git tag | xargs git tag -d > /dev/null
+                git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
+      - put: container-registry
+        get_params: { skip_download: true }
+        params:
+          build: repo/((repo_path))
+          dockerfile: repo/((repo_path))/Dockerfile
+          tag_file: version/version
+          tag_as_latest: true
+      - put: repo
+        params:
+          repository: repo
+          only_tags: true
+      - put: version
+        params: { file: version/version }
+      - put: version-prod
+        params: { file: version/version }
+
+  - name: release-major
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repo
+          - get: version
+            passed: [build]
+            params: { bump: major }
+      - task: build
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+            - name: version
+          outputs:
+            - name: repo
+          run:
+            path: sh
+            args:
+              - -evc
+              - |
+                NEW_VERSION=$(cat version/version)
+                cd repo/((repo_path))
+                git config --global user.name "Thorben Klein"
+                git config --global user.email "thorben@tklein.it"
+                npm version "$NEW_VERSION" --no-git-tag-version
+                git tag | xargs git tag -d > /dev/null
+                git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
+      - put: container-registry
+        get_params: { skip_download: true }
+        params:
+          build: repo/((repo_path))
+          dockerfile: repo/((repo_path))/Dockerfile
+          tag_file: version/version
+          tag_as_latest: true
+      - put: repo
+        params:
+          repository: repo
+          only_tags: true
+      - put: version
+        params: { file: version/version }
+      - put: version-prod
+        params: { file: version/version }
