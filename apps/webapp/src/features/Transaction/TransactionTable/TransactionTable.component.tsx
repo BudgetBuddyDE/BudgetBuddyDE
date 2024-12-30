@@ -56,7 +56,7 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
 
   return (
     <Table<TTransaction>
-      title={`Transactions (${displayedTransactions.length}/${transactions?.length})`}
+      title="Transactions"
       subtitle="Manage your transactions"
       isLoading={isLoading || isLoadingTransactions}
       data={displayedTransactions}
