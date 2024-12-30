@@ -25,6 +25,7 @@ export const UpcomingSubscriptions: React.FC<TUpcomingSubscriptionProps> = ({}) 
     return Array.from(grouped.entries()).map(([label, total]) => ({label, total}));
   }, [data]);
 
+  if (groupedPayments.length === 0) return null;
   return (
     <Card>
       <Card.Header>
