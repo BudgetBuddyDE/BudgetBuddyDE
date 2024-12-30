@@ -5,7 +5,7 @@ import {type TGenericHook} from '@/hooks/GenericHook';
 import {useSubscriptionStore} from './Subscription.store';
 import {SubscriptionService} from './SubscriptionService';
 
-interface AdditionalFuns<T> {
+interface IAdditionalFunctions<T> {
   getUpcomingSubscriptions: (count: number, offset?: number) => T;
   getUpcomingSubscriptionPaymentsByCategory: () => ReturnType<
     typeof SubscriptionService.getUpcomingSubscriptionPaymentsByCategory
@@ -13,21 +13,24 @@ interface AdditionalFuns<T> {
   getUpcoming: (type: 'EXPENSES' | 'INCOME') => number;
 }
 
-export function useSubscriptions(): TGenericHook<TSubscription[], AdditionalFuns<TSubscription[]>> {
+export function useSubscriptions(): TGenericHook<TSubscription[], IAdditionalFunctions<TSubscription[]>> {
   const {getData, isLoading, isFetched, fetchedAt, fetchedBy, refreshData, hasError, error, resetStore} =
     useSubscriptionStore();
 
-  const getUpcomingSubscriptions: AdditionalFuns<TSubscription[]>['getUpcomingSubscriptions'] = (count, offset) => {
+  const getUpcomingSubscriptions: IAdditionalFunctions<TSubscription[]>['getUpcomingSubscriptions'] = (
+    count,
+    offset,
+  ) => {
     return SubscriptionService.getUpcomingSubscriptions(getData() ?? [], count, offset);
   };
 
-  const getUpcomingSubscriptionPaymentsByCategory: AdditionalFuns<
+  const getUpcomingSubscriptionPaymentsByCategory: IAdditionalFunctions<
     TSubscription[]
   >['getUpcomingSubscriptionPaymentsByCategory'] = () => {
     return SubscriptionService.getUpcomingSubscriptionPaymentsByCategory(getData() ?? []);
   };
 
-  const getUpcoming: AdditionalFuns<TSubscription[]>['getUpcoming'] = (type): number => {
+  const getUpcoming: IAdditionalFunctions<TSubscription[]>['getUpcoming'] = (type): number => {
     const today = new Date().getDate();
     const subscriptions = getData() ?? [];
     const acc: number = subscriptions
