@@ -10,7 +10,7 @@
   "author": "Thorben",
   "scripts": {
     "start": "node build/src/server.js",
-    "dev": "nodemon --watch .env --watch src src/server.ts",
+    "dev": "npx tsx --watch ./src/server.ts",
     "build": "rimraf build && tsc --pretty",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -46,9 +46,8 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.8.0",
-    "nodemon": "^3.1.4",
     "prettier": "^3.3.3",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "vitest": "^2.0.5"
   }
 }

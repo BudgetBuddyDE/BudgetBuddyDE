@@ -12,9 +12,10 @@ import {
   ZUpdateStockPositionPayload,
 } from '@budgetbuddyde/types';
 import express from 'express';
-import {z} from 'zod';
+import {promise, z} from 'zod';
 
 import {logger} from '../logger';
+import {CountryMapping, IndustryMapping, RegionMapping, SectorMapping} from '../mappings';
 import {pb} from '../pocketbase';
 import {StockService} from '../services';
 
@@ -282,6 +283,79 @@ router.get('/position', async (req, res) => {
       .end();
   }
 });
+
+(['country', 'industry', 'sector', 'region', 'type'] as const).forEach(distinction =>
+  router.get(`/position/allocation/${distinction}`, async (req, res) => {
+    const user = req.user;
+    if (!user) {
+      return res
+        .status(HTTPStatusCode.Unauthorized)
+        .json(ApiResponse.builder().withStatus(HTTPStatusCode.Unauthorized).withMessage('Unauthorized').build())
+        .end();
+    }
+
+    try {
+      const records = await pb.collection(PocketBaseCollection.STOCK_POSITION).getFullList({
+        expand: 'exchange',
+        filter: pb.filter('owner = {:userId}', {userId: req.user?.id}),
+      });
+      const parsedRecord = z.array(ZStockPosition).safeParse(records);
+      if (!parsedRecord.success) throw parsedRecord.error;
+      const parsedPositions = parsedRecord.data as TStockPosition[];
+
+      const isinList: Pick<TStockPosition, 'isin' | 'currency'>[] = parsedPositions.map(({isin, currency}) => ({
+        isin,
+        currency,
+      }));
+
+      const promises = await Promise.all(
+        isinList.map(({isin, currency}) => StockService.getAssetDetails(isin, currency)),
+      );
+
+      let data: any = parsedPositions;
+
+      switch (distinction) {
+        case 'country':
+          console.log(CountryMapping);
+          break;
+        case 'industry':
+          console.log(IndustryMapping);
+          break;
+        case 'region':
+          console.log(RegionMapping);
+          break;
+        case 'sector':
+          console.log(SectorMapping);
+          const shares = promises.filter(([details, err]) => !err && details.asset.security.type === 'Aktie');
+          console.dir(shares[1][0]);
+          data = shares.map(([details, _]) => details?.asset);
+          break;
+      }
+
+      return res
+        .status(HTTPStatusCode.InternalServerError)
+        .json(
+          ApiResponse.builder()
+            .withStatus(HTTPStatusCode.InternalServerError)
+            .withMessage(distinction)
+            .withData(data)
+            .build(),
+        )
+        .end();
+    } catch (error) {
+      const err = error as Error;
+      logger.error(err.message, {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+      });
+      return res
+        .status(HTTPStatusCode.InternalServerError)
+        .json(ApiResponse.builder().withStatus(HTTPStatusCode.InternalServerError).withMessage(err.message).build())
+        .end();
+    }
+  }),
+);
 
 router.put('/position', async (req, res) => {
   if (!req.user) {
