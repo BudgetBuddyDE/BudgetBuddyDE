@@ -24,7 +24,7 @@
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.21.2",
     "node-cron": "^3.0.3",
     "node-fetch": "^2.7.0",
     "pocketbase": "^0.21.4",
