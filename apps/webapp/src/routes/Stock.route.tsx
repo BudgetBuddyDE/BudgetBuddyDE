@@ -1,5 +1,5 @@
 import {type TStockPositionWithQuote} from '@budgetbuddyde/types';
-import {ExpandMoreRounded, HelpOutlineRounded, TimelineRounded} from '@mui/icons-material';
+import {ExpandMoreRounded, TimelineRounded} from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -17,11 +17,10 @@ import {format} from 'date-fns';
 import React from 'react';
 import {Navigate, useNavigate, useParams} from 'react-router-dom';
 
-import {AppConfig, Feature} from '@/app.config';
-import {Card} from '@/components/Base/Card';
+import {Feature} from '@/app.config';
 import {PieChart} from '@/components/Base/Charts';
-import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
-import {withFeatureFlag} from '@/components/Feature/withFeatureFlag/withFeatureFlag.component';
+import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer';
+import {withFeatureFlag} from '@/components/Feature';
 import {ContentGrid} from '@/components/Layout';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
@@ -33,8 +32,9 @@ import {
   CompanyInformation,
   DividendList,
   FinancialStatementAccordion,
+  KPIComponent,
   PriceChart,
-  RelatedStock,
+  RelatedStockWrapper,
   StockLayout,
   StockNews,
   StockPositionDrawer,
@@ -43,7 +43,6 @@ import {
   StockService,
   type TPriceChartPoint,
   type TStockPositionDrawerValues,
-  useFetchRelatedStocks,
   useFetchStockDetails,
   useFetchStockQuotes,
   useStockPositions,
@@ -51,12 +50,6 @@ import {
 import {useDocumentTitle} from '@/hooks/useDocumentTitle';
 import {Formatter} from '@/services/Formatter';
 import {getSocketIOClient} from '@/utils';
-
-const NoStockMessage = () => (
-  <Card>
-    <NoResults icon={<HelpOutlineRounded />} text="No information found!" />
-  </Card>
-);
 
 interface IStockHandler {
   showCreateDialog: (payload?: Partial<TStockPositionDrawerValues>) => void;
@@ -75,11 +68,13 @@ export const Stock = () => {
   const socket = getSocketIOClient();
   const [keyword, setKeyword] = React.useState('');
 
+  if (!params.isin || params.isin.length !== 12) return <Navigate to={'/stocks'} />;
+
   const {
     loading: loadingDetails,
     details: stockDetails,
     refresh: refreshStockDetails,
-  } = useFetchStockDetails(params.isin || '');
+  } = useFetchStockDetails(params.isin);
   useDocumentTitle(
     loadingDetails
       ? 'Loading...'
@@ -93,14 +88,13 @@ export const Stock = () => {
     quotes,
     refresh: refreshQuotes,
     updateQuotes,
-  } = useFetchStockQuotes([params.isin || ''], 'langschwarz', timeframe);
+  } = useFetchStockQuotes([params.isin], 'langschwarz', timeframe);
   const {
     isLoading: loadingStockPositions,
     data: stockPositions,
     refreshData: refreshStockPositions,
     updateQuote,
   } = useStockPositions();
-  const {loading: loadingRelatedStocks, relatedStocks} = useFetchRelatedStocks(params.isin || '', 6);
   const [stockPositionDrawer, dispatchStockPositionDrawer] = React.useReducer(
     useEntityDrawer<TStockPositionDrawerValues>,
     UseEntityDrawerDefaultState<TStockPositionDrawerValues>(),
@@ -246,7 +240,6 @@ export const Stock = () => {
     refreshStockPositions();
   }, [params.isin]);
 
-  if (!params.isin || params.isin.length !== 12) return <Navigate to={'/stocks'} />;
   return (
     <StockLayout
       onSelectAsset={({identifier}) => navigate(`/stocks/${identifier}`)}
@@ -254,7 +247,7 @@ export const Stock = () => {
         handler.showCreateDialog({stock: {type, isin: identifier, label: name, logo}});
       }}>
       <ContentGrid title={stockDetails?.asset.name ?? ''} description={params.isin} withNavigateBack>
-        <Grid container size={{xs: 12, lg: 8}} spacing={AppConfig.baseSpacing}>
+        <Grid container size={{xs: 12, lg: 9}}>
           <Grid size={{xs: 12}}>
             {loadingQuotes && (!quotes || quotes.length === 0) ? (
               <CircularProgress />
@@ -269,6 +262,12 @@ export const Stock = () => {
             )}
           </Grid>
 
+          {stockDetails && (
+            <Grid size={{xs: 12}}>
+              <KPIComponent stockDetails={stockDetails} />
+            </Grid>
+          )}
+
           <Grid size={{xs: 12}}>
             <StockPositionTable
               isLoading={loadingStockPositions}
@@ -282,45 +281,41 @@ export const Stock = () => {
             />
           </Grid>
 
-          <Grid size={{xs: 12}}>
-            <FinancialStatementAccordion stockDetails={stockDetails} />
-          </Grid>
+          {stockDetails && (
+            <Grid size={{xs: 12}}>
+              <FinancialStatementAccordion stockDetails={stockDetails} />
+            </Grid>
+          )}
 
-          <Grid container size={{xs: 12}} spacing={AppConfig.baseSpacing}>
-            {loadingRelatedStocks
-              ? Array.from({length: 6}).map((_, idx) => (
-                  <Grid key={idx} size={{xs: 6, md: 4}}>
-                    <RelatedStock isLoading />
-                  </Grid>
-                ))
-              : relatedStocks.map((stock, idx) => (
-                  <Grid key={idx} size={{xs: 12, md: 4}}>
-                    <RelatedStock key={stock.asset._id.identifier} stock={stock} />
-                  </Grid>
-                ))}
+          <Grid size={{xs: 12}}>
+            <RelatedStockWrapper isin={params.isin || ''} amount={6} />
           </Grid>
         </Grid>
 
-        <Grid container size={{xs: 12, lg: 4}} spacing={AppConfig.baseSpacing}>
-          <Grid size={{xs: 12}}>
-            {loadingDetails ? (
+        <Grid container size={{xs: 12, lg: 3}}>
+          {loadingDetails ? (
+            <Grid size={{xs: 12}}>
               <CircularProgress />
-            ) : stockDetails ? (
-              <CompanyInformation details={stockDetails} />
-            ) : (
-              <NoStockMessage />
-            )}
-          </Grid>
+            </Grid>
+          ) : (
+            stockDetails && (
+              <Grid size={{xs: 12}}>
+                <CompanyInformation details={stockDetails} />
+              </Grid>
+            )
+          )}
 
-          <Grid size={{xs: 12}}>
-            {loadingDetails ? (
+          {loadingDetails ? (
+            <Grid size={{xs: 12}}>
               <CircularProgress />
-            ) : stockDetails ? (
-              <DividendList dividends={stockDetails.details.futureDividends ?? []} />
-            ) : (
-              <NoStockMessage />
-            )}
-          </Grid>
+            </Grid>
+          ) : (
+            stockDetails && (
+              <Grid size={{xs: 12}}>
+                <DividendList dividends={stockDetails.details.futureDividends ?? []} />
+              </Grid>
+            )
+          )}
 
           {stockDetails && (
             <Grid size={{xs: 12}}>
@@ -428,21 +423,23 @@ export const Stock = () => {
             </Grid>
           )}
 
-          <Grid size={{xs: 12}}>
-            {loadingDetails ? (
+          {loadingDetails ? (
+            <Grid size={{xs: 12}}>
               <CircularProgress />
-            ) : stockDetails ? (
-              <StockNews
-                news={stockDetails.details.news.map(({title, description, url}) => ({
-                  heading: title,
-                  summary: description,
-                  link: url,
-                }))}
-              />
-            ) : (
-              <NoStockMessage />
-            )}
-          </Grid>
+            </Grid>
+          ) : (
+            stockDetails && (
+              <Grid size={{xs: 12}}>
+                <StockNews
+                  news={stockDetails.details.news.map(({title, description, url}) => ({
+                    heading: title,
+                    summary: description,
+                    link: url,
+                  }))}
+                />
+              </Grid>
+            )
+          )}
         </Grid>
 
         <StockPositionDrawer
@@ -464,4 +461,4 @@ export const Stock = () => {
   );
 };
 
-export default withFeatureFlag(Feature.STOCKS, withAuthLayout(Stock), true);
+export default withFeatureFlag(Feature.STOCKS, withAuthLayout(Stock));
