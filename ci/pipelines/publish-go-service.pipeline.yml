@@ -1,13 +1,13 @@
 groups:
-  - name: all
+  - name: release
     jobs:
-      - build
       - 'release-*'
   - name: build
     jobs:
       - build
-  - name: release
+  - name: all
     jobs:
+      - build
       - 'release-*'
 
 resources:
@@ -139,7 +139,7 @@ jobs:
       - put: repo
         params:
           repository: repo
-          only_tags: true
+          only_tag: true
       - put: version
         params: { file: version/version }
       - put: version-prod
@@ -183,7 +183,7 @@ jobs:
       - put: repo
         params:
           repository: repo
-          only_tags: true
+          only_tag: true
       - put: version
         params: { file: version/version }
       - put: version-prod
@@ -227,7 +227,7 @@ jobs:
       - put: repo
         params:
           repository: repo
-          only_tags: true
+          only_tag: true
       - put: version
         params: { file: version/version }
       - put: version-prod
