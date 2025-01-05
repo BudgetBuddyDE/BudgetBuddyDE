@@ -21,10 +21,6 @@ export type TConfig = {
      */
     fetchInterval: number;
   };
-  log: {
-    default: string;
-    test: string;
-  };
   sender: string;
   host: string;
   company: string;
@@ -57,10 +53,6 @@ export const config: TConfig = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
-  },
-  log: {
-    default: 'info',
-    test: 'error',
   },
   sender: process.env.MAIL_SENDER || 'delivered@resend.dev',
   host: isRunningInProduction() ? (process.env.HOST as string) : `http://localhost:${getPort()}`,
