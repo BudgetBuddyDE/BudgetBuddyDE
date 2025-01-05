@@ -3,12 +3,13 @@ import winston from 'winston';
 
 import {name} from '../package.json';
 import {config} from './config';
+import {getLogLevel} from './utils';
 
 /**
  * The logger instance for the stock service.
  */
 export const logger = winston.createLogger({
-  level: 'info',
+  level: getLogLevel(),
   defaultMeta: {
     application: 'stock-service',
     environment: process.env.NODE_ENV || 'development',
@@ -23,7 +24,8 @@ export const logger = winston.createLogger({
         }),
         winston.format.align(),
         winston.format.printf(info => {
-          let logObject = {...info};
+          const logObject = {...info};
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
           delete logObject.level;
           delete logObject.message;
@@ -31,11 +33,6 @@ export const logger = winston.createLogger({
           return `[${info.timestamp}] ${info.level}: ${info.message} (${JSON.stringify(logObject)})`;
         }),
       ),
-      level: config.environment === 'test' ? config.log.test : config.log.default,
-    }),
-    new winston.transports.File({
-      dirname: 'logs',
-      filename: 'error.log',
     }),
     ...(config.environment === 'production' &&
     process.env.BASELIME_API_KEY !== undefined &&

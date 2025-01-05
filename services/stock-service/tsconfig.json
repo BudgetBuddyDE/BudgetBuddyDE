@@ -19,6 +19,6 @@
     "noPropertyAccessFromIndexSignature": false,
 
     "outDir": "./build",
-    "types": ["node", "express", "./index.d.ts"]
+    "types": ["node", "vitest/globals", "express", "./index.d.ts"]
   }
 }

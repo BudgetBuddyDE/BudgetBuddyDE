@@ -30,10 +30,6 @@ export type TConfig = {
      */
     fetchInterval: number;
   };
-  log: {
-    default: string;
-    test: string;
-  };
   enableBackgroundJobs: boolean;
 };
 
@@ -62,10 +58,6 @@ export const config: TConfig = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
-  },
-  log: {
-    default: 'info',
-    test: 'error',
   },
   enableBackgroundJobs: process.env.ENABLE_BACKGROUND_JOBS ? process.env.ENABLE_BACKGROUND_JOBS === 'true' : false,
 };
