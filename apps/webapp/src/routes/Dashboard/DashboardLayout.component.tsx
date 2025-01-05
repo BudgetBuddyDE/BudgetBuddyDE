@@ -23,7 +23,7 @@ const DashboardLayout: React.FC<TDashboardLayoutProps> = ({children, useOutletIn
     <ContentGrid
       title={`Welcome, ${sessionUser.name ? sessionUser.name : sessionUser.username}!`}
       description={DashboardViewDescriptionMapping[DashboardViewMapping[location.pathname]]}>
-      <Grid size={{xs: 12}}>
+      <Grid size={{xs: 12, md: 8}}>
         <ActionPaper
           sx={{
             width: 'min-content',
