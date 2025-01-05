@@ -31,7 +31,7 @@ export const HistoricalDividends: React.FC<THistoricalDividendsProps> = ({stockD
         </Typography>
       </AccordionSummary>
       <AccordionDetails sx={{px: 0}}>
-        {chartData.length >= 0 ? (
+        {chartData.length > 0 ? (
           <BarChart
             dataset={screenSize === 'small' ? chartData : chartData.reverse()}
             series={[
