@@ -1,0 +1,62 @@
+resources:
+  - name: node-image
+    type: registry-image
+    source:
+      repository: node
+      tag: 20
+
+  - name: repo
+    type: git
+    icon: github
+    source:
+      uri: ((repo_uri))
+      private_key: ((repo_private_key))
+      branch: main
+      paths: [((repo_path))/**]
+      depth: 1
+
+jobs:
+  - name: test
+    public: true
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repo
+            trigger: true
+      - task: install
+        image: node-image
+        config:
+          inputs:
+            - name: repo
+          outputs:
+            - name: dependencies
+              path: repo/((repo_path))/node_modules
+          platform: linux
+          run:
+            path: npm
+            args: ['install']
+            dir: repo/((repo_path))
+      - task: test
+        image: node-image
+        config:
+          inputs:
+            - name: repo
+            - name: dependencies
+              path: repo/((repo_path))/node_modules
+          platform: linux
+          run:
+            path: npm
+            args: ['run', 'test:run']
+            dir: repo/((repo_path))
+      - task: build
+        image: node-image
+        config:
+          inputs:
+            - name: repo
+            - name: dependencies
+              path: repo/((repo_path))/node_modules
+          platform: linux
+          run:
+            path: npm
+            args: ['run', 'build']
+            dir: repo/((repo_path))

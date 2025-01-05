@@ -55,6 +55,12 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
 ## Set up pipelines
 
+### Test & build `webapp`
+
+```bash
+fly -t kleithor set-pipeline -p bb-webapp -c ./ci/pipelines/build-webapp.pipeline.yml -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" -v repo_path="apps/webapp"
+```
+
 ### Publish `@budetbuddyde/types`
 
 ```bash
