@@ -24,7 +24,7 @@ export const HistoricalDividends: React.FC<THistoricalDividendsProps> = ({stockD
   }, [stockDetails]);
 
   return (
-    <Accordion defaultExpanded>
+    <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreRounded />}>
         <Typography variant="subtitle1" fontWeight={'bold'}>
           Historical Dividends
