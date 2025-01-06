@@ -1,5 +1,5 @@
 import {ExpandMoreRounded, MoneyOffRounded} from '@mui/icons-material';
-import {Accordion, AccordionDetails, AccordionSummary, Typography} from '@mui/material';
+import {Accordion, AccordionDetails, AccordionSummary, Button, Typography} from '@mui/material';
 import {ChartsAxisData} from '@mui/x-charts';
 import React from 'react';
 
@@ -44,6 +44,9 @@ export const HistoricalDividendsAccordion: React.FC<THistoricalDividendsAccordio
     onAxisClick: (_event: MouseEvent, _data: null | ChartsAxisData) => {
       setShowDividendDrawer(true);
     },
+    onViewDetailsClick: () => {
+      setShowDividendDrawer(true);
+    },
   };
 
   return (
@@ -55,6 +58,15 @@ export const HistoricalDividendsAccordion: React.FC<THistoricalDividendsAccordio
           </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{px: 0}}>
+          <Button
+            onClick={handler.onViewDetailsClick}
+            variant="text"
+            color="primary"
+            sx={{mx: 2, display: {md: 'none'}}}
+            fullWidth>
+            View Details
+          </Button>
+
           {chartData.length > 0 ? (
             <BarChart
               dataset={screenSize === 'small' ? chartData.reverse() : chartData}
@@ -86,7 +98,7 @@ export const HistoricalDividendsAccordion: React.FC<THistoricalDividendsAccordio
               onAxisClick={handler.onAxisClick}
               height={screenSize === 'small' ? chartData.length * 30 : 300}
               grid={{[screenSize === 'small' ? 'vertical' : 'horizontal']: true}}
-              margin={{left: 80, right: 20, top: 20, bottom: 20}}
+              margin={{left: screenSize === 'small' ? 50 : 80, right: 20, top: 20, bottom: 20}}
             />
           ) : (
             <NoResults icon={<MoneyOffRounded />} text="This company has not paid any dividends yet." sx={{mx: 2}} />
