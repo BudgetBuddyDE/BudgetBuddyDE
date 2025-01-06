@@ -48,7 +48,7 @@ export const HistoricalDividendsAccordion: React.FC<THistoricalDividendsAccordio
 
   return (
     <React.Fragment>
-      <Accordion defaultExpanded>
+      <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreRounded />}>
           <Typography variant="subtitle1" fontWeight={'bold'}>
             Historical Dividends
