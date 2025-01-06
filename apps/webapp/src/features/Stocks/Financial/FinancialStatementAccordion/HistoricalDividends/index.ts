@@ -1,1 +1,1 @@
-export * from './HistoricalDividends.component';
+export * from './Accordion';

@@ -1,6 +1,5 @@
 import {ExpandMoreRounded, MoneyOffRounded} from '@mui/icons-material';
 import {Accordion, AccordionDetails, AccordionSummary, Typography} from '@mui/material';
-import {format} from 'date-fns';
 import React from 'react';
 
 import {BarChart} from '@/components/Base/Charts';
@@ -9,18 +8,29 @@ import {StockService} from '@/features/Stocks/StockService';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {Formatter} from '@/services/Formatter';
 
-export type THistoricalDividendsProps = {
+export type THistoricalDividendsAccordionProps = {
   stockDetails: Awaited<ReturnType<typeof StockService.getAssetDetails>>[0];
 };
 
-export const HistoricalDividends: React.FC<THistoricalDividendsProps> = ({stockDetails}) => {
+export const HistoricalDividendsAccordion: React.FC<THistoricalDividendsAccordionProps> = ({stockDetails}) => {
   const screenSize = useScreenSize();
 
   const currency = React.useMemo(() => stockDetails?.details.securityDetails?.currency, [stockDetails]);
 
   const chartData = React.useMemo(() => {
-    if (!stockDetails) return [];
-    return (stockDetails.details.historicalDividends ?? []).map(({date, price}) => ({date, price}));
+    if (!stockDetails || !stockDetails.details.historicalDividends) return [];
+
+    let data = {} as Record<string, number>;
+    for (const {date, price} of stockDetails.details.historicalDividends) {
+      const year = date.getFullYear();
+      if (!data[year]) data[year] = 0;
+      data[year] += price;
+    }
+
+    return Object.entries(data).map(([year, total]) => ({
+      year: new Date(Number(year), 0),
+      total,
+    }));
   }, [stockDetails]);
 
   return (
@@ -33,10 +43,10 @@ export const HistoricalDividends: React.FC<THistoricalDividendsProps> = ({stockD
       <AccordionDetails sx={{px: 0}}>
         {chartData.length > 0 ? (
           <BarChart
-            dataset={screenSize === 'small' ? chartData : chartData.reverse()}
+            dataset={screenSize === 'small' ? chartData.reverse() : chartData}
             series={[
               {
-                dataKey: 'price',
+                dataKey: 'total',
                 label: `Dividend (${currency})`,
                 valueFormatter: (v: number | null) => Formatter.formatBalance(v ?? 0, currency),
               },
@@ -46,8 +56,8 @@ export const HistoricalDividends: React.FC<THistoricalDividendsProps> = ({stockD
               [screenSize === 'small' ? 'yAxis' : 'xAxis']: [
                 {
                   scaleType: 'band',
-                  dataKey: 'date',
-                  valueFormatter: (v: Date) => format(v, 'MMM yyyy'),
+                  dataKey: 'year',
+                  valueFormatter: (v: Date) => v.getFullYear().toString(),
                 },
               ],
               [screenSize === 'small' ? 'xAxis' : 'yAxis']: [

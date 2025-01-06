@@ -6,7 +6,7 @@ import {Formatter} from '@/services/Formatter';
 
 import {StockService} from '../../StockService';
 import {FinancialStatement} from './FinancialStatement';
-import {HistoricalDividends} from './HistoricalDividends';
+import {HistoricalDividendsAccordion} from './HistoricalDividends';
 import {ProfitLoss} from './ProfitLoss';
 
 export enum EFinancialStatementTimeframe {
@@ -40,7 +40,7 @@ export const FinancialStatementAccordion: React.FC<TFinancialStatementAccordionP
         barChartProps={barChartProps}
         seriesFormatter={barChartSeriesFormatter}
       />
-      <HistoricalDividends stockDetails={stockDetails} />
+      <HistoricalDividendsAccordion stockDetails={stockDetails} />
     </React.Fragment>
   );
 };
