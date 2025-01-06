@@ -8,8 +8,13 @@ export class Formatter {
    * @param currency - The currency code to use for formatting. Defaults to 'EUR'.
    * @returns The formatted balance as a string.
    */
-  static formatBalance(balance: number, currency = 'EUR'): string {
-    return balance.toLocaleString('de-DE', {style: 'currency', currency: currency});
+  static formatBalance(
+    balance: number,
+    currency = 'EUR',
+    minimumFractionDigits = 2,
+    maximumFractionDigits = 2,
+  ): string {
+    return balance.toLocaleString('de-DE', {style: 'currency', currency, minimumFractionDigits, maximumFractionDigits});
   }
 
   /**
