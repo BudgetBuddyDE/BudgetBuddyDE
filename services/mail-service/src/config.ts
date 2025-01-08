@@ -1,6 +1,7 @@
 import {type CorsOptions} from 'cors';
 import 'dotenv/config';
 
+import {name, version} from '../package.json';
 import {getCurrentRuntimeEnvironment, getPort, isRunningInProduction} from './utils';
 
 /**
@@ -9,6 +10,8 @@ import {getCurrentRuntimeEnvironment, getPort, isRunningInProduction} from './ut
 export type TConfig = {
   production: boolean;
   environment: 'production' | 'test' | 'development';
+  appName: typeof name;
+  version: typeof version;
   /**
    * Define required environment variables to load from the `.env` file.
    */
@@ -32,6 +35,8 @@ export type TConfig = {
 export const config: TConfig = {
   production: isRunningInProduction(),
   environment: getCurrentRuntimeEnvironment(),
+  appName: name,
+  version: version,
   environmentVariables: [
     'ENV',
     'POCKETBASE_URL',
