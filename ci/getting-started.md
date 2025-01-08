@@ -1,4 +1,4 @@
-# CI
+\*\*\*\*# CI
 
 This directory contains the Concourse workflows for this project.
 
@@ -71,6 +71,12 @@ fly -t kleithor set-pipeline -p bb-types -c ./ci/pipelines/publish-npm-package.p
 
 ```bash
 fly -t kleithor set-pipeline -p bb-pocketbase -c ./ci/pipelines/publish-go-service.pipeline.yml -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" -v repo_path="services/pocketbase" -v docker_image="ghcr.io/budgetbuddyde/pocketbase" -v docker_username="tklein1801" -v docker_password="$(cat ./ci/secrets/github/pat)" -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" -v service="bb_pocketbase" -v service_name="pocketbase" -v version_bucket_region="$(cat ./ci/secrets/aws/bucket.txt | sed -n '4p')" -v version_bucket_access_key="$(cat ./ci/secrets/aws/bucket.txt | sed -n '1p')" -v version_bucket_secret="$(cat ./ci/secrets/aws/bucket.txt | sed -n '2p')"
+```
+
+### Publish `auth-service`
+
+```bash
+fly -t kleithor set-pipeline -p bb-auth-service -c ./ci/pipelines/publish-node-service.pipeline.yml -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" -v repo_path="services/auth-service" -v docker_image="ghcr.io/budgetbuddyde/auth-service" -v docker_username="tklein1801" -v docker_password="$(cat ./ci/secrets/github/pat)" -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" -v service="bb_auth_service" -v service_name="auth-service" -v version_bucket_region="$(cat ./ci/secrets/aws/bucket.txt | sed -n '4p')" -v version_bucket_access_key="$(cat ./ci/secrets/aws/bucket.txt | sed -n '1p')" -v version_bucket_secret="$(cat ./ci/secrets/aws/bucket.txt | sed -n '2p')"
 ```
 
 ### Publish `stock-service`
