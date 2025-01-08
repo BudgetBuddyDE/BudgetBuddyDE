@@ -39,6 +39,33 @@ resources:
       access_key_id: ((version_bucket_access_key))
       secret_access_key: ((version_bucket_secret))
 
+task-config: &task-release
+  platform: linux
+  inputs:
+    - name: repo
+    - name: version
+  outputs:
+    - name: repo
+  params:
+    CI: 'true'
+    FORCE_COLOR: 1
+  run:
+    path: sh
+    args:
+      - -evc
+      - |
+        git config --global user.name 'Thorben Klein'
+        git config --global user.email thorben@tklein.it
+        NEW_VERSION="$(cat version/version)"
+        cd repo/((repo_path))
+        npm ci
+        npm run build
+        npm version "$NEW_VERSION" --no-git-tag-version
+        git tag | xargs git tag -d > /dev/null
+        git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
+        echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
+        npm publish --access public
+
 jobs:
   - name: build
     public: true
@@ -85,31 +112,7 @@ jobs:
       - task: build
         image: node-image
         config:
-          platform: linux
-          inputs:
-            - name: repo
-            - name: version
-          outputs:
-            - name: repo
-          params:
-            CI: 'true'
-            FORCE_COLOR: 1
-          run:
-            path: sh
-            args:
-              - -evc
-              - |
-                git config --global user.name 'Thorben Klein'
-                git config --global user.email thorben@tklein.it
-                NEW_VERSION="$(cat version/version)"
-                cd repo/((repo_path))
-                npm ci
-                npm run build
-                npm version "$NEW_VERSION" --no-git-tag-version
-                git tag | xargs git tag -d > /dev/null
-                git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
-                echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
-                npm publish --access public
+          <<: *task-release
       - in_parallel:
           - put: version
             params: { file: version/version }
@@ -129,31 +132,7 @@ jobs:
       - task: build
         image: node-image
         config:
-          platform: linux
-          inputs:
-            - name: repo
-            - name: version
-          outputs:
-            - name: repo
-          params:
-            CI: 'true'
-            FORCE_COLOR: 1
-          run:
-            path: sh
-            args:
-              - -evc
-              - |
-                git config --global user.name 'Thorben Klein'
-                git config --global user.email thorben@tklein.it
-                NEW_VERSION="$(cat version/version)"
-                cd repo/((repo_path))
-                npm ci
-                npm run build
-                npm version "$NEW_VERSION" --no-git-tag-version
-                git tag | xargs git tag -d > /dev/null
-                git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
-                echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
-                npm publish --access public
+          <<: *task-release
       - in_parallel:
           - put: version
             params: { file: version/version }
@@ -173,31 +152,7 @@ jobs:
       - task: build
         image: node-image
         config:
-          platform: linux
-          inputs:
-            - name: repo
-            - name: version
-          outputs:
-            - name: repo
-          params:
-            CI: 'true'
-            FORCE_COLOR: 1
-          run:
-            path: sh
-            args:
-              - -evc
-              - |
-                git config --global user.name 'Thorben Klein'
-                git config --global user.email thorben@tklein.it
-                NEW_VERSION="$(cat version/version)"
-                cd repo/((repo_path))
-                npm ci
-                npm run build
-                npm version "$NEW_VERSION" --no-git-tag-version
-                git tag | xargs git tag -d > /dev/null
-                git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
-                echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
-                npm publish --access public
+          <<: *task-release
       - in_parallel:
           - put: version
             params: { file: version/version }
