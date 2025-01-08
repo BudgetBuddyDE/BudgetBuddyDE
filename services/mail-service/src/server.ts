@@ -342,13 +342,14 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     cron.schedule(
       '0 6 * * 1-5',
       async () => {
-        logger.debug("Running 'TriggerDailyStockReport' job");
-        const [_, error] = await sendDailyStockReport(NEWSLETTER.DAILY_STOCK_REPORT);
+        const log = logger.child({job: 'TriggerDailyStockReport'});
+        log.debug("Running 'TriggerDailyStockReport' job");
+        const [_, error] = await sendDailyStockReport(NEWSLETTER.DAILY_STOCK_REPORT, log);
         if (error) {
-          logger.error('Was not able to send daily stock reports!', error);
+          log.error('Was not able to send daily stock reports!', {...error, stack: error.stack, cause: error.cause});
           return;
         }
-        logger.info('Daily stock reports were sent!');
+        log.info('Daily stock reports were sent!');
       },
       {name: 'TriggerDailyStockReport'},
     );
@@ -356,15 +357,16 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     cron.schedule(
       '0 6 * * 1',
       async () => {
-        logger.debug("Running 'TriggerWeeklyReports' job");
+        const log = logger.child({job: 'TriggerWeeklyReports'});
+        log.debug("Running 'TriggerWeeklyReports' job");
         const startDate = subDays(new Date(), 7);
         const endDate = new Date();
         const [_, error] = await sendWeeklyReports(NEWSLETTER.WEEKLY_REPORT, startDate, endDate);
         if (error) {
-          logger.error('Was not able to send weekly reports', error);
+          log.error('Was not able to send weekly reports', {...error, stack: error.stack, cause: error.cause});
           return;
         }
-        logger.info('Weekly reports were sent', {startDate, endDate});
+        log.info('Weekly reports were sent', {startDate, endDate});
       },
       {name: 'TriggerWeeklyReports'},
     );
@@ -372,16 +374,17 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
     cron.schedule(
       '0 6 1 * *',
       async () => {
-        logger.debug("Running 'TriggerMonthlyReports' job");
+        const log = logger.child({job: 'TriggerMonthlyReports'});
+        log.debug("Running 'TriggerMonthlyReports' job");
         const month = new Date();
         const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
         const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
         const [_, error] = await sendMonthlyReports(NEWSLETTER.MONTHLY_REPORT, month, startDate, endDate);
         if (error) {
-          logger.error('Was not able to send weekly reports', error);
+          log.error('Was not able to send weekly reports', {...error, stack: error.stack, cause: error.cause});
           return;
         }
-        logger.info('Monthly reports were sent', {month, startDate, endDate});
+        log.info('Monthly reports were sent', {month, startDate, endDate});
       },
       {name: 'TriggerMonthlyReports'},
     );

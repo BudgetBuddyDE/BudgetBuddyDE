@@ -9,7 +9,7 @@ import {format} from 'date-fns';
 
 import DailyReport from '../../transactional/emails/stocks/daily-report';
 import {config} from '../config';
-import {logger} from '../logger';
+import {logger as appLogger} from '../logger';
 import {pb} from '../pocketbase';
 import {resend} from '../resend';
 import {StockService, type TMetalQuote} from '../services';
@@ -21,7 +21,10 @@ import {retrieveStockReportData} from './retrieveStockReportData';
  * @param NEWSLETTER_ID - The ID of the newsletter.
  * @returns A tuple containing the stock report data and any error that occurred during the process.
  */
-export async function sendDailyStockReport(NEWSLETTER_ID: string): Promise<
+export async function sendDailyStockReport(
+  NEWSLETTER_ID: string,
+  logger = appLogger,
+): Promise<
   TServiceResponse<{
     metals: TMetalQuote[];
     positions: {
@@ -62,6 +65,7 @@ export async function sendDailyStockReport(NEWSLETTER_ID: string): Promise<
       }),
     });
     if (response.error) {
+      logger.debug(`Failed to send daily stock report to ${user.email}`, response.error);
       return [null, response.error];
     }
     logger.info(`Daily stock report report sent to ${user.email} via mail ${response.data?.id}`, {

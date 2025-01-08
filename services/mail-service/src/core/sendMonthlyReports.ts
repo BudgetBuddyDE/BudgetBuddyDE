@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 
 import {MonthlyReport, type MonthlyReportProps} from '../../transactional/emails/app/monthly-report';
 import {config} from '../config';
-import {logger} from '../logger';
+import {logger as appLogger} from '../logger';
 import {pb} from '../pocketbase';
 import {resend} from '../resend';
 import {retrieveTransactionReportData} from './retrieveTransactionReportData';
@@ -13,6 +13,7 @@ export async function sendMonthlyReports(
   month: Date,
   startDate: Date,
   endDate: Date,
+  logger = appLogger,
 ): Promise<TServiceResponse<(Omit<MonthlyReportProps, 'name' | 'company' | 'month'> & {user: NonNullable<TUser>})[]>> {
   const newsletter = await pb.collection<TNewsletter>(PocketBaseCollection.NEWSLETTER).getOne(NEWSLETTER_ID);
   if (!newsletter.enabled) {
@@ -45,7 +46,7 @@ export async function sendMonthlyReports(
       }),
     });
     if (response.error) {
-      logger.error(response.error);
+      logger.debug(`Failed to send monthly report to ${user.email}`, response.error);
       break;
     }
     logger.info(`Monthly report sent to ${user.email} via mail ${response.data?.id}`);

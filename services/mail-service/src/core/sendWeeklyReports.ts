@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 
 import {WeeklyReport, type WeeklyReportProps} from '../../transactional/emails/app/weekly-report';
 import {config} from '../config';
-import {logger} from '../logger';
+import {logger as appLogger} from '../logger';
 import {pb} from '../pocketbase';
 import {resend} from '../resend';
 import {retrieveTransactionReportData} from './retrieveTransactionReportData';
@@ -20,6 +20,7 @@ export async function sendWeeklyReports(
   NEWSLETTER_ID: string,
   startDate: Date,
   endDate: Date,
+  logger = appLogger,
 ): Promise<
   TServiceResponse<
     (Omit<WeeklyReportProps, 'name' | 'company' | 'startDate' | 'endDate'> & {user: NonNullable<TUser>})[]
@@ -57,6 +58,7 @@ export async function sendWeeklyReports(
       }),
     });
     if (response.error) {
+      logger.debug(`Failed to send weekly report to ${user.email}`, response.error);
       return [null, response.error];
     }
     logger.info(`Weekly report sent to ${user.email} via mail ${response.data?.id}`, {
