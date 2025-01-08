@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "better-auth": "^1.0.5",
-    "bun": "^1.1.30",
+    "bun": "^1.1.42",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
