@@ -21,7 +21,7 @@ import {AuthMiddleware, logMiddleware} from './middleware';
 import {pb} from './pocketbase';
 import {resend} from './resend';
 import TriggerRouter from './router/TriggerReport.router';
-import {generateRandomId} from './utils';
+import {generateRandomId, getLogLevel} from './utils';
 
 /**
  * Check if all required environment-variables are set
@@ -308,8 +308,9 @@ export const listen = app.listen(config.port, process.env.HOSTNAME || 'localhost
   console.table({
     'Application Name': name,
     'Application Version': version,
-    'Runtime Environment': config.environment,
     'Node Version': process.version,
+    'Runtime Environment': config.environment,
+    'Log Level': getLogLevel(),
     'Server Port': config.port,
   });
 
