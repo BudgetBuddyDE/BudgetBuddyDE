@@ -1,7 +1,5 @@
-import {BaselimeTransport} from '@baselime/winston-transport';
 import winston from 'winston';
 
-import {name} from '../package.json';
 import {config} from './config';
 import {getLogLevel} from './utils';
 
@@ -11,39 +9,22 @@ import {getLogLevel} from './utils';
 export const logger = winston.createLogger({
   level: getLogLevel(),
   defaultMeta: {
-    application: 'stock-service',
-    environment: process.env.NODE_ENV || 'development',
+    service: config.appName,
+    version: config.version,
+    environment: config.environment,
   },
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
-        winston.format.errors({stack: true}),
         winston.format.colorize({all: true}),
-        winston.format.timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss.SSS',
-        }),
+        winston.format.errors({stack: true}),
+        winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss.SSS'}),
         winston.format.align(),
-        winston.format.printf(info => {
-          const logObject = {...info};
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          delete logObject.level;
-          delete logObject.message;
-          delete logObject.timestamp;
-          return `[${info.timestamp}] ${info.level}: ${info.message} (${JSON.stringify(logObject)})`;
+        winston.format.splat(),
+        winston.format.printf(({timestamp, level, message, stack}) => {
+          return `${timestamp} ${level}: ${stack || message}`;
         }),
       ),
     }),
-    ...(config.environment === 'production' &&
-    process.env.BASELIME_API_KEY !== undefined &&
-    process.env.BASELIME_API_KEY !== ''
-      ? [
-          new BaselimeTransport({
-            baselimeApiKey: process.env.BASELIME_API_KEY,
-            service: name,
-            namespace: 'de.budget-buddy.stock-service',
-          }),
-        ]
-      : []),
   ],
 });
