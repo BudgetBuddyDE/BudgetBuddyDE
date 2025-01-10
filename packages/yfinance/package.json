@@ -6,7 +6,8 @@
   "license": "MIT",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.8",
@@ -15,6 +16,7 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "better-fetch": "^1.1.2"
+    "better-fetch": "^1.1.2",
+    "node-fetch": "^3.3.2"
   }
 }
