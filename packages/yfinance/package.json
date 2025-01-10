@@ -1,0 +1,20 @@
+{
+  "name": "@budgetbuddyde/yfinance",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Thorben Klein",
+  "license": "MIT",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "better-fetch": "^1.1.2"
+  }
+}
