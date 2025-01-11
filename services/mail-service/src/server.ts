@@ -1,5 +1,6 @@
 import {ApiResponse, HTTPStatusCode, PocketBaseCollection, type TNewsletter, type TUser} from '@budgetbuddyde/types';
 import {ZMailOptInPayload, ZMailOptOutPayload, ZVerifyMailOptInPayload} from '@budgetbuddyde/types/lib/Mail.types';
+import {getLogLevel} from '@budgetbuddyde/utils';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import {subDays} from 'date-fns';
@@ -21,7 +22,7 @@ import {AuthMiddleware, logMiddleware} from './middleware';
 import {pb} from './pocketbase';
 import {resend} from './resend';
 import TriggerRouter from './router/TriggerReport.router';
-import {generateRandomId, getLogLevel} from './utils';
+import {generateRandomId} from './utils';
 
 /**
  * Check if all required environment-variables are set

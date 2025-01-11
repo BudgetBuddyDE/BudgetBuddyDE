@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@budgetbuddyde/types": "^1.0.39",
+    "@budgetbuddyde/utils": "^1.0.0",
     "@react-email/components": "^0.0.22",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",

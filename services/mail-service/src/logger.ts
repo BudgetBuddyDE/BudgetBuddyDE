@@ -1,7 +1,7 @@
+import {getLogLevel} from '@budgetbuddyde/utils';
 import winston from 'winston';
 
 import {config} from './config';
-import {getLogLevel} from './utils';
 
 /**
  * The logger instance for the stock service.

@@ -1,8 +1,8 @@
+import {getCurrentRuntime, getPort, isRunningInProd} from '@budgetbuddyde/utils';
 import {type CorsOptions} from 'cors';
 import 'dotenv/config';
 
 import {name, version} from '../package.json';
-import {getCurrentRuntimeEnvironment, getPort, isRunningInProduction} from './utils';
 
 /**
  * Represents the configuration options for the application.
@@ -29,12 +29,14 @@ export type TConfig = {
   company: string;
 };
 
+const isProd = isRunningInProd();
+
 /**
  * The configuration object for the application.
  */
 export const config: TConfig = {
-  production: isRunningInProduction(),
-  environment: getCurrentRuntimeEnvironment(),
+  production: isProd,
+  environment: getCurrentRuntime(),
   appName: name,
   version: version,
   environmentVariables: [
@@ -54,12 +56,12 @@ export const config: TConfig = {
     fetchInterval: 1,
   },
   cors: {
-    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
+    origin: isProd ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
   },
   sender: process.env.MAIL_SENDER || 'delivered@resend.dev',
-  host: isRunningInProduction() ? (process.env.HOST as string) : `http://localhost:${getPort()}`,
+  host: isProd ? (process.env.HOST as string) : `http://localhost:${getPort()}`,
   company: 'Budget-Buddy',
 };
