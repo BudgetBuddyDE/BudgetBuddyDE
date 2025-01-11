@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@budgetbuddyde/types": "^1.0.43",
+    "@budgetbuddyde/utils": "^1.0.0",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",

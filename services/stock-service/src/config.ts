@@ -1,8 +1,9 @@
+import {getPort} from '@budgetbuddyde/utils';
+import {getCurrentRuntime, isRunningInProd} from '@budgetbuddyde/utils';
 import {type CorsOptions} from 'cors';
 import 'dotenv/config';
 
 import {name, version} from '../package.json';
-import {getCurrentRuntimeEnvironment, isRunningInProduction} from './utils';
 
 /**
  * Represents the configuration options for the application.
@@ -25,7 +26,7 @@ export type TConfig = {
    *
    * any number when set by `proces.env.PORT`
    */
-  port: 7080 | 7070 | number;
+  port: number;
   cors: CorsOptions;
   stocks: {
     /**
@@ -36,12 +37,14 @@ export type TConfig = {
   enableBackgroundJobs: boolean;
 };
 
+const isProdRuntime = isRunningInProd();
+
 /**
  * The configuration object for the application.
  */
 export const config: TConfig = {
-  production: isRunningInProduction(),
-  environment: getCurrentRuntimeEnvironment(),
+  production: isProdRuntime,
+  environment: getCurrentRuntime(),
   appName: name,
   version: version,
   environmentVariables: [
@@ -54,12 +57,14 @@ export const config: TConfig = {
     'METAL_API_KEY',
     // 'PORT',
   ],
-  port: process.env.PORT != undefined ? Number(process.env.PORT) : isRunningInProduction() ? 7080 : 7070,
+  port: getPort(),
   stocks: {
     fetchInterval: 1,
   },
   cors: {
-    origin: isRunningInProduction() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
+    origin: isRunningInProd()
+      ? ['https://app.budget-buddy.de', 'https://dev.app.budget-buddy.de', /\.budget-buddy\.de$/]
+      : ['http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,

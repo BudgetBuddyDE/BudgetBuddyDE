@@ -17,7 +17,6 @@ import {checkAuthorizationHeader, logMiddleware} from './middleware';
 import {pb} from './pocketbase';
 import {AssetRouter, AssetWatchlistRouter, DividendRouter, MetalRouter} from './router';
 import {AuthService} from './services';
-import {isRunningInProduction} from './utils';
 
 /**
  * Check if all required environment-variables are set
@@ -35,14 +34,7 @@ if (MISSING_ENVIRONMENT_VARIABLES.length >= 1) {
 export const app = express();
 export const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: {
-    ...config.cors,
-    origin: isRunningInProduction()
-      ? ['https://app.budget-buddy.de', 'https://dev.app.budget-buddy.de', /\.budget-buddy\.de$/]
-      : ['http://localhost:3000'],
-  },
-});
+const io = new Server(server, {cors: config.cors});
 
 app.use(cors(config.cors));
 app.use(logMiddleware);
