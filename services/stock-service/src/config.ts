@@ -1,5 +1,4 @@
-import {getPort} from '@budgetbuddyde/utils';
-import {getCurrentRuntime, isRunningInProd} from '@budgetbuddyde/utils';
+import {getCurrentRuntime, getPort, isRunningInProd} from '@budgetbuddyde/utils';
 import {type CorsOptions} from 'cors';
 import 'dotenv/config';
 
@@ -62,9 +61,7 @@ export const config: TConfig = {
     fetchInterval: 1,
   },
   cors: {
-    origin: isRunningInProd()
-      ? ['https://app.budget-buddy.de', 'https://dev.app.budget-buddy.de', /\.budget-buddy\.de$/]
-      : ['http://localhost:3000'],
+    origin: isRunningInProd() ? [/\.budget-buddy\.de$/] : [/\.localhost\$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
