@@ -47,7 +47,7 @@ export const config: TConfig = {
   appName: name,
   version: version,
   environmentVariables: [
-    'ENV',
+    'NODE_ENV',
     'BEARER_TOKEN_SECRET',
     'STOCK_API_URL',
     'POCKETBASE_URL',
