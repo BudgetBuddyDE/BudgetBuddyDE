@@ -58,14 +58,16 @@ export const HistoricalDividendsAccordion: React.FC<THistoricalDividendsAccordio
           </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{px: 0}}>
-          <Button
-            onClick={handler.onViewDetailsClick}
-            variant="text"
-            color="primary"
-            sx={{mx: 2, display: {md: 'none'}}}
-            fullWidth>
-            View Details
-          </Button>
+          {chartData.length > 0 && (
+            <Button
+              onClick={handler.onViewDetailsClick}
+              variant="text"
+              color="primary"
+              sx={{mx: 2, display: {md: 'none'}}}
+              fullWidth>
+              View Details
+            </Button>
+          )}
 
           {chartData.length > 0 ? (
             <BarChart
