@@ -1,4 +1,4 @@
-import { getLogLevel } from './getLogLevel';
+import {getLogLevel} from './getLogLevel';
 
 describe('getLogLevel', () => {
   it('should return the log level from the environment variable', () => {

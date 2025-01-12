@@ -1,4 +1,4 @@
-import { isRunningInProd } from './isRunningInProd';
+import {isRunningInProd} from './isRunningInProd';
 
 describe('getCurrentRuntime', () => {
   const originalEnv = process.env.NODE_ENV;

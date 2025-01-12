@@ -1,4 +1,4 @@
-import { getTrustedOrigins } from './getTrustedOrigins';
+import {getTrustedOrigins} from './getTrustedOrigins';
 
 describe('getTrustedOrigins', () => {
   const originalEnv = process.env;

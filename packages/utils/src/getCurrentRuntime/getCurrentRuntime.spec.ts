@@ -1,4 +1,4 @@
-import { getCurrentRuntime } from './getCurrentRuntime';
+import {getCurrentRuntime} from './getCurrentRuntime';
 
 describe('getCurrentRuntime', () => {
   const originalEnv = process.env.NODE_ENV;

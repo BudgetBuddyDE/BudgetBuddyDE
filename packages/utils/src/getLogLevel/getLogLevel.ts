@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { isValidLogLevel, type LogLevel } from '../logger';
+import {isValidLogLevel, type LogLevel} from '../logger';
 
 /**
  * Retrieves the log level from the environment variable `LOG_LEVEL`.

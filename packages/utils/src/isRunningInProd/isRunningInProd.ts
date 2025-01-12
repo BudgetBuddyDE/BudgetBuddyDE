@@ -1,4 +1,4 @@
-import { getCurrentRuntime } from '../getCurrentRuntime';
+import {getCurrentRuntime} from '../getCurrentRuntime';
 
 /**
  * Determines if the current runtime environment is production.

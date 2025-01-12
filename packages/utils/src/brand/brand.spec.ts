@@ -1,4 +1,4 @@
-import type { Branded } from './brand';
+import type {Branded} from './brand';
 
 type UserId = Branded<string, 'UserId'>;
 

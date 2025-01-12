@@ -1,4 +1,4 @@
-import { getPort } from './getPort';
+import {getPort} from './getPort';
 
 describe('getPort', () => {
   it('should return the port number from the environment variable when envPort is a valid number', () => {
