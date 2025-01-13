@@ -40,7 +40,7 @@ export const config: TConfig = {
   appName: name,
   version: version,
   environmentVariables: [
-    'ENV',
+    'NODE_ENV',
     'POCKETBASE_URL',
     'SERVICE_ACCOUNT_EMAIL',
     'SERVICE_ACCOUNT_PASSWORD',
