@@ -3,6 +3,7 @@ import {Box, Grid2 as Grid, Stack, Tooltip, Typography} from '@mui/material';
 import React from 'react';
 
 import {Card} from '@/components/Base/Card';
+import {NoResults} from '@/components/NoResults';
 import {Formatter} from '@/services/Formatter';
 
 export type TKPIProps = {
@@ -91,7 +92,7 @@ export const KPIComponent: React.FC<TKPIProps> = ({
             ))}
           </Grid>
         ) : (
-          <Typography variant="body1">No data available</Typography>
+          <NoResults text={'There are no financial KPIs for this asset'} />
         )}
       </Card.Body>
     </Card>

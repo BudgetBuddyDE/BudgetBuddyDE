@@ -1,24 +1,10 @@
 import {type TStockPositionWithQuote} from '@budgetbuddyde/types';
-import {ExpandMoreRounded, TimelineRounded} from '@mui/icons-material';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Button,
-  Divider,
-  Grid2 as Grid,
-  List,
-  ListItem,
-  ListItemText,
-  Tooltip,
-  Typography,
-} from '@mui/material';
-import {format} from 'date-fns';
+import {TimelineRounded} from '@mui/icons-material';
+import {Button, Grid2 as Grid} from '@mui/material';
 import React from 'react';
 import {Navigate, useNavigate, useParams} from 'react-router-dom';
 
 import {Feature} from '@/app.config';
-import {PieChart} from '@/components/Base/Charts';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer';
 import {withFeatureFlag} from '@/components/Feature';
 import {ContentGrid} from '@/components/Layout';
@@ -39,7 +25,6 @@ import {
   StockNews,
   StockPositionDrawer,
   StockPositionTable,
-  StockRating,
   StockService,
   type TPriceChartPoint,
   type TStockPositionDrawerValues,
@@ -47,8 +32,8 @@ import {
   useFetchStockQuotes,
   useStockPositions,
 } from '@/features/Stocks';
+import {AssetInfoAccordion} from '@/features/Stocks/AssetInfoAccordion';
 import {useDocumentTitle} from '@/hooks/useDocumentTitle';
-import {Formatter} from '@/services/Formatter';
 import {getSocketIOClient} from '@/utils';
 
 interface IStockHandler {
@@ -305,6 +290,19 @@ export const Stock = () => {
             )
           )}
 
+          {stockDetails?.asset.security.hasDividends &&
+            (loadingDetails ? (
+              <Grid size={{xs: 12}}>
+                <CircularProgress />
+              </Grid>
+            ) : (
+              stockDetails && (
+                <Grid size={{xs: 12}}>
+                  <DividendList dividends={stockDetails.details.futureDividends ?? []} />
+                </Grid>
+              )
+            ))}
+
           {loadingDetails ? (
             <Grid size={{xs: 12}}>
               <CircularProgress />
@@ -312,115 +310,9 @@ export const Stock = () => {
           ) : (
             stockDetails && (
               <Grid size={{xs: 12}}>
-                <DividendList dividends={stockDetails.details.futureDividends ?? []} />
+                <AssetInfoAccordion details={stockDetails} />
               </Grid>
             )
-          )}
-
-          {stockDetails && (
-            <Grid size={{xs: 12}}>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreRounded />}>
-                  <Typography variant="subtitle1" fontWeight={'bold'}>
-                    Company Information
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body2">
-                    {stockDetails.details.securityDetails?.description ?? 'No description available'}
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-
-              {stockDetails.asset.security.type === 'ETF' && stockDetails.details.etfBreakdown && (
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreRounded />}>
-                    <Tooltip
-                      title={`As of ${format(stockDetails.details.etfBreakdown.updatedAt, 'dd.MM.yyyy')}`}
-                      placement="right">
-                      <Typography variant="subtitle1" fontWeight={'bold'}>
-                        ETF Breakdown
-                      </Typography>
-                    </Tooltip>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <PieChart
-                      fullWidth
-                      series={[
-                        {
-                          data: stockDetails.details.etfBreakdown.holdings.map(({marketValue, name}) => ({
-                            label: name,
-                            value: marketValue,
-                          })),
-                          valueFormatter: value => Formatter.formatBalance(value.value),
-                        },
-                      ]}
-                    />
-                  </AccordionDetails>
-                </Accordion>
-              )}
-
-              {stockDetails.asset.security.type === 'ETF' && (
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreRounded />}>
-                    <Typography variant="subtitle1" fontWeight={'bold'}>
-                      Region Breakdown
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <PieChart
-                      fullWidth
-                      series={[
-                        {
-                          data: stockDetails.asset.security.regions.map(({id, share}) => ({label: id, value: share})),
-                          valueFormatter: value => `${value.value} shares`,
-                        },
-                      ]}
-                    />
-                  </AccordionDetails>
-                </Accordion>
-              )}
-
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreRounded />}>
-                  <Typography variant="subtitle1" fontWeight={'bold'}>
-                    Symbols
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{p: 0}}>
-                  {loadingDetails ? (
-                    <CircularProgress />
-                  ) : stockDetails.asset.security.symbols.length > 0 ? (
-                    <List sx={{py: 0}}>
-                      {stockDetails.asset.security.symbols.map(({symbol, exchange}, idx, arr) => (
-                        <React.Fragment key={symbol}>
-                          <ListItem
-                            alignItems="flex-start"
-                            secondaryAction={<Typography variant="body2">{symbol}</Typography>}
-                            dense>
-                            <ListItemText primary={exchange} />
-                          </ListItem>
-                          {idx + 1 !== arr.length && <Divider />}
-                        </React.Fragment>
-                      ))}
-                    </List>
-                  ) : (
-                    <NoResults text="No symbols found for this asset" sx={{m: 2, mt: 0}} />
-                  )}
-                </AccordionDetails>
-              </Accordion>
-
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreRounded />}>
-                  <Typography variant="subtitle1" fontWeight={'bold'}>
-                    Ratings
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{p: 0}}>
-                  <StockRating ratings={stockDetails.details.scorings} />
-                </AccordionDetails>
-              </Accordion>
-            </Grid>
           )}
 
           {loadingDetails ? (

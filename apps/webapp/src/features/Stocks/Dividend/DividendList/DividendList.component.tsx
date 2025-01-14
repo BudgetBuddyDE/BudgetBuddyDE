@@ -18,7 +18,7 @@ export const DividendList: React.FC<TDividendListProps> = ({dividends}) => {
     <Card sx={{p: 0}}>
       <Card.Header sx={{p: 2, pb: 0}}>
         <Box>
-          <Card.Title>Dividends</Card.Title>
+          <Card.Title>Future Dividends</Card.Title>
         </Box>
       </Card.Header>
       <Card.Body>
@@ -43,7 +43,11 @@ export const DividendList: React.FC<TDividendListProps> = ({dividends}) => {
             ))}
           </List>
         ) : (
-          <NoResults icon={<EventBusyRounded />} text="No dividend information found." sx={{m: 2}} />
+          <NoResults
+            icon={<EventBusyRounded />}
+            text="There are no future dividends scheduled at this moment."
+            sx={{m: 2}}
+          />
         )}
       </Card.Body>
     </Card>
