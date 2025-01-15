@@ -1,10 +1,10 @@
+import {TAssetDetails} from '@budgetbuddyde/types';
 import React from 'react';
 
 import {type TBarChartProps} from '@/components/Base/Charts';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {Formatter} from '@/services/Formatter';
 
-import {StockService} from '../../StockService';
 import {FinancialStatement} from './FinancialStatement';
 import {HistoricalDividendsAccordion} from './HistoricalDividends';
 import {ProfitLoss} from './ProfitLoss';
@@ -15,7 +15,7 @@ export enum EFinancialStatementTimeframe {
 }
 
 export type TFinancialStatementAccordionProps = {
-  stockDetails: Awaited<ReturnType<typeof StockService.getAssetDetails>>[0];
+  stockDetails: TAssetDetails;
 };
 
 export const FinancialStatementAccordion: React.FC<TFinancialStatementAccordionProps> = ({stockDetails}) => {

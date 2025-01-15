@@ -29,7 +29,7 @@ export const Timeframe: React.FC<TTimeframeProps> = ({onChange}) => {
         setSearchParams(searchParams);
       }}
       exclusive>
-      {['1W', '1M', '3M', '1Y', '5Y', 'YTD'].map(timeframe => (
+      {['1W', '1M', '3M', 'YTD', '1Y', '5Y'].map(timeframe => (
         <ToggleButton key={timeframe} value={timeframe.toLowerCase()}>
           {timeframe}
         </ToggleButton>

@@ -29,8 +29,8 @@ export const PriceChart: React.FC<TPriceChartProps> = ({onTimeframeChange, compa
   const priceDiff = latestPrice - oldestPrice;
 
   return (
-    <Card>
-      <Card.Header>
+    <Card sx={{p: 0}}>
+      <Card.Header sx={{px: 2, pt: 2}}>
         <Stack>
           <Typography variant="h6">{company.name}</Typography>
           <Stack sx={{justifyContent: 'space-between'}}>
@@ -67,6 +67,7 @@ export const PriceChart: React.FC<TPriceChartProps> = ({onTimeframeChange, compa
       </Card.Header>
       <Card.Body>
         <LineChart
+          skipAnimation
           colors={[theme.palette.primary.main]}
           xAxis={[
             {
@@ -76,22 +77,31 @@ export const PriceChart: React.FC<TPriceChartProps> = ({onTimeframeChange, compa
                 const d = new Date(value);
                 return isSameYear(new Date(), d) ? format(d, 'MMM dd') : format(d, 'MMM dd, yy');
               },
-              tickInterval: (_, i) => (i + 1) % Math.ceil(data.length / (data.length * 0.2)) === 0,
+              tickInterval: (_, i) => (i + 1) % Math.ceil(data.length / (data.length * 0.18)) === 0,
             },
           ]}
           yAxis={[
             {
-              id: 'price',
+              id: 'priceAxis',
+              scaleType: 'linear',
+              disableTicks: true,
+              tickLabelStyle: {
+                transform: 'translate(-30px)',
+                textAnchor: 'middle',
+              },
               valueFormatter: (value: string) => Formatter.formatBalance(Number(value)),
+              max: Math.max(...data.map(({price}) => price)) * 1.025,
             },
           ]}
+          rightAxis="priceAxis"
+          leftAxis={null}
           series={[
             {
               id: 'price',
+              yAxisId: 'priceAxis',
               label: company.name,
               showMark: false,
               curve: 'catmullRom',
-              stack: 'total',
               area: true,
               data: data.map(({price}) => price),
               valueFormatter: value => Formatter.formatBalance(value ?? 0),
@@ -99,7 +109,7 @@ export const PriceChart: React.FC<TPriceChartProps> = ({onTimeframeChange, compa
             },
           ]}
           height={screenSize === 'small' ? 250 : 400}
-          margin={{left: 60, right: 0, top: 20, bottom: 30}}
+          margin={{left: 0, right: -1, top: 20, bottom: 30}}
           grid={{horizontal: true}}
           sx={{
             '& .MuiLineElement-root': {
