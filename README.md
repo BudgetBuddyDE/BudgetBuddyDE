@@ -47,6 +47,6 @@ config/
   ├── docker/            # Docker configuration files
   ├── compose/           # docker-compose.yml and related files
   └── env/               # Environment configuration files (.env)
-LICENSE.md               # Project license
+LICENSE                  # Project license
 README.md                # Project overview and instructions
 ```

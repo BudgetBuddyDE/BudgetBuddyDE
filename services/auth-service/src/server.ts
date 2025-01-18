@@ -1,3 +1,4 @@
+import {getLogLevel} from '@budgetbuddyde/utils';
 import {toNodeHandler} from 'better-auth/node';
 import cors from 'cors';
 import 'dotenv/config';
@@ -42,6 +43,7 @@ app.listen(config.port, () => {
     'Application Version': config.version,
     'Runtime Environment': config.environment,
     'Node Version': process.version,
+    'Log Level': getLogLevel(),
     'Server Port': config.port,
   };
   console.table(options);

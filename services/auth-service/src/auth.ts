@@ -1,14 +1,16 @@
+import {getLogLevel, getTrustedOrigins, isRunningInProd} from '@budgetbuddyde/utils';
 import {betterAuth} from 'better-auth';
 import {admin, bearer, multiSession, openAPI} from 'better-auth/plugins';
 import {type BetterAuthOptions} from 'better-auth/types';
 import 'dotenv/config';
 
 import {config} from './config';
+import {logger} from './core/logger';
 import {pool} from './pool';
 import {redisClient} from './redis';
-import {getTrustedOrigins} from './utils/getTrustedOrigins';
 import {isCSRFCheckDisabled} from './utils/isCSRFCheckDisabled';
-import {isProdEnv} from './utils/isProdEnv';
+
+const authLogger = logger.child({module: 'auth'});
 
 const options: BetterAuthOptions = {
   appName: config.appName,
@@ -44,10 +46,10 @@ const options: BetterAuthOptions = {
   },
   logger: {
     disabled: false,
-    level: 'debug',
-    // log(level, message, ...args) {
-    //   console.log(`[${level}] ${message}`, ...args);
-    // },
+    level: getLogLevel(),
+    log: (lvl, msg, args) => {
+      authLogger[lvl](msg, args);
+    },
   },
   trustedOrigins: getTrustedOrigins(),
   advanced: {
@@ -65,7 +67,9 @@ const options: BetterAuthOptions = {
     window: 60,
     max: 30,
   },
-  plugins: [bearer(), admin(), isProdEnv() ? false : openAPI(), multiSession()].filter(v => typeof v !== 'boolean'),
+  plugins: [bearer(), admin(), isRunningInProd() ? false : openAPI(), multiSession()].filter(
+    v => typeof v !== 'boolean',
+  ),
 };
 
 export const auth = betterAuth(options);

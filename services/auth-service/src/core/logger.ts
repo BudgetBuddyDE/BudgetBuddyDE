@@ -1,7 +1,7 @@
+import {getLogLevel} from '@budgetbuddyde/utils';
 import winston from 'winston';
 
 import {config} from '../config';
-import {getLogLevel} from '../utils/getLogLevel';
 
 export const logger = winston.createLogger({
   level: getLogLevel(),
