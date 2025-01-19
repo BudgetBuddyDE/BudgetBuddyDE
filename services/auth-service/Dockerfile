@@ -8,7 +8,7 @@ COPY . .
 
 RUN bun install
 
-CMD ["bun", "run", "build"]
+RUN bun run build
 
 FROM alpine:3.18
 
