@@ -1,23 +1,33 @@
-FROM oven/bun:1 AS build
+FROM oven/bun as builder
 
 LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
 
 WORKDIR /app
 
-COPY package.json .
+COPY . .
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
-COPY src ./src
+CMD ["bun", "run", "build"]
 
-RUN bun build ./src/server.ts --compile --outfile auth-service
+FROM alpine:3.18
 
-FROM ubuntu:22.04
+RUN apk add --no-cache nodejs libuv
+
+COPY --from=builder /bin/bun /bin/bun
 
 WORKDIR /app
 
-COPY --from=build /app/auth-service /app/auth-service
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/bun.lockb ./
+
+RUN bun install --production
 
 ENV NODE_ENV=production
+ENV PORT=3000
 
-CMD ["/app/auth-service"]
+EXPOSE 3000
+
+
+CMD ["bun", "run", "dist/server.js"]
