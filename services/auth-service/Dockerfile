@@ -10,11 +10,7 @@ RUN bun install
 
 RUN bun run build
 
-FROM alpine:3.18
-
-RUN apk add --no-cache nodejs libuv
-
-COPY --from=builder /bin/bun /bin/bun
+FROM oven/bun
 
 WORKDIR /app
 
@@ -28,6 +24,5 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
-
 
 CMD ["bun", "run", "dist/server.js"]
