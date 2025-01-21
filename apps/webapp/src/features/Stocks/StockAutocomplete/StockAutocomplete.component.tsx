@@ -13,6 +13,7 @@ import React from 'react';
 import {Image} from '@/components/Base/Image';
 import {StyledAutocompleteOption} from '@/components/Base/Input';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 
 import {StockService} from '../StockService';
 
@@ -68,11 +69,11 @@ export const StockAutocomplete: React.FC<IStockAutocompleteProps> = ({
     try {
       const [matches, error] = await StockService.searchAsset(searchTerm);
       if (error) throw error;
-      console.log(matches);
+      logger.debug('Received matches', matches);
       if (!matches) return setSearchResults([]);
       setSearchResults(matches);
     } catch (err) {
-      console.error(err);
+      logger.error("Something wen't wrong", searchTerm, err);
       showSnackbar({message: 'Error fetching stocks'});
     }
     setLoading(false);

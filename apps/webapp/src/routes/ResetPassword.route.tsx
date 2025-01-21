@@ -11,6 +11,7 @@ import {PasswordInput} from '@/components/Base/Input';
 import {withUnauthentificatedLayout} from '@/features/Auth';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
 
 const ZPassword = z.string().min(8, 'The password needs to fullfill a minimum of 8 characters').max(64);
@@ -47,7 +48,7 @@ const ResetPassword = () => {
         showSnackbar({message: 'Your password has been reset. Please sign in with your new password.'});
         navigate('/sign-in');
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
         showSnackbar({
           message: (error as Error).message,
           action: (

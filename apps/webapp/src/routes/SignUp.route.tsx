@@ -23,6 +23,7 @@ import {PasswordInput} from '@/components/Base/Input';
 import {withUnauthentificatedLayout} from '@/features/Auth';
 import {SocialSignInBtn, useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
 const SignUp = () => {
@@ -64,7 +65,7 @@ const SignUp = () => {
         showSnackbar({message: 'You have successfully registered and signed in!'});
         navigate('/');
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
         showSnackbar({message: (error as Error).message || 'Registration failed'});
       }
     },

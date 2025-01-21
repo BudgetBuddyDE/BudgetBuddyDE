@@ -6,6 +6,7 @@ import {Card} from '@/components/Base/Card';
 import {PieChart, type TPieChartData} from '@/components/Base/Charts';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
+import {logger} from '@/logger';
 import {Formatter} from '@/services/Formatter';
 
 import {type TCategoryStats} from '../../Category.types';
@@ -106,7 +107,7 @@ export const CategoryPieChart: React.FC<TCategoryPieChartProps> = ({
     const [budget, err] = await getStats(startDate, endDate);
     setIsLoading(false);
     if (err) {
-      console.error(err);
+      logger.error("Wasn't able to fetch data", err);
       return;
     }
     setData(prev => ({...prev, [currentTimeframe]: budget}));

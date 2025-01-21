@@ -24,6 +24,7 @@ import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
+import {logger} from '@/logger';
 import {parseNumber} from '@/utils';
 
 import {type TTransactionDrawerValues} from '../TransactionDrawer';
@@ -158,9 +159,10 @@ export const CreateMultipleTransactionsDialog: React.FC<TCreateMultipleTransacti
               : `Created ${createdTransactions.length} transactions`,
         });
       } catch (error) {
-        console.error(error);
+        const msg = 'Error while submitting the forms';
+        logger.error(msg, error);
         showSnackbar({
-          message: 'Error while submitting the forms',
+          message: msg,
           action: (
             <Button size="small" onClick={handler.onSubmit}>
               Retry

@@ -12,6 +12,7 @@ import {PasswordInput} from '@/components/Base/Input';
 import {withUnauthentificatedLayout} from '@/features/Auth';
 import {SocialSignInBtn, useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {AuthService} from '@/services/Auth';
 
 const SignIn = () => {
@@ -47,7 +48,7 @@ const SignIn = () => {
         event.preventDefault();
         const [result, error] = await AuthService.login(form.email, form.password);
         if (error) {
-          console.error(error);
+          logger.error("Something wen't wrong", error);
           showSnackbar({message: error instanceof Error ? error.message : 'Authentication failed'});
           return;
         }

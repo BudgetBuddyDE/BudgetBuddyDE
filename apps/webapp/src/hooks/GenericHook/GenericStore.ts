@@ -1,6 +1,7 @@
 import {type AuthModel} from 'pocketbase';
 import {type StoreApi, type UseBoundStore, create} from 'zustand';
 
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
 
 export interface IGenericStore<FetchArguments> {
@@ -22,6 +23,8 @@ export type TEntityStore<T, X, FA> = IGenericStore<FA> & {
   set: (data: T) => void;
 } & X;
 
+const storeLogger = logger.child({label: 'GenericStore'});
+
 export function GenerateGenericStore<T, X = {}, FA = {}>(
   dataFetcherFunction: (args?: FA) => T | Promise<T>,
   additionalAttrs: X = {} as X,
@@ -42,7 +45,7 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
     },
     fetchData: async (updateLoadingState, args) => {
       if (get().isLoading) {
-        console.log('Already fetching data! Skipping...');
+        storeLogger.debug('Already fetching data! Skipping...');
         return;
       }
 
@@ -60,13 +63,13 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
           ...(updateLoadingState && {isLoading: false}),
         }));
       } catch (err) {
-        console.error(err);
+        storeLogger.error("Something wen't wrong", err);
         set(prev => ({...prev, error: err as Error, isLoading: false}));
       }
     },
     refreshData: async (updateLoadingState, args) => {
       const {fetchData} = get();
-      console.log('GenericStore - refreshData', args);
+      storeLogger.debug('GenericStore - refreshData', args);
       return await fetchData(updateLoadingState, args);
     },
     getData: args => {

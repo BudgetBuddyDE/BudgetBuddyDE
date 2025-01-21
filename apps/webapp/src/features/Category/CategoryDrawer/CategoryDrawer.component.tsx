@@ -13,6 +13,7 @@ import {AppConfig} from '@/app.config';
 import {EntityDrawer, type TUseEntityDrawerState} from '@/components/Drawer/EntityDrawer';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 
 import {CategoryService} from '../CategoryService';
 import {useCategories} from '../useCategories.hook';
@@ -65,7 +66,7 @@ export const CategoryDrawer: React.FC<TCategoryDrawerProps> = ({
             });
             showSnackbar({message: `Created category #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;
@@ -91,7 +92,7 @@ export const CategoryDrawer: React.FC<TCategoryDrawerProps> = ({
             });
             showSnackbar({message: `Updated category #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;

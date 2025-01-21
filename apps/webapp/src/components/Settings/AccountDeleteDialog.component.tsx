@@ -13,6 +13,7 @@ import {
 
 import {AppConfig} from '@/app.config';
 import {useAuthContext} from '@/features/Auth';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
 
 import {useSnackbarContext} from '../../features/Snackbar';
@@ -45,7 +46,7 @@ export const AccountDeleteDialog: React.FC<TAccountDeleteDialogProps> = ({...dia
       dialogProps.onClose?.({}, 'backdropClick');
       showSnackbar({message: 'You have deleted your account'});
     } catch (error) {
-      console.error(error);
+      logger.error("Something wen't wrong", error);
       showSnackbar({
         message: (error as Error).message,
         action: <Button onClick={handleAccountDelete}>Retry</Button>,

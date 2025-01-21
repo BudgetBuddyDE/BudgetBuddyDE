@@ -6,6 +6,7 @@ import {PieChart} from '@/components/Base/Charts';
 import {CircularProgress} from '@/components/Loading';
 import {useTransactions} from '@/features/Transaction';
 import {type TTransactionBudget} from '@/features/Transaction/Transaction.types';
+import {logger} from '@/logger';
 import {Formatter} from '@/services/Formatter';
 
 export type TBudgetPieChartProps = {};
@@ -55,7 +56,7 @@ export const BudgetPieChart: React.FC<TBudgetPieChartProps> = () => {
       );
       setIsLoading(false);
       if (err) {
-        console.error(err);
+        logger.error("Something wen't wrong", err);
         return;
       }
       setData(budget);

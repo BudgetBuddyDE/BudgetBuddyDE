@@ -18,6 +18,7 @@ import {
   TransactionTable,
   useTransactions,
 } from '@/features/Transaction';
+import {logger} from '@/logger';
 import {filterTransactions} from '@/utils';
 
 interface ITransactionsHandler {
@@ -92,7 +93,7 @@ export const Transactions = () => {
         showSnackbar({message: `Transactions we're deleted`});
         setSelectedTransactions([]);
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
       }
     },
     onTransactionDelete(transaction) {

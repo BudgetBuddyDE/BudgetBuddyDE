@@ -1,3 +1,4 @@
+import {type LogLevel} from '@budgetbuddyde/utils/lib/logger';
 import {type TableCellProps, type Theme} from '@mui/material';
 
 import BlueTheme from '@/style/theme/theme';
@@ -14,6 +15,7 @@ export type TAppConfig = {
   production: boolean;
   appName: string;
   version: typeof version;
+  logLevel: LogLevel;
   website: string;
   repository: string;
   theme: Theme;
@@ -32,6 +34,7 @@ export const AppConfig: TAppConfig = {
   production: process.env.NODE_ENV === 'production',
   appName: 'Budget-Buddy',
   version: version,
+  logLevel: 'debug',
   website: 'https://budget-buddy.de',
   repository: 'https://github.com/BudgetBuddyDE/webapp',
   theme: BlueTheme,

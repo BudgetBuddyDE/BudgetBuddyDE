@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {useAuthContext} from '@/features/Auth';
+import {logger} from '@/logger';
 
 import {StockService} from '../../StockService';
 
@@ -20,7 +21,7 @@ export function useFetchStockDetails(isin: string) {
 
     const [result, error] = await StockService.getAssetDetails(isin);
     if (error) {
-      console.error(error);
+      logger.error("Couldn't retrieve asset details for " + isin, error);
       setLoading(false);
       return setError(error);
     }

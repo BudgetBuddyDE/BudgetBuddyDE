@@ -5,6 +5,7 @@ import React from 'react';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
+import {logger} from '@/logger';
 
 import {DataDisclaimer} from '../LiabilityDisclaimer/Disclaimer.component';
 import {SearchStockDialog, type TSearchStockDialogProps} from '../SearchStockDialog';
@@ -100,7 +101,7 @@ export const StockLayout: React.FC<TStockLayoutProps> = ({onSelectAsset, onOpenP
               setStockWatchlist(result);
               showSnackbar({message: 'Asset added to watchlist'});
             } catch (error) {
-              console.error(error);
+              logger.error("Something wen't wrong", error);
               showSnackbar({message: 'Error adding asset to watchlist'});
             }
           } else if (event === 'REMOVE_FROM_WATCHLIST') {
@@ -123,7 +124,7 @@ export const StockLayout: React.FC<TStockLayoutProps> = ({onSelectAsset, onOpenP
               setStockWatchlist((watchedAssets ?? []).filter(({id}) => id !== watchlistItem.id));
               showSnackbar({message: 'Asset removed from watchlist'});
             } catch (error) {
-              console.error(error);
+              logger.error("Something wen't wrong", error);
               showSnackbar({message: 'Error removing asset from watchlist'});
             }
           }

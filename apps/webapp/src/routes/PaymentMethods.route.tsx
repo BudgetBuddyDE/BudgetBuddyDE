@@ -23,6 +23,7 @@ import {
 } from '@/features/PaymentMethod';
 import {CreateMultiplePaymentMethodsDialog, type TPaymentMethodDrawerValues} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
 import {downloadAsJson} from '@/utils';
 
@@ -93,7 +94,7 @@ export const PaymentMethods = () => {
         showSnackbar({message: `Payment-methods we're deleted`});
         setSelectedPaymentMethods([]);
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
       }
     },
     onPaymentMethodDelete(paymentMethod) {

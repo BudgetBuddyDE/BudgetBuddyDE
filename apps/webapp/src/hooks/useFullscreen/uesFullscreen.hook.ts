@@ -1,5 +1,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 
+import {logger} from '@/logger';
+
 function getFullscreenElement(): HTMLElement | null {
   const _document = window.document as any;
 
@@ -75,8 +77,7 @@ export function useFullscreen<T extends HTMLElement = any>() {
   const handleFullscreenError = useCallback(
     (event: Event) => {
       setFullscreen(false);
-      // eslint-disable-next-line no-console
-      console.error(
+      logger.error(
         `[@mantine/hooks] use-fullscreen: Error attempting full-screen mode method: ${event} (${event.target})`,
       );
     },

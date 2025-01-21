@@ -2,6 +2,7 @@ import {PocketBaseCollection, type TStockExchange, ZStockExchange} from '@budget
 import {z} from 'zod';
 
 import {GenerateGenericStore} from '@/hooks/GenericHook';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
 
 import {type TStockExchangeAutocompleteOption} from './StockExchangeAutocomplete';
@@ -15,7 +16,7 @@ export const useStockExchangeStore = GenerateGenericStore<
 
     const parsingResult = z.array(ZStockExchange).safeParse(records);
     if (!parsingResult.success) {
-      console.error(parsingResult.error);
+      logger.error("Data and schema didn't match", records, parsingResult.error);
       return [];
     }
     return parsingResult.data;

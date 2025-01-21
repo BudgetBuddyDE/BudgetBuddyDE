@@ -34,6 +34,7 @@ import {
 } from '@/features/Stocks';
 import {AssetInfoAccordion} from '@/features/Stocks/AssetInfoAccordion';
 import {useDocumentTitle} from '@/hooks/useDocumentTitle';
+import {logger} from '@/logger';
 import {getSocketIOClient} from '@/utils';
 
 interface IStockHandler {
@@ -161,7 +162,7 @@ export const Stock = () => {
           message: error.message,
           action: <Button onClick={() => handler.onConfirmDeletePosition()}>Retry</Button>,
         });
-        console.error(error);
+        logger.error("Something wen't wrong", error);
         return;
       }
       if (!position || !position.success) {
@@ -186,10 +187,11 @@ export const Stock = () => {
 
     socket.emit('stock:subscribe', [{isin: params.isin, exchange: 'langschwarz'}], sessionUser.id);
 
+    const channel = `stock:update:${sessionUser.id}`;
     socket.on(
-      `stock:update:${sessionUser.id}`,
+      channel,
       (data: {exchange: string; isin: string; quote: {datetime: string; currency: string; price: number}}) => {
-        if (process.env.NODE_ENV === 'development') console.log('stock:update', data);
+        logger.debug(channel, data);
         updateQuote(data.exchange, data.isin, data.quote.price);
         updateQuotes(prev => {
           if (!prev) return prev;

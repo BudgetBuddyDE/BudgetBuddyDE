@@ -27,6 +27,7 @@ import {
   useSubscriptions,
 } from '@/features/Subscription';
 import {type TTransactionDrawerValues, TransactionDrawer} from '@/features/Transaction';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
 import {determineNextExecution, determineNextExecutionDate, downloadAsJson, filterSubscriptions} from '@/utils';
@@ -137,7 +138,7 @@ export const Subscriptions = () => {
         showSnackbar({message: `Subscriptions we're deleted`});
         setSelectedSubscriptions([]);
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
       }
     },
     onSubscriptionDelete(subscription) {
@@ -150,14 +151,14 @@ export const Subscriptions = () => {
           paused: !subscription.paused,
         });
 
-        console.debug('Updated subscription', record);
+        logger.debug('Updated subscription', record);
 
         showSnackbar({message: `Subscription #${subscription.id} ${record.paused ? 'paused' : 'resumed'}`});
         React.startTransition(() => {
           refreshSubscriptions();
         });
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
         showSnackbar({
           message: error instanceof Error ? error.message : "Something wen't wrong",
         });

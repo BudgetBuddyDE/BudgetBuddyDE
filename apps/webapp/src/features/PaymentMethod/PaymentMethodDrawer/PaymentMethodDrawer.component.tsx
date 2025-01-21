@@ -14,6 +14,7 @@ import {EntityDrawer, type TUseEntityDrawerState} from '@/components/Drawer/Enti
 import {useAuthContext} from '@/features/Auth';
 import {PaymentMethodService, usePaymentMethods} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 
 export type TPaymentMethodDrawerValues = {
   id?: TPaymentMethod['id'];
@@ -67,7 +68,7 @@ export const PaymentMethodDrawer: React.FC<TPaymentMethodDrawerProps> = ({
             });
             showSnackbar({message: `Created payment-method #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;
@@ -95,7 +96,7 @@ export const PaymentMethodDrawer: React.FC<TPaymentMethodDrawerProps> = ({
             });
             showSnackbar({message: `Updated payment-method #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;

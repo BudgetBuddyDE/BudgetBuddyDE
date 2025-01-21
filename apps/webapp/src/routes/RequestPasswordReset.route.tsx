@@ -10,6 +10,7 @@ import {Card} from '@/components/Base/Card';
 import {withUnauthentificatedLayout} from '@/features/Auth';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
 const RequestPasswordReset = () => {
@@ -27,7 +28,7 @@ const RequestPasswordReset = () => {
         await pb.collection(PocketBaseCollection.USERS).requestPasswordReset(email);
         showSnackbar({message: 'Password reset email sent'});
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
         showSnackbar({
           message: (error as Error).message,
           action: (

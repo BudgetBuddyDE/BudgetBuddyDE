@@ -6,6 +6,7 @@ import {Card} from '@/components/Base/Card';
 import {CircularProgress} from '@/components/Loading';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 
 import {NewsletterService} from '../Newsletter.service';
 
@@ -19,7 +20,7 @@ export const SubscribeToNewsletters = () => {
   const retrieveNewsletterSubscriptions = async () => {
     setLoading(true);
     const [availableNewsletters, error] = await NewsletterService.getNewsletters(true);
-    if (error) console.error(error);
+    if (error) logger.error('Fetching of newsletter-options failed', error);
     if (!availableNewsletters) return setLoading(false);
     setNewsletters(availableNewsletters);
 
@@ -28,7 +29,7 @@ export const SubscribeToNewsletters = () => {
       sessionUser.id,
       availableNewsletters,
     );
-    if (err) console.error(err);
+    if (err) logger.error('Failed to subscribe to newsletter', error);
     if (!subscribedNewsletters) return setLoading(false);
     setSubscribedNewsletters(subscribedNewsletters.map(({id}) => id));
     setLoading(false);

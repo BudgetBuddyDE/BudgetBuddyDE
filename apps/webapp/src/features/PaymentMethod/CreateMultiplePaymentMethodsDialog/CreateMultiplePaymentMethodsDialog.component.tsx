@@ -14,6 +14,7 @@ import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
+import {logger} from '@/logger';
 
 import {type TPaymentMethodDrawerValues} from '../PaymentMethodDrawer';
 import {PaymentMethodService} from '../PaymentMethodService';
@@ -113,9 +114,10 @@ export const CreateMultiplePaymentMethodsDialog: React.FC<TCreateMultiplePayment
               : `Created ${createdPaymentMethods.length} payment-methods`,
         });
       } catch (error) {
-        console.error(error);
+        const msg = 'Error while submitting the forms';
+        logger.error(msg, error);
         showSnackbar({
-          message: 'Error while submitting the forms',
+          message: msg,
           action: (
             <Button size="small" onClick={handler.onSubmit}>
               Retry

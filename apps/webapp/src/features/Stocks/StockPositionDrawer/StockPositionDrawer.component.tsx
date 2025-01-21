@@ -15,6 +15,7 @@ import {DatePicker} from '@/components/Base/Input';
 import {EntityDrawer, type TUseEntityDrawerState} from '@/components/Drawer/EntityDrawer';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
 import {isRunningOnIOs, parseNumber} from '@/utils';
 
@@ -77,7 +78,7 @@ export const StockPositionDrawer: React.FC<TStockPositionDrawerProps> = ({
             });
             showSnackbar({message: `Opened stock position #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;
@@ -108,7 +109,7 @@ export const StockPositionDrawer: React.FC<TStockPositionDrawerProps> = ({
             });
             showSnackbar({message: `Updated stock-position #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;

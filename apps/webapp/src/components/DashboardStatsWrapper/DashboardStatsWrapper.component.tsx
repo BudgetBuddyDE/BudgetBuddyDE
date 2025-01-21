@@ -6,6 +6,7 @@ import {AppConfig} from '@/app.config';
 import {useSubscriptionStore} from '@/features/Subscription';
 import {useTransactionStore, useTransactions} from '@/features/Transaction';
 import {type TTransactionStats} from '@/features/Transaction/Transaction.types';
+import {logger} from '@/logger';
 import {Formatter} from '@/services/Formatter';
 
 import {StatsCard, type TStatsCardProps} from '../StatsCard';
@@ -26,7 +27,7 @@ export const DashboardStatsWrapper: React.FC<TDashboardStatsWrapperProps> = () =
     );
     setIsLoading(false);
     if (err) {
-      console.error(err);
+      logger.error("Something wen't wrong", err);
       return;
     }
     setData(budget);

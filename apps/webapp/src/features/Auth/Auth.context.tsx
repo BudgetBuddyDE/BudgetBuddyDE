@@ -1,6 +1,7 @@
 import {type TUser, ZUser} from '@budgetbuddyde/types';
 import React from 'react';
 
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
 export interface IAuthContext {
@@ -27,6 +28,8 @@ export function useAuthContext() {
 
 export type AuthProviderProps = React.PropsWithChildren;
 
+const authLogger = logger.child({label: 'AuthContext'});
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   const [loading, setLoading] = React.useState(true);
   const [fileToken, setFileToken] = React.useState<IAuthContext['fileToken']>(null);
@@ -41,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
       const token = await pb.files.getToken();
       setFileToken(token);
     } catch (e) {
-      console.error(e);
+      authLogger.error('message' in (e as any) ? ((e as any).message as string) : "Something wen't wrong", e);
     }
   };
 
@@ -49,18 +52,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     setLoading(true);
     try {
       const model = pb.authStore.isValid && pb.authStore.isAuthRecord ? pb.authStore.model : null;
-      if (process.env.NODE_ENV === 'development')
-        console.log('Retrieved current session', pb.authStore.token, pb.authStore.model);
+      authLogger.debug('Retrieved current session', pb.authStore.token, pb.authStore.model);
       const parsingResult = ZUser.safeParse(model);
 
       if (!parsingResult.success) {
-        console.error(parsingResult.error);
+        authLogger.error("Model didn't match with user-schema", parsingResult.error);
         return;
       }
 
       setSessionUser(parsingResult.data);
     } catch (e) {
-      console.error(e);
+      authLogger.error('message' in (e as any) ? ((e as any).message as string) : "Something wen't wrong", e);
       setSessionUser(null);
     }
 
@@ -77,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     const authStoreListener = pb.authStore.onChange((_token, model) => {
       const parsingResult = ZUser.safeParse(model);
       if (!parsingResult.success) {
-        console.error(parsingResult.error);
+        authLogger.error("Retrieved model didn't match user-schema", parsingResult.error);
         return;
       }
       setSessionUser(parsingResult.data);

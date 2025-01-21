@@ -17,6 +17,7 @@ import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features
 import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {SubscriptionService, useSubscriptions} from '@/features/Subscription';
+import {logger} from '@/logger';
 import {isRunningOnIOs, parseNumber} from '@/utils';
 
 export type TSusbcriptionDrawerValues = {
@@ -67,7 +68,7 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
             const payload: TCreateSubscriptionPayload = parsedForm.data;
 
             const record = await SubscriptionService.createSubscription(payload);
-            console.debug('Created subscription', record);
+            logger.debug('Created subscription', record);
 
             onClose();
             onSuccess();
@@ -76,7 +77,7 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
             });
             showSnackbar({message: `Created subscription #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;
@@ -107,7 +108,7 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
             });
             showSnackbar({message: `Updated subscription #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;

@@ -7,6 +7,7 @@ import {Card} from '@/components/Base/Card';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
 import {NoResults} from '../NoResults';
@@ -69,7 +70,7 @@ export const EditProfile: React.FC<TEditProfileProps> = () => {
         showSnackbar({message: "Changes we're saved"});
         setFormEditable(false);
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
         showSnackbar({message: (error as Error).message});
       }
     },

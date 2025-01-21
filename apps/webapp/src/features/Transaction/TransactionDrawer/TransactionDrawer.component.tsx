@@ -24,6 +24,7 @@ import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features
 import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {TransactionService, useTransactions} from '@/features/Transaction';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
 import {isRunningOnIOs, parseNumber} from '@/utils';
 
@@ -100,7 +101,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
             });
             showSnackbar({message: `Created transaction #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;
@@ -139,7 +140,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
               TransactionService.deleteImages(defaultValues.id, markedForDeletion)
                 .then(() => refreshTransactions())
                 .catch(error => {
-                  console.error(error);
+                  logger.error('Failed to delete files', error);
                   showSnackbar({message: 'Failed to delete files'});
                 });
             }
@@ -151,7 +152,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
             });
             showSnackbar({message: `Updated transaction #${record.id}`});
           } catch (error) {
-            console.error(error);
+            logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
           break;

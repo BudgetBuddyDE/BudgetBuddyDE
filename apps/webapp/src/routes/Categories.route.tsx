@@ -26,6 +26,7 @@ import {
 } from '@/features/Category';
 import {DeleteDialog} from '@/features/DeleteDialog';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
 import {downloadAsJson} from '@/utils';
 
@@ -87,7 +88,7 @@ export const Categories = () => {
         showSnackbar({message: `Categories we're deleted`});
         setSelectedCategories([]);
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
       }
     },
     onCategoryDelete(category) {

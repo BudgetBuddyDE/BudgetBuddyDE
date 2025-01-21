@@ -6,6 +6,7 @@ import React from 'react';
 
 import {AppConfig, type TAppConfig} from '@/app.config.ts';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
 const IconMapping: Record<keyof TAppConfig['authProvider'], React.ReactNode> = {
@@ -34,7 +35,7 @@ export const SocialSignInBtn: React.FC<TSocialSignInBtnProps> = ({
           const result = await pb.collection(PocketBaseCollection.USERS).authWithOAuth2({provider});
           onAuthProviderResponse(result);
         } catch (error) {
-          console.error(error);
+          logger.error("Something wen't wrong", error);
           showSnackbar({message: error instanceof Error ? error.message : 'Authentication failed'});
         }
       }}

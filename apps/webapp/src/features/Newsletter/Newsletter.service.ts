@@ -76,7 +76,6 @@ export class NewsletterService {
         body: JSON.stringify(payload),
       });
       const data = (await response.json()) as TApiResponse<null>;
-      console.log('subscribeToNewsletter', data);
       if (!response.ok) return [null, new Error(data.message!)];
 
       return [data.data === null, null];
@@ -98,7 +97,6 @@ export class NewsletterService {
         body: JSON.stringify(payload),
       });
       const data = (await response.json()) as TApiResponse<TUser>;
-      console.log('unsubscribeToNewsletter', data);
       if (!response.ok) return [null, new Error(data.message!)];
 
       const parsingResult = ZUser.safeParse(data.data);

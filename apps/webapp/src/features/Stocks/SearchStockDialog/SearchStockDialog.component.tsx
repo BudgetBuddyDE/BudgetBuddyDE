@@ -19,6 +19,7 @@ import {ActionPaper} from '@/components/Base/ActionPaper';
 import {Image} from '@/components/Base/Image';
 import {CircularProgress} from '@/components/Loading';
 import {useSnackbarContext} from '@/features/Snackbar';
+import {logger} from '@/logger';
 
 import {StockService} from '../StockService';
 import {useStockWatchlist} from '../StockWatchlist';
@@ -89,7 +90,7 @@ export const SearchStockDialog: React.FC<TSearchStockDialogProps> = ({
       if (!matches) return setSearchResults([]);
       setSearchResults(matches);
     } catch (err) {
-      console.error(err);
+      logger.error("Something wen't wrong", searchTerm, err);
       showSnackbar({message: 'Error fetching stocks'});
     }
     setLoading(false);

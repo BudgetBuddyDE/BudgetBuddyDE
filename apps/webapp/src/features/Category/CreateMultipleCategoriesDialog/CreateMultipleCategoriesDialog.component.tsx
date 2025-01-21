@@ -15,6 +15,7 @@ import {CategoryService, type TCategoryDrawerValues, useCategories} from '@/feat
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
+import {logger} from '@/logger';
 
 export type TCreateMultipleTransactionsDialogProps = Omit<TFullScreenDialogProps, 'title'>;
 
@@ -90,7 +91,7 @@ export const CreateMultipleCategoriesDialog: React.FC<TCreateMultipleTransaction
               : `Created ${createdCategorie.length} categories`,
         });
       } catch (error) {
-        console.error(error);
+        logger.error("Something wen't wrong", error);
         showSnackbar({
           message: 'Error while submitting the forms',
           action: (
