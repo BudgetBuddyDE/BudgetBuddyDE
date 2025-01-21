@@ -9,8 +9,8 @@ import {ActionPaper} from '@/components/Base/ActionPaper';
 import {Image} from '@/components/Base/Image';
 import {type TTableProps, Table} from '@/components/Base/Table';
 import {useStockPositions} from '@/features/Stocks/hooks';
+import {Formatter} from '@/services/Formatter';
 
-import {StockPrice} from '../../StockPrice';
 import {StockService} from '../../StockService';
 
 const SEPERATOR = '•';
@@ -32,7 +32,8 @@ export const DividendTable: React.FC<TDividendTableProps> = ({dividends, withRed
     <Table<(typeof futureDividends)[0]>
       data={futureDividends}
       title="Dividends"
-      headerCells={['Company', 'Ex-Date', 'Payment-Date', 'Price', 'Total']}
+      subtitle="Upcoming dividend payments"
+      headerCells={['Asset', 'Ex-Date', 'Payment-Date', 'Dividend', 'Total']}
       renderHeaderCell={headerCell => (
         <TableCell key={headerCell.replaceAll(' ', '_').toLowerCase()} size={AppConfig.table.cellSize}>
           <Typography fontWeight="bolder">{headerCell}</Typography>
@@ -94,17 +95,16 @@ export const DividendTable: React.FC<TDividendTableProps> = ({dividends, withRed
               <Typography>{format(data.dividend.paymentDate, 'dd.MM.yy')}</Typography>
             </TableCell>
             <TableCell>
-              <StockPrice price={data.dividend.price} currency={data.dividend.currency} />
+              <Typography fontWeight={'bolder'}>
+                {data.dividend.isEstimated ? '~' : ''}{' '}
+                {Formatter.formatBalance(data.dividend.price, data.dividend.currency)}
+              </Typography>
             </TableCell>
             <TableCell>
-              <Stack>
-                <Typography variant="caption">{totalQuantity}x</Typography>
-                <StockPrice
-                  price={totalQuantity * data.dividend.price}
-                  currency={data.dividend.currency}
-                  sx={{width: 'fit-content'}}
-                />
-              </Stack>
+              <Typography fontWeight={'bolder'}>
+                {data.dividend.isEstimated ? '~' : ''}
+                {Formatter.formatBalance(totalQuantity * data.dividend.price, data.dividend.currency)}
+              </Typography>
             </TableCell>
           </TableRow>
         );
