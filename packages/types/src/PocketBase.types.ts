@@ -13,6 +13,7 @@ export enum PocketBaseCollection {
   TRANSACTION = 'transactions',
   NEWSLETTER = 'newsletters',
   V_MONTHLY_BALANCES = 'v_monthly_balances',
+  V_BUDGET_PROGRESS = 'v_budget_progress',
 }
 
 /**
