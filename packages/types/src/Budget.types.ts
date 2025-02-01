@@ -7,7 +7,7 @@ export const ZBudget = z.object({
   ...z.object({
     owner: ZId,
     label: z.string(),
-    category: z.array(ZId),
+    categories: z.array(ZId),
     budget: z.number(),
     type: z.enum(['include', 'exclude']),
   }).shape,
