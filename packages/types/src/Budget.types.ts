@@ -19,7 +19,7 @@ export const ZExpandedBudget = z.object({
   ...z.object({
     owner: ZId,
     label: z.string(),
-    category: z.array(ZId),
+    categories: z.array(ZId),
     expand: z.object({
       categories: z.array(ZCategory),
     }),
@@ -44,7 +44,7 @@ export type TExpandedBudgetProgress = z.infer<typeof ZExpandedBudgetProgress>;
 export const ZCreateBudgetPayload = z.object({
   owner: ZId,
   label: z.string(),
-  category: z.array(ZId),
+  categories: z.array(ZId),
   budget: z.number().min(0),
   type: z.enum(['include', 'exclude']),
 });
@@ -53,7 +53,7 @@ export type TCreateBudgetPayload = z.infer<typeof ZCreateBudgetPayload>;
 export const ZUpdateBudgetPayload = z.object({
   owner: ZId,
   label: z.string(),
-  category: z.array(ZId),
+  categories: z.array(ZId),
   budget: z.number().min(0),
   type: z.enum(['include', 'exclude']),
 });
