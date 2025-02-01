@@ -14,7 +14,7 @@
     "format": "prettier --write ./src --log-level silent"
   },
   "dependencies": {
-    "@budgetbuddyde/types": "^1.0.48",
+    "@budgetbuddyde/types": "^1.0.49",
     "@budgetbuddyde/utils": "^1.1.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
