@@ -36,7 +36,7 @@ export const ZBudgetProgress = z.object({
 export type TBudgetProgress = z.infer<typeof ZBudgetProgress>;
 
 export const ZExpandedBudgetProgress = z.object({
-  ...ZBudget.shape,
+  ...ZExpandedBudget.shape,
   progress: z.number(),
 });
 export type TExpandedBudgetProgress = z.infer<typeof ZExpandedBudgetProgress>;
