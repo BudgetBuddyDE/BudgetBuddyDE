@@ -1,15 +1,6 @@
 import {PocketBaseCollection} from '@budgetbuddyde/types';
 import {WarningRounded} from '@mui/icons-material';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  type DialogProps,
-  DialogTitle,
-  Stack,
-  Typography,
-} from '@mui/material';
+import {Alert, Button, Dialog, DialogActions, DialogContent, type DialogProps, DialogTitle, Stack} from '@mui/material';
 import {addDays, format} from 'date-fns';
 
 import {AppConfig} from '@/app.config';
@@ -73,13 +64,13 @@ export const AccountDeleteDialog: React.FC<TAccountDeleteDialogProps> = ({...dia
       fullWidth
       {...dialogProps}>
       <DialogTitle textAlign={'center'}>Account deletion</DialogTitle>
-      <DialogContent>
-        <Typography variant={'body1'} textAlign={'center'}>
+      <DialogContent sx={{p: 1}}>
+        <Alert severity="error">
           Are you sure you want to delete your {AppConfig.appName} account? The account will be{' '}
           <b>automatically deleted after 30 days</b>. During this period, the deletion can be undone. If the account is
           deleted, <b>all data will be permanently deleted</b> and cannot be recovered! <br />
           If you are sure, please confirm by selecting "Yes, delete my account!"
-        </Typography>
+        </Alert>
       </DialogContent>
       <DialogActions>
         <Stack direction={'row'} spacing={AppConfig.baseSpacing}>
