@@ -1,16 +1,24 @@
 import {type TCategory} from '@budgetbuddyde/types';
-import {Box, Grid2 as Grid} from '@mui/material';
+import {Box, Button, Grid2 as Grid} from '@mui/material';
 import {format} from 'date-fns';
 import React from 'react';
 
 import {Card} from '@/components/Base/Card';
 import {BarChart} from '@/components/Base/Charts';
 import {DashboardStatsWrapper} from '@/components/DashboardStatsWrapper';
+import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {CircularProgress} from '@/components/Loading';
+import {BudgetDrawer, TBudgetDrawerValues} from '@/features/Budget/BudgetDrawer';
+import {BudgetList, TBudgetListProps} from '@/features/Budget/BudgetList';
+import {BudgetService} from '@/features/Budget/BudgetService';
+import {useBudgets} from '@/features/Budget/useBudgets.hook';
 import {CategoryExpenseChart, CategoryIncomeChart} from '@/features/Category';
+import {DeleteDialog} from '@/features/DeleteDialog';
+import {useSnackbarContext} from '@/features/Snackbar';
 import {SubscriptionPieChart} from '@/features/Subscription';
 import {useTransactions} from '@/features/Transaction';
 import {useScreenSize} from '@/hooks/useScreenSize';
+import {logger} from '@/logger';
 import {Formatter} from '@/services/Formatter';
 
 enum Prefix {
@@ -29,9 +37,25 @@ type TChartData = {
   } & Record<`${Prefix}${TCategory['id']}`, number>)[];
 };
 
+interface IAnalyticsHandler extends TBudgetListProps {
+  onCloseBudgetDrawer: () => void;
+  onConfirmBudgetDelete: () => void;
+  onCancelBudgetDelete: () => void;
+}
+
 const AnalyticsView = () => {
   const screenSize = useScreenSize();
+  const {showSnackbar} = useSnackbarContext();
   const {isLoading: isLoadingTransactions, data: transactions} = useTransactions();
+  const {refreshData: refreshBudgets} = useBudgets();
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+  const [selectedBudget, setSelectedBudget] = React.useState<Parameters<IAnalyticsHandler['onDeleteBudget']>[0] | null>(
+    null,
+  );
+  const [budgetDrawer, dispatchBudgetDrawer] = React.useReducer(
+    useEntityDrawer<TBudgetDrawerValues>,
+    UseEntityDrawerDefaultState<TBudgetDrawerValues>(),
+  );
 
   const ChartData: TChartData = React.useMemo(() => {
     if (!transactions) return {series: [], data: []};
@@ -108,6 +132,64 @@ const AnalyticsView = () => {
     };
   }, [transactions]);
 
+  const handler: IAnalyticsHandler = {
+    onCloseBudgetDrawer: () => {
+      dispatchBudgetDrawer({type: 'CLOSE'});
+    },
+    onAddBudget: () => {
+      dispatchBudgetDrawer({type: 'OPEN', drawerAction: 'CREATE', payload: {type: 'include'}});
+    },
+    onEditBudget: budget => {
+      dispatchBudgetDrawer({
+        type: 'OPEN',
+        drawerAction: 'UPDATE',
+        payload: {
+          id: budget.id,
+          categories: budget.expand.categories.map(({id, name}) => ({value: id, label: name})),
+          label: budget.label,
+          type: 'include',
+          budget: budget.budget,
+        },
+      });
+    },
+    onDeleteBudget: budgetId => {
+      setShowDeleteDialog(true);
+      setSelectedBudget(budgetId);
+    },
+    onConfirmBudgetDelete: async () => {
+      setShowDeleteDialog(false);
+      try {
+        if (!selectedBudget) {
+          throw new Error('No budget selected');
+        }
+
+        const [success, err] = await BudgetService.deleteBudget({id: selectedBudget.id});
+        if (err) throw err;
+
+        if (!success) {
+          showSnackbar({
+            message: 'Failed to delete the budget',
+            action: <Button onClick={handler.onConfirmBudgetDelete}>Retry</Button>,
+          });
+          return;
+        }
+
+        showSnackbar({message: `Budget '${selectedBudget.label}' deleted!`});
+        React.startTransition(() => {
+          refreshBudgets();
+        });
+        setShowDeleteDialog(false);
+        setSelectedBudget(null);
+      } catch (err) {
+        logger.error("Coudln't delete the budget", err);
+      }
+    },
+    onCancelBudgetDelete: () => {
+      setShowDeleteDialog(false);
+      setSelectedBudget(null);
+    },
+  };
+
   return (
     <React.Fragment>
       <DashboardStatsWrapper />
@@ -150,7 +232,13 @@ const AnalyticsView = () => {
         </Card>
       </Grid>
 
-      <Grid size={{xs: 12, md: 6}}></Grid>
+      <Grid size={{xs: 12, md: 6}}>
+        <BudgetList
+          onAddBudget={handler.onAddBudget}
+          onEditBudget={handler.onEditBudget}
+          onDeleteBudget={handler.onDeleteBudget}
+        />
+      </Grid>
 
       {[
         {key: 'monthly-balance-pie-chart', children: <SubscriptionPieChart />},
@@ -161,6 +249,16 @@ const AnalyticsView = () => {
           {children}
         </Grid>
       ))}
+
+      <DeleteDialog
+        open={showDeleteDialog}
+        onClose={handler.onCancelBudgetDelete}
+        onCancel={handler.onCancelBudgetDelete}
+        onConfirm={handler.onConfirmBudgetDelete}
+        withTransition
+      />
+
+      <BudgetDrawer {...budgetDrawer} onClose={handler.onCloseBudgetDrawer} closeOnBackdropClick closeOnEscape />
     </React.Fragment>
   );
 };

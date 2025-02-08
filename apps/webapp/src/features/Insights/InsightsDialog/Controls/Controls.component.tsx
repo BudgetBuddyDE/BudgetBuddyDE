@@ -28,16 +28,15 @@ export const Controls: React.FC<TControlsProps> = ({state, dispatch, chartData})
       <Stack flexDirection={'row'} alignItems={'center'} columnGap={2}>
         <SelectData value={state.type} onChange={type => dispatch({action: 'SET_TYPE', type})} />
 
-        {!isLoadingCategories && (
-          <SelectCategories
-            options={categoryOptions}
-            value={state.categories}
-            onChange={values => {
-              dispatch({action: 'SET_CATEGORIES', categories: values});
-            }}
-            sx={{width: 350}}
-          />
-        )}
+        <SelectCategories
+          options={categoryOptions}
+          value={state.categories}
+          onChange={values => {
+            dispatch({action: 'SET_CATEGORIES', categories: values});
+          }}
+          isLoading={isLoadingCategories}
+          sx={{width: 350}}
+        />
 
         {chartData.length > 0 && (
           <Button
