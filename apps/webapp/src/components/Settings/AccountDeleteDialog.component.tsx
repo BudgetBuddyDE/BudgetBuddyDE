@@ -10,6 +10,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import {addDays, format} from 'date-fns';
 
 import {AppConfig} from '@/app.config';
 import {useAuthContext} from '@/features/Auth';
@@ -35,16 +36,25 @@ export const AccountDeleteDialog: React.FC<TAccountDeleteDialogProps> = ({...dia
     }
 
     try {
-      const result = await pb.collection(PocketBaseCollection.USERS).delete(sessionUser.id);
+      if (sessionUser.marked_for_deletion) {
+        return showSnackbar({
+          message: 'Account already marked for deletion!',
+          action: <Button onClick={handleCancel}>Close</Button>,
+        });
+      }
+      const result = await pb.collection(PocketBaseCollection.USERS).update(sessionUser.id, {
+        marked_for_deletion: format(addDays(new Date(), AppConfig.user.deletionThreshold), 'yyyy-MM-dd'),
+      });
       if (!result) {
         showSnackbar({
-          message: 'Failed to delete account',
+          message: 'Failed for mark account for deletion!',
           action: <Button onClick={handleAccountDelete}>Retry</Button>,
         });
+        return;
       }
 
       dialogProps.onClose?.({}, 'backdropClick');
-      showSnackbar({message: 'You have deleted your account'});
+      showSnackbar({message: 'Your account has been marked for deletion!'});
     } catch (error) {
       logger.error("Something wen't wrong", error);
       showSnackbar({
@@ -62,12 +72,13 @@ export const AccountDeleteDialog: React.FC<TAccountDeleteDialogProps> = ({...dia
       maxWidth={'xs'}
       fullWidth
       {...dialogProps}>
-      <DialogTitle textAlign={'center'}>Confirm Account Deletion</DialogTitle>
+      <DialogTitle textAlign={'center'}>Account deletion</DialogTitle>
       <DialogContent>
         <Typography variant={'body1'} textAlign={'center'}>
-          Are you sure you want to delete your account on {AppConfig.appName}?{' '}
-          <b>Your data will be permanently deleted and cannot be recovered!</b> <br />
-          <br /> If you are certain, please confirm by typing "Yes, delete my account!"
+          Are you sure you want to delete your {AppConfig.appName} account? The account will be{' '}
+          <b>automatically deleted after 30 days</b>. During this period, the deletion can be undone. If the account is
+          deleted, <b>all data will be permanently deleted</b> and cannot be recovered! <br />
+          If you are sure, please confirm by selecting "Yes, delete my account!"
         </Typography>
       </DialogContent>
       <DialogActions>

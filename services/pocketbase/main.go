@@ -74,6 +74,39 @@ func bindAppHooks(app core.App) {
 			})
 		})
 
+		scheduler.MustAdd("delete-marked-users", "1 0 * * *", func() {
+			userTable := "users"
+			if result := app.Dao().HasTable(userTable); !result {
+				log.Fatalf("Table '%s' doesn't exist", userTable)
+			}
+
+			users, err := app.Dao().FindRecordsByFilter(
+				userTable,
+				"marked_for_deletion = {:day}",
+				"-marked_for_deletion",
+				-1,
+				0,
+				dbx.Params{
+					"day": time.Now().Format("2006-01-02"),
+				})
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+
+			app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
+				for _, record := range users {
+					if err := txDao.Delete(&custom_models.User{
+						MarkedForDeletion: record.GetDateTime("marked_for_deletion"),
+					}); err != nil {
+						log.Fatal(err.Error())
+					}
+					log.Printf("User '%s' was deleted!", record.Id)
+				}
+
+				return nil
+			})
+		})
+
 		scheduler.Start()
 
 		// /transactions/stats
