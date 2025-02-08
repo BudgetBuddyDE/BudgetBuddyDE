@@ -33,7 +33,8 @@ func bindAppHooks(app core.App) {
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		scheduler := cron.New()
 
-		scheduler.MustAdd("process-recurring-payments", "1 0 * * *", func() {
+		// every day at 1:30 am
+		scheduler.MustAdd("process-recurring-payments", "30 1 * * *", func() {
 			subscriptionTable := "subscriptions"
 			if result := app.Dao().HasTable(subscriptionTable); !result {
 				log.Fatalf("Table '%s' doesn't exist", subscriptionTable)
@@ -74,7 +75,8 @@ func bindAppHooks(app core.App) {
 			})
 		})
 
-		scheduler.MustAdd("delete-marked-users", "1 0 * * *", func() {
+		// every day at 0:30 am
+		scheduler.MustAdd("delete-marked-users", "30 0 * * *", func() {
 			userTable := "users"
 			if result := app.Dao().HasTable(userTable); !result {
 				log.Fatalf("Table '%s' doesn't exist", userTable)
