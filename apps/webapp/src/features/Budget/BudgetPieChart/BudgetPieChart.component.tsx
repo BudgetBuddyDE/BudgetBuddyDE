@@ -4,6 +4,7 @@ import React from 'react';
 import {Card} from '@/components/Base/Card';
 import {PieChart} from '@/components/Base/Charts';
 import {CircularProgress} from '@/components/Loading';
+import {NoResults} from '@/components/NoResults';
 import {useTransactions} from '@/features/Transaction';
 import {type TTransactionBudget} from '@/features/Transaction/Transaction.types';
 import {logger} from '@/logger';
@@ -75,7 +76,7 @@ export const BudgetPieChart: React.FC<TBudgetPieChartProps> = () => {
       <Card.Body sx={{pt: 1}}>
         {isLoading || !data ? (
           <CircularProgress />
-        ) : (
+        ) : chartData.length > 0 ? (
           <PieChart
             fullWidth
             primaryText={Formatter.formatBalance(data!.expenses + data!.upcomingExpenses)}
@@ -87,6 +88,8 @@ export const BudgetPieChart: React.FC<TBudgetPieChartProps> = () => {
               },
             ]}
           />
+        ) : (
+          <NoResults text="No budget related data found!" />
         )}
       </Card.Body>
     </Card>
