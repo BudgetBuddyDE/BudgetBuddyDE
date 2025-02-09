@@ -52,6 +52,10 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
       if (updateLoadingState) set(prev => ({...prev, isLoading: true}));
 
       try {
+        const sessionUser = pb.authStore.model;
+        if (!sessionUser) {
+          throw new Error('User not authenticated');
+        }
         const fetchedData = await dataFetcherFunction(args);
 
         set(prev => ({
@@ -59,7 +63,7 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
           data: fetchedData,
           isFetched: true,
           fetchedAt: new Date(),
-          fetchedBy: pb.authStore.model,
+          fetchedBy: sessionUser.id,
           ...(updateLoadingState && {isLoading: false}),
         }));
       } catch (err) {
@@ -73,8 +77,14 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
       return await fetchData(updateLoadingState, args);
     },
     getData: args => {
-      const {data, isFetched, isLoading, fetchData} = get();
+      const {data, isFetched, isLoading, fetchData, fetchedBy} = get();
       if (!isFetched && !isLoading) {
+        fetchData(true, args);
+        return null;
+      }
+      const sessionUser = pb.authStore.model;
+      if (isFetched && sessionUser && fetchedBy !== sessionUser.id) {
+        storeLogger.debug('Locally stored data is from another user-session. Refetching...');
         fetchData(true, args);
         return null;
       }
