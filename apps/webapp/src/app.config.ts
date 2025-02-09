@@ -37,7 +37,7 @@ export const AppConfig: TAppConfig = {
   production: process.env.NODE_ENV === 'production',
   appName: 'Budget-Buddy',
   version: version,
-  logLevel: 'debug',
+  logLevel: (process.env.LOG_LEVEL ?? 'error') as LogLevel,
   website: 'https://budget-buddy.de',
   repository: 'https://github.com/BudgetBuddyDE/webapp',
   theme: BlueTheme,
