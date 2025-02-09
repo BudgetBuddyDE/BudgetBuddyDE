@@ -7,7 +7,6 @@ import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/
 import {CircularProgress} from '@/components/Loading';
 import {When} from '@/components/When';
 import {BudgetPieChart} from '@/features/Budget';
-import {BudgetService} from '@/features/Budget/BudgetService';
 import {CategoryExpenseChart, UpcomingSubscriptions} from '@/features/Category';
 import {
   SubscriptionDrawer,
@@ -46,10 +45,6 @@ const DashboardView = () => {
       dispatchTransactionDrawer({type: 'OPEN', drawerAction: 'CREATE'});
     },
   };
-
-  React.useEffect(() => {
-    BudgetService.getBudgets().then(console.log).catch(console.error);
-  }, []);
 
   return (
     <React.Fragment>
