@@ -1,3 +1,4 @@
+import {getLogLevel} from '@budgetbuddyde/utils/';
 import react from '@vitejs/plugin-react-swc';
 import 'dotenv/config';
 import path from 'path';
@@ -25,6 +26,7 @@ export default defineConfig({
       MAIL_SERVICE_HOST: MAIL_SERVICE_HOST,
       POCKETBASE_URL: POCKETBASE_URL,
       NODE_ENV: process.env.NODE_ENV,
+      LOG_LEVEL: getLogLevel(),
     },
   },
   server: {
