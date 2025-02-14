@@ -22,7 +22,7 @@ export type TInsightsChartData = {
 };
 
 export type TState = {
-  type: TSelectDataOption['value'];
+  type: TSelectDataOption;
   dateRange: TDateRange;
   categories: TSelectCategoriesOption[];
   transactions: TTransaction[];
@@ -62,18 +62,14 @@ function StateReducer(state: TState, action: TStateAction): TState {
   }
 }
 
-export type TInsightsDialogProps = {} & Pick<TFullScreenDialogProps, 'open' | 'onClose'>;
+export type TInsightsDialogProps = {
+  defaultValues?: Omit<TState, 'transactions'>;
+} & Pick<TFullScreenDialogProps, 'open' | 'onClose'>;
 
-export const InsightsDialog: React.FC<TInsightsDialogProps> = ({open, onClose}) => {
-  const now = new Date();
+export const InsightsDialog: React.FC<TInsightsDialogProps> = ({open, onClose, defaultValues}) => {
   const [state, dispatch] = React.useReducer(StateReducer, {
-    type: 'EXPENSES',
-    dateRange: {startDate: new Date(now.getFullYear(), 0, 1), endDate: now},
+    ...defaultValues,
     showStats: false,
-    categories: [
-      // {value: 'cconlx727r6a32w', label: 'Essen bestellen'},
-      // {value: 'tyx3smt3wzv7vil', label: 'Lebensmittel'},
-    ],
     transactions: [],
   } as TState);
 

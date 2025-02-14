@@ -10,6 +10,7 @@ import {subDays} from 'date-fns';
 import {type RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
+import {type TSelectCategoriesOption} from '@/features/Insights/InsightsDialog/SelectCategories';
 import {pb} from '@/pocketbase';
 
 import {type TCategoryAutocompleteOption} from '../Autocomplete';
@@ -116,5 +117,17 @@ export class CategoryService {
       ({name, description}) =>
         name.toLowerCase().includes(lowerKeyword) || description?.toLowerCase().includes(lowerKeyword),
     );
+  }
+
+  /**
+   * Converts an array of TCategory objects into a different format.
+   * @param categories - The array of categories to convert.
+   * @returns An array of formatted category options.
+   */
+  static toSelectOption(categories: TCategory[]): TSelectCategoriesOption[] {
+    return categories.map(({id, name}) => ({
+      label: name,
+      value: id,
+    }));
   }
 }
