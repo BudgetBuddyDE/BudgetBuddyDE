@@ -6,24 +6,40 @@ import React from 'react';
 import {ActionPaper} from '@/components/Base/ActionPaper';
 import {Icon} from '@/components/Icon';
 import {Formatter} from '@/services/Formatter';
+import {HideHorizontalScrollbarStyle} from '@/style/HideHorizontalScrollbar.style';
 
-import {TBudgetListProps} from './BudgetList.component';
+import {type TBudgetListProps} from './BudgetList.component';
 
 export type TBudgetItemProps = {
   budget: TExpandedBudgetProgress;
-} & Pick<TBudgetListProps, 'onEditBudget' | 'onDeleteBudget'>;
+} & Pick<TBudgetListProps, 'onEditBudget' | 'onDeleteBudget' | 'onClickBudget'>;
 
-export const BudgetItem: React.FC<TBudgetItemProps> = ({budget, onEditBudget, onDeleteBudget}) => {
+export const BudgetItem: React.FC<TBudgetItemProps> = ({budget, onEditBudget, onDeleteBudget, onClickBudget}) => {
   const isOverBudget = budget.progress > budget.budget;
 
   return (
-    <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'}>
+    <Stack
+      flexDirection={'row'}
+      alignItems={'center'}
+      justifyContent={'space-between'}
+      {...(onClickBudget && {
+        sx: {
+          ':hover': {
+            borderRadius: theme => theme.shape.borderRadius + 'px',
+            backgroundColor: theme => theme.palette.action.hover,
+            cursor: 'pointer',
+          },
+        },
+        onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => onClickBudget(e, budget),
+      })}>
       <Stack
         sx={{
           flex: 1,
           flexDirection: 'row',
           alignItems: 'center',
           mr: 2,
+          overflowX: 'scroll',
+          ...HideHorizontalScrollbarStyle,
         }}>
         <Icon
           icon={isOverBudget ? <WarningRounded /> : <ThumbUpAltRounded />}

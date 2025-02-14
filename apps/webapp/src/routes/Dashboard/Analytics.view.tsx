@@ -89,6 +89,11 @@ const AnalyticsView = () => {
       setShowDeleteDialog(false);
       setSelectedBudget(null);
     },
+    onClickBudget(e, budget) {
+      e.stopPropagation();
+      e.preventDefault();
+      console.log(budget);
+    },
   };
 
   return (
@@ -104,6 +109,7 @@ const AnalyticsView = () => {
           onAddBudget={handler.onAddBudget}
           onEditBudget={handler.onEditBudget}
           onDeleteBudget={handler.onDeleteBudget}
+          onClickBudget={handler.onClickBudget}
         />
       </Grid>
 

@@ -14,9 +14,10 @@ export type TBudgetListProps = {
   onAddBudget: () => void;
   onEditBudget: (budget: TExpandedBudgetProgress) => void;
   onDeleteBudget: (budget: TExpandedBudgetProgress) => void;
+  onClickBudget?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, budget: TExpandedBudgetProgress) => void;
 };
 
-export const BudgetList: React.FC<TBudgetListProps> = ({onAddBudget, onEditBudget, onDeleteBudget}) => {
+export const BudgetList: React.FC<TBudgetListProps> = ({onAddBudget, onEditBudget, onDeleteBudget, onClickBudget}) => {
   const {isLoading, data, error} = useBudgets();
   return (
     <Card>
@@ -39,7 +40,13 @@ export const BudgetList: React.FC<TBudgetListProps> = ({onAddBudget, onEditBudge
         ) : data && data.length > 0 ? (
           <Stack rowGap={1}>
             {data.map(budget => (
-              <BudgetItem key={budget.id} budget={budget} onEditBudget={onEditBudget} onDeleteBudget={onDeleteBudget} />
+              <BudgetItem
+                key={budget.id}
+                budget={budget}
+                onEditBudget={onEditBudget}
+                onDeleteBudget={onDeleteBudget}
+                onClickBudget={onClickBudget}
+              />
             ))}
           </Stack>
         ) : (
