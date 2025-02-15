@@ -58,7 +58,7 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 ### Test & build `webapp`
 
 ```bash
-fly -t kleithor set-pipeline -p bb-webapp -c ./ci/pipelines/build-webapp.pipeline.yml -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" -v repo_path="apps/webapp"
+fly -t kleithor set-pipeline -p bb-webapp -c ./ci/pipelines/build-webapp.pipeline.yml -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" -v repo_path="apps/webapp" -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
 ```
 
 ### Publish `@budetbuddyde/types`

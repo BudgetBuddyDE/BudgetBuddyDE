@@ -1,4 +1,15 @@
+resource_types:
+  - name: discord-alert
+    type: registry-image
+    source:
+      repository: ghcr.io/tklein1801/concourse-discord-alert-resource
+
 resources:
+  - name: notify
+    type: discord-alert
+    source:
+      url: ((discord_webhook))
+
   - name: node-image
     type: registry-image
     source:
@@ -36,6 +47,11 @@ jobs:
             path: npm
             args: ['install']
             dir: repo/((repo_path))
+        on_failure:
+          put: notify
+          params:
+            alert_type: failed
+            message: 'Installation of dependencies failed'
       - task: test
         image: node-image
         config:
@@ -48,6 +64,11 @@ jobs:
             path: npm
             args: ['run', 'test:run']
             dir: repo/((repo_path))
+        on_failure:
+          put: notify
+          params:
+            alert_type: failed
+            message: 'Tests failed'
       - task: build
         image: node-image
         config:
@@ -60,3 +81,8 @@ jobs:
             path: npm
             args: ['run', 'build']
             dir: repo/((repo_path))
+        on_failure:
+          put: notify
+          params:
+            alert_type: failed
+            message: 'Build failed'
