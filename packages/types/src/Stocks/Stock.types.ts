@@ -15,8 +15,17 @@ export type TCurrency = z.infer<typeof ZCurrency>;
 export const ZTimeframe = z.enum(['1d', '1m', '3m', '1y', '5y', 'ytd']);
 export type TTimeframe = z.infer<typeof ZTimeframe>;
 
-export const ZStockType = z.enum(['Aktie', 'ETF']).or(z.string());
+export const ZStockType = z.enum(['Aktie', 'ETF', 'Optionsschein']).or(z.string());
 export type TStockType = z.infer<typeof ZStockType>;
+
+export const ZSecurity = z.object({
+  website: z.string().url().optional(),
+  type: ZStockType,
+  wkn: ZWKN,
+  isin: ZIsin,
+  etfDomicile: z.string().optional(),
+  etfCompany: z.string().optional(),
+});
 
 /**
  * Stock API Types
@@ -41,14 +50,7 @@ export const ZAsset = z.object({
   assetType: z.string(),
   name: z.string(),
   logo: z.string().url(),
-  security: z.object({
-    website: z.string().url(),
-    type: z.string(),
-    wkn: z.string(),
-    isin: z.string(),
-    etfDomicile: z.string(),
-    etfCompany: z.string(),
-  }),
+  security: ZStockQuote,
 });
 export type TAsset = z.infer<typeof ZAsset>;
 
@@ -126,14 +128,7 @@ export const ZDividendDetails = z.object({
     assetType: z.string(),
     name: z.string(),
     logo: z.string().url(),
-    security: z.object({
-      website: z.string().url(),
-      type: z.string(),
-      wkn: ZWKN,
-      isin: ZIsin,
-      etfDomicile: z.string().optional(),
-      etfCompany: z.string().optional(),
-    }),
+    security: ZSecurity,
   }),
   historyDividends: z.array(ZDividend).nullable().default([]),
   futureDividends: z.array(ZDividend).nullable().default([]),
@@ -189,7 +184,7 @@ export const ZAssetDetails = z.object({
           id: z.string(),
         }),
       ),
-      isin: z.string(),
+      isin: ZIsin,
       symbols: z.array(
         z.object({
           exchange: z.string(),
@@ -197,8 +192,8 @@ export const ZAssetDetails = z.object({
         }),
       ),
       website: z.string().url(),
-      wkn: z.string(),
-      type: z.string(),
+      wkn: ZWKN,
+      type: ZStockType,
       ipoDate: ZDate,
       etfDomicile: z.string().optional(),
       etfCompany: z.string().optional(),
@@ -292,14 +287,7 @@ export const ZAssetDetails = z.object({
               assetType: z.string(),
               name: z.string(),
               logo: z.string(),
-              security: z.object({
-                website: z.string(),
-                type: z.string(),
-                wkn: z.string(),
-                isin: z.string(),
-                etfDomicile: z.string().optional(),
-                etfCompany: z.string().optional(),
-              }),
+              security: ZSecurity,
             }),
           }),
         ),
@@ -411,7 +399,7 @@ export const ZStockPositionWithQuote = z.object({
     owner: ZId,
     exchange: ZId,
     bought_at: ZDate,
-    isin: z.string(),
+    isin: ZIsin,
     buy_in: z.number(),
     currency: ZCurrency,
     quantity: z.number(),
@@ -431,7 +419,7 @@ export const ZCreateStockPositionPayload = z.object({
   owner: ZId,
   exchange: ZId,
   bought_at: ZDate,
-  isin: z.string(),
+  isin: ZIsin,
   buy_in: z.number(),
   currency: ZCurrency,
   quantity: z.number(),
@@ -443,7 +431,7 @@ export const ZUpdateStockPositionPayload = z.object({
   owner: ZId,
   exchange: ZId,
   bought_at: ZDate,
-  isin: z.string(),
+  isin: ZIsin,
   buy_in: z.number(),
   currency: ZCurrency,
   quantity: z.number(),
@@ -459,16 +447,7 @@ export const ZRelatedStock = z.object({
     assetType: z.string(),
     name: z.string(),
     logo: z.string().url(),
-    security: z
-      .object({
-        website: z.string().url(),
-        type: z.string(),
-        wkn: ZWKN,
-        isin: ZIsin,
-        etfDomicile: z.string().nullable().default(null),
-        etfCompany: z.string().nullable().default(null),
-      })
-      .optional(),
+    security: ZSecurity.optional(),
   }),
 });
 export type TRelatedStock = z.infer<typeof ZRelatedStock>;
