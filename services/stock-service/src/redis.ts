@@ -11,6 +11,10 @@ redisClient.on('disconnect', () => redisLogger.info('Disconnected from redis'));
 redisClient.on('error', err => redisLogger.error(err));
 
 (async () => {
+  if (!CACHE_REDIS_URL) {
+    redisLogger.warn("Can't establish an connection! Environment variable 'CACHE_REDIS_URL' not set.");
+    return;
+  }
   if (process.env.NODE_ENV === 'test') return;
   await redisClient.connect();
 })();
