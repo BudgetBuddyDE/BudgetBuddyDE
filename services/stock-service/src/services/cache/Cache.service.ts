@@ -15,8 +15,16 @@ export class Cache {
     return `${this.namespace}:${key}`;
   }
 
+  isConnectionOpen(): boolean {
+    return redisClient.isOpen;
+  }
+
   async set(key: string, value: string, options: SetOptions) {
     try {
+      if (!this.isConnectionOpen()) {
+        this.logger.warn("Can't write data to cache! Connection is not open.", {key, value, options});
+        return;
+      }
       key = this.getKeyWithNamespace(key);
       const result = await redisClient.set(key, value, options);
       this.logger.debug(`Value set for '${key}'`);
@@ -29,6 +37,10 @@ export class Cache {
 
   async get(key: string) {
     try {
+      if (!this.isConnectionOpen()) {
+        this.logger.warn("Can't read data from cache! Connection is not open.", {key});
+        return;
+      }
       key = this.getKeyWithNamespace(key);
       const result = await redisClient.get(key);
       this.logger.debug(result ? `Retrieved value for '${key}'` : `No value found for '${key}'`);
