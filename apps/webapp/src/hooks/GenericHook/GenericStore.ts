@@ -54,7 +54,8 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
       try {
         const sessionUser = pb.authStore.model;
         if (!sessionUser) {
-          throw new Error('User not authenticated');
+          storeLogger.warn("User not authenticated. Can't fetch data.");
+          return;
         }
         const fetchedData = await dataFetcherFunction(args);
 
