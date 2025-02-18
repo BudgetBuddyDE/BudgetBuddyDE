@@ -10,7 +10,18 @@ groups:
       - build
       - 'release-*'
 
+resource_types:
+  - name: discord-alert
+    type: registry-image
+    source:
+      repository: ghcr.io/tklein1801/concourse-discord-alert-resource
+
 resources:
+  - name: notify
+    type: discord-alert
+    source:
+      url: ((discord_webhook))
+
   - name: node-image
     type: registry-image
     source:
@@ -82,6 +93,11 @@ task-config: &task-release
 jobs:
   - name: build
     public: true
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+        message: 'Build of ((service_name)) failed'
     plan:
       - in_parallel:
           - get: node-image
@@ -129,6 +145,11 @@ jobs:
         params: { file: version/version }
 
   - name: release-patch
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+        message: 'Release of patch for ((service_name)) failed'
     plan:
       - in_parallel:
           - get: node-image
@@ -157,6 +178,11 @@ jobs:
         params: { file: version/version }
 
   - name: release-minor
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+        message: 'Release of minor for ((service_name)) failed'
     plan:
       - in_parallel:
           - get: node-image
@@ -185,6 +211,11 @@ jobs:
         params: { file: version/version }
 
   - name: release-major
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+        message: 'Release of major for ((service_name)) failed'
     plan:
       - in_parallel:
           - get: node-image
