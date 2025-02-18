@@ -29,6 +29,11 @@ resources:
 jobs:
   - name: test
     public: true
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+        message: 'Tests failed'
     plan:
       - in_parallel:
           - get: node-image
@@ -47,11 +52,6 @@ jobs:
             path: npm
             args: ['install']
             dir: repo/((repo_path))
-        on_failure:
-          put: notify
-          params:
-            alert_type: failed
-            message: 'Installation of dependencies failed'
       - task: test
         image: node-image
         config:
@@ -64,11 +64,6 @@ jobs:
             path: npm
             args: ['run', 'test:run']
             dir: repo/((repo_path))
-        on_failure:
-          put: notify
-          params:
-            alert_type: failed
-            message: 'Tests failed'
       - task: build
         image: node-image
         config:
@@ -81,8 +76,3 @@ jobs:
             path: npm
             args: ['run', 'build']
             dir: repo/((repo_path))
-        on_failure:
-          put: notify
-          params:
-            alert_type: failed
-            message: 'Build failed'
