@@ -6,8 +6,4 @@ describe('AppConfig', () => {
   it('should have the correct feature', () => {
     expect(AppConfig.feature[Feature.STOCKS]).toBe(process.env.STOCK_SERVICE_HOST !== undefined);
   });
-
-  it('will break', () => {
-    expect(1).toBe(2);
-  });
 });
