@@ -20,5 +20,5 @@ export const useStockStore = GenerateGenericStore<TStockPositionWithQuote[]>(asy
     logger.error("Couldn't retrieve stock-positions", err);
     return [];
   }
-  return positions.sort((a, b) => b.buy_in * b.quantity - a.buy_in * a.quantity) ?? [];
+  return positions.sort((a, b) => b.quote.price * b.quantity - a.quote.price * a.quantity) ?? [];
 });
