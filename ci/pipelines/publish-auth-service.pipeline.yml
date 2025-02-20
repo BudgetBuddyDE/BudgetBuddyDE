@@ -121,14 +121,10 @@ jobs:
           run:
             path: sh
             args:
-              # Is neccessary to remove the package-lock.json file before installing dependencies to avoid this error:
-              # Error: Cannot find module @rollup/rollup-linux-x64-gnu. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
-              # Revisit later and check if this issue can be resolved
               - -exc
               - |
                 NEW_VERSION=$(cat version/version)
                 cd repo/((repo_path))
-                rm package-lock.json
                 npm install
                 npm test
                 npm run build
