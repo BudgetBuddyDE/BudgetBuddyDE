@@ -34,6 +34,7 @@ jobs:
       params:
         alert_type: failed
         message: 'Tests failed'
+        role: '1342563020215291936'
     plan:
       - in_parallel:
           - get: node-image

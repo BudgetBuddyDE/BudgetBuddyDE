@@ -98,6 +98,7 @@ jobs:
       params:
         alert_type: failed
         message: 'Build of ((service_name)) failed'
+        role: '1342563020215291936'
     plan:
       - in_parallel:
           - get: node-image
@@ -146,6 +147,7 @@ jobs:
       params:
         alert_type: failed
         message: 'Release of patch for ((service_name)) failed'
+        role: '1342563020215291936'
     plan:
       - in_parallel:
           - get: node-image
@@ -179,6 +181,7 @@ jobs:
       params:
         alert_type: failed
         message: 'Release of minor for ((service_name)) failed'
+        role: '1342563020215291936'
     plan:
       - in_parallel:
           - get: node-image
@@ -212,6 +215,7 @@ jobs:
       params:
         alert_type: failed
         message: 'Release of major for ((service_name)) failed'
+        role: '1342563020215291936'
     plan:
       - in_parallel:
           - get: node-image

@@ -37,6 +37,7 @@ jobs:
       params:
         alert_type: failed
         message: 'Build of base-image failed'
+        role: '1342563020215291936'
     plan:
       - get: repo
         trigger: true
