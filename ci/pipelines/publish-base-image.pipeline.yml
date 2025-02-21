@@ -29,7 +29,7 @@ resources:
       password: ((docker_password))
 
 jobs:
-  - name: build
+  - name: build-and-test
     public: true
     serial: true
     on_failure:
@@ -38,13 +38,41 @@ jobs:
         alert_type: failed
         message: 'Build of base-image failed'
         role: '1342563020215291936'
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+        message: 'Build and test of base-image succeeded 🎉'
+        role: '1342563020215291936'
     plan:
       - get: repo
         trigger: true
+      - task: build-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: repo
+          outputs:
+            - name: image
+          params:
+            CONTEXT: repo/((repo_path))
+            UNPACK_ROOTFS: true
+          run:
+            path: build
+      - task: test-image
+        image: image
+        config:
+          platform: linux
+          run:
+            path: pnpm
+            args: ['--version']
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repo/((repo_path))
-          dockerfile: repo/((repo_path))/Dockerfile
-          docker_buildkit: 1
+          import_file: image/image.tar
           tag_as_latest: true
