@@ -1,0 +1,49 @@
+resource_types:
+  - name: discord-alert
+    type: registry-image
+    source:
+      repository: ghcr.io/tklein1801/concourse-discord-alert-resource
+
+resources:
+  - name: notify
+    type: discord-alert
+    source:
+      url: ((discord_webhook))
+
+  - name: repo
+    type: git
+    icon: github
+    source:
+      uri: ((repo_uri))
+      private_key: ((repo_private_key))
+      branch: main
+      paths: [((repo_path))/**]
+      depth: 1
+
+  - name: container-registry
+    type: docker-image
+    icon: docker
+    source:
+      repository: ((docker_image))
+      username: ((docker_username))
+      password: ((docker_password))
+
+jobs:
+  - name: build
+    public: true
+    serial: true
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+        message: 'Build of base-image failed'
+    plan:
+      - get: repo
+        trigger: true
+      - put: container-registry
+        get_params: { skip_download: true }
+        params:
+          build: repo/((repo_path))
+          dockerfile: repo/((repo_path))/Dockerfile
+          docker_buildkit: 1
+          tag_as_latest: true
