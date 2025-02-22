@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# Staged Files abrufen
+STAGED_FILES=$(git diff --cached --name-only) # --diff-filter=ACMR
+
+# Funktion zum Überprüfen, ob eine Datei in einem bestimmten Pfad geändert wurde
+has_changes() {
+  echo "$STAGED_FILES" | grep -q "^$1/"
+}
+
+# Hooks für bestimmte Verzeichnisse ausführen
+if has_changes "apps/website"; then
+  echo "Running checks for apps/website..."
+  cd apps/website && pnpm lint && pnpx prettier --check src && cd ../../ || exit 1
+fi
+
+if has_changes "apps/webapp"; then
+  echo "Running checks for apps/webapp..."
+  cd apps/webapp && pnpm format && pnpx prettier --check src && pnpm test:run && cd ../../ || exit 1
+fi
+
+if has_changes "packages/types"; then
+  echo "Running checks for packages/types..."
+  cd packages/types && pnpx prettier --check src && pnpm test && cd ../../ || exit 1
+fi
+
+if has_changes "packages/utils"; then
+  echo "Running checks for packages/utils..."
+  cd packages/utils && pnpm test:run && cd ../../ || exit 1
+fi
+
+if has_changes "services/mail-service"; then
+  echo "Running checks for services/mail-service..."
+  cd services/mail-service && pnpm test:run && pnpx prettier --check src && cd ../../ || exit 1
+fi
+
+if has_changes "services/stock-service"; then
+  echo "Running checks for services/stock-service..."
+  cd services/stock-service && pnpx prettier --check src && pnpm test:run && cd ../../ || exit 1
+fi
+
+echo "✅ Pre-commit checks passed!"

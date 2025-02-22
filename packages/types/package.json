@@ -29,7 +29,7 @@
   },
   "scripts": {
     "build": "rimraf lib && tsc",
-    "test": "prettier --write . && jest --passWithNoTests",
+    "test": "jest --passWithNoTests",
     "format": "prettier --write .",
     "prepublish": "npm run test"
   },

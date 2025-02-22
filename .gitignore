@@ -2,3 +2,4 @@
 
 ci/secrets/**
 !ci/secrets/
+node_modules/

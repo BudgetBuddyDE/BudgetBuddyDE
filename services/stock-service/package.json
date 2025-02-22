@@ -15,7 +15,6 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "lint": "eslint --fix --ext .ts ./src",
     "format": "prettier --write . --log-level silent"
   },
   "dependencies": {

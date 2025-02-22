@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "pre-commit": "echo 'pre-commit hook'",
+    "prepare": "node .husky/install.mjs"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
