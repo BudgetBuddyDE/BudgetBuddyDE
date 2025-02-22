@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "prepare": "node .husky/install.mjs"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

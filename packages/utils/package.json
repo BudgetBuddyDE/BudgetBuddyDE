@@ -21,9 +21,10 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "rimraf lib && tsc",
-    "test": "prettier --check . && vitest",
-    "test:run": "prettier --check . && vitest run",
-    "format": "prettier --write ."
+    "test": "npm run format:check && vitest",
+    "test:run": "npm run format:check && vitest run",
+    "format:check": "prettier --check ./src",
+    "format": "prettier --write ./src"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

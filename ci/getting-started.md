@@ -55,12 +55,6 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
 ## Set up pipelines
 
-### Publish `base-image`
-
-```bash
-fly -t kleithor set-pipeline -p node-pnpm -c ./ci/pipelines/publish-base-image.pipeline.yml -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)" -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" -v repo_path="ci/images/base-image" -v docker_image="ghcr.io/budgetbuddyde/node-pnpm" -v docker_username="tklein1801" -v docker_password="$(cat ./ci/secrets/github/pat)"
-```
-
 ### Test & build `webapp`
 
 ```bash

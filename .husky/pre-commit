@@ -1,0 +1,39 @@
+#!/bin/sh
+
+STAGED_FILES=$(git diff --cached --name-only) # --diff-filter=ACMR
+
+has_changes() {
+  echo "$STAGED_FILES" | grep -q "^$1/"
+}
+
+if has_changes "apps/website"; then
+  echo "Running checks for apps/website..."
+  cd apps/website && npm run lint && npx prettier --check src && cd ../../ || exit 1
+fi
+
+if has_changes "apps/webapp"; then
+  echo "Running checks for apps/webapp..."
+  cd apps/webapp && npm run format && npx prettier --check src && npm run test:run && cd ../../ || exit 1
+fi
+
+if has_changes "packages/types"; then
+  echo "Running checks for packages/types..."
+  cd packages/types && npx prettier --check src && npm run test && cd ../../ || exit 1
+fi
+
+if has_changes "packages/utils"; then
+  echo "Running checks for packages/utils..."
+  cd packages/utils && npm run test:run && cd ../../ || exit 1
+fi
+
+if has_changes "services/mail-service"; then
+  echo "Running checks for services/mail-service..."
+  cd services/mail-service && npm run test:run && npx prettier --check src && cd ../../ || exit 1
+fi
+
+if has_changes "services/stock-service"; then
+  echo "Running checks for services/stock-service..."
+  cd services/stock-service && npx prettier --check src && npm run test:run && cd ../../ || exit 1
+fi
+
+echo "✅ Pre-commit checks passed!"

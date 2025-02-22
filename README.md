@@ -20,6 +20,12 @@ BudgetBuddy is a modern ReactJS-based web application designed to help you manag
    git clone git@github.com:BudgetBuddyDE/BudgetBuddyDE.git
    ```
 
+2. Setup GIT hooks
+
+   ```bash
+   pnpm i # will install husky
+   ```
+
 ## Folder structure
 
 ```
