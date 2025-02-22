@@ -1,6 +1,5 @@
 {
   "scripts": {
-    "pre-commit": "echo 'pre-commit hook'",
     "prepare": "node .husky/install.mjs"
   },
   "devDependencies": {
