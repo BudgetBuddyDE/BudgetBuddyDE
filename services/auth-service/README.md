@@ -5,38 +5,48 @@
 1. Clone the repository
 
    ```shell
-   git clone git@github.com:BudgetBuddyDE/Auth-Service.git
+   git clone git@github.com:budgetbuddyde/budgetbuddyde.git
+   cd ./services/auth-service
    ```
 
 2. Set all required environment-variables as defined in the `.env.example`
 3. Install all required dependencies
 
    ```shell
-   npm install
+   bun i
    ```
 
 4. Start the application
 
    ```shell
-   npm run dev
+   bun dev
    ```
 
-### Other commands
+### Commands
 
-- Migrate your database
+**Run the tests**
 
-  ```shell
-  npx better-auth migrate
-  ```
+```bash
+bun test:run
+```
 
-- Run unit-tests
+#### Database migration
 
-  ```shell
-  npm run test:run
-  ```
+> [!TIP]
+> For more information about the schema generation and migration have a look into [the documentation](https://www.better-auth.com/docs/basic-usage#migrate-database).
 
-- Build an cli
+**Generate the database schema**
 
-  ```shell
-  bun build ./src/server.ts --compile --outfile auth-service
-  ```
+```bash
+npx @better-auth/cli generate
+# or use
+npm run generate
+```
+
+**Migrate the schema**
+
+```bash
+npx @better-auth/cli migrate
+# or use
+npm run migrate
+```

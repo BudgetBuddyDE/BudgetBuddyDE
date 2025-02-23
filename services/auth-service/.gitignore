@@ -1,4 +1,6 @@
 auth-service*
+*sqlite
+build/
 
 # Logs
 logs

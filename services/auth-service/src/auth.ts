@@ -1,5 +1,6 @@
 import {getLogLevel, getTrustedOrigins, isRunningInProd} from '@budgetbuddyde/utils';
 import {betterAuth} from 'better-auth';
+import {createAuthMiddleware} from 'better-auth/api';
 import {admin, bearer, multiSession, openAPI} from 'better-auth/plugins';
 import {type BetterAuthOptions} from 'better-auth/types';
 import 'dotenv/config';
@@ -10,7 +11,7 @@ import {pool} from './pool';
 import {redisClient} from './redis';
 import {isCSRFCheckDisabled} from './utils/isCSRFCheckDisabled';
 
-const authLogger = logger.child({module: 'auth'});
+const authLogger = logger.child({label: 'auth'});
 
 const options: BetterAuthOptions = {
   appName: config.appName,
@@ -50,6 +51,19 @@ const options: BetterAuthOptions = {
     log: (lvl, msg, args) => {
       authLogger[lvl](msg, args);
     },
+  },
+  hooks: {
+    after: createAuthMiddleware(async ctx => {
+      const path = ctx.path;
+      authLogger.info('test', path);
+      if (path.startsWith('/sign-up')) {
+        const newSession = ctx.context.newSession;
+        if (newSession) {
+          authLogger.info('New user signed up', newSession);
+          // FIXME: Create user in CAP backend
+        }
+      }
+    }),
   },
   trustedOrigins: getTrustedOrigins(),
   advanced: {

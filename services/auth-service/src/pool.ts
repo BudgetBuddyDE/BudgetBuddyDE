@@ -4,7 +4,7 @@ import pg from 'pg';
 import {logger} from './core/logger';
 
 const {Pool} = pg;
-
+const dbLogger = logger.child({label: 'pool'});
 export const pool = new Pool({
   connectionString: process.env.PG_URL as string,
   connectionTimeoutMillis: 5000,
@@ -23,11 +23,11 @@ export const pool = new Pool({
 export async function checkConnection(): Promise<boolean> {
   try {
     const client = await pool.connect();
-    logger.info('Connection to database established');
+    dbLogger.info('Connection to database established');
     client.release();
     return true;
   } catch (err) {
-    logger.error('Connection to database failed', err);
+    dbLogger.error('Connection to database failed', err);
     return false;
   }
 }

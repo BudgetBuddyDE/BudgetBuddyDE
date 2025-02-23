@@ -9,7 +9,7 @@ import {config} from './config';
 import {logger} from './core/logger';
 import {logRequest} from './middleware/logRequest';
 import {checkConnection} from './pool';
-import {redisClient} from './redis';
+import {connectToRedis, isRedisConnected} from './redis';
 import {ApiResponse} from './types/ApiResponse.type';
 
 const app = express();
@@ -30,14 +30,14 @@ app.get('/status', async (_, res) => {
     .withData({
       status: 'ok',
       database: await checkConnection(),
-      redis: redisClient.isOpen,
+      redis: isRedisConnected(),
     })
     .buildAndSend();
 });
 
 app.all('/api/auth/*', toNodeHandler(auth));
 
-app.listen(config.port, () => {
+app.listen(config.port, async () => {
   const options = {
     'Application Name': config.appName,
     'Application Version': config.version,
@@ -48,4 +48,5 @@ app.listen(config.port, () => {
   };
   console.table(options);
   logger.info('%s is available under http://localhost:%d', config.appName, config.port, options);
+  await connectToRedis(true);
 });
