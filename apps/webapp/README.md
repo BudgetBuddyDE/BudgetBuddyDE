@@ -1,7 +1,5 @@
 # Webapp
 
-test
-
 ## Getting started
 
 1. Clone the repository
