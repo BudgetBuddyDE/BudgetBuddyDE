@@ -1,4 +1,4 @@
-import {getLogLevel, getTrustedOrigins, isRunningInProd} from '@budgetbuddyde/utils';
+import {getLogLevel, getTrustedOrigins} from '@budgetbuddyde/utils';
 import {betterAuth} from 'better-auth';
 import {createAuthMiddleware} from 'better-auth/api';
 import {admin, bearer, multiSession, openAPI} from 'better-auth/plugins';
@@ -81,9 +81,7 @@ const options: BetterAuthOptions = {
     window: 60,
     max: 30,
   },
-  plugins: [bearer(), admin(), isRunningInProd() ? false : openAPI(), multiSession()].filter(
-    v => typeof v !== 'boolean',
-  ),
+  plugins: [bearer(), admin(), openAPI(), multiSession()].filter(v => typeof v !== 'boolean'),
 };
 
 export const auth = betterAuth(options);
