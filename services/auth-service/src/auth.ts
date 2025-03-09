@@ -4,6 +4,7 @@ import {createAuthMiddleware} from 'better-auth/api';
 import {admin, bearer, multiSession, openAPI} from 'better-auth/plugins';
 import {type BetterAuthOptions} from 'better-auth/types';
 import 'dotenv/config';
+import fetch from 'node-fetch';
 
 import {config} from './config';
 import {logger} from './core/logger';
@@ -55,12 +56,34 @@ const options: BetterAuthOptions = {
   hooks: {
     after: createAuthMiddleware(async ctx => {
       const path = ctx.path;
-      authLogger.info('test', path);
       if (path.startsWith('/sign-up')) {
         const newSession = ctx.context.newSession;
         if (newSession) {
           authLogger.info('New user signed up', newSession);
-          // FIXME: Create user in CAP backend
+
+          const CAPIRE_BACKEND_HOST = process.env.CAPIRE_BACKEND_HOST;
+          if (!CAPIRE_BACKEND_HOST) {
+            authLogger.error('CAPIRE_BACKEND_HOST is not set! Cannot create user in CAP backend.', {
+              CAPIRE_BACKEND_HOST,
+              userId: newSession.user.id,
+            });
+            return;
+          }
+
+          const response = await fetch(CAPIRE_BACKEND_HOST + '/service/user/User', {
+            method: 'POST',
+            body: JSON.stringify({userId: newSession.user.id}),
+          });
+          if (!response.ok) {
+            authLogger.error('Failed to create user in CAP backend', {
+              status: response.status,
+              statusText: response.statusText,
+              userId: newSession.user.id,
+              CAPIRE_BACKEND_HOST,
+            });
+            return;
+          }
+          authLogger.info('User created in CAP backend', {userId: newSession.user.id, CAPIRE_BACKEND_HOST});
         }
       }
     }),

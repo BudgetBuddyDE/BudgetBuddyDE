@@ -24,6 +24,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "node-fetch": "^2.7.0",
     "pg": "^8.13.3",
     "redis": "^4.7.0",
     "winston": "^3.17.0"
@@ -33,6 +34,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.5",
+    "@types/node-fetch": "^2.6.12",
     "@types/pg": "^8.11.11",
     "@vitest/ui": "^3.0.7",
     "nodemon": "^3.1.9",
