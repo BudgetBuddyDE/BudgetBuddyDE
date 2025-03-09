@@ -72,6 +72,9 @@ const options: BetterAuthOptions = {
 
           const response = await fetch(CAPIRE_BACKEND_HOST + '/service/user/User', {
             method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
             body: JSON.stringify({userId: newSession.user.id}),
           });
           if (!response.ok) {
