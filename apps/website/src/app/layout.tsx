@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import {Inter as FontSans} from 'next/font/google';
+import Head from 'next/head';
 import Script from 'next/script';
 
 import {Footer} from '@/components/footer';
@@ -27,6 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Head>
+        <meta name="cf-2fa-verify" content="80110a45c5f0e04" />
+      </Head>
       <body className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <div className="flex flex-col min-h-[100dvh]">
