@@ -1,0 +1,59 @@
+---
+title: Pocketbase
+---
+
+import {
+  PencilIcon,
+  DatabaseBackupIcon,
+  SparklesIcon,
+  LayoutPanelTopIcon,
+  ShieldCheckIcon,
+} from 'lucide-react';
+
+<Callout title="Attention">
+  A new backend is currently being developed to replace Pocketbase for Budget Buddy. The backend
+  will have the same functionality as Pocketbase and will provide a more flexible approach to query
+  the data to support better analytical queries.
+</Callout>
+
+<Cards>
+  <Card icon={<SparklesIcon />} href="features" title="Features">
+    Overview of PocketBase's core functionalities.
+  </Card>
+  <Card icon={<PencilIcon />} href="modifications" title="Modifications">
+    Documentation of the modifications we have made to PocketBase.
+  </Card>
+  <Card icon={<LayoutPanelTopIcon />} href="model" title="Model">
+    Explanation of the data structure.
+  </Card>
+  <Card icon={<DatabaseBackupIcon />} href="backups" title="Backups">
+    Guide on how to create backups and how they are stored.
+  </Card>
+  <Card icon={<ShieldCheckIcon />} href="security" title="Security">
+    Overview of the security measures PocketBase implements to ensure data protection.
+  </Card>
+</Cards>
+
+## About
+
+<Callout title="Disclaimer">
+  Budget-Buddy does not use the standard version of Pocketbase, but has made a few additional
+  modifications to implement jobs or analyze data. <br />
+  More information about the modifications made can be found on [this page](./modifications.mdx).
+</Callout>
+
+Pocketbase is an open-source backend solution that provides a NoSQL database, real-time APIs, and authentication mechanisms in a compact package. It is particularly useful for rapid prototyping, MVPs, and small to medium-sized applications.
+
+We use Pocketbase to provide a robust and scalable backend infrastructure that can easily integrate into our existing applications. With Pocketbase, we can quickly create data models, authenticate users, and implement real-time updates without having to worry about the complex details of backend development.
+
+<GithubInfo owner="pocketbase" repo="pocketbase" />
+
+## Why Pocketbase?
+
+| Aspect                      | Details                                                                                                                                            |
+| :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Time savings**            | Pocketbase offers a variety of out-of-the-box features, significantly reducing development time.                                                   |
+| **Scalability**             | Pocketbase is scalable and can easily handle growing requirements.                                                                                 |
+| **Real-time functionality** | With Pocketbase, we can easily implement real-time updates and notifications.                                                                      |
+| **Security**                | Pocketbase provides built-in authentication and authorization mechanisms, enhancing the security of our applications.                              |
+| **Community and support**   | Being an open-source project, Pocketbase has an active community and regular updates, meaning we benefit from continuous improvements and support. |
