@@ -8,17 +8,17 @@ const config = {
   rewrites() {
     return {
       beforeFiles: [
-        // if the host is `newdocs.budget-buddy.de`,
-        // this rewrite will be applied
+        // Wenn der Host `docs.budget-buddy.de` ist,
+        // wird der `/docs`-Teil aus der URL entfernt und auf die neue URL umgeschrieben
         {
-          source: '/:path*',
+          source: '/docs/:path*',
           has: [
             {
               type: 'host',
               value: 'docs.budget-buddy.de',
             },
           ],
-          destination: '/docs/:path*',
+          destination: 'https://docs.budget-buddy.de/:path*',
         },
       ],
     };
