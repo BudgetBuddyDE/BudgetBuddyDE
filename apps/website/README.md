@@ -1,21 +1,26 @@
-# Budget-Buddy Website
+# website
 
-## Installation
+This is a Next.js application generated with
+[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
 
-1. Clone the repo
+Run development server:
 
-   ```bash
-   git clone git@github.com:BudgetBuddyDE/website.git
-   ```
+```bash
+npm run dev
+# or
+pnpm dev
+# or
+yarn dev
+```
 
-2. Install dependencies
+Open http://localhost:3000 with your browser to see the result.
 
-   ```bash
-   npm install
-   ```
+## Learn More
 
-3. Start the app
+To learn more about Next.js and Fumadocs, take a look at the following
+resources:
 
-   ```bash
-   npm run dev
-   ```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
+  features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Fumadocs](https://fumadocs.vercel.app) - learn about Fumadocs

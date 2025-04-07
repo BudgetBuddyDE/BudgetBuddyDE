@@ -1,0 +1,62 @@
+---
+title: Security
+---
+
+<Callout title="Disclaimer">
+  This information was researched using artificial intelligence. The model used is **ChatGPT-4**,
+  developed by OpenAI. The model is based on an extensive knowledge base, supplemented by current
+  web research. However, the information provided may be incomplete or incorrect. Please check the
+  sources and official documentation for exact details.
+</Callout>
+
+## Security Measures in PocketBase
+
+PocketBase is an open-source backend that provides developers with various features, including an embedded database, real-time subscriptions, and integrated authentication management. A crucial aspect of using PocketBase is ensuring the security of the system and the data it manages. Below are the key security measures and recommendations provided by PocketBase.
+
+### API Rules for Access Control
+
+<Callout title="Security Rules">
+  On page [models](model.mdx), you can view the rules that have been created to ensure the security
+  of individual records.
+</Callout>
+
+PocketBase allows defining specific API rules for each database collection. These rules determine who can access or modify data. By configuring these rules carefully, unauthorized access can be prevented. It is crucial to set these rules properly to ensure that only authorized users can access certain data.
+
+### Authentication Mechanisms
+
+PocketBase supports multiple authentication methods, including:
+
+- **Email/Password Authentication:** Users can register and log in using their email address and password.
+
+- **OAuth2 Authentication:** Integration with third-party providers like Google, Facebook, GitHub, and GitLab allows for secure sign-ins via external services.
+
+- **One-Time Passwords (OTP):** For security-critical applications, PocketBase recommends using OTPs in combination with other authentication methods and Multi-Factor Authentication (MFA). This adds an additional layer of protection.
+
+### Multi-Factor Authentication (MFA)
+
+As of version 0.23, PocketBase supports optional Multi-Factor Authentication. When enabled, users must verify themselves using two different authentication methods, further enhancing security.
+
+### Protection Against SQL Injection
+
+When using the JavaScript SDK on the client side, filters and inputs are automatically transformed into secure SQL statements, where non-identifiers are bound as parameters. This minimizes the risk of SQL injection attacks. However, developers should remain cautious, especially when loading untrusted third-party JavaScript code, to prevent Cross-Site Scripting (XSS) attacks.
+
+### Settings Encryption
+
+By default, PocketBase stores application settings, including sensitive information like SMTP passwords and S3 storage credentials, in plaintext in the database. To protect this data, it is recommended to encrypt the settings. This can be achieved by setting an environment variable with a random 32-character key and launching the application with the flag `--encryptionEnv=YOUR_ENV_VAR`.
+
+### Security Updates and Community Contributions
+
+PocketBase places a strong emphasis on security and encourages the community to report security vulnerabilities. Developers who discover potential weaknesses are asked to report them via email to support@pocketbase.io. All reports are promptly reviewed, and contributors are acknowledged in the release notes of the corresponding fixes.
+
+### Direct Client Access vs. Server-Side Integration
+
+PocketBase is designed to be accessed directly from the client. This direct access allows the integrated security rules to be effectively applied and reduces complexity caused by additional server layers. In scenarios where server-side logic or privileged operations are necessary, it is recommended to use PocketBase's JavaScript hooks rather than adding extra backend layers.
+
+## Conclusion
+
+The security of applications built on PocketBase largely depends on the correct configuration and usage of the provided security features. By carefully defining API rules, employing robust authentication mechanisms, and keeping the software up to date, a high level of security can be achieved. Developers should always consult the official documentation and follow best security practices to protect their applications and data effectively.
+
+## Sources
+
+- [PocketBase Official Website](https://pocketbase.io/)
+- [PocketBase Documentation](https://pocketbase.io/docs/)
