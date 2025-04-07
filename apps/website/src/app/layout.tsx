@@ -1,54 +1,27 @@
-import type {Metadata} from 'next';
-import {Inter as FontSans} from 'next/font/google';
-import Head from 'next/head';
-import Script from 'next/script';
+import './global.css';
+import { RootProvider } from 'fumadocs-ui/provider';
+import { Inter } from 'next/font/google';
+import type { ReactNode } from 'react';
 
-import {Footer} from '@/components/footer';
-import {Navbar} from '@/components/navbar';
-import {ThemeProvider} from '@/components/theme-provider';
-import {Toaster} from '@/components/ui/toaster';
-import {cn} from '@/lib/utils';
-import '@/style/globals.css';
-
-const fontSans = FontSans({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-sans',
 });
 
-export const metadata: Metadata = {
-  title: 'Budget Buddy',
-  description:
-    'Budget Buddy is your ultimate self-hostable financial management tool. Track transactions, set budgets, and get insightful financial analysis effortlessly. Automate recurring payments, monitor stock investments, and enjoy full control and privacy with our self-hostable platform. Simplify your finances today with Budget Buddy!',
+export const metadata = {
+  title: 'BudgetBuddyDE',
+  description: 'BudgetBuddyDE - Your personal finance buddy',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <Head>
-        <meta name="cf-2fa-verify" content="80110a45c5f0e04" />
-      </Head>
-      <body className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="flex flex-col min-h-[100dvh]">
-            <Navbar />
-
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
-        </ThemeProvider>
-
-        {process.env.NODE_ENV === 'production' && (
-          <Script
-            async
-            src="https://analytics.tools.tklein.it/script.js"
-            data-website-id="b7ac220a-eae6-4b1c-a263-3748f31b620e"
-          />
-        )}
+    <html lang="en" className={inter.className} suppressHydrationWarning>
+      <body className="flex flex-col min-h-screen">
+        <RootProvider>{children}</RootProvider>
       </body>
     </html>
   );
