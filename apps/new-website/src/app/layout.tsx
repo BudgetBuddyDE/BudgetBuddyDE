@@ -7,6 +7,16 @@ const inter = Inter({
   subsets: ['latin'],
 });
 
+export const metadata = {
+  title: 'BudgetBuddyDE',
+  description: 'BudgetBuddyDE - Your personal finance buddy',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
+};
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
