@@ -36,14 +36,15 @@ export const server = http.createServer(app);
 
 const io = new Server(server, {cors: config.cors});
 
+app.use((req, res, next) => {
+  res.setHeader('X-Served-By', `${name}::${version}`);
+  logger.info('Request received');
+  next();
+});
 app.use(cors(config.cors));
 app.use(logMiddleware);
 app.use(bodyParser.json());
 app.use(checkAuthorizationHeader);
-app.use((req, res, next) => {
-  res.setHeader('X-Served-By', `${name}::${version}`);
-  next();
-});
 
 app.use('/v1/asset', AssetRouter);
 app.use('/v1/asset/watchlist', AssetWatchlistRouter);
