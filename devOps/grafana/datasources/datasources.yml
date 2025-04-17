@@ -1,0 +1,46 @@
+# Configuration file version
+# See here fore more information on configuration:
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#example-data-source-configuration-file
+apiVersion: 1
+
+# Mark provisioned data sources for deletion if they are no longer in a provisioning file.
+prune: false
+
+# List of data sources to insert/update depending on what's available.
+datasources:
+  - name: Loki
+    type: loki
+    access: direct
+    orgId: 1
+    uid: grafana_lokiq
+    url: $LOKI_INTERNAL_URL
+    user:
+    database:
+    basicAuth:
+    basicAuthUser:
+    withCredentials:
+    isDefault: true
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    orgId: 1
+    uid: grafana_prometheus
+    url: $PROMETHEUS_INTERNAL_URL
+    user:
+    database:
+    basicAuth:
+    basicAuthUser:
+    withCredentials:
+    isDefault: false
+  - name: Tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    uid: grafana_tempo
+    url: $TEMPO_INTERNAL_URL
+    user:
+    database:
+    basicAuth:
+    basicAuthUser:
+    withCredentials:
+    isDefault: false
