@@ -11,8 +11,6 @@ const META_INFORMATION = {
   project: 'budgetbuddyde',
 };
 
-console.log('Logger initialized with config:', META_INFORMATION, process.env.LOKI_HOST);
-
 export const logger = winston.createLogger({
   level: getLogLevel(),
   defaultMeta: META_INFORMATION,
@@ -35,9 +33,6 @@ export const logger = winston.createLogger({
             host: process.env.LOKI_HOST,
             // useWinstonMetaAsLabels: true,
             labels: META_INFORMATION,
-            onConnectionError(error) {
-              logger.error('Error connecting to Loki', error);
-            },
           }),
         ]
       : []),
