@@ -1,0 +1,7 @@
+node_modules/
+.vscode/
+build/
+.idea/
+.env
+
+src/db/schema/auth/auth-schema.ts

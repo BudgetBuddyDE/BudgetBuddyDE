@@ -1,0 +1,45 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "",
+    "dev": "npx tsx watch src/server.ts",
+    "build": "",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format:check": "echo \"Error: no formatting rules specified\" && exit 1",
+    "format:write": "echo \"Error: no formatting rules specified\" && exit 1",
+    "lint": "echo \"Error: no linting rules specified\" && exit 1",
+    "studio": "npx drizzle-kit studio",
+    "generate-auth-schema": "npx @better-auth/cli generate --output src/db/schema/auth/auth-schema.ts",
+    "db-generate": "npx drizzle-kit generate",
+    "db-migrate": "npx drizzle-kit migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@budgetbuddyde/utils": "^1.1.1",
+    "better-auth": "^1.2.7",
+    "cors": "^2.8.5",
+    "drizzle-orm": "^0.42.0",
+    "drizzle-zod": "^0.7.1",
+    "express": "^5.1.0",
+    "pg": "^8.14.1",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.1",
+    "@types/pg": "^8.11.13",
+    "dotenv": "^16.5.0",
+    "drizzle-kit": "^0.31.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
+    "vitest": "^3.1.2"
+  }
+}
