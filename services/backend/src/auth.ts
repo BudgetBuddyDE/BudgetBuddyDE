@@ -2,9 +2,12 @@ import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {betterAuth} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {multiSession} from 'better-auth/plugins';
+import {type BetterAuthOptions} from 'better-auth/types';
+import 'dotenv/config';
 
 import {config} from './config';
 import {db} from './db/drizzleClient';
+import {redisClient} from './db/redis';
 import {isCSRFCheckDisabled} from './utils';
 
 export const auth = betterAuth({
@@ -12,6 +15,16 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
+  secondaryStorage: {
+    get: async key => await redisClient.get(key),
+    set: async (key, value, ttl) => {
+      if (ttl) await redisClient.set(key, value, {EX: ttl});
+      else await redisClient.set(key, value);
+    },
+    delete: async key => {
+      await redisClient.del(key);
+    },
+  },
   logger: {
     disabled: false,
     level: config.log.level,
@@ -55,4 +68,4 @@ export const auth = betterAuth({
     max: 30,
   },
   plugins: [multiSession()].filter(v => typeof v !== 'boolean'),
-});
+} as BetterAuthOptions);

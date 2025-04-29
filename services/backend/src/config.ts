@@ -2,6 +2,7 @@ import {type Logger, getLogLevel} from '@budgetbuddyde/utils';
 import {type CorsOptions} from 'cors';
 import 'dotenv/config';
 import {type PoolConfig} from 'pg';
+import {type RedisClientOptions} from 'redis';
 
 import {name, version} from '../package.json';
 
@@ -16,6 +17,7 @@ export type Config = {
   };
   db: {
     pool: PoolConfig;
+    redis: RedisClientOptions;
   };
   cors: CorsOptions;
 };
@@ -28,6 +30,10 @@ export const config: Config = {
   db: {
     pool: {
       connectionString: process.env.DATABASE_URL,
+    },
+    redis: {
+      url: process.env.REDIS_URL,
+      database: 1,
     },
   },
   log: {

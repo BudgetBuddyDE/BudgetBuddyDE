@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "",
+    "start": "node build/src/server.js",
     "dev": "npx tsx watch src/server.ts",
-    "build": "",
+    "build": "npx rimraf build && npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format:check": "echo \"Error: no formatting rules specified\" && exit 1",
     "format:write": "echo \"Error: no formatting rules specified\" && exit 1",
@@ -17,8 +17,8 @@
     "db-migrate": "npx drizzle-kit migrate"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Thorben Klein",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "@budgetbuddyde/utils": "^1.1.1",
@@ -28,6 +28,8 @@
     "drizzle-zod": "^0.7.1",
     "express": "^5.1.0",
     "pg": "^8.14.1",
+    "redis": "^4.7.0",
+    "rimraf": "^6.0.1",
     "typescript": "^5.8.3"
   },
   "devDependencies": {

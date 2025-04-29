@@ -2,7 +2,7 @@ import {boolean, pgTable, varchar} from 'drizzle-orm/pg-core';
 import {createInsertSchema, createSelectSchema} from 'drizzle-zod';
 import {z} from 'zod';
 
-import {BaseColumns, CreatedAtColumn, DescriptionColumn, OwnerColumn, Tables, UpdatedAtColumn} from './general';
+import {CreatedAtColumn, DescriptionColumn, OwnerColumn, Tables, UpdatedAtColumn} from './general';
 
 const NewsletterKey = varchar('newsletter', {length: 30});
 
@@ -27,8 +27,7 @@ export const ZInsertNewsletter = createInsertSchema(Newsletters, {
 export type TInsertNewsletter = z.infer<typeof ZInsertNewsletter>;
 
 export const NewsletterSubscriptions = pgTable(Tables.NEWSLETTER_SUBSCRIPTIONS, {
-  ...BaseColumns,
-  ...OwnerColumn, // FIXME: there should be a foreign key to the user table
+  ...OwnerColumn,
   newsletter: NewsletterKey.references(() => Newsletters.newsletter).notNull(),
 });
 

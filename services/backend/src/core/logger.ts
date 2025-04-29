@@ -1,4 +1,4 @@
-import {createLogger, getLogLevel} from '@budgetbuddyde/utils';
+import {createLogger} from '@budgetbuddyde/utils';
 
 import {config} from '../config';
 
