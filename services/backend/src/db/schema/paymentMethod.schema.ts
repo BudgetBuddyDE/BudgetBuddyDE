@@ -8,7 +8,7 @@ export const PaymentMethods = pgTable(
   Tables.PAYMENT_METHODS,
   {
     ...BaseColumns,
-    ...OwnerColumn, // FIXME: there should be a foreign key to the user table
+    ...OwnerColumn,
     name: varchar('name', {length: 120}).notNull(),
     provider: varchar('provider', {length: 120}).notNull(),
     address: varchar('addres', {length: 120}).notNull(),

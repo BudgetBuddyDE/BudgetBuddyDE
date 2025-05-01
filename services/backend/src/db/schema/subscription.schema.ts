@@ -10,10 +10,14 @@ export const Subscriptions = pgTable(Tables.SUBSCRIPTIONS, {
   ...BaseColumns,
   ...OwnerColumn, // FIXME: there should be a foreign key to the user table
   category: integer('categoryId')
-    .references(() => Categories.id)
+    .references(() => Categories.id, {
+      onDelete: 'cascade',
+    })
     .notNull(),
   paymentMethod: integer('paymentMethodId')
-    .references(() => PaymentMethods.id)
+    .references(() => PaymentMethods.id, {
+      onDelete: 'cascade',
+    })
     .notNull(),
   paused: boolean('paused').default(false).notNull(),
   exexcuteAt: integer('executeAt').notNull(),

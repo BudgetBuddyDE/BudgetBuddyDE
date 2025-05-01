@@ -10,10 +10,14 @@ export const Transactions = pgTable(Tables.TRANSACTIONS, {
   ...BaseColumns,
   ...OwnerColumn,
   category: integer('categoryId')
-    .references(() => Categories.id)
+    .references(() => Categories.id, {
+      onDelete: 'cascade',
+    })
     .notNull(),
   paymentMethod: integer('paymentMethodId')
-    .references(() => PaymentMethods.id)
+    .references(() => PaymentMethods.id, {
+      onDelete: 'cascade',
+    })
     .notNull(),
   processedAt: timestamp('processedAt').notNull(),
   receiver: varchar('receiver', {length: 120}).notNull(),

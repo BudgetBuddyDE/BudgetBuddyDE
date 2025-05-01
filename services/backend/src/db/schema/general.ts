@@ -38,7 +38,9 @@ export const BaseColumns = {
 
 export const OwnerColumn = {
   owner: text('ownerId')
-    .references(() => user.id)
+    .references(() => user.id, {
+      onDelete: 'cascade',
+    })
     .notNull(),
 };
 

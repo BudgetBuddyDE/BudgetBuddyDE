@@ -19,10 +19,14 @@ export type TBudget = z.infer<typeof ZBudget>;
 
 export const BudgetsCategories = pgTable(Tables.BUDGET_CATEGORIES, {
   budgetId: integer('budgetId')
-    .references(() => Budgets.id)
+    .references(() => Budgets.id, {
+      onDelete: 'cascade',
+    })
     .notNull(),
   categoryId: integer('categoryId')
-    .references(() => Categories.id)
+    .references(() => Categories.id, {
+      onDelete: 'cascade',
+    })
     .notNull(),
 });
 export const ZBudgetCategory = createSelectSchema(BudgetsCategories);

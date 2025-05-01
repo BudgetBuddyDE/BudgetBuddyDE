@@ -28,7 +28,9 @@ export type TInsertNewsletter = z.infer<typeof ZInsertNewsletter>;
 
 export const NewsletterSubscriptions = pgTable(Tables.NEWSLETTER_SUBSCRIPTIONS, {
   ...OwnerColumn,
-  newsletter: NewsletterKey.references(() => Newsletters.newsletter).notNull(),
+  newsletter: NewsletterKey.references(() => Newsletters.newsletter, {
+    onDelete: 'cascade',
+  }).notNull(),
 });
 
 export const ZNewsletterSubscription = createSelectSchema(NewsletterSubscriptions);

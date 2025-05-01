@@ -8,7 +8,7 @@ export const Categories = pgTable(
   Tables.CATEGORIES,
   {
     ...BaseColumns,
-    ...OwnerColumn, // FIXME: there should be a foreign key to the user table
+    ...OwnerColumn,
     name: varchar('name', {length: 120}).notNull(),
     ...DescriptionColumn,
   },

@@ -30,7 +30,9 @@ export const StockPositions = pgTable(Tables.STOCK_POSITIONS, {
   ...BaseColumns,
   ...OwnerColumn, // FIXME: there should be a foreign key to the user table
   exchange: varchar('exchange', {length: 5})
-    .references(() => StockExchanges.symbol)
+    .references(() => StockExchanges.symbol, {
+      onDelete: 'cascade',
+    })
     .notNull(),
   boughtAt: timestamp('boughtAt').notNull(),
   isin: varchar('isin', {length: 12}).notNull(),
@@ -62,7 +64,9 @@ export const StockWatchlists = pgTable(Tables.STOCK_WATCHLISTS, {
   ...BaseColumns,
   ...OwnerColumn, // FIXME: there should be a foreign key to the user table
   exchange: varchar('exchange', {length: 5})
-    .references(() => StockExchanges.symbol)
+    .references(() => StockExchanges.symbol, {
+      onDelete: 'cascade',
+    })
     .notNull(),
   isin: varchar('isin', {length: 12}).notNull(),
   ...DescriptionColumn,
