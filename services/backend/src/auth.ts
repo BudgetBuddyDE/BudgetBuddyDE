@@ -8,12 +8,14 @@ import 'dotenv/config';
 import {config} from './config';
 import {db} from './db/drizzleClient';
 import {redisClient} from './db/redis';
+import * as authSchema from './db/schema/auth';
 import {isCSRFCheckDisabled} from './utils';
 
 export const auth = betterAuth({
   appName: config.service,
   database: drizzleAdapter(db, {
     provider: 'pg',
+    schema: authSchema,
   }),
   secondaryStorage: {
     get: async key => await redisClient.get(key),
