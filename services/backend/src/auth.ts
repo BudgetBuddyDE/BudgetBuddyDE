@@ -1,7 +1,7 @@
 import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {betterAuth} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
-import {multiSession} from 'better-auth/plugins';
+import {admin, multiSession} from 'better-auth/plugins';
 import {type BetterAuthOptions} from 'better-auth/types';
 import 'dotenv/config';
 
@@ -69,5 +69,7 @@ export const auth = betterAuth({
     window: 60,
     max: 30,
   },
-  plugins: [multiSession()].filter(v => typeof v !== 'boolean'),
+  plugins: [admin({defaultRole: 'user', adminRoles: ['admin', 'service-account']}), multiSession()].filter(
+    v => typeof v !== 'boolean',
+  ),
 } as BetterAuthOptions);

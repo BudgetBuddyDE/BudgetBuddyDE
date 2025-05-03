@@ -15,6 +15,13 @@
       "when": 1746118574931,
       "tag": "0001_massive_albert_cleary",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746235418248,
+      "tag": "0002_silent_kang",
+      "breakpoints": true
     }
   ]
 }
