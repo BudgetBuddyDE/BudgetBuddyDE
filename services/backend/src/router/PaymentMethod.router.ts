@@ -1,14 +1,14 @@
 import {Router} from 'express';
 
-import {type TInsertCategory, ZInsertCategory} from '../db/schema';
+import {type TInsertCategory, ZInsertPaymentMethod} from '../db/schema';
 import {hasEntityId} from '../middleware';
 import {ApiResponse} from '../models/ApiResponse';
 import {User} from '../models/User.model';
-import {CategoryService} from '../service';
+import {PaymentMethodService} from '../service';
 
 const router = Router();
 
-const categoryService = new CategoryService();
+const paymentMethodService = new PaymentMethodService();
 
 router.get('/search', async (req, res) => {
   const {query} = req.query;
@@ -16,7 +16,7 @@ router.get('/search', async (req, res) => {
     .withMessage(`Results for '${query}'`)
     .withData({
       query,
-      results: await categoryService.search(query as string),
+      results: await paymentMethodService.search(query as string),
     })
     .withExpressResponse(res)
     .buildAndSend();
@@ -24,14 +24,14 @@ router.get('/search', async (req, res) => {
 
 router.get('/', async (_req, res) => {
   return ApiResponse.builder()
-    .withData(await categoryService.getAll())
+    .withData(await paymentMethodService.getAll())
     .withExpressResponse(res)
     .buildAndSend();
 });
 
 router.get('/:id', hasEntityId, async (req, res) => {
   const {id} = req.params;
-  const result = await categoryService.getById(Number(id));
+  const result = await paymentMethodService.getById(Number(id));
   return ApiResponse.builder()
     .withStatus(result ? 200 : 404)
     .withData(result)
@@ -42,9 +42,9 @@ router.get('/:id', hasEntityId, async (req, res) => {
 router.post('/', async (req, res) => {
   const payload = req.body;
   const user = req.user;
-  const result = await categoryService.create<TInsertCategory>(
+  const result = await paymentMethodService.create<TInsertCategory>(
     Array.isArray(payload) ? payload : [payload],
-    ZInsertCategory,
+    ZInsertPaymentMethod,
     user as User,
   );
   return ApiResponse.builder().withData(result).withExpressResponse(res).buildAndSend();
@@ -53,13 +53,13 @@ router.post('/', async (req, res) => {
 router.put('/:id', hasEntityId, async (req, res) => {
   const {id} = req.params;
   const payload = req.body;
-  const result = await categoryService.updateById(Number(id), payload);
+  const result = await paymentMethodService.updateById(Number(id), payload);
   return ApiResponse.builder().withData(result).withExpressResponse(res).buildAndSend();
 });
 
 router.delete('/:id', hasEntityId, async (req, res) => {
   const {id} = req.params;
-  const result = await categoryService.deleteById(Number(id));
+  const result = await paymentMethodService.deleteById(Number(id));
   return ApiResponse.builder().withData(result).withExpressResponse(res).buildAndSend();
 });
 

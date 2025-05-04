@@ -11,6 +11,12 @@ import {redisClient} from './db/redis';
 import * as authSchema from './db/schema/auth';
 import {isCSRFCheckDisabled} from './utils';
 
+export enum AuthRole {
+  USER = 'user',
+  SERVICE_ACCOUNT = 'service-account',
+  ADMIN = 'admin',
+}
+
 export const auth = betterAuth({
   appName: config.service,
   database: drizzleAdapter(db, {
@@ -69,7 +75,8 @@ export const auth = betterAuth({
     window: 60,
     max: 30,
   },
-  plugins: [admin({defaultRole: 'user', adminRoles: ['admin', 'service-account']}), multiSession()].filter(
-    v => typeof v !== 'boolean',
-  ),
+  plugins: [
+    admin({defaultRole: AuthRole.USER, adminRoles: [AuthRole.ADMIN, AuthRole.SERVICE_ACCOUNT]}),
+    multiSession(),
+  ].filter(v => typeof v !== 'boolean'),
 } as BetterAuthOptions);

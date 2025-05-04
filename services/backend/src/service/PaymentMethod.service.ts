@@ -1,22 +1,27 @@
 import {eq, like, or} from 'drizzle-orm';
 
 import {db} from '../db/drizzleClient';
-import {Categories, type TCategory, type TUpdateCategory, ZUpdateCategory} from '../db/schema';
+import {PaymentMethods, type TPaymentMethod, type TUpdatePaymentMethod, ZUpdatePaymentMethod} from '../db/schema';
 import {Tables} from '../db/schema/general';
 import {type ICRUDService} from './interfaces';
 import {CRUDService} from './interfaces/CRUD.service';
 
-export class CategoryService
-  extends CRUDService<typeof Categories, TCategory>
-  implements ICRUDService<TCategory['id'], TCategory, TUpdateCategory>
+export class PaymentMethodService
+  extends CRUDService<typeof PaymentMethods, TPaymentMethod>
+  implements ICRUDService<TPaymentMethod['id'], TPaymentMethod, TUpdatePaymentMethod>
 {
   constructor() {
-    super(CategoryService.name, db, Categories, Tables.CATEGORIES);
+    super(PaymentMethodService.name, db, PaymentMethods, Tables.PAYMENT_METHODS);
   }
 
   async search(query: string) {
     const searchExpression = `%${query}%`;
-    const where = or(like(this.tbl.name, searchExpression), like(this.tbl.description, searchExpression));
+    const where = or(
+      like(this.tbl.name, searchExpression),
+      like(this.tbl.address, searchExpression),
+      like(this.tbl.provider, searchExpression),
+      like(this.tbl.description, searchExpression),
+    );
     this.log.debug(`Searching for '${query}' in ${this.tblName}`);
     const matches = await this.db.select().from(this.tbl).where(where);
     this.log.debug(`Found ${matches.length} matches for '${query}' in ${this.tblName}`);
@@ -29,8 +34,8 @@ export class CategoryService
     return result.length > 0 ? result[0] : null;
   }
 
-  async updateById(entityId: TCategory['id'], entites: TUpdateCategory) {
-    const parsedPayload = ZUpdateCategory.safeParse(entites);
+  async updateById(entityId: TPaymentMethod['id'], entites: TUpdatePaymentMethod) {
+    const parsedPayload = ZUpdatePaymentMethod.safeParse(entites);
     if (!parsedPayload.success) {
       this.log.error(`Failed to parse payload: ${parsedPayload.error}`);
       throw parsedPayload.error;
@@ -58,7 +63,7 @@ export class CategoryService
     return updatedEntity;
   }
 
-  async deleteById(entityId: TCategory['id']) {
+  async deleteById(entityId: TPaymentMethod['id']) {
     let deletedEntity = null;
     await this.db.transaction(async tx => {
       this.log.debug(`Deleting record with ID ${entityId} from ${this.tblName}`);

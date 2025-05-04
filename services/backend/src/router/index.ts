@@ -1,1 +1,2 @@
-export {default as CategoryRouter} from './Category.router';
+export {default as CategoryRouter} from './category.router';
+export {default as PaymentMethodRouter} from './PaymentMethod.router';
