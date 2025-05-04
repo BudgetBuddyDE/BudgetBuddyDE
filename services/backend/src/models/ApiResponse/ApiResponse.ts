@@ -152,6 +152,7 @@ export class ApiResponseBuilder<T> {
    */
   public buildAndSend(): void {
     if (this.res) {
+      if (!this.responseBody.from) delete this.responseBody.from;
       this.res.status(this.responseBody.status).json(this.build()).end();
     } else {
       throw new Error('ExpressJS response object is not set.');

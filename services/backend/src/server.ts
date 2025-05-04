@@ -11,6 +11,7 @@ import {checkConnection} from './db/pool';
 import {connectToRedis, isRedisConnected} from './db/redis';
 import {log, servedBy} from './middleware';
 import {ApiResponse} from './models/ApiResponse';
+import {CategoryRouter} from './router';
 
 export const app = express();
 export const server = http.createServer(app);
@@ -41,6 +42,12 @@ app.get('/status', async (_, res) => {
 // or only apply it to routes that don't interact with Better Auth
 app.use(express.json());
 
+app.use('/api/category', CategoryRouter);
+app.use('/api/payment-method', CategoryRouter);
+app.use('/api/transaction', CategoryRouter);
+app.use('/api/subscription', CategoryRouter);
+app.use('/api/budget', CategoryRouter);
+
 export const listen = server.listen(config.port, async () => {
   console.table({
     service: config.service,
@@ -55,4 +62,6 @@ export const listen = server.listen(config.port, async () => {
   logger.info('%s is available under http://localhost:%d', config.service, config.port);
 
   await connectToRedis(true);
+
+  // TODO: Init job scheduler
 });

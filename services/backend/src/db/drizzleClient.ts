@@ -1,5 +1,7 @@
 import {drizzle} from 'drizzle-orm/node-postgres';
 
 import {pool} from './pool';
+import * as schema from './schema';
 
-export const db = drizzle({client: pool});
+export const db = drizzle({client: pool, schema: schema});
+export type DrizzleDatabaseClient = typeof db;

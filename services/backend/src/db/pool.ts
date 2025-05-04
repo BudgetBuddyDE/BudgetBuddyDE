@@ -11,6 +11,14 @@ export const pool = new Pool({
   max: 20,
 });
 
+pool.on('connect', () => dbLogger.debug('Connected to the database'));
+
+pool.on('acquire', () => dbLogger.debug('Client acquired'));
+
+pool.on('release', () => dbLogger.debug('Client released'));
+
+pool.on('remove', () => dbLogger.debug('Client removed'));
+
 // the pool will emit an error on behalf of any idle clients
 // it contains if a backend error or network partition happens
 pool.on('error', (err, _) => {
