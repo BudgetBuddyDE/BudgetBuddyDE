@@ -9,8 +9,9 @@ import {config} from './config';
 import {logger} from './core/logger';
 import {checkConnection} from './db/pool';
 import {connectToRedis, isRedisConnected} from './db/redis';
-import {log, servedBy} from './middleware';
+import {auth as authMdlware, handleError, log, servedBy} from './middleware';
 import {ApiResponse} from './models/ApiResponse';
+import {CategoryRouter, PaymentMethodRouter} from './router';
 
 export const app = express();
 export const server = http.createServer(app);
@@ -18,10 +19,10 @@ export const server = http.createServer(app);
 app.use(servedBy);
 app.use(log);
 app.use(cors(config.cors));
-// bodyparser
+app.use(authMdlware);
 
 app.all('/api/auth/{*splat}', toNodeHandler(auth));
-app.get('/status', async (_, res) => {
+app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const isRedisReachable = isRedisConnected();
   const isServiceHealths = isDatabaseConnected && isRedisReachable;
@@ -41,6 +42,16 @@ app.get('/status', async (_, res) => {
 // or only apply it to routes that don't interact with Better Auth
 app.use(express.json());
 
+app.use('/api/category', CategoryRouter);
+app.use('/api/payment-method', PaymentMethodRouter);
+app.use('/api/transaction', CategoryRouter);
+app.use('/api/subscription', CategoryRouter);
+app.use('/api/budget', CategoryRouter);
+
+// TODO: Handle ZodError and other errors based on their type
+// Mount an global error handler
+app.use(handleError);
+
 export const listen = server.listen(config.port, async () => {
   console.table({
     service: config.service,
@@ -55,4 +66,6 @@ export const listen = server.listen(config.port, async () => {
   logger.info('%s is available under http://localhost:%d', config.service, config.port);
 
   await connectToRedis(true);
+
+  // TODO: Init job scheduler
 });

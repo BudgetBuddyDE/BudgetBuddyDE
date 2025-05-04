@@ -13,7 +13,7 @@ export function log(req: Request, res: Response, next: NextFunction): void {
   const start = process.hrtime();
   res.on('finish', () => {
     const [seconds, nanoseconds] = process.hrtime(start);
-    const durationMs = (seconds * 1000 + nanoseconds / 1e6).toFixed(2); // Convert to milliseconds and format
+    const durationMs = Number((seconds * 1000 + nanoseconds / 1e6).toFixed(2)); // Convert to milliseconds and format
 
     const statusCode = res.statusCode;
     const targetLogLevel: LogLevel =
@@ -22,8 +22,8 @@ export function log(req: Request, res: Response, next: NextFunction): void {
       requestId: requestId,
       method: req.method,
       ip: req.ip,
-      url: req.url,
-      path: req.path,
+      baseUrl: req.baseUrl,
+      url: req.originalUrl,
       responseTime: `${durationMs} ms`,
       responseTimeInMillis: durationMs,
       responseCode: statusCode,

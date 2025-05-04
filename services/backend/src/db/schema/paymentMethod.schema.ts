@@ -30,3 +30,11 @@ export const ZInsertPaymentMethod = createInsertSchema(PaymentMethods, {
   description: string => string.optional(),
 });
 export type TInsertPaymentMethod = z.infer<typeof ZInsertPaymentMethod>;
+
+export const ZUpdatePaymentMethod = z.object({
+  name: ZInsertPaymentMethod.shape.name,
+  provider: ZInsertPaymentMethod.shape.provider,
+  address: ZInsertPaymentMethod.shape.address,
+  description: ZInsertPaymentMethod.shape.description,
+});
+export type TUpdatePaymentMethod = z.infer<typeof ZUpdatePaymentMethod>;

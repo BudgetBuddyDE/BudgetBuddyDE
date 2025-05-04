@@ -25,3 +25,10 @@ export const ZInsertCategory = createInsertSchema(Categories, {
   description: string => string.optional(),
 });
 export type TInsertCategory = z.infer<typeof ZInsertCategory>;
+
+export const ZUpdateCategory = z.object({
+  // id: ZInsertCategory.shape.id,
+  name: ZInsertCategory.shape.name,
+  description: ZInsertCategory.shape.description,
+});
+export type TUpdateCategory = z.infer<typeof ZUpdateCategory>;
