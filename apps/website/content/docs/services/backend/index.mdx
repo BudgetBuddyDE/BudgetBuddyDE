@@ -1,0 +1,45 @@
+---
+title: Backend
+---
+
+import {
+  DatabaseBackupIcon,
+  SparklesIcon,
+  LayoutPanelTopIcon,
+  ShieldCheckIcon,
+} from 'lucide-react';
+
+<Callout title="Attention">
+  A new backend is currently under development to replace Pocketbase and the other individual
+  services. The new backend will retain the old functionality while extending existing features.
+  This will significantly increase the speed of development, as (among other things) changes to one
+  interface will no longer require changes to multiple services.
+</Callout>
+
+## Introduction
+
+The backend serves as the central backbone of the application, handling all data-related operations. Its responsibilities include:
+
+- Managing and processing data
+- Fetching and preparing external data sources
+- Handling authentication and authorization
+- Managing and sending newsletters
+
+The backend is built with ExpressJS, and Better-Auth is used for authentication and authorization. Data is stored in a PostgreSQL database and cached with Redis. Database schema management is handled using DrizzleORM, while Resend is used to deliver newsletters.
+
+## Topics
+
+<Cards>
+  <Card icon={<SparklesIcon />} href="./backend/features" title="Features">
+    Overview of core functionalities.
+  </Card>
+  <Card icon={<LayoutPanelTopIcon />} href="./backend/model" title="Model">
+    Overview of the underlaying database model.
+  </Card>
+  <Card icon={<DatabaseBackupIcon />} href="./backend/backups" title="Backups">
+    Guide on how files and backups can be securely stored.
+  </Card>
+  <Card icon={<ShieldCheckIcon />} href="./backend/security" title="Security">
+    Overview of the security measures implements to ensure data protection.
+  </Card>
+</Cards>
