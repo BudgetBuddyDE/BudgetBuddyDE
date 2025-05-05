@@ -1,4 +1,4 @@
-import {toNodeHandler} from 'better-auth/node';
+import {fromNodeHeaders, toNodeHandler} from 'better-auth/node';
 import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
@@ -22,6 +22,12 @@ app.use(cors(config.cors));
 app.use(authMdlware);
 
 app.all('/api/auth/{*splat}', toNodeHandler(auth));
+app.get('/api/me', async (req, res) => {
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  });
+  res.json(session);
+});
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const isRedisReachable = isRedisConnected();

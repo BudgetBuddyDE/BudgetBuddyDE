@@ -1,4 +1,5 @@
-import {AuthRole} from '../auth';
+import {AuthRole, isUserRole} from '../auth';
+import {ZUser} from '../db/schema';
 
 export class User {
   readonly id: string;
@@ -72,8 +73,9 @@ class UserBuilder {
     return this;
   }
 
-  withEmail(email: string): this {
+  withEmail(email: string, emailVerified?: boolean): this {
     this._email = email;
+    if (emailVerified) this._emailVerified = emailVerified;
     return this;
   }
 
@@ -107,6 +109,23 @@ class UserBuilder {
     this._banReason = reason;
     this._banExpires = expires;
     return this;
+  }
+
+  fromJson(json: object): User {
+    const {id, role, banExpires, banReason, createdAt, email, emailVerified, image, name, updatedAt} =
+      ZUser.parse(json);
+
+    this.withId(id);
+    this.withName(name);
+    this.withEmail(email, emailVerified);
+    if (image) this.withImage(image);
+    isUserRole(role);
+    this.withRole(role);
+    if (banReason) this.withBanReason(banReason, banExpires ? banExpires : undefined);
+    this.withCreatedAt(createdAt);
+    this.withUpdatedAt(updatedAt);
+
+    return this.build();
   }
 
   build(): User {

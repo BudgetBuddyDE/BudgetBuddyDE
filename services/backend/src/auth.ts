@@ -17,6 +17,13 @@ export enum AuthRole {
   ADMIN = 'admin',
 }
 
+export function isUserRole(role: string | null): asserts role is AuthRole {
+  const isUserRole = Object.values(AuthRole).includes(role as AuthRole);
+  if (!isUserRole) {
+    throw new Error(`Role ${role} is not a valid user role`);
+  }
+}
+
 export const auth = betterAuth({
   appName: config.service,
   database: drizzleAdapter(db, {
