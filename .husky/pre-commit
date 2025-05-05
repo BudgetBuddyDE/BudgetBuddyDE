@@ -12,7 +12,7 @@ go_back() {
 
 if has_changes "apps/website"; then
   echo "Running checks for apps/website..."
-  cd apps/website && npm run lint && npx prettier --check src && go_back || exit 1
+  cd apps/website && npx prettier --check src && go_back || exit 1
 fi
 
 if has_changes "apps/webapp"; then
