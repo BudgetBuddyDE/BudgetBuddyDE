@@ -1,4 +1,4 @@
-import KanbanBoard from './kanban-board';
+import KanbanBoard from "./kanban-board";
 
 export default function TestPage() {
   return (

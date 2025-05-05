@@ -1,5 +1,5 @@
-import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import Image from 'next/image';
+import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import Image from "next/image";
 
 /**
  * Shared layout configurations
@@ -14,7 +14,7 @@ export const baseOptions: BaseLayoutProps = {
       <>
         <Image
           alt="BudgetBuddyDE Logo"
-          src={'/logo.png'}
+          src={"/logo.png"}
           sizes="100px"
           className="hidden w-20 md:w-24"
           width={100}
@@ -25,9 +25,9 @@ export const baseOptions: BaseLayoutProps = {
       </>
     ),
   },
-  githubUrl: 'https://github.com/BudgetBuddyDE/BudgetBuddyDE',
+  githubUrl: "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
   links: [],
   themeSwitch: {
-    mode: 'light-dark-system',
+    mode: "light-dark-system",
   },
 };

@@ -47,7 +47,13 @@ title: Model
         "presentable": false,
         "unique": false,
         "options": {
-          "mimeTypes": ["image/jpeg", "image/png", "image/svg+xml", "image/gif", "image/webp"],
+          "mimeTypes": [
+            "image/jpeg",
+            "image/png",
+            "image/svg+xml",
+            "image/gif",
+            "image/webp"
+          ],
           "thumbs": null,
           "maxSelect": 1,
           "maxSize": 5242880,
@@ -142,7 +148,9 @@ title: Model
         }
       }
     ],
-    "indexes": ["CREATE INDEX `idx_5GNpves` ON `budgets` (\n  `owner`,\n  `category`\n)"],
+    "indexes": [
+      "CREATE INDEX `idx_5GNpves` ON `budgets` (\n  `owner`,\n  `category`\n)"
+    ],
     "listRule": "owner.id = @request.auth.id",
     "viewRule": "owner.id = @request.auth.id",
     "createRule": "",
@@ -201,7 +209,9 @@ title: Model
         }
       }
     ],
-    "indexes": ["CREATE UNIQUE INDEX `idx_AaKwX4L` ON `categories` (\n  `owner`,\n  `name`\n)"],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_AaKwX4L` ON `categories` (\n  `owner`,\n  `name`\n)"
+    ],
     "listRule": "owner.id = @request.auth.id",
     "viewRule": "owner.id = @request.auth.id",
     "createRule": "",
@@ -268,7 +278,9 @@ title: Model
         }
       }
     ],
-    "indexes": ["CREATE UNIQUE INDEX `idx_fWBzw2U` ON `newsletters` (`newsletter`)"],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_fWBzw2U` ON `newsletters` (`newsletter`)"
+    ],
     "listRule": "",
     "viewRule": null,
     "createRule": null,
@@ -850,7 +862,12 @@ title: Model
         "presentable": false,
         "unique": false,
         "options": {
-          "mimeTypes": ["application/pdf", "image/jpeg", "image/png", "image/vnd.mozilla.apng"],
+          "mimeTypes": [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/vnd.mozilla.apng"
+          ],
           "thumbs": [],
           "maxSelect": 99,
           "maxSize": 10485760,

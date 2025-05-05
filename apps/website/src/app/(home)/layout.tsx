@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
-import { HomeLayout } from 'fumadocs-ui/layouts/home';
-import { baseOptions } from '@/app/layout.config';
-import { Footer } from '@/components/Footer';
+import type { ReactNode } from "react";
+import { HomeLayout } from "fumadocs-ui/layouts/home";
+import { baseOptions } from "@/app/layout.config";
+import { Footer } from "@/components/Footer";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
@@ -9,16 +9,16 @@ export default function Layout({ children }: { children: ReactNode }) {
       {...baseOptions}
       links={[
         {
-          text: 'App',
-          url: 'https://app.budget-buddy.de',
+          text: "App",
+          url: "https://app.budget-buddy.de",
         },
         {
-          text: 'Documentation',
-          url: '/docs',
+          text: "Documentation",
+          url: "/docs",
         },
         {
-          text: 'CI/CD',
-          url: 'https://ci.tools.tklein.it',
+          text: "CI/CD",
+          url: "https://ci.tools.tklein.it",
         },
       ]}
     >

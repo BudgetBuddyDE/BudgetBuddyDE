@@ -1,6 +1,6 @@
-import { format } from 'date-fns';
-import { Badge } from './badge';
-import { Calendar, Circle, Flag, Sparkles } from 'lucide-react';
+import { format } from "date-fns";
+import { Badge } from "./badge";
+import { Calendar, Circle, Flag, Sparkles } from "lucide-react";
 
 export interface Tag {
   id: number;
@@ -18,7 +18,7 @@ export interface Task {
   attachments?: number;
   links?: number;
   progress?: { completed: number; total: number };
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   assignees: string[];
   iteration?: { start: Date; end: Date };
 }
@@ -30,18 +30,18 @@ export interface TaskCardProps {
 export default function TaskCard({ task }: TaskCardProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high':
-        return 'text-red-500';
-      case 'medium':
-        return 'text-cyan-500';
-      case 'low':
-        return 'text-gray-400';
+      case "high":
+        return "text-red-500";
+      case "medium":
+        return "text-cyan-500";
+      case "low":
+        return "text-gray-400";
       default:
-        return 'text-gray-400';
+        return "text-gray-400";
     }
   };
 
-  const DATE_FORMAT = 'MMM dd, yyyy';
+  const DATE_FORMAT = "MMM dd, yyyy";
 
   return (
     <div className="border rounded-lg p-3 mb-2">
@@ -75,7 +75,7 @@ export default function TaskCard({ task }: TaskCardProps) {
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               <span>
-                {format(task.iteration.start, DATE_FORMAT)} &#10141;{' '}
+                {format(task.iteration.start, DATE_FORMAT)} &#10141;{" "}
                 {format(task.iteration.end, DATE_FORMAT)}
               </span>
             </div>

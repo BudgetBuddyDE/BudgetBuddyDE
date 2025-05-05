@@ -6,12 +6,12 @@ import {
   CloudUploadIcon,
   type LucideIcon,
   BanknoteIcon,
-} from 'lucide-react';
-import Link from 'next/link';
-import type { ReactNode } from 'react';
-import { cn } from '@/lib/cn';
-import { buttonVariants } from '@/components/ui/button';
-import Image from 'next/image';
+} from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
+import { buttonVariants } from "@/components/ui/button";
+import Image from "next/image";
 
 export default function Page() {
   // const gridColor = 'color-mix(in oklab, var(--color-fd-primary) 10%, transparent)';
@@ -29,7 +29,7 @@ export default function Page() {
         <div
           style={{
             background:
-              'repeating-linear-gradient(to bottom, transparent, color-mix(in oklab, var(--color-fd-primary) 1%, transparent) 500px, transparent 1000px)',
+              "repeating-linear-gradient(to bottom, transparent, color-mix(in oklab, var(--color-fd-primary) 1%, transparent) 500px, transparent 1000px)",
           }}
         >
           <div className="relative">
@@ -51,16 +51,19 @@ const SelfHostable = () => {
           Self Hostable
         </p>
 
-        <h2 className="text-xl font-semibold mb-4 sm:text-2xl">Privacy First with Self-Hosting</h2>
+        <h2 className="text-xl font-semibold mb-4 sm:text-2xl">
+          Privacy First with Self-Hosting
+        </h2>
         <p className="text-fd-muted-foreground mb-6">
-          With Budget Buddy, you can self-host the app on your own server for full control over your
-          financial data. This ensures maximum privacy, data ownership, and flexibility. Keep your
-          finances truly yours — no third parties involved.
+          With Budget Buddy, you can self-host the app on your own server for
+          full control over your financial data. This ensures maximum privacy,
+          data ownership, and flexibility. Keep your finances truly yours — no
+          third parties involved.
         </p>
         <div className="flex flex-row items-center font-mono -mx-4">
           <Link
             href="/docs/introduction/deployment"
-            className={cn(buttonVariants({ variant: 'link' }))}
+            className={cn(buttonVariants({ variant: "link" }))}
           >
             Learn more at &apos;Deployment&apos;
           </Link>
@@ -74,39 +77,39 @@ const SelfHostable = () => {
 const APP_FEATURES: FeatureProps[] = [
   {
     icon: BanknoteIcon,
-    heading: 'Transaction Tracking',
+    heading: "Transaction Tracking",
     children:
-      'Keep a detailed record of all your financial transactions in one place. Easily categorize and review your spending habits to stay on top of your finances.',
+      "Keep a detailed record of all your financial transactions in one place. Easily categorize and review your spending habits to stay on top of your finances.",
   },
   {
     icon: ChartPieIcon,
-    heading: 'Budget Management',
+    heading: "Budget Management",
     children:
-      'Set and manage monthly budgets to ensure you live within your means. Get alerts and insights to help you stick to your financial goals and make informed spending decisions.',
+      "Set and manage monthly budgets to ensure you live within your means. Get alerts and insights to help you stick to your financial goals and make informed spending decisions.",
   },
   {
     icon: ChartLineIcon,
-    heading: 'Insights',
+    heading: "Insights",
     children:
-      'Gain valuable insights based on your transaction history, helping you understand your financial health. Use insights to make better financial decisions and plan for the future.',
+      "Gain valuable insights based on your transaction history, helping you understand your financial health. Use insights to make better financial decisions and plan for the future.",
   },
   {
     icon: CalendarSyncIcon,
-    heading: 'Recurring Payments',
+    heading: "Recurring Payments",
     children:
-      'Add recurring payments to automate monthly transactions for bills and subscriptions. This feature saves you time and ensures you never miss a payment.',
+      "Add recurring payments to automate monthly transactions for bills and subscriptions. This feature saves you time and ensures you never miss a payment.",
   },
   {
     icon: ChartCandlestickIcon,
-    heading: 'Stock Tracking',
+    heading: "Stock Tracking",
     children:
-      'Monitor your stock positions with detailed information on dividends and financial performance. Stay informed about your investments and make strategic decisions to maximize returns.',
+      "Monitor your stock positions with detailed information on dividends and financial performance. Stay informed about your investments and make strategic decisions to maximize returns.",
   },
   {
     icon: CloudUploadIcon,
-    heading: 'File Uploads',
+    heading: "File Uploads",
     children:
-      'Upload files related to your transactions, such as receipts and invoices. This feature helps you keep all your financial documents organized and easily accessible.',
+      "Upload files related to your transactions, such as receipts and invoices. This feature helps you keep all your financial documents organized and easily accessible.",
   },
 ];
 
@@ -119,7 +122,11 @@ const Features = () => {
         </h2>
       </div>
       {APP_FEATURES.map((feature, idx) => (
-        <Feature key={'feature-' + idx} icon={feature.icon} heading={feature.heading}>
+        <Feature
+          key={"feature-" + idx}
+          icon={feature.icon}
+          heading={feature.heading}
+        >
           {feature.children}
         </Feature>
       ))}
@@ -148,17 +155,22 @@ const Feature: React.FC<FeatureProps> = ({ icon: Icon, heading, children }) => {
 const Hero = () => {
   return (
     <div className="relative z-[2] flex flex-col border-x border-t bg-fd-card/80 px-6 pt-12 max-md:text-center md:px-12 md:pt-16 max-lg:overflow-hidden">
-      <h1 className="mb-8 max-w-[600px] text-4xl font-medium">Take Control of Your Finances</h1>
+      <h1 className="mb-8 max-w-[600px] text-4xl font-medium">
+        Take Control of Your Finances
+      </h1>
       <p className="mb-8 text-fd-muted-foreground md:max-w-[80%] md:text-xl">
-        Budget Buddy helps you keep track of your finances and manage your monthly budget. Track
-        transactions, set budgets, and gain valuable insights. Automate recurring payments and track
-        your stock positions—all in a self-hostable solution for full control and privacy.
+        Budget Buddy helps you keep track of your finances and manage your
+        monthly budget. Track transactions, set budgets, and gain valuable
+        insights. Automate recurring payments and track your stock positions—all
+        in a self-hostable solution for full control and privacy.
       </p>
       <div className="inline-flex items-center gap-3 max-md:mx-auto">
         <a
           href="https://app.budget-buddy.de"
           target="_blank"
-          className={cn(buttonVariants({ size: 'lg', className: 'rounded-full' }))}
+          className={cn(
+            buttonVariants({ size: "lg", className: "rounded-full" }),
+          )}
         >
           Getting Started
         </a>
@@ -167,10 +179,10 @@ const Hero = () => {
           rel="noreferrer noopener"
           className={cn(
             buttonVariants({
-              size: 'lg',
-              variant: 'outline',
-              className: 'rounded-full bg-fd-background',
-            })
+              size: "lg",
+              variant: "outline",
+              className: "rounded-full bg-fd-background",
+            }),
           )}
         >
           Open Docs
@@ -178,13 +190,13 @@ const Hero = () => {
       </div>
       <div className="mt-12 -mb-10 lg:-mb-18 w-full mx-auto mx-auto">
         <Image
-          src={'/desktop-mock.png'}
+          src={"/desktop-mock.png"}
           alt="preview"
           priority
           width={1600}
           height={900}
           className={cn(
-            'w-full select-none duration-1000 animate-in fade-in slide-in-from-bottom-12 dark:[mask-image:linear-gradient(to_bottom,white_70%,transparent_90%)]'
+            "w-full select-none duration-1000 animate-in fade-in slide-in-from-bottom-12 dark:[mask-image:linear-gradient(to_bottom,white_70%,transparent_90%)]",
           )}
         />
       </div>

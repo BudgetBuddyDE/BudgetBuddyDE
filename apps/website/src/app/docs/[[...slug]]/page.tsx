@@ -1,21 +1,28 @@
-import { source } from '@/lib/source';
-import { Wrapper } from '@/components/wrapper';
-import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/page';
-import { notFound } from 'next/navigation';
-import defaultMdxComponents, { createRelativeLink } from 'fumadocs-ui/mdx';
-import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
-import { Callout } from 'fumadocs-ui/components/callout';
-import { GithubInfo } from 'fumadocs-ui/components/github-info';
-import { File, Folder, Files } from 'fumadocs-ui/components/files';
-import { Card, Cards } from 'fumadocs-ui/components/card';
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { Step, Steps } from 'fumadocs-ui/components/steps';
-import { TypeTable } from 'fumadocs-ui/components/type-table';
-import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
-import { AlbumIcon } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import { source } from "@/lib/source";
+import { Wrapper } from "@/components/wrapper";
+import {
+  DocsPage,
+  DocsBody,
+  DocsDescription,
+  DocsTitle,
+} from "fumadocs-ui/page";
+import { notFound } from "next/navigation";
+import defaultMdxComponents, { createRelativeLink } from "fumadocs-ui/mdx";
+import { ImageZoom } from "fumadocs-ui/components/image-zoom";
+import { Callout } from "fumadocs-ui/components/callout";
+import { GithubInfo } from "fumadocs-ui/components/github-info";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+import { AlbumIcon } from "lucide-react";
+import { cn } from "@/lib/cn";
 
-export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
+export default async function Page(props: {
+  params: Promise<{ slug?: string[] }>;
+}) {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) notFound();
@@ -27,13 +34,13 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
       toc={page.data.toc}
       full={page.data.full}
       tableOfContent={{
-        style: 'clerk',
+        style: "clerk",
         single: false,
       }}
       editOnGithub={{
-        repo: 'BudgetBuddyDE',
-        owner: 'BudgetBuddyDE',
-        sha: 'main',
+        repo: "BudgetBuddyDE",
+        owner: "BudgetBuddyDE",
+        sha: "main",
         path: `apps/new-website/content/docs/${page.file.path}`,
       }}
     >
@@ -66,7 +73,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
                 <ImageZoom
                   /* eslint-disable  @typescript-eslint/no-explicit-any */
                   {...(props as any)}
-                  className={cn('mb-0 mt-0 rounded-sm', props.className)}
+                  className={cn("mb-0 mt-0 rounded-sm", props.className)}
                 />
               </Wrapper>
             ),
@@ -81,7 +88,9 @@ export async function generateStaticParams() {
   return source.generateParams();
 }
 
-export async function generateMetadata(props: { params: Promise<{ slug?: string[] }> }) {
+export async function generateMetadata(props: {
+  params: Promise<{ slug?: string[] }>;
+}) {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) notFound();
