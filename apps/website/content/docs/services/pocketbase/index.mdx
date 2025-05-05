@@ -8,41 +8,38 @@ import {
   SparklesIcon,
   LayoutPanelTopIcon,
   ShieldCheckIcon,
-} from "lucide-react";
+} from 'lucide-react';
 
 <Callout title="Attention">
-  A new backend is currently being developed to replace Pocketbase for Budget
-  Buddy. The backend will have the same functionality as Pocketbase and will
-  provide a more flexible approach to query the data to support better
-  analytical queries.
+  A new backend is currently being developed to replace Pocketbase for Budget Buddy. The backend
+  will have the same functionality as Pocketbase and will provide a more flexible approach to query
+  the data to support better analytical queries.
 </Callout>
 
 <Cards>
-  <Card icon={<SparklesIcon />} href="features" title="Features">
+  <Card icon={<SparklesIcon />} href="./pocketbase/features" title="Features">
     Overview of PocketBase's core functionalities.
   </Card>
-  <Card icon={<PencilIcon />} href="modifications" title="Modifications">
+  <Card icon={<PencilIcon />} href="./pocketbase/modifications" title="Modifications">
     Documentation of the modifications we have made to PocketBase.
   </Card>
-  <Card icon={<LayoutPanelTopIcon />} href="model" title="Model">
+  <Card icon={<LayoutPanelTopIcon />} href="./pocketbase/model" title="Model">
     Explanation of the data structure.
   </Card>
-  <Card icon={<DatabaseBackupIcon />} href="backups" title="Backups">
+  <Card icon={<DatabaseBackupIcon />} href="./pocketbase/backups" title="Backups">
     Guide on how to create backups and how they are stored.
   </Card>
-  <Card icon={<ShieldCheckIcon />} href="security" title="Security">
-    Overview of the security measures PocketBase implements to ensure data
-    protection.
+  <Card icon={<ShieldCheckIcon />} href="./pocketbase/security" title="Security">
+    Overview of the security measures PocketBase implements to ensure data protection.
   </Card>
 </Cards>
 
 ## About
 
 <Callout title="Disclaimer">
-  Budget-Buddy does not use the standard version of Pocketbase, but has made a
-  few additional modifications to implement jobs or analyze data. <br />
-  More information about the modifications made can be found on [this
-  page](./modifications.mdx).
+  Budget-Buddy does not use the standard version of Pocketbase, but has made a few additional
+  modifications to implement jobs or analyze data. <br />
+  More information about the modifications made can be found on [this page](./modifications.mdx).
 </Callout>
 
 Pocketbase is an open-source backend solution that provides a NoSQL database, real-time APIs, and authentication mechanisms in a compact package. It is particularly useful for rapid prototyping, MVPs, and small to medium-sized applications.
