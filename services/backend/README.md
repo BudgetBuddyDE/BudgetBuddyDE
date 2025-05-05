@@ -4,6 +4,8 @@
 
 ## Features
 
+- Authentifizierung mithilfe von Better-Auth
+
 ## Getting started
 
 1. Repository klonen
@@ -60,5 +62,27 @@ Das aktuelle Datenbankschema liegt unter `src/db/schema`.
 ### Setup
 
 ### Schema migration
+
+Mithilfe von DrizzleORM können Änderungen am Datenbankschema leicht angewandt werden.
+Vorausgesetzt die Änderungen am Datenbankschema wurden bereits durchgeführt, reicht es dieser Anleitung zu folgen.
+
+1. Wechsel das Verzeichnis
+   ```bash
+   cd services/backend
+   ```
+2. Setze die Umgebungsvariable `DATABASE_URL` und setze dort die PostgreSQL Verbindungs URL um eine Verbindung zur Datenbank aufbauen zu können
+3. Erstelle die benötigten Dateien für die Migration
+
+   ```bash
+   npm run db-generate
+   ```
+
+4. Wende die Migrationsanweisungen an
+
+   ```bash
+   npm run db-migrate
+   ```
+
+Sollten die Änderungen am Schema sowie die Verbindungsurl gültig sein, sollten nun die gewünschten Änderungen auf die Datenbank angewandt worden sein.
 
 ### CI/CD
