@@ -28,7 +28,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <Script
             async
             src="https://analytics.tools.tklein.it/script.js"
-            data-website-id="2876313f-9ed3-4497-9a47-65b4f42a4155"
+            data-website-id="b7ac220a-eae6-4b1c-a263-3748f31b620e"
           />
         )}
       </body>
