@@ -1,11 +1,16 @@
 import {LoggerClient} from '@budgetbuddyde/utils';
-import {type PgTable} from 'drizzle-orm/pg-core';
+import {SQL, like, or, sql} from 'drizzle-orm';
+import {AnyPgColumn, type PgTable} from 'drizzle-orm/pg-core';
 import {z} from 'zod';
 
 import {logger} from '../../core/logger';
 import {DrizzleDatabaseClient} from '../../db/drizzleClient';
 import {User} from '../../models/User.model';
 
+type ColumnsOf<T extends PgTable> = T['_']['columns'];
+type ColumnNames<T extends PgTable> = keyof ColumnsOf<T>;
+
+// FIXME: Improve typing of T (table)
 export class CRUDService<T extends PgTable, E> {
   private readonly logger: LoggerClient;
   private readonly dbClient: DrizzleDatabaseClient;
@@ -37,6 +42,10 @@ export class CRUDService<T extends PgTable, E> {
     return this.tableName;
   }
 
+  static lower(field: AnyPgColumn): SQL {
+    return sql`lower(${field})`;
+  }
+
   async getAll() {
     this.log.debug(`Fetching all records from ${this.tblName}`);
     return (await this.db.select().from(this.tbl as PgTable)) as E[];
@@ -58,5 +67,42 @@ export class CRUDService<T extends PgTable, E> {
     const result = await this.db.insert(this.tbl).values(parsedPayload.data).returning();
     this.log.debug(`Created ${result.length} records in ${this.tblName}`);
     return result;
+  }
+
+  private buildSearchExpression(keyword: string): string {
+    return `%${keyword.toLowerCase()}%`;
+  }
+
+  // FIXME: Improve typing of fields
+  private buildSearchWhereClause(keyword: string, fields: ColumnNames<T>[]) {
+    this.log.debug(
+      `Building search where clause for '${keyword}' in ${this.tblName} including fields ${fields.join(', ')}`,
+    );
+
+    this.log.debug('Fields to search: ', fields);
+
+    const searchExpression = this.buildSearchExpression(keyword);
+
+    return or(
+      ...fields.map(field =>
+        like(
+          // @ts-expect-error
+          CRUDService.lower(this.tbl[field as keyof ColumnsOf<T>] as unknown as AnyPgColumn),
+          searchExpression,
+        ),
+      ),
+    );
+  }
+
+  // FIXME: Improve typing of fields
+  async search(keyword: string, fields: ColumnNames<T>[]) {
+    const where = this.buildSearchWhereClause(keyword, fields);
+    this.log.debug(`Searching for '${keyword}' in ${this.tblName}`);
+    const matches = await this.db
+      .select()
+      .from(this.tbl as PgTable)
+      .where(where);
+    this.log.debug(`Found ${matches.length} matches for '${keyword}' in ${this.tblName}`);
+    return matches as E[];
   }
 }

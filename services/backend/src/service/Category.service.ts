@@ -1,4 +1,4 @@
-import {eq, like, or} from 'drizzle-orm';
+import {eq} from 'drizzle-orm';
 
 import {db} from '../db/drizzleClient';
 import {Categories, type TCategory, type TUpdateCategory, ZUpdateCategory} from '../db/schema';
@@ -12,15 +12,6 @@ export class CategoryService
 {
   constructor() {
     super(CategoryService.name, db, Categories, Tables.CATEGORIES);
-  }
-
-  async search(query: string) {
-    const searchExpression = `%${query}%`;
-    const where = or(like(this.tbl.name, searchExpression), like(this.tbl.description, searchExpression));
-    this.log.debug(`Searching for '${query}' in ${this.tblName}`);
-    const matches = await this.db.select().from(this.tbl).where(where);
-    this.log.debug(`Found ${matches.length} matches for '${query}' in ${this.tblName}`);
-    return matches;
   }
 
   async getById(entityId: number) {
