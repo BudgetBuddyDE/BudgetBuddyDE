@@ -37,3 +37,13 @@ export const ZInsertTransaction = createInsertSchema(Transactions, {
   description: string => string.optional(),
 });
 export type TInsertTransaction = z.infer<typeof ZInsertTransaction>;
+
+export const ZUpdateTransaction = z.object({
+  category: ZInsertTransaction.shape.category,
+  paymentMethod: ZInsertTransaction.shape.paymentMethod,
+  processedAt: ZInsertTransaction.shape.processedAt,
+  receiver: ZInsertTransaction.shape.receiver,
+  transferAmount: ZInsertTransaction.shape.transferAmount,
+  description: ZInsertTransaction.shape.description,
+});
+export type TUpdateTransaction = z.infer<typeof ZUpdateTransaction>;
