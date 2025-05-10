@@ -41,3 +41,13 @@ export const ZInsertSubscription = createInsertSchema(Subscriptions, {
   description: string => string.optional(),
 });
 export type TInsertSubscription = z.infer<typeof ZInsertSubscription>;
+
+export const ZUpdateSubscription = z.object({
+  category: ZInsertSubscription.shape.category,
+  paymentMethod: ZInsertSubscription.shape.paymentMethod,
+  paused: ZInsertSubscription.shape.paused,
+  executeAt: ZInsertSubscription.shape.exexcuteAt,
+  transferAmount: ZInsertSubscription.shape.transferAmount,
+  description: ZInsertSubscription.shape.description,
+});
+export type TUpdateSubscription = z.infer<typeof ZUpdateSubscription>;
