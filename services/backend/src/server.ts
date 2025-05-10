@@ -11,7 +11,10 @@ import {checkConnection} from './db/pool';
 import {connectToRedis, isRedisConnected} from './db/redis';
 import {auth as authMdlware, handleError, log, servedBy} from './middleware';
 import {ApiResponse} from './models/ApiResponse';
-import {CategoryRouter, PaymentMethodRouter} from './router';
+import {CategoryRouter} from './router';
+import {EntityRouter} from './router/EntityRouter';
+import {CategoryService, PaymentMethodService, TransactionService} from './service';
+import {Subscriptionservice} from './service/Subscription.service';
 
 export const app = express();
 export const server = http.createServer(app);
@@ -48,10 +51,10 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
 // or only apply it to routes that don't interact with Better Auth
 app.use(express.json());
 
-app.use('/api/category', CategoryRouter);
-app.use('/api/payment-method', PaymentMethodRouter);
-app.use('/api/transaction', CategoryRouter);
-app.use('/api/subscription', CategoryRouter);
+EntityRouter.builder(new CategoryService(), '/api/category').withDefaultRoutes().build().mount(app);
+EntityRouter.builder(new PaymentMethodService(), '/api/payment-method').withDefaultRoutes().build().mount(app);
+EntityRouter.builder(new TransactionService(), '/api/transaction').withDefaultRoutes().build().mount(app);
+EntityRouter.builder(new Subscriptionservice(), '/api/subscription').withDefaultRoutes().build().mount(app);
 app.use('/api/budget', CategoryRouter);
 
 // TODO: Handle ZodError and other errors based on their type
