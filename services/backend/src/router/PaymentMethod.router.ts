@@ -16,7 +16,7 @@ router.get('/search', async (req, res) => {
     .withMessage(`Results for '${query}'`)
     .withData({
       query,
-      results: await paymentMethodService.search(query as string),
+      results: await paymentMethodService.search(query as string, ['name', 'address', 'provider', 'description']),
     })
     .withExpressResponse(res)
     .buildAndSend();

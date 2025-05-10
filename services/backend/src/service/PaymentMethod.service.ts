@@ -1,4 +1,4 @@
-import {eq, like, or} from 'drizzle-orm';
+import {eq} from 'drizzle-orm';
 
 import {db} from '../db/drizzleClient';
 import {PaymentMethods, type TPaymentMethod, type TUpdatePaymentMethod, ZUpdatePaymentMethod} from '../db/schema';
@@ -12,20 +12,6 @@ export class PaymentMethodService
 {
   constructor() {
     super(PaymentMethodService.name, db, PaymentMethods, Tables.PAYMENT_METHODS);
-  }
-
-  async search(query: string) {
-    const searchExpression = `%${query}%`;
-    const where = or(
-      like(this.tbl.name, searchExpression),
-      like(this.tbl.address, searchExpression),
-      like(this.tbl.provider, searchExpression),
-      like(this.tbl.description, searchExpression),
-    );
-    this.log.debug(`Searching for '${query}' in ${this.tblName}`);
-    const matches = await this.db.select().from(this.tbl).where(where);
-    this.log.debug(`Found ${matches.length} matches for '${query}' in ${this.tblName}`);
-    return matches;
   }
 
   async getById(entityId: number) {

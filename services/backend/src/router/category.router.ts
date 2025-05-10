@@ -16,7 +16,7 @@ router.get('/search', async (req, res) => {
     .withMessage(`Results for '${query}'`)
     .withData({
       query,
-      results: await categoryService.search(query as string),
+      results: await categoryService.search(query as string, ['name', 'description']),
     })
     .withExpressResponse(res)
     .buildAndSend();
