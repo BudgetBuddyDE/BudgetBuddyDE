@@ -9,7 +9,7 @@ export const Tables = {
   VERIFICATIONS: 'verfication',
   CATEGORIES: 'category',
   PAYMENT_METHODS: 'payment_method',
-  TRANSACTIONS: 'translation',
+  TRANSACTIONS: 'transaction',
   SUBSCRIPTIONS: 'subscription',
   BUDGETS: 'budget',
   BUDGET_CATEGORIES: 'budget_categorie',
