@@ -27,7 +27,9 @@ export const UpdatedAtColumn = {
     .notNull(),
 };
 
-export const CreatedAtColumn = {createdAt: timestamp('createdAt').defaultNow()};
+export const CreatedAtColumn = {
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+};
 
 export const BaseColumns = {
   id: serial('id').primaryKey(),
