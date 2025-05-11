@@ -11,8 +11,7 @@ import {checkConnection} from './db/pool';
 import {connectToRedis, isRedisConnected} from './db/redis';
 import {auth as authMdlware, handleError, log, servedBy} from './middleware';
 import {ApiResponse} from './models/ApiResponse';
-import {CategoryRouter} from './router';
-import {EntityRouter} from './router/EntityRouter';
+import {EntityRouter} from './router';
 import {CategoryService, PaymentMethodService, TransactionService} from './service';
 import {Subscriptionservice} from './service/Subscription.service';
 
@@ -55,7 +54,8 @@ EntityRouter.builder(new CategoryService(), '/api/category').withDefaultRoutes()
 EntityRouter.builder(new PaymentMethodService(), '/api/payment-method').withDefaultRoutes().build().mount(app);
 EntityRouter.builder(new TransactionService(), '/api/transaction').withDefaultRoutes().build().mount(app);
 EntityRouter.builder(new Subscriptionservice(), '/api/subscription').withDefaultRoutes().build().mount(app);
-app.use('/api/budget', CategoryRouter);
+
+// app.use('/api/budget', CategoryRouter);
 
 // TODO: Handle ZodError and other errors based on their type
 // Mount an global error handler
