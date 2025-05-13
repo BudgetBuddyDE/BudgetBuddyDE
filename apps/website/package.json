@@ -9,7 +9,6 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@budgetbuddyde/types": "^1.0.53",
     "@theguild/remark-mermaid": "^0.3.0",
     "date-fns": "^4.1.0",
     "fumadocs-core": "15.1.3",
