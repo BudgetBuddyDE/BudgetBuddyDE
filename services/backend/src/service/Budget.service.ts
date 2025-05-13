@@ -1,17 +1,17 @@
-import {eq} from 'drizzle-orm';
+import {eq} from 'drizzle-orm/sql';
 
 import {db} from '../db/drizzleClient';
-import {Subscriptions, type TSubscription, type TUpdateSubscription, ZUpdateSubscription} from '../db/schema';
+import {Budgets, type TBudget, type TUpdateBudget, ZUpdateBudget} from '../db/schema';
 import {Tables} from '../db/schema/general';
 import {type ICRUDService} from './interfaces';
 import {CRUDService} from './interfaces/CRUD.service';
 
-export class SubscriptionService
-  extends CRUDService<typeof Subscriptions, TSubscription>
-  implements ICRUDService<TSubscription['id'], TSubscription, TUpdateSubscription>
+export class BudgetService
+  extends CRUDService<typeof Budgets, TBudget>
+  implements ICRUDService<TBudget['id'], TBudget, TUpdateBudget>
 {
   constructor() {
-    super(SubscriptionService.name, db, Subscriptions, Tables.SUBSCRIPTIONS);
+    super(BudgetService.name, db, Budgets, Tables.BUDGETS);
   }
 
   async getById(entityId: number) {
@@ -20,8 +20,8 @@ export class SubscriptionService
     return result.length > 0 ? result[0] : null;
   }
 
-  async updateById(entityId: TSubscription['id'], entites: TUpdateSubscription) {
-    const parsedPayload = ZUpdateSubscription.safeParse(entites);
+  async updateById(entityId: TBudget['id'], entites: TUpdateBudget) {
+    const parsedPayload = ZUpdateBudget.safeParse(entites);
     if (!parsedPayload.success) {
       this.log.error(`Failed to parse payload: ${parsedPayload.error}`);
       throw parsedPayload.error;
@@ -49,7 +49,7 @@ export class SubscriptionService
     return updatedEntity;
   }
 
-  async deleteById(entityId: TSubscription['id']) {
+  async deleteById(entityId: TBudget['id']) {
     let deletedEntity = null;
     await this.db.transaction(async tx => {
       this.log.debug(`Deleting record with ID ${entityId} from ${this.tblName}`);

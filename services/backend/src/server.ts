@@ -12,8 +12,7 @@ import {connectToRedis, isRedisConnected} from './db/redis';
 import {auth as authMdlware, handleError, log, servedBy} from './middleware';
 import {ApiResponse} from './models/ApiResponse';
 import {EntityRouter} from './router';
-import {CategoryService, PaymentMethodService, TransactionService} from './service';
-import {Subscriptionservice} from './service/Subscription.service';
+import {BudgetService, CategoryService, PaymentMethodService, SubscriptionService, TransactionService} from './service';
 
 export const app = express();
 export const server = http.createServer(app);
@@ -53,7 +52,8 @@ app.use(express.json());
 EntityRouter.builder(new CategoryService(), '/api/category').withDefaultRoutes().build().mount(app);
 EntityRouter.builder(new PaymentMethodService(), '/api/payment-method').withDefaultRoutes().build().mount(app);
 EntityRouter.builder(new TransactionService(), '/api/transaction').withDefaultRoutes().build().mount(app);
-EntityRouter.builder(new Subscriptionservice(), '/api/subscription').withDefaultRoutes().build().mount(app);
+EntityRouter.builder(new SubscriptionService(), '/api/subscription').withDefaultRoutes().build().mount(app);
+EntityRouter.builder(new BudgetService(), '/api/budget').withDefaultRoutes().build().mount(app);
 
 // app.use('/api/budget', CategoryRouter);
 
