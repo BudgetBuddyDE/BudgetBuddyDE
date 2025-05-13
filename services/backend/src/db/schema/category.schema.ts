@@ -21,12 +21,14 @@ export const ZCategory = createSelectSchema(Categories);
 export type TCategory = z.infer<typeof ZCategory>;
 
 export const ZInsertCategory = createInsertSchema(Categories, {
+  owner: owner => owner.nonempty(),
   name: string => string.nonempty(),
   description: string => string.optional(),
 });
 export type TInsertCategory = z.infer<typeof ZInsertCategory>;
 
 export const ZUpdateCategory = z.object({
+  owner: ZInsertCategory.shape.owner,
   name: ZInsertCategory.shape.name,
   description: ZInsertCategory.shape.description,
 });

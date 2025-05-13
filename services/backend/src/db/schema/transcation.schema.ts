@@ -29,6 +29,7 @@ export const ZTransaction = createSelectSchema(Transactions);
 export type TTransaction = z.infer<typeof ZTransaction>;
 
 export const ZInsertTransaction = createInsertSchema(Transactions, {
+  owner: owner => owner.nonempty(),
   category: number => number,
   paymentMethod: number => number,
   processedAt: timestamp => timestamp,
@@ -39,6 +40,7 @@ export const ZInsertTransaction = createInsertSchema(Transactions, {
 export type TInsertTransaction = z.infer<typeof ZInsertTransaction>;
 
 export const ZUpdateTransaction = z.object({
+  owner: ZInsertTransaction.shape.owner,
   category: ZInsertTransaction.shape.category,
   paymentMethod: ZInsertTransaction.shape.paymentMethod,
   processedAt: ZInsertTransaction.shape.processedAt,

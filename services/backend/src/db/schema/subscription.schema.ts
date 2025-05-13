@@ -29,6 +29,7 @@ export const ZSubscription = createSelectSchema(Subscriptions);
 export type TSubscription = z.infer<typeof ZSubscription>;
 
 export const ZInsertSubscription = createInsertSchema(Subscriptions, {
+  owner: owner => owner.nonempty(),
   category: number => number,
   paymentMethod: number => number,
   paused: boolean => boolean,
@@ -43,6 +44,7 @@ export const ZInsertSubscription = createInsertSchema(Subscriptions, {
 export type TInsertSubscription = z.infer<typeof ZInsertSubscription>;
 
 export const ZUpdateSubscription = z.object({
+  owner: ZInsertSubscription.shape.owner,
   category: ZInsertSubscription.shape.category,
   paymentMethod: ZInsertSubscription.shape.paymentMethod,
   paused: ZInsertSubscription.shape.paused,
