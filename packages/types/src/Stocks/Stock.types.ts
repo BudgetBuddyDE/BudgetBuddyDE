@@ -33,7 +33,7 @@ export const ZSecurity = z.object({
 
 export const ZStockQuote = z.object({
   currency: z.string().max(3),
-  exchange: z.string().max(100),
+  exchange: z.string().max(100).optional(),
   date: ZDate,
   datetime: ZDate,
   price: z.number(),
@@ -458,7 +458,7 @@ export const ZRelatedStockWithQuotes = z.object({
     z.object({
       date: ZDate,
       price: z.number(),
-      exchange: z.string(),
+      exchange: z.string().optional(),
       currency: ZCurrency,
     }),
   ),
