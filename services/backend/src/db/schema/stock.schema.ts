@@ -46,6 +46,7 @@ export const ZStockPosition = createSelectSchema(StockPositions);
 export type TStockPosition = z.infer<typeof ZStockPosition>;
 
 export const ZInsertStockPosition = createInsertSchema(StockPositions, {
+  owner: owner => owner.nonempty(),
   exchange: string => string.nonempty(),
   boughtAt: date => date,
   isin: string => string.length(12, {message: 'ISIN must be 12 characters long'}),
@@ -76,6 +77,7 @@ export const ZStockWatchlist = createSelectSchema(StockWatchlists);
 export type TStockWatchlist = z.infer<typeof ZStockWatchlist>;
 
 export const ZInsertStockWatchlist = createInsertSchema(StockWatchlists, {
+  owner: owner => owner.nonempty(),
   exchange: string => string.nonempty(),
   isin: string => string.length(12, {message: 'ISIN must be 12 characters long'}),
   description: string => string.optional(),

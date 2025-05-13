@@ -37,7 +37,7 @@ export const ZNewsletterSubscription = createSelectSchema(NewsletterSubscription
 export type TNewsletterSubscription = z.infer<typeof ZNewsletterSubscription>;
 
 export const ZInsertNewsletterSubscription = createInsertSchema(NewsletterSubscriptions, {
-  owner: string => string.nonempty(),
+  owner: owner => owner.nonempty(),
   newsletter: string => string.nonempty(),
 });
 export type TInsertNewsletterSubscription = z.infer<typeof ZInsertNewsletterSubscription>;

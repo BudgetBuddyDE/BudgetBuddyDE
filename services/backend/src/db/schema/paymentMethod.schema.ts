@@ -24,6 +24,7 @@ export const ZPaymentMethod = createSelectSchema(PaymentMethods);
 export type TPaymentMethod = z.infer<typeof ZPaymentMethod>;
 
 export const ZInsertPaymentMethod = createInsertSchema(PaymentMethods, {
+  owner: owner => owner.nonempty(),
   name: string => string.nonempty(),
   provider: string => string.nonempty(),
   address: string => string.nonempty(),
@@ -32,6 +33,7 @@ export const ZInsertPaymentMethod = createInsertSchema(PaymentMethods, {
 export type TInsertPaymentMethod = z.infer<typeof ZInsertPaymentMethod>;
 
 export const ZUpdatePaymentMethod = z.object({
+  owner: ZInsertPaymentMethod.shape.owner,
   name: ZInsertPaymentMethod.shape.name,
   provider: ZInsertPaymentMethod.shape.provider,
   address: ZInsertPaymentMethod.shape.address,
