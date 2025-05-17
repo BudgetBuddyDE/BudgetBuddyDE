@@ -5,7 +5,7 @@ import {z} from 'zod';
 import {BaseColumns, CreatedAtColumn, DescriptionColumn, OwnerColumn, Tables, UpdatedAtColumn} from './general';
 
 export const StockExchanges = pgTable(Tables.STOCK_EXCHANGES, {
-  symbol: varchar('symbol', {length: 5}).primaryKey(),
+  symbol: varchar('symbol', {length: 11}).primaryKey(),
   name: varchar('name', {length: 30}).notNull(),
   ...DescriptionColumn,
   ...CreatedAtColumn,
@@ -29,7 +29,7 @@ export type TInsertStockExchange = z.infer<typeof ZInsertStockExchange>;
 export const StockPositions = pgTable(Tables.STOCK_POSITIONS, {
   ...BaseColumns,
   ...OwnerColumn, // FIXME: there should be a foreign key to the user table
-  exchange: varchar('exchange', {length: 5})
+  exchange: varchar('exchange', {length: 11})
     .references(() => StockExchanges.symbol, {
       onDelete: 'cascade',
     })
@@ -64,7 +64,7 @@ export type TInsertStockPosition = z.infer<typeof ZInsertStockPosition>;
 export const StockWatchlists = pgTable(Tables.STOCK_WATCHLISTS, {
   ...BaseColumns,
   ...OwnerColumn, // FIXME: there should be a foreign key to the user table
-  exchange: varchar('exchange', {length: 5})
+  exchange: varchar('exchange', {length: 11})
     .references(() => StockExchanges.symbol, {
       onDelete: 'cascade',
     })
