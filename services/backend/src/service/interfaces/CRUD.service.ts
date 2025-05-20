@@ -7,6 +7,15 @@ import {logger} from '../../core/logger';
 import {DrizzleDatabaseClient} from '../../db/drizzleClient';
 import {User} from '../../models/User.model';
 
+// export interface V2CRUDService {
+//   create<P, E>(payload: P): Promise<E>;
+//   getAll<E>(): Promise<E[]>;
+//   getById<EID, E>(id: EID): Promise<E | null>;
+//   searchByKeyword<E>(keyword: string, fields: string[]): Promise<E[]>;
+//   updateById<EID, P, E>(id: EID, payload: P): Promise<E | null>;
+//   deleteById<EID, E>(id: EID): Promise<E | null>;
+// }
+
 type ColumnsOf<T extends PgTable> = T['_']['columns'];
 type ColumnNames<T extends PgTable> = keyof ColumnsOf<T>;
 
