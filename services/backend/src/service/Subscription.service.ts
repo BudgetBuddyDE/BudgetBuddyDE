@@ -6,12 +6,12 @@ import {Tables} from '../db/schema/general';
 import {type ICRUDService} from './interfaces';
 import {CRUDService} from './interfaces/CRUD.service';
 
-export class Subscriptionservice
+export class SubscriptionService
   extends CRUDService<typeof Subscriptions, TSubscription>
   implements ICRUDService<TSubscription['id'], TSubscription, TUpdateSubscription>
 {
   constructor() {
-    super(Subscriptionservice.name, db, Subscriptions, Tables.SUBSCRIPTIONS);
+    super(SubscriptionService.name, db, Subscriptions, Tables.SUBSCRIPTIONS);
   }
 
   async getById(entityId: number) {

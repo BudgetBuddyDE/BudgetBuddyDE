@@ -7,6 +7,8 @@ import {ApiResponse} from '../models/ApiResponse';
 import {type ICRUDService} from '../service/interfaces';
 import {CRUDService} from '../service/interfaces/CRUD.service';
 
+type TRouteHandler<T = void> = (req: Request, res: Response, next: NextFunction) => T;
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 export class EntityRouter<TService extends CRUDService<any, any> & ICRUDService<any, any, any>> {
@@ -27,11 +29,36 @@ export class EntityRouter<TService extends CRUDService<any, any> & ICRUDService<
     return new EntityRouterBuilder(service, basePath);
   }
 
-  addMiddleware(middleware: (req: Request, res: Response, next: NextFunction) => void) {
+  static getDefaultEndpointPath(endpoint: 'search' | 'get_all' | 'get_by_id' | 'create' | 'update' | 'delete'): string {
+    switch (endpoint) {
+      case 'search':
+        return '/search';
+
+      case 'create':
+      case 'get_all':
+        return '/';
+
+      case 'get_by_id':
+      case 'update':
+      case 'delete':
+        return '/:id';
+
+      default:
+        throw new Error(`Unknown endpoint: ${endpoint}`);
+    }
+  }
+
+  getDefaultEndpointPath(
+    ...params: Parameters<typeof EntityRouter.getDefaultEndpointPath>
+  ): ReturnType<typeof EntityRouter.getDefaultEndpointPath> {
+    return EntityRouter.getDefaultEndpointPath(...params);
+  }
+
+  addMiddleware(middleware: TRouteHandler) {
     this.router.use(middleware);
   }
 
-  addRoute(path: string, method: HttpMethod, handler: (req: Request, res: Response, next: NextFunction) => void) {
+  addRoute(path: string, method: HttpMethod, handler: TRouteHandler) {
     const lowerCaseMethod = method.toLowerCase() as keyof Router;
     if (typeof this.router[lowerCaseMethod] === 'function') {
       (this.router[lowerCaseMethod] as any)(path, handler);
@@ -54,7 +81,7 @@ export class EntityRouterBuilder<TService extends CRUDService<any, any> & ICRUDS
   }
 
   withSearchRoute() {
-    this.er.router.get('/search', async (req, res) => {
+    this.er.router.get(this.er.getDefaultEndpointPath('search'), async (req, res) => {
       const {query} = req.query;
       return ApiResponse.builder()
         .withMessage(`Results for '${query}'`)
@@ -69,7 +96,7 @@ export class EntityRouterBuilder<TService extends CRUDService<any, any> & ICRUDS
   }
 
   withGetAllRoute() {
-    this.er.router.get('/', async (_req, res) => {
+    this.er.router.get(this.er.getDefaultEndpointPath('get_all'), async (_req, res) => {
       return ApiResponse.builder()
         .withData(await this.er.service.getAll())
         .withExpressResponse(res)
@@ -79,7 +106,7 @@ export class EntityRouterBuilder<TService extends CRUDService<any, any> & ICRUDS
   }
 
   withGetByIdRoute() {
-    this.er.router.get('/:id', hasEntityId, async (req, res) => {
+    this.er.router.get(this.er.getDefaultEndpointPath('get_by_id'), hasEntityId, async (req, res) => {
       const {id} = req.params;
       const result = await this.er.service.getById(Number(id));
       return ApiResponse.builder()
@@ -92,7 +119,7 @@ export class EntityRouterBuilder<TService extends CRUDService<any, any> & ICRUDS
   }
 
   withCreateRoute() {
-    this.er.router.post('/', async (req, res) => {
+    this.er.router.post(this.er.getDefaultEndpointPath('create'), async (req, res) => {
       const payload = req.body;
       const user = req.user;
       const result = await this.er.service.create<TInsertCategory>(
@@ -106,7 +133,7 @@ export class EntityRouterBuilder<TService extends CRUDService<any, any> & ICRUDS
   }
 
   withUpdateByIdRoute() {
-    this.er.router.put('/:id', hasEntityId, async (req, res) => {
+    this.er.router.put(this.er.getDefaultEndpointPath('update'), hasEntityId, async (req, res) => {
       const {id} = req.params;
       const payload = req.body;
       const result = await this.er.service.updateById(Number(id), payload);
@@ -116,7 +143,7 @@ export class EntityRouterBuilder<TService extends CRUDService<any, any> & ICRUDS
   }
 
   withDeleteByIdRoute() {
-    this.er.router.delete('/:id', hasEntityId, async (req, res) => {
+    this.er.router.delete(this.er.getDefaultEndpointPath('delete'), hasEntityId, async (req, res) => {
       const {id} = req.params;
       const result = await this.er.service.deleteById(Number(id));
       return ApiResponse.builder().withData(result).withExpressResponse(res).buildAndSend();
