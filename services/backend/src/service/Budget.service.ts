@@ -18,7 +18,7 @@ import {User} from '../models/User.model';
 import {type ICRUDService} from './interfaces';
 import {CRUDService} from './interfaces/CRUD.service';
 
-export const ZBudgteProgress = z.object({
+export const ZBudgetProgress = z.object({
   id: ZBudget.shape.id,
   label: ZBudget.shape.label,
   type: ZBudget.shape.type,
@@ -32,7 +32,7 @@ export const ZBudgteProgress = z.object({
     }),
   ),
 });
-export type TBudgetProgress = z.infer<typeof ZBudgteProgress>;
+export type TBudgetProgress = z.infer<typeof ZBudgetProgress>;
 
 type TBudgetProgressRetrievalFilterCondition =
   | {type: 'owner'; owner: User['id']}
