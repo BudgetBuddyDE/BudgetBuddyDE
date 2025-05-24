@@ -31,13 +31,13 @@ app.get('/api/me', async (req, res) => {
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const isRedisReachable = isRedisConnected();
-  const isServiceHealths = isDatabaseConnected && isRedisReachable;
+  const isServiceDegraded = isDatabaseConnected && isRedisReachable;
 
   return ApiResponse.expressBuilder<{status: string; database: boolean; redis: boolean}>(res)
     .withMessage('Status of the application')
-    .withStatus(isServiceHealths ? 200 : 500)
+    .withStatus(isServiceDegraded ? 200 : 500)
     .withData({
-      status: isServiceHealths ? 'ok' : 'degraded',
+      status: isServiceDegraded ? 'ok' : 'degraded',
       database: isDatabaseConnected,
       redis: isRedisReachable,
     })

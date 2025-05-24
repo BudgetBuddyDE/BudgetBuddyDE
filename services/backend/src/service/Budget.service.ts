@@ -111,9 +111,6 @@ export class BudgetService
   }
 
   async getById(entityId: number) {
-    // this.log.debug(`Fetching record with ID ${entityId} from ${this.tblName}`);
-    // const result = await this.db.select().from(this.tbl).where(eq(this.tbl.id, entityId)).limit(1);
-    // return result.length > 0 ? result[0] : null;
     const data = await this.retrieveBudgetsWithProgress({
       type: 'owner_and_id',
       owner: 'YtIFh3GqktLaCmu5PqlLAdQc3JeEohIf',
