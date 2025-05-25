@@ -30,11 +30,7 @@ export class PaymentMethodService
     let updatedEntity = null;
     await this.db.transaction(async tx => {
       this.log.debug(`Updating record with ID ${entityId} in ${this.tblName}`);
-      const result = await this.db
-        .update(this.tbl)
-        .set(parsedPayload.data)
-        .where(eq(this.tbl.id, entityId))
-        .returning();
+      const result = await tx.update(this.tbl).set(parsedPayload.data).where(eq(this.tbl.id, entityId)).returning();
       this.log.debug(`Updated ${result.length} records in ${this.tblName}`);
       if (result.length > 1) {
         // This throws an exception that rollbacks the transaction.
@@ -53,7 +49,7 @@ export class PaymentMethodService
     let deletedEntity = null;
     await this.db.transaction(async tx => {
       this.log.debug(`Deleting record with ID ${entityId} from ${this.tblName}`);
-      const result = await this.db.delete(this.tbl).where(eq(this.tbl.id, entityId)).returning();
+      const result = await tx.delete(this.tbl).where(eq(this.tbl.id, entityId)).returning();
       if (result.length > 1) {
         // This throws an exception that rollbacks the transaction.
         tx.rollback();
