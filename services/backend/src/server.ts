@@ -19,15 +19,7 @@ export const server = http.createServer(app);
 app.use(servedBy);
 app.use(log);
 app.use(cors(config.cors));
-app.use(authMdlware);
 
-app.all('/api/auth/{*splat}', toNodeHandler(auth));
-app.get('/api/me', async (req, res) => {
-  const session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
-  });
-  res.json(session);
-});
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const isRedisReachable = isRedisConnected();
@@ -42,6 +34,15 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
       redis: isRedisReachable,
     })
     .buildAndSend();
+});
+
+app.use(authMdlware);
+app.all('/api/auth/{*splat}', toNodeHandler(auth));
+app.get('/api/me', async (req, res) => {
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  });
+  res.json(session);
 });
 
 // Mount express json middleware after Better Auth handler
