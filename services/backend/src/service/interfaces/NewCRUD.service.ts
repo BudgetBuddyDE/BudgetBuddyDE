@@ -34,42 +34,42 @@ export abstract class NewCRUDService<Table extends PgTable> {
   /**
    * Logger for the service.
    */
-  public get log() {
+  get log() {
     return this.logger;
   }
 
   /**
    * Database client for the service.
    */
-  protected get db() {
+  get db() {
     return this.dbClient;
   }
 
   /**
    * Table for the service.
    */
-  protected get tbl() {
+  get tbl() {
     return this.table;
   }
 
   /**
    * Configuration of the table for the service.
    */
-  protected get tblCfg() {
+  get tblCfg() {
     return getTableConfig(this.table);
   }
 
   /**
    * Columns of the table for the service.
    */
-  protected get tblColumns() {
+  get tblColumns() {
     return getTableColumns(this.table);
   }
 
   /**
    * Name of the table for the service.
    */
-  protected get tblName() {
+  get tblName() {
     return this.tblCfg.name;
   }
 
@@ -77,7 +77,7 @@ export abstract class NewCRUDService<Table extends PgTable> {
    * Schema for selecting from the table.
    * Uses `createSelectSchema` to generate a Zod schema based on the table.
    */
-  protected get selectTblSchema() {
+  get selectTblSchema() {
     return createSelectSchema(this.tbl);
   }
 
@@ -85,7 +85,7 @@ export abstract class NewCRUDService<Table extends PgTable> {
    * Schema for inserting into the table.
    * Uses `createInsertSchema` to generate a Zod schema based on the table.
    */
-  protected get insertTblSchema() {
+  get insertTblSchema() {
     return createInsertSchema(this.tbl);
   }
 
@@ -93,7 +93,7 @@ export abstract class NewCRUDService<Table extends PgTable> {
    * Schema for updating an entry in the table.
    * Uses `createUpdateSchema` to generate a Zod schema based on the table.
    */
-  protected get updateTblSchema() {
+  get updateTblSchema() {
     return createUpdateSchema(this.tbl);
   }
 
