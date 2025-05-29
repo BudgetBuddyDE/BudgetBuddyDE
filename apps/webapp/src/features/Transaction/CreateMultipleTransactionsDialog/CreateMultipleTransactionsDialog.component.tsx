@@ -1,26 +1,18 @@
 import {type TCreateTransactionPayload, type TTransaction, ZCreateTransactionPayload} from '@budgetbuddyde/types';
-import {AddRounded, DeleteRounded} from '@mui/icons-material';
-import {
-  AutocompleteChangeReason,
-  Box,
-  Button,
-  Grid2 as Grid,
-  IconButton,
-  InputAdornment,
-  Stack,
-  TextField,
-} from '@mui/material';
+import {AddRounded} from '@mui/icons-material';
+import {AutocompleteChangeReason, Box, Button, Paper, Stack} from '@mui/material';
+import {DataGrid, GridColDef, GridRowsProp} from '@mui/x-data-grid';
 import {RecordModel} from 'pocketbase';
 import React from 'react';
 import {z} from 'zod';
 
 import {AppConfig} from '@/app.config';
+import {ActionPaper} from '@/components/Base/ActionPaper';
 import {FullScreenDialog, type TFullScreenDialogProps} from '@/components/Base/FullScreenDialog';
-import {DatePicker, ReceiverAutocomplete, type TReceiverAutocompleteOption} from '@/components/Base/Input';
-import {DesktopFeatureOnly} from '@/components/DesktopFeatureOnly';
+import {type TReceiverAutocompleteOption} from '@/components/Base/Input';
 import {useAuthContext} from '@/features/Auth';
-import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features/Category';
-import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
+import {type TCategoryAutocompleteOption} from '@/features/Category';
+import {type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
@@ -30,6 +22,7 @@ import {parseNumber} from '@/utils';
 import {type TTransactionDrawerValues} from '../TransactionDrawer';
 import {TransactionService} from '../TransactionService';
 import {useTransactions} from '../useTransactions.hook';
+import {FullFeaturedCrudGrid} from './DataTable';
 
 export type TCreateMultipleTransactionsDialogProps = Omit<TFullScreenDialogProps, 'title'>;
 
@@ -47,6 +40,17 @@ const DEFAULT_VALUE: () => TRow = () => ({
   transfer_amount: undefined,
   information: '',
 });
+
+const rows: GridRowsProp = [
+  {id: 1, name: 'Data Grid', description: 'the Community version'},
+  {id: 2, name: 'Data Grid Pro', description: 'the Pro version'},
+  {id: 3, name: 'Data Grid Premium', description: 'the Premium version'},
+];
+
+const columns: GridColDef[] = [
+  {field: 'name', headerName: 'Product Name', width: 200},
+  {field: 'description', headerName: 'Description', width: 300},
+];
 
 export const CreateMultipleTransactionsDialog: React.FC<TCreateMultipleTransactionsDialogProps> = ({
   ...dialogProps
@@ -215,90 +219,13 @@ export const CreateMultipleTransactionsDialog: React.FC<TCreateMultipleTransacti
             }
           : undefined
       }>
-      {screenSize !== 'small' ? (
-        <form onSubmit={handler.onSubmit}>
-          <Grid container spacing={AppConfig.baseSpacing}>
-            {form.map((row, idx) => (
-              <Grid key={row.tempId} container size={{md: 12}} spacing={AppConfig.baseSpacing}>
-                {idx !== 0 && (
-                  <Grid size={{md: 0.55}}>
-                    <IconButton
-                      onClick={() => handler.removeRow(row.tempId)}
-                      size="large"
-                      sx={{width: '54px', height: '54px'}}>
-                      <DeleteRounded />
-                    </IconButton>
-                  </Grid>
-                )}
-                <Grid size={{md: idx === 0 ? 2 : 1.45}}>
-                  <DatePicker
-                    value={row.processed_at}
-                    onChange={value => handler.changeDate(idx, value, '')}
-                    onAccept={value => handler.changeDate(idx, value, '')}
-                    slotProps={{
-                      textField: {
-                        label: 'Processed at',
-                        required: true,
-                        fullWidth: true,
-                      },
-                    }}
-                  />
-                </Grid>
-                <Grid size={{md: 2}}>
-                  <CategoryAutocomplete
-                    value={row.category}
-                    onChange={(event, value, reason) => handler.changeCategory(idx, event, value, reason)}
-                  />
-                </Grid>
-                <Grid size={{md: 2}}>
-                  <PaymentMethodAutocomplete
-                    value={row.payment_method}
-                    onChange={(event, value, reason) => handler.changePaymentMethod(idx, event, value, reason)}
-                  />
-                </Grid>
-                <Grid size={{md: 2}}>
-                  <ReceiverAutocomplete
-                    value={row.receiver}
-                    onChange={(event, value, reason) => handler.changeReceiver(idx, event, value, reason)}
-                  />
-                </Grid>
-                <Grid size={{md: 2}}>
-                  <TextField
-                    label="Amount"
-                    value={row.transfer_amount}
-                    onChange={e => handler.changeTransferAmount(idx, e.target.value)}
-                    required
-                    fullWidth
-                    slotProps={{
-                      input: {startAdornment: <InputAdornment position="start">€</InputAdornment>},
-                    }}
-                  />
-                </Grid>
-                <Grid size={{md: 2}}>
-                  <TextField
-                    label="Information"
-                    value={row.information}
-                    onChange={event => handler.changeInformation(idx, event.target.value)}
-                    fullWidth
-                    multiline
-                  />
-                </Grid>
-              </Grid>
-            ))}
-          </Grid>
-        </form>
-      ) : (
-        <DesktopFeatureOnly
-          sx={{
-            display: 'flex',
-            width: '100%',
-            height: '100%',
-            p: 2,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        />
-      )}
+      <ActionPaper elevation={2} sx={{p: 2, mt: 2}}>
+        <FullFeaturedCrudGrid />
+      </ActionPaper>
+
+      <ActionPaper elevation={2} sx={{p: 2}}>
+        <DataGrid rows={rows} columns={columns} />
+      </ActionPaper>
     </FullScreenDialog>
   );
 };

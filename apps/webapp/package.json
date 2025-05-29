@@ -21,6 +21,8 @@
     "@mui/icons-material": "^6.1.0",
     "@mui/material": "^6.1.0",
     "@mui/x-charts": "^7.17.0",
+    "@mui/x-data-grid": "^8.5.0",
+    "@mui/x-data-grid-generator": "^8.5.0",
     "@mui/x-date-pickers": "^7.17.0",
     "date-fns": "^2.29.3",
     "dotenv": "^16.4.7",

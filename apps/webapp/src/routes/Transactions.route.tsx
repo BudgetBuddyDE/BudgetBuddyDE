@@ -39,7 +39,7 @@ export const Transactions = () => {
     useEntityDrawer<TTransactionDrawerValues>,
     UseEntityDrawerDefaultState<TTransactionDrawerValues>(),
   );
-  const [showCreateMultipleDialog, setShowCreateMultipleDialog] = React.useState(false);
+  const [showCreateMultipleDialog, setShowCreateMultipleDialog] = React.useState(true);
   const [showDeleteTransactionDialog, setShowDeleteTransactionDialog] = React.useState(false);
   const [deleteTransactions, setDeleteTransactions] = React.useState<TTransaction[]>([]);
   const [selectedTransactions, setSelectedTransactions] = React.useState<TTransaction[]>([]);
