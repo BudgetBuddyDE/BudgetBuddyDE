@@ -70,12 +70,19 @@ const options: BetterAuthOptions = {
             return;
           }
 
+          const payload = JSON.stringify({userId: newSession.user.id});
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+          authLogger.debug('Creating user in CAP backend', {
+            payload,
+            headers,
+            CAPIRE_BACKEND_HOST,
+          });
           const response = await fetch(CAPIRE_BACKEND_HOST + '/service/user/User', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({userId: newSession.user.id}),
+            headers,
+            body: payload,
           });
           if (!response.ok) {
             authLogger.error('Failed to create user in CAP backend', {
