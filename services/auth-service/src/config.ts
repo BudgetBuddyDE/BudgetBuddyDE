@@ -13,6 +13,7 @@ import {type PoolConfig} from 'pg';
 import {type RedisClientOptions} from 'redis';
 
 import {name, version} from '../package.json';
+import {initWinstonLogger} from './core/winstonLogger';
 
 export type Config = {
   service: typeof name;
@@ -30,13 +31,29 @@ export type Config = {
   cors: CorsOptions;
 };
 
+const serviceName = name;
+const serviceVersion = version;
+const serviceEnvironment = getCurrentRuntime();
+const logLevel = getLogLevel();
+
+const winstonLogger = initWinstonLogger(
+  {
+    level: logLevel,
+    environment: serviceEnvironment,
+  },
+  {service: serviceName, version: serviceVersion, environment: serviceEnvironment, project: 'budgetbuddyde'},
+);
+
 export const config: Config = {
   service: name,
   version: version,
   port: getPort(),
-  environment: getCurrentRuntime(),
+  environment: serviceEnvironment,
   log: {
-    level: getLogLevel(),
+    level: logLevel,
+    log(level, msg, args) {
+      winstonLogger[level](msg, args);
+    },
   },
   db: {
     pool: {
