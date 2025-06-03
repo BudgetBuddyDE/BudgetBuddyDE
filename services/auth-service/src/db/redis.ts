@@ -1,12 +1,11 @@
 import 'dotenv/config';
 import {createClient} from 'redis';
 
-import {logger} from './core/logger';
-
-const {REDIS_URL} = process.env;
+import {config} from '../config';
+import {logger} from '../core/logger';
 
 const redisLogger = logger.child({label: 'redis'});
-export const redisClient = createClient({url: REDIS_URL, database: 1});
+export const redisClient = createClient(config.db.redis);
 redisClient.on('connect', () => redisLogger.info('Connected to redis'));
 redisClient.on('error', err => redisLogger.error(err));
 
@@ -15,10 +14,11 @@ export function isRedisConnected(): boolean {
 }
 
 export async function connectToRedis(reconnect = false) {
-  if (!REDIS_URL) {
+  if (!config.db.redis || !config.db.redis.url) {
     throw new Error('Environment variable REDIS_URL is not defined');
   }
 
+  logger.debug('Connecting to redis with url %s', config.db.redis.url);
   const conn = await redisClient.connect();
   redisClient.on('disconnect', async () => {
     redisLogger.info('Disconnected from redis!');

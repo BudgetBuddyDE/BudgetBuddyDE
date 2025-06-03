@@ -1,22 +1,24 @@
 import {type Response} from 'express';
 
-import {HTTPStatusCode} from './HttpStatusCode.type';
+import {HTTPStatusCode} from './HttpStatusCode';
+
+type BaseProperties<T> = {
+  data: T | null;
+  message: string | null;
+  error?: string | null;
+  from?: 'db' | 'cache';
+};
 
 /**
  * Represents the response from an API.
  * @template T - The type of data in the response.
  */
-export type TApiResponse<T> = {
+export type TApiResponse<T> = (BaseProperties<T> & {
   status: 200 | HTTPStatusCode.OK;
-  message: null;
-  data: T | null;
-  from: 'db' | 'cache';
-} & {
-  status: number | HTTPStatusCode;
-  message: string | null;
-  data: T | null;
-  from: 'db' | 'cache';
-};
+}) &
+  (BaseProperties<T> & {
+    status: number | HTTPStatusCode;
+  });
 
 /**
  * Represents an API response.
@@ -50,6 +52,7 @@ export class ApiResponse<T> {
   public status: number | HTTPStatusCode = HTTPStatusCode.OK;
   public message: string | null = null;
   public data: T | null = null;
+  public error: string | null = null;
   public from: 'db' | 'cache' | null = null;
   private constructor() {}
 
@@ -110,6 +113,16 @@ export class ApiResponseBuilder<T> {
   }
 
   /**
+   * Sets the error message of the API response.
+   * @param error - The error message.
+   * @returns The ApiResponseBuilder instance.
+   */
+  public withError(error: string | null): ApiResponseBuilder<T> {
+    this.responseBody.error = error;
+    return this;
+  }
+
+  /**
    * Sets the data of the API response.
    * @param data - The data.
    * @returns The ApiResponseBuilder instance.
@@ -152,6 +165,9 @@ export class ApiResponseBuilder<T> {
    */
   public buildAndSend(): void {
     if (this.res) {
+      if (!this.responseBody.from) delete this.responseBody.from;
+      if (!this.responseBody.message) delete this.responseBody.message;
+      if (!this.responseBody.error) delete this.responseBody.error;
       this.res.status(this.responseBody.status).json(this.build()).end();
     } else {
       throw new Error('ExpressJS response object is not set.');

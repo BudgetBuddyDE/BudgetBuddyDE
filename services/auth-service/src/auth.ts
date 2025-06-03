@@ -1,22 +1,40 @@
-import {getLogLevel, getTrustedOrigins} from '@budgetbuddyde/utils';
+import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {betterAuth} from 'better-auth';
+import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {createAuthMiddleware} from 'better-auth/api';
-import {admin, bearer, multiSession, openAPI} from 'better-auth/plugins';
+import {admin, bearer, multiSession} from 'better-auth/plugins';
 import {type BetterAuthOptions} from 'better-auth/types';
 import 'dotenv/config';
 import fetch from 'node-fetch';
 
 import {config} from './config';
 import {logger} from './core/logger';
-import {pool} from './pool';
-import {redisClient} from './redis';
+import {db} from './db/drizzleClient';
+import {redisClient} from './db/redis';
+import * as authSchema from './db/schema/auth';
 import {isCSRFCheckDisabled} from './utils/isCSRFCheckDisabled';
+
+export enum AuthRole {
+  USER = 'user',
+  SERVICE_ACCOUNT = 'service-account',
+  ADMIN = 'admin',
+}
+
+export function isUserRole(role: string | null): asserts role is AuthRole {
+  const isUserRole = Object.values(AuthRole).includes(role as AuthRole);
+  if (!isUserRole) {
+    throw new Error(`Role ${role} is not a valid user role`);
+  }
+}
 
 const authLogger = logger.child({label: 'auth'});
 
 const options: BetterAuthOptions = {
-  appName: config.appName,
-  database: pool,
+  appName: config.service,
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema: authSchema,
+  }),
   secondaryStorage:
     process.env.REDIS_URL !== undefined
       ? {
@@ -30,6 +48,11 @@ const options: BetterAuthOptions = {
           },
         }
       : undefined,
+  logger: {
+    disabled: false,
+    level: config.log.level,
+    log: config.log.log,
+  },
   emailAndPassword: {
     enabled: true,
   },
@@ -41,18 +64,38 @@ const options: BetterAuthOptions = {
   },
   socialProviders: {
     github: {
-      enabled: true,
+      enabled: false,
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     },
-  },
-  logger: {
-    disabled: false,
-    level: getLogLevel(),
-    log: (lvl, msg, args) => {
-      authLogger[lvl](msg, args);
+    google: {
+      enabled: false,
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+  trustedOrigins: getTrustedOrigins(),
+  advanced: {
+    crossSubDomainCookies:
+      process.env.CROSS_SUB_DOMAIN_COOKIES_DOMAIN !== undefined
+        ? {
+            enabled: true,
+            domain: process.env.CROSS_SUB_DOMAIN_COOKIES_DOMAIN,
+          }
+        : undefined,
+    disableCSRFCheck: isCSRFCheckDisabled(),
+    useSecureCookies: config.environment === 'production',
+  },
+  rateLimit: {
+    window: 60,
+    max: 30,
+  },
+  plugins: [
+    bearer(),
+    admin({defaultRole: AuthRole.USER, adminRoles: [AuthRole.ADMIN, AuthRole.SERVICE_ACCOUNT]}),
+    // openAPI(),
+    multiSession(),
+  ].filter(v => typeof v !== 'boolean'),
   hooks: {
     after: createAuthMiddleware(async ctx => {
       const path = ctx.path;
@@ -98,23 +141,6 @@ const options: BetterAuthOptions = {
       }
     }),
   },
-  trustedOrigins: getTrustedOrigins(),
-  advanced: {
-    crossSubDomainCookies:
-      process.env.CROSS_SUB_DOMAIN_COOKIES_DOMAIN !== undefined
-        ? {
-            enabled: true,
-            domain: process.env.CROSS_SUB_DOMAIN_COOKIES_DOMAIN,
-          }
-        : undefined,
-    disableCSRFCheck: isCSRFCheckDisabled(),
-    useSecureCookies: config.environment === 'production',
-  },
-  rateLimit: {
-    window: 60,
-    max: 30,
-  },
-  plugins: [bearer(), admin(), openAPI(), multiSession()].filter(v => typeof v !== 'boolean'),
 };
 
 export const auth = betterAuth(options);

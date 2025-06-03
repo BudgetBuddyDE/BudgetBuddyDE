@@ -1,14 +1,29 @@
 import 'dotenv/config';
 import pg from 'pg';
 
-import {logger} from './core/logger';
+import {logger} from '../core/logger';
 
 const {Pool} = pg;
-const dbLogger = logger.child({label: 'pool'});
+export const dbLogger = logger.child({label: 'pool'});
 export const pool = new Pool({
-  connectionString: process.env.PG_URL as string,
+  connectionString: process.env.DATABASE_URL as string,
   connectionTimeoutMillis: 5000,
   max: 20,
+});
+
+pool.on('connect', () => dbLogger.debug('Connected to the database'));
+
+pool.on('acquire', () => dbLogger.debug('Client acquired'));
+
+pool.on('release', () => dbLogger.debug('Client released'));
+
+pool.on('remove', () => dbLogger.debug('Client removed'));
+
+// the pool will emit an error on behalf of any idle clients
+// it contains if a backend error or network partition happens
+pool.on('error', (err, _) => {
+  dbLogger.error('Unexpected error on idle client', err);
+  process.exit(-1);
 });
 
 /**

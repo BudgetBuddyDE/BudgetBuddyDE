@@ -1,25 +1,48 @@
-import {type Runtime, getCurrentRuntime, getPort, isRunningInProd} from '@budgetbuddyde/utils';
+import {
+  type LogLevel,
+  Logger,
+  type Runtime,
+  getCurrentRuntime,
+  getLogLevel,
+  getPort,
+  isRunningInProd,
+} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
 import 'dotenv/config';
+import {type PoolConfig} from 'pg';
+import {type RedisClientOptions} from 'redis';
 
 import {name, version} from '../package.json';
 
-export type TConfig = {
-  environment: Runtime;
-  appName: typeof name;
+export type Config = {
+  service: typeof name;
   version: typeof version;
-  port: number;
+  port: number | string;
+  environment: Runtime;
+  log: {
+    level: LogLevel;
+    log?: Logger['log'];
+  };
+  db: {
+    pool: PoolConfig;
+    redis?: RedisClientOptions;
+  };
   cors: CorsOptions;
 };
 
-/**
- * Configuration object for this application.
- */
-export const config: TConfig = {
-  environment: getCurrentRuntime(),
-  appName: name,
+export const config: Config = {
+  service: name,
   version: version,
   port: getPort(),
+  environment: getCurrentRuntime(),
+  log: {
+    level: getLogLevel(),
+  },
+  db: {
+    pool: {
+      connectionString: process.env.DATABASE_URL,
+    },
+  },
   cors: {
     origin: isRunningInProd() ? [/\.budget-buddy\.de$/] : [/^(http|https):\/\/localhost(:\d+)?$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
