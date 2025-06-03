@@ -42,6 +42,10 @@ export const config: Config = {
     pool: {
       connectionString: process.env.DATABASE_URL,
     },
+    redis: {
+      url: process.env.REDIS_URL,
+      database: process.env.REDIS_DATABASE ? parseInt(process.env.REDIS_DATABASE, 10) : 1,
+    },
   },
   cors: {
     origin: isRunningInProd() ? [/\.budget-buddy\.de$/] : [/^(http|https):\/\/localhost(:\d+)?$/],
