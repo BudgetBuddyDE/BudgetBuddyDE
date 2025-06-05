@@ -10,10 +10,13 @@ export type FieldOrMapping<T extends object> =
 export type FieldsWithAlias<T extends object> = Array<FieldOrMapping<T>>;
 export type CSVOptions = {
   separator: string;
-  
-}
+};
 
-export function toCSV<T extends object>(arr: T[], fields: FieldsWithAlias<T>, options?: Partial<{separator: string}>): string {
+export function toCSV<T extends object>(
+  arr: T[],
+  fields: FieldsWithAlias<T>,
+  options?: Partial<{separator: string}>,
+): string {
   if (!Array.isArray(arr)) {
     throw new Error('Input must be an array of objects');
   }
@@ -38,5 +41,5 @@ export function toCSV<T extends object>(arr: T[], fields: FieldsWithAlias<T>, op
     )
     .join('\n');
 
-    return header + rows;
+  return header + rows;
 }
