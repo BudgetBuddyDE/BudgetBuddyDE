@@ -1,7 +1,6 @@
 {
   "pages": [
-    "pocketbase",
-    "capire-backend",
+    "backend",
     "auth-service",
     "stock-service",
     "mail-service",
