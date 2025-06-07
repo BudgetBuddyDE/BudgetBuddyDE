@@ -1,0 +1,6 @@
+newsletter,name,enabled,description
+app_updates,App updates,false,Get updates about the app
+weekly_report,Weekly report,true,Get a weekly report of your expenses
+monthly_report,Monthly report,true,Get a monthly report of your expenses
+stock_daily_report,Stock daily report,true,Get a daily report of your stock positions
+stock_dividend_report,Stock dividend report,true,Get a report of your stock dividends
