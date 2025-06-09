@@ -1,10 +1,10 @@
-import {z} from 'zod';
+import { z } from "zod";
 
-const ZDate = z.date().or(z.string().transform(str => new Date(str)));
+const ZDate = z.date().or(z.string().transform((str) => new Date(str)));
 
 export const ZUserSchema = z.object({
   id: z.string(),
-  email: z.string().transform(val => val.toLowerCase()),
+  email: z.string().transform((val) => val.toLowerCase()),
   emailVerified: z.boolean().default(false),
   name: z.string(),
   image: z.string().nullish(),

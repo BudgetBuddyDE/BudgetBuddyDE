@@ -28,7 +28,6 @@ These cases should get covered by tests...
 
 ## Susbcriptions
 
-
 - [ ] Users can only select, update and delete their entities
 - [ ] The userId is accordingly set when creating/or updating an entity
 - [ ] Admins or technical users can select, update and delete entities of different users

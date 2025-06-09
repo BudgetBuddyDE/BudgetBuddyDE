@@ -5,7 +5,7 @@
   "repository": "git@github.com:budgetbuddyde/budgetbuddyde.git",
   "license": "MIT",
   "private": true,
-    "scripts": {
+  "scripts": {
     "build": "cds build --production",
     "start": "cds-serve",
     "watch": "cds-tsx w",

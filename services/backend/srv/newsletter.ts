@@ -1,6 +1,6 @@
-import cds from '@sap/cds';
+import cds from "@sap/cds";
 
-import { config } from './core/config';
+import { config } from "./core/config";
 
 export class NewsletterService extends cds.ApplicationService {
   private logger = config.getLogger(this.name, { label: this.name });
@@ -8,7 +8,7 @@ export class NewsletterService extends cds.ApplicationService {
   init(): Promise<void> {
     this.logger.info(`Initializing service: ${this.name}`);
 
-    this.on('error', (err, req) => {
+    this.on("error", (err, req) => {
       this.logger.error(err, {
         path: req.path,
         params: req.params,
