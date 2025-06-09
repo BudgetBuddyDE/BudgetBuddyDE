@@ -133,6 +133,7 @@ const options: BetterAuthOptions = {
               statusText: response.statusText,
               userId: newSession.user.id,
               CAPIRE_BACKEND_HOST,
+              responseBody: await response.text(),
             });
             return;
           }
