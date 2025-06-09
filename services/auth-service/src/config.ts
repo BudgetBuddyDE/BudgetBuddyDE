@@ -65,7 +65,9 @@ export const config: Config = {
     },
   },
   cors: {
-    origin: isRunningInProd() ? [/\.budget-buddy\.de$/] : [/^(http|https):\/\/localhost(:\d+)?$/],
+    origin: isRunningInProd() 
+      ? [/\.budget-buddy\.de$/, /^(http|https):\/\/localhost(:\d+)?$/] 
+      : [/^(http|https):\/\/localhost(:\d+)?$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
