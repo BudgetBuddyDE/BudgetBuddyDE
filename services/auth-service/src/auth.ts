@@ -2,7 +2,7 @@ import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {betterAuth} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {createAuthMiddleware} from 'better-auth/api';
-import {admin, bearer, multiSession} from 'better-auth/plugins';
+import {admin, bearer, multiSession, openAPI} from 'better-auth/plugins';
 import {type BetterAuthOptions} from 'better-auth/types';
 import 'dotenv/config';
 import fetch from 'node-fetch';
@@ -93,7 +93,7 @@ const options: BetterAuthOptions = {
   plugins: [
     bearer(),
     admin({defaultRole: AuthRole.USER, adminRoles: [AuthRole.ADMIN, AuthRole.SERVICE_ACCOUNT]}),
-    // openAPI(),
+    openAPI(),
     multiSession(),
   ].filter(v => typeof v !== 'boolean'),
   hooks: {
