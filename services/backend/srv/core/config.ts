@@ -1,35 +1,35 @@
-import cds from "@sap/cds";
-import winston from "winston";
-import LokiTransport from "winston-loki";
+import cds from '@sap/cds';
+import winston from 'winston';
+import LokiTransport from 'winston-loki';
+
+const { NODE_ENV, LOKI_HOST, LOG_LEVEL } = process.env;
 
 const META_INFORMATION = {
-  service: "backend",
-  version: "1.0.0",
-  environment: process.env.NODE_ENV || "development",
-  project: "budgetbuddyde",
+  service: 'backend',
+  version: '1.0.0',
+  environment: NODE_ENV || 'development',
+  project: 'budgetbuddyde',
 };
 
 const format = winston.format.combine(
   winston.format.errors({ stack: true }),
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
   winston.format.align(),
   winston.format.splat(),
   winston.format.printf(({ timestamp, level, message, stack }) => {
     return `${timestamp} ${level}: ${stack || message}`;
-  }),
+  })
 );
 
 cds.log.Logger = cds.log.winstonLogger({
-  level: process.env.LOG_LEVEL || "INFO",
+  level: LOG_LEVEL || 'INFO',
   format: format,
   transports: [
     new winston.transports.Console(),
-    ...(process.env.NODE_ENV === "production" &&
-    process.env.LOKI_HOST !== undefined &&
-    process.env.LOGI_HOST !== ""
+    ...(NODE_ENV === 'production' && LOKI_HOST !== undefined && LOKI_HOST !== ''
       ? [
           new LokiTransport({
-            host: process.env.LOKI_HOST,
+            host: LOKI_HOST,
             labels: META_INFORMATION,
           }),
         ]
@@ -39,9 +39,9 @@ cds.log.Logger = cds.log.winstonLogger({
 
 export const config = {
   getLogger: (
-    name: string = "bb",
+    name: string = 'bb',
     options: Parameters<typeof cds.log>[1] = {
-      label: "BudgetBuddy",
-    },
+      label: 'BudgetBuddy',
+    }
   ) => cds.log(name, options),
 };
