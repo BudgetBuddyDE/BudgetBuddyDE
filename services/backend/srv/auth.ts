@@ -31,15 +31,14 @@ export default async function custom_auth(
     req.method === "POST"
   ) {
     authLogger.warn(
-      "Skipping authentication for internal user creation",
+      "Setting user to internal for internal user creation",
       logOptions,
     );
-    // FIXME: This is a workaround to allow internal user creation
-    // req.user = new cds.User({
-    //   id: 'internal',
-    //   roles: ['system'],
-    //   attr: {},
-    // });
+    req.user = new cds.User({
+      id: "internal",
+      roles: ["system"],
+      attr: {},
+    });
     return next();
   }
 
