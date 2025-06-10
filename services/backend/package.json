@@ -91,11 +91,11 @@
       },
       "[production]": {
         "levels": {
-          "cds": "error",
-          "db": "error",
+          "cds": "info",
+          "db": "info",
           "odata": "error",
           "rest": "error",
-          "auth": "error"
+          "auth": "info"
         }
       }
     }
