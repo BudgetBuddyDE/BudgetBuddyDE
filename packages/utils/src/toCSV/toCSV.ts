@@ -2,7 +2,7 @@
  * @deprecated Use FieldOrMapping instead.
  */
 export type FieldMapping<T extends object> = Set<keyof T>;
-export type TransformFieldFunc<T extends object, R> = (value: T[keyof T], item: T) => R;
+export type TransformFieldFunc<T extends object, R> = (value: T[keyof T], item: T, list: T[], index: number) => R;
 export type FieldOrMapping<T extends object> =
   | keyof T
   | {field: keyof T; as: string; transform?: TransformFieldFunc<T, unknown>}
@@ -29,13 +29,13 @@ export function toCSV<T extends object>(
   const headerFields = fields.map(field => (typeof field === 'object' && 'as' in field ? field.as : field));
   const header = headerFields.join(separator) + '\n';
   const rows = arr
-    .map(item =>
+    .map((item, index) =>
       fields
         .map(field => {
           const FIELD_IS_OBJ = typeof field === 'object';
           const fieldAccessor: keyof T = FIELD_IS_OBJ ? field.field : field;
           const fieldVal = item[fieldAccessor];
-          return FIELD_IS_OBJ && field.transform ? field.transform(fieldVal, item) : fieldVal;
+          return FIELD_IS_OBJ && field.transform ? field.transform(fieldVal, item, arr, index) : fieldVal;
         })
         .join(separator),
     )
