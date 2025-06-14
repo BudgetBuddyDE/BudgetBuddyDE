@@ -19,7 +19,7 @@ async function UpdateAssetSubscriptions(): Promise<
     subscribers: string[];
   }[]
 > {
-  logger.info('Updating stock subscriptions', {category: ELogCategory.STOCK_SUBSCRIPTION});
+  logger.debug('Updating stock subscriptions', {category: ELogCategory.STOCK_SUBSCRIPTION});
   const updatedSubscriptions = [] as {
     exchange: string;
     isin: string;
@@ -29,7 +29,7 @@ async function UpdateAssetSubscriptions(): Promise<
   const stockStore = StockStore.getState();
   const groupedStocks = stockStore.getSubscriptionsGroupedByExchange();
 
-  logger.info(
+  logger.debug(
     'Fetching stock prices for ' +
       groupedStocks.map(({exchange, assets}) => assets.map(asset => `${exchange}:${asset}`).join(',')) +
       ' exchange/s',
@@ -49,17 +49,17 @@ async function UpdateAssetSubscriptions(): Promise<
     const [quotes, error] = resolvedPromise.value;
     if (error) logger.warn(`Error fetching stock prices: ${error.message}`, {category: ELogCategory.STOCK, error});
     if (!quotes) {
-      logger.info(`No quotes found`, {category: ELogCategory.STOCK});
+      logger.debug(`No quotes found`, {category: ELogCategory.STOCK});
       return [];
     }
-    logger.info(`Received ${quotes.length} quote/s`, {category: ELogCategory.STOCK});
+    logger.debug(`Received ${quotes.length} quote/s`, {category: ELogCategory.STOCK});
 
     quotes.forEach(quote => {
       const subscription = stockStore.getSubscription(quote.assetIdentifier, quote.exchange);
       if (!subscription) return;
       const newestPriceUpdate = quote.quotes.slice(-1)[0];
 
-      logger.info(`Comparing ({isin}) ${subscription.quote?.price} with ${newestPriceUpdate.price}`, {
+      logger.debug(`Comparing ({isin}) ${subscription.quote?.price} with ${newestPriceUpdate.price}`, {
         category: ELogCategory.STOCK_SUBSCRIPTION,
         isin: quote.assetIdentifier,
         exchange: quote.exchange,
@@ -89,7 +89,7 @@ async function UpdateAssetSubscriptions(): Promise<
     });
   }
 
-  logger.info(
+  logger.debug(
     'Updated subscriptions: ' +
       (updatedSubscriptions.length > 0
         ? updatedSubscriptions.map(({exchange, isin}) => `${exchange}:${isin}`).join(', ')
