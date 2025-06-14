@@ -50,7 +50,7 @@
           "kind": "postgres",
           "dialect": "postgres"
         },
-        "[pg]": {
+        "[hybrid]": {
           "kind": "postgres",
           "dialect": "postgres"
         },
@@ -65,7 +65,7 @@
         "[production]": {
           "impl": "srv/auth.js"
         },
-        "[better-auth]": {
+        "[hybrid]": {
           "impl": "srv/auth.ts"
         },
         "[development]": {

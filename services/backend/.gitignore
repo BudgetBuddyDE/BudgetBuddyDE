@@ -1,0 +1,4 @@
+node_modules/
+@cds-models/
+gen/
+.cdsrc.json

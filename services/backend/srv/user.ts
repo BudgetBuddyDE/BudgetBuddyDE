@@ -5,7 +5,7 @@ import { config } from './core/config';
 export class UserService extends cds.ApplicationService {
   private logger = config.getLogger(this.name, { label: this.name });
 
-  init(): Promise<void> {
+  async init(): Promise<void> {
     this.logger.info(`Initializing service: ${this.name}`);
 
     this.on('error', (err, req) => {
