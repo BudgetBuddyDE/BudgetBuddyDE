@@ -64,12 +64,12 @@ const options: BetterAuthOptions = {
   },
   socialProviders: {
     github: {
-      enabled: false,
+      enabled: true,
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     },
     google: {
-      enabled: false,
+      enabled: true,
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
