@@ -18,7 +18,7 @@ app.use(servedBy);
 app.use(log);
 app.use(cors(config.cors));
 
-app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
+// app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const isRedisReachable = isRedisConnected();
