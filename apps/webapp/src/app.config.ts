@@ -4,6 +4,7 @@ import {type TableCellProps, type Theme} from '@mui/material';
 import BlueTheme from '@/style/theme/theme';
 
 import {version} from '../package.json';
+import {type TExternalAuthProvider} from './services/Auth/types';
 
 export enum Feature {
   STOCKS = 'stocks',
@@ -29,7 +30,7 @@ export type TAppConfig = {
     cellSize: TableCellProps['size'];
   };
   baseSpacing: number;
-  authProvider: Record<string, string>;
+  authProvider: Record<TExternalAuthProvider, string>;
   feature: Record<Feature, boolean>;
 };
 

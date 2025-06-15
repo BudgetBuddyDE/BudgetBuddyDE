@@ -10,15 +10,16 @@ import {AppLogo} from '@/components/AppLogo/AppLogo.component';
 import {Card} from '@/components/Base/Card';
 import {PasswordInput} from '@/components/Base/Input';
 import {withUnauthentificatedLayout} from '@/features/Auth';
-import {SocialSignInBtn, useAuthContext} from '@/features/Auth';
+import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
 import {AuthService} from '@/services/Auth';
+import {authClient} from '@/services/Auth/authClient';
 
 const SignIn = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const {sessionUser, logout} = useAuthContext();
+  const {session, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const [form, setForm] = React.useState<Record<string, string>>({});
 
@@ -46,13 +47,27 @@ const SignIn = () => {
     formSubmit: React.useCallback(
       async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const [result, error] = await AuthService.login(form.email, form.password);
-        if (error) {
-          logger.error("Something wen't wrong", error);
-          showSnackbar({message: error instanceof Error ? error.message : 'Authentication failed'});
+        if (!AuthService.isEmail(form.email)) {
+          showSnackbar({message: 'Please enter a valid email address'});
           return;
         }
-        handleSuccessfullLogin(result.record.username);
+
+        const signInResult = await authClient.signIn.email({
+          email: form.email as string,
+          password: form.password as string,
+        });
+
+        if (signInResult.error) {
+          showSnackbar({message: signInResult.error.message || 'Sign in failed'});
+          logger.error('Sign in error:', signInResult.error);
+          return;
+        }
+
+        showSnackbar({
+          message: `Welcome back ${signInResult.data.user.name}`,
+          action: <Button onClick={logout}>Sign-out</Button>,
+        });
+        navigate('/');
       },
       [form, location],
     ),
@@ -66,7 +81,7 @@ const SignIn = () => {
 
   return (
     <React.Fragment>
-      {sessionUser && (
+      {session && (
         <Stack
           flexDirection={'row'}
           sx={{position: 'absolute', top: theme => theme.spacing(2), right: theme => theme.spacing(2)}}
@@ -95,13 +110,13 @@ const SignIn = () => {
               />
 
               <Typography variant={'h5'} textAlign={'center'} fontWeight={'bolder'} sx={{mt: 2}}>
-                {sessionUser ? `Welcome ${sessionUser.username}!` : 'Sign in'}
+                {session ? `Welcome ${session.user?.name}!` : 'Sign in'}
               </Typography>
             </Box>
 
             <form onSubmit={formHandler.formSubmit}>
               <Grid container spacing={AppConfig.baseSpacing} sx={{mt: 1}}>
-                {Object.keys(AppConfig.authProvider).map(provider => (
+                {/* {Object.keys(AppConfig.authProvider).map(provider => (
                   <Grid key={provider} size={{xs: 6}}>
                     <SocialSignInBtn
                       key={provider}
@@ -111,11 +126,11 @@ const SignIn = () => {
                       data-umami-value={provider}
                     />
                   </Grid>
-                ))}
+                ))} */}
 
-                <Grid size={{xs: 12}}>
+                {/* <Grid size={{xs: 12}}>
                   <Divider>or with</Divider>
-                </Grid>
+                </Grid> */}
 
                 <Grid size={{xs: 12}}>
                   <TextField

@@ -10,22 +10,29 @@ import {ViteEjsPlugin} from 'vite-plugin-ejs';
 // Due to https://stackoverflow.com/a/75191787
 // dns.setDefaultResultOrder('verbatim');
 
-const production = process.env.NODE_ENV === 'production';
-const SHOW_ENVIRONMENT_DISCLAIMER = process.env.SHOW_ENVIRONMENT_DISCLAIMER || 'false';
-const STOCK_SERVICE_HOST = process.env.STOCK_SERVICE_HOST || 'http://localhost:7080';
-const MAIL_SERVICE_HOST = process.env.MAIL_SERVICE_HOST || 'https://localhost:7070';
-const POCKETBASE_URL = process.env.POCKETBASE_URL || 'https://localhost:7060';
+const {
+  NODE_ENV,
+  SHOW_ENVIRONMENT_DISCLAIMER,
+  AUTH_SERVICE_HOST,
+  BACKEND_HOST,
+  POCKETBASE_URL,
+  STOCK_SERVICE_HOST,
+  MAIL_SERVICE_HOST,
+} = process.env;
+const production = NODE_ENV === 'production';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   // https://github.com/vitejs/vite/issues/1973#issuecomment-787571499
   define: {
     'process.env': {
-      SHOW_ENVIRONMENT_DISCLAIMER: SHOW_ENVIRONMENT_DISCLAIMER,
-      STOCK_SERVICE_HOST: STOCK_SERVICE_HOST,
-      MAIL_SERVICE_HOST: MAIL_SERVICE_HOST,
-      POCKETBASE_URL: POCKETBASE_URL,
-      NODE_ENV: process.env.NODE_ENV,
+      SHOW_ENVIRONMENT_DISCLAIMER: SHOW_ENVIRONMENT_DISCLAIMER || 'false',
+      STOCK_SERVICE_HOST: STOCK_SERVICE_HOST || 'http://localhost:7080',
+      MAIL_SERVICE_HOST: MAIL_SERVICE_HOST || 'https://localhost:7070',
+      POCKETBASE_URL: POCKETBASE_URL || 'https://localhost:7060',
+      AUTH_SERVICE_HOST: AUTH_SERVICE_HOST,
+      BACKEND_HOST: BACKEND_HOST,
+      NODE_ENV: NODE_ENV,
       LOG_LEVEL: getLogLevel(),
     },
   },
@@ -36,6 +43,16 @@ export default defineConfig({
     proxy: production
       ? undefined
       : {
+          '/auth_service': {
+            target: AUTH_SERVICE_HOST,
+            changeOrigin: true,
+            rewrite: path => path.replace('/auth_service', ''),
+          },
+          '/backend': {
+            target: BACKEND_HOST,
+            changeOrigin: true,
+            rewrite: path => path.replace('/backend', ''),
+          },
           '/stock_service': {
             target: STOCK_SERVICE_HOST,
             changeOrigin: true,

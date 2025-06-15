@@ -1,45 +1,87 @@
-import {PocketBaseCollection, type TId, type TServiceResponse, type TUser} from '@budgetbuddyde/types';
-import {RecordAuthResponse} from 'pocketbase';
+import {
+  EMail,
+  type TExternalAuthProvider,
+  type TSignInMethod,
+  type TSignInWithEmailPayload,
+  type TSignInWithSocialPayload,
+  type TSignUpMethod,
+  type TSignUpWithEmailPayload,
+  type TSignUpWithEmailResponse,
+  type TSignUpWithSocialPayload,
+  type TSignUpWithSocialResponse,
+  ZSignUpWithEmailResponse,
+} from './types';
 
-import {pb} from '@/pocketbase';
-
-/**
- * Service class for handling authentication related operations.
- */
 export class AuthService {
-  private static collection = PocketBaseCollection.USERS;
+  private static host: string | undefined = process.env.AUTH_SERVICE_HOST;
 
-  /**
-   * Logs in a user with the provided email and password.
-   * @param email - The user's email.
-   * @param password - The user's password.
-   * @returns A promise that resolves to a tuple containing the authenticated user record and any error that occurred during authentication.
-   */
-  static async login(
-    email: string,
-    password: string,
-  ): Promise<TServiceResponse<RecordAuthResponse<NonNullable<TUser>>>> {
-    try {
-      const result = await pb.collection<TUser>(this.collection).authWithPassword(email, password);
-      if (!result || !result.record) return [null, new Error('Authentication failed')];
-      return [result as RecordAuthResponse<NonNullable<TUser>>, null];
-    } catch (error) {
-      return [null, error as Error];
+  static isEmail(email: string): email is EMail {
+    return typeof email === 'string' && email.includes('@');
+  }
+
+  static isValidAuthProvider(provider: string): provider is TExternalAuthProvider {
+    return ['google', 'github'].some(p => p === provider);
+  }
+
+  private static isHostSet(host: string | undefined): asserts host is string {
+    if (!host) {
+      throw new Error('Auth service host is not set. Please set AUTH_SERVICE_HOST environment variable.');
     }
   }
 
-  /**
-   * Retrieves a user by their ID.
-   * @param userId - The ID of the user to retrieve.
-   * @returns A promise that resolves to a tuple containing the retrieved user record and any error that occurred during retrieval.
-   */
-  static async getUser(userId: TId): Promise<TServiceResponse<NonNullable<TUser>>> {
-    try {
-      const record = await pb.collection<TUser>(this.collection).getOne(userId);
-      if (!record) return [null, new Error('User not found')];
-      return [record, null];
-    } catch (error) {
-      return [null, error as Error];
+  static async signUp<method extends TSignUpMethod>(
+    signUpMethod: method,
+    payload: method extends 'email' ? TSignUpWithEmailPayload : TSignUpWithSocialPayload,
+  ): Promise<method extends 'email' ? TSignUpWithEmailResponse : TSignUpWithSocialResponse> {
+    this.isHostSet(this.host);
+
+    switch (signUpMethod) {
+      case 'email':
+        const response = await fetch(`${this.host}/api/auth/sign-up/${signUpMethod}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+          body: JSON.stringify(payload),
+        });
+        const responseStatus = response.status;
+        if (responseStatus < 200 || responseStatus >= 300) {
+          const errorText = await response.text();
+          throw new Error(`Failed to sign up: ${responseStatus} - ${errorText}`);
+        }
+        const json = await response.json();
+        const parsedResponse = ZSignUpWithEmailResponse.safeParse(json);
+        if (!parsedResponse.success) {
+          throw new Error(`Invalid response format for email sign up: ${parsedResponse.error.message}`);
+        }
+        return parsedResponse.data;
+      case 'social':
+        return this.signIn('social', payload as TSignInWithSocialPayload);
+      default:
+        throw new Error(`Unsupported sign up method: ${signUpMethod}`);
     }
+  }
+
+  static async signIn<method extends TSignInMethod>(
+    signInMethod: method,
+    payload: method extends 'email' ? TSignInWithEmailPayload : TSignInWithSocialPayload,
+  ) {
+    this.isHostSet(this.host);
+
+    const response = await fetch(`${this.host}/api/auth/sign-in/${signInMethod}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify(payload),
+    });
+    const responseStatus = response.status;
+    if (responseStatus < 200 || responseStatus >= 300) {
+      const errorText = await response.text();
+      throw new Error(`Failed to login: ${responseStatus} - ${errorText}`);
+    }
+    const json = await response.json();
+
+    return json;
   }
 }
