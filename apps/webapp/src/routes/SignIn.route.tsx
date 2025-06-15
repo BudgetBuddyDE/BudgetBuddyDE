@@ -13,7 +13,7 @@ import {withUnauthentificatedLayout} from '@/features/Auth';
 import {SocialSignInBtn, useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {AuthService} from '@/services/Auth';
+import {PocketbaseAuthService} from '@/services/Auth';
 
 const SignIn = () => {
   const location = useLocation();
@@ -46,7 +46,7 @@ const SignIn = () => {
     formSubmit: React.useCallback(
       async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const [result, error] = await AuthService.login(form.email, form.password);
+        const [result, error] = await PocketbaseAuthService.login(form.email, form.password);
         if (error) {
           logger.error("Something wen't wrong", error);
           showSnackbar({message: error instanceof Error ? error.message : 'Authentication failed'});

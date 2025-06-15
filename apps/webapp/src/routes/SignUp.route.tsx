@@ -1,4 +1,3 @@
-import {PocketBaseCollection} from '@budgetbuddyde/types';
 import {ExitToAppRounded, HomeRounded, SendRounded} from '@mui/icons-material';
 import {
   Box,
@@ -24,13 +23,19 @@ import {withUnauthentificatedLayout} from '@/features/Auth';
 import {SocialSignInBtn, useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {pb} from '@/pocketbase.ts';
+import {AuthService} from '@/services/Auth';
+import {type TExternalAuthProvider, type TSignUpWithEmailPayload} from '@/services/Auth/types';
 
 const SignUp = () => {
   const navigate = useNavigate();
   const {sessionUser, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const [form, setForm] = React.useState<Record<string, string>>({});
+  const [form, setForm] = React.useState<Record<string, string>>({
+    name: 'John',
+    surname: 'Doe',
+    email: 'john.doe@budget-buddy.de',
+    password: 'password123',
+  });
 
   const redirectToDashboard = () => {
     navigate('/dashboard');
@@ -44,26 +49,35 @@ const SignUp = () => {
       showSnackbar({message: `Welcome ${response.record.username}!`});
       navigate('/');
     },
+    signUpWithSocial: async (provider: TExternalAuthProvider) => {
+      try {
+        const result = await AuthService.signUp('social', {provider: provider, disableRedirect: false});
+        console.log('Social sign up result:', result);
+      } catch (error) {
+        showSnackbar({message: (error as Error).message || 'Social sign up failed'});
+      }
+    },
     formSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      if (!AuthService.isEmail(form.email)) {
+        showSnackbar({message: 'Please enter a valid email address.'});
+        return;
+      }
+
       try {
-        const data = {
-          username: `${form.name}_${form.surname}`.replaceAll(' ', '_').toLowerCase(),
-          email: form.email,
-          emailVisibility: false,
-          password: form.password,
-          passwordConfirm: form.password,
+        console.log('Form submitted', form);
+
+        const payload: TSignUpWithEmailPayload = {
           name: form.name,
-          surname: form.surname,
+          email: form.email,
+          password: form.password,
         };
-        await pb.collection(PocketBaseCollection.USERS).create(data);
 
-        pb.collection(PocketBaseCollection.USERS).requestVerification(form.email);
+        const result = await AuthService.signUp('email', payload);
+        console.log('Sign up result:', result);
 
-        await pb.collection(PocketBaseCollection.USERS).authWithPassword(form.email, form.password);
-
-        showSnackbar({message: 'You have successfully registered and signed in!'});
-        navigate('/');
+        showSnackbar({message: 'Your account has been created!'});
+        // navigate('/');
       } catch (error) {
         logger.error("Something wen't wrong", error);
         showSnackbar({message: (error as Error).message || 'Registration failed'});
@@ -112,8 +126,10 @@ const SignUp = () => {
                   <Grid key={provider} size={{xs: 6}}>
                     <SocialSignInBtn
                       key={provider}
-                      provider={provider}
-                      onAuthProviderResponse={formHandler.handleAuthProviderLogin}
+                      provider={provider as TExternalAuthProvider}
+                      onClick={async () => {
+                        console.log(await formHandler.signUpWithSocial(provider as TExternalAuthProvider));
+                      }}
                       data-umami-event={'social-sign-up'}
                       data-umami-value={provider}
                     />
@@ -129,6 +145,7 @@ const SignUp = () => {
                     variant="outlined"
                     label="Name"
                     name="name"
+                    defaultValue={form.name}
                     onChange={formHandler.inputChange}
                     fullWidth
                     required
@@ -139,6 +156,7 @@ const SignUp = () => {
                     variant="outlined"
                     label="Surname"
                     name="surname"
+                    defaultValue={form.surname}
                     onChange={formHandler.inputChange}
                     fullWidth
                     required
@@ -151,6 +169,7 @@ const SignUp = () => {
                     type="email"
                     label="E-Mail"
                     name="email"
+                    defaultValue={form.email}
                     onChange={formHandler.inputChange}
                     fullWidth
                     required
@@ -158,7 +177,12 @@ const SignUp = () => {
                 </Grid>
 
                 <Grid size={{xs: 12}}>
-                  <PasswordInput outlinedInputProps={{onChange: formHandler.inputChange}} />
+                  <PasswordInput
+                    outlinedInputProps={{
+                      defaultValue: form.password,
+                      onChange: formHandler.inputChange,
+                    }}
+                  />
                 </Grid>
 
                 <Grid size={{xs: 12}}>

@@ -10,7 +10,7 @@ import {
 import {type TMailOptInPayload, type TMailOptOutPayload} from '@budgetbuddyde/types/lib/Mail.types';
 
 import {pb} from '@/pocketbase';
-import {AuthService} from '@/services/Auth';
+import {PocketbaseAuthService} from '@/services/Auth';
 import {isRunningInProdEnv, preparePockebaseRequestOptions} from '@/utils';
 
 export class NewsletterService {
@@ -49,7 +49,7 @@ export class NewsletterService {
     newsletters?: NonNullable<TNewsletter>[],
   ): Promise<TServiceResponse<TNewsletter[]>> {
     if (typeof user === 'string') {
-      const [record, err] = await AuthService.getUser(user);
+      const [record, err] = await PocketbaseAuthService.getUser(user);
       if (err) return [null, err];
       user = record;
     }
