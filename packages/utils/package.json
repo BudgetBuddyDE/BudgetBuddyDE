@@ -24,7 +24,7 @@
     "test": "npm run format:check && vitest",
     "test:run": "npm run format:check && vitest run",
     "format:check": "prettier --check ./src",
-    "format": "prettier --write ./src"
+    "format:write": "prettier --write ./src"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
