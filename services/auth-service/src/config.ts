@@ -51,8 +51,8 @@ export const config: Config = {
   environment: serviceEnvironment,
   log: {
     level: logLevel,
-    log(level, msg, args) {
-      winstonLogger[level](msg, args);
+    log(level, msg, ...args) {
+      winstonLogger[level]({ message: msg, labels: { ...args } });
     },
   },
   db: {
