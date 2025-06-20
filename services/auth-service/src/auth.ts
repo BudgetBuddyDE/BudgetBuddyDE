@@ -1,6 +1,7 @@
 import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {type BetterAuthOptions, betterAuth} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
+import {openAPI} from 'better-auth/plugins';
 
 import {config} from './config';
 import {db} from './db';
@@ -27,6 +28,7 @@ const options: BetterAuthOptions = {
     enabled: true,
     autoSignIn: true,
   },
+  plugins: [config.runtime === 'development' ? openAPI() : null].filter(p => p !== null),
 };
 
 export const auth = betterAuth(options);
