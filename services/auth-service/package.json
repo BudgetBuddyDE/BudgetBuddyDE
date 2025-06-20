@@ -1,7 +1,7 @@
 {
   "name": "auth-service",
   "version": "1.0.0",
-  "main": "dist/server.js",
+  "main": "build/src/server.js",
   "scripts": {
     "start": "node build/src/server.js",
     "watch": "tsx watch src/server.ts",
