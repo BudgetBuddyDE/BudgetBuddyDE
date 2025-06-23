@@ -18,7 +18,7 @@ const ZPassword = z.string().min(8, 'The password needs to fullfill a minimum of
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const {sessionUser, logout} = useAuthContext();
+  const {session: sessionUser, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const [loading, setLoading] = React.useState(false);
   const [form, setForm] = React.useState({

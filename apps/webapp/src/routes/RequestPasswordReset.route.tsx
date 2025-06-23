@@ -14,7 +14,7 @@ import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
 const RequestPasswordReset = () => {
-  const {sessionUser, logout} = useAuthContext();
+  const {session: sessionUser, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const [loading, setLoading] = React.useState(false);
   const [email, setEmail] = React.useState('');

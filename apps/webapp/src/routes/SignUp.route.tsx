@@ -1,4 +1,3 @@
-import {PocketBaseCollection} from '@budgetbuddyde/types';
 import {ExitToAppRounded, HomeRounded, SendRounded} from '@mui/icons-material';
 import {
   Box,
@@ -17,6 +16,7 @@ import React from 'react';
 import {Link as RouterLink, useNavigate} from 'react-router-dom';
 
 import {AppConfig} from '@/app.config';
+import {authClient} from '@/auth';
 import {AppLogo} from '@/components/AppLogo/AppLogo.component';
 import {Card} from '@/components/Base/Card';
 import {PasswordInput} from '@/components/Base/Input';
@@ -24,13 +24,19 @@ import {withUnauthentificatedLayout} from '@/features/Auth';
 import {SocialSignInBtn, useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {pb} from '@/pocketbase.ts';
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const {sessionUser, logout} = useAuthContext();
+  const {session, revalidateSession, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const [form, setForm] = React.useState<Record<string, string>>({});
+  const [form, setForm] = React.useState<Record<string, string>>({
+    // FIXME: Remove default values in production
+    name: 'John',
+    surname: 'Doe',
+    email: 'john.doe@example.com',
+    password: 'password123',
+    tos: 'true',
+  });
 
   const redirectToDashboard = () => {
     navigate('/dashboard');
@@ -47,23 +53,24 @@ const SignUp = () => {
     formSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       try {
-        const data = {
-          username: `${form.name}_${form.surname}`.replaceAll(' ', '_').toLowerCase(),
+        const result = await authClient.signUp.email({
+          name: `${form.name} ${form.surname}`,
           email: form.email,
-          emailVisibility: false,
           password: form.password,
-          passwordConfirm: form.password,
-          name: form.name,
-          surname: form.surname,
-        };
-        await pb.collection(PocketBaseCollection.USERS).create(data);
-
-        pb.collection(PocketBaseCollection.USERS).requestVerification(form.email);
-
-        await pb.collection(PocketBaseCollection.USERS).authWithPassword(form.email, form.password);
-
-        showSnackbar({message: 'You have successfully registered and signed in!'});
-        navigate('/');
+        });
+        if (result.error) {
+          showSnackbar({
+            message: result.error.message || 'Registration failed',
+            action: <Button onClick={() => formHandler.formSubmit(event)}>Try again</Button>,
+          });
+          return;
+        }
+        showSnackbar({
+          message: 'You have successfully registered and signed in!',
+          action: <Button onClick={() => navigate('/settings')}>Settings</Button>,
+        });
+        await revalidateSession();
+        navigate('/dashboard');
       } catch (error) {
         logger.error("Something wen't wrong", error);
         showSnackbar({message: (error as Error).message || 'Registration failed'});
@@ -73,7 +80,7 @@ const SignUp = () => {
 
   return (
     <React.Fragment>
-      {sessionUser && (
+      {session && (
         <Stack
           flexDirection={'row'}
           sx={{position: 'absolute', top: theme => theme.spacing(2), right: theme => theme.spacing(2)}}
@@ -129,6 +136,7 @@ const SignUp = () => {
                     variant="outlined"
                     label="Name"
                     name="name"
+                    defaultValue={form.name}
                     onChange={formHandler.inputChange}
                     fullWidth
                     required
@@ -139,6 +147,7 @@ const SignUp = () => {
                     variant="outlined"
                     label="Surname"
                     name="surname"
+                    defaultValue={form.surname}
                     onChange={formHandler.inputChange}
                     fullWidth
                     required
@@ -151,6 +160,7 @@ const SignUp = () => {
                     type="email"
                     label="E-Mail"
                     name="email"
+                    defaultValue={form.email}
                     onChange={formHandler.inputChange}
                     fullWidth
                     required
@@ -158,12 +168,18 @@ const SignUp = () => {
                 </Grid>
 
                 <Grid size={{xs: 12}}>
-                  <PasswordInput outlinedInputProps={{onChange: formHandler.inputChange}} />
+                  <PasswordInput
+                    outlinedInputProps={{
+                      defaultValue: form.password,
+                      onChange: formHandler.inputChange,
+                    }}
+                  />
                 </Grid>
 
                 <Grid size={{xs: 12}}>
                   <FormControlLabel
                     required
+                    defaultChecked={form.tos === 'true'}
                     control={<Checkbox />}
                     label={
                       <React.Fragment>

@@ -9,7 +9,7 @@ import {useRelatedStocksStore} from './RelatedStocks.store';
 let mounted = false;
 
 export function useFetchRelatedStocks(isin: TIsin, amount: number = 8) {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {data, fetchedAt, fetchedBy, setFetchedData} = useRelatedStocksStore();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);

@@ -11,7 +11,7 @@ import {logger} from '@/logger';
 import {NewsletterService} from '../Newsletter.service';
 
 export const SubscribeToNewsletters = () => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const [loading, setLoading] = React.useState(true);
   const [newsletters, setNewsletters] = React.useState<TNewsletter[]>([]);

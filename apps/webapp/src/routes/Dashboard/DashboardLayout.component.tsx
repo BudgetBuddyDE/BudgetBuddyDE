@@ -14,7 +14,7 @@ export type TDashboardLayoutProps = React.PropsWithChildren<{
 }>;
 
 const DashboardLayout: React.FC<TDashboardLayoutProps> = ({children, useOutletInsteadOfChildren = false}) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const location = useLocation();
   const navigate = useNavigate();
 

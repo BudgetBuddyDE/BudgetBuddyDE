@@ -51,7 +51,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {sessionUser, fileToken} = useAuthContext();
+  const {session: sessionUser, fileToken} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshTransactions} = useTransactions();
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);

@@ -42,7 +42,7 @@ const StocksView = () => {
   const socket = getSocketIOClient();
   useDocumentTitle(`${AppConfig.appName} - Stocks`, true);
   const navigate = useNavigate();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {
     isLoading: isLoadingStockPositions,

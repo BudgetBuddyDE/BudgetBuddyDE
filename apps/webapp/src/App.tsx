@@ -40,6 +40,7 @@ const App = () => {
           <Route path="/subscriptions" element={<SubscriptionsRoute />} />
           <Route path="/payment-methods" element={<PaymentMethodsRoute />} />
           <Route path="/categories" element={<CategoriesRoute />} />
+          <Route path="/settings" element={<Navigate to="/settings/profile" />} />
           <Route path="/settings/profile" element={<SettingsRoute />} />
           <Route path="/sign-in" element={<SignInRoute />} />
           <Route path="/sign-up" element={<SignUpRoute />} />

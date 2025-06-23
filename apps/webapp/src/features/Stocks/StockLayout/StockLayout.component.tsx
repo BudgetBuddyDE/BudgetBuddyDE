@@ -37,7 +37,7 @@ export type TStockLayoutProps = React.PropsWithChildren<
  * );
  */
 export const StockLayout: React.FC<TStockLayoutProps> = ({onSelectAsset, onOpenPosition, children}) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {set: setStockWatchlist} = useStockWatchlistStore();
   const {data: stockExchanges} = useStockExchanges();

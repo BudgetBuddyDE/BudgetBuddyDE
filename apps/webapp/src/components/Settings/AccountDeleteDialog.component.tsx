@@ -15,7 +15,7 @@ export type TAccountDeleteDialogProps = DialogProps;
 
 export const AccountDeleteDialog: React.FC<TAccountDeleteDialogProps> = ({...dialogProps}) => {
   const {showSnackbar} = useSnackbarContext();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
 
   const handleCancel = () => {
     dialogProps.onClose?.({}, 'backdropClick');

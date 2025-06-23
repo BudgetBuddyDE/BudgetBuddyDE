@@ -10,7 +10,7 @@ import {useDocumentTitle} from '@/hooks/useDocumentTitle';
 
 const PageNotFound = () => {
   useDocumentTitle('Page not Found', true);
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   return (
     <Grid container justifyContent={'center'}>
       <Grid size={{xs: 12, md: 4, xl: 3}}>

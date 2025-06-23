@@ -8,7 +8,7 @@ import {withUnauthentificatedLayout} from '@/features/Auth';
 import {useAuthContext} from '@/features/Auth';
 
 const VerifyMail = () => {
-  const {sessionUser, logout} = useAuthContext();
+  const {session: sessionUser, logout} = useAuthContext();
   return (
     <React.Fragment>
       {sessionUser && (

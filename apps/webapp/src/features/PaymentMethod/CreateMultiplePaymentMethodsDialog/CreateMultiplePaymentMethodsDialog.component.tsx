@@ -38,7 +38,7 @@ export const CreateMultiplePaymentMethodsDialog: React.FC<TCreateMultiplePayment
   ...dialogProps
 }) => {
   const screenSize = useScreenSize();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshPaymentMethods} = usePaymentMethods();
   const dialogRef = React.useRef<HTMLDivElement>(null);

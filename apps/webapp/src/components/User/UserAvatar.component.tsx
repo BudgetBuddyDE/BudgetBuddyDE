@@ -7,7 +7,7 @@ import {pb} from '@/pocketbase';
 export type TUserAvatarProps = MuiAvatarProps;
 
 export const UserAvatar: React.FC<TUserAvatarProps> = props => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
 
   if (!sessionUser) return null;
   if (sessionUser.avatar) {

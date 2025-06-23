@@ -52,7 +52,7 @@ export const CreateMultipleTransactionsDialog: React.FC<TCreateMultipleTransacti
   ...dialogProps
 }) => {
   const screenSize = useScreenSize();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshTransactions} = useTransactions();
   const dialogRef = React.useRef<HTMLDivElement>(null);

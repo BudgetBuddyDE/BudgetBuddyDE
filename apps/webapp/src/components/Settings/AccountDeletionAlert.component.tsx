@@ -10,7 +10,7 @@ import {pb} from '@/pocketbase';
 export type TAccountDeletionAlertProps = AlertProps;
 
 export const AccountDeletionAlert: React.FC<TAccountDeletionAlertProps> = ({...alertProps}) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
 
   const handleRevertDeletion = React.useCallback(async () => {

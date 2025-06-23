@@ -53,7 +53,7 @@ export const CreateMultipleSubscriptionsDialog: React.FC<TCreateMultipleSubscrip
   ...dialogProps
 }) => {
   const screenSize = useScreenSize();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshSubscriptions} = useSubscriptions();
   const dialogRef = React.useRef<HTMLDivElement>(null);

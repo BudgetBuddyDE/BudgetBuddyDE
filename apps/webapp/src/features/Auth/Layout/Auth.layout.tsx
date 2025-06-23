@@ -24,7 +24,7 @@ const Main = styled('main')(({theme}) => ({
 export type TAuthLayout = React.PropsWithChildren;
 
 export const AuthLayout: React.FC<TAuthLayout> = ({children}) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {refreshDataWithFilter, refreshData} = useTransactions();
 
   return (

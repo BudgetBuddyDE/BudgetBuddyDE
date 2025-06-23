@@ -1,19 +1,18 @@
-import {type TUser, ZUser} from '@budgetbuddyde/types';
+import {type Session, type User} from 'better-auth';
 import React from 'react';
 
+import {authClient} from '@/auth';
 import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
 export interface IAuthContext {
   loading: boolean;
-  sessionUser: TUser | null;
+  session: {session: Session; user: User} | null;
   fileToken: string | null;
-  setSession: React.Dispatch<React.SetStateAction<IAuthContext['sessionUser']>>;
-  /**
-   * @deprecated Due to the switch to Pocketbase as an backend, there is no need to store the uuid and password in the context anymore.
-   */
-  authOptions: null;
-  logout: () => void;
+  setSession: React.Dispatch<React.SetStateAction<IAuthContext['session']>>;
+  getSession: () => ReturnType<typeof authClient.getSession>;
+  revalidateSession: () => ReturnType<typeof authClient.getSession>;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = React.createContext({} as IAuthContext);
@@ -33,12 +32,11 @@ const authLogger = logger.child({label: 'AuthContext'});
 export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   const [loading, setLoading] = React.useState(true);
   const [fileToken, setFileToken] = React.useState<IAuthContext['fileToken']>(null);
-  const [sessionUser, setSessionUser] = React.useState<IAuthContext['sessionUser']>(null);
+  const [session, setSession] = React.useState<IAuthContext['session']>(null);
 
-  const authOptions: IAuthContext['authOptions'] = React.useMemo(() => {
-    return null;
-  }, [sessionUser]);
-
+  /**
+   * @deprecated
+   */
   const retrieveFileToken = async () => {
     try {
       const token = await pb.files.getToken();
@@ -48,51 +46,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     }
   };
 
-  const retrieveCurrentSession = () => {
+  const retrieveCurrentSession = async () => {
     setLoading(true);
     try {
-      const model = pb.authStore.isValid && pb.authStore.isAuthRecord ? pb.authStore.model : null;
-      authLogger.debug('Retrieved current session', pb.authStore.token, pb.authStore.model);
-      const parsingResult = ZUser.safeParse(model);
-
-      if (!parsingResult.success) {
-        authLogger.error("Model didn't match with user-schema", parsingResult.error);
-        return;
+      const result = await authClient.getSession();
+      if (result.error) {
+        authLogger.error('Error retrieving BetterAuth session:', result.error);
       }
+      const session = result.data;
+      authLogger.debug('Retrieved BetterAuth session:', session);
 
-      setSessionUser(parsingResult.data);
+      setSession(session);
     } catch (e) {
       authLogger.error('message' in (e as any) ? ((e as any).message as string) : "Something wen't wrong", e);
-      setSessionUser(null);
+      setSession(null);
     }
 
     setLoading(false);
   };
 
-  const logout = () => {
-    pb.authStore.clear();
+  const getSession = async () => {
+    await authClient.getSession();
+  };
+
+  const revalidateSession = async () => {
+    const result = await authClient.getSession();
+    if (result.error) {
+      authLogger.error('Error revalidating session:', result.error);
+      return;
+    }
+    setSession(result.data);
+  };
+
+  const logout = async () => {
+    await authClient.signOut();
+    authLogger.debug('User logged out');
+    setSession(null);
   };
 
   React.useLayoutEffect(() => {
     retrieveCurrentSession();
-    retrieveFileToken();
-    const authStoreListener = pb.authStore.onChange((_token, model) => {
-      const parsingResult = ZUser.safeParse(model);
-      if (!parsingResult.success) {
-        authLogger.error("Retrieved model didn't match user-schema", parsingResult.error);
-        return;
-      }
-      setSessionUser(parsingResult.data);
-    });
-
     return () => {
-      authStoreListener();
+      setSession(null);
+      authLogger.debug('Auth session cleared');
     };
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{loading, sessionUser, fileToken, setSession: setSessionUser, authOptions, logout}}
+      value={{loading, session: session, fileToken, getSession, revalidateSession, setSession, logout}}
       children={children}
     />
   );

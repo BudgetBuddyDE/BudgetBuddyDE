@@ -38,7 +38,7 @@ export const PaymentMethodDrawer: React.FC<TPaymentMethodDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshPaymentMethods} = usePaymentMethods();
 

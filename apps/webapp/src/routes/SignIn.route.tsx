@@ -1,26 +1,41 @@
 import {AppRegistrationRounded, ExitToAppRounded, HomeRounded, SendRounded} from '@mui/icons-material';
-import {Box, Button, Divider, Grid2 as Grid, Link, Stack, TextField, Typography} from '@mui/material';
+import {
+  Box,
+  Button,
+  Checkbox,
+  Divider,
+  FormControlLabel,
+  Grid2 as Grid,
+  Link,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import {type RecordAuthResponse, type RecordModel} from 'pocketbase';
 import React from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {Link as RouterLink} from 'react-router-dom';
 
 import {AppConfig} from '@/app.config.ts';
+import {authClient} from '@/auth';
 import {AppLogo} from '@/components/AppLogo/AppLogo.component';
 import {Card} from '@/components/Base/Card';
 import {PasswordInput} from '@/components/Base/Input';
 import {withUnauthentificatedLayout} from '@/features/Auth';
 import {SocialSignInBtn, useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
-import {logger} from '@/logger';
-import {AuthService} from '@/services/Auth';
 
 const SignIn = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const {sessionUser, logout} = useAuthContext();
+  const {session, revalidateSession, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const [form, setForm] = React.useState<Record<string, string>>({});
+  const [form, setForm] = React.useState<Record<string, string>>({
+    // FIXME: Remove default values in production
+    email: 'john.doe@example.com',
+    password: 'password123',
+    rememberMe: 'true',
+  });
 
   const redirectToDashboard = () => {
     navigate('/dashboard');
@@ -43,30 +58,32 @@ const SignIn = () => {
     handleAuthProviderLogin: (response: RecordAuthResponse<RecordModel>) => {
       handleSuccessfullLogin(response.record.username);
     },
-    formSubmit: React.useCallback(
-      async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const [result, error] = await AuthService.login(form.email, form.password);
-        if (error) {
-          logger.error("Something wen't wrong", error);
-          showSnackbar({message: error instanceof Error ? error.message : 'Authentication failed'});
-          return;
-        }
-        handleSuccessfullLogin(result.record.username);
-      },
-      [form, location],
-    ),
+    formSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const result = await authClient.signIn.email({
+        email: form.email,
+        password: form.password,
+        rememberMe: form.rememberMe === 'true',
+      });
+      if (result.error) {
+        showSnackbar({
+          message: result.error.message || 'Login failed',
+          action: <Button onClick={() => formHandler.formSubmit(event)}>Try again</Button>,
+        });
+        return;
+      }
+      showSnackbar({
+        message: 'You have successfully logged in!',
+        action: <Button onClick={async () => await logout()}>Sign out</Button>,
+      });
+      await revalidateSession();
+      navigate('/dashboard');
+    },
   };
-
-  React.useEffect(() => {
-    return () => {
-      setForm({});
-    };
-  }, []);
 
   return (
     <React.Fragment>
-      {sessionUser && (
+      {session && (
         <Stack
           flexDirection={'row'}
           sx={{position: 'absolute', top: theme => theme.spacing(2), right: theme => theme.spacing(2)}}
@@ -95,7 +112,7 @@ const SignIn = () => {
               />
 
               <Typography variant={'h5'} textAlign={'center'} fontWeight={'bolder'} sx={{mt: 2}}>
-                {sessionUser ? `Welcome ${sessionUser.username}!` : 'Sign in'}
+                {session ? `Welcome ${session.user?.name}!` : 'Sign in'}
               </Typography>
             </Box>
 
@@ -125,14 +142,16 @@ const SignIn = () => {
                     label="E-Mail"
                     name="email"
                     onChange={formHandler.inputChange}
-                    defaultValue={form.email || ''}
+                    defaultValue={form.email}
                     fullWidth
                     required
                   />
                 </Grid>
 
                 <Grid size={{xs: 12}}>
-                  <PasswordInput outlinedInputProps={{onChange: formHandler.inputChange}} />
+                  <PasswordInput
+                    outlinedInputProps={{onChange: formHandler.inputChange, defaultValue: form.password}}
+                  />
 
                   <Link
                     tabIndex={-1}
@@ -143,7 +162,17 @@ const SignIn = () => {
                     Forgot password?
                   </Link>
                 </Grid>
+
+                <Grid size={{xs: 12}}>
+                  <FormControlLabel
+                    defaultChecked={form.rememberMe === 'true'}
+                    control={<Checkbox />}
+                    label={<React.Fragment>Remember me?</React.Fragment>}
+                    sx={{mt: 1}}
+                  />
+                </Grid>
               </Grid>
+
               <Box sx={{display: 'flex', justifyContent: 'center'}}>
                 <Button
                   type="submit"

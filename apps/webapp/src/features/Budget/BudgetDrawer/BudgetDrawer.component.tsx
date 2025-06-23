@@ -43,7 +43,7 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {isLoading: isLoadingCategories, data: categories} = useCategories();
   const [selectedCategories, setSelectedCategories] = React.useState<TBudgetDrawerValues['categories']>([]); // FIXME: Remove this and resolve issue with SelectCategories component

@@ -14,7 +14,7 @@ import {SubscribeToNewsletters} from '@/features/Newsletter';
 export type TSettingsRouteProps = unknown;
 
 const SettingsRoute: React.FC<TSettingsRouteProps> = () => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
 
   if (!sessionUser) return null;
   return (

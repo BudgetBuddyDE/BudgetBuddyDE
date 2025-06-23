@@ -31,7 +31,7 @@ const DEFAULT_VALUE: () => TRow = () => ({
 
 export const CreateMultipleCategoriesDialog: React.FC<TCreateMultipleTransactionsDialogProps> = ({...dialogProps}) => {
   const screenSize = useScreenSize();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshCategories} = useCategories();
   const dialogRef = React.useRef<HTMLDivElement>(null);

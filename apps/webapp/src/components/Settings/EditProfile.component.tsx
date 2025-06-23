@@ -27,7 +27,7 @@ export const EditProfile: React.FC<TEditProfileProps> = () => {
   const formRef = React.useRef<HTMLFormElement>(null);
   const saveBtnRef = React.useRef<HTMLButtonElement>(null);
   const {showSnackbar} = useSnackbarContext();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [isFormEditable, setFormEditable] = React.useState(false);
   const [form, setForm] = React.useState<Record<string, string>>({});

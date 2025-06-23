@@ -50,7 +50,7 @@ export const Stock = () => {
   const params = useParams<{isin: string}>();
   const [timeframe, setTimeframe] = useTimeframe();
   const {showSnackbar} = useSnackbarContext();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const socket = getSocketIOClient();
   const [keyword, setKeyword] = React.useState('');
 

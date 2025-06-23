@@ -47,7 +47,7 @@ export const StockPositionDrawer: React.FC<TStockPositionDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshStockPositions} = useStockPositions();
 

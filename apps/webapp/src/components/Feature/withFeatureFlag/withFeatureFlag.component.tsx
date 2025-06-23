@@ -22,7 +22,7 @@ export function withFeatureFlag<P extends object>(
   wrapWithLayout = false,
 ) {
   return function WrappedComponent(props: P & {isAuthenticated?: boolean}) {
-    const {sessionUser} = useAuthContext();
+    const {session: sessionUser} = useAuthContext();
     if (!isFeatureEnabled(feature)) {
       if (!wrapWithLayout) return <FeatureNotEnabled />;
       return sessionUser ? (

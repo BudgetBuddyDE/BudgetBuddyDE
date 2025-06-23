@@ -14,7 +14,7 @@ import {AuthLayout} from './Auth.layout';
 export function withAuthLayout<P extends object>(Component: React.ComponentType<P>) {
   return function WrappedComponent(props: P & {isAuthenticated?: boolean}) {
     const {pathname} = useLocation();
-    const {loading, sessionUser} = useAuthContext();
+    const {loading, session: sessionUser} = useAuthContext();
 
     const loginRedirectUrl = React.useMemo(() => {
       const query = new URLSearchParams({

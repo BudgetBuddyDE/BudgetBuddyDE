@@ -19,7 +19,7 @@ export const DrawerProfile: React.FC<TDrawerProfileProps> = () => {
   const {logout} = useAuthContext();
   const {open, toggle} = useDrawerStore();
   const {breakpoint} = useWindowDimensions();
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
 
   const handleSignOut = async () => {
     logout();

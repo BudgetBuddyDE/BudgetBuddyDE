@@ -6,7 +6,7 @@ import {useAuthContext} from '@/features/Auth';
 import {StockService} from '../../StockService';
 
 export function useFetchStockQuotes(isin: string[], exchange: string, timeframe: TTimeframe) {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const [quotes, setQuotes] = React.useState<Awaited<ReturnType<typeof StockService.getQuotes>>[0]>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);

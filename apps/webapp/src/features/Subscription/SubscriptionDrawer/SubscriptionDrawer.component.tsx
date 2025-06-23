@@ -43,7 +43,7 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {refreshData: refreshSubscriptions} = useSubscriptions();
 

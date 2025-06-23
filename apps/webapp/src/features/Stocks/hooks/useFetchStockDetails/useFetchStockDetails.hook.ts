@@ -6,7 +6,7 @@ import {logger} from '@/logger';
 import {StockService} from '../../StockService';
 
 export function useFetchStockDetails(isin: string) {
-  const {sessionUser} = useAuthContext();
+  const {session: sessionUser} = useAuthContext();
   const [details, setDetails] = React.useState<Awaited<ReturnType<typeof StockService.getAssetDetails>>[0]>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
