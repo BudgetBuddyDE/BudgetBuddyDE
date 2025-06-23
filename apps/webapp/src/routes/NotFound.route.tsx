@@ -10,7 +10,7 @@ import {useDocumentTitle} from '@/hooks/useDocumentTitle';
 
 const PageNotFound = () => {
   useDocumentTitle('Page not Found', true);
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   return (
     <Grid container justifyContent={'center'}>
       <Grid size={{xs: 12, md: 4, xl: 3}}>
@@ -28,7 +28,7 @@ const PageNotFound = () => {
           <Typography sx={{my: 1}}>The page you are looking for might have been removed or moved.</Typography>
 
           <Grid container spacing={AppConfig.baseSpacing / 2}>
-            {sessionUser && (
+            {session && (
               <Grid size={{xs: 6}}>
                 <StackedIconButton
                   component={Link}

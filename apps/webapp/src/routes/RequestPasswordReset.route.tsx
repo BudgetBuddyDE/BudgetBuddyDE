@@ -13,8 +13,9 @@ import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
 import {pb} from '@/pocketbase.ts';
 
+// FIXME: Update this to use the new auth client
 const RequestPasswordReset = () => {
-  const {session: sessionUser, logout} = useAuthContext();
+  const {session, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const [loading, setLoading] = React.useState(false);
   const [email, setEmail] = React.useState('');
@@ -45,7 +46,7 @@ const RequestPasswordReset = () => {
 
   return (
     <React.Fragment>
-      {sessionUser && (
+      {session && (
         <Button
           sx={{position: 'absolute', top: theme => theme.spacing(2), right: theme => theme.spacing(2)}}
           startIcon={<ExitToAppRounded />}

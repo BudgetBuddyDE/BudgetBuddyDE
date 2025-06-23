@@ -19,7 +19,7 @@ export const DrawerProfile: React.FC<TDrawerProfileProps> = () => {
   const {logout} = useAuthContext();
   const {open, toggle} = useDrawerStore();
   const {breakpoint} = useWindowDimensions();
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
 
   const handleSignOut = async () => {
     logout();
@@ -32,7 +32,7 @@ export const DrawerProfile: React.FC<TDrawerProfileProps> = () => {
     navigate('/settings/profile');
   };
 
-  if (!sessionUser) return null;
+  if (!session) return null;
   return (
     <Box sx={{mt: 'auto', backgroundColor: theme.palette.action.focus}}>
       <Divider />
@@ -61,7 +61,7 @@ export const DrawerProfile: React.FC<TDrawerProfileProps> = () => {
           onClick={handleClick}>
           <UserAvatar />
           <Box sx={{ml: '.5rem'}}>
-            <Typography fontWeight="bold">{sessionUser.name ?? sessionUser.username}</Typography>
+            <Typography fontWeight="bold">{session.user.name}</Typography>
             <Chip label={'Basic'} variant="outlined" size="small" />
           </Box>
         </Box>

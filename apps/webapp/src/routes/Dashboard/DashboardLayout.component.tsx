@@ -14,14 +14,14 @@ export type TDashboardLayoutProps = React.PropsWithChildren<{
 }>;
 
 const DashboardLayout: React.FC<TDashboardLayoutProps> = ({children, useOutletInsteadOfChildren = false}) => {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const location = useLocation();
   const navigate = useNavigate();
 
-  if (!sessionUser) return null;
+  if (!session) return null;
   return (
     <ContentGrid
-      title={`Welcome, ${sessionUser.name ? sessionUser.name : sessionUser.username}!`}
+      title={`Welcome, ${session.user.name}!`}
       description={DashboardViewDescriptionMapping[DashboardViewMapping[location.pathname]]}>
       <Grid size={{xs: 12, md: 8}}>
         <ActionPaper

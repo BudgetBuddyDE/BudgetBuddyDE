@@ -16,9 +16,10 @@ import {pb} from '@/pocketbase';
 
 const ZPassword = z.string().min(8, 'The password needs to fullfill a minimum of 8 characters').max(64);
 
+// FIXME: Update this to use the new auth client
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const {session: sessionUser, logout} = useAuthContext();
+  const {session, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const [loading, setLoading] = React.useState(false);
   const [form, setForm] = React.useState({
@@ -64,7 +65,7 @@ const ResetPassword = () => {
 
   return (
     <React.Fragment>
-      {sessionUser && (
+      {session && (
         <Button
           sx={{position: 'absolute', top: theme => theme.spacing(2), right: theme => theme.spacing(2)}}
           startIcon={<ExitToAppRounded />}

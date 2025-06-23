@@ -50,7 +50,7 @@ export const Stock = () => {
   const params = useParams<{isin: string}>();
   const [timeframe, setTimeframe] = useTimeframe();
   const {showSnackbar} = useSnackbarContext();
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const socket = getSocketIOClient();
   const [keyword, setKeyword] = React.useState('');
 
@@ -155,7 +155,7 @@ export const Stock = () => {
       setShowDeletePositionDialog(false);
     },
     async onConfirmDeletePosition() {
-      if (!deletePosition || !sessionUser) return;
+      if (!deletePosition || !session) return;
       const [position, error] = await StockService.deletePosition({id: deletePosition.id});
       if (error) {
         showSnackbar({
@@ -182,12 +182,12 @@ export const Stock = () => {
   };
 
   React.useEffect(() => {
-    if (!params.isin || !sessionUser || loadingStockPositions || loadingQuotes || loadingDetails) return;
+    if (!params.isin || !session || loadingStockPositions || loadingQuotes || loadingDetails) return;
     socket.connect();
 
-    socket.emit('stock:subscribe', [{isin: params.isin, exchange: 'langschwarz'}], sessionUser.id);
+    socket.emit('stock:subscribe', [{isin: params.isin, exchange: 'langschwarz'}], session.user.id);
 
-    const channel = `stock:update:${sessionUser.id}`;
+    const channel = `stock:update:${session.user.id}`;
     socket.on(
       channel,
       (data: {exchange: string; isin: string; quote: {datetime: string; currency: string; price: number}}) => {
@@ -204,7 +204,7 @@ export const Stock = () => {
     );
 
     const handleBeforeUnload = () => {
-      socket.emit('stock:unsubscribe', [{isin: params.isin, exchange: 'langschwarz'}], sessionUser.id);
+      socket.emit('stock:unsubscribe', [{isin: params.isin, exchange: 'langschwarz'}], session.user.id);
       socket.disconnect();
     };
 
@@ -214,7 +214,7 @@ export const Stock = () => {
       handleBeforeUnload();
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [params, sessionUser]);
+  }, [params, session]);
 
   React.useEffect(() => {
     refreshQuotes();

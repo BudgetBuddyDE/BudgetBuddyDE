@@ -86,7 +86,6 @@ export const AppBar = () => {
           <Box sx={{flexGrow: 0}}>
             <Tooltip title="Profile">
               <IconButton onClick={handleOpenUserMenu} sx={{p: 0}}>
-                {/*FIXME: {session && session.user && <UserAvatar />} */}
                 <UserAvatar />
               </IconButton>
             </Tooltip>

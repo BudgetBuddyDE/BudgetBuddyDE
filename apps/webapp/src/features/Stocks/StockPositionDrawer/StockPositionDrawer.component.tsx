@@ -1,11 +1,4 @@
-import {
-  PocketBaseCollection,
-  type TCreateStockPositionPayload,
-  type TStockPosition,
-  type TUpdateStockPositionPayload,
-  ZCreateStockPositionPayload,
-  ZUpdateStockPositionPayload,
-} from '@budgetbuddyde/types';
+import {type TStockPosition} from '@budgetbuddyde/types';
 import {Grid2 as Grid, InputAdornment, TextField} from '@mui/material';
 import React from 'react';
 import {Controller, DefaultValues} from 'react-hook-form';
@@ -16,12 +9,10 @@ import {EntityDrawer, type TUseEntityDrawerState} from '@/components/Drawer/Enti
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {pb} from '@/pocketbase';
-import {isRunningOnIOs, parseNumber} from '@/utils';
+import {isRunningOnIOs} from '@/utils';
 
 import {StockAutocomplete, type TStockAutocompleteOption} from '../StockAutocomplete';
 import {StockExchangeAutocomplete, type TStockExchangeAutocompleteOption} from '../StockExchange';
-import {useStockPositions} from '../hooks';
 
 export type TStockPositionDrawerValues = {
   id?: TStockPosition['id'];
@@ -47,36 +38,36 @@ export const StockPositionDrawer: React.FC<TStockPositionDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshStockPositions} = useStockPositions();
+  // const {refreshData: refreshStockPositions} = useStockPositions();
 
   const handler = {
-    async handleSubmit(data: TStockPositionDrawerValues, onSuccess: () => void) {
-      if (!sessionUser) throw new Error('No session-user not found');
+    async handleSubmit(_data: TStockPositionDrawerValues, _onSuccess: () => void) {
+      if (!session) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            const parsedForm = ZCreateStockPositionPayload.safeParse({
-              exchange: data.exchange?.value,
-              bought_at: data.bought_at,
-              isin: data.stock?.isin,
-              buy_in: parseNumber(String(data.buy_in)),
-              quantity: parseNumber(String(data.quantity)),
-              owner: sessionUser.id,
-              currency: 'EUR',
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TCreateStockPositionPayload = parsedForm.data;
-            const record = await pb.collection(PocketBaseCollection.STOCK_POSITION).create(payload);
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshStockPositions();
-            });
-            showSnackbar({message: `Opened stock position #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // const parsedForm = ZCreateStockPositionPayload.safeParse({
+            //   exchange: data.exchange?.value,
+            //   bought_at: data.bought_at,
+            //   isin: data.stock?.isin,
+            //   buy_in: parseNumber(String(data.buy_in)),
+            //   quantity: parseNumber(String(data.quantity)),
+            //   owner: session.id,
+            //   currency: 'EUR',
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TCreateStockPositionPayload = parsedForm.data;
+            // const record = await pb.collection(PocketBaseCollection.STOCK_POSITION).create(payload);
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshStockPositions();
+            // });
+            // showSnackbar({message: `Opened stock position #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -85,29 +76,27 @@ export const StockPositionDrawer: React.FC<TStockPositionDrawerProps> = ({
 
         case 'UPDATE':
           try {
-            if (!defaultValues?.id) throw new Error('No stock-position-id found in default-values');
-
-            const parsedForm = ZUpdateStockPositionPayload.safeParse({
-              id: defaultValues.id,
-              exchange: data.exchange?.value,
-              bought_at: data.bought_at,
-              isin: data.stock?.isin,
-              buy_in: parseNumber(String(data.buy_in)),
-              quantity: parseNumber(String(data.quantity)),
-              owner: sessionUser.id,
-              currency: 'EUR',
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TUpdateStockPositionPayload = parsedForm.data;
-
-            const record = await pb.collection(PocketBaseCollection.STOCK_POSITION).update(defaultValues.id, payload);
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshStockPositions();
-            });
-            showSnackbar({message: `Updated stock-position #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // if (!defaultValues?.id) throw new Error('No stock-position-id found in default-values');
+            // const parsedForm = ZUpdateStockPositionPayload.safeParse({
+            //   id: defaultValues.id,
+            //   exchange: data.exchange?.value,
+            //   bought_at: data.bought_at,
+            //   isin: data.stock?.isin,
+            //   buy_in: parseNumber(String(data.buy_in)),
+            //   quantity: parseNumber(String(data.quantity)),
+            //   owner: session.id,
+            //   currency: 'EUR',
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TUpdateStockPositionPayload = parsedForm.data;
+            // const record = await pb.collection(PocketBaseCollection.STOCK_POSITION).update(defaultValues.id, payload);
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshStockPositions();
+            // });
+            // showSnackbar({message: `Updated stock-position #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});

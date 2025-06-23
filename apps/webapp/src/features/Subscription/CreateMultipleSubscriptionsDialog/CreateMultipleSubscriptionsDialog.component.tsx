@@ -1,4 +1,4 @@
-import {type TCreateSubscriptionPayload, type TTransaction, ZCreateSubscriptionPayload} from '@budgetbuddyde/types';
+import {type TTransaction} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded} from '@mui/icons-material';
 import {
   AutocompleteChangeReason,
@@ -10,26 +10,20 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
-import {RecordModel} from 'pocketbase';
 import React from 'react';
-import {z} from 'zod';
 
 import {AppConfig} from '@/app.config';
 import {FullScreenDialog, type TFullScreenDialogProps} from '@/components/Base/FullScreenDialog';
 import {DatePicker, ReceiverAutocomplete, type TReceiverAutocompleteOption} from '@/components/Base/Input';
-import {useAuthContext} from '@/features/Auth';
 import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features/Category';
 import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {logger} from '@/logger';
-import {parseNumber} from '@/utils';
 
 import {DesktopFeatureOnly} from '../../../components/DesktopFeatureOnly/DesktopFeatureOnly.component';
 import {type TSusbcriptionDrawerValues} from '../SubscriptionDrawer/SubscriptionDrawer.component';
-import {SubscriptionService} from '../SubscriptionService/Subscription.service';
-import {useSubscriptions} from '../useSubscriptions.hook';
 
 export type TCreateMultipleSubscriptionsDialogProps = Omit<TFullScreenDialogProps, 'title'>;
 
@@ -53,9 +47,9 @@ export const CreateMultipleSubscriptionsDialog: React.FC<TCreateMultipleSubscrip
   ...dialogProps
 }) => {
   const screenSize = useScreenSize();
-  const {session: sessionUser} = useAuthContext();
+  // const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshSubscriptions} = useSubscriptions();
+  // const {refreshData: refreshSubscriptions} = useSubscriptions();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const [form, setForm] = React.useState<TRow[]>([DEFAULT_VALUE()]);
 
@@ -125,41 +119,40 @@ export const CreateMultipleSubscriptionsDialog: React.FC<TCreateMultipleSubscrip
     },
     onSubmit: async () => {
       try {
-        const parsedForm = z.array(ZCreateSubscriptionPayload).safeParse(
-          form.map(row => ({
-            paused: row.paused,
-            execute_at: row.execute_at.getDate(),
-            category: row.category?.id,
-            payment_method: row.payment_method?.id,
-            receiver: row.receiver?.value,
-            transfer_amount: parseNumber(String(row.transfer_amount)),
-            owner: sessionUser?.id,
-            information: row.information,
-          })),
-        );
-        if (!parsedForm.success) {
-          throw parsedForm.error;
-        }
-        const payload: TCreateSubscriptionPayload[] = parsedForm.data;
-        const submittedPromises = await Promise.allSettled(payload.map(SubscriptionService.createSubscription));
-        const createdSubscriptions: RecordModel[] = submittedPromises
-          .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
-          .filter(value => value !== null) as RecordModel[];
-
-        if (createdSubscriptions.length === 0) {
-          throw new Error('No subscriptions were created');
-        }
-
-        handler.close();
-        React.startTransition(() => {
-          refreshSubscriptions();
-        });
-        showSnackbar({
-          message:
-            createdSubscriptions.length === 1
-              ? `Created subscription #${createdSubscriptions[0].id}`
-              : `Created ${createdSubscriptions.length} subscriptions`,
-        });
+        // TODO: Re-enable subscription creation
+        // const parsedForm = z.array(ZCreateSubscriptionPayload).safeParse(
+        //   form.map(row => ({
+        //     paused: row.paused,
+        //     execute_at: row.execute_at.getDate(),
+        //     category: row.category?.id,
+        //     payment_method: row.payment_method?.id,
+        //     receiver: row.receiver?.value,
+        //     transfer_amount: parseNumber(String(row.transfer_amount)),
+        //     session?.id,
+        //     information: row.information,
+        //   })),
+        // );
+        // if (!parsedForm.success) {
+        //   throw parsedForm.error;
+        // }
+        // const payload: TCreateSubscriptionPayload[] = parsedForm.data;
+        // const submittedPromises = await Promise.allSettled(payload.map(SubscriptionService.createSubscription));
+        // const createdSubscriptions: RecordModel[] = submittedPromises
+        //   .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
+        //   .filter(value => value !== null) as RecordModel[];
+        // if (createdSubscriptions.length === 0) {
+        //   throw new Error('No subscriptions were created');
+        // }
+        // handler.close();
+        // React.startTransition(() => {
+        //   refreshSubscriptions();
+        // });
+        // showSnackbar({
+        //   message:
+        //     createdSubscriptions.length === 1
+        //       ? `Created subscription #${createdSubscriptions[0].id}`
+        //       : `Created ${createdSubscriptions.length} subscriptions`,
+        // });
       } catch (error) {
         const msg = 'Error while submitting the forms';
         logger.error(msg, error);

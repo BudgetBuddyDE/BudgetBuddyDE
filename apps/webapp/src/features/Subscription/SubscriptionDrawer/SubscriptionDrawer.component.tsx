@@ -1,10 +1,4 @@
-import {
-  type TCreateSubscriptionPayload,
-  type TSubscription,
-  type TUpdateSubscriptionPayload,
-  ZCreateSubscriptionPayload,
-  ZUpdateSubscriptionPayload,
-} from '@budgetbuddyde/types';
+import {type TSubscription} from '@budgetbuddyde/types';
 import {Grid2 as Grid, InputAdornment, TextField} from '@mui/material';
 import React from 'react';
 import {Controller, DefaultValues} from 'react-hook-form';
@@ -16,9 +10,8 @@ import {useAuthContext} from '@/features/Auth';
 import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features/Category';
 import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
-import {SubscriptionService, useSubscriptions} from '@/features/Subscription';
 import {logger} from '@/logger';
-import {isRunningOnIOs, parseNumber} from '@/utils';
+import {isRunningOnIOs} from '@/utils';
 
 export type TSusbcriptionDrawerValues = {
   id?: TSubscription['id'];
@@ -43,39 +36,38 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshSubscriptions} = useSubscriptions();
+  // const {refreshData: refreshSubscriptions} = useSubscriptions();
 
   const handler = {
-    async handleSubmit(data: TSusbcriptionDrawerValues, onSuccess: () => void) {
-      if (!sessionUser) throw new Error('No session-user not found');
+    async handleSubmit(_data: TSusbcriptionDrawerValues, _onSuccess: () => void) {
+      if (!session) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            const parsedForm = ZCreateSubscriptionPayload.safeParse({
-              category: data.category?.id,
-              payment_method: data.payment_method?.id,
-              receiver: data.receiver?.value,
-              information: data.information,
-              execute_at: data.execute_at.getDate(),
-              paused: false,
-              transfer_amount: parseNumber(String(data.transfer_amount)),
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TCreateSubscriptionPayload = parsedForm.data;
-
-            const record = await SubscriptionService.createSubscription(payload);
-            logger.debug('Created subscription', record);
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshSubscriptions();
-            });
-            showSnackbar({message: `Created subscription #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // const parsedForm = ZCreateSubscriptionPayload.safeParse({
+            //   category: data.category?.id,
+            //   payment_method: data.payment_method?.id,
+            //   receiver: data.receiver?.value,
+            //   information: data.information,
+            //   execute_at: data.execute_at.getDate(),
+            //   paused: false,
+            //   transfer_amount: parseNumber(String(data.transfer_amount)),
+            //   owner: session.id,
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TCreateSubscriptionPayload = parsedForm.data;
+            // const record = await SubscriptionService.createSubscription(payload);
+            // logger.debug('Created subscription', record);
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshSubscriptions();
+            // });
+            // showSnackbar({message: `Created subscription #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -84,29 +76,27 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
 
         case 'UPDATE':
           try {
-            if (!defaultValues?.id) throw new Error('No subscription-id found in default-values');
-
-            const parsedForm = ZUpdateSubscriptionPayload.safeParse({
-              paused: defaultValues?.paused,
-              category: data.category?.id,
-              payment_method: data.payment_method?.id,
-              receiver: data.receiver?.value,
-              information: data.information,
-              execute_at: data.execute_at.getDate(),
-              transfer_amount: parseNumber(String(data.transfer_amount)),
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TUpdateSubscriptionPayload = parsedForm.data;
-
-            const record = await SubscriptionService.updateSubscription(defaultValues.id, payload);
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshSubscriptions();
-            });
-            showSnackbar({message: `Updated subscription #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // if (!defaultValues?.id) throw new Error('No subscription-id found in default-values');
+            // const parsedForm = ZUpdateSubscriptionPayload.safeParse({
+            //   paused: defaultValues?.paused,
+            //   category: data.category?.id,
+            //   payment_method: data.payment_method?.id,
+            //   receiver: data.receiver?.value,
+            //   information: data.information,
+            //   execute_at: data.execute_at.getDate(),
+            //   transfer_amount: parseNumber(String(data.transfer_amount)),
+            //   owner: session.id,
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TUpdateSubscriptionPayload = parsedForm.data;
+            // const record = await SubscriptionService.updateSubscription(defaultValues.id, payload);
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshSubscriptions();
+            // });
+            // showSnackbar({message: `Updated subscription #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});

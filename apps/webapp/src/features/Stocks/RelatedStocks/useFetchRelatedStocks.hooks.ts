@@ -9,7 +9,7 @@ import {useRelatedStocksStore} from './RelatedStocks.store';
 let mounted = false;
 
 export function useFetchRelatedStocks(isin: TIsin, amount: number = 8) {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const {data, fetchedAt, fetchedBy, setFetchedData} = useRelatedStocksStore();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
@@ -18,7 +18,7 @@ export function useFetchRelatedStocks(isin: TIsin, amount: number = 8) {
     async (withLoading?: boolean): Promise<boolean> => {
       setError(null);
       try {
-        if (!sessionUser) return false;
+        if (!session) return false;
         if (isin.length !== 12) {
           setError(new Error('Invalid ISIN'));
           return false;
@@ -33,7 +33,7 @@ export function useFetchRelatedStocks(isin: TIsin, amount: number = 8) {
           setError(new Error('No related stocks returned'));
           return false;
         }
-        setFetchedData(relatedStocks, sessionUser.id);
+        setFetchedData(relatedStocks, session.user.id);
         return true;
       } catch (error) {
         if ((error as Error).name === 'AbortError') return true;
@@ -41,13 +41,13 @@ export function useFetchRelatedStocks(isin: TIsin, amount: number = 8) {
         return false;
       }
     },
-    [sessionUser],
+    [session],
   );
 
   React.useEffect(() => {
     if (
-      !sessionUser ||
-      (fetchedBy === sessionUser.id && data) ||
+      !session ||
+      (fetchedBy === session.user.id && data) ||
       loading ||
       mounted ||
       (data.length > 0 && data[0].asset._id.identifier === isin)
@@ -65,7 +65,7 @@ export function useFetchRelatedStocks(isin: TIsin, amount: number = 8) {
       setError(null);
       mounted = false;
     };
-  }, [sessionUser, isin, amount]);
+  }, [session, isin, amount]);
 
   return {
     loading,

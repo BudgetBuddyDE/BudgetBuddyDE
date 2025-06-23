@@ -8,10 +8,10 @@ import {withUnauthentificatedLayout} from '@/features/Auth';
 import {useAuthContext} from '@/features/Auth';
 
 const VerifyMail = () => {
-  const {session: sessionUser, logout} = useAuthContext();
+  const {session, logout} = useAuthContext();
   return (
     <React.Fragment>
-      {sessionUser && (
+      {session && (
         <Button
           sx={{position: 'absolute', top: theme => theme.spacing(2), right: theme => theme.spacing(2)}}
           startIcon={<ExitToAppRounded />}

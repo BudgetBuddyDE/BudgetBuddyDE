@@ -1,10 +1,4 @@
-import {
-  type TCreateTransactionPayload,
-  type TTransaction,
-  type TUpdateTransactionPayload,
-  ZCreateTransactionPayload,
-  ZUpdateTransactionPayload,
-} from '@budgetbuddyde/types';
+import {type TTransaction} from '@budgetbuddyde/types';
 import {Grid2 as Grid, InputAdornment, TextField} from '@mui/material';
 import React from 'react';
 import {Controller, DefaultValues} from 'react-hook-form';
@@ -23,10 +17,9 @@ import {useAuthContext} from '@/features/Auth';
 import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features/Category';
 import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
-import {TransactionService, useTransactions} from '@/features/Transaction';
 import {logger} from '@/logger';
 import {pb} from '@/pocketbase';
-import {isRunningOnIOs, parseNumber} from '@/utils';
+import {isRunningOnIOs} from '@/utils';
 
 export type TTransactionDrawerValues = {
   id?: TTransaction['id'];
@@ -51,9 +44,9 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {session: sessionUser, fileToken} = useAuthContext();
+  const {session, fileToken} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshTransactions} = useTransactions();
+  // const {refreshData: refreshTransactions} = useTransactions();
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
   const [filePreview, setFilePreview] = React.useState<(File & {buffer?: string | ArrayBuffer | null})[]>([]);
   const [markedForDeletion, setMarkedForDeletion] = React.useState<string[]>([]);
@@ -62,44 +55,42 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
     onFileUpload(files: FileList) {
       setUploadedFiles(Array.from(files));
     },
-    async handleSubmit(data: TTransactionDrawerValues, onSuccess: () => void) {
-      if (!sessionUser) throw new Error('No session-user not found');
+    async handleSubmit(_data: TTransactionDrawerValues, _onSuccess: () => void) {
+      if (!session) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            const parsedForm = ZCreateTransactionPayload.safeParse({
-              category: data.category?.id,
-              payment_method: data.payment_method?.id,
-              receiver: data.receiver?.value,
-              information: data.information,
-              processed_at: data.processed_at,
-              transfer_amount: parseNumber(String(data.transfer_amount)),
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TCreateTransactionPayload = parsedForm.data;
-
-            const formData = new FormData();
-            for (let file of uploadedFiles) {
-              formData.append('attachments', file);
-            }
-            formData.append('owner', payload.owner);
-            formData.append('processed_at', payload.processed_at.toISOString());
-            formData.append('category', payload.category);
-            formData.append('payment_method', payload.payment_method);
-            formData.append('receiver', payload.receiver);
-            formData.append('transfer_amount', String(payload.transfer_amount));
-            formData.append('information', payload.information ?? '');
-
-            const record = await TransactionService.createTransaction(formData);
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshTransactions();
-            });
-            showSnackbar({message: `Created transaction #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // const parsedForm = ZCreateTransactionPayload.safeParse({
+            //   category: data.category?.id,
+            //   payment_method: data.payment_method?.id,
+            //   receiver: data.receiver?.value,
+            //   information: data.information,
+            //   processed_at: data.processed_at,
+            //   transfer_amount: parseNumber(String(data.transfer_amount)),
+            //   owner: session.id,
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TCreateTransactionPayload = parsedForm.data;
+            // const formData = new FormData();
+            // for (let file of uploadedFiles) {
+            //   formData.append('attachments', file);
+            // }
+            // formData.append('owner', payload.owner);
+            // formData.append('processed_at', payload.processed_at.toISOString());
+            // formData.append('category', payload.category);
+            // formData.append('payment_method', payload.payment_method);
+            // formData.append('receiver', payload.receiver);
+            // formData.append('transfer_amount', String(payload.transfer_amount));
+            // formData.append('information', payload.information ?? '');
+            // const record = await TransactionService.createTransaction(formData);
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshTransactions();
+            // });
+            // showSnackbar({message: `Created transaction #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -108,49 +99,45 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
 
         case 'UPDATE':
           try {
-            if (!defaultValues?.id) throw new Error('No transaction-id found in default-values');
-
-            const parsedForm = ZUpdateTransactionPayload.safeParse({
-              category: data.category?.id,
-              payment_method: data.payment_method?.id,
-              receiver: data.receiver?.value,
-              information: data.information,
-              processed_at: data.processed_at,
-              transfer_amount: parseNumber(String(data.transfer_amount)),
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TUpdateTransactionPayload = parsedForm.data;
-
-            const formData = new FormData();
-            for (let file of uploadedFiles) {
-              formData.append('attachments', file);
-            }
-            formData.append('owner', payload.owner);
-            formData.append('processed_at', payload.processed_at.toISOString());
-            formData.append('category', payload.category);
-            formData.append('payment_method', payload.payment_method);
-            formData.append('receiver', payload.receiver);
-            formData.append('transfer_amount', String(payload.transfer_amount));
-            formData.append('information', payload.information ?? '');
-
-            const record = await TransactionService.updateTransaction(defaultValues.id, formData);
-
-            if (markedForDeletion.length > 0) {
-              TransactionService.deleteImages(defaultValues.id, markedForDeletion)
-                .then(() => refreshTransactions())
-                .catch(error => {
-                  logger.error('Failed to delete files', error);
-                  showSnackbar({message: 'Failed to delete files'});
-                });
-            }
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshTransactions();
-            });
-            showSnackbar({message: `Updated transaction #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // if (!defaultValues?.id) throw new Error('No transaction-id found in default-values');
+            // const parsedForm = ZUpdateTransactionPayload.safeParse({
+            //   category: data.category?.id,
+            //   payment_method: data.payment_method?.id,
+            //   receiver: data.receiver?.value,
+            //   information: data.information,
+            //   processed_at: data.processed_at,
+            //   transfer_amount: parseNumber(String(data.transfer_amount)),
+            //   owner: session.id,
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TUpdateTransactionPayload = parsedForm.data;
+            // const formData = new FormData();
+            // for (let file of uploadedFiles) {
+            //   formData.append('attachments', file);
+            // }
+            // formData.append('owner', payload.owner);
+            // formData.append('processed_at', payload.processed_at.toISOString());
+            // formData.append('category', payload.category);
+            // formData.append('payment_method', payload.payment_method);
+            // formData.append('receiver', payload.receiver);
+            // formData.append('transfer_amount', String(payload.transfer_amount));
+            // formData.append('information', payload.information ?? '');
+            // const record = await TransactionService.updateTransaction(defaultValues.id, formData);
+            // if (markedForDeletion.length > 0) {
+            //   TransactionService.deleteImages(defaultValues.id, markedForDeletion)
+            //     .then(() => refreshTransactions())
+            //     .catch(error => {
+            //       logger.error('Failed to delete files', error);
+            //       showSnackbar({message: 'Failed to delete files'});
+            //     });
+            // }
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshTransactions();
+            // });
+            // showSnackbar({message: `Updated transaction #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});

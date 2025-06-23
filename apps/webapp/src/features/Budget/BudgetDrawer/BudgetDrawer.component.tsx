@@ -1,10 +1,4 @@
-import {
-  type TBudget,
-  type TCreateBudgetPayload,
-  type TUpdateBudgetPayload,
-  ZCreateBudgetPayload,
-  ZUpdateBudgetPayload,
-} from '@budgetbuddyde/types';
+import {type TBudget} from '@budgetbuddyde/types';
 import {Button, Grid2 as Grid, InputAdornment, TextField, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import React from 'react';
 import {Controller, DefaultValues} from 'react-hook-form';
@@ -17,10 +11,7 @@ import {useCategories} from '@/features/Category';
 import {SelectCategories, type TSelectCategoriesOption} from '@/features/Insights/InsightsDialog/SelectCategories';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {isRunningOnIOs, parseNumber} from '@/utils';
-
-import {BudgetService} from '../BudgetService';
-import {useBudgets} from '../useBudgets.hook';
+import {isRunningOnIOs} from '@/utils';
 
 export type TBudgetDrawerValues = {
   id?: TBudget['id'];
@@ -43,11 +34,11 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {isLoading: isLoadingCategories, data: categories} = useCategories();
   const [selectedCategories, setSelectedCategories] = React.useState<TBudgetDrawerValues['categories']>([]); // FIXME: Remove this and resolve issue with SelectCategories component
-  const {refreshData: refreshBudgets} = useBudgets();
+  // const {refreshData: refreshBudgets} = useBudgets();
 
   const categoryOptions: TSelectCategoriesOption[] = React.useMemo(() => {
     return (categories ?? []).map(({id, name}) => ({value: id, label: name}));
@@ -55,29 +46,28 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
 
   const handler = {
     async handleSubmit(data: TBudgetDrawerValues, onSuccess: () => void) {
-      if (!sessionUser) throw new Error('No session-user not found');
+      if (!session) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            const parsedForm = ZCreateBudgetPayload.safeParse({
-              ...data,
-              categories: data.categories.map(({value}) => value),
-              budget: parseNumber(String(data.budget ?? 0)),
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw parsedForm.error;
-            const payload: TCreateBudgetPayload = parsedForm.data;
-
-            const [record, err] = await BudgetService.createBudget(payload);
-            if (err) throw err;
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshBudgets();
-            });
-            showSnackbar({message: `Created budget ${payload.label} (#${record.id})`});
+            // TODO: Update this code after a new backend is implemented
+            // const parsedForm = ZCreateBudgetPayload.safeParse({
+            //   ...data,
+            //   categories: data.categories.map(({value}) => value),
+            //   budget: parseNumber(String(data.budget ?? 0)),
+            //   owner: session.user.id,
+            // });
+            // if (!parsedForm.success) throw parsedForm.error;
+            // const payload: TCreateBudgetPayload = parsedForm.data;
+            // const [record, err] = await BudgetService.createBudget(payload);
+            // if (err) throw err;
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshBudgets();
+            // });
+            // showSnackbar({message: `Created budget ${payload.label} (#${record.id})`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({
@@ -89,26 +79,24 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
 
         case 'UPDATE':
           try {
-            if (!data.id) throw new Error('No budget id found');
-
-            const parsedForm = ZUpdateBudgetPayload.safeParse({
-              ...data,
-              categories: data.categories.map(({value}) => value),
-              budget: parseNumber(String(data.budget ?? 0)),
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw parsedForm.error;
-            const payload: TUpdateBudgetPayload = parsedForm.data;
-
-            const [record, err] = await BudgetService.updateBudget(data.id, payload);
-            if (err) throw err;
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshBudgets();
-            });
-            showSnackbar({message: `Updated budget ${payload.label} (#${record.id})`});
+            // TODO: Update this code after a new backend is implemented
+            // if (!data.id) throw new Error('No budget id found');
+            // const parsedForm = ZUpdateBudgetPayload.safeParse({
+            //   ...data,
+            //   categories: data.categories.map(({value}) => value),
+            //   budget: parseNumber(String(data.budget ?? 0)),
+            //   owner: session.user.id,
+            // });
+            // if (!parsedForm.success) throw parsedForm.error;
+            // const payload: TUpdateBudgetPayload = parsedForm.data;
+            // const [record, err] = await BudgetService.updateBudget(data.id, payload);
+            // if (err) throw err;
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshBudgets();
+            // });
+            // showSnackbar({message: `Updated budget ${payload.label} (#${record.id})`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({

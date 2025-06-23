@@ -6,42 +6,41 @@ import {Card} from '@/components/Base/Card';
 import {CircularProgress} from '@/components/Loading';
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
-import {logger} from '@/logger';
 
 import {NewsletterService} from '../Newsletter.service';
 
 export const SubscribeToNewsletters = () => {
-  const {session: sessionUser} = useAuthContext();
+  const {session: session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const [loading, setLoading] = React.useState(true);
-  const [newsletters, setNewsletters] = React.useState<TNewsletter[]>([]);
+  const [loading, _setLoading] = React.useState(true);
+  const [newsletters, _setNewsletters] = React.useState<TNewsletter[]>([]);
   const [subscribedNewsletters, setSubscribedNewsletters] = React.useState<TNewsletter['id'][]>([]);
 
   const retrieveNewsletterSubscriptions = async () => {
-    setLoading(true);
-    const [availableNewsletters, error] = await NewsletterService.getNewsletters(true);
-    if (error) logger.error('Fetching of newsletter-options failed', error);
-    if (!availableNewsletters) return setLoading(false);
-    setNewsletters(availableNewsletters);
-
-    if (!sessionUser) return setLoading(false);
-    const [subscribedNewsletters, err] = await NewsletterService.getSubscribedNewsletters(
-      sessionUser.id,
-      availableNewsletters,
-    );
-    if (err) logger.error('Failed to subscribe to newsletter', error);
-    if (!subscribedNewsletters) return setLoading(false);
-    setSubscribedNewsletters(subscribedNewsletters.map(({id}) => id));
-    setLoading(false);
+    // TODO: Re-enable newsletter subscriptions
+    // setLoading(true);
+    // const [availableNewsletters, error] = await NewsletterService.getNewsletters(true);
+    // if (error) logger.error('Fetching of newsletter-options failed', error);
+    // if (!availableNewsletters) return setLoading(false);
+    // setNewsletters(availableNewsletters);
+    // if (!session) return setLoading(false);
+    // const [subscribedNewsletters, err] = await NewsletterService.getSubscribedNewsletters(
+    //   session.id,
+    //   availableNewsletters,
+    // );
+    // if (err) logger.error('Failed to subscribe to newsletter', error);
+    // if (!subscribedNewsletters) return setLoading(false);
+    // setSubscribedNewsletters(subscribedNewsletters.map(({id}) => id));
+    // setLoading(false);
   };
 
   const handleToggle = async (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
-    if (!sessionUser) throw new Error('Missing session user.');
+    if (!session) throw new Error('Missing session user.');
     const newsletterId = event.target.value;
 
     if (checked) {
       // Trigger opt-in
-      const [success, error] = await NewsletterService.subscribeToNewsletter({userId: sessionUser.id, newsletterId});
+      const [success, error] = await NewsletterService.subscribeToNewsletter({userId: session.user.id, newsletterId});
       if (error) {
         showSnackbar({message: error.message});
         return;
@@ -52,7 +51,7 @@ export const SubscribeToNewsletters = () => {
           : 'Failed to subscribe to newsletter.',
       });
     } else {
-      const [success, error] = await NewsletterService.unsubscribeToNewsletter({userId: sessionUser.id, newsletterId});
+      const [success, error] = await NewsletterService.unsubscribeToNewsletter({userId: session.user.id, newsletterId});
       if (error) {
         showSnackbar({message: error.message});
         return;

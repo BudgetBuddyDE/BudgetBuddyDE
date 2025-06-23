@@ -14,9 +14,9 @@ import {SubscribeToNewsletters} from '@/features/Newsletter';
 export type TSettingsRouteProps = unknown;
 
 const SettingsRoute: React.FC<TSettingsRouteProps> = () => {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
 
-  if (!sessionUser) return null;
+  if (!session) return null;
   return (
     <Grid container spacing={AppConfig.baseSpacing}>
       <PageHeader title="Settings" />
@@ -44,13 +44,9 @@ const SettingsRoute: React.FC<TSettingsRouteProps> = () => {
               />
 
               <Box sx={{mt: 'auto', mb: {xs: 0, md: 2}, ml: 1}}>
-                <Typography variant="h2">
-                  {sessionUser.name && sessionUser.surname
-                    ? `${sessionUser.name} ${sessionUser.surname}`
-                    : sessionUser.username}
-                </Typography>
+                <Typography variant="h2">{session.user.name}</Typography>
                 <Typography variant="body1" fontWeight="bolder">
-                  {sessionUser.email}
+                  {session.user.email}
                 </Typography>
               </Box>
             </Box>

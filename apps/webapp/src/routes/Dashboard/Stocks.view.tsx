@@ -42,7 +42,7 @@ const StocksView = () => {
   const socket = getSocketIOClient();
   useDocumentTitle(`${AppConfig.appName} - Stocks`, true);
   const navigate = useNavigate();
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {
     isLoading: isLoadingStockPositions,
@@ -150,7 +150,7 @@ const StocksView = () => {
       setShowDeletePositionDialog(false);
     },
     async onConfirmDeletePosition() {
-      if (!deletePosition || !sessionUser) return;
+      if (!deletePosition || !session) return;
 
       const [position, error] = await StockService.deletePosition({id: deletePosition.id});
       if (error) {
@@ -179,7 +179,7 @@ const StocksView = () => {
   };
 
   React.useEffect(() => {
-    if (!sessionUser || isLoadingStockPositions || !stockPositions || (stockPositions && stockPositions.length === 0))
+    if (!session || isLoadingStockPositions || !stockPositions || (stockPositions && stockPositions.length === 0))
       return;
     const subscribedAssets: {isin: string; exchange: string}[] = [
       ...new Set(
@@ -196,9 +196,9 @@ const StocksView = () => {
 
     socket.connect();
 
-    socket.emit('stock:subscribe', subscribedAssets, sessionUser.id);
+    socket.emit('stock:subscribe', subscribedAssets, session.user.id);
 
-    const channel = `stock:update:${sessionUser.id}`;
+    const channel = `stock:update:${session.user.id}`;
     socket.on(
       channel,
       (data: {exchange: string; isin: string; quote: {datetime: string; currency: string; price: number}}) => {
@@ -208,7 +208,7 @@ const StocksView = () => {
     );
 
     const handleBeforeUnload = () => {
-      socket.emit('stock:unsubscribe', subscribedAssets, sessionUser.id);
+      socket.emit('stock:unsubscribe', subscribedAssets, session.user.id);
       socket.disconnect();
     };
 
@@ -218,7 +218,7 @@ const StocksView = () => {
       handleBeforeUnload();
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [sessionUser, socket, stockPositions, isLoadingStockPositions]);
+  }, [session, socket, stockPositions, isLoadingStockPositions]);
 
   React.useEffect(() => {
     if (!isLoadingStockPositions && stockPositions && stockPositions.length > 0) {

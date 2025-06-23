@@ -1,4 +1,4 @@
-import {type TCreateTransactionPayload, type TTransaction, ZCreateTransactionPayload} from '@budgetbuddyde/types';
+import {type TTransaction} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded} from '@mui/icons-material';
 import {
   AutocompleteChangeReason,
@@ -10,26 +10,20 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
-import {RecordModel} from 'pocketbase';
 import React from 'react';
-import {z} from 'zod';
 
 import {AppConfig} from '@/app.config';
 import {FullScreenDialog, type TFullScreenDialogProps} from '@/components/Base/FullScreenDialog';
 import {DatePicker, ReceiverAutocomplete, type TReceiverAutocompleteOption} from '@/components/Base/Input';
 import {DesktopFeatureOnly} from '@/components/DesktopFeatureOnly';
-import {useAuthContext} from '@/features/Auth';
 import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features/Category';
 import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {logger} from '@/logger';
-import {parseNumber} from '@/utils';
 
 import {type TTransactionDrawerValues} from '../TransactionDrawer';
-import {TransactionService} from '../TransactionService';
-import {useTransactions} from '../useTransactions.hook';
 
 export type TCreateMultipleTransactionsDialogProps = Omit<TFullScreenDialogProps, 'title'>;
 
@@ -52,9 +46,9 @@ export const CreateMultipleTransactionsDialog: React.FC<TCreateMultipleTransacti
   ...dialogProps
 }) => {
   const screenSize = useScreenSize();
-  const {session: sessionUser} = useAuthContext();
+  // const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshTransactions} = useTransactions();
+  // const {refreshData: refreshTransactions} = useTransactions();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const [form, setForm] = React.useState<TRow[]>([DEFAULT_VALUE()]);
 
@@ -124,40 +118,39 @@ export const CreateMultipleTransactionsDialog: React.FC<TCreateMultipleTransacti
     },
     onSubmit: async () => {
       try {
-        const parsedForm = z.array(ZCreateTransactionPayload).safeParse(
-          form.map(row => ({
-            processed_at: row.processed_at,
-            category: row.category?.id,
-            payment_method: row.payment_method?.id,
-            receiver: row.receiver?.value,
-            transfer_amount: parseNumber(String(row.transfer_amount)),
-            owner: sessionUser?.id,
-            information: row.information,
-          })),
-        );
-        if (!parsedForm.success) {
-          throw parsedForm.error;
-        }
-        const payload: TCreateTransactionPayload[] = parsedForm.data;
-        const submittedPromises = await Promise.allSettled(payload.map(TransactionService.createTransaction));
-        const createdTransactions: RecordModel[] = submittedPromises
-          .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
-          .filter(value => value !== null) as RecordModel[];
-
-        if (createdTransactions.length === 0) {
-          throw new Error('No transactions were created');
-        }
-
-        handler.close();
-        React.startTransition(() => {
-          refreshTransactions();
-        });
-        showSnackbar({
-          message:
-            createdTransactions.length === 1
-              ? `Created transaction #${createdTransactions[0].id}`
-              : `Created ${createdTransactions.length} transactions`,
-        });
+        // TODO: Re-enable this code after a new backend is implemented
+        // const parsedForm = z.array(ZCreateTransactionPayload).safeParse(
+        //   form.map(row => ({
+        //     processed_at: row.processed_at,
+        //     category: row.category?.id,
+        //     payment_method: row.payment_method?.id,
+        //     receiver: row.receiver?.value,
+        //     transfer_amount: parseNumber(String(row.transfer_amount)),
+        //     owner: session?.id,
+        //     information: row.information,
+        //   })),
+        // );
+        // if (!parsedForm.success) {
+        //   throw parsedForm.error;
+        // }
+        // const payload: TCreateTransactionPayload[] = parsedForm.data;
+        // const submittedPromises = await Promise.allSettled(payload.map(TransactionService.createTransaction));
+        // const createdTransactions: RecordModel[] = submittedPromises
+        //   .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
+        //   .filter(value => value !== null) as RecordModel[];
+        // if (createdTransactions.length === 0) {
+        //   throw new Error('No transactions were created');
+        // }
+        // handler.close();
+        // React.startTransition(() => {
+        //   refreshTransactions();
+        // });
+        // showSnackbar({
+        //   message:
+        //     createdTransactions.length === 1
+        //       ? `Created transaction #${createdTransactions[0].id}`
+        //       : `Created ${createdTransactions.length} transactions`,
+        // });
       } catch (error) {
         const msg = 'Error while submitting the forms';
         logger.error(msg, error);

@@ -37,6 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   /**
    * @deprecated
    */
+  // @ts-expect-error
   const retrieveFileToken = async () => {
     try {
       const token = await pb.files.getToken();

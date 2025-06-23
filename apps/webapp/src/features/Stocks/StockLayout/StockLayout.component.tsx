@@ -1,17 +1,13 @@
-import {ZAddWatchlistAssetPayload, ZDeleteWatchlistAssetPayload} from '@budgetbuddyde/types';
 import {Box, Grid2 as Grid} from '@mui/material';
 import React from 'react';
 
 import {useAuthContext} from '@/features/Auth';
-import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
-import {logger} from '@/logger';
 
 import {DataDisclaimer} from '../LiabilityDisclaimer/Disclaimer.component';
 import {SearchStockDialog, type TSearchStockDialogProps} from '../SearchStockDialog';
 import {useStockExchanges} from '../StockExchange';
-import {StockService} from '../StockService/Stock.service';
-import {useStockWatchlist, useStockWatchlistStore} from '../StockWatchlist';
+import {useStockWatchlist} from '../StockWatchlist';
 
 /**
  * Props for the StockLayout component.
@@ -38,10 +34,10 @@ export type TStockLayoutProps = React.PropsWithChildren<
  */
 export const StockLayout: React.FC<TStockLayoutProps> = ({onSelectAsset, onOpenPosition, children}) => {
   const {session: sessionUser} = useAuthContext();
-  const {showSnackbar} = useSnackbarContext();
-  const {set: setStockWatchlist} = useStockWatchlistStore();
+  // const {showSnackbar} = useSnackbarContext();
+  // const {set: setStockWatchlist} = useStockWatchlistStore();
   const {data: stockExchanges} = useStockExchanges();
-  const {isLoading: isLoadingWatchlist, data: watchedAssets} = useStockWatchlist();
+  const {isLoading: isLoadingWatchlist} = useStockWatchlist();
   const dialogRef = React.useRef<HTMLDivElement | null>(null);
   const [showStockDialog, setShowStockDialog] = React.useState(false);
 
@@ -78,55 +74,54 @@ export const StockLayout: React.FC<TStockLayoutProps> = ({onSelectAsset, onOpenP
               }
             : undefined
         }
-        onWatchlistInteraction={async (event, asset) => {
+        onWatchlistInteraction={async (event, _asset) => {
           setShowStockDialog(false);
           if (!sessionUser || isLoadingWatchlist || !stockExchanges) return;
 
           if (event === 'ADD_TO_WATCHLIST') {
-            try {
-              const langSchwarzExchange = stockExchanges.find(exchange => exchange.symbol === 'LSX');
-              if (!langSchwarzExchange) {
-                throw new Error('Lang & Schwarz exchange not found');
-              }
-
-              const parsedPayload = ZAddWatchlistAssetPayload.safeParse({
-                owner: sessionUser?.id,
-                isin: asset.identifier,
-                exchange: langSchwarzExchange.id,
-              });
-              if (!parsedPayload.success) throw parsedPayload.error;
-              const [result, err] = await StockService.addAssetToWatchlist(parsedPayload.data);
-              if (err) throw err;
-              if (!result) throw new Error('Error adding asset to watchlist');
-              setStockWatchlist(result);
-              showSnackbar({message: 'Asset added to watchlist'});
-            } catch (error) {
-              logger.error("Something wen't wrong", error);
-              showSnackbar({message: 'Error adding asset to watchlist'});
-            }
+            // TODO: Update this code after a new backend is implemented
+            // try {
+            //   const langSchwarzExchange = stockExchanges.find(exchange => exchange.symbol === 'LSX');
+            //   if (!langSchwarzExchange) {
+            //     throw new Error('Lang & Schwarz exchange not found');
+            //   }
+            //   const parsedPayload = ZAddWatchlistAssetPayload.safeParse({
+            //     owner: sessionUser?.id,
+            //     isin: asset.identifier,
+            //     exchange: langSchwarzExchange.id,
+            //   });
+            //   if (!parsedPayload.success) throw parsedPayload.error;
+            //   const [result, err] = await StockService.addAssetToWatchlist(parsedPayload.data);
+            //   if (err) throw err;
+            //   if (!result) throw new Error('Error adding asset to watchlist');
+            //   setStockWatchlist(result);
+            //   showSnackbar({message: 'Asset added to watchlist'});
+            // } catch (error) {
+            //   logger.error("Something wen't wrong", error);
+            //   showSnackbar({message: 'Error adding asset to watchlist'});
+            // }
           } else if (event === 'REMOVE_FROM_WATCHLIST') {
-            try {
-              const langSchwarzExchange = stockExchanges.find(exchange => exchange.symbol === 'LSX');
-              if (!langSchwarzExchange) {
-                throw new Error('Lang & Schwarz exchange not found');
-              }
-
-              const watchlistItem = (watchedAssets ?? []).find(
-                ({isin, exchange}) => isin === asset.identifier && exchange === langSchwarzExchange.id,
-              );
-              if (!watchlistItem) throw new Error("Asset isn't in watchlist");
-
-              const parsedPayload = ZDeleteWatchlistAssetPayload.safeParse({id: watchlistItem.id});
-              if (!parsedPayload.success) throw parsedPayload.error;
-              const [result, err] = await StockService.deleteAssetFromWatchlist(parsedPayload.data);
-              if (err) throw err;
-              if (!result) throw new Error('Error removing asset from watchlist');
-              setStockWatchlist((watchedAssets ?? []).filter(({id}) => id !== watchlistItem.id));
-              showSnackbar({message: 'Asset removed from watchlist'});
-            } catch (error) {
-              logger.error("Something wen't wrong", error);
-              showSnackbar({message: 'Error removing asset from watchlist'});
-            }
+            // TODO: Update this code after a new backend is implemented
+            // try {
+            //   const langSchwarzExchange = stockExchanges.find(exchange => exchange.symbol === 'LSX');
+            //   if (!langSchwarzExchange) {
+            //     throw new Error('Lang & Schwarz exchange not found');
+            //   }
+            //   const watchlistItem = (watchedAssets ?? []).find(
+            //     ({isin, exchange}) => isin === asset.identifier && exchange === langSchwarzExchange.id,
+            //   );
+            //   if (!watchlistItem) throw new Error("Asset isn't in watchlist");
+            //   const parsedPayload = ZDeleteWatchlistAssetPayload.safeParse({id: watchlistItem.id});
+            //   if (!parsedPayload.success) throw parsedPayload.error;
+            //   const [result, err] = await StockService.deleteAssetFromWatchlist(parsedPayload.data);
+            //   if (err) throw err;
+            //   if (!result) throw new Error('Error removing asset from watchlist');
+            //   setStockWatchlist((watchedAssets ?? []).filter(({id}) => id !== watchlistItem.id));
+            //   showSnackbar({message: 'Asset removed from watchlist'});
+            // } catch (error) {
+            //   logger.error("Something wen't wrong", error);
+            //   showSnackbar({message: 'Error removing asset from watchlist'});
+            // }
           }
         }}
       />

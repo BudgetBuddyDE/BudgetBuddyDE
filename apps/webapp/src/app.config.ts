@@ -19,6 +19,9 @@ export type TAppConfig = {
   website: string;
   repository: string;
   theme: Theme;
+  /**
+   * @deprecated No longer used, will be removed in the future.
+   */
   auth: {
     cookieName: string;
   };

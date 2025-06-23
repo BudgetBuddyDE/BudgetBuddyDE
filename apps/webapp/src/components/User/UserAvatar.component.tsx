@@ -2,18 +2,18 @@ import {Avatar as MuiAvatar, type AvatarProps as MuiAvatarProps} from '@mui/mate
 import React from 'react';
 
 import {useAuthContext} from '@/features/Auth';
-import {pb} from '@/pocketbase';
 
 export type TUserAvatarProps = MuiAvatarProps;
 
 export const UserAvatar: React.FC<TUserAvatarProps> = props => {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
 
-  if (!sessionUser) return null;
-  if (sessionUser.avatar) {
+  if (!session) return null;
+  const userAvatar = session.user.image;
+  if (userAvatar) {
     return (
       <MuiAvatar
-        src={pb.getFileUrl(sessionUser, sessionUser.avatar)}
+        src={userAvatar}
         {...props}
         variant="rounded"
         {...props}
@@ -23,7 +23,7 @@ export const UserAvatar: React.FC<TUserAvatarProps> = props => {
   }
   return (
     <MuiAvatar variant="rounded" {...props} sx={{height: 'auto', aspectRatio: '1/1', ...props.sx}}>
-      {sessionUser.username.substring(0, 2).toUpperCase()}
+      {session.user.name.substring(0, 2).toUpperCase()}
     </MuiAvatar>
   );
 };

@@ -1,24 +1,18 @@
-import {type TCreatePaymentMethodPayload, ZCreatePaymentMethodPayload} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded} from '@mui/icons-material';
 import {Box, Button, Grid2 as Grid, IconButton, Stack, TextField} from '@mui/material';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
-import {RecordModel} from 'pocketbase';
 import React from 'react';
-import {z} from 'zod';
 
 import {AppConfig} from '@/app.config';
 import {FullScreenDialog, type TFullScreenDialogProps} from '@/components/Base/FullScreenDialog';
 import {DesktopFeatureOnly} from '@/components/DesktopFeatureOnly';
-import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {logger} from '@/logger';
 
 import {type TPaymentMethodDrawerValues} from '../PaymentMethodDrawer';
-import {PaymentMethodService} from '../PaymentMethodService';
-import {usePaymentMethods} from '../usePaymentMethods.hook';
 
 export type TCreateMultiplePaymentMethodsDialogProps = Omit<TFullScreenDialogProps, 'title'>;
 
@@ -38,9 +32,9 @@ export const CreateMultiplePaymentMethodsDialog: React.FC<TCreateMultiplePayment
   ...dialogProps
 }) => {
   const screenSize = useScreenSize();
-  const {session: sessionUser} = useAuthContext();
+  // const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshPaymentMethods} = usePaymentMethods();
+  // const {refreshData: refreshPaymentMethods} = usePaymentMethods();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const [form, setForm] = React.useState<TRow[]>([DEFAULT_VALUE()]);
 
@@ -81,38 +75,37 @@ export const CreateMultiplePaymentMethodsDialog: React.FC<TCreateMultiplePayment
     },
     onSubmit: async () => {
       try {
-        const parsedForm = z.array(ZCreatePaymentMethodPayload).safeParse(
-          form.map(row => ({
-            name: row.name,
-            address: row.address,
-            provider: row.provider,
-            description: row.description,
-            owner: sessionUser?.id,
-          })),
-        );
-        if (!parsedForm.success) {
-          throw parsedForm.error;
-        }
-        const payload: TCreatePaymentMethodPayload[] = parsedForm.data;
-        const submittedPromises = await Promise.allSettled(payload.map(PaymentMethodService.createPaymentMethod));
-        const createdPaymentMethods: RecordModel[] = submittedPromises
-          .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
-          .filter(value => value !== null) as RecordModel[];
-
-        if (createdPaymentMethods.length === 0) {
-          throw new Error('No payment-methods were created');
-        }
-
-        handler.close();
-        React.startTransition(() => {
-          refreshPaymentMethods();
-        });
-        showSnackbar({
-          message:
-            createdPaymentMethods.length === 1
-              ? `Created payment-method #${createdPaymentMethods[0].id}`
-              : `Created ${createdPaymentMethods.length} payment-methods`,
-        });
+        // TODO: Re-enable payment-method creation
+        // const parsedForm = z.array(ZCreatePaymentMethodPayload).safeParse(
+        //   form.map(row => ({
+        //     name: row.name,
+        //     address: row.address,
+        //     provider: row.provider,
+        //     description: row.description,
+        //     owner: sessionUser?.id,
+        //   })),
+        // );
+        // if (!parsedForm.success) {
+        //   throw parsedForm.error;
+        // }
+        // const payload: TCreatePaymentMethodPayload[] = parsedForm.data;
+        // const submittedPromises = await Promise.allSettled(payload.map(PaymentMethodService.createPaymentMethod));
+        // const createdPaymentMethods: RecordModel[] = submittedPromises
+        //   .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
+        //   .filter(value => value !== null) as RecordModel[];
+        // if (createdPaymentMethods.length === 0) {
+        //   throw new Error('No payment-methods were created');
+        // }
+        // handler.close();
+        // React.startTransition(() => {
+        //   refreshPaymentMethods();
+        // });
+        // showSnackbar({
+        //   message:
+        //     createdPaymentMethods.length === 1
+        //       ? `Created payment-method #${createdPaymentMethods[0].id}`
+        //       : `Created ${createdPaymentMethods.length} payment-methods`,
+        // });
       } catch (error) {
         const msg = 'Error while submitting the forms';
         logger.error(msg, error);

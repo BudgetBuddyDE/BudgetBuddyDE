@@ -1,10 +1,4 @@
-import {
-  type TCreatePaymentMethodPayload,
-  type TPaymentMethod,
-  type TUpdatePaymentMethodPayload,
-  ZCreatePaymentMethodPayload,
-  ZUpdatePaymentMethodPayload,
-} from '@budgetbuddyde/types';
+import {type TPaymentMethod} from '@budgetbuddyde/types';
 import {Grid2 as Grid, TextField} from '@mui/material';
 import React from 'react';
 import {DefaultValues} from 'react-hook-form';
@@ -12,7 +6,6 @@ import {DefaultValues} from 'react-hook-form';
 import {AppConfig} from '@/app.config';
 import {EntityDrawer, type TUseEntityDrawerState} from '@/components/Drawer/EntityDrawer';
 import {useAuthContext} from '@/features/Auth';
-import {PaymentMethodService, usePaymentMethods} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
 
@@ -38,35 +31,34 @@ export const PaymentMethodDrawer: React.FC<TPaymentMethodDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshPaymentMethods} = usePaymentMethods();
+  // const {refreshData: refreshPaymentMethods} = usePaymentMethods();
 
   const handler = {
-    async handleSubmit(data: TPaymentMethodDrawerValues, onSuccess: () => void) {
-      if (!sessionUser) throw new Error('No session-user not found');
+    async handleSubmit(_data: TPaymentMethodDrawerValues, _onSuccess: () => void) {
+      if (!session) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            const parsedForm = ZCreatePaymentMethodPayload.safeParse({
-              name: data.name,
-              address: data.address,
-              provider: data.provider,
-              description: data.description,
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TCreatePaymentMethodPayload = parsedForm.data;
-
-            const record = await PaymentMethodService.createPaymentMethod(payload);
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshPaymentMethods();
-            });
-            showSnackbar({message: `Created payment-method #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // const parsedForm = ZCreatePaymentMethodPayload.safeParse({
+            //   name: data.name,
+            //   address: data.address,
+            //   provider: data.provider,
+            //   description: data.description,
+            //   owner: session.id,
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TCreatePaymentMethodPayload = parsedForm.data;
+            // const record = await PaymentMethodService.createPaymentMethod(payload);
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshPaymentMethods();
+            // });
+            // showSnackbar({message: `Created payment-method #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -75,26 +67,24 @@ export const PaymentMethodDrawer: React.FC<TPaymentMethodDrawerProps> = ({
 
         case 'UPDATE':
           try {
-            if (!defaultValues?.id) throw new Error('No payment-method-id found in default-values');
-
-            const parsedForm = ZUpdatePaymentMethodPayload.safeParse({
-              name: data.name,
-              address: data.address,
-              provider: data.provider,
-              description: data.description,
-              owner: sessionUser.id,
-            });
-            if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            const payload: TUpdatePaymentMethodPayload = parsedForm.data;
-
-            const record = await PaymentMethodService.updatePaymentMethod(defaultValues.id, payload);
-
-            onClose();
-            onSuccess();
-            React.startTransition(() => {
-              refreshPaymentMethods();
-            });
-            showSnackbar({message: `Updated payment-method #${record.id}`});
+            // TODO: Re-enable this code after a new backend is implemented
+            // if (!defaultValues?.id) throw new Error('No payment-method-id found in default-values');
+            // const parsedForm = ZUpdatePaymentMethodPayload.safeParse({
+            //   name: data.name,
+            //   address: data.address,
+            //   provider: data.provider,
+            //   description: data.description,
+            //   owner: session.id,
+            // });
+            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            // const payload: TUpdatePaymentMethodPayload = parsedForm.data;
+            // const record = await PaymentMethodService.updatePaymentMethod(defaultValues.id, payload);
+            // onClose();
+            // onSuccess();
+            // React.startTransition(() => {
+            //   refreshPaymentMethods();
+            // });
+            // showSnackbar({message: `Updated payment-method #${record.id}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});

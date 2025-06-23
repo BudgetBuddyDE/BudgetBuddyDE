@@ -1,17 +1,14 @@
-import {type TCreateCategoryPayload, ZCreateCategoryPayload} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded} from '@mui/icons-material';
 import {Box, Button, Grid2 as Grid, IconButton, Stack, TextField} from '@mui/material';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
-import {RecordModel} from 'pocketbase';
 import React from 'react';
-import {z} from 'zod';
 
 import {AppConfig} from '@/app.config';
 import {FullScreenDialog, type TFullScreenDialogProps} from '@/components/Base/FullScreenDialog';
 import {DesktopFeatureOnly} from '@/components/DesktopFeatureOnly';
 import {useAuthContext} from '@/features/Auth';
-import {CategoryService, type TCategoryDrawerValues, useCategories} from '@/features/Category';
+import {type TCategoryDrawerValues} from '@/features/Category';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {useScreenSize} from '@/hooks/useScreenSize';
@@ -31,9 +28,9 @@ const DEFAULT_VALUE: () => TRow = () => ({
 
 export const CreateMultipleCategoriesDialog: React.FC<TCreateMultipleTransactionsDialogProps> = ({...dialogProps}) => {
   const screenSize = useScreenSize();
-  const {session: sessionUser} = useAuthContext();
+  const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const {refreshData: refreshCategories} = useCategories();
+  // const {refreshData: refreshCategories} = useCategories();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const [form, setForm] = React.useState<TRow[]>([DEFAULT_VALUE()]);
 
@@ -60,36 +57,35 @@ export const CreateMultipleCategoriesDialog: React.FC<TCreateMultipleTransaction
     },
     onSubmit: async () => {
       try {
-        const parsedForm = z.array(ZCreateCategoryPayload).safeParse(
-          form.map(row => ({
-            name: row.name,
-            description: row.description,
-            owner: sessionUser?.id,
-          })),
-        );
-        if (!parsedForm.success) {
-          throw parsedForm.error;
-        }
-        const payload: TCreateCategoryPayload[] = parsedForm.data;
-        const submittedPromises = await Promise.allSettled(payload.map(CategoryService.createCategory));
-        const createdCategorie: RecordModel[] = submittedPromises
-          .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
-          .filter(value => value !== null) as RecordModel[];
-
-        if (createdCategorie.length === 0) {
-          throw new Error('No categories were created');
-        }
-
-        handler.close();
-        React.startTransition(() => {
-          refreshCategories();
-        });
-        showSnackbar({
-          message:
-            createdCategorie.length === 1
-              ? `Created category #${createdCategorie[0].id}`
-              : `Created ${createdCategorie.length} categories`,
-        });
+        // TODO: Update this code after a new backend is implemented
+        // const parsedForm = z.array(ZCreateCategoryPayload).safeParse(
+        //   form.map(row => ({
+        //     name: row.name,
+        //     description: row.description,
+        //     owner: session.user.id,
+        //   })),
+        // );
+        // if (!parsedForm.success) {
+        //   throw parsedForm.error;
+        // }
+        // const payload: TCreateCategoryPayload[] = parsedForm.data;
+        // const submittedPromises = await Promise.allSettled(payload.map(CategoryService.createCategory));
+        // const createdCategorie: RecordModel[] = submittedPromises
+        //   .map(promise => (promise.status == 'fulfilled' ? promise.value : null))
+        //   .filter(value => value !== null) as RecordModel[];
+        // if (createdCategorie.length === 0) {
+        //   throw new Error('No categories were created');
+        // }
+        // handler.close();
+        // React.startTransition(() => {
+        //   refreshCategories();
+        // });
+        // showSnackbar({
+        //   message:
+        //     createdCategorie.length === 1
+        //       ? `Created category #${createdCategorie[0].id}`
+        //       : `Created ${createdCategorie.length} categories`,
+        // });
       } catch (error) {
         logger.error("Something wen't wrong", error);
         showSnackbar({
@@ -183,7 +179,7 @@ export const CreateMultipleCategoriesDialog: React.FC<TCreateMultipleTransaction
                   <Grid size={{md: 3}}>
                     <TextField
                       label="Created by"
-                      value={sessionUser?.id}
+                      value={session?.user.id}
                       onChange={event => handler.changeDescription(idx, event.target.value)}
                       disabled
                       fullWidth
