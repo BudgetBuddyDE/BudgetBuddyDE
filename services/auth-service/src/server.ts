@@ -42,7 +42,7 @@ app.get('/api/me', async (req, res) => {
 // Mount an global error handler
 app.use(handleError);
 
-export const server = app.listen(3000, () => {
+export const server = app.listen(config.port, () => {
   const options = {
     'Application Name': config.service,
     'Application Version': config.version,

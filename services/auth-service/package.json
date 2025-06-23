@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node build/src/server.js",
     "watch": "tsx watch src/server.ts",
+    "dev": "npm run watch",
     "build": "npx rimraf build && npx tsc",
     "test": "vitest",
     "test:ui": "vitest --ui",
