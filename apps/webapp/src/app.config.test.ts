@@ -4,6 +4,6 @@ import {AppConfig, Feature} from './app.config';
 
 describe('AppConfig', () => {
   it('should have the correct feature', () => {
-    expect(AppConfig.feature[Feature.STOCKS]).toBe(process.env.STOCK_SERVICE_HOST !== undefined);
+    expect(AppConfig.feature[Feature.STOCKS]).toBe(import.meta.env.VITE_STOCK_SERVICE_HOST !== undefined);
   });
 });

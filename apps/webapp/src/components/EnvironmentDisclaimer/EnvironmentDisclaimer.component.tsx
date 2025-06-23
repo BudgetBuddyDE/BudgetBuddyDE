@@ -25,7 +25,7 @@ export const EnvironmentDisclaimer: React.FC<TEnvironmentDisclaimerProps> = ({ty
       }}>
       <Typography variant="body1" fontWeight={'bolder'} {...typogrpahyProps}>
         This application is in development mode. Connected to{' '}
-        {process.env.POCKETBASE_URL || '"POCKETBASE_URL " is missing'}!
+        {import.meta.env.VITE_POCKETBASE_HOST || '"VITE_POCKETBASE_HOST " is missing'}!
       </Typography>
     </Box>
   );

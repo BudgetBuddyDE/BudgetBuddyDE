@@ -16,13 +16,14 @@ export function useCategories(): TGenericHook<TCategory[], AdditionalFuncs> {
     useCategoryStore();
 
   const getStats: AdditionalFuncs['getStats'] = async (startDate, endDate) => {
-    if (!process.env.POCKETBASE_URL) return [null, new Error('Pocketbase URL not set')];
+    const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_HOST;
+    if (!POCKETBASE_URL) return [null, new Error('Pocketbase URL not set')];
 
     const query = new URLSearchParams({
       startDate: format(startDate, 'yyyy-MM-dd'),
       endDate: format(endDate, 'yyyy-MM-dd'),
     }).toString();
-    const response = await fetch(`${process.env.POCKETBASE_URL}/cateogries/stats?${query}`, {
+    const response = await fetch(`${POCKETBASE_URL}/cateogries/stats?${query}`, {
       ...preparePockebaseRequestOptions(),
     });
     const json = await response.json();

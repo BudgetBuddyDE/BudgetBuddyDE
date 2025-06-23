@@ -34,10 +34,10 @@ export type TAppConfig = {
 };
 
 export const AppConfig: TAppConfig = {
-  production: process.env.NODE_ENV === 'production',
+  production: import.meta.env.PROD,
   appName: 'Budget-Buddy',
   version: version,
-  logLevel: (process.env.LOG_LEVEL ?? 'error') as LogLevel,
+  logLevel: (import.meta.env.VITE_LOG_LEVEL ?? 'error') as LogLevel,
   website: 'https://budget-buddy.de',
   repository: 'https://github.com/BudgetBuddyDE/webapp',
   theme: BlueTheme,
@@ -56,8 +56,8 @@ export const AppConfig: TAppConfig = {
     github: 'GitHub',
   },
   feature: {
-    [Feature.ENVIRONMENT_DISCLAIMER]: process.env.SHOW_ENVIRONMENT_DISCLAIMER === 'true',
-    [Feature.STOCKS]: process.env.STOCK_SERVICE_HOST !== undefined,
-    [Feature.NEWSLETTER]: process.env.MAIL_SERVICE_HOST !== undefined,
+    [Feature.ENVIRONMENT_DISCLAIMER]: import.meta.env.VITE_SHOW_ENVIRONMENT_DISCLAIMER === 'true',
+    [Feature.STOCKS]: import.meta.env.VITE_STOCK_SERVICE_HOST !== undefined,
+    [Feature.NEWSLETTER]: import.meta.env.VITE_MAIL_SERVICE_HOST !== undefined,
   },
 };

@@ -11,10 +11,10 @@ import {type TMailOptInPayload, type TMailOptOutPayload} from '@budgetbuddyde/ty
 
 import {pb} from '@/pocketbase';
 import {AuthService} from '@/services/Auth';
-import {isRunningInProdEnv, preparePockebaseRequestOptions} from '@/utils';
+import {preparePockebaseRequestOptions} from '@/utils';
 
 export class NewsletterService {
-  private static host = isRunningInProdEnv() ? (process.env.MAIL_SERVICE_HOST as string) : '/mail_service';
+  private static host = import.meta.env.VITE_MAIL_SERVICE_HOST;
   private static collection = PocketBaseCollection.NEWSLETTER;
 
   /**

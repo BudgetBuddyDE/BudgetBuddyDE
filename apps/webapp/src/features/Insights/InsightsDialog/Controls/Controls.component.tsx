@@ -49,7 +49,7 @@ export const Controls: React.FC<TControlsProps> = ({state, dispatch, chartData})
           </Button>
         )}
 
-        {process.env.NODE_ENV === 'development' && state.transactions.length > 0 && (
+        {import.meta.env.DEV && state.transactions.length > 0 && (
           <Button
             variant="contained"
             color="warning"

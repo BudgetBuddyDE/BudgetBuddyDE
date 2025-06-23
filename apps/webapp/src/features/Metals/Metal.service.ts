@@ -2,7 +2,6 @@ import {type TApiResponse, type TServiceResponse} from '@budgetbuddyde/types';
 import {z} from 'zod';
 
 import {preparePockebaseRequestOptions} from '@/utils';
-import {isRunningInProdEnv} from '@/utils';
 
 export const ZMetalOption = z.object({
   code: z.string().length(3),
@@ -22,7 +21,7 @@ export const ZMetalQuote = z.object({
 export type TMetalQuote = z.infer<typeof ZMetalQuote>;
 
 export class MetalService {
-  private static host = isRunningInProdEnv() ? (process.env.STOCK_SERVICE_HOST as string) : '/stock_service';
+  private static host = import.meta.env.VITE_STOCK_SERVICE_HOST;
 
   /**
    * Retrieves metal quotes from the server.

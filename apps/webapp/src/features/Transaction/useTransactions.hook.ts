@@ -30,6 +30,7 @@ export function useTransactions(): TGenericHook<
   AdditionalFuncs<TTransaction[]>,
   TTransactionStoreFetchArgs
 > {
+  const POCKETBASE_HOST = import.meta.env.VITE_POCKETBASE_HOST;
   const {filters} = useFilterStore();
   const {getData, isLoading, isFetched, fetchedAt, fetchedBy, refreshData, hasError, error, resetStore} =
     useTransactionStore();
@@ -65,13 +66,13 @@ export function useTransactions(): TGenericHook<
   };
 
   const getStats: AdditionalFuncs<TTransaction[]>['getStats'] = async (startDate, endDate) => {
-    if (!process.env.POCKETBASE_URL) return [null, new Error('Pocketbase URL not set')];
+    if (!POCKETBASE_HOST) return [null, new Error('Pocketbase URL not set')];
 
     const query = new URLSearchParams({
       startDate: format(startDate, 'yyyy-MM-dd'),
       endDate: format(endDate, 'yyyy-MM-dd'),
     }).toString();
-    const response = await fetch(`${process.env.POCKETBASE_URL}/transactions/stats?${query}`, {
+    const response = await fetch(`${POCKETBASE_HOST}/transactions/stats?${query}`, {
       ...preparePockebaseRequestOptions(),
     });
     const json = await response.json();
@@ -81,13 +82,13 @@ export function useTransactions(): TGenericHook<
   };
 
   const getBudget: AdditionalFuncs<TTransaction[]>['getBudget'] = async (startDate, endDate) => {
-    if (!process.env.POCKETBASE_URL) return [null, new Error('Pocketbase URL not set')];
+    if (!POCKETBASE_HOST) return [null, new Error('Pocketbase URL not set')];
 
     const query = new URLSearchParams({
       startDate: format(startDate, 'yyyy-MM-dd'),
       endDate: format(endDate, 'yyyy-MM-dd'),
     }).toString();
-    const response = await fetch(`${process.env.POCKETBASE_URL}/transactions/budget?${query}`, {
+    const response = await fetch(`${POCKETBASE_HOST}/transactions/budget?${query}`, {
       ...preparePockebaseRequestOptions(),
     });
     const json = await response.json();

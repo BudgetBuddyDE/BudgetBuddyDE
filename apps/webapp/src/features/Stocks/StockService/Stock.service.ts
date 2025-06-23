@@ -32,13 +32,12 @@ import {
 import {z} from 'zod';
 
 import {preparePockebaseRequestOptions} from '@/utils';
-import {isRunningInProdEnv} from '@/utils';
 
 /**
  * The StockService class provides methods for interacting with stock-related data and services.
  */
 export class StockService {
-  private static host = isRunningInProdEnv() ? (process.env.STOCK_SERVICE_HOST as string) : '/stock_service';
+  private static host = import.meta.env.VITE_STOCK_SERVICE_HOST;
 
   /**
    * Transforms an array of dividend details into a new array of transformed dividend objects.
