@@ -7,7 +7,7 @@ import {isFeatureEnabled} from '@/components/Feature';
 import {PageHeader} from '@/components/Layout';
 import {AppInformation, EditProfile} from '@/components/Settings';
 import {UserAvatar} from '@/components/User';
-import {useAuthContext} from '@/features/Auth';
+import {UserSessions, useAuthContext} from '@/features/Auth';
 import {withAuthLayout} from '@/features/Auth';
 import {SubscribeToNewsletters} from '@/features/Newsletter';
 
@@ -57,6 +57,9 @@ const SettingsRoute: React.FC<TSettingsRouteProps> = () => {
       <Grid container size={{xs: 12, md: 4, xl: 3}} order={{xs: 1, md: 0}}>
         <Grid size={{xs: 12}}>
           <AppInformation />
+        </Grid>
+        <Grid size={{xs: 12}}>
+          <UserSessions />
         </Grid>
       </Grid>
 

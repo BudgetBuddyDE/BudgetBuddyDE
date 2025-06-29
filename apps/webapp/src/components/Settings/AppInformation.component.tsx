@@ -11,7 +11,7 @@ export const AppInformation = () => {
     <Card>
       <Card.Header>
         <Box>
-          <Card.Title>About</Card.Title>
+          <Card.Title>App information</Card.Title>
           <Card.Subtitle>
             ReactJS bases web-app to keep track of your finances and manage your montly budget.
           </Card.Subtitle>
