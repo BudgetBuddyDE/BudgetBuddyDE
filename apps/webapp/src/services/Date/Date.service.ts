@@ -1,3 +1,5 @@
+import {format} from 'date-fns';
+
 export class DateService {
   static months = [
     'January',
@@ -35,5 +37,17 @@ export class DateService {
 
   shortMonthName(date: Date = new Date(), maxLength = 3) {
     return DateService.shortMonthName(date, maxLength);
+  }
+
+  static format(date: Date | string): string {
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+
+    return format(date, 'dd.MM.yyyy');
+  }
+
+  format(date: Date | string): string {
+    return DateService.format(date);
   }
 }
