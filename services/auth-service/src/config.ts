@@ -16,6 +16,7 @@ import {initWinstonLogger} from './core/logger.winston';
 export type Config = {
   service: typeof name;
   version: typeof version;
+  baseUrl: string;
   port: ReturnType<typeof getPort>;
   runtime: Runtime;
   log: {
@@ -44,6 +45,7 @@ const logger = initWinstonLogger(
 export const config: Config = {
   service: SERVICE_NAME,
   version: SERVICE_VERSION,
+  baseUrl: process.env.BASE_URL || 'http://localhost',
   port: getPort(),
   runtime: SERVICE_RUNTIME,
   log: {
