@@ -1,13 +1,11 @@
-import {PocketBaseCollection} from '@budgetbuddyde/types';
 import {GitHub, Google} from '@mui/icons-material';
 import {Button, type ButtonProps} from '@mui/material';
-import {RecordAuthResponse, RecordModel} from 'pocketbase';
 import React from 'react';
 
 import {AppConfig, type TAppConfig} from '@/app.config.ts';
+import {authClient} from '@/auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {pb} from '@/pocketbase.ts';
 
 const IconMapping: Record<keyof TAppConfig['authProvider'], React.ReactNode> = {
   github: <GitHub />,
@@ -16,14 +14,9 @@ const IconMapping: Record<keyof TAppConfig['authProvider'], React.ReactNode> = {
 
 export type TSocialSignInBtnProps = {
   provider: keyof TAppConfig['authProvider'];
-  onAuthProviderResponse: (data: RecordAuthResponse<RecordModel>) => void;
 } & Omit<ButtonProps, 'onClick'>;
 
-export const SocialSignInBtn: React.FC<TSocialSignInBtnProps> = ({
-  provider,
-  onAuthProviderResponse,
-  ...buttonProps
-}) => {
+export const SocialSignInBtn: React.FC<TSocialSignInBtnProps> = ({provider, ...buttonProps}) => {
   const {showSnackbar} = useSnackbarContext();
   return (
     <Button
@@ -32,10 +25,20 @@ export const SocialSignInBtn: React.FC<TSocialSignInBtnProps> = ({
       startIcon={IconMapping[provider]}
       onClick={async () => {
         try {
-          const result = await pb.collection(PocketBaseCollection.USERS).authWithOAuth2({provider});
-          onAuthProviderResponse(result);
+          const result = await authClient.signIn.social({
+            provider: provider,
+            requestSignUp: true,
+            callbackURL: window.location.origin + '/dashboard', // Adjust the callback URL as needed
+          });
+          if (result.error) {
+            logger.error('Something went wrong', result.error);
+            showSnackbar({message: result.error.message || 'Authentication failed'});
+          }
+          showSnackbar({
+            message: 'Authentication with ' + AppConfig.authProvider[provider] + ' successful! Redirecting...',
+          });
         } catch (error) {
-          logger.error("Something wen't wrong", error);
+          logger.error('Something went wrong', error);
           showSnackbar({message: error instanceof Error ? error.message : 'Authentication failed'});
         }
       }}

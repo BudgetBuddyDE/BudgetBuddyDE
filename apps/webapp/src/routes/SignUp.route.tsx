@@ -11,7 +11,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import {type RecordAuthResponse, type RecordModel} from 'pocketbase';
 import React from 'react';
 import {Link as RouterLink, useNavigate} from 'react-router-dom';
 
@@ -29,14 +28,7 @@ const SignUp = () => {
   const navigate = useNavigate();
   const {session, revalidateSession, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const [form, setForm] = React.useState<Record<string, string>>({
-    // FIXME: Remove default values in production
-    name: 'John',
-    surname: 'Doe',
-    email: 'john.doe@example.com',
-    password: 'password123',
-    tos: 'true',
-  });
+  const [form, setForm] = React.useState<Record<string, string>>({});
 
   const redirectToDashboard = () => {
     navigate('/dashboard');
@@ -45,10 +37,6 @@ const SignUp = () => {
   const formHandler = {
     inputChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm(prev => ({...prev, [event.target.name]: event.target.value}));
-    },
-    handleAuthProviderLogin: (response: RecordAuthResponse<RecordModel>) => {
-      showSnackbar({message: `Welcome ${response.record.username}!`});
-      navigate('/');
     },
     formSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -70,7 +58,7 @@ const SignUp = () => {
           action: <Button onClick={() => navigate('/settings')}>Settings</Button>,
         });
         await revalidateSession();
-        navigate('/dashboard');
+        redirectToDashboard();
       } catch (error) {
         logger.error("Something wen't wrong", error);
         showSnackbar({message: (error as Error).message || 'Registration failed'});
@@ -120,7 +108,6 @@ const SignUp = () => {
                     <SocialSignInBtn
                       key={provider}
                       provider={provider}
-                      onAuthProviderResponse={formHandler.handleAuthProviderLogin}
                       data-umami-event={'social-sign-up'}
                       data-umami-value={provider}
                     />

@@ -11,7 +11,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import {type RecordAuthResponse, type RecordModel} from 'pocketbase';
 import React from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {Link as RouterLink} from 'react-router-dom';
@@ -30,33 +29,15 @@ const SignIn = () => {
   const navigate = useNavigate();
   const {session, revalidateSession, logout} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  const [form, setForm] = React.useState<Record<string, string>>({
-    // FIXME: Remove default values in production
-    email: 'john.doe@example.com',
-    password: 'password123',
-    rememberMe: 'true',
-  });
+  const [form, setForm] = React.useState<Record<string, string>>({});
 
   const redirectToDashboard = () => {
     navigate('/dashboard');
   };
 
-  const handleSuccessfullLogin = (name: string) => {
-    showSnackbar({message: `Welcome ${name}!`, action: <Button onClick={logout}>Sign-out</Button>});
-    if (location.search) {
-      const query = new URLSearchParams(location.search.substring(1));
-      if (query.get('callbackUrl')) navigate(query.get('callbackUrl')!);
-      return;
-    }
-    navigate('/');
-  };
-
   const formHandler = {
     inputChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm(prev => ({...prev, [event.target.name]: event.target.value}));
-    },
-    handleAuthProviderLogin: (response: RecordAuthResponse<RecordModel>) => {
-      handleSuccessfullLogin(response.record.username);
     },
     formSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -77,7 +58,13 @@ const SignIn = () => {
         action: <Button onClick={async () => await logout()}>Sign out</Button>,
       });
       await revalidateSession();
-      navigate('/dashboard');
+      showSnackbar({message: `Welcome ${name}!`, action: <Button onClick={logout}>Sign-out</Button>});
+      if (location.search) {
+        const query = new URLSearchParams(location.search.substring(1));
+        if (query.get('callbackUrl')) navigate(query.get('callbackUrl')!);
+        return;
+      }
+      redirectToDashboard();
     },
   };
 
@@ -123,7 +110,6 @@ const SignIn = () => {
                     <SocialSignInBtn
                       key={provider}
                       provider={provider}
-                      onAuthProviderResponse={formHandler.handleAuthProviderLogin}
                       data-umami-event={'social-sign-in'}
                       data-umami-value={provider}
                     />
