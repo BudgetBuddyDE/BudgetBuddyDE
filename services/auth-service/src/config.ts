@@ -24,6 +24,9 @@ export type Config = {
     log?: Logger['log'];
   };
   cors: CorsOptions;
+  jobs: {
+    timezone: string;
+  };
 };
 
 const SERVICE_NAME = name;
@@ -62,5 +65,8 @@ export const config: Config = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
+  },
+  jobs: {
+    timezone: process.env.TIMEZONE || 'Europe/Berlin',
   },
 };

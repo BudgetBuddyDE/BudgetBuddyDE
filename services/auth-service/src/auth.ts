@@ -1,7 +1,7 @@
 import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {type BetterAuthOptions, betterAuth} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
-import {openAPI} from 'better-auth/plugins';
+import {createAuthMiddleware, openAPI} from 'better-auth/plugins';
 
 import {config} from './config';
 import {db} from './db';
@@ -58,6 +58,16 @@ const options: BetterAuthOptions = {
     },
   },
   plugins: [config.runtime === 'development' ? openAPI() : null].filter(p => p !== null),
+  hooks: {
+    after: createAuthMiddleware(async ctx => {
+      if (ctx.path.startsWith('/sign-up')) {
+        const newSession = ctx.context.newSession;
+        if (newSession) {
+          // TODO: Implement user replication to the backend
+        }
+      }
+    }),
+  },
 };
 
 export const auth = betterAuth(options);

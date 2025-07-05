@@ -8,8 +8,11 @@ import {logger} from './core/logger';
 import {checkConnection} from './db';
 import {handleError, log, servedBy} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
+import {router as JobRouter} from './router/job.router';
+import {JobPlanner} from './utils/JobPlanner/JobPlanner';
 
 export const app = express();
+export const jobPlanner = new JobPlanner(config.jobs.timezone);
 
 app.use(servedBy);
 app.use(log);
@@ -38,6 +41,7 @@ app.get('/api/me', async (req, res) => {
   });
   res.json(session);
 });
+app.use('/jobs', JobRouter);
 
 // Mount an global error handler
 app.use(handleError);
@@ -53,4 +57,20 @@ export const server = app.listen(config.port, () => {
   };
   console.table(options);
   logger.info(`${config.service} is available under http://localhost:${config.port}`, options);
+
+  jobPlanner.addJob('replicate-registered-users', '*/5 * * * *', async ctx => {
+    ctx.logger.info('Replicating registered users...');
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    ctx.logger.info('Replication of registered users completed.');
+  });
+
+  logger.info(
+    'Scheduled jobs: ' +
+      jobPlanner
+        .getAllJobs()
+        .map(job => job.name)
+        .join(', '),
+  );
 });
