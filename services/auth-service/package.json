@@ -24,7 +24,7 @@
   "license": "ISC",
   "dependencies": {
     "@budgetbuddyde/utils": "^1.1.1",
-    "better-auth": "^1.2.7",
+    "better-auth": "^1.2.10",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.44.1",
