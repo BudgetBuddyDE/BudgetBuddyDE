@@ -5,11 +5,10 @@ import { authClient } from './authClient';
 
 type Req = Request & { user: cds.User; tenant: string; requestId: string };
 
+const authLogger = cds.log('auth');
+
 export default async function auth(req: Req, _res: Response, next: NextFunction) {
   req.requestId = cds.utils.uuid();
-  console.log('Authentication middleware started', {
-    requestId: req.requestId,
-  });
   let logOptions = {
     requestId: req.requestId,
     baseUrl: req.baseUrl,
@@ -19,53 +18,34 @@ export default async function auth(req: Req, _res: Response, next: NextFunction)
   };
 
   try {
-    try {
-      const session = await authClient.getSession(undefined, {
-        headers: new Headers(req.headers as HeadersInit),
-      });
-      console.log('Session data:', session);
+    const session = await authClient.getSession(undefined, {
+      headers: new Headers(req.headers as HeadersInit),
+    });
+    authLogger.debug('Session retrieved', { session: session, ...logOptions });
 
-      if (!session) {
-        console.log('No session found', logOptions);
-        return next(new Error('No session found'));
-      }
-
-      req.user = new cds.User({
-        id: 'user.id',
-        // roles: 'role' in user ? [user.role as string] : [],
-        roles: [],
-        attr: {
-          userId: 'user.id',
-          name: 'user.name',
-          email: 'user.email',
-        },
-      });
-
-      //   const headers = new Headers();
-      //   if (req.headers.authorization) {
-      //     // If the request has an authorization header, we use it to get the session
-      //     headers.set('Authorization', req.headers.authorization);
-      //   } else if (req.headers['set-auth-token']) {
-      //     // If the request has a set-auth-token header, we use it to get the session
-      //     headers.set('Authorization', `Bearer ${req.headers['set-auth-token']}`);
-      //   } else if (req.headers.cookie) {
-      //     // If the request has a cookie header, we use it to get the session
-      //     headers.set('Cookie', req.headers.cookie);
-      //   }
-      //   data = await authHelper.getSession({ headers: headers });
-    } catch (error) {
-      return next(error);
+    if (!session || !session.data) {
+      const err = new Error('No session found');
+      authLogger.warn('No session found', logOptions);
+      return next(err);
     }
 
-    // const sessionUser = data.user;
-    // const internalUser = await authHelper.getBackendUser(sessionUser.id);
-    // authLogger.debug('Found replicated user', internalUser, logOptions);
+    req.user = new cds.User({
+      id: session.data.user.id,
+      roles: [],
+      attr: {
+        userId: session.data.user.id,
+        name: session.data.user.name,
+        email: session.data.user.email,
+        sessionId: session.data.session.id,
+        sessionToken: session.data.session.token,
+      },
+    });
+    logOptions.user = req.user;
 
-    // req.user = authHelper.mapToUserObj(sessionUser);
-  } catch (err) {
-    console.error('Unexpected error in authentication', err, logOptions);
-    return next(err);
+    authLogger.info('User (' + session.data.user.email + ') authenticated', logOptions);
+
+    next();
+  } catch (error) {
+    next(error);
   }
-
-  return next();
 }
