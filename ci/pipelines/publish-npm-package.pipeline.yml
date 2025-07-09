@@ -70,6 +70,7 @@ task-config: &task-release
         NEW_VERSION="$(cat version/version)"
         cd repo/((repo_path))
         npm ci
+        npm test
         npm run build
         npm version "$NEW_VERSION" --no-git-tag-version
         git tag | xargs git tag -d > /dev/null
