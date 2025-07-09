@@ -47,10 +47,13 @@
         "kind": "sqlite",
         "credentials": {
           "url": "db.sqlite"
-        },
-        "auth": {
-          "impl": "srv/auth.ts"
         }
+      },
+      "auth": {
+        "[production]": {
+          "impl": "srv/auth.js"
+        },
+        "impl": "srv/auth.ts"
       }
     }
   }
