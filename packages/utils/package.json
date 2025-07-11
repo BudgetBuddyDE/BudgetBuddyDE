@@ -36,6 +36,7 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
+    "@tklein1801/logger.js": "^0.0.1",
     "dotenv": "^16.4.7"
   }
 }

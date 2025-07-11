@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import {isValidLogLevel, type LogLevel} from '../logger';
+import {LogLevel} from '@tklein1801/logger.js';
+import {isLogLevel} from '@tklein1801/logger.js/lib/isLogLevel/isLogLevel';
 
 /**
  * Retrieves the log level from the environment variable `LOG_LEVEL`.
@@ -9,6 +10,6 @@ import {isValidLogLevel, type LogLevel} from '../logger';
  * @returns {LogLevel} The log level to be used by the application.
  */
 export function getLogLevel(): LogLevel {
-  const envVal = process.env.LOG_LEVEL;
-  return envVal && isValidLogLevel(envVal) ? envVal : 'error';
+  const envVal = (process.env.LOG_LEVEL || '').toUpperCase();
+  return envVal && isLogLevel(envVal) ? LogLevel[envVal] : LogLevel.ERROR;
 }
