@@ -1,4 +1,3 @@
-import {type TPaymentMethod} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded, EditRounded} from '@mui/icons-material';
 import {Checkbox, Grid2 as Grid, IconButton, TableCell, TableRow, Typography} from '@mui/material';
 import {format} from 'date-fns';
@@ -24,6 +23,7 @@ import {
 import {CreateMultiplePaymentMethodsDialog, type TPaymentMethodDrawerValues} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
+import {type TPaymentMethod} from '@/newTypes';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
 import {downloadAsJson} from '@/utils';
 
@@ -56,7 +56,9 @@ export const PaymentMethods = () => {
   const displayedPaymentMethods: TPaymentMethod[] = React.useMemo(() => {
     if (!paymentMethods) return [];
     if (keyword.length == 0) return paymentMethods;
-    return PaymentMethodService.filter(paymentMethods, keyword);
+    // FIXME: Implement filtering logic
+    // return PaymentMethodService.filter(paymentMethods, keyword);
+    return paymentMethods;
   }, [paymentMethods, keyword]);
 
   const handler: IPaymentMethodsHandler = {
@@ -64,12 +66,12 @@ export const PaymentMethods = () => {
       dispatchPaymentMethodDrawer({type: 'OPEN', drawerAction: 'CREATE'});
     },
     showEditDialog(paymentMethod) {
-      const {id, name, address, provider, description} = paymentMethod;
+      const {ID, name, address, provider, description} = paymentMethod;
       dispatchPaymentMethodDrawer({
         type: 'OPEN',
         drawerAction: 'UPDATE',
         payload: {
-          id,
+          ID,
           name,
           address,
           provider,
@@ -84,7 +86,7 @@ export const PaymentMethods = () => {
       try {
         if (deletePaymentMethods.length === 0) return;
 
-        await Promise.allSettled(deletePaymentMethods.map(({id}) => PaymentMethodService.deletePaymentMethod(id)));
+        await Promise.allSettled(deletePaymentMethods.map(({ID}) => PaymentMethodService.deletePaymentMethod(ID)));
 
         setShowDeletePaymentMethodDialog(false);
         setDeletePaymentMethods([]);
@@ -107,11 +109,11 @@ export const PaymentMethods = () => {
       },
       onSelect(entity) {
         if (this.isSelected(entity)) {
-          setSelectedPaymentMethods(prev => prev.filter(({id}) => id !== entity.id));
+          setSelectedPaymentMethods(prev => prev.filter(({ID}) => ID !== entity.ID));
         } else setSelectedPaymentMethods(prev => [...prev, entity]);
       },
       isSelected(entity) {
-        return selectedPaymentMethods.find(elem => elem.id === entity.id) !== undefined;
+        return selectedPaymentMethods.find(elem => elem.ID === entity.ID) !== undefined;
       },
       onDeleteMultiple() {
         setShowDeletePaymentMethodDialog(true);
@@ -131,7 +133,7 @@ export const PaymentMethods = () => {
           headerCells={['Name', 'Address', 'Provider', 'Description', '']}
           renderRow={paymentMethod => (
             <TableRow
-              key={paymentMethod.id}
+              key={paymentMethod.ID}
               sx={{
                 '&:last-child td, &:last-child th': {border: 0},
                 whiteSpace: 'nowrap',

@@ -1,20 +1,25 @@
-import {
-  PocketBaseCollection,
-  type TCreatePaymentMethodPayload,
-  type TPaymentMethod,
-  type TTransaction,
-  type TUpdatePaymentMethodPayload,
-  ZPaymentMethod,
-} from '@budgetbuddyde/types';
+import {type TPaymentMethod, type TTransaction} from '@budgetbuddyde/types';
 import {subDays} from 'date-fns';
-import {RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
-import {pb} from '@/pocketbase';
+import {
+  PaymentMethod,
+  PaymentMethodResponse,
+  PaymentMethod_VH,
+  type TCreateOrUpdatePaymentMethod,
+  type TPaymentMethodResponse,
+  type TPaymentMethod_VH,
+  type TPaymentMethod as _TPaymentMethod,
+} from '@/newTypes';
+import {odata} from '@/odata.client';
 
 import {type TPaymentMethodAutocompleteOption} from '../Autocomplete';
 
 export class PaymentMethodService {
+  private static readonly $servicePath = '/odata/v4/backend';
+  private static readonly $entityPath = this.$servicePath + '/PaymentMethod';
+  private static readonly $valueHelpPath = this.$servicePath + '/PaymentMethod_VH';
+
   private static paymentMethodLabelSeperator = '•';
 
   /**
@@ -23,9 +28,11 @@ export class PaymentMethodService {
    * @param payload - The payload containing the details of the payment method.
    * @returns A Promise that resolves to the created payment method record.
    */
-  static async createPaymentMethod(payload: TCreatePaymentMethodPayload): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.PAYMENT_METHOD).create(payload, {requestKey: null});
-    return record;
+  static async createPaymentMethod(payload: TCreateOrUpdatePaymentMethod): Promise<TPaymentMethodResponse> {
+    const record = await odata.post(this.$entityPath, payload).query();
+    const parsingResult = PaymentMethodResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
   }
 
   /**
@@ -35,22 +42,11 @@ export class PaymentMethodService {
    * @returns A Promise that resolves to the updated payment method record.
    */
   static async updatePaymentMethod(
-    paymentMethodId: TPaymentMethod['id'],
-    payload: TUpdatePaymentMethodPayload,
-  ): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.PAYMENT_METHOD).update(paymentMethodId, payload);
-    return record;
-  }
-
-  /**
-   * Retrieves the list of payment methods.
-   * @returns A promise that resolves to an array of payment methods.
-   * @throws If there is an error parsing the payment methods.
-   */
-  static async getPaymentMethods(): Promise<TPaymentMethod[]> {
-    const records = await pb.collection(PocketBaseCollection.PAYMENT_METHOD).getFullList();
-
-    const parsingResult = z.array(ZPaymentMethod).safeParse(records);
+    paymentMethodId: _TPaymentMethod['ID'],
+    payload: TCreateOrUpdatePaymentMethod,
+  ): Promise<TPaymentMethodResponse> {
+    const record = await odata.put(`${this.$entityPath}(ID=${paymentMethodId})`, payload).query();
+    const parsingResult = PaymentMethodResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
   }
@@ -61,9 +57,37 @@ export class PaymentMethodService {
    * @param paymentMethodId - The ID of the payment method to delete.
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
-  static async deletePaymentMethod(paymentMethodId: TPaymentMethod['id']): Promise<boolean> {
-    const record = await pb.collection(PocketBaseCollection.PAYMENT_METHOD).delete(paymentMethodId);
-    return record;
+  static async deletePaymentMethod(paymentMethodId: _TPaymentMethod['ID']): Promise<boolean> {
+    const response = (await odata.delete(`${this.$entityPath}(ID=${paymentMethodId})`).query()) as Response;
+    if (!response.ok) {
+      console.warn('Failed to delete payment method:', response.body);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Retrieves the list of payment-methods from the database.
+   * @returns A promise that resolves to an array of TPaymentMethod objects.
+   * @throws If there is an error parsing the retrieved records.
+   */
+  static async getPaymentMethods(): Promise<_TPaymentMethod[]> {
+    const records = await odata.get(this.$entityPath).query();
+    const parsingResult = z.array(PaymentMethod).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
+  /**
+   * Retrieves the list of payment-methods from the database.
+   * @returns A promise that resolves to an array of TPaymentMethod objects.
+   * @throws If there is an error parsing the retrieved records.
+   */
+  static async getPaymentMethodValueHelps(): Promise<TPaymentMethod_VH[]> {
+    const records = await odata.get(this.$valueHelpPath).query();
+    const parsingResult = z.array(PaymentMethod_VH).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
   }
 
   /**

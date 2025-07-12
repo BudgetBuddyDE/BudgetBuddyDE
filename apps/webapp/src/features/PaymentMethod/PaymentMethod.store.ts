@@ -1,6 +1,5 @@
-import {type TPaymentMethod} from '@budgetbuddyde/types';
-
 import {GenerateGenericStore} from '@/hooks/GenericHook';
+import {type TPaymentMethod} from '@/newTypes';
 
 import {PaymentMethodService} from './PaymentMethodService';
 

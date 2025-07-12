@@ -1,29 +1,36 @@
-import {
-  PocketBaseCollection,
-  type TCategory,
-  type TCreateCategoryPayload,
-  type TTransaction,
-  type TUpdateCategoryPayload,
-  ZCategory,
-} from '@budgetbuddyde/types';
+import {type TCategory, type TTransaction} from '@budgetbuddyde/types';
 import {subDays} from 'date-fns';
-import {type RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
 import {type TSelectCategoriesOption} from '@/features/Insights/InsightsDialog/SelectCategories';
-import {pb} from '@/pocketbase';
+import {
+  Category,
+  CategoryResponse,
+  Category_VH,
+  type TCategoryResponse,
+  type TCategory_VH,
+  TCreateOrUpdateCategory,
+  type TCategory as _TCategory,
+} from '@/newTypes';
+import {odata} from '@/odata.client';
 
 import {type TCategoryAutocompleteOption} from '../Autocomplete';
 
 export class CategoryService {
+  private static readonly $servicePath = '/odata/v4/backend';
+  private static readonly $entityPath = this.$servicePath + '/Category';
+  private static readonly $valueHelpPath = this.$servicePath + '/Category_VH';
+
   /**
    * Creates a new category.
    * @param payload - The payload containing the data for the new category.
    * @returns A promise that resolves to the created category record.
    */
-  static async createCategory(payload: TCreateCategoryPayload): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.CATEGORY).create(payload, {requestKey: null});
-    return record;
+  static async createCategory(payload: TCreateOrUpdateCategory): Promise<TCategoryResponse> {
+    const record = await odata.post(this.$entityPath, payload).query();
+    const parsingResult = CategoryResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
   }
 
   /**
@@ -32,20 +39,30 @@ export class CategoryService {
    * @param payload - The payload containing the updated category data.
    * @returns A Promise that resolves to the updated category record.
    */
-  static async updateCategory(categoryId: TCategory['id'], payload: TUpdateCategoryPayload): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.CATEGORY).update(categoryId, payload);
-    return record;
+  static async updateCategory(
+    categoryId: _TCategory['ID'],
+    payload: TCreateOrUpdateCategory,
+  ): Promise<TCategoryResponse> {
+    const record = await odata.put(`${this.$entityPath}(ID=${categoryId})`, payload).query();
+    const parsingResult = CategoryResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
   }
 
   /**
    * Deletes a category with the specified ID.
-   *
    * @param categoryId - The ID of the category to delete.
+   * @throws If the deletion fails, it logs a warning and returns false.
+   * @description Deletes a category with the specified ID.
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
-  static async deleteCategory(categoryId: TCategory['id']): Promise<boolean> {
-    const record = await pb.collection(PocketBaseCollection.CATEGORY).delete(categoryId);
-    return record;
+  static async deleteCategory(categoryId: _TCategory['ID']): Promise<boolean> {
+    const response = (await odata.delete(`${this.$entityPath}(ID=${categoryId})`).query()) as Response;
+    if (!response.ok) {
+      console.warn('Failed to delete category:', response.body);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -53,10 +70,21 @@ export class CategoryService {
    * @returns A promise that resolves to an array of TCategory objects.
    * @throws If there is an error parsing the retrieved records.
    */
-  static async getCategories(): Promise<TCategory[]> {
-    const records = await pb.collection(PocketBaseCollection.CATEGORY).getFullList();
+  static async getCategories(): Promise<_TCategory[]> {
+    const records = await odata.get(this.$entityPath).query();
+    const parsingResult = z.array(Category).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
 
-    const parsingResult = z.array(ZCategory).safeParse(records);
+  /**
+   * Retrieves the list of categories from the database.
+   * @returns A promise that resolves to an array of TCategory objects.
+   * @throws If there is an error parsing the retrieved records.
+   */
+  static async getCategoryValueHelps(): Promise<TCategory_VH[]> {
+    const records = await odata.get(this.$valueHelpPath).query();
+    const parsingResult = z.array(Category_VH).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
   }

@@ -1,4 +1,3 @@
-import {type TCategory} from '@budgetbuddyde/types';
 import {Grid2 as Grid, TextField} from '@mui/material';
 import React from 'react';
 import {DefaultValues} from 'react-hook-form';
@@ -8,12 +7,12 @@ import {EntityDrawer, type TUseEntityDrawerState} from '@/components/Drawer/Enti
 import {useAuthContext} from '@/features/Auth';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
+import {CreateOrUpdateCategory, type NullableFields, type TCreateOrUpdateCategory} from '@/newTypes';
 
-export type TCategoryDrawerValues = {
-  id?: TCategory['id'];
-  name: TCategory['name'] | null;
-  description: TCategory['description'] | null;
-};
+import {CategoryService} from '../CategoryService';
+import {useCategories} from '../useCategories.hook';
+
+export type TCategoryDrawerValues = NullableFields<TCreateOrUpdateCategory>;
 
 export type TCategoryDrawerProps = TUseEntityDrawerState<TCategoryDrawerValues> & {
   onClose: () => void;
@@ -31,30 +30,24 @@ export const CategoryDrawer: React.FC<TCategoryDrawerProps> = ({
 }) => {
   const {session: sessionUser} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  // const {refreshData: refreshCategories} = useCategories();
+  const {refreshData: refreshCategories} = useCategories();
 
   const handler = {
-    async handleSubmit(_data: TCategoryDrawerValues, _onSuccess: () => void) {
+    async handleSubmit(data: TCategoryDrawerValues, onSuccess: () => void) {
       if (!sessionUser) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            // TODO: Update this code after a new backend is implemented
-            // const parsedForm = ZCreateCategoryPayload.safeParse({
-            //   name: data.name,
-            //   description: data.description,
-            //   owner: sessionUser.id,
-            // });
-            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            // const payload: TCreateCategoryPayload = parsedForm.data;
-            // const record = await CategoryService.createCategory(payload);
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshCategories();
-            // });
-            // showSnackbar({message: `Created category #${record.id}`});
+            const parsedForm = CreateOrUpdateCategory.safeParse(data);
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await CategoryService.createCategory(parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshCategories();
+            });
+            showSnackbar({message: `Created category #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -63,22 +56,15 @@ export const CategoryDrawer: React.FC<TCategoryDrawerProps> = ({
 
         case 'UPDATE':
           try {
-            // TODO: Update this code after a new backend is implemented
-            // if (!defaultValues?.id) throw new Error('No category-id found in default-values');
-            // const parsedForm = ZUpdateCategoryPayload.safeParse({
-            //   name: data.name,
-            //   description: data.description,
-            //   owner: sessionUser.id,
-            // });
-            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            // const payload: TUpdateCategoryPayload = parsedForm.data;
-            // const record = await CategoryService.updateCategory(defaultValues.id, payload);
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshCategories();
-            // });
-            // showSnackbar({message: `Updated category #${record.id}`});
+            const parsedForm = CreateOrUpdateCategory.safeParse(data);
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await CategoryService.updateCategory(defaultValues?.ID!, parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshCategories();
+            });
+            showSnackbar({message: `Updated category #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -99,7 +85,7 @@ export const CategoryDrawer: React.FC<TCategoryDrawerProps> = ({
       open={open}
       onClose={onClose}
       onResetForm={handler.resetValues}
-      title="Payment Method"
+      title="Categories"
       subtitle={`${drawerAction === 'CREATE' ? 'Create a new' : 'Update an'} category`}
       defaultValues={defaultValues}
       onSubmit={handler.handleSubmit}

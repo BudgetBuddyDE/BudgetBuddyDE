@@ -1,4 +1,3 @@
-import {type TCategory} from '@budgetbuddyde/types';
 import {
   Autocomplete,
   type AutocompleteChangeReason,
@@ -10,15 +9,12 @@ import {
 import React from 'react';
 
 import {StyledAutocompleteOption} from '@/components/Base/Input';
-import {useTransactions} from '@/features/Transaction';
+import {use} from '@/hooks/use';
+import {type TCategory_VH} from '@/newTypes';
 
-import {CategoryService} from '../CategoryService';
 import {useCategories} from '../useCategories.hook';
 
-export type TCategoryAutocompleteOption = {
-  label: TCategory['name'];
-  id: TCategory['id'];
-};
+export type TCategoryAutocompleteOption = Omit<TCategory_VH, 'description'>;
 
 export interface ICategoryAutocompleteProps {
   value?: TCategoryAutocompleteOption | null;
@@ -44,7 +40,7 @@ export function applyCategoryOptionsFilter(
 ): TCategoryAutocompleteOption[] {
   if (state.inputValue.length < 1) return options;
   const filtered = filter(options, state);
-  const matches = filtered.filter(option => option.label.toLowerCase().includes(state.inputValue.toLowerCase()));
+  const matches = filtered.filter(option => option.name.toLowerCase().includes(state.inputValue.toLowerCase()));
   return matches;
 }
 
@@ -54,35 +50,35 @@ export const CategoryAutocomplete: React.FC<ICategoryAutocompleteProps> = ({
   onChange,
   textFieldProps,
 }) => {
-  const {isLoading: isLoadingTransactions, data: transactions} = useTransactions();
-  const {isLoading: isLoadingCategories, data: categories} = useCategories();
+  const {getValueHelps} = useCategories();
+  const {isLoading, result} = use(() => getValueHelps());
 
   const options: TCategoryAutocompleteOption[] = React.useMemo(() => {
-    if (!categories) return [];
-    return CategoryService.sortAutocompleteOptionsByTransactionUsage(categories, transactions ?? []);
-  }, [transactions, categories]);
+    if (!result) return [];
+    return result;
+  }, [getValueHelps]);
 
   return (
     <Autocomplete
       options={options}
       getOptionLabel={option => {
         if (typeof option === 'string') return option;
-        return option.label;
+        return option.name;
       }}
       value={value}
       onChange={onChange}
       filterOptions={applyCategoryOptionsFilter}
       // FIXME:
-      isOptionEqualToValue={(option, value) => option.id === value?.id || typeof value === 'string'}
+      isOptionEqualToValue={(option, value) => option.ID === value?.ID || typeof value === 'string'}
       defaultValue={defaultValue}
       loadingText="Loading..."
-      loading={isLoadingCategories || isLoadingTransactions}
+      loading={isLoading}
       selectOnFocus
       autoHighlight
       renderInput={params => <TextField label="Category" {...textFieldProps} {...params} />}
       renderOption={(props, option, {selected}) => (
-        <StyledAutocompleteOption {...props} key={option.id} selected={selected}>
-          {option.label}
+        <StyledAutocompleteOption {...props} key={option.ID} selected={selected}>
+          {option.name}
         </StyledAutocompleteOption>
       )}
     />

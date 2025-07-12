@@ -1,4 +1,4 @@
-import {Box, Grid2 as Grid, Stack} from '@mui/material';
+import {Box, Button, Grid2 as Grid, Stack} from '@mui/material';
 import React from 'react';
 
 import {AppConfig} from '@/app.config';
@@ -21,6 +21,7 @@ import {
   useTransactions,
 } from '@/features/Transaction';
 import {useDocumentTitle} from '@/hooks/useDocumentTitle';
+import {odata} from '@/odata.client';
 
 const LIST_ITEM_COUNT = 6;
 
@@ -46,9 +47,22 @@ const DashboardView = () => {
     },
   };
 
+  const postData = async () => {
+    const result = await odata
+      .get('/odata/v4/backend/Transaction')
+      .post('/odata/v4/backend/Category', {
+        name: 'New Category' + new Date().toISOString(),
+        description: 'This is a new category created via OData client',
+      })
+      .query();
+    console.log('Fetched categories:', result);
+  };
+
   return (
     <React.Fragment>
       <DashboardStatsWrapper />
+
+      <Button onClick={() => postData()}>Submit request</Button>
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
         <Stack spacing={AppConfig.baseSpacing}>

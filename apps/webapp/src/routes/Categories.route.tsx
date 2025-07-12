@@ -1,4 +1,3 @@
-import {type TCategory} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded, EditRounded} from '@mui/icons-material';
 import {Checkbox, Grid2 as Grid, IconButton, TableCell, TableRow} from '@mui/material';
 import {format} from 'date-fns';
@@ -17,8 +16,6 @@ import {withAuthLayout} from '@/features/Auth';
 import {
   CategoryChip,
   CategoryDrawer,
-  CategoryExpenseChart,
-  CategoryIncomeChart,
   CategoryService,
   CreateMultipleCategoriesDialog,
   type TCategoryDrawerValues,
@@ -27,6 +24,7 @@ import {
 import {DeleteDialog} from '@/features/DeleteDialog';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
+import {type TCategory} from '@/newTypes';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
 import {downloadAsJson} from '@/utils';
 
@@ -56,7 +54,9 @@ export const Categories = () => {
   const displayedCategories: TCategory[] = React.useMemo(() => {
     if (!categories) return [];
     if (keyword.length == 0) return categories;
-    return CategoryService.filter(categories, keyword);
+    // FIXME: Implement filtering logic
+    // return CategoryService.filter(categories, keyword);
+    return categories;
   }, [categories, keyword]);
 
   const handler: ICategoriesHandler = {
@@ -64,11 +64,11 @@ export const Categories = () => {
       dispatchCategoryDrawer({type: 'OPEN', drawerAction: 'CREATE'});
     },
     showEditDialog(category) {
-      const {id, name, description} = category;
+      const {ID, name, description} = category;
       dispatchCategoryDrawer({
         type: 'OPEN',
         drawerAction: 'UPDATE',
-        payload: {id, name, description},
+        payload: {ID, name, description},
       });
     },
     onSearch(keyword) {
@@ -78,7 +78,7 @@ export const Categories = () => {
       try {
         if (deleteCategories.length === 0) return;
 
-        await Promise.allSettled(deleteCategories.map(({id}) => CategoryService.deleteCategory(id)));
+        await Promise.allSettled(deleteCategories.map(({ID}) => CategoryService.deleteCategory(ID)));
 
         setShowDeleteCategoryDialog(false);
         setDeleteCategories([]);
@@ -101,11 +101,11 @@ export const Categories = () => {
       },
       onSelect(entity) {
         if (this.isSelected(entity)) {
-          setSelectedCategories(prev => prev.filter(({id}) => id !== entity.id));
+          setSelectedCategories(prev => prev.filter(({ID}) => ID !== entity.ID));
         } else setSelectedCategories(prev => [...prev, entity]);
       },
       isSelected(entity) {
-        return selectedCategories.find(elem => elem.id === entity.id) !== undefined;
+        return selectedCategories.find(elem => elem.ID === entity.ID) !== undefined;
       },
       onDeleteMultiple() {
         setShowDeleteCategoryDialog(true);
@@ -125,7 +125,7 @@ export const Categories = () => {
           headerCells={['Name', 'Description', '']}
           renderRow={category => (
             <TableRow
-              key={category.id}
+              key={category.ID}
               sx={{
                 '&:last-child td, &:last-child th': {border: 0},
                 whiteSpace: 'nowrap',
@@ -192,13 +192,13 @@ export const Categories = () => {
       </Grid>
 
       <Grid container size={{xs: 12, lg: 4}} spacing={AppConfig.baseSpacing} sx={{height: 'max-content'}}>
-        <Grid size={{xs: 12}}>
+        {/* <Grid size={{xs: 12}}>
           <CategoryExpenseChart />
-        </Grid>
+        </Grid> */}
 
-        <Grid size={{xs: 12}}>
+        {/* <Grid size={{xs: 12}}>
           <CategoryIncomeChart />
-        </Grid>
+        </Grid> */}
       </Grid>
 
       <CategoryDrawer

@@ -1,4 +1,3 @@
-import {type TPaymentMethod} from '@budgetbuddyde/types';
 import {
   Autocomplete,
   type AutocompleteChangeReason,
@@ -10,13 +9,11 @@ import {
 import React from 'react';
 
 import {StyledAutocompleteOption} from '@/components/Base/Input';
-import {PaymentMethodService, usePaymentMethods} from '@/features/PaymentMethod';
-import {useTransactions} from '@/features/Transaction';
+import {usePaymentMethods} from '@/features/PaymentMethod';
+import {use} from '@/hooks/use';
+import {type TPaymentMethod_VH} from '@/newTypes';
 
-export type TPaymentMethodAutocompleteOption = {
-  label: TPaymentMethod['name'];
-  id: TPaymentMethod['id'];
-};
+export type TPaymentMethodAutocompleteOption = Pick<TPaymentMethod_VH, 'ID' | 'name'>;
 
 export interface IPaymentMethodAutocompleteProps {
   value?: TPaymentMethodAutocompleteOption | null;
@@ -42,7 +39,7 @@ export function applyPaymentMethodOptionsFilter(
 ): TPaymentMethodAutocompleteOption[] {
   if (state.inputValue.length < 1) return options;
   const filtered = filter(options, state);
-  const matches = filtered.filter(option => option.label.toLowerCase().includes(state.inputValue.toLowerCase()));
+  const matches = filtered.filter(option => option.name.toLowerCase().includes(state.inputValue.toLowerCase()));
   return matches;
 }
 
@@ -52,34 +49,35 @@ export const PaymentMethodAutocomplete: React.FC<IPaymentMethodAutocompleteProps
   onChange,
   textFieldProps,
 }) => {
-  const {isLoading: isLoadingTransactions, data: transactions} = useTransactions();
-  const {isLoading: isLoadingPaymentMethods, data: paymentMethods} = usePaymentMethods();
+  const {getValueHelps} = usePaymentMethods();
+  const {isLoading, result} = use(() => getValueHelps());
 
   const options: TPaymentMethodAutocompleteOption[] = React.useMemo(() => {
-    return PaymentMethodService.sortAutocompleteOptionsByTransactionUsage(paymentMethods ?? [], transactions ?? []);
-  }, [transactions, paymentMethods]);
+    if (!result) return [];
+    return result.map(({ID, name}) => ({ID, name}));
+  }, [getValueHelps]);
 
   return (
     <Autocomplete
       options={options}
       getOptionLabel={option => {
         if (typeof option === 'string') return option;
-        return option.label;
+        return option.name;
       }}
       value={value}
       onChange={onChange}
       filterOptions={applyPaymentMethodOptionsFilter}
       // FIXME:
-      isOptionEqualToValue={(option, value) => option.id === value?.id || typeof value === 'string'}
+      isOptionEqualToValue={(option, value) => option.ID === value?.ID || typeof value === 'string'}
       defaultValue={defaultValue}
       loadingText="Loading..."
-      loading={isLoadingPaymentMethods || isLoadingTransactions}
+      loading={isLoading}
       selectOnFocus
       autoHighlight
       renderInput={params => <TextField label="Payment Method" {...textFieldProps} {...params} />}
       renderOption={(props, option, {selected}) => (
-        <StyledAutocompleteOption {...props} key={option.id} selected={selected}>
-          {option.label}
+        <StyledAutocompleteOption {...props} key={option.ID} selected={selected}>
+          {option.name}
         </StyledAutocompleteOption>
       )}
     />

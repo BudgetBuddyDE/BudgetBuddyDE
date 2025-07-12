@@ -1,6 +1,5 @@
-import {type TCategory} from '@budgetbuddyde/types';
-
 import {GenerateGenericStore} from '@/hooks/GenericHook';
+import {type TCategory} from '@/newTypes';
 
 import {CategoryService} from './CategoryService';
 

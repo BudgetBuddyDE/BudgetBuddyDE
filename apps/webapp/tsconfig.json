@@ -5,6 +5,7 @@
     "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "allowJs": true,
 
     /* Bundler mode */
     "esModuleInterop": true,
@@ -23,7 +24,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "#cds-models/*": ["./@cds-models/*"]
     },
     "types": ["@testing-library/jest-dom", "vitest/globals"]
   },
