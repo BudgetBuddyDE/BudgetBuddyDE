@@ -1,12 +1,12 @@
 import {
-  type LogLevel,
-  Logger,
+  type LogClientOptions,
+  LogLevel,
   type Runtime,
   getCurrentRuntime,
-  getLogLevel,
   getPort,
   isRunningInProd,
 } from '@budgetbuddyde/utils';
+import {getLogLevel} from '@budgetbuddyde/utils/lib/getLogLevel';
 import {type CorsOptions} from 'cors';
 import 'dotenv/config';
 
@@ -19,10 +19,7 @@ export type Config = {
   baseUrl: string;
   port: ReturnType<typeof getPort>;
   runtime: Runtime;
-  log: {
-    level: LogLevel;
-    log?: Logger['log'];
-  };
+  log: Pick<LogClientOptions, 'level' | 'log' | 'scope'>;
   cors: CorsOptions;
   jobs: {
     timezone: string;
@@ -52,10 +49,22 @@ export const config: Config = {
   port: getPort(),
   runtime: SERVICE_RUNTIME,
   log: {
+    scope: `${SERVICE_NAME}:${SERVICE_VERSION}`,
     level: LOG_LEVEL,
     log: (level, msg, ...meta) => {
-      // FIXME: Provide labels for better filtering in Loki
-      logger[level](msg, meta);
+      switch (level) {
+        case LogLevel.DEBUG:
+          return logger.debug({message: msg, labels: {...meta}});
+        case LogLevel.INFO:
+          return logger.info({message: msg, labels: {...meta}});
+        case LogLevel.WARN:
+          return logger.warn({message: msg, labels: {...meta}});
+        case LogLevel.FATAL:
+        case LogLevel.ERROR:
+          return logger.error({message: msg, labels: {...meta}});
+        case LogLevel.SILENT:
+          return;
+      }
     },
   },
   cors: {

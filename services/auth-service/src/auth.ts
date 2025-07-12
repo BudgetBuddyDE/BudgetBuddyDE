@@ -1,14 +1,17 @@
-import {getTrustedOrigins} from '@budgetbuddyde/utils';
-import {type BetterAuthOptions, betterAuth} from 'better-auth';
+import {LogLevel, getTrustedOrigins} from '@budgetbuddyde/utils';
+import {type BetterAuthOptions, type Logger, betterAuth} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {createAuthMiddleware, openAPI} from 'better-auth/plugins';
 
 import {config} from './config';
+import {logger} from './core/logger';
 import {db} from './db';
 import * as authSchema from './db/schema/auth.schema';
 import {isCSRFCheckDisabled} from './utils';
 
 const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET} = process.env;
+
+const authLogger = logger.child({scope: 'auth'});
 
 const options: BetterAuthOptions = {
   baseURL: `${config.baseUrl}:${config.port}`,
@@ -19,8 +22,20 @@ const options: BetterAuthOptions = {
   }),
   logger: {
     disabled: false,
-    level: config.log.level,
-    log: config.log.log,
+    level: mapLogLevelForBetterAuth(config.log.level),
+    log: (level, message, args) => {
+      switch (level) {
+        case 'debug':
+          return authLogger.debug(message, ...args);
+        case 'warn':
+          return authLogger.warn(message, ...args);
+        case 'error':
+          return authLogger.error(message, ...args);
+        case 'info':
+        default:
+          return authLogger.info(message, ...args);
+      }
+    },
   },
   trustedOrigins: getTrustedOrigins(),
   advanced: {
@@ -71,3 +86,20 @@ const options: BetterAuthOptions = {
 };
 
 export const auth = betterAuth(options);
+
+export function mapLogLevelForBetterAuth(level: typeof config.log.level): Logger['level'] {
+  switch (level) {
+    case LogLevel.DEBUG:
+      return 'debug';
+    case LogLevel.INFO:
+      return 'info';
+    case LogLevel.WARN:
+      return 'warn';
+    case LogLevel.ERROR:
+    case LogLevel.FATAL:
+      return 'error';
+    case LogLevel.SILENT:
+    default:
+      return undefined;
+  }
+}

@@ -1,4 +1,4 @@
-import {type LoggerClient} from '@budgetbuddyde/utils';
+import {type LogClient} from '@budgetbuddyde/utils';
 import cron, {ScheduledTask} from 'node-cron';
 
 import {logger} from '../../core/logger';
@@ -6,7 +6,7 @@ import {logger} from '../../core/logger';
 type JobStatus = 'scheduled' | 'running' | 'stopped' | 'finished' | 'failed';
 
 export interface JobPlannerContext {
-  logger: LoggerClient;
+  logger: LogClient;
   jobName: string;
   jobId: string;
   [key: string]: any;
@@ -24,12 +24,12 @@ interface JobDefinition {
 
 export class JobPlanner {
   private jobs: Map<string, JobDefinition> = new Map();
-  private logger: LoggerClient;
+  private logger: LogClient;
   private timezone: string;
 
-  constructor(timezone: string, logClient?: LoggerClient) {
+  constructor(timezone: string, logClient?: LogClient) {
     this.timezone = timezone;
-    this.logger = logClient || logger.child({label: JobPlanner.name});
+    this.logger = logClient || logger.child({scope: JobPlanner.name});
   }
 
   addJob(name: string, cronTime: string, handler: (ctx: JobPlannerContext) => Promise<void> | void): string {
@@ -51,29 +51,29 @@ export class JobPlanner {
       cronTime,
       async () => {
         job.status = 'running';
-        this.logger.info(`Job "${name}" started.`);
+        this.logger.info('Job "%s" started.', name);
         try {
           await handler(context);
           job.status = 'finished';
-          this.logger.info(`Job "${name}" finished.`);
+          this.logger.info('Job "%s" finished.', name);
         } catch (e: any) {
           job.status = 'failed';
-          this.logger.error(`Job "${name}" failed: ${e.message}`);
+          this.logger.error('Job "%s" failed: %s', name, e.message);
         }
       },
       {name: name, timezone: this.timezone},
     );
 
     task.on('task:started', () => {
-      this.logger.debug(`Task "${name}" has started.`);
+      this.logger.debug('Task "%s" has started.', name);
     });
 
     task.on('task:stopped', () => {
-      this.logger.debug(`Task "${name}" has stopped.`);
+      this.logger.debug('Task "%s" has stopped.', name);
     });
 
     task.on('task:destroyed', () => {
-      this.logger.debug(`Task "${name}" has been destroyed.`);
+      this.logger.debug('Task "%s" has been destroyed.', name);
     });
 
     const job: JobDefinition = {
@@ -86,7 +86,7 @@ export class JobPlanner {
       task: task,
     };
     this.jobs.set(name, job);
-    this.logger.info(`Job "${name}" scheduled with id "${id}".`);
+    this.logger.info('Job "%s" with ID "%s" scheduled with cron time "%s".', name, id, cronTime);
     return id;
   }
 
@@ -110,14 +110,14 @@ export class JobPlanner {
     if (!job) throw new Error(`No job found for "${identifier}"`);
 
     job.status = 'running';
-    this.logger.info(`Job "${job.name}" triggered manually.`);
+    this.logger.info('Job "%s" triggered manually.', job.name);
     try {
       await job.handler(job.context);
       job.status = 'finished';
-      this.logger.info(`Job "${job.name}" finished.`);
+      this.logger.info('Job "%s" finished.', job.name);
     } catch (e: any) {
       job.status = 'failed';
-      this.logger.error(`Job "${job.name}" failed: ${e.message}`);
+      this.logger.error('Job "%s" failed: %s', job.name, e.message);
     }
   }
 
@@ -134,7 +134,7 @@ export class JobPlanner {
     if (!job) return false;
     job.task.stop();
     this.jobs.delete(name);
-    this.logger.info(`Job "${name}" removed.`);
+    this.logger.info('Job "%s" removed.', name);
     return true;
   }
 }

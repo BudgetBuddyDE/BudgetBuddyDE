@@ -1,9 +1,9 @@
-import {type LogLevel} from '@budgetbuddyde/utils';
+import {LogLevel} from '@budgetbuddyde/utils';
 import {type NextFunction, type Request, type Response} from 'express';
 
 import {logger} from '../core/logger';
 
-export const requestLogger = logger.child({label: 'request'});
+export const requestLogger = logger.child({scope: 'request'});
 
 export function log(req: Request, res: Response, next: NextFunction): void {
   const requestId = crypto.randomUUID();
@@ -17,7 +17,11 @@ export function log(req: Request, res: Response, next: NextFunction): void {
 
     const statusCode = res.statusCode;
     const targetLogLevel: LogLevel =
-      statusCode >= 200 && statusCode < 400 ? 'info' : statusCode >= 400 && statusCode < 500 ? 'warn' : 'error';
+      statusCode >= 200 && statusCode < 400
+        ? LogLevel.INFO
+        : statusCode >= 400 && statusCode < 500
+          ? LogLevel.WARN
+          : LogLevel.ERROR;
     const requestMetaInformation = {
       requestId: requestId,
       method: req.method,
@@ -30,7 +34,17 @@ export function log(req: Request, res: Response, next: NextFunction): void {
     };
 
     const msg = `[${requestMetaInformation.ip}] ${req.method} ${req.originalUrl} ${statusCode} - ${requestMetaInformation.responseTimeInMillis}`;
-    requestLogger[targetLogLevel](msg, requestMetaInformation);
+    switch (targetLogLevel) {
+      case LogLevel.ERROR:
+        requestLogger.error(msg, requestMetaInformation);
+        break;
+      case LogLevel.WARN:
+        requestLogger.warn(msg, requestMetaInformation);
+        break;
+      case LogLevel.INFO:
+      default:
+        requestLogger.info(msg, requestMetaInformation);
+    }
   });
 
   next();

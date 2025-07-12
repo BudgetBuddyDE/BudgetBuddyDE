@@ -3,23 +3,18 @@ import 'dotenv/config';
 import winston from 'winston';
 import LokiTransport from 'winston-loki';
 
+import {mapLogLevelForBetterAuth} from '../auth';
+
 export function initWinstonLogger(options: {level: LogLevel}, meta: {[key: string]: string | number}): winston.Logger {
   const {LOKI_HOST} = process.env;
   return winston.createLogger({
-    level: options.level,
+    level: mapLogLevelForBetterAuth(options.level),
     defaultMeta: meta,
     transports: [
       new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize({all: true}),
-          winston.format.errors({stack: true}),
-          winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss.SSS'}),
-          winston.format.align(),
-          winston.format.splat(),
-          winston.format.printf(({timestamp, level, message, stack}) => {
-            return `${timestamp} ${level}: ${stack || message}`;
-          }),
-        ),
+        format: winston.format.printf(({message, stack}) => {
+          return `${stack || message}`;
+        }),
       }),
       ...(LOKI_HOST !== undefined && LOKI_HOST !== ''
         ? [

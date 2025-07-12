@@ -5,7 +5,7 @@ import {logger} from '../core/logger';
 
 const {Pool} = pg;
 const {DATABASE_URL} = process.env;
-export const dbLogger = logger.child({label: 'pool'});
+export const dbLogger = logger.child({scope: 'pool'});
 export const pool = new Pool({
   connectionString: DATABASE_URL as string,
   connectionTimeoutMillis: 5000,

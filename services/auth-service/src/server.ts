@@ -56,7 +56,7 @@ export const server = app.listen(config.port, () => {
     'Server Port': config.port,
   };
   console.table(options);
-  logger.info(`${config.service} is available under http://localhost:${config.port}`, options);
+  logger.info('%s is available under http://localhost:%d', config.service, config.port, options);
 
   jobPlanner.addJob('replicate-registered-users', '*/5 * * * *', async ctx => {
     ctx.logger.info('Replicating registered users...');
@@ -67,10 +67,10 @@ export const server = app.listen(config.port, () => {
   });
 
   logger.info(
-    'Scheduled jobs: ' +
-      jobPlanner
-        .getAllJobs()
-        .map(job => job.name)
-        .join(', '),
+    'Scheduled jobs: %s',
+    jobPlanner
+      .getAllJobs()
+      .map(job => job.name)
+      .join(', '),
   );
 });
