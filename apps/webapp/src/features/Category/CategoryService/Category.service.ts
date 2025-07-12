@@ -11,6 +11,7 @@ import {type RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
 import {type TSelectCategoriesOption} from '@/features/Insights/InsightsDialog/SelectCategories';
+import {odata} from '@/odata.client';
 import {pb} from '@/pocketbase';
 
 import {type TCategoryAutocompleteOption} from '../Autocomplete';
@@ -54,6 +55,9 @@ export class CategoryService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getCategories(): Promise<TCategory[]> {
+    console.log('Fetching categories from PocketBase...');
+    const _records = await odata.get(`/odata/v4/backend/Category`).query();
+    console.log('demo', _records);
     const records = await pb.collection(PocketBaseCollection.CATEGORY).getFullList();
 
     const parsingResult = z.array(ZCategory).safeParse(records);

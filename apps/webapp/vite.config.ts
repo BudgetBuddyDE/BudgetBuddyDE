@@ -1,4 +1,3 @@
-import {getLogLevel} from '@budgetbuddyde/utils/';
 import react from '@vitejs/plugin-react-swc';
 import 'dotenv/config';
 import path from 'path';

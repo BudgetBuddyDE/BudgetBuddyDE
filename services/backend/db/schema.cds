@@ -6,7 +6,11 @@ using {
 } from '@sap/cds/common';
 
 type Description : LargeString default null;
-type UserID      : String @assert.notNull;
+
+type UserID      : String @assert.notNull
+                          @cds.on.insert: $user;
+// Automatically set to the user ID of the current user
+// This may not even be necessary, as the user ID is already set by the framework when the entity inherits the `managed` aspect.
 
 @plural       : 'Categories'
 @assert.unique: {owner: [

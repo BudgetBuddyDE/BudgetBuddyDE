@@ -8,6 +8,7 @@ interface ViteTypeOptions {
 
 interface ImportMetaEnv {
   // Required environment variables
+  readonly VITE_BACKEND_HOST: string;
   readonly VITE_AUTH_SERVICE_HOST: string;
   readonly VITE_POCKETBASE_HOST: string;
   readonly VITE_STOCK_SERVICE_HOST: string;

@@ -114,6 +114,10 @@ export const Categories = () => {
     },
   };
 
+  React.useEffect(() => {
+    console.log('Categories updated', categories);
+  }, [categories]);
+
   return (
     <ContentGrid title={'Categories'}>
       <Grid size={{xs: 12, lg: 8}}>
@@ -192,13 +196,13 @@ export const Categories = () => {
       </Grid>
 
       <Grid container size={{xs: 12, lg: 4}} spacing={AppConfig.baseSpacing} sx={{height: 'max-content'}}>
-        <Grid size={{xs: 12}}>
+        {/* <Grid size={{xs: 12}}>
           <CategoryExpenseChart />
-        </Grid>
+        </Grid> */}
 
-        <Grid size={{xs: 12}}>
+        {/* <Grid size={{xs: 12}}>
           <CategoryIncomeChart />
-        </Grid>
+        </Grid> */}
       </Grid>
 
       <CategoryDrawer

@@ -10,9 +10,7 @@
     "sourceMap": true,
     "allowJs": true,
     "paths": {
-      "#cds-models/*": [
-        "./@cds-models/*"
-      ]
+      "#cds-models/*": ["./@cds-models/*"]
     }
   }
 }

@@ -52,11 +52,12 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
       if (updateLoadingState) set(prev => ({...prev, isLoading: true}));
 
       try {
-        const sessionUser = pb.authStore.model;
-        if (!sessionUser) {
-          storeLogger.warn("User not authenticated. Can't fetch data.");
-          return;
-        }
+        // FIXME: How can I retrieve the current session-user from the context
+        // const sessionUser = pb.authStore.model;
+        // if (!sessionUser) {
+        //   storeLogger.warn("User not authenticated. Can't fetch data.");
+        //   return;
+        // }
         const fetchedData = await dataFetcherFunction(args);
 
         set(prev => ({
@@ -64,7 +65,7 @@ export function GenerateGenericStore<T, X = {}, FA = {}>(
           data: fetchedData,
           isFetched: true,
           fetchedAt: new Date(),
-          fetchedBy: sessionUser.id,
+          fetchedBy: 'sessionUser.id',
           ...(updateLoadingState && {isLoading: false}),
         }));
       } catch (err) {
