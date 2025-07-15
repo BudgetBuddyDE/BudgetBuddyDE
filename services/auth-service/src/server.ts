@@ -58,13 +58,12 @@ export const server = app.listen(config.port, () => {
   console.table(options);
   logger.info('%s is available under http://localhost:%d', config.service, config.port, options);
 
-  jobPlanner.addJob('replicate-registered-users', '*/5 * * * *', async ctx => {
-    ctx.logger.info('Replicating registered users...');
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    ctx.logger.info('Replication of registered users completed.');
-  });
+  // Temporary disabled job to replicate registered users
+  // jobPlanner.addJob('replicate-registered-users', '*/5 * * * *', async ctx => {
+  //   ctx.logger.info('Replicating registered users...');
+  //   await new Promise(resolve => setTimeout(resolve, 1000));
+  //   ctx.logger.info('Replication of registered users completed.');
+  // });
 
   logger.info(
     'Scheduled jobs: %s',
