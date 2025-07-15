@@ -1,17 +1,75 @@
-import {
-  PocketBaseCollection,
-  type TCategory,
-  type TCreateSubscriptionPayload,
-  type TSubscription,
-  type TUpdateSubscriptionPayload,
-  ZSubscription,
-} from '@budgetbuddyde/types';
-import {type RecordModel} from 'pocketbase';
+import {type TCategory, type TSubscription} from '@budgetbuddyde/types';
 import {z} from 'zod';
 
-import {pb} from '@/pocketbase';
+import {
+  Subscription,
+  SubscriptionResponse,
+  type TCreateOrUpdateSubscription,
+  type TSubscriptionResponse,
+  type TSubscription as _TSubscription,
+} from '@/newTypes';
+import {odata} from '@/odata.client';
 
 export class SubscriptionService {
+  private static readonly $servicePath = '/odata/v4/backend';
+  private static readonly $entityPath = this.$servicePath + '/Subscription';
+
+  /**
+   * Creates a new subscription.
+   * @param payload - The payload containing the data for the new subscription.
+   * @returns A promise that resolves to the created subscription record.
+   */
+  static async createSubscription(payload: TCreateOrUpdateSubscription): Promise<TSubscriptionResponse> {
+    const record = await odata.post(this.$entityPath, payload).query();
+    const parsingResult = SubscriptionResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
+  /**
+   * Updates a subscription with the specified ID using the provided payload.
+   * @param subscriptionId - The ID of the subscription to update.
+   * @param payload - The payload containing the updated subscription data.
+   * @returns A Promise that resolves to the updated subscription record.
+   */
+  static async updateSubscription(
+    subscriptionId: _TSubscription['ID'],
+    payload: Partial<TCreateOrUpdateSubscription>,
+  ): Promise<TSubscriptionResponse> {
+    const record = await odata.put(`${this.$entityPath}(ID=${subscriptionId})`, payload).query();
+    const parsingResult = SubscriptionResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
+  /**
+   * Deletes a subscription with the specified ID.
+   * @param subscriptionId - The ID of the subscription to delete.
+   * @throws If the deletion fails, it logs a warning and returns false.
+   * @description Deletes a subscription with the specified ID.
+   * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
+   */
+  static async deleteSubscription(subscriptionId: _TSubscription['ID']): Promise<boolean> {
+    const response = (await odata.delete(`${this.$entityPath}(ID=${subscriptionId})`).query()) as Response;
+    if (!response.ok) {
+      console.warn('Failed to delete subscription:', response.body);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Retrieves the list of subscriptions from the database.
+   * @returns A promise that resolves to an array of TSubscription objects.
+   * @throws If there is an error parsing the retrieved records.
+   */
+  static async getSubscriptions(): Promise<_TSubscription[]> {
+    const records = await odata.get(this.$entityPath).query();
+    const parsingResult = z.array(Subscription).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
   /**
    * Retrieves a list of upcoming subscriptions.
    *
@@ -54,46 +112,6 @@ export class SubscriptionService {
     }
 
     return grouped;
-  }
-
-  /**
-   * Creates a new subscription record.
-   *
-   * @param payload - The payload containing the subscription data.
-   * @returns A promise that resolves to the created subscription record.
-   */
-  static async createSubscription(payload: TCreateSubscriptionPayload): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.SUBSCRIPTION).create(payload, {requestKey: null});
-    return record;
-  }
-
-  /**
-   * Updates a subscription with the specified ID using the provided payload.
-   * @param subscriptionId - The ID of the subscription to update.
-   * @param payload - The payload containing the updated subscription data.
-   * @returns A Promise that resolves to the updated record.
-   */
-  static async updateSubscription(
-    subscriptionId: TSubscription['id'],
-    payload: TUpdateSubscriptionPayload,
-  ): Promise<RecordModel> {
-    const record = await pb.collection(PocketBaseCollection.SUBSCRIPTION).update(subscriptionId, payload);
-    return record;
-  }
-
-  /**
-   * Retrieves a list of subscriptions.
-   * @returns A promise that resolves to an array of TSubscription objects.
-   * @throws If there is an error parsing the retrieved records.
-   */
-  static async getSubscriptions(): Promise<TSubscription[]> {
-    const records = await pb.collection(PocketBaseCollection.SUBSCRIPTION).getFullList({
-      expand: 'category,payment_method',
-    });
-
-    const parsingResult = z.array(ZSubscription).safeParse(records);
-    if (!parsingResult.success) throw parsingResult.error;
-    return parsingResult.data;
   }
 
   /**

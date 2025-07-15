@@ -1,14 +1,11 @@
-import {
-  PocketBaseCollection,
-  type TCreateTransactionPayload,
-  type TTransaction,
-  ZTransaction,
-} from '@budgetbuddyde/types';
-import {format, isAfter, isSameMonth, subDays} from 'date-fns';
-import {RecordFullListOptions, type RecordModel} from 'pocketbase';
+import {PocketBaseCollection, type TTransaction} from '@budgetbuddyde/types';
+import {isAfter, isSameMonth, subDays} from 'date-fns';
+import {type RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
-import {type TTransactionStoreFetchArgs} from '@/features/Transaction';
+import {type TCreateOrUpdateTransaction, type TTransactionResponse, Transaction, TransactionResponse} from '@/newTypes';
+import {type TTransaction as _TTransaction} from '@/newTypes';
+import {odata} from '@/odata.client';
 import {pb} from '@/pocketbase';
 
 /**
@@ -18,6 +15,65 @@ import {pb} from '@/pocketbase';
  * Service class for managing transactions.
  */
 export class TransactionService {
+  private static readonly $servicePath = '/odata/v4/backend';
+  private static readonly $entityPath = this.$servicePath + '/Transaction';
+
+  /**
+   * Creates a new transaction.
+   * @param payload - The payload containing the data for the new transaction.
+   * @returns A promise that resolves to the created transaction record.
+   */
+  static async createTransaction(payload: TCreateOrUpdateTransaction): Promise<TTransactionResponse> {
+    const record = await odata.post(this.$entityPath, payload).query();
+    const parsingResult = TransactionResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
+  /**
+   * Updates a transaction with the specified ID using the provided payload.
+   * @param transactionId - The ID of the transaction to update.
+   * @param payload - The payload containing the updated transaction data.
+   * @returns A Promise that resolves to the updated transaction record.
+   */
+  static async updateTransaction(
+    transactionId: _TTransaction['ID'],
+    payload: TCreateOrUpdateTransaction,
+  ): Promise<TTransactionResponse> {
+    const record = await odata.put(`${this.$entityPath}(ID=${transactionId})`, payload).query();
+    const parsingResult = TransactionResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
+  /**
+   * Deletes a transaction with the specified ID.
+   * @param transactionId - The ID of the transaction to delete.
+   * @throws If the deletion fails, it logs a warning and returns false.
+   * @description Deletes a transaction with the specified ID.
+   * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
+   */
+  static async deleteTransaction(transactionId: _TTransaction['ID']): Promise<boolean> {
+    const response = (await odata.delete(`${this.$entityPath}(ID=${transactionId})`).query()) as Response;
+    if (!response.ok) {
+      console.warn('Failed to delete transaction:', response.body);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Retrieves the list of transactions from the database.
+   * @returns A promise that resolves to an array of TTransaction objects.
+   * @throws If there is an error parsing the retrieved records.
+   */
+  static async getTransactions(): Promise<_TTransaction[]> {
+    const records = await odata.get(this.$entityPath).query();
+    const parsingResult = z.array(Transaction).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
   /**
    * Retrieves the latest transactions up to a specified count, starting from a given offset.
    * Filters out transactions that have not been processed yet.
@@ -44,26 +100,6 @@ export class TransactionService {
   }
 
   /**
-   * Creates a new transaction record.
-   *
-   * @param payload - The data for the transaction. Fields from TCreateTransactionPayload should be fullfilled.
-   * @returns A promise that resolves to the created transaction record.
-   */
-  static async createTransaction(payload: FormData | TCreateTransactionPayload): Promise<RecordModel> {
-    return await pb.collection(PocketBaseCollection.TRANSACTION).create(payload, {requestKey: null});
-  }
-
-  /**
-   * Updates a transaction with the specified ID using the provided payload.
-   * @param transactionId - The ID of the transaction to update.
-   * @param payload - The data to update the transaction with.
-   * @returns A Promise that resolves to the updated record.
-   */
-  static async updateTransaction(transactionId: TTransaction['id'], payload: FormData): Promise<RecordModel> {
-    return await pb.collection(PocketBaseCollection.TRANSACTION).update(transactionId, payload);
-  }
-
-  /**
    * Deletes the specified images from a transaction.
    *
    * @param transactionId - The ID of the transaction.
@@ -72,37 +108,6 @@ export class TransactionService {
    */
   static async deleteImages(transactionId: TTransaction['id'], imageIds: string[]): Promise<RecordModel> {
     return await pb.collection(PocketBaseCollection.TRANSACTION).update(transactionId, {'attachments-': imageIds});
-  }
-
-  /**
-   * Deletes a transaction with the specified ID.
-   * @param transactionId - The ID of the transaction to delete.
-   * @returns A promise that resolves to a boolean indicating whether the transaction was successfully deleted.
-   */
-  static async deleteTransaction(transactionId: TTransaction['id']): Promise<boolean> {
-    return await pb.collection(PocketBaseCollection.TRANSACTION).delete(transactionId);
-  }
-
-  /**
-   * Retrieves a list of transactions.
-   * @returns A promise that resolves to an array of transactions.
-   * @throws If there is an error parsing the retrieved records.
-   */
-  static async getTransactions(args?: TTransactionStoreFetchArgs): Promise<TTransaction[]> {
-    const filters = args
-      ? pb.filter(`processed_at >= {:startDate} && processed_at <= {:endDate}`, {
-          startDate: format(args.startDate, 'yyyy-MM-dd'),
-          endDate: format(args.endDate, 'yyyy-MM-dd'),
-        })
-      : undefined;
-    const expand = 'category,payment_method';
-    const sort = '-processed_at';
-    const options: RecordFullListOptions = filters ? {expand, sort, filter: filters} : {expand, sort};
-    const records = await pb.collection(PocketBaseCollection.TRANSACTION).getFullList(options);
-
-    const parsingResult = z.array(ZTransaction).safeParse(records);
-    if (!parsingResult.success) throw parsingResult.error;
-    return parsingResult.data;
   }
 
   /**

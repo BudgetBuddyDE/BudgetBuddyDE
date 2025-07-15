@@ -5,11 +5,11 @@ import {type TCategory, type TCategory_VH} from '@/newTypes';
 
 import {useCategoryStore} from './Category.store';
 import {type TCategoryStats} from './Category.types';
-import {CategoryService} from './CategoryService';
 
 interface AdditionalFuncs {
   getStats: (startDate: Date, endDate: Date) => Promise<TServiceResponse<TCategoryStats>>;
-  getValueHelps: () => Promise<TCategory_VH[]>;
+  // getValueHelps: () => Promise<TCategory_VH[]>;
+  getValueHelps: () => TCategory_VH[];
 }
 
 export function useCategories(): TGenericHook<TCategory[], AdditionalFuncs> {
@@ -37,8 +37,14 @@ export function useCategories(): TGenericHook<TCategory[], AdditionalFuncs> {
     return [null, new Error('getStats is deprecated and not implemented')];
   };
 
-  const getValueHelps = async (): Promise<TCategory_VH[]> => {
-    return CategoryService.getCategoryValueHelps();
+  const getValueHelps = () => {
+    const categories = getData();
+    if (!categories) return [];
+    return categories.map(category => ({
+      ID: category.ID,
+      name: category.name,
+      description: category.description,
+    }));
   };
 
   return {

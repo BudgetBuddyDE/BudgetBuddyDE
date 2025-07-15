@@ -9,7 +9,7 @@ import {
   Category_VH,
   type TCategoryResponse,
   type TCategory_VH,
-  TCreateOrUpdateCategory,
+  type TCreateOrUpdateCategory,
   type TCategory as _TCategory,
 } from '@/newTypes';
 import {odata} from '@/odata.client';
@@ -97,7 +97,7 @@ export class CategoryService {
    * @returns The sorted autocomplete options for categories.
    */
   static sortAutocompleteOptionsByTransactionUsage(
-    categories: TCategory[],
+    categories: _TCategory[],
     transactions: TTransaction[],
     days: number = 30,
   ): TCategoryAutocompleteOption[] {
@@ -124,12 +124,12 @@ export class CategoryService {
     return uniqueCatgegories
       .map(category => ({
         ...category,
-        frequency: categoryFrequencyMap[category.id] || -1,
+        frequency: categoryFrequencyMap[category.ID] || -1,
       }))
       .sort((a, b) => b.frequency - a.frequency)
-      .map(({id, name}) => ({
-        label: name,
-        id: id,
+      .map(({ID, name}) => ({
+        name: name,
+        ID: ID,
       }));
   }
 

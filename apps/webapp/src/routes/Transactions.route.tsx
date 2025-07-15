@@ -1,4 +1,3 @@
-import {type TTransaction} from '@budgetbuddyde/types';
 import {Grid2 as Grid} from '@mui/material';
 import React from 'react';
 
@@ -8,7 +7,9 @@ import {useFilterStore} from '@/components/Filter';
 import {ImageViewDialog} from '@/components/ImageViewDialog';
 import {AddFab, ContentGrid, FabContainer, OpenFilterDrawerFab} from '@/components/Layout';
 import {withAuthLayout} from '@/features/Auth';
+import {useCategories} from '@/features/Category';
 import {DeleteDialog} from '@/features/DeleteDialog';
+import {usePaymentMethods} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {
   CreateMultipleTransactionsDialog,
@@ -19,7 +20,7 @@ import {
   useTransactions,
 } from '@/features/Transaction';
 import {logger} from '@/logger';
-import {filterTransactions} from '@/utils';
+import {type TTransaction} from '@/newTypes';
 
 interface ITransactionsHandler {
   showCreateDialog: () => void;
@@ -34,7 +35,9 @@ interface ITransactionsHandler {
 export const Transactions = () => {
   const {showSnackbar} = useSnackbarContext();
   const {filters} = useFilterStore();
-  const {data: transactions, refreshData: refreshTransactions} = useTransactions();
+  const {isLoading: isLoadingCategories, data: categories} = useCategories();
+  const {isLoading: isLoadingPaymentMethods, data: paymentMethods} = usePaymentMethods();
+  const {isLoading: isLoadingTransactions, data: transactions, refreshData: refreshTransactions} = useTransactions();
   const [transactionDrawer, dispatchTransactionDrawer] = React.useReducer(
     useEntityDrawer<TTransactionDrawerValues>,
     UseEntityDrawerDefaultState<TTransactionDrawerValues>(),
@@ -46,7 +49,8 @@ export const Transactions = () => {
   const [keyword, setKeyword] = React.useState('');
   const displayedTransactions: TTransaction[] = React.useMemo(() => {
     if (!transactions) return [];
-    return filterTransactions(keyword, filters, transactions);
+    // return filterTransactions(keyword, filters, transactions);
+    return transactions;
   }, [transactions, keyword, filters]);
   const [imageDialog, setImageDialog] = React.useState<{
     open: boolean;
@@ -61,18 +65,23 @@ export const Transactions = () => {
     showCreateMultipleDialog(showDialog) {
       setShowCreateMultipleDialog(showDialog);
     },
-    showEditDialog({id, processed_at, receiver, transfer_amount, information, expand: {category, payment_method}}) {
+    showEditDialog({ID, processedAt, receiver, transferAmount, information, toCategory_ID, toPaymentMethod_ID}) {
+      // FIXME: This is a workaround to get the category and payment method names
+      const category = categories?.find(({ID}) => ID === toCategory_ID);
+      const payment_method = paymentMethods?.find(({ID}) => ID === toPaymentMethod_ID);
       dispatchTransactionDrawer({
         type: 'OPEN',
         drawerAction: 'UPDATE',
         payload: {
-          id,
-          processed_at,
-          receiver: {value: receiver, label: receiver},
-          transfer_amount,
+          ID,
+          processedAt,
+          receiverOption: {value: receiver, label: receiver},
+          transferAmount,
           information: information ?? '',
-          category: {label: category.name, id: category.id},
-          payment_method: {label: payment_method.name, id: payment_method.id},
+          toCategory_ID: toCategory_ID,
+          toPaymentMethod_ID: toPaymentMethod_ID,
+          categoryOption: {name: category!.name, ID: toCategory_ID},
+          paymentMethodOption: {name: payment_method!.name, ID: toPaymentMethod_ID},
         },
       });
     },
@@ -83,7 +92,7 @@ export const Transactions = () => {
       try {
         if (deleteTransactions.length === 0) return;
 
-        await Promise.allSettled(deleteTransactions.map(({id}) => TransactionService.deleteTransaction(id)));
+        await Promise.allSettled(deleteTransactions.map(({ID}) => TransactionService.deleteTransaction(ID)));
 
         setShowDeleteTransactionDialog(false);
         setDeleteTransactions([]);
@@ -106,11 +115,11 @@ export const Transactions = () => {
       },
       onSelect(entity) {
         if (handler.selection.isSelected(entity)) {
-          setSelectedTransactions(prev => prev.filter(({id}) => id !== entity.id));
+          setSelectedTransactions(prev => prev.filter(({ID}) => ID !== entity.ID));
         } else setSelectedTransactions(prev => [...prev, entity]);
       },
       isSelected(entity) {
-        return selectedTransactions.find(elem => elem.id === entity.id) !== undefined;
+        return selectedTransactions.find(elem => elem.ID === entity.ID) !== undefined;
       },
       onDeleteMultiple() {
         setShowDeleteTransactionDialog(true);
@@ -123,6 +132,7 @@ export const Transactions = () => {
     <ContentGrid title={'Transactions'}>
       <Grid size={{xs: 12}}>
         <TransactionTable
+          isLoading={isLoadingTransactions || isLoadingCategories || isLoadingPaymentMethods}
           onAddTransaction={handler.showCreateDialog}
           onAddMultiple={() => handler.showCreateMultipleDialog(true)}
           onEditTransaction={handler.showEditDialog}

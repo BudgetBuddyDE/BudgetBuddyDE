@@ -1,4 +1,3 @@
-import {PocketBaseCollection, type TSubscription} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded, EditRounded} from '@mui/icons-material';
 import {Box, Checkbox, Grid2 as Grid, IconButton, TableCell, TableRow, Typography} from '@mui/material';
 import {format} from 'date-fns';
@@ -14,23 +13,23 @@ import {Table} from '@/components/Base/Table';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {AddFab, ContentGrid, FabContainer} from '@/components/Layout';
 import {withAuthLayout} from '@/features/Auth';
-import {CategoryChip} from '@/features/Category';
+import {CategoryChip, useCategories} from '@/features/Category';
 import {DeleteDialog} from '@/features/DeleteDialog';
-import {PaymentMethodChip} from '@/features/PaymentMethod';
+import {PaymentMethodChip, usePaymentMethods} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {
   CreateMultipleSubscriptionsDialog,
   SubscriptionActionMenu,
   SubscriptionDrawer,
-  SubscriptionPieChart,
+  SubscriptionService,
   type TSusbcriptionDrawerValues,
   useSubscriptions,
 } from '@/features/Subscription';
 import {type TTransactionDrawerValues, TransactionDrawer} from '@/features/Transaction';
 import {logger} from '@/logger';
-import {pb} from '@/pocketbase';
+import {type TSubscription} from '@/newTypes';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
-import {determineNextExecution, determineNextExecutionDate, downloadAsJson, filterSubscriptions} from '@/utils';
+import {determineNextExecution, determineNextExecutionDate, downloadAsJson} from '@/utils';
 
 interface ISubscriptionsHandler {
   showCreateTransactionDialog: (subscription: TSubscription) => void;
@@ -50,6 +49,8 @@ export const Subscriptions = () => {
     isLoading: isLoadingSubscriptions,
     refreshData: refreshSubscriptions,
   } = useSubscriptions();
+  const {isLoading: isLoadingCategories, data: categories} = useCategories();
+  const {isLoading: isLoadingPaymentMethods, data: paymentMethods} = usePaymentMethods();
   const [transactionDrawer, dispatchTransactionDrawer] = React.useReducer(
     useEntityDrawer<TTransactionDrawerValues>,
     UseEntityDrawerDefaultState<TTransactionDrawerValues>(),
@@ -65,27 +66,28 @@ export const Subscriptions = () => {
   const [keyword, setKeyword] = React.useState('');
 
   const displayedSubscriptions: TSubscription[] = React.useMemo(() => {
-    return filterSubscriptions(keyword, undefined, subscriptions ?? []);
+    // FIXME: return filterSubscriptions(keyword, undefined, subscriptions ?? []);
+    return subscriptions ?? [];
   }, [subscriptions, keyword]);
 
   const handler: ISubscriptionsHandler = {
     showCreateTransactionDialog(subscription) {
-      const {
-        execute_at,
-        transfer_amount,
-        information,
-        expand: {category, payment_method},
-      } = subscription;
+      const {executeAt, transferAmount, information, receiver, toPaymentMethod_ID, toCategory_ID} = subscription;
+      // FIXME: This is a workaround to get the category and payment method names
+      const category = categories?.find(({ID}) => ID === toCategory_ID);
+      const payment_method = paymentMethods?.find(({ID}) => ID === toPaymentMethod_ID);
       dispatchTransactionDrawer({
         type: 'OPEN',
         drawerAction: 'CREATE',
         payload: {
-          processed_at: determineNextExecutionDate(execute_at),
-          category: {label: category.name, id: category.id},
-          payment_method: {label: payment_method.name, id: payment_method.id},
-          receiver: {label: subscription.receiver, value: subscription.receiver},
-          transfer_amount: transfer_amount,
+          processedAt: determineNextExecutionDate(executeAt),
+          receiverOption: {value: receiver, label: receiver},
+          transferAmount,
           information,
+          toCategory_ID,
+          toPaymentMethod_ID,
+          categoryOption: {name: category!.name, ID: toCategory_ID},
+          paymentMethodOption: {name: payment_method!.name, ID: toPaymentMethod_ID},
         },
       });
     },
@@ -93,26 +95,25 @@ export const Subscriptions = () => {
       dispatchSubscriptionDrawer({type: 'OPEN', drawerAction: 'CREATE'});
     },
     showEditSubscriptionDialog(subscription) {
-      const {
-        id,
-        execute_at,
-        receiver,
-        transfer_amount,
-        information,
-        paused,
-        expand: {category, payment_method},
-      } = subscription;
+      const {ID, executeAt, receiver, transferAmount, information, paused, toCategory_ID, toPaymentMethod_ID} =
+        subscription;
+      // FIXME: This is a workaround to get the category and payment method names
+      const category = categories?.find(({ID}) => ID === toCategory_ID);
+      const payment_method = paymentMethods?.find(({ID}) => ID === toPaymentMethod_ID);
       dispatchSubscriptionDrawer({
         type: 'OPEN',
         drawerAction: 'UPDATE',
         payload: {
-          id,
-          execute_at: determineNextExecutionDate(execute_at),
-          receiver: {label: receiver, value: receiver},
-          transfer_amount,
+          ID,
+          executeAt: determineNextExecutionDate(executeAt),
+          receiver: receiver,
+          receiverOption: {label: receiver, value: receiver},
+          transferAmount,
           information,
-          category: {label: category.name, id: category.id},
-          payment_method: {label: payment_method.name, id: payment_method.id},
+          toCategory_ID,
+          toPaymentMethod_ID,
+          categoryOption: {name: category!.name, ID: toCategory_ID},
+          paymentMethodOption: {name: payment_method!.name, ID: toPaymentMethod_ID},
           paused,
         },
       });
@@ -124,11 +125,7 @@ export const Subscriptions = () => {
       try {
         if (deleteSubscriptions.length === 0) return;
 
-        await Promise.allSettled(
-          deleteSubscriptions.map(subscription =>
-            pb.collection(PocketBaseCollection.SUBSCRIPTION).delete(subscription.id),
-          ),
-        );
+        await Promise.allSettled(deleteSubscriptions.map(({ID}) => SubscriptionService.deleteSubscription(ID)));
 
         setShowDeleteSubscriptionDialog(false);
         setDeleteSubscriptions([]);
@@ -147,13 +144,12 @@ export const Subscriptions = () => {
     },
     async onToggleExecutionStatus(subscription) {
       try {
-        const record = await pb.collection(PocketBaseCollection.SUBSCRIPTION).update(subscription.id, {
+        const result = await SubscriptionService.updateSubscription(subscription.ID, {
           paused: !subscription.paused,
         });
+        logger.debug('Toggled the subscription status of subscription %s', result.ID);
 
-        logger.debug('Updated subscription', record);
-
-        showSnackbar({message: `Subscription #${subscription.id} ${record.paused ? 'paused' : 'resumed'}`});
+        showSnackbar({message: `Subscription #${subscription.ID} ${result.paused ? 'paused' : 'resumed'}`});
         React.startTransition(() => {
           refreshSubscriptions();
         });
@@ -170,11 +166,11 @@ export const Subscriptions = () => {
       },
       onSelect(entity) {
         if (this.isSelected(entity)) {
-          setSelectedSubscriptions(prev => prev.filter(({id}) => id !== entity.id));
+          setSelectedSubscriptions(prev => prev.filter(({ID}) => ID !== entity.ID));
         } else setSelectedSubscriptions(prev => [...prev, entity]);
       },
       isSelected(entity) {
-        return selectedSubscriptions.find(elem => elem.id === entity.id) !== undefined;
+        return selectedSubscriptions.find(elem => elem.ID === entity.ID) !== undefined;
       },
       onDeleteMultiple() {
         setShowDeleteSubscriptionDialog(true);
@@ -187,14 +183,14 @@ export const Subscriptions = () => {
     <ContentGrid title={'Subscriptions'}>
       <Grid size={{xs: 12}}>
         <Table<TSubscription>
-          isLoading={isLoadingSubscriptions}
+          isLoading={isLoadingSubscriptions || isLoadingCategories || isLoadingPaymentMethods}
           title="Subscriptions"
           subtitle="Manage your subscriptions"
           data={displayedSubscriptions}
           headerCells={['Execute at', 'Category', 'Receiver', 'Amount', 'Payment Method', 'Information', '']}
           renderRow={subscription => (
             <TableRow
-              key={subscription.id}
+              key={subscription.ID}
               sx={{
                 '&:last-child td, &:last-child th': {border: 0},
                 whiteSpace: 'nowrap',
@@ -211,25 +207,25 @@ export const Subscriptions = () => {
                   sx={{
                     textDecoration: subscription.paused ? 'line-through' : 'unset',
                   }}>
-                  {determineNextExecution(subscription.execute_at)}
+                  {determineNextExecution(subscription.executeAt)}
                 </Typography>
               </TableCell>
               <TableCell size={AppConfig.table.cellSize}>
-                <CategoryChip category={subscription.expand.category} />
+                <CategoryChip category={subscription.toCategory_ID} />
               </TableCell>
               <TableCell size={AppConfig.table.cellSize}>
                 <Linkify>{subscription.receiver}</Linkify>
               </TableCell>
               <TableCell size={AppConfig.table.cellSize}>
                 <Typography>
-                  {subscription.transfer_amount.toLocaleString('de', {
+                  {subscription.transferAmount.toLocaleString('de', {
                     style: 'currency',
                     currency: 'EUR',
                   })}
                 </Typography>
               </TableCell>
               <TableCell size={AppConfig.table.cellSize}>
-                <PaymentMethodChip paymentMethod={subscription.expand.payment_method} />
+                <PaymentMethodChip paymentMethod={subscription.toPaymentMethod_ID} />
               </TableCell>
               <TableCell sx={DescriptionTableCellStyle} size={AppConfig.table.cellSize}>
                 <Linkify>{subscription.information ?? 'No information available'}</Linkify>
@@ -290,9 +286,9 @@ export const Subscriptions = () => {
         />
       </Grid>
 
-      <Grid size={{xs: 12, md: 4}}>
+      {/* <Grid size={{xs: 12, md: 4}}>
         <SubscriptionPieChart />
-      </Grid>
+      </Grid> */}
 
       <DeleteDialog
         open={showDeleteSubscriptionDialog}

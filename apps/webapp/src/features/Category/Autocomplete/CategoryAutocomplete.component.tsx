@@ -9,7 +9,6 @@ import {
 import React from 'react';
 
 import {StyledAutocompleteOption} from '@/components/Base/Input';
-import {use} from '@/hooks/use';
 import {type TCategory_VH} from '@/newTypes';
 
 import {useCategories} from '../useCategories.hook';
@@ -50,12 +49,10 @@ export const CategoryAutocomplete: React.FC<ICategoryAutocompleteProps> = ({
   onChange,
   textFieldProps,
 }) => {
-  const {getValueHelps} = useCategories();
-  const {isLoading, result} = use(() => getValueHelps());
+  const {isLoading, getValueHelps} = useCategories();
 
   const options: TCategoryAutocompleteOption[] = React.useMemo(() => {
-    if (!result) return [];
-    return result;
+    return getValueHelps().map(({ID, name}) => ({ID, name}));
   }, [getValueHelps]);
 
   return (

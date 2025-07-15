@@ -42,7 +42,7 @@ export default async function auth(req: Req, _res: Response, next: NextFunction)
     });
     logOptions.user = req.user;
 
-    authLogger.info('User (' + session.data.user.email + ') authenticated', logOptions);
+    authLogger.debug('User (' + session.data.user.email + ') authenticated', logOptions);
 
     next();
   } catch (error) {

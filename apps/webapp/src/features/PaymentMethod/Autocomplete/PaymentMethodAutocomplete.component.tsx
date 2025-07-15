@@ -10,7 +10,6 @@ import React from 'react';
 
 import {StyledAutocompleteOption} from '@/components/Base/Input';
 import {usePaymentMethods} from '@/features/PaymentMethod';
-import {use} from '@/hooks/use';
 import {type TPaymentMethod_VH} from '@/newTypes';
 
 export type TPaymentMethodAutocompleteOption = Pick<TPaymentMethod_VH, 'ID' | 'name'>;
@@ -49,12 +48,10 @@ export const PaymentMethodAutocomplete: React.FC<IPaymentMethodAutocompleteProps
   onChange,
   textFieldProps,
 }) => {
-  const {getValueHelps} = usePaymentMethods();
-  const {isLoading, result} = use(() => getValueHelps());
+  const {isLoading, getValueHelps} = usePaymentMethods();
 
   const options: TPaymentMethodAutocompleteOption[] = React.useMemo(() => {
-    if (!result) return [];
-    return result.map(({ID, name}) => ({ID, name}));
+    return getValueHelps().map(({ID, name}) => ({ID, name}));
   }, [getValueHelps]);
 
   return (

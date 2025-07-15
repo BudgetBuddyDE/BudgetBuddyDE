@@ -1,4 +1,3 @@
-import {type TSubscription} from '@budgetbuddyde/types';
 import {Grid2 as Grid, InputAdornment, TextField} from '@mui/material';
 import React from 'react';
 import {Controller, DefaultValues} from 'react-hook-form';
@@ -11,16 +10,21 @@ import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features
 import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {isRunningOnIOs} from '@/utils';
+import {CreateOrUpdateSubscription, type NullableFields, type TCreateOrUpdateSubscription} from '@/newTypes';
+import {isRunningOnIOs, parseNumber} from '@/utils';
+
+import {SubscriptionService} from '../SubscriptionService';
+import {useSubscriptions} from '../useSubscriptions.hook';
 
 export type TSusbcriptionDrawerValues = {
-  id?: TSubscription['id'];
-  receiver: TReceiverAutocompleteOption | null;
-  category: TCategoryAutocompleteOption | null;
-  payment_method: TPaymentMethodAutocompleteOption | null;
-  transfer_amount: TSubscription['transfer_amount'] | null;
-  execute_at: Date;
-} & Pick<TSubscription, 'paused' | 'information'>;
+  receiverOption: TReceiverAutocompleteOption | null;
+  categoryOption: TCategoryAutocompleteOption | null;
+  paymentMethodOption: TPaymentMethodAutocompleteOption | null;
+  executeAt: Date | null;
+} & Pick<
+  NullableFields<TCreateOrUpdateSubscription>,
+  'ID' | 'paused' | 'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' | 'transferAmount' | 'information'
+>;
 
 export type TSubscriptionDrawerProps = TUseEntityDrawerState<TSusbcriptionDrawerValues> & {
   onClose: () => void;
@@ -38,65 +42,56 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
 }) => {
   const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  // const {refreshData: refreshSubscriptions} = useSubscriptions();
+  const {refreshData: refreshSubscriptions} = useSubscriptions();
 
   const handler = {
-    async handleSubmit(_data: TSusbcriptionDrawerValues, _onSuccess: () => void) {
+    async handleSubmit(data: TSusbcriptionDrawerValues, onSuccess: () => void) {
       if (!session) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            // TODO: Re-enable this code after a new backend is implemented
-            // const parsedForm = ZCreateSubscriptionPayload.safeParse({
-            //   category: data.category?.id,
-            //   payment_method: data.payment_method?.id,
-            //   receiver: data.receiver?.value,
-            //   information: data.information,
-            //   execute_at: data.execute_at.getDate(),
-            //   paused: false,
-            //   transfer_amount: parseNumber(String(data.transfer_amount)),
-            //   owner: session.id,
-            // });
-            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            // const payload: TCreateSubscriptionPayload = parsedForm.data;
-            // const record = await SubscriptionService.createSubscription(payload);
-            // logger.debug('Created subscription', record);
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshSubscriptions();
-            // });
-            // showSnackbar({message: `Created subscription #${record.id}`});
+            const parsedForm = CreateOrUpdateSubscription.safeParse({
+              ...data,
+              executeAt: data.executeAt!.getDate(),
+              receiver: data.receiverOption?.value,
+              toCategory_ID: data.categoryOption?.ID,
+              toPaymentMethod_ID: data.paymentMethodOption?.ID,
+              transferAmount: parseNumber(String(data.transferAmount)),
+            });
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await SubscriptionService.createSubscription(parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshSubscriptions();
+            });
+            showSnackbar({message: `Created subscription #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
           }
+
           break;
 
         case 'UPDATE':
           try {
-            // TODO: Re-enable this code after a new backend is implemented
-            // if (!defaultValues?.id) throw new Error('No subscription-id found in default-values');
-            // const parsedForm = ZUpdateSubscriptionPayload.safeParse({
-            //   paused: defaultValues?.paused,
-            //   category: data.category?.id,
-            //   payment_method: data.payment_method?.id,
-            //   receiver: data.receiver?.value,
-            //   information: data.information,
-            //   execute_at: data.execute_at.getDate(),
-            //   transfer_amount: parseNumber(String(data.transfer_amount)),
-            //   owner: session.id,
-            // });
-            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            // const payload: TUpdateSubscriptionPayload = parsedForm.data;
-            // const record = await SubscriptionService.updateSubscription(defaultValues.id, payload);
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshSubscriptions();
-            // });
-            // showSnackbar({message: `Updated subscription #${record.id}`});
+            const parsedForm = CreateOrUpdateSubscription.safeParse({
+              ...data,
+              executeAt: data.executeAt!.getDate(),
+              receiver: data.receiverOption?.value,
+              toCategory_ID: data.categoryOption?.ID,
+              toPaymentMethod_ID: data.paymentMethodOption?.ID,
+              transferAmount: parseNumber(String(data.transferAmount)),
+            });
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await SubscriptionService.updateSubscription(defaultValues?.ID!, parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshSubscriptions();
+            });
+            showSnackbar({message: `Updated subscription #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -106,13 +101,16 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
     },
     resetValues() {
       return {
-        execute_at: new Date(),
-        receiver: null,
-        category: null,
-        payment_method: null,
-        transfer_amount: null,
-        information: null,
         paused: false,
+        executeAt: new Date(),
+        receiver: null,
+        receiverOption: null,
+        toPaymentMethod_ID: null,
+        toCategory_ID: null,
+        categoryOption: null,
+        paymentMethodOption: null,
+        transferAmount: null,
+        information: null,
       } as DefaultValues<TSusbcriptionDrawerValues>;
     },
   };
@@ -140,9 +138,9 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <Controller
               control={control}
-              name="execute_at"
+              name="executeAt"
               rules={{required: 'Process date is required'}}
-              defaultValue={defaultValues?.execute_at ? new Date(defaultValues.execute_at) : new Date()}
+              defaultValue={defaultValues?.executeAt ? new Date(defaultValues.executeAt) : new Date()}
               render={({field: {onChange, value, ref}}) => (
                 <DatePicker
                   value={value}
@@ -152,8 +150,8 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
                   slotProps={{
                     textField: {
                       label: 'Execute at',
-                      error: !!errors.execute_at,
-                      helperText: errors.execute_at?.message,
+                      error: !!errors.executeAt,
+                      helperText: errors.executeAt?.message,
                       required: true,
                       fullWidth: true,
                     },
@@ -165,7 +163,7 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
           <Grid size={{xs: 12, md: 6}}>
             <Controller
               control={control}
-              name="category"
+              name="categoryOption"
               defaultValue={null}
               rules={{required: 'Category is required'}}
               render={({field: {onChange, value}}) => (
@@ -174,8 +172,8 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Category',
-                    error: !!errors.category,
-                    helperText: errors.category?.message,
+                    error: !!errors.categoryOption,
+                    helperText: errors.categoryOption?.message,
                     required: true,
                   }}
                 />
@@ -185,7 +183,7 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
           <Grid size={{xs: 12, md: 6}}>
             <Controller
               control={control}
-              name="payment_method"
+              name="paymentMethodOption"
               defaultValue={null}
               rules={{required: 'Payment-Method is required'}}
               render={({field: {onChange, value}}) => (
@@ -194,8 +192,8 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Payment Method',
-                    error: !!errors.payment_method,
-                    helperText: errors.payment_method?.message,
+                    error: !!errors.paymentMethodOption,
+                    helperText: errors.paymentMethodOption?.message,
                     required: true,
                   }}
                 />
@@ -205,7 +203,7 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <Controller
               control={control}
-              name="receiver"
+              name="receiverOption"
               defaultValue={null}
               rules={{required: 'Receiver is required'}}
               render={({field: {onChange, value}}) => (
@@ -214,8 +212,8 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Receiver',
-                    error: !!errors.receiver,
-                    helperText: errors.receiver?.message,
+                    error: !!errors.receiverOption,
+                    helperText: errors.receiverOption?.message,
                     required: true,
                   }}
                 />
@@ -225,9 +223,9 @@ export const SubscriptionDrawer: React.FC<TSubscriptionDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <TextField
               label="Amount"
-              {...register('transfer_amount', {required: 'Transfer amount is required'})}
-              error={!!errors.transfer_amount}
-              helperText={errors.transfer_amount?.message}
+              {...register('transferAmount', {required: 'Transfer amount is required'})}
+              error={!!errors.transferAmount}
+              helperText={errors.transferAmount?.message}
               type="number"
               required
               fullWidth

@@ -23,7 +23,8 @@ service BackendService {
     select from db.Category {
       ID,
       name,
-      description
+      description,
+      createdBy
     };
 
   @plural: 'PaymentMethods'
@@ -49,6 +50,7 @@ service BackendService {
       address,
       provider,
       description,
+      createdBy
     };
 
   @plural: 'Transactions'

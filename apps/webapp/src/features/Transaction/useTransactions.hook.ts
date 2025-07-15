@@ -1,8 +1,9 @@
-import {type TServiceResponse, type TTransaction} from '@budgetbuddyde/types';
+import {type TServiceResponse} from '@budgetbuddyde/types';
 import {format} from 'date-fns';
 
 import {useFilterStore} from '@/components/Filter';
 import {type TGenericHook} from '@/hooks/GenericHook';
+import {type TTransaction} from '@/newTypes';
 import {preparePockebaseRequestOptions} from '@/utils';
 
 import {type TTransactionStoreFetchArgs, useTransactionStore} from './Transaction.store';
@@ -39,30 +40,35 @@ export function useTransactions(): TGenericHook<
     return await refreshData(updateLoadingState, buildFetchArgsFromFilter(requestFilters));
   };
 
-  const getLatestTransactions: AdditionalFuncs<TTransaction[]>['getLatestTransactions'] = (count, offset = 0) => {
-    return TransactionService.getLatestTransactions(getData() ?? [], count, offset);
+  const getLatestTransactions: AdditionalFuncs<TTransaction[]>['getLatestTransactions'] = (_count, _offset = 0) => {
+    // FIXME: return TransactionService.getLatestTransactions(getData() ?? [], count, offset);
+    return [];
   };
 
   const getPaidExpenses: AdditionalFuncs<TTransaction[]>['getPaidExpenses'] = () => {
-    return TransactionService.getPaidExpenses(getData() ?? []);
+    // FIXME: return TransactionService.getPaidExpenses(getData() ?? []);
+    return [];
   };
 
   const getReceivedIncome: AdditionalFuncs<TTransaction[]>['getReceivedIncome'] = () => {
-    return TransactionService.getReceivedIncome(getData() ?? []);
+    // FIXME: return TransactionService.getReceivedIncome(getData() ?? []);
+    return 0;
   };
 
-  const getUpcomingAsTransactions: AdditionalFuncs<TTransaction[]>['getUpcomingAsTransactions'] = type => {
-    const today = new Date();
-    const transactions = getData() ?? [];
-    return transactions.filter(
-      s =>
-        ((type === 'EXPENSES' && s.transfer_amount < 0) || (type === 'INCOME' && s.transfer_amount > 0)) &&
-        today < s.processed_at,
-    );
+  const getUpcomingAsTransactions: AdditionalFuncs<TTransaction[]>['getUpcomingAsTransactions'] = _type => {
+    // const today = new Date();
+    // const transactions = getData() ?? [];
+    // return transactions.filter(
+    //   s =>
+    //     ((type === 'EXPENSES' && s.transfer_amount < 0) || (type === 'INCOME' && s.transfer_amount > 0)) &&
+    //     today < s.processed_at,
+    // );
+
+    return [];
   };
 
   const getUpcoming: AdditionalFuncs<TTransaction[]>['getUpcoming'] = type => {
-    return getUpcomingAsTransactions(type).reduce((prev, curr) => prev + Math.abs(curr.transfer_amount), 0);
+    return getUpcomingAsTransactions(type).reduce((prev, curr) => prev + Math.abs(curr.transferAmount), 0);
   };
 
   const getStats: AdditionalFuncs<TTransaction[]>['getStats'] = async (startDate, endDate) => {

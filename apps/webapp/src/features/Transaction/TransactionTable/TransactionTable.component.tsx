@@ -1,6 +1,5 @@
-import {type TTransaction} from '@budgetbuddyde/types';
 import {AddRounded, DeleteRounded, EditRounded} from '@mui/icons-material';
-import {Avatar, AvatarGroup, Checkbox, IconButton, Stack, TableCell, TableRow, Typography} from '@mui/material';
+import {Checkbox, IconButton, Stack, TableCell, TableRow, Typography} from '@mui/material';
 import {format, isSameYear} from 'date-fns';
 import React from 'react';
 
@@ -13,13 +12,12 @@ import {type ISelectionHandler} from '@/components/Base/SelectAll';
 import {type TTableSelectionProps, Table} from '@/components/Base/Table';
 import {ToggleFilterDrawerButton} from '@/components/Filter';
 import {When} from '@/components/When';
-import {useAuthContext} from '@/features/Auth';
 import {CategoryChip} from '@/features/Category';
 import {PaymentMethodChip} from '@/features/PaymentMethod';
 import {useTransactions} from '@/features/Transaction';
-import {pb} from '@/pocketbase';
+import {type TTransaction} from '@/newTypes';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
-import {downloadAsJson, filterTransactions} from '@/utils';
+import {downloadAsJson} from '@/utils';
 
 export type TTransactionTableProps = {
   isLoading?: boolean;
@@ -37,21 +35,22 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
   onAddMultiple,
   onEditTransaction,
   onDeleteTransaction,
-  onOpenImage,
+  // onOpenImage,
   amountOfSelectedEntities,
   onSelectAll,
   isSelected,
   onSelect,
   onDelete,
 }) => {
-  const {fileToken} = useAuthContext();
+  // const {fileToken} = useAuthContext();
   const {isLoading: isLoadingTransactions, data: transactions} = useTransactions();
   const [keyword, setKeyword] = React.useState<string>('');
 
   const displayedTransactions: TTransaction[] = React.useMemo(() => {
+    if (!transactions) return [];
     // Instead of filtering client side for categories, payment-methods... we're gonna re-fetch transactions from the backend with our filters applied!
-    const data = filterTransactions(keyword, undefined, transactions ?? []);
-    return data;
+    // const data = filterTransactions(keyword, undefined, transactions ?? []);
+    return transactions;
   }, [keyword, transactions]);
 
   return (
@@ -64,11 +63,11 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
       amountOfSelectedEntities={amountOfSelectedEntities}
       onSelectAll={onSelectAll}
       onDelete={onDelete}
-      headerCells={['Date', 'Details', 'Amount', 'Information', 'Files', '']}
+      headerCells={['Date', 'Details', 'Amount', 'Information', /*'Files',*/ '']}
       renderRow={transaction => {
         return (
           <TableRow
-            key={transaction.id}
+            key={transaction.ID}
             sx={{
               '&:last-child td, &:last-child th': {border: 0},
               whiteSpace: 'nowrap',
@@ -79,8 +78,8 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
             <TableCell size={AppConfig.table.cellSize}>
               <Typography variant="body1" fontWeight={'bolder'}>
                 {format(
-                  new Date(transaction.processed_at),
-                  isSameYear(transaction.processed_at, new Date()) ? 'dd.MM' : 'dd.MM.yyyy',
+                  new Date(transaction.processedAt),
+                  isSameYear(transaction.processedAt, new Date()) ? 'dd.MM' : 'dd.MM.yyyy',
                 )}
               </Typography>
             </TableCell>
@@ -90,14 +89,14 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
                   {transaction.receiver}
                 </Typography>
                 <Stack direction="row" spacing={AppConfig.baseSpacing / 4}>
-                  <CategoryChip category={transaction.expand.category} size="small" />
-                  <PaymentMethodChip paymentMethod={transaction.expand.payment_method} size="small" />
+                  <CategoryChip category={transaction.toCategory_ID} size="small" />
+                  <PaymentMethodChip paymentMethod={transaction.toPaymentMethod_ID} size="small" />
                 </Stack>
               </Stack>
             </TableCell>
             <TableCell size={AppConfig.table.cellSize}>
               <Typography variant="body1">
-                {transaction.transfer_amount.toLocaleString('de', {
+                {transaction.transferAmount.toLocaleString('de', {
                   style: 'currency',
                   currency: 'EUR',
                 })}
@@ -106,7 +105,7 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
             <TableCell sx={DescriptionTableCellStyle} size={AppConfig.table.cellSize}>
               <Linkify>{transaction.information ?? 'No information available'}</Linkify>
             </TableCell>
-            <TableCell size={AppConfig.table.cellSize}>
+            {/* <TableCell size={AppConfig.table.cellSize}>
               <AvatarGroup max={4} variant="rounded">
                 {transaction.attachments?.map(fileName => (
                   <Avatar
@@ -127,7 +126,7 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
                   />
                 ))}
               </AvatarGroup>
-            </TableCell>
+            </TableCell> */}
             <TableCell align="right" size={AppConfig.table.cellSize}>
               <ActionPaper sx={{width: 'fit-content', ml: 'auto'}}>
                 <IconButton color="primary" onClick={() => onEditTransaction && onEditTransaction(transaction)}>

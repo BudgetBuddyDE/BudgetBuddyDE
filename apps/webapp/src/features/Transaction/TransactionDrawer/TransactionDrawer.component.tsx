@@ -1,34 +1,29 @@
-import {type TTransaction} from '@budgetbuddyde/types';
 import {Grid2 as Grid, InputAdornment, TextField} from '@mui/material';
 import React from 'react';
 import {Controller, DefaultValues} from 'react-hook-form';
 
 import {AppConfig} from '@/app.config';
-import {
-  DatePicker,
-  FileUpload,
-  FileUploadPreview,
-  ReceiverAutocomplete,
-  type TReceiverAutocompleteOption,
-} from '@/components/Base/Input';
-import {FilePreview} from '@/components/Base/Input/FileUpload/FilePreview.component';
+import {DatePicker, ReceiverAutocomplete, TReceiverAutocompleteOption} from '@/components/Base/Input';
 import {EntityDrawer, type TUseEntityDrawerState} from '@/components/Drawer/EntityDrawer';
 import {useAuthContext} from '@/features/Auth';
-import {CategoryAutocomplete, type TCategoryAutocompleteOption} from '@/features/Category';
-import {PaymentMethodAutocomplete, type TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
+import {CategoryAutocomplete, TCategoryAutocompleteOption} from '@/features/Category';
+import {PaymentMethodAutocomplete, TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {pb} from '@/pocketbase';
-import {isRunningOnIOs} from '@/utils';
+import {CreateOrUpdateTransaction, NullableFields, type TCreateOrUpdateTransaction} from '@/newTypes';
+import {isRunningOnIOs, parseNumber} from '@/utils';
+
+import {TransactionService} from '../TransactionService';
+import {useTransactions} from '../useTransactions.hook';
 
 export type TTransactionDrawerValues = {
-  id?: TTransaction['id'];
-  receiver: TReceiverAutocompleteOption | null;
-  category: TCategoryAutocompleteOption | null;
-  payment_method: TPaymentMethodAutocompleteOption | null;
-  transfer_amount: TTransaction['transfer_amount'] | null;
-  attachments?: TTransaction['attachments'];
-} & Pick<TTransaction, 'processed_at' | 'information'>;
+  receiverOption: TReceiverAutocompleteOption | null;
+  categoryOption: TCategoryAutocompleteOption | null;
+  paymentMethodOption: TPaymentMethodAutocompleteOption | null;
+} & Pick<
+  NullableFields<TCreateOrUpdateTransaction>,
+  'ID' | 'processedAt' | 'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' | 'transferAmount' | 'information'
+>;
 
 export type TTransactionDrawerProps = TUseEntityDrawerState<TTransactionDrawerValues> & {
   onClose: () => void;
@@ -44,53 +39,37 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
   closeOnBackdropClick,
   closeOnEscape,
 }) => {
-  const {session, fileToken} = useAuthContext();
+  const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
-  // const {refreshData: refreshTransactions} = useTransactions();
-  const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
-  const [filePreview, setFilePreview] = React.useState<(File & {buffer?: string | ArrayBuffer | null})[]>([]);
-  const [markedForDeletion, setMarkedForDeletion] = React.useState<string[]>([]);
+  const {refreshData: refreshTransactions} = useTransactions();
+  // const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
+  // const [filePreview, setFilePreview] = React.useState<(File & {buffer?: string | ArrayBuffer | null})[]>([]);
 
   const handler = {
-    onFileUpload(files: FileList) {
-      setUploadedFiles(Array.from(files));
+    onFileUpload(_files: FileList) {
+      // setUploadedFiles(Array.from(files));
     },
-    async handleSubmit(_data: TTransactionDrawerValues, _onSuccess: () => void) {
+    async handleSubmit(data: TTransactionDrawerValues, onSuccess: () => void) {
       if (!session) throw new Error('No session-user not found');
 
       switch (drawerAction) {
         case 'CREATE':
           try {
-            // TODO: Re-enable this code after a new backend is implemented
-            // const parsedForm = ZCreateTransactionPayload.safeParse({
-            //   category: data.category?.id,
-            //   payment_method: data.payment_method?.id,
-            //   receiver: data.receiver?.value,
-            //   information: data.information,
-            //   processed_at: data.processed_at,
-            //   transfer_amount: parseNumber(String(data.transfer_amount)),
-            //   owner: session.id,
-            // });
-            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            // const payload: TCreateTransactionPayload = parsedForm.data;
-            // const formData = new FormData();
-            // for (let file of uploadedFiles) {
-            //   formData.append('attachments', file);
-            // }
-            // formData.append('owner', payload.owner);
-            // formData.append('processed_at', payload.processed_at.toISOString());
-            // formData.append('category', payload.category);
-            // formData.append('payment_method', payload.payment_method);
-            // formData.append('receiver', payload.receiver);
-            // formData.append('transfer_amount', String(payload.transfer_amount));
-            // formData.append('information', payload.information ?? '');
-            // const record = await TransactionService.createTransaction(formData);
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshTransactions();
-            // });
-            // showSnackbar({message: `Created transaction #${record.id}`});
+            const parsedForm = CreateOrUpdateTransaction.safeParse({
+              ...data,
+              receiver: data.receiverOption?.value,
+              toCategory_ID: data.categoryOption?.ID,
+              toPaymentMethod_ID: data.paymentMethodOption?.ID,
+              transferAmount: parseNumber(String(data.transferAmount)),
+            });
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await TransactionService.createTransaction(parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshTransactions();
+            });
+            showSnackbar({message: `Created transaction #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -99,45 +78,21 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
 
         case 'UPDATE':
           try {
-            // TODO: Re-enable this code after a new backend is implemented
-            // if (!defaultValues?.id) throw new Error('No transaction-id found in default-values');
-            // const parsedForm = ZUpdateTransactionPayload.safeParse({
-            //   category: data.category?.id,
-            //   payment_method: data.payment_method?.id,
-            //   receiver: data.receiver?.value,
-            //   information: data.information,
-            //   processed_at: data.processed_at,
-            //   transfer_amount: parseNumber(String(data.transfer_amount)),
-            //   owner: session.id,
-            // });
-            // if (!parsedForm.success) throw new Error(parsedForm.error.message);
-            // const payload: TUpdateTransactionPayload = parsedForm.data;
-            // const formData = new FormData();
-            // for (let file of uploadedFiles) {
-            //   formData.append('attachments', file);
-            // }
-            // formData.append('owner', payload.owner);
-            // formData.append('processed_at', payload.processed_at.toISOString());
-            // formData.append('category', payload.category);
-            // formData.append('payment_method', payload.payment_method);
-            // formData.append('receiver', payload.receiver);
-            // formData.append('transfer_amount', String(payload.transfer_amount));
-            // formData.append('information', payload.information ?? '');
-            // const record = await TransactionService.updateTransaction(defaultValues.id, formData);
-            // if (markedForDeletion.length > 0) {
-            //   TransactionService.deleteImages(defaultValues.id, markedForDeletion)
-            //     .then(() => refreshTransactions())
-            //     .catch(error => {
-            //       logger.error('Failed to delete files', error);
-            //       showSnackbar({message: 'Failed to delete files'});
-            //     });
-            // }
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshTransactions();
-            // });
-            // showSnackbar({message: `Updated transaction #${record.id}`});
+            const parsedForm = CreateOrUpdateTransaction.safeParse({
+              ...data,
+              receiver: data.receiverOption?.value,
+              toCategory_ID: data.categoryOption?.ID,
+              toPaymentMethod_ID: data.paymentMethodOption?.ID,
+              transferAmount: parseNumber(String(data.transferAmount)),
+            });
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await TransactionService.updateTransaction(defaultValues?.ID!, parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshTransactions();
+            });
+            showSnackbar({message: `Updated transaction #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
             showSnackbar({message: (error as Error).message});
@@ -146,36 +101,38 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
       }
     },
     resetValues() {
-      setUploadedFiles([]);
+      // setUploadedFiles([]);
       return {
-        processed_at: new Date(),
+        processedAt: new Date(),
         receiver: null,
-        category: null,
-        payment_method: null,
-        transfer_amount: null,
+        receiverOption: null,
+        toPaymentMethod_ID: null,
+        toCategory_ID: null,
+        categoryOption: null,
+        paymentMethodOption: null,
+        transferAmount: null,
         information: null,
-        attachments: [],
       } as DefaultValues<TTransactionDrawerValues>;
     },
   };
 
-  React.useEffect(() => {
-    for (const file of uploadedFiles) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const url = reader.result?.toString() ?? '';
-        // @ts-ignore
-        file['buffer'] = url;
-        setFilePreview(prev => [...prev, file]);
-      };
+  // React.useEffect(() => {
+  //   for (const file of uploadedFiles) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       const url = reader.result?.toString() ?? '';
+  //       // @ts-ignore
+  //       file['buffer'] = url;
+  //       setFilePreview(prev => [...prev, file]);
+  //     };
 
-      if (file) reader.readAsDataURL(file);
-    }
+  //     if (file) reader.readAsDataURL(file);
+  //   }
 
-    return () => {
-      setFilePreview([]);
-    };
-  }, [uploadedFiles]);
+  //   return () => {
+  //     setFilePreview([]);
+  //   };
+  // }, [uploadedFiles]);
 
   return (
     <EntityDrawer<TTransactionDrawerValues>
@@ -199,9 +156,9 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <Controller
               control={control}
-              name="processed_at"
+              name="processedAt"
               rules={{required: 'Process date is required'}}
-              defaultValue={defaultValues?.processed_at ?? new Date()}
+              defaultValue={defaultValues?.processedAt ?? new Date()}
               render={({field: {onChange, value, ref}}) => (
                 <DatePicker
                   value={value}
@@ -211,8 +168,8 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                   slotProps={{
                     textField: {
                       label: 'Processed at',
-                      error: !!errors.processed_at,
-                      helperText: errors.processed_at?.message,
+                      error: !!errors.processedAt,
+                      helperText: errors.processedAt?.message,
                       required: true,
                       fullWidth: true,
                     },
@@ -224,7 +181,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12, md: 6}}>
             <Controller
               control={control}
-              name="category"
+              name="categoryOption"
               defaultValue={null}
               rules={{required: 'Category is required'}}
               render={({field: {onChange, value}}) => (
@@ -233,8 +190,8 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Category',
-                    error: !!errors.category,
-                    helperText: errors.category?.message,
+                    error: !!errors.categoryOption,
+                    helperText: errors.categoryOption?.message,
                     required: true,
                   }}
                 />
@@ -244,7 +201,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12, md: 6}}>
             <Controller
               control={control}
-              name="payment_method"
+              name="paymentMethodOption"
               defaultValue={null}
               rules={{required: 'Payment-Method is required'}}
               render={({field: {onChange, value}}) => (
@@ -253,8 +210,8 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Payment Method',
-                    error: !!errors.payment_method,
-                    helperText: errors.payment_method?.message,
+                    error: !!errors.paymentMethodOption,
+                    helperText: errors.paymentMethodOption?.message,
                     required: true,
                   }}
                 />
@@ -264,7 +221,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <Controller
               control={control}
-              name="receiver"
+              name="receiverOption"
               defaultValue={null}
               rules={{required: 'Receiver is required'}}
               render={({field: {onChange, value}}) => (
@@ -273,8 +230,8 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Receiver',
-                    error: !!errors.receiver,
-                    helperText: errors.receiver?.message,
+                    error: !!errors.receiverOption,
+                    helperText: errors.receiverOption?.message,
                     required: true,
                   }}
                 />
@@ -284,9 +241,9 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <TextField
               label="Amount"
-              {...register('transfer_amount', {required: 'Transfer amount is required'})}
-              error={!!errors.transfer_amount}
-              helperText={errors.transfer_amount?.message}
+              {...register('transferAmount', {required: 'Transfer amount is required'})}
+              error={!!errors.transferAmount}
+              helperText={errors.transferAmount?.message}
               type="number"
               required
               fullWidth
@@ -307,7 +264,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
               rows={2}
             />
           </Grid>
-          <Grid container size={{xs: 12}} columns={10} spacing={AppConfig.baseSpacing}>
+          {/* <Grid container size={{xs: 12}} columns={10} spacing={AppConfig.baseSpacing}>
             <Grid size={{xs: 2}}>
               <FileUpload sx={{width: '100%'}} onFileUpload={handler.onFileUpload} multiple />
             </Grid>
@@ -338,7 +295,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                     />
                   </Grid>
                 ))}
-          </Grid>
+          </Grid> */}
         </Grid>
       )}
     </EntityDrawer>

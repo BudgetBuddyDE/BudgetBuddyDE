@@ -1,6 +1,5 @@
-import {type TSubscription} from '@budgetbuddyde/types';
-
 import {type TGenericHook} from '@/hooks/GenericHook';
+import {type TSubscription} from '@/newTypes';
 
 import {useSubscriptionStore} from './Subscription.store';
 import {SubscriptionService} from './SubscriptionService';
@@ -18,16 +17,18 @@ export function useSubscriptions(): TGenericHook<TSubscription[], IAdditionalFun
     useSubscriptionStore();
 
   const getUpcomingSubscriptions: IAdditionalFunctions<TSubscription[]>['getUpcomingSubscriptions'] = (
-    count,
-    offset,
+    _count,
+    _offset,
   ) => {
-    return SubscriptionService.getUpcomingSubscriptions(getData() ?? [], count, offset);
+    // FIXME: return SubscriptionService.getUpcomingSubscriptions(getData() ?? [], count, offset);
+    return getData()!;
   };
 
   const getUpcomingSubscriptionPaymentsByCategory: IAdditionalFunctions<
     TSubscription[]
   >['getUpcomingSubscriptionPaymentsByCategory'] = () => {
-    return SubscriptionService.getUpcomingSubscriptionPaymentsByCategory(getData() ?? []);
+    // FIXME: return SubscriptionService.getUpcomingSubscriptionPaymentsByCategory(getData() ?? []);
+    return new Map();
   };
 
   const getUpcoming: IAdditionalFunctions<TSubscription[]>['getUpcoming'] = (type): number => {
@@ -37,10 +38,10 @@ export function useSubscriptions(): TGenericHook<TSubscription[], IAdditionalFun
       .filter(
         s =>
           !s.paused &&
-          ((type === 'EXPENSES' && s.transfer_amount < 0) || (type === 'INCOME' && s.transfer_amount > 0)) &&
-          today < s.execute_at,
+          ((type === 'EXPENSES' && s.transferAmount < 0) || (type === 'INCOME' && s.transferAmount > 0)) &&
+          today < s.executeAt,
       )
-      .reduce((prev, curr) => prev + Math.abs(curr.transfer_amount), 0);
+      .reduce((prev, curr) => prev + Math.abs(curr.transferAmount), 0);
     return acc;
   };
 
