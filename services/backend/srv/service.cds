@@ -3,7 +3,8 @@ using {de.budgetbuddy as db} from '../db/schema';
 @restr
 service BackendService {
 
-  @plural: 'Categories'
+  @plural                : 'Categories'
+  @cds.redirection.target: 'Category'
   entity Category @(restrict: [{
     grant: [
       'READ',
@@ -15,7 +16,6 @@ service BackendService {
   }])                 as projection on db.Category;
 
   @readonly
-  @cds.redirection.target: 'Category'
   view Category_VH @(restrict: [{
     grant: ['READ'],
     where: 'createdBy = $user'
@@ -27,7 +27,8 @@ service BackendService {
       createdBy
     };
 
-  @plural: 'PaymentMethods'
+  @plural                : 'PaymentMethods'
+  @cds.redirection.target: 'PaymentMethod'
   entity PaymentMethod @(restrict: [{
     grant: [
       'READ',
@@ -39,7 +40,6 @@ service BackendService {
   }])                 as projection on db.PaymentMethod;
 
   @readonly
-  @cds.redirection.target: 'PaymentMethod'
   view PaymentMethod_VH @(restrict: [{
     grant: ['READ'],
     where: 'createdBy = $user'
