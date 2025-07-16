@@ -52,15 +52,16 @@ entity Transaction : cuid, managed {
 
 @plural: 'Subscriptions'
 entity Subscription : cuid, managed {
-  owner           : UserID;
-  toCategory      : Association to Category      @assert.notNull;
-  toPaymentMethod : Association to PaymentMethod @assert.notNull;
-  paused          : Boolean default false;
-  executeAt       : Integer                      @assert.range: [
-    1,
-    31
-  ];
-  receiver        : type of Transaction : receiver;
-  transferAmount  : type of Transaction : transferAmount;
-  information     : type of Transaction : information;
+          owner           : UserID;
+          toCategory      : Association to Category      @assert.notNull;
+          toPaymentMethod : Association to PaymentMethod @assert.notNull;
+          paused          : Boolean default false;
+          executeAt       : Integer                      @assert.range: [
+            1,
+            31
+          ];
+  virtual nextExecution   : Date;
+          receiver        : type of Transaction : receiver;
+          transferAmount  : type of Transaction : transferAmount;
+          information     : type of Transaction : information;
 }
