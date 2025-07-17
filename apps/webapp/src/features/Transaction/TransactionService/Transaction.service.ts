@@ -1,11 +1,17 @@
 import {PocketBaseCollection, type TTransaction} from '@budgetbuddyde/types';
+import {o} from '@tklein1801/o.js';
 import {isAfter, isSameMonth, subDays} from 'date-fns';
 import {type RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
-import {type TCreateOrUpdateTransaction, type TTransactionResponse, Transaction, TransactionResponse} from '@/newTypes';
+import {
+  ExpandedTransasction,
+  type TCreateOrUpdateTransaction,
+  type TExpandedTransaction,
+  type TTransactionResponse,
+  TransactionResponse,
+} from '@/newTypes';
 import {type TTransaction as _TTransaction} from '@/newTypes';
-import {odata} from '@/odata.client';
 import {pb} from '@/pocketbase';
 
 /**
@@ -17,6 +23,10 @@ import {pb} from '@/pocketbase';
 export class TransactionService {
   private static readonly $servicePath = '/odata/v4/backend';
   private static readonly $entityPath = this.$servicePath + '/Transaction';
+  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
+    // TODO: Configure the $batch endpoint
+    credentials: 'include',
+  });
 
   /**
    * Creates a new transaction.
@@ -24,7 +34,7 @@ export class TransactionService {
    * @returns A promise that resolves to the created transaction record.
    */
   static async createTransaction(payload: TCreateOrUpdateTransaction): Promise<TTransactionResponse> {
-    const record = await odata.post(this.$entityPath, payload).query();
+    const record = await this.$odata.post(this.$entityPath, payload).query();
     const parsingResult = TransactionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -40,7 +50,7 @@ export class TransactionService {
     transactionId: _TTransaction['ID'],
     payload: TCreateOrUpdateTransaction,
   ): Promise<TTransactionResponse> {
-    const record = await odata.put(`${this.$entityPath}(ID=${transactionId})`, payload).query();
+    const record = await this.$odata.put(`${this.$entityPath}(ID=${transactionId})`, payload).query();
     const parsingResult = TransactionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -54,7 +64,7 @@ export class TransactionService {
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
   static async deleteTransaction(transactionId: _TTransaction['ID']): Promise<boolean> {
-    const response = (await odata.delete(`${this.$entityPath}(ID=${transactionId})`).query()) as Response;
+    const response = (await this.$odata.delete(`${this.$entityPath}(ID=${transactionId})`).query()) as Response;
     if (!response.ok) {
       console.warn('Failed to delete transaction:', response.body);
       return false;
@@ -67,9 +77,11 @@ export class TransactionService {
    * @returns A promise that resolves to an array of TTransaction objects.
    * @throws If there is an error parsing the retrieved records.
    */
-  static async getTransactions(): Promise<_TTransaction[]> {
-    const records = await odata.get(this.$entityPath).query();
-    const parsingResult = z.array(Transaction).safeParse(records);
+  static async getTransactions(): Promise<TExpandedTransaction[]> {
+    const records = await this.$odata.get(this.$entityPath).query({
+      $expand: 'toCategory,toPaymentMethod',
+    });
+    const parsingResult = z.array(ExpandedTransasction).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
   }

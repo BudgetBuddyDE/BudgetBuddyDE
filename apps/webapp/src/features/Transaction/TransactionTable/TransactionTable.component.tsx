@@ -1,6 +1,6 @@
 import {AddRounded, DeleteRounded, EditRounded} from '@mui/icons-material';
 import {Checkbox, IconButton, Stack, TableCell, TableRow, Typography} from '@mui/material';
-import {format, isSameYear} from 'date-fns';
+import {format} from 'date-fns';
 import React from 'react';
 
 import {AppConfig} from '@/app.config';
@@ -15,7 +15,8 @@ import {When} from '@/components/When';
 import {CategoryChip} from '@/features/Category';
 import {PaymentMethodChip} from '@/features/PaymentMethod';
 import {useTransactions} from '@/features/Transaction';
-import {type TTransaction} from '@/newTypes';
+import {TExpandedTransaction} from '@/newTypes';
+import {Formatter} from '@/services/Formatter';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
 import {downloadAsJson} from '@/utils';
 
@@ -23,11 +24,11 @@ export type TTransactionTableProps = {
   isLoading?: boolean;
   onAddTransaction?: () => void;
   onAddMultiple?: () => void;
-  onEditTransaction?: (transaction: TTransaction) => void;
-  onDeleteTransaction?: (transaction: TTransaction) => void;
+  onEditTransaction?: (transaction: TExpandedTransaction) => void;
+  onDeleteTransaction?: (transaction: TExpandedTransaction) => void;
   onOpenImage?: (fileName: string, fileUrl: string) => void;
-} & TTableSelectionProps<TTransaction> &
-  Pick<ISelectionHandler<TTransaction>, 'onSelect' | 'isSelected'>;
+} & TTableSelectionProps<TExpandedTransaction> &
+  Pick<ISelectionHandler<TExpandedTransaction>, 'onSelect' | 'isSelected'>;
 
 export const TransactionTable: React.FC<TTransactionTableProps> = ({
   isLoading = false,
@@ -46,7 +47,7 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
   const {isLoading: isLoadingTransactions, data: transactions} = useTransactions();
   const [keyword, setKeyword] = React.useState<string>('');
 
-  const displayedTransactions: TTransaction[] = React.useMemo(() => {
+  const displayedTransactions: TExpandedTransaction[] = React.useMemo(() => {
     if (!transactions) return [];
     // Instead of filtering client side for categories, payment-methods... we're gonna re-fetch transactions from the backend with our filters applied!
     // const data = filterTransactions(keyword, undefined, transactions ?? []);
@@ -54,7 +55,7 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
   }, [keyword, transactions]);
 
   return (
-    <Table<TTransaction>
+    <Table<TExpandedTransaction>
       title="Transactions"
       subtitle="Manage your transactions"
       isLoading={isLoading || isLoadingTransactions}
@@ -77,10 +78,7 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
             </TableCell>
             <TableCell size={AppConfig.table.cellSize}>
               <Typography variant="body1" fontWeight={'bolder'}>
-                {format(
-                  new Date(transaction.processedAt),
-                  isSameYear(transaction.processedAt, new Date()) ? 'dd.MM' : 'dd.MM.yyyy',
-                )}
+                {Formatter.formatDate().format(transaction.processedAt, true)}
               </Typography>
             </TableCell>
             <TableCell size={AppConfig.table.cellSize}>
@@ -89,8 +87,8 @@ export const TransactionTable: React.FC<TTransactionTableProps> = ({
                   {transaction.receiver}
                 </Typography>
                 <Stack direction="row" spacing={AppConfig.baseSpacing / 4}>
-                  <CategoryChip category={transaction.toCategory_ID} size="small" />
-                  <PaymentMethodChip paymentMethod={transaction.toPaymentMethod_ID} size="small" />
+                  <CategoryChip category={transaction.toCategory} size="small" />
+                  <PaymentMethodChip paymentMethod={transaction.toPaymentMethod} size="small" />
                 </Stack>
               </Stack>
             </TableCell>

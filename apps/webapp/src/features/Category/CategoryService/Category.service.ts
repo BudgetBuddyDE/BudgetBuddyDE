@@ -1,4 +1,5 @@
 import {type TCategory, type TTransaction} from '@budgetbuddyde/types';
+import {o} from '@tklein1801/o.js';
 import {subDays} from 'date-fns';
 import {z} from 'zod';
 
@@ -12,7 +13,6 @@ import {
   type TCreateOrUpdateCategory,
   type TCategory as _TCategory,
 } from '@/newTypes';
-import {odata} from '@/odata.client';
 
 import {type TCategoryAutocompleteOption} from '../Autocomplete';
 
@@ -20,6 +20,10 @@ export class CategoryService {
   private static readonly $servicePath = '/odata/v4/backend';
   private static readonly $entityPath = this.$servicePath + '/Category';
   private static readonly $valueHelpPath = this.$servicePath + '/Category_VH';
+  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
+    // TODO: Configure the $batch endpoint
+    credentials: 'include',
+  });
 
   /**
    * Creates a new category.
@@ -27,7 +31,7 @@ export class CategoryService {
    * @returns A promise that resolves to the created category record.
    */
   static async createCategory(payload: TCreateOrUpdateCategory): Promise<TCategoryResponse> {
-    const record = await odata.post(this.$entityPath, payload).query();
+    const record = await this.$odata.post(this.$entityPath, payload).query();
     const parsingResult = CategoryResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -43,7 +47,7 @@ export class CategoryService {
     categoryId: _TCategory['ID'],
     payload: TCreateOrUpdateCategory,
   ): Promise<TCategoryResponse> {
-    const record = await odata.put(`${this.$entityPath}(ID=${categoryId})`, payload).query();
+    const record = await this.$odata.put(`${this.$entityPath}(ID=${categoryId})`, payload).query();
     const parsingResult = CategoryResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -57,7 +61,7 @@ export class CategoryService {
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
   static async deleteCategory(categoryId: _TCategory['ID']): Promise<boolean> {
-    const response = (await odata.delete(`${this.$entityPath}(ID=${categoryId})`).query()) as Response;
+    const response = (await this.$odata.delete(`${this.$entityPath}(ID=${categoryId})`).query()) as Response;
     if (!response.ok) {
       console.warn('Failed to delete category:', response.body);
       return false;
@@ -71,7 +75,7 @@ export class CategoryService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getCategories(): Promise<_TCategory[]> {
-    const records = await odata.get(this.$entityPath).query();
+    const records = await this.$odata.get(this.$entityPath).query();
     const parsingResult = z.array(Category).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -83,7 +87,7 @@ export class CategoryService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getCategoryValueHelps(): Promise<TCategory_VH[]> {
-    const records = await odata.get(this.$valueHelpPath).query();
+    const records = await this.$odata.get(this.$valueHelpPath).query();
     const parsingResult = z.array(Category_VH).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;

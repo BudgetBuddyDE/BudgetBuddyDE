@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 
 import {useFilterStore} from '@/components/Filter';
 import {type TGenericHook} from '@/hooks/GenericHook';
-import {type TTransaction} from '@/newTypes';
+import {type TExpandedTransaction, type TTransaction} from '@/newTypes';
 import {preparePockebaseRequestOptions} from '@/utils';
 
 import {type TTransactionStoreFetchArgs, useTransactionStore} from './Transaction.store';
@@ -27,8 +27,8 @@ interface AdditionalFuncs<T> {
 }
 
 export function useTransactions(): TGenericHook<
-  TTransaction[],
-  AdditionalFuncs<TTransaction[]>,
+  TExpandedTransaction[],
+  AdditionalFuncs<TExpandedTransaction[]>,
   TTransactionStoreFetchArgs
 > {
   const POCKETBASE_HOST = import.meta.env.VITE_POCKETBASE_HOST;
@@ -40,7 +40,10 @@ export function useTransactions(): TGenericHook<
     return await refreshData(updateLoadingState, buildFetchArgsFromFilter(requestFilters));
   };
 
-  const getLatestTransactions: AdditionalFuncs<TTransaction[]>['getLatestTransactions'] = (_count, _offset = 0) => {
+  const getLatestTransactions: AdditionalFuncs<TExpandedTransaction[]>['getLatestTransactions'] = (
+    _count,
+    _offset = 0,
+  ) => {
     // FIXME: return TransactionService.getLatestTransactions(getData() ?? [], count, offset);
     return [];
   };
@@ -55,7 +58,7 @@ export function useTransactions(): TGenericHook<
     return 0;
   };
 
-  const getUpcomingAsTransactions: AdditionalFuncs<TTransaction[]>['getUpcomingAsTransactions'] = _type => {
+  const getUpcomingAsTransactions: AdditionalFuncs<TExpandedTransaction[]>['getUpcomingAsTransactions'] = _type => {
     // const today = new Date();
     // const transactions = getData() ?? [];
     // return transactions.filter(

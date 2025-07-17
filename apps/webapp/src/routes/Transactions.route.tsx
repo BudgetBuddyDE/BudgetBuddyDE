@@ -7,9 +7,7 @@ import {useFilterStore} from '@/components/Filter';
 import {ImageViewDialog} from '@/components/ImageViewDialog';
 import {AddFab, ContentGrid, FabContainer, OpenFilterDrawerFab} from '@/components/Layout';
 import {withAuthLayout} from '@/features/Auth';
-import {useCategories} from '@/features/Category';
 import {DeleteDialog} from '@/features/DeleteDialog';
-import {usePaymentMethods} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {
   CreateMultipleTransactionsDialog,
@@ -20,23 +18,21 @@ import {
   useTransactions,
 } from '@/features/Transaction';
 import {logger} from '@/logger';
-import {type TTransaction} from '@/newTypes';
+import {TExpandedTransaction} from '@/newTypes';
 
 interface ITransactionsHandler {
   showCreateDialog: () => void;
-  showEditDialog: (transaction: TTransaction) => void;
+  showEditDialog: (transaction: TExpandedTransaction) => void;
   showCreateMultipleDialog: (showDialog: boolean) => void;
   onSearch: (keyword: string) => void;
-  onTransactionDelete: (transaction: TTransaction) => void;
+  onTransactionDelete: (transaction: TExpandedTransaction) => void;
   onConfirmTransactionDelete: () => void;
-  selection: ISelectionHandler<TTransaction>;
+  selection: ISelectionHandler<TExpandedTransaction>;
 }
 
 export const Transactions = () => {
   const {showSnackbar} = useSnackbarContext();
   const {filters} = useFilterStore();
-  const {isLoading: isLoadingCategories, data: categories} = useCategories();
-  const {isLoading: isLoadingPaymentMethods, data: paymentMethods} = usePaymentMethods();
   const {isLoading: isLoadingTransactions, data: transactions, refreshData: refreshTransactions} = useTransactions();
   const [transactionDrawer, dispatchTransactionDrawer] = React.useReducer(
     useEntityDrawer<TTransactionDrawerValues>,
@@ -44,10 +40,10 @@ export const Transactions = () => {
   );
   const [showCreateMultipleDialog, setShowCreateMultipleDialog] = React.useState(false);
   const [showDeleteTransactionDialog, setShowDeleteTransactionDialog] = React.useState(false);
-  const [deleteTransactions, setDeleteTransactions] = React.useState<TTransaction[]>([]);
-  const [selectedTransactions, setSelectedTransactions] = React.useState<TTransaction[]>([]);
+  const [deleteTransactions, setDeleteTransactions] = React.useState<TExpandedTransaction[]>([]);
+  const [selectedTransactions, setSelectedTransactions] = React.useState<TExpandedTransaction[]>([]);
   const [keyword, setKeyword] = React.useState('');
-  const displayedTransactions: TTransaction[] = React.useMemo(() => {
+  const displayedTransactions: TExpandedTransaction[] = React.useMemo(() => {
     if (!transactions) return [];
     // return filterTransactions(keyword, filters, transactions);
     return transactions;
@@ -65,23 +61,21 @@ export const Transactions = () => {
     showCreateMultipleDialog(showDialog) {
       setShowCreateMultipleDialog(showDialog);
     },
-    showEditDialog({ID, processedAt, receiver, transferAmount, information, toCategory_ID, toPaymentMethod_ID}) {
-      // FIXME: This is a workaround to get the category and payment method names
-      const category = categories?.find(({ID}) => ID === toCategory_ID);
-      const payment_method = paymentMethods?.find(({ID}) => ID === toPaymentMethod_ID);
+    showEditDialog({ID, processedAt, receiver, transferAmount, information, toCategory, toPaymentMethod}) {
       dispatchTransactionDrawer({
         type: 'OPEN',
         drawerAction: 'UPDATE',
         payload: {
           ID,
           processedAt,
-          receiverOption: {value: receiver, label: receiver},
           transferAmount,
           information: information ?? '',
-          toCategory_ID: toCategory_ID,
-          toPaymentMethod_ID: toPaymentMethod_ID,
-          categoryOption: {name: category!.name, ID: toCategory_ID},
-          paymentMethodOption: {name: payment_method!.name, ID: toPaymentMethod_ID},
+          toCategory_ID: toCategory.ID,
+          toPaymentMethod_ID: toPaymentMethod.ID,
+          receiver,
+          receiverAutocomplete: {value: receiver, label: receiver},
+          categoryAutocomplete: {ID: toCategory.ID, name: toCategory.name},
+          paymentMethodAutocomplete: {ID: toPaymentMethod.ID, name: toPaymentMethod.name},
         },
       });
     },
@@ -132,7 +126,7 @@ export const Transactions = () => {
     <ContentGrid title={'Transactions'}>
       <Grid size={{xs: 12}}>
         <TransactionTable
-          isLoading={isLoadingTransactions || isLoadingCategories || isLoadingPaymentMethods}
+          isLoading={isLoadingTransactions}
           onAddTransaction={handler.showCreateDialog}
           onAddMultiple={() => handler.showCreateMultipleDialog(true)}
           onEditTransaction={handler.showEditDialog}

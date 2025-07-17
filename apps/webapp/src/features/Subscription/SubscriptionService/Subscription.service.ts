@@ -1,18 +1,23 @@
 import {type TCategory, type TSubscription} from '@budgetbuddyde/types';
+import {o} from '@tklein1801/o.js';
 import {z} from 'zod';
 
 import {
-  Subscription,
+  ExpandedSubscription,
   SubscriptionResponse,
   type TCreateOrUpdateSubscription,
+  type TExpandedSubscription,
   type TSubscriptionResponse,
   type TSubscription as _TSubscription,
 } from '@/newTypes';
-import {odata} from '@/odata.client';
 
 export class SubscriptionService {
   private static readonly $servicePath = '/odata/v4/backend';
   private static readonly $entityPath = this.$servicePath + '/Subscription';
+  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
+    // TODO: Configure the $batch endpoint
+    credentials: 'include',
+  });
 
   /**
    * Creates a new subscription.
@@ -20,7 +25,7 @@ export class SubscriptionService {
    * @returns A promise that resolves to the created subscription record.
    */
   static async createSubscription(payload: TCreateOrUpdateSubscription): Promise<TSubscriptionResponse> {
-    const record = await odata.post(this.$entityPath, payload).query();
+    const record = await this.$odata.post(this.$entityPath, payload).query();
     const parsingResult = SubscriptionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -36,7 +41,7 @@ export class SubscriptionService {
     subscriptionId: _TSubscription['ID'],
     payload: Partial<TCreateOrUpdateSubscription>,
   ): Promise<TSubscriptionResponse> {
-    const record = await odata.put(`${this.$entityPath}(ID=${subscriptionId})`, payload).query();
+    const record = await this.$odata.put(`${this.$entityPath}(ID=${subscriptionId})`, payload).query();
     const parsingResult = SubscriptionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -50,7 +55,7 @@ export class SubscriptionService {
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
   static async deleteSubscription(subscriptionId: _TSubscription['ID']): Promise<boolean> {
-    const response = (await odata.delete(`${this.$entityPath}(ID=${subscriptionId})`).query()) as Response;
+    const response = (await this.$odata.delete(`${this.$entityPath}(ID=${subscriptionId})`).query()) as Response;
     if (!response.ok) {
       console.warn('Failed to delete subscription:', response.body);
       return false;
@@ -63,9 +68,11 @@ export class SubscriptionService {
    * @returns A promise that resolves to an array of TSubscription objects.
    * @throws If there is an error parsing the retrieved records.
    */
-  static async getSubscriptions(): Promise<_TSubscription[]> {
-    const records = await odata.get(this.$entityPath).query();
-    const parsingResult = z.array(Subscription).safeParse(records);
+  static async getSubscriptions(): Promise<TExpandedSubscription[]> {
+    const records = await this.$odata.get(this.$entityPath).query({
+      $expand: 'toCategory,toPaymentMethod',
+    });
+    const parsingResult = z.array(ExpandedSubscription).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
   }

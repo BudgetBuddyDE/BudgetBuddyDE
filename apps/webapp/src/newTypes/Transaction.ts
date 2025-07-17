@@ -19,6 +19,15 @@ export const Transaction = z.object({
 });
 export type TTransaction = z.infer<typeof Transaction>;
 
+export const ExpandedTransasction = Transaction.omit({
+  toCategory_ID: true,
+  toPaymentMethod_ID: true,
+}).extend({
+  toCategory: Category,
+  toPaymentMethod: PaymentMethod,
+});
+export type TExpandedTransaction = z.infer<typeof ExpandedTransasction>;
+
 export const CreateOrUpdateTransaction = Transaction.pick({
   toCategory_ID: true,
   toPaymentMethod_ID: true,

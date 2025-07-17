@@ -1,6 +1,5 @@
 export * from './colors';
 export * from './determineNextExecution';
-export * from './determineNextExecutionDate';
 export * from './determineOS';
 export * from './downloadAsJson';
 export * from './filter';

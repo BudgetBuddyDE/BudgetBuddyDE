@@ -1,5 +1,5 @@
 import {GenerateGenericStore} from '@/hooks/GenericHook';
-import {type TTransaction} from '@/newTypes';
+import {type TExpandedTransaction} from '@/newTypes';
 
 import {TransactionService} from './TransactionService/Transaction.service';
 
@@ -8,7 +8,9 @@ export type TTransactionStoreFetchArgs = {
   endDate: Date;
 };
 
-export const useTransactionStore = GenerateGenericStore<TTransaction[], {}, TTransactionStoreFetchArgs>(_args => {
-  // return TransactionService.getTransactions(args);
-  return TransactionService.getTransactions();
-});
+export const useTransactionStore = GenerateGenericStore<TExpandedTransaction[], {}, TTransactionStoreFetchArgs>(
+  _args => {
+    // return TransactionService.getTransactions(args);
+    return TransactionService.getTransactions();
+  },
+);

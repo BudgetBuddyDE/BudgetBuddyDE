@@ -16,14 +16,15 @@ import {isRunningOnIOs, parseNumber} from '@/utils';
 import {TransactionService} from '../TransactionService';
 import {useTransactions} from '../useTransactions.hook';
 
-export type TTransactionDrawerValues = {
-  receiverOption: TReceiverAutocompleteOption | null;
-  categoryOption: TCategoryAutocompleteOption | null;
-  paymentMethodOption: TPaymentMethodAutocompleteOption | null;
-} & Pick<
-  NullableFields<TCreateOrUpdateTransaction>,
-  'ID' | 'processedAt' | 'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' | 'transferAmount' | 'information'
->;
+export type TTransactionDrawerValues = NullableFields<{
+  receiverAutocomplete: TReceiverAutocompleteOption;
+  categoryAutocomplete: TCategoryAutocompleteOption;
+  paymentMethodAutocomplete: TPaymentMethodAutocompleteOption;
+}> &
+  Pick<
+    NullableFields<TCreateOrUpdateTransaction>,
+    'ID' | 'processedAt' | 'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' | 'transferAmount' | 'information'
+  >;
 
 export type TTransactionDrawerProps = TUseEntityDrawerState<TTransactionDrawerValues> & {
   onClose: () => void;
@@ -57,9 +58,9 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           try {
             const parsedForm = CreateOrUpdateTransaction.safeParse({
               ...data,
-              receiver: data.receiverOption?.value,
-              toCategory_ID: data.categoryOption?.ID,
-              toPaymentMethod_ID: data.paymentMethodOption?.ID,
+              receiver: data.receiverAutocomplete?.value,
+              toCategory_ID: data.categoryAutocomplete?.ID,
+              toPaymentMethod_ID: data.paymentMethodAutocomplete?.ID,
               transferAmount: parseNumber(String(data.transferAmount)),
             });
             if (!parsedForm.success) throw new Error(parsedForm.error.message);
@@ -80,9 +81,9 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           try {
             const parsedForm = CreateOrUpdateTransaction.safeParse({
               ...data,
-              receiver: data.receiverOption?.value,
-              toCategory_ID: data.categoryOption?.ID,
-              toPaymentMethod_ID: data.paymentMethodOption?.ID,
+              receiver: data.receiverAutocomplete?.value,
+              toCategory_ID: data.categoryAutocomplete?.ID,
+              toPaymentMethod_ID: data.paymentMethodAutocomplete?.ID,
               transferAmount: parseNumber(String(data.transferAmount)),
             });
             if (!parsedForm.success) throw new Error(parsedForm.error.message);
@@ -105,13 +106,13 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
       return {
         processedAt: new Date(),
         receiver: null,
-        receiverOption: null,
         toPaymentMethod_ID: null,
         toCategory_ID: null,
-        categoryOption: null,
-        paymentMethodOption: null,
         transferAmount: null,
         information: null,
+        receiverAutocomplete: null,
+        categoryAutocomplete: null,
+        paymentMethodAutocomplete: null,
       } as DefaultValues<TTransactionDrawerValues>;
     },
   };
@@ -181,7 +182,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12, md: 6}}>
             <Controller
               control={control}
-              name="categoryOption"
+              name="categoryAutocomplete"
               defaultValue={null}
               rules={{required: 'Category is required'}}
               render={({field: {onChange, value}}) => (
@@ -190,8 +191,8 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Category',
-                    error: !!errors.categoryOption,
-                    helperText: errors.categoryOption?.message,
+                    error: !!errors.categoryAutocomplete,
+                    helperText: errors.categoryAutocomplete?.message,
                     required: true,
                   }}
                 />
@@ -201,7 +202,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12, md: 6}}>
             <Controller
               control={control}
-              name="paymentMethodOption"
+              name="paymentMethodAutocomplete"
               defaultValue={null}
               rules={{required: 'Payment-Method is required'}}
               render={({field: {onChange, value}}) => (
@@ -210,8 +211,8 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Payment Method',
-                    error: !!errors.paymentMethodOption,
-                    helperText: errors.paymentMethodOption?.message,
+                    error: !!errors.paymentMethodAutocomplete,
+                    helperText: errors.paymentMethodAutocomplete?.message,
                     required: true,
                   }}
                 />
@@ -221,7 +222,7 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <Controller
               control={control}
-              name="receiverOption"
+              name="receiverAutocomplete"
               defaultValue={null}
               rules={{required: 'Receiver is required'}}
               render={({field: {onChange, value}}) => (
@@ -230,8 +231,8 @@ export const TransactionDrawer: React.FC<TTransactionDrawerProps> = ({
                   value={value}
                   textFieldProps={{
                     label: 'Receiver',
-                    error: !!errors.receiverOption,
-                    helperText: errors.receiverOption?.message,
+                    error: !!errors.receiverAutocomplete,
+                    helperText: errors.receiverAutocomplete?.message,
                     required: true,
                   }}
                 />

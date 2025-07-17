@@ -1,4 +1,5 @@
 import {type TPaymentMethod, type TTransaction} from '@budgetbuddyde/types';
+import {o} from '@tklein1801/o.js';
 import {subDays} from 'date-fns';
 import {z} from 'zod';
 
@@ -11,7 +12,6 @@ import {
   type TPaymentMethod_VH,
   type TPaymentMethod as _TPaymentMethod,
 } from '@/newTypes';
-import {odata} from '@/odata.client';
 
 import {type TPaymentMethodAutocompleteOption} from '../Autocomplete';
 
@@ -19,6 +19,10 @@ export class PaymentMethodService {
   private static readonly $servicePath = '/odata/v4/backend';
   private static readonly $entityPath = this.$servicePath + '/PaymentMethod';
   private static readonly $valueHelpPath = this.$servicePath + '/PaymentMethod_VH';
+  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
+    // TODO: Configure the $batch endpoint
+    credentials: 'include',
+  });
 
   private static paymentMethodLabelSeperator = '•';
 
@@ -29,7 +33,7 @@ export class PaymentMethodService {
    * @returns A Promise that resolves to the created payment method record.
    */
   static async createPaymentMethod(payload: TCreateOrUpdatePaymentMethod): Promise<TPaymentMethodResponse> {
-    const record = await odata.post(this.$entityPath, payload).query();
+    const record = await this.$odata.post(this.$entityPath, payload).query();
     const parsingResult = PaymentMethodResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -45,7 +49,7 @@ export class PaymentMethodService {
     paymentMethodId: _TPaymentMethod['ID'],
     payload: TCreateOrUpdatePaymentMethod,
   ): Promise<TPaymentMethodResponse> {
-    const record = await odata.put(`${this.$entityPath}(ID=${paymentMethodId})`, payload).query();
+    const record = await this.$odata.put(`${this.$entityPath}(ID=${paymentMethodId})`, payload).query();
     const parsingResult = PaymentMethodResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -58,7 +62,7 @@ export class PaymentMethodService {
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
   static async deletePaymentMethod(paymentMethodId: _TPaymentMethod['ID']): Promise<boolean> {
-    const response = (await odata.delete(`${this.$entityPath}(ID=${paymentMethodId})`).query()) as Response;
+    const response = (await this.$odata.delete(`${this.$entityPath}(ID=${paymentMethodId})`).query()) as Response;
     if (!response.ok) {
       console.warn('Failed to delete payment method:', response.body);
       return false;
@@ -72,7 +76,7 @@ export class PaymentMethodService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getPaymentMethods(): Promise<_TPaymentMethod[]> {
-    const records = await odata.get(this.$entityPath).query();
+    const records = await this.$odata.get(this.$entityPath).query();
     const parsingResult = z.array(PaymentMethod).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -84,7 +88,7 @@ export class PaymentMethodService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getPaymentMethodValueHelps(): Promise<TPaymentMethod_VH[]> {
-    const records = await odata.get(this.$valueHelpPath).query();
+    const records = await this.$odata.get(this.$valueHelpPath).query();
     const parsingResult = z.array(PaymentMethod_VH).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -129,8 +133,8 @@ export class PaymentMethodService {
       }))
       .sort((a, b) => b.frequency - a.frequency)
       .map(({id, name, provider}) => ({
-        label: this.getAutocompleteLabel({name, provider}),
-        id: id,
+        name: this.getAutocompleteLabel({name, provider}),
+        ID: id,
       }));
   }
 

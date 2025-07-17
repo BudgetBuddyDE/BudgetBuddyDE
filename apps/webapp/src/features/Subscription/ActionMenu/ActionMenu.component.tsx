@@ -2,12 +2,12 @@ import {CompareArrowsRounded, MoreVertRounded, PauseRounded, PlayArrowRounded} f
 import {IconButton, ListItemIcon, ListItemText, Menu, MenuItem} from '@mui/material';
 import React from 'react';
 
-import {type TSubscription} from '@/newTypes';
+import {type TExpandedSubscription} from '@/newTypes';
 
 export type TSubscriptionActionMenuProps = {
-  subscription: TSubscription;
-  onToggleExecutionState: (subscription: TSubscription) => void;
-  onCreateTransaction: (subscription: TSubscription) => void;
+  subscription: TExpandedSubscription;
+  onToggleExecutionState: (subscription: TExpandedSubscription) => void;
+  onCreateTransaction: (subscription: TExpandedSubscription) => void;
 };
 
 export const SubscriptionActionMenu: React.FC<TSubscriptionActionMenuProps> = ({

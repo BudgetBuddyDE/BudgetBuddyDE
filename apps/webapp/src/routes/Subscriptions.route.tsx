@@ -13,9 +13,9 @@ import {Table} from '@/components/Base/Table';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {AddFab, ContentGrid, FabContainer} from '@/components/Layout';
 import {withAuthLayout} from '@/features/Auth';
-import {CategoryChip, useCategories} from '@/features/Category';
+import {CategoryChip} from '@/features/Category';
 import {DeleteDialog} from '@/features/DeleteDialog';
-import {PaymentMethodChip, usePaymentMethods} from '@/features/PaymentMethod';
+import {PaymentMethodChip} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {
   CreateMultipleSubscriptionsDialog,
@@ -27,19 +27,20 @@ import {
 } from '@/features/Subscription';
 import {type TTransactionDrawerValues, TransactionDrawer} from '@/features/Transaction';
 import {logger} from '@/logger';
-import {type TSubscription} from '@/newTypes';
+import {type TExpandedSubscription} from '@/newTypes';
+import {Formatter} from '@/services/Formatter';
 import {DescriptionTableCellStyle} from '@/style/DescriptionTableCell.style';
-import {determineNextExecution, determineNextExecutionDate, downloadAsJson} from '@/utils';
+import {downloadAsJson} from '@/utils';
 
 interface ISubscriptionsHandler {
-  showCreateTransactionDialog: (subscription: TSubscription) => void;
+  showCreateTransactionDialog: (subscription: TExpandedSubscription) => void;
   showCreateSubscriptionDialog: () => void;
-  showEditSubscriptionDialog: (subscription: TSubscription) => void;
+  showEditSubscriptionDialog: (subscription: TExpandedSubscription) => void;
   onSearch: (keyword: string) => void;
-  onSubscriptionDelete: (subscription: TSubscription) => void;
+  onSubscriptionDelete: (subscription: TExpandedSubscription) => void;
   onConfirmSubscriptionDelete: () => void;
-  onToggleExecutionStatus: (subscription: TSubscription) => void;
-  selection: ISelectionHandler<TSubscription>;
+  onToggleExecutionStatus: (subscription: TExpandedSubscription) => void;
+  selection: ISelectionHandler<TExpandedSubscription>;
 }
 
 export const Subscriptions = () => {
@@ -49,8 +50,6 @@ export const Subscriptions = () => {
     isLoading: isLoadingSubscriptions,
     refreshData: refreshSubscriptions,
   } = useSubscriptions();
-  const {isLoading: isLoadingCategories, data: categories} = useCategories();
-  const {isLoading: isLoadingPaymentMethods, data: paymentMethods} = usePaymentMethods();
   const [transactionDrawer, dispatchTransactionDrawer] = React.useReducer(
     useEntityDrawer<TTransactionDrawerValues>,
     UseEntityDrawerDefaultState<TTransactionDrawerValues>(),
@@ -61,33 +60,31 @@ export const Subscriptions = () => {
     UseEntityDrawerDefaultState<TSusbcriptionDrawerValues>(),
   );
   const [showDeleteSubscriptionDialog, setShowDeleteSubscriptionDialog] = React.useState(false);
-  const [deleteSubscriptions, setDeleteSubscriptions] = React.useState<TSubscription[]>([]);
-  const [selectedSubscriptions, setSelectedSubscriptions] = React.useState<TSubscription[]>([]);
+  const [deleteSubscriptions, setDeleteSubscriptions] = React.useState<TExpandedSubscription[]>([]);
+  const [selectedSubscriptions, setSelectedSubscriptions] = React.useState<TExpandedSubscription[]>([]);
   const [keyword, setKeyword] = React.useState('');
 
-  const displayedSubscriptions: TSubscription[] = React.useMemo(() => {
+  const displayedSubscriptions: TExpandedSubscription[] = React.useMemo(() => {
     // FIXME: return filterSubscriptions(keyword, undefined, subscriptions ?? []);
     return subscriptions ?? [];
   }, [subscriptions, keyword]);
 
   const handler: ISubscriptionsHandler = {
     showCreateTransactionDialog(subscription) {
-      const {executeAt, transferAmount, information, receiver, toPaymentMethod_ID, toCategory_ID} = subscription;
-      // FIXME: This is a workaround to get the category and payment method names
-      const category = categories?.find(({ID}) => ID === toCategory_ID);
-      const payment_method = paymentMethods?.find(({ID}) => ID === toPaymentMethod_ID);
+      const {nextExecution, transferAmount, information, receiver, toCategory, toPaymentMethod} = subscription;
       dispatchTransactionDrawer({
         type: 'OPEN',
         drawerAction: 'CREATE',
         payload: {
-          processedAt: determineNextExecutionDate(executeAt),
-          receiverOption: {value: receiver, label: receiver},
+          processedAt: nextExecution,
+          receiver,
           transferAmount,
           information,
-          toCategory_ID,
-          toPaymentMethod_ID,
-          categoryOption: {name: category!.name, ID: toCategory_ID},
-          paymentMethodOption: {name: payment_method!.name, ID: toPaymentMethod_ID},
+          toCategory_ID: toCategory.ID,
+          toPaymentMethod_ID: toPaymentMethod.ID,
+          receiverAutocomplete: {label: receiver, value: receiver},
+          categoryAutocomplete: {ID: toCategory.ID, name: toCategory.name},
+          paymentMethodAutocomplete: {ID: toPaymentMethod.ID, name: toPaymentMethod.name},
         },
       });
     },
@@ -95,26 +92,23 @@ export const Subscriptions = () => {
       dispatchSubscriptionDrawer({type: 'OPEN', drawerAction: 'CREATE'});
     },
     showEditSubscriptionDialog(subscription) {
-      const {ID, executeAt, receiver, transferAmount, information, paused, toCategory_ID, toPaymentMethod_ID} =
+      const {ID, nextExecution, receiver, transferAmount, information, paused, toCategory, toPaymentMethod} =
         subscription;
-      // FIXME: This is a workaround to get the category and payment method names
-      const category = categories?.find(({ID}) => ID === toCategory_ID);
-      const payment_method = paymentMethods?.find(({ID}) => ID === toPaymentMethod_ID);
       dispatchSubscriptionDrawer({
         type: 'OPEN',
         drawerAction: 'UPDATE',
         payload: {
           ID,
-          executeAt: determineNextExecutionDate(executeAt),
+          executeAt: nextExecution,
           receiver: receiver,
-          receiverOption: {label: receiver, value: receiver},
           transferAmount,
           information,
-          toCategory_ID,
-          toPaymentMethod_ID,
-          categoryOption: {name: category!.name, ID: toCategory_ID},
-          paymentMethodOption: {name: payment_method!.name, ID: toPaymentMethod_ID},
           paused,
+          toCategory_ID: toCategory.ID,
+          toPaymentMethod_ID: toPaymentMethod.ID,
+          receiverAutocomplete: {label: receiver, value: receiver},
+          categoryAutocomplete: {ID: toCategory.ID, name: toCategory.name},
+          paymentMethodAutocomplete: {ID: toPaymentMethod.ID, name: toPaymentMethod.name},
         },
       });
     },
@@ -182,8 +176,8 @@ export const Subscriptions = () => {
   return (
     <ContentGrid title={'Subscriptions'}>
       <Grid size={{xs: 12}}>
-        <Table<TSubscription>
-          isLoading={isLoadingSubscriptions || isLoadingCategories || isLoadingPaymentMethods}
+        <Table<TExpandedSubscription>
+          isLoading={isLoadingSubscriptions}
           title="Subscriptions"
           subtitle="Manage your subscriptions"
           data={displayedSubscriptions}
@@ -207,11 +201,11 @@ export const Subscriptions = () => {
                   sx={{
                     textDecoration: subscription.paused ? 'line-through' : 'unset',
                   }}>
-                  {determineNextExecution(subscription.executeAt)}
+                  {Formatter.formatDate().format(subscription.nextExecution, true)}
                 </Typography>
               </TableCell>
               <TableCell size={AppConfig.table.cellSize}>
-                <CategoryChip category={subscription.toCategory_ID} />
+                <CategoryChip category={subscription.toCategory} />
               </TableCell>
               <TableCell size={AppConfig.table.cellSize}>
                 <Linkify>{subscription.receiver}</Linkify>
@@ -225,7 +219,7 @@ export const Subscriptions = () => {
                 </Typography>
               </TableCell>
               <TableCell size={AppConfig.table.cellSize}>
-                <PaymentMethodChip paymentMethod={subscription.toPaymentMethod_ID} />
+                <PaymentMethodChip paymentMethod={subscription.toPaymentMethod} />
               </TableCell>
               <TableCell sx={DescriptionTableCellStyle} size={AppConfig.table.cellSize}>
                 <Linkify>{subscription.information ?? 'No information available'}</Linkify>

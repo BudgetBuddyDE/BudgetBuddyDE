@@ -1,4 +1,4 @@
-import {format} from 'date-fns';
+import {format, isSameYear} from 'date-fns';
 
 export class DateService {
   static months = [
@@ -39,15 +39,12 @@ export class DateService {
     return DateService.shortMonthName(date, maxLength);
   }
 
-  static format(date: Date | string): string {
-    if (!(date instanceof Date)) {
-      date = new Date(date);
-    }
-
-    return format(date, 'dd.MM.yyyy');
+  static format(date: Date | string, pattern: string = 'dd.MM.yyyy'): string {
+    return format(date instanceof Date ? date : new Date(date), pattern);
   }
 
-  format(date: Date | string): string {
-    return DateService.format(date);
+  format(date: Date | string, beautiful: boolean = false): string {
+    const d = date instanceof Date ? date : new Date(date);
+    return DateService.format(d, beautiful ? (isSameYear(d, new Date()) ? 'dd.MM' : 'dd.MM.yyyy') : undefined);
   }
 }

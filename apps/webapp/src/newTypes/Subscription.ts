@@ -1,7 +1,7 @@
 import {z} from 'zod';
 
-import {Transaction} from './Transaction';
-import {OptionalIdAspect} from './_Aspects';
+import {ExpandedTransasction, Transaction} from './Transaction';
+import {CdsDate, OptionalIdAspect} from './_Aspects';
 import {ODataContextAspect} from './_Base';
 
 // Base model
@@ -11,9 +11,21 @@ export const Subscription = Transaction.omit({
   z.object({
     paused: z.boolean().default(false),
     executeAt: z.number().int().min(1).max(31).default(1),
+    nextExecution: CdsDate,
   }),
 );
 export type TSubscription = z.infer<typeof Subscription>;
+
+export const ExpandedSubscription = ExpandedTransasction.omit({
+  processedAt: true,
+}).merge(
+  z.object({
+    paused: z.boolean().default(false),
+    executeAt: z.number().int().min(1).max(31).default(1),
+    nextExecution: CdsDate,
+  }),
+);
+export type TExpandedSubscription = z.infer<typeof ExpandedSubscription>;
 
 export const CreateOrUpdateSubscription = Subscription.pick({
   executeAt: true,
