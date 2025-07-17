@@ -63,4 +63,27 @@ service BackendService {
                          order by
                            executeAt asc;
 
+  @readonly
+  view CategoryExpenses as
+    select from db.Category {
+      ID,
+      name,
+      description,
+      createdBy,
+      (
+        select sum(transferAmount) from Transaction
+        where
+              toCategory.ID  =  Category.ID
+          and transferAmount >= 0
+      ) as income,
+      coalesce(
+        (
+          select sum(abs(transferAmount)) from db.Transaction
+          where
+                toCategory.ID  = Category.ID
+            and transferAmount < 0
+        ), 0
+      ) as expenses : Double,
+    };
+
 }
