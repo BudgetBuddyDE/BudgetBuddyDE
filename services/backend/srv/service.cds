@@ -54,9 +54,13 @@ service BackendService {
     };
 
   @plural: 'Transactions'
-  entity Transaction  as projection on db.Transaction;
+  entity Transaction  as projection on db.Transaction
+                         order by
+                           processedAt desc;
 
   @plural: 'Subscriptions'
-  entity Subscription as projection on db.Subscription;
+  entity Subscription as projection on db.Subscription
+                         order by
+                           executeAt asc;
 
 }
