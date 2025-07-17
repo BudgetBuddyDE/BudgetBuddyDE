@@ -1,28 +1,33 @@
-import {type TTransaction} from '@budgetbuddyde/types';
 import {AddRounded as AddIcon, ReceiptRounded as ReceiptIcon} from '@mui/icons-material';
 import {Box, Chip, type ChipProps, IconButton} from '@mui/material';
-import {format} from 'date-fns';
 import React from 'react';
 
 import {Card, type TCardProps} from '@/components/Base/Card';
 import {ListWithIcon} from '@/components/Base/ListWithIcon';
 import {NoResults} from '@/components/NoResults';
+import {CategoryChip} from '@/features/Category';
+import {PaymentMethodChip} from '@/features/PaymentMethod';
+import {type TExpandedTransaction} from '@/newTypes';
+import {Formatter} from '@/services/Formatter';
 
-export type TTransactionListProps = {
+export type TEntityListProps<T> = {
+  isLoading?: boolean;
   title: string;
   subtitle?: string;
   noResultsMessage?: string;
-  data: TTransaction[];
-  onAddTransaction?: () => void;
+  data: T[];
+  onAddEntity?: () => void;
   cardProps?: TCardProps;
 };
+
+export type TTransactionListProps = TEntityListProps<TExpandedTransaction>;
 
 export const TransactionList: React.FC<TTransactionListProps> = ({
   title,
   subtitle,
   noResultsMessage = "You haven't made any purchases yet",
   data,
-  onAddTransaction,
+  onAddEntity,
   cardProps,
 }) => {
   const chipProps: ChipProps = {
@@ -38,9 +43,9 @@ export const TransactionList: React.FC<TTransactionListProps> = ({
           <Card.Title>{title}</Card.Title>
           {subtitle !== undefined && subtitle.length > 0 && <Card.Subtitle>{subtitle}</Card.Subtitle>}
         </Box>
-        {onAddTransaction && (
+        {onAddEntity && (
           <Card.HeaderActions>
-            <IconButton color="primary" onClick={onAddTransaction}>
+            <IconButton color="primary" onClick={onAddEntity}>
               <AddIcon />
             </IconButton>
           </Card.HeaderActions>
@@ -50,16 +55,21 @@ export const TransactionList: React.FC<TTransactionListProps> = ({
         {data.length > 0 ? (
           data.map(transaction => (
             <ListWithIcon
-              key={transaction.id}
+              key={transaction.ID}
               icon={<ReceiptIcon />}
               title={transaction.receiver}
               subtitle={
                 <Box>
-                  <Chip label={format(new Date(transaction.processed_at), 'dd.MM')} sx={{mr: 1}} {...chipProps} />
-                  <Chip label={transaction.expand.category.name} {...chipProps} />
+                  <Chip
+                    label={Formatter.formatDate().format(transaction.processedAt, true)}
+                    sx={{mr: 1}}
+                    {...chipProps}
+                  />
+                  <CategoryChip category={transaction.toCategory} {...chipProps} />
+                  <PaymentMethodChip paymentMethod={transaction.toPaymentMethod} {...chipProps} />
                 </Box>
               }
-              amount={transaction.transfer_amount}
+              amount={transaction.transferAmount}
             />
           ))
         ) : (

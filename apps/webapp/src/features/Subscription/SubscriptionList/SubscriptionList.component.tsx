@@ -6,23 +6,22 @@ import {Card} from '@/components/Base/Card';
 import {ListWithIcon} from '@/components/Base/ListWithIcon';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
+import {CategoryChip} from '@/features/Category';
+import {PaymentMethodChip} from '@/features/PaymentMethod';
+import {type TEntityListProps} from '@/features/Transaction';
 import {type TExpandedSubscription} from '@/newTypes';
 import {Formatter} from '@/services/Formatter';
 
-export type TSubscriptionListProps = {
-  isLoading?: boolean;
-  title: string;
-  subtitle?: string;
-  subscriptions: TExpandedSubscription[];
-  onAddSubscription?: () => void;
-};
+export type TSubscriptionListProps = TEntityListProps<TExpandedSubscription>;
 
 export const SubscriptionList: React.FC<TSubscriptionListProps> = ({
   isLoading = false,
   title,
   subtitle,
-  subscriptions,
-  onAddSubscription,
+  data,
+  onAddEntity,
+  cardProps,
+  noResultsMessage = 'There are no subscriptions',
 }) => {
   const chipProps: ChipProps = {
     variant: 'outlined',
@@ -31,15 +30,15 @@ export const SubscriptionList: React.FC<TSubscriptionListProps> = ({
   };
 
   return (
-    <Card>
+    <Card {...cardProps}>
       <Card.Header sx={{mb: 1}}>
         <Box>
           <Card.Title>{title}</Card.Title>
           {subtitle !== undefined && <Card.Subtitle>{subtitle}</Card.Subtitle>}
         </Box>
-        {onAddSubscription && (
+        {onAddEntity && (
           <Card.HeaderActions>
-            <IconButton color="primary" onClick={onAddSubscription}>
+            <IconButton color="primary" onClick={onAddEntity}>
               <AddIcon />
             </IconButton>
           </Card.HeaderActions>
@@ -48,8 +47,8 @@ export const SubscriptionList: React.FC<TSubscriptionListProps> = ({
       <Card.Body>
         {isLoading ? (
           <CircularProgress />
-        ) : subscriptions.length > 0 ? (
-          subscriptions.map(subscription => {
+        ) : data.length > 0 ? (
+          data.map(subscription => {
             return (
               <ListWithIcon
                 key={subscription.ID}
@@ -62,7 +61,8 @@ export const SubscriptionList: React.FC<TSubscriptionListProps> = ({
                       sx={{mr: 1}}
                       {...chipProps}
                     />
-                    <Chip label={subscription.toCategory.name} {...chipProps} />
+                    <CategoryChip category={subscription.toCategory} {...chipProps} />
+                    <PaymentMethodChip paymentMethod={subscription.toPaymentMethod} {...chipProps} />
                   </Box>
                 }
                 amount={subscription.transferAmount}
@@ -70,7 +70,7 @@ export const SubscriptionList: React.FC<TSubscriptionListProps> = ({
             );
           })
         ) : (
-          <NoResults text="There are not subscriptions" />
+          <NoResults text={noResultsMessage} />
         )}
       </Card.Body>
     </Card>
