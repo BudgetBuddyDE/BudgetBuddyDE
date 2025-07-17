@@ -1,35 +1,41 @@
-import {type TSubscription} from '@budgetbuddyde/types';
 import {AddRounded as AddIcon, ReceiptRounded as ReceiptIcon} from '@mui/icons-material';
 import {Box, Chip, type ChipProps, IconButton} from '@mui/material';
-import {format} from 'date-fns';
 import React from 'react';
 
 import {Card} from '@/components/Base/Card';
 import {ListWithIcon} from '@/components/Base/ListWithIcon';
+import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
+import {type TExpandedSubscription} from '@/newTypes';
+import {Formatter} from '@/services/Formatter';
 
-export type TSubscriptionList = {
-  data: TSubscription[];
+export type TSubscriptionListProps = {
+  isLoading?: boolean;
+  title: string;
+  subtitle?: string;
+  subscriptions: TExpandedSubscription[];
   onAddSubscription?: () => void;
 };
 
-export const SubscriptionList: React.FC<TSubscriptionList> = ({data, onAddSubscription}) => {
+export const SubscriptionList: React.FC<TSubscriptionListProps> = ({
+  isLoading = false,
+  title,
+  subtitle,
+  subscriptions,
+  onAddSubscription,
+}) => {
   const chipProps: ChipProps = {
     variant: 'outlined',
     size: 'small',
     sx: {mr: 1},
   };
 
-  const upcomingSubscriptions = React.useMemo(() => {
-    return data.filter(({execute_at}) => execute_at > new Date().getDate());
-  }, [data]);
-
   return (
     <Card>
       <Card.Header sx={{mb: 1}}>
         <Box>
-          <Card.Title>Subscriptions</Card.Title>
-          <Card.Subtitle>Your upcoming subscription-payments</Card.Subtitle>
+          <Card.Title>{title}</Card.Title>
+          {subtitle !== undefined && <Card.Subtitle>{subtitle}</Card.Subtitle>}
         </Box>
         {onAddSubscription && (
           <Card.HeaderActions>
@@ -40,31 +46,31 @@ export const SubscriptionList: React.FC<TSubscriptionList> = ({data, onAddSubscr
         )}
       </Card.Header>
       <Card.Body>
-        {data.length > 0 ? (
-          upcomingSubscriptions.length > 0 ? (
-            upcomingSubscriptions.map(subscription => {
-              const executionDate = new Date();
-              executionDate.setDate(subscription.execute_at);
-              return (
-                <ListWithIcon
-                  key={subscription.id}
-                  icon={<ReceiptIcon />}
-                  title={subscription.receiver}
-                  subtitle={
-                    <Box>
-                      <Chip label={'Next ' + format(executionDate, 'dd.MM')} sx={{mr: 1}} {...chipProps} />
-                      <Chip label={subscription.expand.category.name} {...chipProps} />
-                    </Box>
-                  }
-                  amount={subscription.transfer_amount}
-                />
-              );
-            })
-          ) : (
-            <NoResults text="There are no more upcoming subscriptions for this month!" />
-          )
+        {isLoading ? (
+          <CircularProgress />
+        ) : subscriptions.length > 0 ? (
+          subscriptions.map(subscription => {
+            return (
+              <ListWithIcon
+                key={subscription.ID}
+                icon={<ReceiptIcon />}
+                title={subscription.receiver}
+                subtitle={
+                  <Box>
+                    <Chip
+                      label={'Next ' + Formatter.formatDate().format(subscription.nextExecution, true)}
+                      sx={{mr: 1}}
+                      {...chipProps}
+                    />
+                    <Chip label={subscription.toCategory.name} {...chipProps} />
+                  </Box>
+                }
+                amount={subscription.transferAmount}
+              />
+            );
+          })
         ) : (
-          <NoResults />
+          <NoResults text="There are not subscriptions" />
         )}
       </Card.Body>
     </Card>

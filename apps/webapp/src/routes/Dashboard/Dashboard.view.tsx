@@ -1,4 +1,4 @@
-import {Box, Button, Grid2 as Grid, Stack} from '@mui/material';
+import {Box, Grid2 as Grid, Stack} from '@mui/material';
 import React from 'react';
 
 import {AppConfig} from '@/app.config';
@@ -10,8 +10,8 @@ import {BudgetPieChart} from '@/features/Budget';
 import {CategoryExpenseChart, UpcomingSubscriptions} from '@/features/Category';
 import {
   SubscriptionDrawer,
-  SubscriptionList,
   type TSusbcriptionDrawerValues,
+  UpcomingSubscriptionsList,
   useSubscriptions,
 } from '@/features/Subscription';
 import {
@@ -21,14 +21,13 @@ import {
   useTransactions,
 } from '@/features/Transaction';
 import {useDocumentTitle} from '@/hooks/useDocumentTitle';
-import {odata} from '@/odata.client';
 
 const LIST_ITEM_COUNT = 6;
 
 const DashboardView = () => {
   useDocumentTitle(`${AppConfig.appName} - Dashboard`, true);
   const {isLoading: isLoadingTransactions, getLatestTransactions, getUpcomingAsTransactions} = useTransactions();
-  const {isLoading: isLoadingSubscriptions, getUpcomingSubscriptions} = useSubscriptions();
+  const {isLoading: isLoadingSubscriptions} = useSubscriptions();
   const [transactionDrawer, dispatchTransactionDrawer] = React.useReducer(
     useEntityDrawer<TTransactionDrawerValues>,
     UseEntityDrawerDefaultState<TTransactionDrawerValues>(),
@@ -47,32 +46,16 @@ const DashboardView = () => {
     },
   };
 
-  const postData = async () => {
-    const result = await odata
-      .get('/odata/v4/backend/Transaction')
-      .post('/odata/v4/backend/Category', {
-        name: 'New Category' + new Date().toISOString(),
-        description: 'This is a new category created via OData client',
-      })
-      .query();
-    console.log('Fetched categories:', result);
-  };
-
   return (
     <React.Fragment>
       <DashboardStatsWrapper />
-
-      <Button onClick={() => postData()}>Submit request</Button>
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
         <Stack spacing={AppConfig.baseSpacing}>
           {isLoadingSubscriptions ? (
             <CircularProgress />
           ) : (
-            <SubscriptionList
-              data={getUpcomingSubscriptions(LIST_ITEM_COUNT)}
-              onAddSubscription={handler.onAddSubscription}
-            />
+            <UpcomingSubscriptionsList onAddSubscription={handler.onAddSubscription} />
           )}
 
           <UpcomingSubscriptions />
