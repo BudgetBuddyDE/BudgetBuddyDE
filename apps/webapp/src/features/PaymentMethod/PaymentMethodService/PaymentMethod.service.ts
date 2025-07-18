@@ -44,7 +44,7 @@ export class PaymentMethodService extends EntityService {
     paymentMethodId: _TPaymentMethod['ID'],
     payload: TCreateOrUpdatePaymentMethod,
   ): Promise<TPaymentMethodResponse> {
-    const record = await this.$odata.put(`${this.$entityPath}(ID=${paymentMethodId})`, payload).query();
+    const record = await this.$odata.patch(`${this.$entityPath}(ID=${paymentMethodId})`, payload).query();
     const parsingResult = PaymentMethodResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;

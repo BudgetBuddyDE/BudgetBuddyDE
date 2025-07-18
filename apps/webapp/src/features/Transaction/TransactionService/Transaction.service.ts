@@ -45,7 +45,7 @@ export class TransactionService extends EntityService {
     transactionId: _TTransaction['ID'],
     payload: TCreateOrUpdateTransaction,
   ): Promise<TTransactionResponse> {
-    const record = await this.$odata.put(`${this.$entityPath}(ID=${transactionId})`, payload).query();
+    const record = await this.$odata.patch(`${this.$entityPath}(ID=${transactionId})`, payload).query();
     const parsingResult = TransactionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;

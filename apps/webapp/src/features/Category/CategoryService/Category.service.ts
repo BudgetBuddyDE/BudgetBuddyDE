@@ -42,7 +42,7 @@ export class CategoryService extends EntityService {
     categoryId: _TCategory['ID'],
     payload: TCreateOrUpdateCategory,
   ): Promise<TCategoryResponse> {
-    const record = await this.$odata.put(`${this.$entityPath}(ID=${categoryId})`, payload).query();
+    const record = await this.$odata.patch(`${this.$entityPath}(ID=${categoryId})`, payload).query();
     const parsingResult = CategoryResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;

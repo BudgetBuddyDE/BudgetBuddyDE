@@ -36,7 +36,7 @@ export class SubscriptionService extends EntityService {
     subscriptionId: _TSubscription['ID'],
     payload: Partial<TCreateOrUpdateSubscription>,
   ): Promise<TSubscriptionResponse> {
-    const record = await this.$odata.put(`${this.$entityPath}(ID=${subscriptionId})`, payload).query();
+    const record = await this.$odata.patch(`${this.$entityPath}(ID=${subscriptionId})`, payload).query();
     const parsingResult = SubscriptionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
