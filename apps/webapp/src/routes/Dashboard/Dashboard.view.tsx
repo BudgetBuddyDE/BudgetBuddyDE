@@ -5,7 +5,7 @@ import {AppConfig} from '@/app.config';
 import {DashboardStatsWrapper} from '@/components/DashboardStatsWrapper';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {BudgetPieChart} from '@/features/Budget';
-import {CategoryExpenseChart, UpcomingSubscriptions} from '@/features/Category';
+import {CategoryExpenseChart, CategoryService, UpcomingSubscriptions} from '@/features/Category';
 import {SubscriptionDrawer, type TSusbcriptionDrawerValues, UpcomingSubscriptionsList} from '@/features/Subscription';
 import {LatestTransactionsList, type TTransactionDrawerValues, TransactionDrawer} from '@/features/Transaction';
 import {useDocumentTitle} from '@/hooks/useDocumentTitle';
@@ -32,6 +32,19 @@ const DashboardView = () => {
 
   return (
     <React.Fragment>
+      <button
+        onClick={async () => {
+          console.clear();
+          console.log('Retrieving categories...');
+          console.dir(
+            await CategoryService.getCategoryStats({
+              start: new Date('2025-07-01'),
+              end: new Date('2025-07-31'),
+            }),
+          );
+        }}>
+        retrieve
+      </button>
       <DashboardStatsWrapper />
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>

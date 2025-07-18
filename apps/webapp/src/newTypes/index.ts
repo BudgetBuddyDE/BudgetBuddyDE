@@ -4,3 +4,4 @@ export * from './Category';
 export * from './PaymentMethod';
 export * from './Transaction';
 export * from './Subscription';
+export * from './Stocks';

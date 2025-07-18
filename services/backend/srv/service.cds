@@ -63,27 +63,55 @@ service BackendService {
                          order by
                            executeAt asc;
 
-  @readonly
-  view CategoryExpenses as
-    select from db.Category {
-      ID,
-      name,
-      description,
-      createdBy,
-      (
-        select sum(transferAmount) from Transaction
-        where
-              toCategory.ID  =  Category.ID
-          and transferAmount >= 0
-      ) as income,
-      coalesce(
-        (
-          select sum(abs(transferAmount)) from db.Transaction
-          where
-                toCategory.ID  = Category.ID
-            and transferAmount < 0
-        ), 0
-      ) as expenses : Double,
-    };
 
+  @plural: 'CategoryStats'
+  view CategoryStats @(restrict: [{
+    grant: ['READ'],
+    where: 'createdBy = $user'
+  }]) as
+    select from db.Transaction {
+      toCategory,
+      sum(transferAmount) as balance,
+      sum(case
+            when transferAmount > 0
+                 then transferAmount
+            else 0
+          end)            as income,
+      sum(case
+            when transferAmount < 0
+                 then abs(transferAmount)
+            else 0
+          end)            as expenses,
+      count( * )          as transactionCount,
+      // min(processedAt)    as start,
+      // max(processedAt)    as end,
+      createdBy
+    }
+    group by
+      toCategory.ID;
 }
+
+@plural: 'StockExchanges'
+entity StockExchange @(restrict: [{grant: ['READ']}]) as projection on db.StockExchange;
+
+@plural: 'StockWatchlists'
+entity StockWatchlist @(restrict: [{
+  grant: [
+    'READ',
+    'CREATE',
+    'UPDATE',
+    'DELETE'
+  ],
+  where: 'createdBy = $user'
+}])                                                   as projection on db.StockWatchlist;
+
+@plural: 'StockPositions'
+entity StockPosition @(restrict: [{
+  grant: [
+    'READ',
+    'CREATE',
+    'UPDATE',
+    'DELETE'
+  ],
+  where: 'createdBy = $user'
+}])                                                   as projection on db.StockPosition;

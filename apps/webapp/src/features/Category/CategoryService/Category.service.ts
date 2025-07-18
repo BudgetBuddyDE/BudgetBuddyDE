@@ -1,5 +1,6 @@
 import {type TCategory, type TTransaction} from '@budgetbuddyde/types';
 import {subDays} from 'date-fns';
+import {fromPairs} from 'lodash';
 import {z} from 'zod';
 
 import {type TSelectCategoriesOption} from '@/features/Insights/InsightsDialog/SelectCategories';
@@ -7,12 +8,17 @@ import {
   Category,
   CategoryResponse,
   Category_VH,
+  ExpandedCategoryStats,
   type TCategoryResponse,
   type TCategory_VH,
+  type TCdsDate,
   type TCreateOrUpdateCategory,
+  TExpandedCategoryStats,
   type TCategory as _TCategory,
 } from '@/newTypes';
+import {DateService} from '@/services/Date';
 import {EntityService} from '@/services/Entity';
+import {Formatter} from '@/services/Formatter';
 
 import {type TCategoryAutocompleteOption} from '../Autocomplete';
 
@@ -84,6 +90,26 @@ export class CategoryService extends EntityService {
   static async getCategoryValueHelps(): Promise<TCategory_VH[]> {
     const records = await this.$odata.get(this.$valueHelpPath).query();
     const parsingResult = z.array(Category_VH).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
+  /**
+   * Retrieves the statistics for categories within a specific date range.
+   * @param param0 - The start and end dates for the statistics.
+   * @returns A promise that resolves to an array of expanded category statistics.
+   */
+  static async getCategoryStats({start, end}: {start: TCdsDate; end: TCdsDate}): Promise<TExpandedCategoryStats[]> {
+    const startDate = DateService.format(start, 'yyyy-MM-dd');
+    const endDate = DateService.format(end, 'yyyy-MM-dd');
+    const records = await this.newOdataHandler()
+      .get(this.$servicePath + '/CategoryStats')
+      .query({
+        // $filter: `start ge ${format(start)} and end le ${end}`,
+        $filter: `start ge ${startDate}`,
+        $expand: 'toCategory',
+      });
+    const parsingResult = z.array(ExpandedCategoryStats).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
   }

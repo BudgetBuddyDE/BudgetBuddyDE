@@ -38,6 +38,12 @@ const options: BetterAuthOptions = {
     },
   },
   trustedOrigins: getTrustedOrigins(),
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 0.5 * 60, // Cache duration in seconds
+    },
+  },
   advanced: {
     disableCSRFCheck: isCSRFCheckDisabled(),
     useSecureCookies: config.runtime == 'production',
