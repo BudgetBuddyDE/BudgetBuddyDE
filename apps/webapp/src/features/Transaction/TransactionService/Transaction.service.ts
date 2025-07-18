@@ -1,5 +1,4 @@
 import {PocketBaseCollection, type TTransaction} from '@budgetbuddyde/types';
-import {o} from '@tklein1801/o.js';
 import {isAfter, isSameMonth, subDays} from 'date-fns';
 import {type RecordModel} from 'pocketbase';
 import {z} from 'zod';
@@ -13,6 +12,7 @@ import {
 } from '@/newTypes';
 import {type TTransaction as _TTransaction} from '@/newTypes';
 import {pb} from '@/pocketbase';
+import {EntityService} from '@/services/Entity';
 
 /**
  * Service for managing transactions.
@@ -20,13 +20,8 @@ import {pb} from '@/pocketbase';
 /**
  * Service class for managing transactions.
  */
-export class TransactionService {
-  private static readonly $servicePath = '/odata/v4/backend';
+export class TransactionService extends EntityService {
   private static readonly $entityPath = this.$servicePath + '/Transaction';
-  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
-    // TODO: Configure the $batch endpoint
-    credentials: 'include',
-  });
 
   /**
    * Creates a new transaction.

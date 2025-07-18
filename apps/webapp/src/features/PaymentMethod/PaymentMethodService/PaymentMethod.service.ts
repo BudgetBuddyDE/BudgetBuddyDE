@@ -1,5 +1,4 @@
 import {type TPaymentMethod, type TTransaction} from '@budgetbuddyde/types';
-import {o} from '@tklein1801/o.js';
 import {subDays} from 'date-fns';
 import {z} from 'zod';
 
@@ -12,17 +11,13 @@ import {
   type TPaymentMethod_VH,
   type TPaymentMethod as _TPaymentMethod,
 } from '@/newTypes';
+import {EntityService} from '@/services/Entity';
 
 import {type TPaymentMethodAutocompleteOption} from '../Autocomplete';
 
-export class PaymentMethodService {
-  private static readonly $servicePath = '/odata/v4/backend';
+export class PaymentMethodService extends EntityService {
   private static readonly $entityPath = this.$servicePath + '/PaymentMethod';
   private static readonly $valueHelpPath = this.$servicePath + '/PaymentMethod_VH';
-  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
-    // TODO: Configure the $batch endpoint
-    credentials: 'include',
-  });
 
   private static paymentMethodLabelSeperator = '•';
 

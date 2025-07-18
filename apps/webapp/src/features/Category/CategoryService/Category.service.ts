@@ -1,5 +1,4 @@
 import {type TCategory, type TTransaction} from '@budgetbuddyde/types';
-import {o} from '@tklein1801/o.js';
 import {subDays} from 'date-fns';
 import {z} from 'zod';
 
@@ -13,17 +12,13 @@ import {
   type TCreateOrUpdateCategory,
   type TCategory as _TCategory,
 } from '@/newTypes';
+import {EntityService} from '@/services/Entity';
 
 import {type TCategoryAutocompleteOption} from '../Autocomplete';
 
-export class CategoryService {
-  private static readonly $servicePath = '/odata/v4/backend';
+export class CategoryService extends EntityService {
   private static readonly $entityPath = this.$servicePath + '/Category';
   private static readonly $valueHelpPath = this.$servicePath + '/Category_VH';
-  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
-    // TODO: Configure the $batch endpoint
-    credentials: 'include',
-  });
 
   /**
    * Creates a new category.

@@ -1,5 +1,4 @@
 import {type TCategory, type TSubscription} from '@budgetbuddyde/types';
-import {o} from '@tklein1801/o.js';
 import {z} from 'zod';
 
 import {
@@ -10,14 +9,10 @@ import {
   type TSubscriptionResponse,
   type TSubscription as _TSubscription,
 } from '@/newTypes';
+import {EntityService} from '@/services/Entity';
 
-export class SubscriptionService {
-  private static readonly $servicePath = '/odata/v4/backend';
+export class SubscriptionService extends EntityService {
   private static readonly $entityPath = this.$servicePath + '/Subscription';
-  private static readonly $odata = o(import.meta.env.VITE_BACKEND_HOST, {
-    // TODO: Configure the $batch endpoint
-    credentials: 'include',
-  });
 
   /**
    * Creates a new subscription.
