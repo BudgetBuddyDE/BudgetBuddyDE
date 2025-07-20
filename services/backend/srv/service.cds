@@ -13,7 +13,7 @@ service BackendService {
       'DELETE'
     ],
     where: 'createdBy = $user'
-  }])                 as projection on db.Category;
+  }])                                                   as projection on db.Category;
 
   @readonly
   view Category_VH @(restrict: [{
@@ -37,7 +37,7 @@ service BackendService {
       'DELETE'
     ],
     where: 'createdBy = $user'
-  }])                 as projection on db.PaymentMethod;
+  }])                                                   as projection on db.PaymentMethod;
 
   @readonly
   view PaymentMethod_VH @(restrict: [{
@@ -54,64 +54,58 @@ service BackendService {
     };
 
   @plural: 'Transactions'
-  entity Transaction  as projection on db.Transaction
-                         order by
-                           processedAt desc;
+  entity Transaction @(restrict: [{
+    grant: [
+      'READ',
+      'CREATE',
+      'UPDATE',
+      'DELETE'
+    ],
+    where: 'createdBy = $user'
+  }])                                                   as projection on db.Transaction
+                                                           order by
+                                                             processedAt desc;
 
   @plural: 'Subscriptions'
-  entity Subscription as projection on db.Subscription
-                         order by
-                           executeAt asc;
+  entity Subscription @(restrict: [{
+    grant: [
+      'READ',
+      'CREATE',
+      'UPDATE',
+      'DELETE'
+    ],
+    where: 'createdBy = $user'
+  }])                                                   as projection on db.Subscription
+                                                           order by
+                                                             executeAt asc;
 
 
   @plural: 'CategoryStats'
-  view CategoryStats @(restrict: [{
-    grant: ['READ'],
+  view CategoryStats as select from db.CategoryStats;
+
+  @plural: 'StockExchanges'
+  entity StockExchange @(restrict: [{grant: ['READ']}]) as projection on db.StockExchange;
+
+  @plural: 'StockWatchlists'
+  entity StockWatchlist @(restrict: [{
+    grant: [
+      'READ',
+      'CREATE',
+      'UPDATE',
+      'DELETE'
+    ],
     where: 'createdBy = $user'
-  }]) as
-    select from db.Transaction {
-      toCategory,
-      sum(transferAmount) as balance,
-      sum(case
-            when transferAmount > 0
-                 then transferAmount
-            else 0
-          end)            as income,
-      sum(case
-            when transferAmount < 0
-                 then abs(transferAmount)
-            else 0
-          end)            as expenses,
-      count( * )          as transactionCount,
-      // min(processedAt)    as start,
-      // max(processedAt)    as end,
-      createdBy
-    }
-    group by
-      toCategory.ID;
+  }])                                                   as projection on db.StockWatchlist;
+
+  @plural: 'StockPositions'
+  entity StockPosition @(restrict: [{
+    grant: [
+      'READ',
+      'CREATE',
+      'UPDATE',
+      'DELETE'
+    ],
+    where: 'createdBy = $user'
+  }])                                                   as projection on db.StockPosition;
+
 }
-
-@plural: 'StockExchanges'
-entity StockExchange @(restrict: [{grant: ['READ']}]) as projection on db.StockExchange;
-
-@plural: 'StockWatchlists'
-entity StockWatchlist @(restrict: [{
-  grant: [
-    'READ',
-    'CREATE',
-    'UPDATE',
-    'DELETE'
-  ],
-  where: 'createdBy = $user'
-}])                                                   as projection on db.StockWatchlist;
-
-@plural: 'StockPositions'
-entity StockPosition @(restrict: [{
-  grant: [
-    'READ',
-    'CREATE',
-    'UPDATE',
-    'DELETE'
-  ],
-  where: 'createdBy = $user'
-}])                                                   as projection on db.StockPosition;

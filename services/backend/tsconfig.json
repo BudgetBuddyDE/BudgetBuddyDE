@@ -4,14 +4,26 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "isolatedModules": true,
+    "sourceMap": true,
+
+    "allowJs": false,
     "forceConsistentCasingInFileNames": true,
+
+    // Best practices
     "strict": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "allowJs": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Some stricter flags (disabled by default)
+    "isolatedModules": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+
     "paths": {
       "#cds-models/*": ["./@cds-models/*"]
-    }
+    },
+    "types": ["jest", "node", "@cap-js/cds-types"]
   }
 }

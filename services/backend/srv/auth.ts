@@ -1,13 +1,17 @@
-import cds from '@sap/cds';
-import { type NextFunction, type Request, type Response } from 'express';
+import cds from "@sap/cds";
+import { type NextFunction, type Request, type Response } from "express";
 
-import { authClient } from './authClient';
+import { authClient } from "./authClient";
 
 type Req = Request & { user: cds.User; tenant: string; requestId: string };
 
-const authLogger = cds.log('auth');
+const authLogger = cds.log("auth");
 
-export default async function auth(req: Req, _res: Response, next: NextFunction) {
+export default async function auth(
+  req: Req,
+  _res: Response,
+  next: NextFunction,
+) {
   req.requestId = cds.utils.uuid();
   let logOptions = {
     requestId: req.requestId,
@@ -21,11 +25,11 @@ export default async function auth(req: Req, _res: Response, next: NextFunction)
     const session = await authClient.getSession(undefined, {
       headers: new Headers(req.headers as HeadersInit),
     });
-    authLogger.debug('Session retrieved', { session: session, ...logOptions });
+    authLogger.debug("Session retrieved", { session: session, ...logOptions });
 
     if (!session || !session.data) {
-      const err = new Error('No session found');
-      authLogger.warn('No session found', logOptions);
+      const err = new Error("No session found");
+      authLogger.warn("No session found", logOptions);
       return next(err);
     }
 
@@ -42,7 +46,10 @@ export default async function auth(req: Req, _res: Response, next: NextFunction)
     });
     logOptions.user = req.user;
 
-    authLogger.debug('User (' + session.data.user.email + ') authenticated', logOptions);
+    authLogger.debug(
+      "User (" + session.data.user.email + ") authenticated",
+      logOptions,
+    );
 
     next();
   } catch (error) {

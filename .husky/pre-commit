@@ -35,6 +35,11 @@ if has_changes "services/auth-service"; then
   cd services/auth-service && npm run format:check && npm run test:run && npm run build && go_back || exit 1
 fi 
 
+if has_changes "services/backend"; then
+  echo "Running checks for services/backend..."
+  cd services/backend && npm run format:check && npm run test && npm run build && go_back || exit 1
+fi 
+
 if has_changes "services/mail-service"; then
   echo "Running checks for services/mail-service..."
   cd services/mail-service && npm run test:run && npx prettier --check src && go_back || exit 1
