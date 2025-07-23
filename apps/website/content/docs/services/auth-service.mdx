@@ -1,0 +1,111 @@
+---
+title: Auth Service
+---
+
+## About
+
+The Auth Service is a central component of the architecture that is responsible for user authentication and authorization. It enables users to register, log in, and determine their access to data.
+The service was developed using the Better-Auth and ExpressJS frameworks and uses a PostgreSQL database to store user data. Thanks to the Better-Auth client library, it is easy to integrate a client into a frontend and backend.
+Currently, the Auth Service supports authentication via email and password, as well as OAuth providers such as Google and GitHub.
+
+<Callout>
+  Other providers such as Apple and Microsoft are not currently planned, but can be configured if
+  required.
+</Callout>
+
+## Getting started
+
+### Development
+
+<Steps>
+<Step>
+#### Clone the repository
+    
+```bash
+git clone git@github.com:budgetbuddyde/budgetbuddyde.git
+cd ./services/auth-service
+```
+
+</Step>
+<Step>
+#### Install dependencies
+
+```bash
+npm install
+```
+
+</Step>
+<Step>
+#### Set up environment variables
+    
+Set all required environment variables as defined in the `.env.example` file. You can copy the example file to create your own `.env` file.
+</Step>
+<Step>
+#### Start the application
+
+```bash
+npm run watch
+```
+
+</Step>
+</Steps>
+
+## Build
+
+### Local
+
+To build the service locally, you can use the following command:
+
+```bash
+npm run build
+```
+
+### For Docker
+
+<Callout type="info">
+  A current Docker image is automatically created when a commit is pushed to the `main` branch. The
+  image is provided in the GitHub Container Registry under
+  `ghcr.io/budgetbuddyde/auth-service:latest`.
+</Callout>
+
+To build the service for Docker, you can use the following command:
+
+```bash
+docker build -t ghcr.io/budgetbuddyde/auth-service:latest .
+```
+
+## Deployment
+
+The service is currently provided automatically as soon as a commit is pushed to the `main` branch. The service is run in a Docker container and provided in a Railway environment.
+
+### Schema Migration
+
+<Callout type="info">
+  For more information about the schema generation and migration have a look into [the
+  documentation](https://www.better-auth.com/docs/basic-usage#migrate-database).
+</Callout>
+
+The database schema required for the Better-Auth auth service can be generated using the `@better-auth/cli`:
+
+```bash
+npm run ba:schema-generate
+```
+
+The previously generated schema can be applied using Drizzle Kit. This can be done with the following commands:
+
+<Callout type="warn">
+  Make sure that the `DATABASE_URL` environment variable is set and points to the target database
+  where the schema should be applied. If the environment variable is not set, the process will fail
+  with an error.
+</Callout>
+
+```bash
+npm run db:generate # will generate all required schemas
+npm run db:migrate # will apply the generated schema to the database
+```
+
+## Credits
+
+- [Better-Auth](https://better-auth.com)
+- [ExpressJS](https://expressjs.com/)
+- [PostgreSQL](https://www.postgresql.org/)

@@ -1,0 +1,89 @@
+---
+title: Backend
+---
+
+## About
+
+The backend was developed using the SAP Capire Framework and PostgreSQL for persistence, enabling the frontend application to access and manage data. It provides a RESTful API in OData format, which allows data to be created, read, updated, and deleted (CRUD operations). The backend has a modular structure and can be easily expanded to add additional functions.
+Data security was ensured with restriction rules and the Auth service, which is responsible for user authentication and authorization, ensuring that each user can only access their own data.
+
+## Getting started
+
+### Development
+
+<Steps>
+<Step>
+#### Clone the repository
+    
+```bash
+git clone git@github.com:budgetbuddyde/budgetbuddyde.git
+cd ./services/auth-service
+```
+
+</Step>
+<Step>
+#### Install dependencies
+
+```bash
+npm install
+```
+
+</Step>
+<Step>
+#### Set up environment variables
+    
+Set all required environment variables as defined in the `.env.example` file. You can copy the example file to create your own `.env` file.
+</Step>
+<Step>
+#### Start the application
+
+```bash
+npm run watch
+```
+
+</Step>
+</Steps>
+
+## Build
+
+### For Docker
+
+<Callout type="info">
+  A current Docker image is automatically created when a commit is pushed to the `main` branch. The
+  image is provided in the GitHub Container Registry under `ghcr.io/budgetbuddyde/backend:latest`.
+</Callout>
+
+To build the service for Docker, you can use the following command:
+
+```bash
+docker build \
+  --build-arg DB_HOST=mein-db-host \
+  --build-arg DB_PORT=5432 \
+  --build-arg DB_USER=meinuser \
+  --build-arg DB_PASSWORD=geheim \
+  --build-arg DB_DATABASE=meinedb \
+  -t ghcr.io/budgetbuddyde/backend:latest .
+```
+
+## Deployment
+
+The service is currently provided automatically as soon as a commit is pushed to the `main` branch. The service is run in a Docker container and provided in a Railway environment.
+
+### Schema Migration
+
+Information about the restrictions that apply to automatic schema evolution can be found in the [SAP Capire documentation](https://cap.cloud.sap/docs/guides/databases-postgres#schema-evolution).
+
+## Security
+
+<Callout>
+  The backend is secured by the Auth Service, which ensures that only authenticated users can access
+  the data (by using `@(restrict: [])`; [SAP Capire
+  documentation](https://cap.cloud.sap/docs/guides/security/authorization#restrictions)).
+</Callout>
+
+The middleware for authentication was implemented in `srv/auth.ts`. For testing purposes, authentication is mocked and a user is set in `srv/mocked-test.ts`.
+
+## Credits
+
+- [SAP Capire Framework](https://cap.cloud.sap)
+- [PostgreSQL](https://www.postgresql.org)
