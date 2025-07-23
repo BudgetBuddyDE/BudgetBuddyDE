@@ -1,6 +1,5 @@
 import {type TCategory, type TTransaction} from '@budgetbuddyde/types';
 import {subDays} from 'date-fns';
-import {fromPairs} from 'lodash';
 import {z} from 'zod';
 
 import {type TSelectCategoriesOption} from '@/features/Insights/InsightsDialog/SelectCategories';
@@ -18,7 +17,6 @@ import {
 } from '@/newTypes';
 import {DateService} from '@/services/Date';
 import {EntityService} from '@/services/Entity';
-import {Formatter} from '@/services/Formatter';
 
 import {type TCategoryAutocompleteOption} from '../Autocomplete';
 
@@ -105,8 +103,7 @@ export class CategoryService extends EntityService {
     const records = await this.newOdataHandler()
       .get(this.$servicePath + '/CategoryStats')
       .query({
-        // $filter: `start ge ${format(start)} and end le ${end}`,
-        $filter: `start ge ${startDate}`,
+        $filter: `processedAt ge ${startDate} and processedAt le ${endDate}`,
         $expand: 'toCategory',
       });
     const parsingResult = z.array(ExpandedCategoryStats).safeParse(records);

@@ -6,11 +6,10 @@ import {Card} from '@/components/Base/Card';
 import {PieChart, type TPieChartData} from '@/components/Base/Charts';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
-import {logger} from '@/logger';
+import {type TExpandedCategoryStats} from '@/newTypes';
 import {Formatter} from '@/services/Formatter';
 
-import {type TCategoryStats} from '../../Category.types';
-import {useCategories} from '../../useCategories.hook';
+import {CategoryService} from '../../CategoryService';
 
 export type TCategoryPieChartTimeframe = 'MONTH' | 'YTD' | 'ALL_TIME';
 
@@ -62,10 +61,9 @@ export const CategoryPieChart: React.FC<TCategoryPieChartProps> = ({
   transactionsType,
   withViewMore = false,
 }) => {
-  const {getStats} = useCategories();
   const [isLoading, setIsLoading] = React.useState(true);
   const [currentTimeframe, setCurrentTimeframe] = React.useState<TCategoryPieChartTimeframe>(defaultTimeframe);
-  const [data, setData] = React.useState<Record<TCategoryPieChartTimeframe, TCategoryStats | null>>({
+  const [data, setData] = React.useState<Record<TCategoryPieChartTimeframe, TExpandedCategoryStats[] | null>>({
     MONTH: null,
     YTD: null,
     ALL_TIME: null,
@@ -92,10 +90,10 @@ export const CategoryPieChart: React.FC<TCategoryPieChartProps> = ({
 
   const chartData: TPieChartData[] = React.useMemo(() => {
     if (!data[currentTimeframe]) return [];
-    const stats = data[currentTimeframe].categories;
+    const stats = data[currentTimeframe];
     return stats
       .map(stat => ({
-        label: stat.category.name,
+        label: stat.toCategory.name,
         value: transactionsType === 'INCOME' ? stat.income : stat.expenses,
       }))
       .filter(({value}) => value > 0);
@@ -104,13 +102,9 @@ export const CategoryPieChart: React.FC<TCategoryPieChartProps> = ({
   const fetchData = React.useCallback(async () => {
     if (!isLoading) setIsLoading(true);
     const [startDate, endDate] = getDateRange(currentTimeframe);
-    const [budget, err] = await getStats(startDate, endDate);
+    const stats = await CategoryService.getCategoryStats({start: startDate, end: endDate});
     setIsLoading(false);
-    if (err) {
-      logger.error("Wasn't able to fetch data", err);
-      return;
-    }
-    setData(prev => ({...prev, [currentTimeframe]: budget}));
+    setData(prev => ({...prev, [currentTimeframe]: stats}));
   }, [currentTimeframe]);
 
   React.useEffect(() => {
