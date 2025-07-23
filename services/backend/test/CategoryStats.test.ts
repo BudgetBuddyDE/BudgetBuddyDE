@@ -55,6 +55,38 @@ describe('CategoryStats', () => {
     });
   });
 
+  test("it should still support $expand for 'toCategory'", async () => {
+    const date = '2025-07-15';
+    const result = await util.core.get<CategoryStat>('CategoryStats', {
+      $filter: `processedAt ge ${date}`,
+      $expand: 'toCategory',
+    });
+
+    expect(result).toBeDefined();
+    expect(result.data).toEqual([
+      {
+        balance: 22.97,
+        createdBy: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+        end: '2025-07-15T08:36:00Z',
+        expenses: 0,
+        income: 22.97,
+        processedAt: '2025-07-15T08:36:00Z',
+        start: '2024-05-08T05:05:00Z',
+        toCategory: {
+          ID: 'ed1e126b-62fb-4557-bea2-312cd0605e31',
+          createdAt: '2025-07-17T00:44:25.736Z',
+          createdBy: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+          description: null,
+          modifiedAt: '2025-07-17T00:44:25.736Z',
+          modifiedBy: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+          name: 'Lebensmittel',
+          owner: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+        },
+        toCategory_ID: 'ed1e126b-62fb-4557-bea2-312cd0605e31',
+      },
+    ]);
+  });
+
   test('it should return statistics for a specific date range', async () => {
     const startDate = '2025-06-01';
     const endDate = '2025-06-30';
