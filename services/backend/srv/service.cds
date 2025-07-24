@@ -27,6 +27,9 @@ service BackendService {
       createdBy
     };
 
+  entity Budget                                         as projection on db.Budget;
+  entity BudgetCategory                                 as projection on db.Budget.categories;
+
   @plural                : 'PaymentMethods'
   @cds.redirection.target: 'PaymentMethod'
   entity PaymentMethod @(restrict: [{

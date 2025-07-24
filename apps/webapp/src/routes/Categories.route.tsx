@@ -187,9 +187,7 @@ export const Categories = () => {
           withSelection
           onSelectAll={handler.selection.onSelectAll}
           amountOfSelectedEntities={selectedCategories.length}
-          onDelete={() => {
-            if (handler.selection.onDeleteMultiple) handler.selection.onDeleteMultiple();
-          }}
+          onDelete={handler.selection.onDeleteMultiple}
         />
       </Grid>
 

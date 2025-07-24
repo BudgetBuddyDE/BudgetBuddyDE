@@ -26,6 +26,26 @@ entity Category : cuid, managed {
     description : Description;
 }
 
+type BudgetType  : String(1) enum {
+    INCLUDE = 'i';
+    EXCLUDE = 'e';
+}
+
+@plural: 'Budgets'
+entity Budget : cuid, managed {
+    owner      : UserID;
+    type       : BudgetType;
+    categories : Composition of many {
+                     toCategory : Association to one Category @assert.target;
+                 };
+    name       : String(40) @assert.notNull;
+    budget     : Double     @assert.notNull
+                            @assert.range: [
+        (0),
+        _
+    ];
+}
+
 @plural       : 'PaymentMethods'
 @assert.unique: {owner: [
     owner,
