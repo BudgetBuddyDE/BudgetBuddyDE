@@ -26,6 +26,27 @@ entity Category : cuid, managed {
     description : Description;
 }
 
+type BudgetType  : String(1) enum {
+    INCLUDE = 'i';
+    EXCLUDE = 'e';
+}
+
+@plural: 'Budgets'
+entity Budget : cuid, managed {
+            owner        : UserID;
+            type         : BudgetType;
+    virtual balance      : Double;
+            toCategories : Composition of many {
+                               key toCategory : Association to one Category @assert.target;
+                           };
+            name         : String(40) @assert.notNull;
+            budget       : Double     @assert.notNull
+                                      @assert.range: [
+                (0),
+                _
+            ];
+}
+
 @plural       : 'PaymentMethods'
 @assert.unique: {owner: [
     owner,
@@ -59,13 +80,13 @@ entity Transaction : cuid, managed {
 view CategoryStats as
     select from Transaction {
         toCategory,
-        virtual 0        as income   : type of Transaction : transferAmount,
-        virtual 0        as expenses : type of Transaction : transferAmount,
-        virtual 0        as balance  : type of Transaction : transferAmount,
-        // start, end and processedAt needs to be included for filtering
-        min(processedAt) as start    : type of Transaction : processedAt,
-        max(processedAt) as end      : type of Transaction : processedAt,
-        processedAt                  : type of Transaction : processedAt,
+        virtual 0 as income   : type of Transaction : transferAmount,
+        virtual 0 as expenses : type of Transaction : transferAmount,
+        virtual 0 as balance  : type of Transaction : transferAmount,
+        // REVISIT: start, end and processedAt needs to be included for filtering
+        // min(processedAt) as start    : type of Transaction : processedAt,
+        // max(processedAt) as end      : type of Transaction : processedAt,
+        processedAt           : type of Transaction : processedAt,
         createdBy
     }
     group by

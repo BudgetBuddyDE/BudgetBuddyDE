@@ -27,6 +27,53 @@ service BackendService {
       createdBy
     };
 
+  @plural                : 'Budgets'
+  @cds.redirection.target: 'Budget'
+  entity Budget                                         as
+    projection on db.Budget {
+      *,
+      (
+        select sum(t.transferAmount) * -1 from db.Transaction as t
+        where
+              t.owner              = Budget.owner
+          and month(t.processedAt) = month(current_date)
+          and year(t.processedAt)  = year(current_date)
+          and (
+            (
+              Budget.type          = 'i'
+              and exists(
+                select from db.Budget.toCategories as bc
+                where
+                  bc.toCategory.ID = t.toCategory.ID
+              )
+            )
+            or (
+              Budget.type          = 'e'
+              and not exists(
+                select from db.Budget.toCategories as bc
+                where
+                  bc.toCategory.ID = t.toCategory.ID
+              )
+            )
+          )
+      ) as balance : type of db.Transaction : transferAmount
+    };
+
+  // FIXME: The following commented-out code is not used in the current implementation.
+  // It will currently break the service if uncommented.
+  // Unfortunately, it is not possible to use the @Core.AutoExpand annotation righ now
+  // entity TestBudget                                     as
+  //   select from db.Budget {
+  //     *,
+  //     toCategories.{
+  //       *,
+  //       toCategory.{
+  //         ID   as categoryId,
+  //         name as categoryName
+  //       }
+  //     }
+  //   };
+
   @plural                : 'PaymentMethods'
   @cds.redirection.target: 'PaymentMethod'
   entity PaymentMethod @(restrict: [{
