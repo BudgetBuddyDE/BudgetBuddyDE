@@ -32,7 +32,7 @@ const DashboardView = () => {
 
   return (
     <React.Fragment>
-      {/* <DashboardStatsWrapper /> */}
+      <DashboardStatsWrapper />
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
         <Stack spacing={AppConfig.baseSpacing}>

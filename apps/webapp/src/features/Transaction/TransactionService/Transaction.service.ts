@@ -5,8 +5,10 @@ import {z} from 'zod';
 
 import {
   ExpandedTransasction,
+  MonthlyKPIResponse,
   type TCreateOrUpdateTransaction,
   type TExpandedTransaction,
+  TMonthlyKPIResponse,
   type TTransactionResponse,
   TransactionResponse,
 } from '@/newTypes';
@@ -77,6 +79,18 @@ export class TransactionService extends EntityService {
       $expand: 'toCategory,toPaymentMethod',
     });
     const parsingResult = z.array(ExpandedTransasction).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
+  }
+
+  /**
+   * Retrieves the monthly KPIs from the database.
+   * @returns A promise that resolves to a TMonthlyKPIResponse object containing the monthly KPIs.
+   * @throws If there is an error parsing the retrieved records.
+   */
+  static async getMonthlyKPIs(): Promise<TMonthlyKPIResponse> {
+    const records = await this.$odata.get(this.$servicePath + '/MonthlyKPI').query();
+    const parsingResult = MonthlyKPIResponse.safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
   }

@@ -50,11 +50,7 @@ export const BudgetPieChart: React.FC<TBudgetPieChartProps> = () => {
   React.useEffect(() => {
     const fetchData = async () => {
       if (!isLoading) setIsLoading(true);
-      const now = new Date();
-      const [budget, err] = await getBudget(
-        new Date(now.getFullYear(), now.getMonth(), 1),
-        new Date(now.getFullYear(), now.getMonth() + 1, 0),
-      );
+      const [budget, err] = await getBudget();
       setIsLoading(false);
       if (err) {
         logger.error("Something wen't wrong", err);

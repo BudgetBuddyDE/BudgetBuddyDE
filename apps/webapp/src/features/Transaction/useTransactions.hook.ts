@@ -1,18 +1,11 @@
 import {type TServiceResponse} from '@budgetbuddyde/types';
-import {format} from 'date-fns';
 
 import {useFilterStore} from '@/components/Filter';
 import {type TGenericHook} from '@/hooks/GenericHook';
-import {type TExpandedTransaction, type TTransaction} from '@/newTypes';
-import {preparePockebaseRequestOptions} from '@/utils';
+import {type TExpandedTransaction, type TMonthlyKPIResponse, type TTransaction} from '@/newTypes';
 
 import {type TTransactionStoreFetchArgs, useTransactionStore} from './Transaction.store';
-import {
-  type TTransactionBudget,
-  type TTransactionStats,
-  ZTransactionBudget,
-  ZTransactionStats,
-} from './Transaction.types';
+import {type TTransactionBudget} from './Transaction.types';
 import {TransactionService} from './TransactionService';
 import {buildFetchArgsFromFilter} from './buildFetchArgsFromFilter.util';
 
@@ -22,8 +15,8 @@ interface AdditionalFuncs<T> {
   getReceivedIncome: () => ReturnType<typeof TransactionService.getReceivedIncome>;
   getUpcomingAsTransactions: (type: 'EXPENSES' | 'INCOME') => T;
   getUpcoming: (type: 'EXPENSES' | 'INCOME') => number;
-  getStats: (starDate: Date, endDate: Date) => Promise<TServiceResponse<TTransactionStats>>;
-  getBudget: (startDate: Date, endDate: Date) => Promise<TServiceResponse<TTransactionBudget>>;
+  getStats: () => Promise<TServiceResponse<TMonthlyKPIResponse>>;
+  getBudget: () => Promise<TServiceResponse<TTransactionBudget>>;
 }
 
 export function useTransactions(): TGenericHook<
@@ -31,7 +24,6 @@ export function useTransactions(): TGenericHook<
   AdditionalFuncs<TExpandedTransaction[]>,
   TTransactionStoreFetchArgs
 > {
-  const POCKETBASE_HOST = import.meta.env.VITE_POCKETBASE_HOST;
   const {filters} = useFilterStore();
   const {getData, isLoading, isFetched, fetchedAt, fetchedBy, refreshData, hasError, error, resetStore} =
     useTransactionStore();
@@ -74,36 +66,17 @@ export function useTransactions(): TGenericHook<
     return getUpcomingAsTransactions(type).reduce((prev, curr) => prev + Math.abs(curr.transferAmount), 0);
   };
 
-  const getStats: AdditionalFuncs<TTransaction[]>['getStats'] = async (startDate, endDate) => {
-    if (!POCKETBASE_HOST) return [null, new Error('Pocketbase URL not set')];
-
-    const query = new URLSearchParams({
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(endDate, 'yyyy-MM-dd'),
-    }).toString();
-    const response = await fetch(`${POCKETBASE_HOST}/transactions/stats?${query}`, {
-      ...preparePockebaseRequestOptions(),
-    });
-    const json = await response.json();
-
-    const parsedResult = ZTransactionStats.safeParse(json);
-    return parsedResult.error ? [null, parsedResult.error] : [parsedResult.data, null];
+  const getStats: AdditionalFuncs<TTransaction[]>['getStats'] = async () => {
+    try {
+      const stats = await TransactionService.getMonthlyKPIs();
+      return [stats, null];
+    } catch (e) {
+      return [null, e instanceof Error ? e : new Error(String(e))];
+    }
   };
 
-  const getBudget: AdditionalFuncs<TTransaction[]>['getBudget'] = async (startDate, endDate) => {
-    if (!POCKETBASE_HOST) return [null, new Error('Pocketbase URL not set')];
-
-    const query = new URLSearchParams({
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(endDate, 'yyyy-MM-dd'),
-    }).toString();
-    const response = await fetch(`${POCKETBASE_HOST}/transactions/budget?${query}`, {
-      ...preparePockebaseRequestOptions(),
-    });
-    const json = await response.json();
-
-    const parsedResult = ZTransactionBudget.safeParse(json);
-    return parsedResult.error ? [null, parsedResult.error] : [parsedResult.data, null];
+  const getBudget: AdditionalFuncs<TTransaction[]>['getBudget'] = async () => {
+    return [null, new Error('Not implemented')];
   };
 
   return {

@@ -1,6 +1,7 @@
 import {Button, Grid2 as Grid} from '@mui/material';
 import React from 'react';
 
+import {DashboardStatsWrapper} from '@/components/DashboardStatsWrapper';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {CategorizedTransactionsBarChart} from '@/features/Analytics';
 import {BudgetDrawer, type TBudgetDrawerValues} from '@/features/Budget/BudgetDrawer';
@@ -100,7 +101,7 @@ const AnalyticsView = () => {
 
   return (
     <React.Fragment>
-      {/* <DashboardStatsWrapper /> */}
+      <DashboardStatsWrapper />
 
       <Grid size={{xs: 12, md: 6}}>
         <CategorizedTransactionsBarChart />

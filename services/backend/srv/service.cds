@@ -130,6 +130,9 @@ service BackendService {
   @plural: 'CategoryStats'
   view CategoryStats as select from db.CategoryStats;
 
+  @plural: 'MonthlyKPIs'
+  entity MonthlyKPI                                     as projection on db.MonthlyKPI;
+
   @plural: 'StockExchanges'
   entity StockExchange @(restrict: [{grant: ['READ']}]) as projection on db.StockExchange;
 

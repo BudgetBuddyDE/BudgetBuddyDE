@@ -6,3 +6,4 @@ export * from './Transaction';
 export * from './Subscription';
 export * from './Stocks';
 export * from './Budget';
+export * from './MonthlyKPI';

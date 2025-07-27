@@ -2,7 +2,10 @@ import cds from '@sap/cds';
 import {
   CategoryStat,
   CategoryStats,
+  MonthlyKPI,
+  Subscription,
   Subscriptions,
+  Transaction,
   Transactions,
 } from '#cds-models/BackendService';
 import { format } from 'date-fns';
@@ -94,6 +97,106 @@ export class BackendService extends cds.ApplicationService {
       }
 
       return categoryStats;
+    });
+
+    // TODO: Improve code quality and increase test coverage
+    this.on('READ', MonthlyKPI, async (req) => {
+      const user = req.user;
+      if (!user) {
+        this.logger.warn('MonthlyKPIs: No user found in request.');
+        return req.reject(401, 'Unauthorized');
+      }
+      const now = new Date();
+      const beginOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      // FIXME: Use allSettled instead of Promise.all to handle errors gracefully
+      const [
+        // @ts-expect-error
+        [{ receivedIncome }],
+        // @ts-expect-error
+        [{ upcomingTransactionIncome }],
+        // @ts-expect-error
+        [{ upcomingSubscriptionIncome }],
+        // @ts-expect-error
+        [{ paidExpenses }],
+        // @ts-expect-error
+        [{ upcomingTransactionExpenses }],
+        // @ts-expect-error
+        [{ upcomingSubscriptionExpenses }],
+      ] = await Promise.all([
+        SELECT.columns('COALESCE(SUM(transferAmount), 0) as receivedIncome')
+          .from(Transaction)
+          .where({
+            owner: user.id,
+            and: {
+              processedAt: { between: beginOfMonth, and: now },
+              and: { transferAmount: { '>=': 0 } },
+            },
+          }),
+        SELECT.columns('COALESCE(SUM(transferAmount), 0) as upcomingTransactionIncome')
+          .from(Transaction)
+          .where({
+            owner: user.id,
+            and: {
+              processedAt: { between: now, and: endOfMonth },
+              and: { transferAmount: { '>=': 0 } },
+            },
+          }),
+        SELECT.columns('COALESCE(SUM(transferAmount), 0) as upcomingSubscriptionIncome')
+          .from(Subscription)
+          .where({
+            owner: user.id,
+            and: {
+              executeAt: { between: now.getDate(), and: endOfMonth.getDate() },
+              and: { transferAmount: { '>=': 0 } },
+            },
+          }),
+        SELECT.columns('COALESCE(SUM(transferAmount), 0) as paidExpenses')
+          .from(Transaction)
+          .where({
+            owner: user.id,
+            and: {
+              processedAt: { between: beginOfMonth, and: now },
+              and: { transferAmount: { '<': 0 } },
+            },
+          }),
+        SELECT.columns('COALESCE(SUM(transferAmount), 0) as upcomingTransactionExpenses')
+          .from(Transaction)
+          .where({
+            owner: user.id,
+            and: {
+              processedAt: { between: now, and: endOfMonth },
+              and: { transferAmount: { '<': 0 } },
+            },
+          }),
+        SELECT.columns('COALESCE(SUM(transferAmount), 0) as upcomingSubscriptionExpenses')
+          .from(Subscription)
+          .where({
+            owner: user.id,
+            and: {
+              executeAt: { between: now.getDate(), and: endOfMonth.getDate() },
+              and: { transferAmount: { '<': 0 } },
+            },
+          }),
+      ]);
+
+      const totalFutureIncome = toDecimal(upcomingTransactionIncome + upcomingSubscriptionIncome);
+      const currentBalance = toDecimal(receivedIncome - paidExpenses);
+      const upcomingExpenses = toDecimal(
+        upcomingTransactionExpenses + upcomingSubscriptionExpenses
+      );
+      const structure: MonthlyKPI = {
+        receivedIncome,
+        upcomingIncome: totalFutureIncome,
+        paidExpenses: Math.abs(paidExpenses),
+        upcomingExpenses: Math.abs(upcomingExpenses),
+        currentBalance,
+        estimatedBalance: toDecimal(
+          currentBalance + totalFutureIncome - Math.abs(upcomingExpenses)
+        ),
+      };
+
+      return structure;
     });
 
     return super.init();

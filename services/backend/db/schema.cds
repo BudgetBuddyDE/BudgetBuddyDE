@@ -92,6 +92,17 @@ view CategoryStats as
     group by
         toCategory.ID;
 
+@odata.singleton
+@cds.persistence.skip
+@plural: 'MonthlyKPIs'
+entity MonthlyKPI {
+    virtual receivedIncome   : Double;
+    virtual upcomingIncome   : Double;
+    virtual paidExpenses     : Double;
+    virtual upcomingExpenses : Double;
+    virtual currentBalance   : Double;
+    virtual estimatedBalance : Double;
+}
 
 @plural: 'Subscriptions'
 entity Subscription : cuid, managed {

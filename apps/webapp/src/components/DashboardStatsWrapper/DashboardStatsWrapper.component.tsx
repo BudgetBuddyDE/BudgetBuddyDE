@@ -5,8 +5,8 @@ import React from 'react';
 import {AppConfig} from '@/app.config';
 import {useSubscriptionStore} from '@/features/Subscription';
 import {useTransactionStore, useTransactions} from '@/features/Transaction';
-import {type TTransactionStats} from '@/features/Transaction/Transaction.types';
 import {logger} from '@/logger';
+import {TMonthlyKPIResponse} from '@/newTypes';
 import {Formatter} from '@/services/Formatter';
 
 import {StatsCard, type TStatsCardProps} from '../StatsCard';
@@ -16,21 +16,17 @@ export type TDashboardStatsWrapperProps = unknown;
 export const DashboardStatsWrapper: React.FC<TDashboardStatsWrapperProps> = () => {
   const {getStats} = useTransactions();
   const [isLoading, setIsLoading] = React.useState(true);
-  const [data, setData] = React.useState<TTransactionStats | null>(null);
+  const [data, setData] = React.useState<TMonthlyKPIResponse | null>(null);
 
   const fetchData = async () => {
     if (!isLoading) setIsLoading(true);
-    const now = new Date();
-    const [budget, err] = await getStats(
-      new Date(now.getFullYear(), now.getMonth(), 1),
-      new Date(now.getFullYear(), now.getMonth() + 1, 0),
-    );
+    const [monthlyKPIs, err] = await getStats();
     setIsLoading(false);
     if (err) {
       logger.error("Something wen't wrong", err);
       return;
     }
-    setData(budget);
+    setData(monthlyKPIs);
   };
 
   const stats: TStatsCardProps[] = React.useMemo(() => {
@@ -40,21 +36,21 @@ export const DashboardStatsWrapper: React.FC<TDashboardStatsWrapperProps> = () =
         isLoading: isLoading,
         icon: <AddRounded />,
         label: 'Income',
-        value: Formatter.formatBalance(data.income.received),
-        valueInformation: `Upcoming: ${Formatter.formatBalance(data.income.upcoming)}`,
+        value: Formatter.formatBalance(data.receivedIncome),
+        valueInformation: `Upcoming: ${Formatter.formatBalance(data.upcomingIncome)}`,
       },
       {
         isLoading: isLoading,
         icon: <RemoveRounded />,
         label: 'Spendings',
-        value: Formatter.formatBalance(data.expenses.received),
-        valueInformation: `Upcoming: ${Formatter.formatBalance(data.expenses.upcoming)}`,
+        value: Formatter.formatBalance(data.paidExpenses),
+        valueInformation: `Upcoming: ${Formatter.formatBalance(data.upcomingExpenses)}`,
       },
       {
         icon: <BalanceRounded />,
         label: 'Balance',
-        value: Formatter.formatBalance(data.balance.current),
-        valueInformation: `Exstimated: ${Formatter.formatBalance(data.balance.estimated)}`,
+        value: Formatter.formatBalance(data.currentBalance),
+        valueInformation: `Exstimated: ${Formatter.formatBalance(data.estimatedBalance)}`,
       },
     ];
   }, [isLoading, data]);
