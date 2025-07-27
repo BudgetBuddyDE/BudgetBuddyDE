@@ -1,85 +1,77 @@
-import {
-  PocketBaseCollection,
-  type TBudget,
-  type TCreateBudgetPayload,
-  type TDeleteBudgetPayload,
-  type TExpandedBudgetProgress,
-  type TServiceResponse,
-  type TUpdateBudgetPayload,
-  ZExpandedBudgetProgress,
-} from '@budgetbuddyde/types';
-import {RecordModel} from 'pocketbase';
 import {z} from 'zod';
 
-import {pb} from '@/pocketbase';
+import {
+  BudgetResponse,
+  ExpandedBudget,
+  type TBudget,
+  type TBudgetResponse,
+  type TCreateOrUpdateBudget,
+  type TExpandedBudget,
+} from '@/newTypes';
+import {EntityService} from '@/services/Entity';
 
 /**
  * The BudgetService class provides methods for interacting with budget data in PocketBase.
  */
-export class BudgetService {
-  /**
-   * Retrieves all budgets with their associated categories and progress.
-   *
-   * @returns A promise that resolves to a service response containing an array of expanded budget progress objects or an error.
-   */
-  static async getBudgets(): Promise<TServiceResponse<TExpandedBudgetProgress[]>> {
-    try {
-      const records = await pb.collection(PocketBaseCollection.V_BUDGET_PROGRESS).getFullList({
-        expand: 'categories',
-      });
-      const parsingResult = z.array(ZExpandedBudgetProgress).safeParse(records);
-      return parsingResult.success ? [parsingResult.data, null] : [null, parsingResult.error];
-    } catch (error) {
-      return [null, error as Error];
-    }
-  }
+export class BudgetService extends EntityService {
+  private static readonly $entityPath = this.$servicePath + '/Budget';
 
   /**
-   * Creates a new budget record in PocketBase.
+   * Creates a new budget.
    *
-   * @param budget The payload containing the data for the new budget.
+   * @param payload The payload containing the data for the new budget.
    * @returns A promise that resolves to a service response containing the created budget record or an error.
    */
-  static async createBudget(budget: TCreateBudgetPayload): Promise<TServiceResponse<RecordModel>> {
-    try {
-      const record = await pb.collection(PocketBaseCollection.BUDGET).create(budget, {requestKey: null});
-      return [record, null];
-    } catch (error) {
-      return [null, error as Error];
-    }
+  static async createBudget(payload: TCreateOrUpdateBudget): Promise<TBudgetResponse> {
+    const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
+    const parsingResult = BudgetResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
   }
 
   /**
-   * Updates an existing budget record in PocketBase.
-   *
-   * @param budgetId The ID of the budget to update.
-   * @param payload The payload containing the data to update.
-   * @returns A promise that resolves to a service response containing the updated budget record or an error.
+   * Updates a budget with the specified ID using the provided payload.
+   * @param budgetId - The ID of the budget to update.
+   * @param payload - The payload containing the updated budget data.
+   * @returns A Promise that resolves to the updated budget record.
    */
   static async updateBudget(
-    budgetId: TBudget['id'],
-    payload: TUpdateBudgetPayload,
-  ): Promise<TServiceResponse<RecordModel>> {
-    try {
-      const record = await pb.collection(PocketBaseCollection.BUDGET).update(budgetId, payload, {requestKey: null});
-      return [record, null];
-    } catch (error) {
-      return [null, error as Error];
-    }
+    budgetId: TCreateOrUpdateBudget['ID'],
+    payload: TCreateOrUpdateBudget,
+  ): Promise<TBudgetResponse> {
+    const record = await this.newOdataHandler().patch(`${this.$entityPath}(ID=${budgetId})`, payload).query();
+    const parsingResult = BudgetResponse.safeParse(record);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
   }
 
   /**
-   * Deletes a budget record from PocketBase.
-   *
-   * @param budget The payload containing the ID of the budget to delete.
-   * @returns A promise that resolves to a service response indicating whether the deletion was successful or an error.
+   * Deletes a budget with the specified ID.
+   * @param budgetId - The ID of the budget to delete.
+   * @throws If the deletion fails, it logs a warning and returns false.
+   * @description Deletes a budget with the specified ID.
+   * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
-  static async deleteBudget(budget: TDeleteBudgetPayload): Promise<TServiceResponse<boolean>> {
-    try {
-      const result = await pb.collection(PocketBaseCollection.BUDGET).delete(budget.id);
-      return [result, null];
-    } catch (error) {
-      return [null, error as Error];
+  static async deleteBudget(budgetId: TBudget['ID']): Promise<boolean> {
+    const response = (await this.newOdataHandler().delete(`${this.$entityPath}(ID=${budgetId})`).query()) as Response;
+    if (!response.ok) {
+      console.warn('Failed to delete budget:', response.body);
+      return false;
     }
+    return true;
+  }
+
+  /**
+   * Retrieves the list of budgets from the database.
+   * @returns A promise that resolves to an array of TExpandedBudget objects.
+   * @throws If there is an error parsing the retrieved records.
+   */
+  static async getBudgets(): Promise<TExpandedBudget[]> {
+    const records = await this.newOdataHandler().get(this.$entityPath).query({
+      $expand: 'toCategories($expand=toCategory)',
+    });
+    const parsingResult = z.array(ExpandedBudget).safeParse(records);
+    if (!parsingResult.success) throw parsingResult.error;
+    return parsingResult.data;
   }
 }

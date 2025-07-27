@@ -6,6 +6,7 @@ import {Card} from '@/components/Base/Card';
 import {type TPieChartData} from '@/components/Base/Charts';
 import {PieChart} from '@/components/Base/Charts';
 import {CircularProgress} from '@/components/Loading';
+import {NoResults} from '@/components/NoResults';
 import {Formatter} from '@/services/Formatter';
 
 import {useSubscriptions} from '../useSubscriptions.hook';
@@ -27,24 +28,22 @@ export const SubscriptionPieChart = () => {
     const grouped = new Map<string, {name: string; total: number}>();
     for (const {
       paused,
-      transfer_amount,
-      expand: {
-        category: {id, name},
-      },
+      transferAmount,
+      toCategory: {ID: categoryId, name: categoryName},
     } of subscriptions) {
       if (
         paused ||
-        (subscriptionType === 'INCOME' && transfer_amount <= 0) ||
-        (subscriptionType === 'EXPENSES' && transfer_amount >= 0)
+        (subscriptionType === 'INCOME' && transferAmount <= 0) ||
+        (subscriptionType === 'EXPENSES' && transferAmount >= 0)
       ) {
         continue;
       }
 
-      const amount = Math.abs(transfer_amount);
-      if (grouped.has(id)) {
-        const curr = grouped.get(id)!;
-        grouped.set(id, {name, total: curr.total + amount});
-      } else grouped.set(id, {name, total: amount});
+      const amount = Math.abs(transferAmount);
+      if (grouped.has(categoryId)) {
+        const curr = grouped.get(categoryId)!;
+        grouped.set(categoryId, {name: categoryName, total: curr.total + amount});
+      } else grouped.set(categoryId, {name: categoryName, total: amount});
     }
 
     return Array.from(grouped.values()).map(({name, total}) => ({label: name, value: total}));
@@ -75,9 +74,9 @@ export const SubscriptionPieChart = () => {
       </Card.Header>
       {isLoading ? (
         <CircularProgress />
-      ) : (
+      ) : chartData.length > 0 ? (
         <React.Fragment>
-          <Card.Body sx={{pt: 1}}>
+          <Card.Body sx={{mt: 1}}>
             <PieChart
               fullWidth
               primaryText={Formatter.formatBalance(chartData.reduce((acc, curr) => acc + curr.value, 0))}
@@ -92,7 +91,6 @@ export const SubscriptionPieChart = () => {
           </Card.Body>
           <Card.Footer>
             <Stack direction="row" justifyContent={'flex-end'}>
-              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/*@ts-expect-error*/}
               <Button LinkComponent={Link} to="/subscriptions">
                 View more...
@@ -100,6 +98,8 @@ export const SubscriptionPieChart = () => {
             </Stack>
           </Card.Footer>
         </React.Fragment>
+      ) : (
+        <NoResults sx={{mt: 1}} />
       )}
     </Card>
   );

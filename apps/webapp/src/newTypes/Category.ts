@@ -1,6 +1,6 @@
 import {z} from 'zod';
 
-import {CdsDate, IdAspect, ManagedAspect, OptionalIdAspect} from './_Aspects';
+import {IdAspect, ManagedAspect, OptionalIdAspect} from './_Aspects';
 import {DescriptionType, ODataContextAspect, OwnerAspect, UserID} from './_Base';
 
 /**
@@ -60,8 +60,8 @@ export const CategoryStats = z.object({
   balance: z.number(),
   income: z.number(),
   expenses: z.number(),
-  start: CdsDate,
-  end: CdsDate,
+  // start: CdsDate,
+  // end: CdsDate,
   createdBy: UserID,
 });
 /**

@@ -10,7 +10,7 @@ import {CategoryAutocomplete, TCategoryAutocompleteOption} from '@/features/Cate
 import {PaymentMethodAutocomplete, TPaymentMethodAutocompleteOption} from '@/features/PaymentMethod';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {CreateOrUpdateTransaction, NullableFields, type TCreateOrUpdateTransaction} from '@/newTypes';
+import {CreateOrUpdateTransaction, type NullableFields, type TCreateOrUpdateTransaction} from '@/newTypes';
 import {isRunningOnIOs, parseNumber} from '@/utils';
 
 import {TransactionService} from '../TransactionService';

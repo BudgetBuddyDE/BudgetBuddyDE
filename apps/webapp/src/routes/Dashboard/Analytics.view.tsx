@@ -1,14 +1,13 @@
 import {Button, Grid2 as Grid} from '@mui/material';
 import React from 'react';
 
-import {DashboardStatsWrapper} from '@/components/DashboardStatsWrapper';
 import {UseEntityDrawerDefaultState, useEntityDrawer} from '@/components/Drawer/EntityDrawer';
 import {CategorizedTransactionsBarChart} from '@/features/Analytics';
 import {BudgetDrawer, type TBudgetDrawerValues} from '@/features/Budget/BudgetDrawer';
 import {BudgetList, TBudgetListProps} from '@/features/Budget/BudgetList';
 import {BudgetService} from '@/features/Budget/BudgetService';
 import {useBudgets} from '@/features/Budget/useBudgets.hook';
-import {CategoryExpenseChart, CategoryIncomeChart} from '@/features/Category';
+import {CategoryExpenseChart, CategoryIncomeChart, type TCategoryAutocompleteOption} from '@/features/Category';
 import {DeleteDialog} from '@/features/DeleteDialog';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {SubscriptionPieChart} from '@/features/Subscription';
@@ -38,18 +37,23 @@ const AnalyticsView = () => {
       dispatchBudgetDrawer({type: 'CLOSE'});
     },
     onAddBudget: () => {
-      dispatchBudgetDrawer({type: 'OPEN', drawerAction: 'CREATE', payload: {type: 'include'}});
+      dispatchBudgetDrawer({type: 'OPEN', drawerAction: 'CREATE', payload: {type: 'i'}});
     },
     onEditBudget: budget => {
+      const autocompleteValues: TCategoryAutocompleteOption[] = budget.toCategories.map(category => ({
+        ID: category.toCategory.ID,
+        name: category.toCategory.name,
+      }));
       dispatchBudgetDrawer({
         type: 'OPEN',
         drawerAction: 'UPDATE',
         payload: {
-          id: budget.id,
-          categories: budget.expand.categories.map(({id, name}) => ({value: id, label: name})),
-          label: budget.label,
-          type: 'include',
+          ID: budget.ID,
+          type: budget.type,
+          name: budget.name,
           budget: budget.budget,
+          categoryAutocomplete: autocompleteValues,
+          toCategories: budget.toCategories,
         },
       });
     },
@@ -64,18 +68,16 @@ const AnalyticsView = () => {
           throw new Error('No budget selected');
         }
 
-        const [success, err] = await BudgetService.deleteBudget({id: selectedBudget.id});
-        if (err) throw err;
-
+        const success = await BudgetService.deleteBudget(selectedBudget.ID);
         if (!success) {
           showSnackbar({
-            message: 'Failed to delete the budget',
+            message: 'Failed to delete the budget ' + selectedBudget.name,
             action: <Button onClick={handler.onConfirmBudgetDelete}>Retry</Button>,
           });
           return;
         }
 
-        showSnackbar({message: `Budget '${selectedBudget.label}' deleted!`});
+        showSnackbar({message: `Budget '${selectedBudget.name}' deleted!`});
         React.startTransition(() => {
           refreshBudgets();
         });
@@ -98,7 +100,7 @@ const AnalyticsView = () => {
 
   return (
     <React.Fragment>
-      <DashboardStatsWrapper />
+      {/* <DashboardStatsWrapper /> */}
 
       <Grid size={{xs: 12, md: 6}}>
         <CategorizedTransactionsBarChart />

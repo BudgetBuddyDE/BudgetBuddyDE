@@ -30,7 +30,7 @@ export class CategoryService extends EntityService {
    * @returns A promise that resolves to the created category record.
    */
   static async createCategory(payload: TCreateOrUpdateCategory): Promise<TCategoryResponse> {
-    const record = await this.$odata.post(this.$entityPath, payload).query();
+    const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
     const parsingResult = CategoryResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -46,7 +46,7 @@ export class CategoryService extends EntityService {
     categoryId: _TCategory['ID'],
     payload: TCreateOrUpdateCategory,
   ): Promise<TCategoryResponse> {
-    const record = await this.$odata.patch(`${this.$entityPath}(ID=${categoryId})`, payload).query();
+    const record = await this.newOdataHandler().patch(`${this.$entityPath}(ID=${categoryId})`, payload).query();
     const parsingResult = CategoryResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -60,7 +60,7 @@ export class CategoryService extends EntityService {
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
   static async deleteCategory(categoryId: _TCategory['ID']): Promise<boolean> {
-    const response = (await this.$odata.delete(`${this.$entityPath}(ID=${categoryId})`).query()) as Response;
+    const response = (await this.newOdataHandler().delete(`${this.$entityPath}(ID=${categoryId})`).query()) as Response;
     if (!response.ok) {
       console.warn('Failed to delete category:', response.body);
       return false;
@@ -74,7 +74,7 @@ export class CategoryService extends EntityService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getCategories(): Promise<_TCategory[]> {
-    const records = await this.$odata.get(this.$entityPath).query();
+    const records = await this.newOdataHandler().get(this.$entityPath).query();
     const parsingResult = z.array(Category).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -86,7 +86,7 @@ export class CategoryService extends EntityService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getCategoryValueHelps(): Promise<TCategory_VH[]> {
-    const records = await this.$odata.get(this.$valueHelpPath).query();
+    const records = await this.newOdataHandler().get(this.$valueHelpPath).query();
     const parsingResult = z.array(Category_VH).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;

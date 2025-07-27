@@ -1,5 +1,4 @@
-import {type TBudget} from '@budgetbuddyde/types';
-import {Button, Grid2 as Grid, InputAdornment, TextField, ToggleButton, ToggleButtonGroup} from '@mui/material';
+import {Grid2 as Grid, InputAdornment, TextField, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import React from 'react';
 import {Controller, DefaultValues} from 'react-hook-form';
 
@@ -7,18 +6,19 @@ import {AppConfig} from '@/app.config';
 import {ActionPaper} from '@/components/Base/ActionPaper';
 import {EntityDrawer, TUseEntityDrawerState} from '@/components/Drawer/EntityDrawer';
 import {useAuthContext} from '@/features/Auth';
-import {useCategories} from '@/features/Category';
+import {type TCategoryAutocompleteOption, useCategories} from '@/features/Category';
 import {SelectCategories, type TSelectCategoriesOption} from '@/features/Insights/InsightsDialog/SelectCategories';
 import {useSnackbarContext} from '@/features/Snackbar';
 import {logger} from '@/logger';
-import {isRunningOnIOs} from '@/utils';
+import {CreateOrUpdateBudget, type NullableFields, type TBudget, type TCreateOrUpdateBudget} from '@/newTypes';
+import {isRunningOnIOs, parseNumber} from '@/utils';
+
+import {BudgetService} from '../BudgetService';
+import {useBudgets} from '../useBudgets.hook';
 
 export type TBudgetDrawerValues = {
-  id?: TBudget['id'];
-  label: TBudget['label'] | null;
-  budget: TBudget['budget'] | null;
-  categories: TSelectCategoriesOption[];
-} & Pick<TBudget, 'type'>;
+  categoryAutocomplete: TCategoryAutocompleteOption[];
+} & Pick<NullableFields<TCreateOrUpdateBudget>, 'ID' | 'name' | 'budget' | 'type' | 'toCategories'>;
 
 export type TBudgetDrawerProps = TUseEntityDrawerState<TBudgetDrawerValues> & {
   onClose: () => void;
@@ -37,12 +37,21 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
   const {session} = useAuthContext();
   const {showSnackbar} = useSnackbarContext();
   const {isLoading: isLoadingCategories, data: categories} = useCategories();
-  const [selectedCategories, setSelectedCategories] = React.useState<TBudgetDrawerValues['categories']>([]); // FIXME: Remove this and resolve issue with SelectCategories component
-  // const {refreshData: refreshBudgets} = useBudgets();
+  const [selectedCategories, setSelectedCategories] = React.useState<TSelectCategoriesOption[]>([]); // FIXME: Remove this and resolve issue with SelectCategories component
+  const {refreshData: refreshBudgets} = useBudgets();
 
-  const categoryOptions: TSelectCategoriesOption[] = React.useMemo(() => {
-    return (categories ?? []).map(({id, name}) => ({value: id, label: name}));
+  const CategoryOptions: TSelectCategoriesOption[] = React.useMemo(() => {
+    if (!categories) return [];
+    return categories.map(category => ({
+      label: category.name,
+      value: category.ID,
+    }));
   }, [categories]);
+
+  const TypeOptions: {value: TBudget['type']; label: string; description: string}[] = [
+    {value: 'i', label: 'Include', description: 'Budget related to the selected categories'},
+    {value: 'e', label: 'Exclude', description: 'Budget excluding the selected categories'},
+  ];
 
   const handler = {
     async handleSubmit(data: TBudgetDrawerValues, onSuccess: () => void) {
@@ -51,76 +60,71 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
       switch (drawerAction) {
         case 'CREATE':
           try {
-            // TODO: Update this code after a new backend is implemented
-            // const parsedForm = ZCreateBudgetPayload.safeParse({
-            //   ...data,
-            //   categories: data.categories.map(({value}) => value),
-            //   budget: parseNumber(String(data.budget ?? 0)),
-            //   owner: session.user.id,
-            // });
-            // if (!parsedForm.success) throw parsedForm.error;
-            // const payload: TCreateBudgetPayload = parsedForm.data;
-            // const [record, err] = await BudgetService.createBudget(payload);
-            // if (err) throw err;
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshBudgets();
-            // });
-            // showSnackbar({message: `Created budget ${payload.label} (#${record.id})`});
+            const parsedForm = CreateOrUpdateBudget.safeParse({
+              ...data,
+              budget: parseNumber(String(data.budget)),
+              toCategories: selectedCategories.map(category => ({
+                toCategory_ID: category.value,
+              })),
+            });
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await BudgetService.createBudget(parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshBudgets();
+            });
+            showSnackbar({message: `Set budget #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
-            showSnackbar({
-              message: (error as Error).message,
-              action: <Button onClick={() => handler.handleSubmit(data, onSuccess)}>Retry</Button>,
-            });
+            showSnackbar({message: (error as Error).message});
           }
           break;
 
         case 'UPDATE':
           try {
-            // TODO: Update this code after a new backend is implemented
-            // if (!data.id) throw new Error('No budget id found');
-            // const parsedForm = ZUpdateBudgetPayload.safeParse({
-            //   ...data,
-            //   categories: data.categories.map(({value}) => value),
-            //   budget: parseNumber(String(data.budget ?? 0)),
-            //   owner: session.user.id,
-            // });
-            // if (!parsedForm.success) throw parsedForm.error;
-            // const payload: TUpdateBudgetPayload = parsedForm.data;
-            // const [record, err] = await BudgetService.updateBudget(data.id, payload);
-            // if (err) throw err;
-            // onClose();
-            // onSuccess();
-            // React.startTransition(() => {
-            //   refreshBudgets();
-            // });
-            // showSnackbar({message: `Updated budget ${payload.label} (#${record.id})`});
+            const parsedForm = CreateOrUpdateBudget.safeParse({
+              ...data,
+              budget: parseNumber(String(data.budget)),
+              toCategories: selectedCategories.map(category => ({
+                toCategory_ID: category.value,
+              })),
+            });
+            if (!parsedForm.success) throw new Error(parsedForm.error.message);
+            const record = await BudgetService.updateBudget(defaultValues?.ID!, parsedForm.data);
+            onClose();
+            onSuccess();
+            React.startTransition(() => {
+              refreshBudgets();
+            });
+            showSnackbar({message: `Set budget #${record.ID}`});
           } catch (error) {
             logger.error("Something wen't wrong", error);
-            showSnackbar({
-              message: (error as Error).message,
-              action: <Button onClick={() => handler.handleSubmit(data, onSuccess)}>Retry</Button>,
-            });
+            showSnackbar({message: (error as Error).message});
           }
           break;
       }
     },
     resetValues() {
-      setSelectedCategories([]);
       return {
-        type: 'include',
-        label: null,
-        categories: [],
+        ID: null,
+        type: null,
+        name: null,
         budget: null,
+        toCategories: null,
+        categoryAutocomplete: [],
       } as DefaultValues<TBudgetDrawerValues>;
     },
   };
 
   React.useEffect(() => {
-    if (defaultValues && defaultValues.categories) {
-      setSelectedCategories((defaultValues.categories ?? []) as TBudgetDrawerValues['categories']);
+    if (defaultValues && defaultValues.categoryAutocomplete) {
+      setSelectedCategories(
+        defaultValues.categoryAutocomplete.map(category => ({
+          value: category?.ID!,
+          label: category?.name!,
+        })),
+      );
     }
   }, [defaultValues]);
 
@@ -132,10 +136,7 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
       title="Budget"
       subtitle={`${drawerAction === 'CREATE' ? 'Create a new' : 'Update an'} budget`}
       defaultValues={defaultValues}
-      onSubmit={(data, onSuccess) => {
-        data.categories = selectedCategories;
-        handler.handleSubmit(data, onSuccess);
-      }}
+      onSubmit={handler.handleSubmit}
       closeOnBackdropClick={closeOnBackdropClick}
       closeOnEscape={closeOnEscape}>
       {({
@@ -162,10 +163,7 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
                     }}
                     fullWidth
                     exclusive>
-                    {[
-                      {value: 'include', label: 'Include', description: 'Budget related to the selected categories'},
-                      {value: 'exclude', label: 'Exclude', description: 'Budget excluding the selected categories'},
-                    ].map(({value, label}) => (
+                    {TypeOptions.map(({value, label}) => (
                       <ToggleButton value={value} fullWidth>
                         {label}
                       </ToggleButton>
@@ -177,10 +175,10 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
           </Grid>
           <Grid size={{xs: 12}}>
             <TextField
-              label="Label"
-              {...register('label', {required: 'Label is required'})}
-              error={!!errors.label}
-              helperText={errors.label?.message}
+              label="Name"
+              {...register('name', {required: 'Name is required'})}
+              error={!!errors.name}
+              helperText={errors.name?.message}
               required
               fullWidth
             />
@@ -188,11 +186,11 @@ export const BudgetDrawer: React.FC<TBudgetDrawerProps> = ({
           <Grid size={{xs: 12}}>
             <Controller
               control={control}
-              name="categories"
+              name="categoryAutocomplete"
               render={() => (
                 <SelectCategories
                   isLoading={isLoadingCategories}
-                  options={categoryOptions}
+                  options={CategoryOptions}
                   onChange={setSelectedCategories}
                   value={selectedCategories}
                   size="medium"

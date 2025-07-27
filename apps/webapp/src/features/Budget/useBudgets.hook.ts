@@ -1,10 +1,9 @@
-import {type TExpandedBudgetProgress} from '@budgetbuddyde/types';
-
 import {type TGenericHook} from '@/hooks/GenericHook';
+import {type TExpandedBudget} from '@/newTypes';
 
 import {useBudgetStore} from './Budget.store';
 
-export function useBudgets(): TGenericHook<TExpandedBudgetProgress[]> {
+export function useBudgets(): TGenericHook<TExpandedBudget[]> {
   const {getData, isLoading, isFetched, fetchedAt, fetchedBy, refreshData, hasError, error, resetStore} =
     useBudgetStore();
 

@@ -1,4 +1,3 @@
-import {type TCategory} from '@budgetbuddyde/types';
 import {Box} from '@mui/material';
 import {format} from 'date-fns';
 import React from 'react';
@@ -8,6 +7,7 @@ import {BarChart} from '@/components/Base/Charts';
 import {CircularProgress} from '@/components/Loading';
 import {useTransactions} from '@/features/Transaction';
 import {useScreenSize} from '@/hooks/useScreenSize';
+import {type TCategory} from '@/newTypes';
 import {Formatter} from '@/services/Formatter';
 
 enum Prefix {
@@ -16,14 +16,14 @@ enum Prefix {
 }
 type TChartData = {
   series: {
-    dataKey: `${Prefix}${TCategory['id']}`;
+    dataKey: `${Prefix}${TCategory['ID']}`;
     label: TCategory['name'];
     stack: 'income' | 'expense';
     valueFormatter: (v: number | null) => string;
   }[];
   data: ({
     date: Date;
-  } & Record<`${Prefix}${TCategory['id']}`, number>)[];
+  } & Record<`${Prefix}${TCategory['ID']}`, number>)[];
 };
 
 export const CategorizedTransactionsBarChart: React.FC = () => {
@@ -33,25 +33,23 @@ export const CategorizedTransactionsBarChart: React.FC = () => {
   const ChartData: TChartData = React.useMemo(() => {
     if (!transactions) return {series: [], data: []};
 
-    const translations = new Map<`${Prefix}${TCategory['id']}`, TCategory['name']>();
+    const translations = new Map<`${Prefix}${TCategory['ID']}`, TCategory['name']>();
     const temp = new Map<
       string,
       {
-        income: Map<TCategory['id'], number>;
-        expense: Map<TCategory['id'], number>;
+        income: Map<TCategory['ID'], number>;
+        expense: Map<TCategory['ID'], number>;
       }
     >(); // key => year-month
 
     for (const {
-      processed_at,
-      transfer_amount,
-      expand: {
-        category: {id: categoryId, name: categoryName},
-      },
+      processedAt,
+      transferAmount,
+      toCategory: {ID: categoryId, name: categoryName},
     } of transactions) {
-      const mapKey = format(processed_at, 'yyyy-MM');
-      const isIncome = transfer_amount > 0;
-      const absTransAmnt = Math.abs(transfer_amount);
+      const mapKey = format(processedAt, 'yyyy-MM');
+      const isIncome = transferAmount > 0;
+      const absTransAmnt = Math.abs(transferAmount);
 
       if (!translations.has(`${isIncome ? Prefix.Income : Prefix.Expense}${categoryId}`)) {
         translations.set(`${isIncome ? Prefix.Income : Prefix.Expense}${categoryId}`, categoryName);

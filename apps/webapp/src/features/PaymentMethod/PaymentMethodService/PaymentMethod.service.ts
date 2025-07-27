@@ -28,7 +28,7 @@ export class PaymentMethodService extends EntityService {
    * @returns A Promise that resolves to the created payment method record.
    */
   static async createPaymentMethod(payload: TCreateOrUpdatePaymentMethod): Promise<TPaymentMethodResponse> {
-    const record = await this.$odata.post(this.$entityPath, payload).query();
+    const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
     const parsingResult = PaymentMethodResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -44,7 +44,7 @@ export class PaymentMethodService extends EntityService {
     paymentMethodId: _TPaymentMethod['ID'],
     payload: TCreateOrUpdatePaymentMethod,
   ): Promise<TPaymentMethodResponse> {
-    const record = await this.$odata.patch(`${this.$entityPath}(ID=${paymentMethodId})`, payload).query();
+    const record = await this.newOdataHandler().patch(`${this.$entityPath}(ID=${paymentMethodId})`, payload).query();
     const parsingResult = PaymentMethodResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -57,7 +57,9 @@ export class PaymentMethodService extends EntityService {
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
   static async deletePaymentMethod(paymentMethodId: _TPaymentMethod['ID']): Promise<boolean> {
-    const response = (await this.$odata.delete(`${this.$entityPath}(ID=${paymentMethodId})`).query()) as Response;
+    const response = (await this.newOdataHandler()
+      .delete(`${this.$entityPath}(ID=${paymentMethodId})`)
+      .query()) as Response;
     if (!response.ok) {
       console.warn('Failed to delete payment method:', response.body);
       return false;
@@ -71,7 +73,7 @@ export class PaymentMethodService extends EntityService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getPaymentMethods(): Promise<_TPaymentMethod[]> {
-    const records = await this.$odata.get(this.$entityPath).query();
+    const records = await this.newOdataHandler().get(this.$entityPath).query();
     const parsingResult = z.array(PaymentMethod).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -83,7 +85,7 @@ export class PaymentMethodService extends EntityService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getPaymentMethodValueHelps(): Promise<TPaymentMethod_VH[]> {
-    const records = await this.$odata.get(this.$valueHelpPath).query();
+    const records = await this.newOdataHandler().get(this.$valueHelpPath).query();
     const parsingResult = z.array(PaymentMethod_VH).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
