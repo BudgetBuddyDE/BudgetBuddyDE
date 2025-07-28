@@ -1,4 +1,5 @@
 import {PocketBaseCollection, type TTransaction} from '@budgetbuddyde/types';
+import {OdataQuery} from '@tklein1801/o.js';
 import {isAfter, isSameMonth, subDays} from 'date-fns';
 import {type RecordModel} from 'pocketbase';
 import {z} from 'zod';
@@ -74,9 +75,10 @@ export class TransactionService extends EntityService {
    * @returns A promise that resolves to an array of TTransaction objects.
    * @throws If there is an error parsing the retrieved records.
    */
-  static async getTransactions(): Promise<TExpandedTransaction[]> {
+  static async getTransactions(query?: OdataQuery): Promise<TExpandedTransaction[]> {
     const records = await this.$odata.get(this.$entityPath).query({
       $expand: 'toCategory,toPaymentMethod',
+      ...query,
     });
     const parsingResult = z.array(ExpandedTransasction).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;

@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 import React from 'react';
 
 import {DateRange} from '@/components/Base/Input';
-import {CategoryService, useCategories} from '@/features/Category';
+import {useCategories} from '@/features/Category';
 import {downloadAsJson} from '@/utils';
 
 import {type TInsightsChartData, type TState, type TStateAction} from '../InsightsDialog.component';
@@ -20,7 +20,9 @@ export const Controls: React.FC<TControlsProps> = ({state, dispatch, chartData})
   const {isLoading: isLoadingCategories, data: categories} = useCategories();
 
   const categoryOptions: TSelectCategoriesOption[] = React.useMemo(() => {
-    return CategoryService.toSelectOption(categories ?? []);
+    if (!categories) return [];
+    const options = categories.map(category => ({label: category.name, value: category.ID}));
+    return options;
   }, [categories]);
 
   return (

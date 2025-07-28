@@ -1,13 +1,14 @@
-import {PocketBaseCollection, type TCategory, type TTransaction} from '@budgetbuddyde/types';
+import {type TCategory} from '@budgetbuddyde/types';
 import {Box, Grid2 as Grid} from '@mui/material';
-import {format, parseISO} from 'date-fns';
+import {format} from 'date-fns';
 import React from 'react';
 
 import {ActionPaper} from '@/components/Base/ActionPaper';
 import {BarChart} from '@/components/Base/Charts';
 import {FullScreenDialog, type TFullScreenDialogProps} from '@/components/Base/FullScreenDialog';
 import {type TDateRange} from '@/components/Base/Input';
-import {pb} from '@/pocketbase';
+import {TransactionService} from '@/features/Transaction';
+import {type TExpandedTransaction} from '@/newTypes';
 import {Formatter} from '@/services/Formatter';
 
 import {Controls} from './Controls/Controls.component';
@@ -25,7 +26,7 @@ export type TState = {
   type: TSelectDataOption;
   dateRange: TDateRange;
   categories: TSelectCategoriesOption[];
-  transactions: TTransaction[];
+  transactions: TExpandedTransaction[];
 };
 
 export type TStateAction =
@@ -88,24 +89,22 @@ export const InsightsDialog: React.FC<TInsightsDialogProps> = ({open, onClose, d
   const chartData: TInsightsChartData[] = React.useMemo(() => {
     const stats: Map<TCategory['id'], {name: string; data: Map<string, number>}> = new Map();
     for (const {
-      processed_at,
-      expand: {
-        category: {id: categoryId, name: categoryName},
-      },
-      transfer_amount,
+      processedAt,
+      toCategory: {ID: categoryId, name: categoryName},
+      transferAmount,
     } of state.transactions) {
-      const dateKey = format(parseISO(processed_at + ''), 'yyyy-MM');
+      const dateKey = format(processedAt, 'yyyy-MM');
       if (stats.has(categoryId)) {
         const {data} = stats.get(categoryId)!;
 
         if (data.has(dateKey)) {
           const sum = data.get(dateKey)!;
-          data.set(dateKey, sum + Math.abs(transfer_amount));
+          data.set(dateKey, sum + Math.abs(transferAmount));
         } else {
-          data.set(dateKey, Math.abs(transfer_amount));
+          data.set(dateKey, Math.abs(transferAmount));
         }
       } else {
-        stats.set(categoryId, {name: categoryName, data: new Map([[dateKey, Math.abs(transfer_amount)]])});
+        stats.set(categoryId, {name: categoryName, data: new Map([[dateKey, Math.abs(transferAmount)]])});
       }
     }
 
@@ -139,18 +138,10 @@ export const InsightsDialog: React.FC<TInsightsDialogProps> = ({open, onClose, d
   const fetchData = React.useCallback(async () => {
     const {categories, dateRange, type} = state;
     if (categories.length === 0) return;
-    const records = await pb.collection(PocketBaseCollection.TRANSACTION).getFullList({
-      expand: 'payment_method,category',
-      sort: '-processed_at',
-      filter: pb.filter(
-        `processed_at >= {:start} && processed_at <= {:end} && transfer_amount ${type === 'INCOME' ? '>' : '<'} 0 && (${categories.map(({value}) => `category.id = '${value}'`).join(' || ')})`,
-        {
-          start: dateRange.startDate,
-          end: dateRange.endDate,
-        },
-      ),
+    const transactions = await TransactionService.getTransactions({
+      $filter: `processedAt ge ${format(dateRange.startDate, 'yyyy-MM-dd')} and processedAt le ${format(dateRange.endDate, 'yyyy-MM-dd')} and transferAmount ${type == 'INCOME' ? 'gt' : 'lt'} 0 and toCategory_ID in (${categories.map(category => `'${category.value}'`).join(',')})`,
     });
-    dispatch({action: 'SET_TRANSACTIONS', transactions: records as unknown as TTransaction[]});
+    dispatch({action: 'SET_TRANSACTIONS', transactions: transactions});
   }, [state.categories, state.dateRange, state.type]);
 
   const handleClose = () => {

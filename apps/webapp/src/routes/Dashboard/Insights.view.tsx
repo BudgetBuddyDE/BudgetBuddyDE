@@ -1,10 +1,9 @@
-import {type TCategory} from '@budgetbuddyde/types';
 import React from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 
 import {AppConfig} from '@/app.config';
 import {type TFullScreenDialogProps} from '@/components/Base/FullScreenDialog';
-import {CategoryService, useCategories} from '@/features/Category';
+import {useCategories} from '@/features/Category';
 import {InsightsDialog, type TState} from '@/features/Insights';
 import {ZSelectDataOption} from '@/features/Insights/InsightsDialog/SelectData';
 import {useDocumentTitle} from '@/hooks/useDocumentTitle';
@@ -57,9 +56,8 @@ const InsightsView: React.FC<TInsightsViewProps> = props => {
 
     if (urlParams.has(QueryKey.CATEGORY) && categories) {
       const categoryIds = urlParams.getAll(QueryKey.CATEGORY);
-      defaultValues.categories = CategoryService.toSelectOption(
-        categoryIds.map(id => categories.find(category => category.id === id)).filter(Boolean) as TCategory[],
-      );
+      // FIXME:
+      defaultValues.categories = categoryIds.map(id => ({value: id, label: id}));
     }
 
     return defaultValues;
