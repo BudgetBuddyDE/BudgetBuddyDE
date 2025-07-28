@@ -9,7 +9,7 @@ import {
   MonthlyKPIResponse,
   type TCreateOrUpdateTransaction,
   type TExpandedTransaction,
-  TMonthlyKPIResponse,
+  type TMonthlyKPIResponse,
   type TTransactionResponse,
   TransactionResponse,
 } from '@/newTypes';
@@ -32,7 +32,7 @@ export class TransactionService extends EntityService {
    * @returns A promise that resolves to the created transaction record.
    */
   static async createTransaction(payload: TCreateOrUpdateTransaction): Promise<TTransactionResponse> {
-    const record = await this.$odata.post(this.$entityPath, payload).query();
+    const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
     const parsingResult = TransactionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -48,7 +48,7 @@ export class TransactionService extends EntityService {
     transactionId: _TTransaction['ID'],
     payload: TCreateOrUpdateTransaction,
   ): Promise<TTransactionResponse> {
-    const record = await this.$odata.patch(`${this.$entityPath}(ID=${transactionId})`, payload).query();
+    const record = await this.newOdataHandler().patch(`${this.$entityPath}(ID=${transactionId})`, payload).query();
     const parsingResult = TransactionResponse.safeParse(record);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -62,7 +62,9 @@ export class TransactionService extends EntityService {
    * @returns A promise that resolves to a boolean indicating whether the deletion was successful.
    */
   static async deleteTransaction(transactionId: _TTransaction['ID']): Promise<boolean> {
-    const response = (await this.$odata.delete(`${this.$entityPath}(ID=${transactionId})`).query()) as Response;
+    const response = (await this.newOdataHandler()
+      .delete(`${this.$entityPath}(ID=${transactionId})`)
+      .query()) as Response;
     if (!response.ok) {
       console.warn('Failed to delete transaction:', response.body);
       return false;
@@ -76,10 +78,12 @@ export class TransactionService extends EntityService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getTransactions(query?: OdataQuery): Promise<TExpandedTransaction[]> {
-    const records = await this.$odata.get(this.$entityPath).query({
-      $expand: 'toCategory,toPaymentMethod',
-      ...query,
-    });
+    const records = await this.newOdataHandler()
+      .get(this.$entityPath)
+      .query({
+        $expand: 'toCategory,toPaymentMethod',
+        ...query,
+      });
     const parsingResult = z.array(ExpandedTransasction).safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;
@@ -91,7 +95,9 @@ export class TransactionService extends EntityService {
    * @throws If there is an error parsing the retrieved records.
    */
   static async getMonthlyKPIs(): Promise<TMonthlyKPIResponse> {
-    const records = await this.$odata.get(this.$servicePath + '/MonthlyKPI').query();
+    const records = await this.newOdataHandler()
+      .get(this.$servicePath + '/MonthlyKPI')
+      .query();
     const parsingResult = MonthlyKPIResponse.safeParse(records);
     if (!parsingResult.success) throw parsingResult.error;
     return parsingResult.data;

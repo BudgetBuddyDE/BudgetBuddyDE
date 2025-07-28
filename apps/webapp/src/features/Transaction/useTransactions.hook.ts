@@ -76,7 +76,20 @@ export function useTransactions(): TGenericHook<
   };
 
   const getBudget: AdditionalFuncs<TTransaction[]>['getBudget'] = async () => {
-    return [null, new Error('Not implemented')];
+    try {
+      const {paidExpenses, upcomingExpenses, receivedIncome, upcomingIncome} =
+        await TransactionService.getMonthlyKPIs();
+      return [
+        {
+          expenses: paidExpenses,
+          upcomingExpenses: upcomingExpenses,
+          freeAmount: receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses),
+        },
+        null,
+      ];
+    } catch (e) {
+      return [null, e instanceof Error ? e : new Error(String(e))];
+    }
   };
 
   return {
