@@ -26,14 +26,14 @@ const options: BetterAuthOptions = {
     log: (level, message, args) => {
       switch (level) {
         case 'debug':
-          return authLogger.debug(message, ...args);
+          return authLogger.debug(message, args);
         case 'warn':
-          return authLogger.warn(message, ...args);
+          return authLogger.warn(message, args);
         case 'error':
-          return authLogger.error(message, ...args);
+          return authLogger.error(message, args);
         case 'info':
         default:
-          return authLogger.info(message, ...args);
+          return authLogger.info(message, args);
       }
     },
   },
