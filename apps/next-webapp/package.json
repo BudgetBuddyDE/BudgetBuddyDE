@@ -3,10 +3,11 @@
   "version": "3.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest",
     "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
   },
   "dependencies": {
@@ -16,16 +17,31 @@
     "@mui/icons-material": "latest",
     "@mui/material": "latest",
     "@mui/material-nextjs": "latest",
+    "@mui/x-charts": "^8.9.2",
+    "@tklein1801/logger.js": "^0.0.2",
+    "@tklein1801/o.js": "^0.1.1",
+    "better-auth": "^1.2.9",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.23.12",
+    "lodash.debounce": "^4.0.8",
     "next": "^15.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^4.0.14",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "latest",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "eslint": "latest",
     "eslint-config-next": "^15.0.0",
-    "typescript": "latest"
+    "jsdom": "^26.1.0",
+    "typescript": "latest",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }
