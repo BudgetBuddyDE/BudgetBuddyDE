@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { headers } from 'next/headers';
 import { type SubscriptionListProps, SubscriptionList } from './SubscriptionList';
 import { SubscriptionService } from '@/services/Subscription.service';
 
@@ -8,10 +8,13 @@ export type UpcomingSubscriptionsList = Pick<SubscriptionListProps, 'onAddEntity
 export const UpcomingSubscriptionsList: React.FC<UpcomingSubscriptionsList> = async ({
   onAddEntity,
 }) => {
-  const [subscriptions, error] = await SubscriptionService.getSubscriptions({
-    $filter: `executeAt ge ${new Date().getDate()}`,
-    $top: 6,
-  });
+  const [subscriptions, error] = await SubscriptionService.getSubscriptions(
+    {
+      $filter: `executeAt ge ${new Date().getDate()}`,
+      $top: 6,
+    },
+    { headers: await headers() }
+  );
   if (error) throw error;
 
   return (

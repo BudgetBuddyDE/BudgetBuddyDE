@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import {
+  CategoriesWithCount,
   Category,
+  CategoryResponse,
   ExpandedCategoryStats,
+  type TCategoryResponse,
+  type TCreateOrUpdateCategory,
+  type TCategoriesWithCount,
   type TCategory,
   type TCdsDate,
   type TExpandedCategoryStats,
@@ -12,7 +17,53 @@ import { type ServiceResponse } from '@/types/Service';
 import { type OdataQuery, type OdataConfig } from '@tklein1801/o.js';
 
 export class CategoryService extends EntityService {
-  private static readonly $entityPath = this.$servicePath + '/Category';
+  static {
+    this.entity = 'Category';
+  }
+
+  /**
+   * Creates a new category.
+   * @param payload The category data to create.
+   * @returns A promise that resolves to the created category or an error.
+   */
+  static async createCategory(
+    payload: TCreateOrUpdateCategory
+  ): Promise<ServiceResponse<TCategoryResponse>> {
+    try {
+      const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
+      const parsingResult = CategoryResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse created category'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  /**
+   * Updates an existing category.
+   * @param entityId The ID of the category to update.
+   * @param payload The updated category data.
+   * @returns A promise that resolves to the updated category or an error.
+   */
+  static async update(
+    entityId: string,
+    payload: TCreateOrUpdateCategory
+  ): Promise<ServiceResponse<TCategory>> {
+    try {
+      const record = await this.newOdataHandler()
+        .put(`${this.$entityPath}(ID=${entityId})`, payload)
+        .query();
+      const parsingResult = CategoryResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse updated category'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
 
   /**
    * Retrieves the list of categories from the database.
@@ -26,6 +77,31 @@ export class CategoryService extends EntityService {
     try {
       const records = await this.newOdataHandler(config).get(this.$entityPath).query(query);
       const parsingResult = z.array(Category).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse categories'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  /**
+   * Retrieves the list of categories from the database with a count of total categories.
+   * @param query - The OData query parameters.
+   * @param config - The OData configuration options.
+   * @returns A promise that resolves to a ServiceResponse containing the categories and their count.
+   */
+  static async getCategoriesWithCount(
+    query?: Omit<OdataQuery, '$count'>,
+    config?: Partial<Omit<OdataConfig, 'fragment'>>
+  ): Promise<ServiceResponse<TCategoriesWithCount>> {
+    try {
+      const records = await this.newOdataHandler({ ...config, fragment: undefined })
+        .get(this.$entityPath)
+        .query({ ...query, $count: true });
+      this.logger.debug('Fetched categories:', records);
+      const parsingResult = CategoriesWithCount.safeParse(records);
       if (!parsingResult.success) {
         return this.handleError(new Error('Failed to parse categories'));
       }

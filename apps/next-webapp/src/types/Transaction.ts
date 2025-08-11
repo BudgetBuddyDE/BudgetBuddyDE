@@ -1,9 +1,9 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
-import {Category} from './Category';
-import {PaymentMethod} from './PaymentMethod';
-import {CdsDate, IdAspect, ManagedAspect, OptionalIdAspect} from './_Aspects';
-import {DescriptionType, ODataContextAspect, OwnerAspect} from './_Base';
+import { Category } from './Category';
+import { PaymentMethod } from './PaymentMethod';
+import { CdsDate, IdAspect, ManagedAspect, OptionalIdAspect } from './_Aspects';
+import { DescriptionType, ODataContextAspect, ODataCountAspect, OwnerAspect } from './_Base';
 
 // Base model
 export const Transaction = z.object({
@@ -41,3 +41,16 @@ export type TCreateOrUpdateTransaction = z.infer<typeof CreateOrUpdateTransactio
 // Response from OData
 export const TransactionResponse = Transaction.extend(ODataContextAspect.shape);
 export type TTransactionResponse = z.infer<typeof TransactionResponse>;
+
+/**
+ * Transactions with Count
+ */
+export const ExpandedTransactionsWithCount = z.object({
+  ...ODataContextAspect.shape,
+  ...ODataCountAspect.shape,
+  value: z.array(ExpandedTransasction),
+});
+/**
+ * Transactions with Count
+ */
+export type TExpandedTransactionsWithCount = z.infer<typeof ExpandedTransactionsWithCount>;

@@ -1,7 +1,13 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
-import {IdAspect, ManagedAspect, OptionalIdAspect} from './_Aspects';
-import {DescriptionType, ODataContextAspect, OwnerAspect, UserID} from './_Base';
+import { IdAspect, ManagedAspect, OptionalIdAspect } from './_Aspects';
+import {
+  DescriptionType,
+  ODataContextAspect,
+  ODataCountAspect,
+  OwnerAspect,
+  UserID,
+} from './_Base';
 
 /**
  * Category
@@ -38,6 +44,19 @@ export const CategoryResponse = Category.extend(ODataContextAspect.shape);
  * Response from OData
  */
 export type TCategoryResponse = z.infer<typeof CategoryResponse>;
+
+/**
+ * Categories with Count
+ */
+export const CategoriesWithCount = z.object({
+  ...ODataContextAspect.shape,
+  ...ODataCountAspect.shape,
+  value: z.array(Category),
+});
+/**
+ * Categories with Count
+ */
+export type TCategoriesWithCount = z.infer<typeof CategoriesWithCount>;
 
 /**
  * Value Help for Category

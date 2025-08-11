@@ -6,11 +6,11 @@ import {
   chipClasses,
   svgIconClasses,
 } from '@mui/material';
-import {type Components} from '@mui/material/styles';
-import {type TypographyOptions} from '@mui/material/styles/createTypography';
+import { type Components } from '@mui/material/styles';
+import { type TypographyOptions } from '@mui/material/styles/createTypography';
 
-import {colors} from './colors';
-import {chartsCustomizations} from './customizations';
+import { colors } from './colors';
+import { chartsCustomizations } from './customizations';
 
 export const breakpoints: BreakpointsOptions = {
   keys: ['xs', 'sm', 'md', 'lg', 'xl'],
@@ -39,7 +39,7 @@ export const components: Components<Theme> = {
       size: 'small',
     },
     styleOverrides: {
-      root: ({theme}) => ({
+      root: ({ theme }) => ({
         border: '1px solid',
         borderRadius: '999px',
         [`& .${chipClasses.label}`]: {
@@ -138,7 +138,7 @@ export const components: Components<Theme> = {
             },
           },
           {
-            props: {size: 'small'},
+            props: { size: 'small' },
             style: {
               maxHeight: 20,
               [`& .${chipClasses.label}`]: {
@@ -150,7 +150,7 @@ export const components: Components<Theme> = {
             },
           },
           {
-            props: {size: 'medium'},
+            props: { size: 'medium' },
             style: {
               [`& .${chipClasses.label}`]: {
                 fontSize: theme.typography.caption.fontSize,

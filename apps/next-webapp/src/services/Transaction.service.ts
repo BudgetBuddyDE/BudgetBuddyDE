@@ -4,13 +4,17 @@ import {
   MonthlyKPIResponse,
   type TExpandedTransaction,
   type TMonthlyKPIResponse,
+  type TExpandedTransactionsWithCount,
+  ExpandedTransactionsWithCount,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';
-import { OdataConfig, OdataQuery } from '@tklein1801/o.js';
+import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 
 export class TransactionService extends EntityService {
-  private static readonly $entityPath = this.$servicePath + '/Transaction';
+  static {
+    this.entity = 'Transaction';
+  }
 
   /**
    * Retrieves the list of transactions from the database.
@@ -29,6 +33,35 @@ export class TransactionService extends EntityService {
           ...query,
         });
       const parsingResult = z.array(ExpandedTransasction).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse transactions'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  /**
+   * Retrieves the list of transactions from the database with a count of total transactions.
+   * @param query - The OData query parameters.
+   * @param config - The OData configuration options.
+   * @returns A promise that resolves to a ServiceResponse containing the transactions and their count.
+   */
+  static async getTransactionsWithCount(
+    query?: Omit<OdataQuery, '$count' | '$expand'>,
+    config?: Partial<Omit<OdataConfig, 'fragment'>>
+  ): Promise<ServiceResponse<TExpandedTransactionsWithCount>> {
+    try {
+      const records = await this.newOdataHandler({ ...config, fragment: undefined })
+        .get(this.$entityPath)
+        .query({
+          ...query,
+          $expand: 'toCategory,toPaymentMethod',
+          $count: true,
+        });
+      this.logger.debug('Fetched transactions:', records);
+      const parsingResult = ExpandedTransactionsWithCount.safeParse(records);
       if (!parsingResult.success) {
         return this.handleError(new Error('Failed to parse transactions'));
       }

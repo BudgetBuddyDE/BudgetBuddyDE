@@ -41,15 +41,14 @@ export const Drawer = () => {
         ModalProps={{
           keepMounted: true, // Better open performance on mobile.
         }}
+        slotProps={{
+          paper: {
+            elevation: 0,
+          },
+        }}
         sx={{
           display: { xs: 'block', md: 'none' },
           '& .MuiDrawer-paper': { width: '80%' },
-        }}
-        PaperProps={{
-          elevation: 0,
-          sx: {
-            backgroundColor: '#001E3C',
-          },
         }}
       >
         <DrawerHeader />
@@ -62,6 +61,9 @@ export const Drawer = () => {
         variant="permanent"
         open={showDrawer}
         sx={{ display: { xs: 'none', md: 'unset' } }}
+        ModalProps={{
+          keepMounted: true, // Better open performance
+        }}
       >
         <DrawerHeader />
         <DrawerItems open={showDrawer} />

@@ -9,11 +9,17 @@ export class EntityService {
     // TODO: Configure the $batch endpoint
     credentials: 'include',
   };
+  static entity: string;
   static readonly $servicePath = '/odata/v4/backend';
   static $odata: OHandler;
+  static readonly logger = logger.child({ scope: EntityService.name });
 
   static {
     this.$odata = o(this.$backendHost, this.$odataClientConfig);
+  }
+
+  static get $entityPath() {
+    return this.$servicePath + '/' + this.entity;
   }
 
   /**
@@ -37,5 +43,29 @@ export class EntityService {
       return [null, new Error(e.statusText)];
     }
     return [null, e instanceof Error ? e : new Error(msg)];
+  }
+
+  static async delete(
+    entityId: string,
+    cfg?: { entityName: string }
+  ): Promise<ServiceResponse<true>> {
+    try {
+      const response = await this.newOdataHandler()
+        .delete(`${this.$entityPath}(ID=${entityId})`)
+        .fetch();
+      if (Array.isArray(response)) {
+        const results = response.map((res) => res.ok);
+        if (results.every((ok) => ok)) {
+          return [true, null];
+        }
+        return this.handleError(new Error('Failed to delete ' + (cfg?.entityName || 'entity')));
+      }
+      if (!response.ok) {
+        return this.handleError(new Error('Failed to delete ' + (cfg?.entityName || 'entity')));
+      }
+      return [true, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
 export type NullableFields<T> = {
   [K in keyof T]?: T[K] | null;
@@ -11,13 +11,18 @@ export const DescriptionType = z
   .string()
   .nullable()
   .default(null)
-  .transform(val => (val === '' ? null : val));
+  .transform((val) => (val === '' ? null : val));
 export type TDescriptionType = z.infer<typeof DescriptionType>;
 
 export const ODataContextAspect = z.object({
   '@odata.context': z.string().optional(),
 });
 export type TODataContextAspect = z.infer<typeof ODataContextAspect>;
+
+export const ODataCountAspect = z.object({
+  '@odata.count': z.number().min(0),
+});
+export type TODataCountAspect = z.infer<typeof ODataCountAspect>;
 
 export const OwnerAspect = z.object({
   owner: UserID,

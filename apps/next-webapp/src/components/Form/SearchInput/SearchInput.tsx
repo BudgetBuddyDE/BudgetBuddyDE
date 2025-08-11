@@ -1,7 +1,8 @@
 'use client';
 
+import debounce from 'lodash.debounce';
 import { SearchRounded as SearchIcon } from '@mui/icons-material';
-import { InputBase, type SxProps, type Theme, alpha, styled } from '@mui/material';
+import { InputBase, type InputBaseProps, alpha, styled } from '@mui/material';
 import React from 'react';
 
 const Search = styled('div')(({ theme }) => ({
@@ -44,17 +45,17 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export type SearchInputProps = {
-  sx?: SxProps<Theme>;
-  placeholder?: string;
+export type SearchInputProps = Omit<InputBaseProps, 'onChange'> & {
   onSearch: (text: string) => void;
+  debounceWaitInMilliseconds?: number;
 };
 
-// FIXME: Implement debounce
 export const SearchInput: React.FC<SearchInputProps> = ({
   placeholder = 'Search…',
   onSearch,
   sx,
+  debounceWaitInMilliseconds = 500,
+  ...props
 }) => {
   return (
     <Search sx={sx}>
@@ -64,7 +65,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       <StyledInputBase
         placeholder={placeholder}
         inputProps={{ 'aria-label': 'search' }}
-        onChange={(e) => onSearch(e.target.value)}
+        onChange={debounce((e) => onSearch(e.target.value), debounceWaitInMilliseconds)}
+        {...props}
       />
     </Search>
   );

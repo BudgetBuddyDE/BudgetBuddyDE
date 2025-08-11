@@ -4,11 +4,16 @@ import { Footer } from '@/components/Layout/Footer';
 import { AuthenticatedMain } from '@/components/Layout/Main';
 import { AppBar } from '@/components/Layout/AppBar';
 import { Drawer } from '@/components/Layout/Drawer';
+import {
+  CommandPalette,
+  CommandPaletteProvider,
+  RegisterDefaultCommands,
+} from '@/components/CommandPalette';
 
 export default function Layout({ children }: React.PropsWithChildren) {
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* REVISIT: Enable <Drawer /> */}
+      <Drawer />
 
       <AuthenticatedMain
         sx={{
@@ -24,7 +29,11 @@ export default function Layout({ children }: React.PropsWithChildren) {
         <AppBar />
 
         <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-          {children}
+          <CommandPaletteProvider>
+            <RegisterDefaultCommands />
+            {children}
+            <CommandPalette />
+          </CommandPaletteProvider>
         </Container>
 
         <Box sx={{ mt: 'auto' }} children={<Footer />} />

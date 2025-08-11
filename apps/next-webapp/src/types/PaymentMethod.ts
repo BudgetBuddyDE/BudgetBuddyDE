@@ -1,7 +1,7 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
-import {IdAspect, ManagedAspect, OptionalIdAspect} from './_Aspects';
-import {DescriptionType, ODataContextAspect, OwnerAspect} from './_Base';
+import { IdAspect, ManagedAspect, OptionalIdAspect } from './_Aspects';
+import { DescriptionType, ODataContextAspect, ODataCountAspect, OwnerAspect } from './_Base';
 
 // Base model
 export const PaymentMethod = z.object({
@@ -26,6 +26,19 @@ export type TCreateOrUpdatePaymentMethod = z.infer<typeof CreateOrUpdatePaymentM
 // Response from OData
 export const PaymentMethodResponse = PaymentMethod.extend(ODataContextAspect.shape);
 export type TPaymentMethodResponse = z.infer<typeof PaymentMethodResponse>;
+
+/**
+ * PaymentMethods with Count
+ */
+export const PaymentMethodsWithCount = z.object({
+  ...ODataContextAspect.shape,
+  ...ODataCountAspect.shape,
+  value: z.array(PaymentMethod),
+});
+/**
+ * PaymentMethods with Count
+ */
+export type TPaymentMethodsWithCount = z.infer<typeof PaymentMethodsWithCount>;
 
 // Value-Help
 export const PaymentMethod_VH = PaymentMethod.pick({

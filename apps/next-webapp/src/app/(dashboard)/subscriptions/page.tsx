@@ -1,8 +1,13 @@
+import { ContentGrid } from '@/components/Layout/ContentGrid';
+import { SubscriptionTable } from '@/components/Subscription/SubscriptionTable';
+import { Grid } from '@mui/material';
+
 export default function SubscriptionsPage() {
   return (
-    <div>
-      <h1>Subscriptions Page</h1>
-      {/* Add your transactions content here */}
-    </div>
+    <ContentGrid title="Subscriptions">
+      <Grid size="grow">
+        <SubscriptionTable />
+      </Grid>
+    </ContentGrid>
   );
 }
