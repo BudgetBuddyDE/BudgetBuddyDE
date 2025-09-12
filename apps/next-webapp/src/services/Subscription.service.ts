@@ -4,6 +4,9 @@ import {
   ExpandedSubscriptionsWithCount,
   type TExpandedSubscriptionsWithCount,
   type TExpandedSubscription,
+  type TCreateOrUpdateSubscription,
+  SubscriptionResponse,
+  type TSubscription,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';
@@ -12,6 +15,50 @@ import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 export class SubscriptionService extends EntityService {
   static {
     this.entity = 'Subscription';
+  }
+
+  /**
+   * Creates a new subscription.
+   * @param payload The subscription data to create.
+   * @returns A promise that resolves to the created subscription or an error.
+   */
+  static async create(
+    payload: TCreateOrUpdateSubscription
+  ): Promise<ServiceResponse<TSubscription>> {
+    try {
+      const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
+      const parsingResult = SubscriptionResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse created subscription'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  /**
+   * Updates an existing category.
+   * @param entityId The ID of the category to update.
+   * @param payload The updated category data.
+   * @returns A promise that resolves to the updated category or an error.
+   */
+  static async update(
+    entityId: string,
+    payload: TCreateOrUpdateSubscription
+  ): Promise<ServiceResponse<TSubscription>> {
+    try {
+      const record = await this.newOdataHandler()
+        .patch(`${this.$entityPath}(ID=${entityId})`, payload)
+        .query();
+      const parsingResult = SubscriptionResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse updated subscription'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
   }
 
   /**

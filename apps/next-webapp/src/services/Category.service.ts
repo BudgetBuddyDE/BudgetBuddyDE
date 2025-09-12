@@ -10,6 +10,8 @@ import {
   type TCategory,
   type TCdsDate,
   type TExpandedCategoryStats,
+  TCategory_VH,
+  Category_VH,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { Formatter } from '@/utils/Formatter';
@@ -53,7 +55,7 @@ export class CategoryService extends EntityService {
   ): Promise<ServiceResponse<TCategory>> {
     try {
       const record = await this.newOdataHandler()
-        .put(`${this.$entityPath}(ID=${entityId})`, payload)
+        .patch(`${this.$entityPath}(ID=${entityId})`, payload)
         .query();
       const parsingResult = CategoryResponse.safeParse(record);
       if (!parsingResult.success) {
@@ -138,6 +140,24 @@ export class CategoryService extends EntityService {
       const parsingResult = z.array(ExpandedCategoryStats).safeParse(records);
       if (!parsingResult.success) {
         return this.handleError(new Error('Failed to parse response'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  static async getCategoryVH(
+    query?: OdataQuery,
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<TCategory_VH[]>> {
+    try {
+      const records = await this.newOdataHandler(config)
+        .get(this.$servicePath + '/Category_VH')
+        .query(query);
+      const parsingResult = z.array(Category_VH).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse category value-helps'));
       }
       return [parsingResult.data, null];
     } catch (e) {

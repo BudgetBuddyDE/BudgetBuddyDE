@@ -6,6 +6,8 @@ import {
   type TMonthlyKPIResponse,
   type TExpandedTransactionsWithCount,
   ExpandedTransactionsWithCount,
+  ReceiverVH,
+  type TReceiverVH,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';
@@ -84,6 +86,24 @@ export class TransactionService extends EntityService {
         .get(this.$servicePath + '/MonthlyKPI')
         .query();
       const parsingResult = MonthlyKPIResponse.safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleZodError([parsingResult.error]);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  static async getReceiverVH(
+    query?: OdataQuery,
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<TReceiverVH[]>> {
+    try {
+      const records = await this.newOdataHandler(config)
+        .get(this.$servicePath + '/Receiver_VH')
+        .query(query);
+      const parsingResult = z.array(ReceiverVH).safeParse(records);
       if (!parsingResult.success) {
         return this.handleZodError([parsingResult.error]);
       }

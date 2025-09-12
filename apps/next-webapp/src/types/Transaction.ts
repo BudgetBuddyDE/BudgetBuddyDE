@@ -54,3 +54,11 @@ export const ExpandedTransactionsWithCount = z.object({
  * Transactions with Count
  */
 export type TExpandedTransactionsWithCount = z.infer<typeof ExpandedTransactionsWithCount>;
+
+/**
+ * Receiver
+ */
+export const ReceiverVH = Transaction.pick({
+  receiver: true,
+});
+export type TReceiverVH = z.infer<typeof ReceiverVH>;

@@ -18,6 +18,7 @@
     "@mui/material": "latest",
     "@mui/material-nextjs": "latest",
     "@mui/x-charts": "^8.9.2",
+    "@mui/x-date-pickers": "^8.11.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@tklein1801/logger.js": "^0.0.2",
     "@tklein1801/o.js": "^0.1.1",

@@ -4,7 +4,6 @@ import {
   Controller,
   type DefaultValues,
   type FieldValues,
-  type UseFormReturn,
   useForm,
   type Path,
 } from 'react-hook-form';
@@ -16,7 +15,8 @@ import { EntityHeader } from './EntityHeader';
 import { EntityFooter } from './EntityFooter';
 import { ErrorAlert } from '@/components/ErrorAlert';
 import { isRunningOnIOs } from '@/utils/determineOS';
-import { logger } from '@/logger';
+import { DatePicker } from '@/components/Form/DatePicker';
+import { Autocomplete, type AutocompleteProps } from '@/components/Form/Autocomplete';
 
 type BaseAttributes<T, U extends FieldValues> = {
   size?: GridProps['size'];
@@ -37,7 +37,21 @@ type TextField<T extends FieldValues> = BaseAttributes<
 >;
 type NumberField<T extends FieldValues> = BaseAttributes<{ type: 'number' }, T>;
 
-type EntityDrawerField<T extends FieldValues> = DateField<T> | TextField<T> | NumberField<T>;
+type AutocompleteField<T extends FieldValues, Value> = BaseAttributes<
+  { type: 'autocomplete' /*inputValueKey: keyof Value */ },
+  T
+> &
+  Pick<
+    //  REVISIT: Make this more specific
+    AutocompleteProps<Value, any, any, any, any>,
+    'retrieveOptionsFunc' | 'isOptionEqualToValue' | 'getOptionLabel' | 'noOptionsText'
+  >;
+
+type EntityDrawerField<T extends FieldValues> =
+  | DateField<T>
+  | TextField<T>
+  | NumberField<T>
+  | AutocompleteField<T, unknown>;
 
 export type EntityDrawerFormHandler<T extends FieldValues> = (
   payload: T,
@@ -81,8 +95,7 @@ export const EntityDrawer = <T extends FieldValues>({
       if (saveBtnRef.current) {
         e.preventDefault();
         saveBtnRef.current.click();
-        console.log('clicked the button');
-      } else console.log("didn't click the button");
+      }
     },
     drawerRef.current,
     true
@@ -127,7 +140,10 @@ export const EntityDrawer = <T extends FieldValues>({
         <EntityHeader title={title} subtitle={subtitle} onClose={handler.handleClose} />
 
         <form
-          onSubmit={form.handleSubmit(handler.handleSubmit)}
+          onSubmit={form.handleSubmit((data) => {
+            console.log(data);
+            handler.handleSubmit(data);
+          })}
           style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
           noValidate
         >
@@ -142,7 +158,39 @@ export const EntityDrawer = <T extends FieldValues>({
 
               switch (inputType) {
                 case 'date':
-                  return <Grid size={wrapperSize}>DATE</Grid>;
+                  const formDefaultValues = form.formState.defaultValues;
+                  const defaultDate = formDefaultValues ? formDefaultValues[input.name] : undefined;
+                  return (
+                    <Grid size={wrapperSize}>
+                      <Controller
+                        name={input.name}
+                        control={form.control}
+                        // @ts-expect-error
+                        defaultValue={defaultDate ? new Date(defaultDate) : new Date()}
+                        render={({
+                          field: { name, onChange, value, ref },
+                          fieldState: { error },
+                        }) => (
+                          <DatePicker
+                            value={value}
+                            onChange={onChange}
+                            onAccept={onChange}
+                            inputRef={ref}
+                            slotProps={{
+                              textField: {
+                                ...form.register(name, { required: inputRequiredMessage }),
+                                label: input.label,
+                                error: !!error,
+                                helperText: error?.message,
+                                required: isInputRequired,
+                                fullWidth: true,
+                              },
+                            }}
+                          />
+                        )}
+                      />
+                    </Grid>
+                  );
 
                 case 'number':
                   return (
@@ -189,6 +237,37 @@ export const EntityDrawer = <T extends FieldValues>({
                             required={isInputRequired}
                             multiline={input.area}
                             rows={input.area ? input.rows : undefined}
+                          />
+                        )}
+                      />
+                    </Grid>
+                  );
+
+                case 'autocomplete':
+                  return (
+                    <Grid size={wrapperSize}>
+                      <Controller
+                        name={input.name}
+                        control={form.control}
+                        render={({ field, fieldState: { error } }) => (
+                          <Autocomplete
+                            {...form.register(field.name, { required: inputRequiredMessage })}
+                            onChange={(_, data) => {
+                              field.onChange(data);
+                              console.log(form.getValues());
+                            }}
+                            label={input.label}
+                            name={input.name}
+                            placeholder={input.placeholder}
+                            required={isInputRequired}
+                            isOptionEqualToValue={input.isOptionEqualToValue}
+                            getOptionLabel={input.getOptionLabel}
+                            retrieveOptionsFunc={input.retrieveOptionsFunc}
+                            error={!!error}
+                            helperText={error?.message}
+                            // experimental
+                            autoSelect
+                            autoComplete
                           />
                         )}
                       />

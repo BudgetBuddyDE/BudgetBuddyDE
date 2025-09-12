@@ -66,7 +66,7 @@ describe('CategoryStats', () => {
     expect(result.data).toEqual([
       {
         balance: 22.97,
-        createdBy: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+        createdBy: '3smvGKX7oMUMCFAViqMpp2jEBA36U0dD',
         end: '2025-07-15T08:36:00Z',
         expenses: 0,
         income: 22.97,
@@ -75,12 +75,12 @@ describe('CategoryStats', () => {
         toCategory: {
           ID: 'ed1e126b-62fb-4557-bea2-312cd0605e31',
           createdAt: '2025-07-17T00:44:25.736Z',
-          createdBy: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+          createdBy: '3smvGKX7oMUMCFAViqMpp2jEBA36U0dD',
           description: null,
           modifiedAt: '2025-07-17T00:44:25.736Z',
-          modifiedBy: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+          modifiedBy: '3smvGKX7oMUMCFAViqMpp2jEBA36U0dD',
           name: 'Lebensmittel',
-          owner: 'i0b03rccMH1PONo69pf1hBJOLYGcugXj',
+          owner: '3smvGKX7oMUMCFAViqMpp2jEBA36U0dD',
         },
         toCategory_ID: 'ed1e126b-62fb-4557-bea2-312cd0605e31',
       },

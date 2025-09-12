@@ -4,7 +4,7 @@ export type EntityDrawerState<T> =
   | {
       isOpen: true;
       action: EntityAction;
-      defaultValues: T | null;
+      defaultValues: Partial<T> | null;
     }
   | {
       isOpen: false;
@@ -21,7 +21,7 @@ export function getInitialEntityDrawerState<T>(): EntityDrawerState<T> {
 }
 
 export type EntityDrawerAction<A> =
-  | { type: 'OPEN'; action: EntityAction; defaultValues?: A }
+  | { type: 'OPEN'; action: EntityAction; defaultValues?: Partial<A> }
   | { type: 'CLOSE' }
   | { type: 'RESET' };
 

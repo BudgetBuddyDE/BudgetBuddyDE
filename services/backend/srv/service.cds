@@ -27,6 +27,21 @@ service BackendService {
       createdBy
     };
 
+  @readonly
+  view Receiver_VH @(restrict: [{
+    grant: ['READ'],
+    where: 'owner = $user'
+  }]) as
+      select from Transaction {
+        key receiver,
+            owner
+      }
+    union
+      select from Subscription {
+        key receiver,
+            owner
+      }
+
   @plural                : 'Budgets'
   @cds.redirection.target: 'Budget'
   entity Budget                                         as

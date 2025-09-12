@@ -2,8 +2,13 @@ import { z } from 'zod';
 import {
   PaymentMethod,
   PaymentMethodsWithCount,
-  TPaymentMethodsWithCount,
+  type TPaymentMethodsWithCount,
   type TPaymentMethod,
+  type TCreateOrUpdatePaymentMethod,
+  type TPaymentMethodResponse,
+  PaymentMethodResponse,
+  PaymentMethod_VH,
+  type TPaymentMethod_VH,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';
@@ -12,6 +17,50 @@ import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 export class PaymentMethodService extends EntityService {
   static {
     this.entity = 'PaymentMethod';
+  }
+
+  /**
+   * Creates a new payment method.
+   * @param payload The payment method data to create.
+   * @returns A promise that resolves to the created payment method or an error.
+   */
+  static async create(
+    payload: TCreateOrUpdatePaymentMethod
+  ): Promise<ServiceResponse<TPaymentMethodResponse>> {
+    try {
+      const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
+      const parsingResult = PaymentMethodResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse created payment method'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  /**
+   * Updates an existing payment method.
+   * @param entityId The ID of the payment method to update.
+   * @param payload The updated payment method data.
+   * @returns A promise that resolves to the updated payment method or an error.
+   */
+  static async update(
+    entityId: string,
+    payload: TCreateOrUpdatePaymentMethod
+  ): Promise<ServiceResponse<TPaymentMethod>> {
+    try {
+      const record = await this.newOdataHandler()
+        .patch(`${this.$entityPath}(ID=${entityId})`, payload)
+        .query();
+      const parsingResult = PaymentMethodResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse updated payment method'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
   }
 
   /**
@@ -53,6 +102,24 @@ export class PaymentMethodService extends EntityService {
       const parsingResult = PaymentMethodsWithCount.safeParse(records);
       if (!parsingResult.success) {
         return this.handleError(new Error('Failed to parse payment methods'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  static async getPaymentMethodVH(
+    query?: OdataQuery,
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<TPaymentMethod_VH[]>> {
+    try {
+      const records = await this.newOdataHandler(config)
+        .get(this.$servicePath + '/PaymentMethod_VH')
+        .query(query);
+      const parsingResult = z.array(PaymentMethod_VH).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse payment method value-helps'));
       }
       return [parsingResult.data, null];
     } catch (e) {

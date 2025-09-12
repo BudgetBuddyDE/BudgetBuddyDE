@@ -2,7 +2,7 @@
 
 import {
   EntityDrawer,
-  EntityDrawerFormHandler,
+  type EntityDrawerFormHandler,
   entityDrawerReducer,
   getInitialEntityDrawerState,
 } from '@/components/Drawer/EntityDrawer';
