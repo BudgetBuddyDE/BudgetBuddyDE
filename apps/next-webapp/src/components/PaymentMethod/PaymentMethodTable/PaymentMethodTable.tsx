@@ -4,6 +4,7 @@ import {
   EntityDrawer,
   type EntityDrawerFormHandler,
   entityDrawerReducer,
+  type FirstLevelNullable,
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
 import { useSnackbarContext } from '@/components/Snackbar';
@@ -12,14 +13,14 @@ import { paymentMethodSlice } from '@/lib/features/paymentMethods/paymentMethodS
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { logger } from '@/logger';
 import { PaymentMethodService } from '@/services/PaymentMethod.service';
-import { type TPaymentMethod } from '@/types';
+import { CreateOrUpdatePaymentMethod, type TPaymentMethod } from '@/types';
 import { Button, TableCell, TableRow, Typography } from '@mui/material';
 import React from 'react';
 
-type EntityFormFields = Pick<
+type EntityFormFields = FirstLevelNullable<Pick<
   TPaymentMethod,
   'ID' | 'name' | 'address' | 'provider' | 'description'
->;
+>>;
 
 export type PaymentMethodTableProps = {};
 
@@ -54,8 +55,19 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
     onSuccess
   ) => {
     const action = drawerState.action;
+
+    const parsedPayload = CreateOrUpdatePaymentMethod.safeParse(payload);
+    if (!parsedPayload.success) {
+      const issues: string = parsedPayload.error.issues.map((issue) => issue.message).join(', ');
+      showSnackbar({
+        message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} payment method: ${issues}`,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+      });
+      return;
+    }
+
     if (action == 'CREATE') {
-      const [createdPaymentMethod, error] = await PaymentMethodService.create(payload);
+      const [createdPaymentMethod, error] = await PaymentMethodService.create(parsedPayload.data);
       if (error) {
         return showSnackbar({
           message: `Failed to create payment method: ${error.message}`,
@@ -75,7 +87,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
           action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
         });
       }
-      const [updatedPaymentMethod, error] = await PaymentMethodService.update(entityId, payload);
+      const [updatedPaymentMethod, error] = await PaymentMethodService.update(entityId, parsedPayload.data);
       if (error) {
         return showSnackbar({
           message: `Failed to update payment method: ${error.message}`,

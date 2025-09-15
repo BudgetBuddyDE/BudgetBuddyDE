@@ -1,4 +1,4 @@
-import { Grid, GridProps, TextField, TextFieldProps } from '@mui/material';
+import { Grid, type GridProps, TextField, type TextFieldProps } from '@mui/material';
 import React from 'react';
 import {
   Controller,
@@ -7,9 +7,7 @@ import {
   useForm,
   type Path,
 } from 'react-hook-form';
-
 import { useKeyPress } from '@/hooks/useKeyPress';
-
 import { Drawer, type DrawerProps } from '../Drawer';
 import { EntityHeader } from './EntityHeader';
 import { EntityFooter } from './EntityFooter';
@@ -17,6 +15,11 @@ import { ErrorAlert } from '@/components/ErrorAlert';
 import { isRunningOnIOs } from '@/utils/determineOS';
 import { DatePicker } from '@/components/Form/DatePicker';
 import { Autocomplete, type AutocompleteProps } from '@/components/Form/Autocomplete';
+import { parseNumber } from '@/utils/parseNumber';
+
+export type FirstLevelNullable<T extends object> = {
+  [P in keyof T]: T[P] | null;
+};
 
 type BaseAttributes<T, U extends FieldValues> = {
   size?: GridProps['size'];
@@ -44,10 +47,15 @@ type AutocompleteField<T extends FieldValues, Value> = BaseAttributes<
   Pick<
     //  REVISIT: Make this more specific
     AutocompleteProps<Value, any, any, any, any>,
-    'retrieveOptionsFunc' | 'isOptionEqualToValue' | 'getOptionLabel' | 'noOptionsText'
+    | 'retrieveOptionsFunc'
+    | 'isOptionEqualToValue'
+    | 'renderOption'
+    | 'getOptionLabel'
+    | 'noOptionsText'
+    | 'filterOptions'
   >;
 
-type EntityDrawerField<T extends FieldValues> =
+export type EntityDrawerField<T extends FieldValues> =
   | DateField<T>
   | TextField<T>
   | NumberField<T>
@@ -114,13 +122,13 @@ export const EntityDrawer = <T extends FieldValues>({
       if (onResetForm) {
         const newValues = onResetForm();
         form.reset(newValues);
-      } /*else {
+      } else {
         form.reset(
           Object.fromEntries(
-            Object.entries(defaultValues || {}).map(([key, value]) => [key, null])
+            Object.entries(form.getValues() || {}).map(([key, value]) => [key, null])
           ) as DefaultValues<T>
         );
-      }*/
+      }
     },
   };
 
@@ -140,10 +148,7 @@ export const EntityDrawer = <T extends FieldValues>({
         <EntityHeader title={title} subtitle={subtitle} onClose={handler.handleClose} />
 
         <form
-          onSubmit={form.handleSubmit((data) => {
-            console.log(data);
-            handler.handleSubmit(data);
-          })}
+          onSubmit={form.handleSubmit(handler.handleSubmit)}
           style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
           noValidate
         >
@@ -198,22 +203,32 @@ export const EntityDrawer = <T extends FieldValues>({
                       <Controller
                         name={input.name}
                         control={form.control}
-                        render={({ field, fieldState: { error } }) => (
-                          <TextField
-                            type={'number'}
-                            {...field}
-                            label={input.label}
-                            placeholder={input.placeholder}
-                            {...form.register(field.name, { required: inputRequiredMessage })}
-                            error={!!error}
-                            helperText={error?.message}
-                            fullWidth
-                            required={isInputRequired}
-                            slotProps={{
-                              htmlInput: { inputMode: isRunningOnIOs() ? 'text' : 'numeric' },
-                            }}
-                          />
-                        )}
+                        render={({ field, fieldState: { error } }) => {
+                          field.onChange = (
+                            e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+                          ) => {
+                            const value = e.target.value;
+                            const parsedValue = parseNumber(value);
+                            field.onChange(parsedValue);
+                          };
+
+                          return (
+                            <TextField
+                              type={'number'}
+                              {...field}
+                              label={input.label}
+                              placeholder={input.placeholder}
+                              {...form.register(field.name, { required: inputRequiredMessage })}
+                              error={!!error}
+                              helperText={error?.message}
+                              fullWidth
+                              required={isInputRequired}
+                              slotProps={{
+                                htmlInput: { inputMode: isRunningOnIOs() ? 'text' : 'numeric' },
+                              }}
+                            />
+                          );
+                        }}
                       />
                     </Grid>
                   );
@@ -249,25 +264,31 @@ export const EntityDrawer = <T extends FieldValues>({
                       <Controller
                         name={input.name}
                         control={form.control}
-                        render={({ field, fieldState: { error } }) => (
+                        render={({
+                          field,
+                          fieldState: { error },
+                          formState: { defaultValues },
+                        }) => (
                           <Autocomplete
-                            {...form.register(field.name, { required: inputRequiredMessage })}
-                            onChange={(_, data) => {
-                              field.onChange(data);
-                              console.log(form.getValues());
-                            }}
-                            label={input.label}
+                            // REVISIT: Will break if used
+                            // {...form.register(field.name, { required: inputRequiredMessage })}
                             name={input.name}
-                            placeholder={input.placeholder}
                             required={isInputRequired}
-                            isOptionEqualToValue={input.isOptionEqualToValue}
-                            getOptionLabel={input.getOptionLabel}
+                            label={input.label}
+                            placeholder={input.placeholder}
+                            value={field.value}
+                            onChange={(_, value) => field.onChange(value)}
+                            defaultValue={defaultValues ? defaultValues[input.name] : undefined}
                             retrieveOptionsFunc={input.retrieveOptionsFunc}
+                            getOptionLabel={input.getOptionLabel}
                             error={!!error}
                             helperText={error?.message}
-                            // experimental
+                            fullWidth
                             autoSelect
                             autoComplete
+                            isOptionEqualToValue={input.isOptionEqualToValue}
+                            filterOptions={input.filterOptions}
+                            renderOption={input.renderOption}
                           />
                         )}
                       />

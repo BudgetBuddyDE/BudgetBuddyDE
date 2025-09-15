@@ -4,6 +4,7 @@ import {
   EntityDrawer,
   type EntityDrawerFormHandler,
   entityDrawerReducer,
+  type FirstLevelNullable,
   getInitialEntityDrawerState,
 } from '@/components/Drawer/EntityDrawer';
 import { useSnackbarContext } from '@/components/Snackbar';
@@ -12,11 +13,11 @@ import { categorySlice } from '@/lib/features/categories/categorySlice';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { logger } from '@/logger';
 import { CategoryService } from '@/services/Category.service';
-import { type TCategory } from '@/types';
+import { CreateOrUpdateCategory, type TCategory } from '@/types';
 import { Button, TableCell, TableRow, Typography } from '@mui/material';
 import React from 'react';
 
-type EntityFormFields = Pick<TCategory, 'ID' | 'name' | 'description'>;
+type EntityFormFields = FirstLevelNullable<Pick<TCategory, 'ID' | 'name' | 'description'>>;
 
 export type CategoryTableProps = {};
 
@@ -51,8 +52,19 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
     onSuccess
   ) => {
     const action = drawerState.action;
+    
+    const parsedPayload = CreateOrUpdateCategory.safeParse(payload);
+    if (!parsedPayload.success) {
+      const issues: string = parsedPayload.error.issues.map((issue) => issue.message).join(', ');
+      showSnackbar({
+        message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} category: ${issues}`,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+      });
+      return;
+    }
+
     if (action == 'CREATE') {
-      const [createdCategory, error] = await CategoryService.createCategory(payload);
+      const [createdCategory, error] = await CategoryService.createCategory(parsedPayload.data);
       if (error) {
         return showSnackbar({
           message: `Failed to create category: ${error.message}`,
@@ -70,7 +82,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
           action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
         });
       }
-      const [updatedCategory, error] = await CategoryService.update(entityId, payload);
+      const [updatedCategory, error] = await CategoryService.update(entityId, parsedPayload.data);
       if (error) {
         return showSnackbar({
           message: `Failed to update category: ${error.message}`,
@@ -221,9 +233,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
         closeOnBackdropClick
         onResetForm={() => {
           return {
-            ID: '',
-            name: '',
-            description: '',
+            ID: null,
+            name: null,
+            description: null,
           };
         }}
         defaultValues={drawerState.defaultValues ?? undefined}

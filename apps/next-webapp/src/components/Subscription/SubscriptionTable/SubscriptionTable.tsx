@@ -3,8 +3,10 @@
 import { CategoryChip } from '@/components/Category/CategoryChip';
 import {
   EntityDrawer,
-  EntityDrawerFormHandler,
+  type EntityDrawerField,
+  type EntityDrawerFormHandler,
   entityDrawerReducer,
+  type FirstLevelNullable,
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
 import { PaymentMethodChip } from '@/components/PaymentMethod/PaymentMethodChip';
@@ -22,15 +24,49 @@ import {
   type TExpandedSubscription,
   type TCategory_VH,
   type TPaymentMethod_VH,
+  type TReceiverVH,
+  CreateOrUpdateSubscription,
+  PaymentMethod_VH,
+  Category_VH,
+  ReceiverVH,
+  CdsDate,
 } from '@/types';
 import { Formatter } from '@/utils/Formatter';
-import { Button, Stack, TableCell, TableRow, Typography } from '@mui/material';
+import {
+  Button,
+  Chip,
+  createFilterOptions,
+  Stack,
+  TableCell,
+  TableRow,
+  Typography,
+} from '@mui/material';
 import React from 'react';
 
-type EntityFormFields = Pick<
-  TSubscription,
-  'ID' | 'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' | 'transferAmount' | 'information'
-> & { executeAt: Date };
+type EntityFormFields = FirstLevelNullable<
+  Pick<
+    TSubscription,
+    | 'ID'
+    | /*'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' |*/ 'transferAmount'
+    | 'information'
+  > & {
+    // Because we're gonna use a Date Picker and Autocompletes for relations, we need to override those types
+    executeAt: Date;
+    toCategory: TCategory_VH;
+    toPaymentMethod: TPaymentMethod_VH;
+    receiver: TReceiverVH | ({ new: true; label: string } & TReceiverVH);
+  }
+>;
+
+export type SubscriptionFormFields = FirstLevelNullable<{
+  ID: string;
+  executeAt: Date;
+  toCategory: TCategory_VH;
+  toPaymentMethod: TPaymentMethod_VH;
+  receiver: TReceiverVH | ({ new: true } & TReceiverVH);
+  transferAmount: number;
+  information: string;
+}>;
 
 export type SubscriptionTableProps = {};
 
@@ -61,38 +97,76 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
     onSuccess
   ) => {
     const action = drawerState.action;
-    console.log('Action:', action);
-    console.log('Payload:', payload);
-    // if (action == 'CREATE') {
-    //   // const [createdSubscription, error] = await SubscriptionService.create(payload);
-    //   // if (error) {
-    //   //   return showSnackbar({
-    //   //     message: `Failed to create subscription: ${error.message}`,
-    //   //     action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
-    //   //   });
-    //   // }
-    //   showSnackbar({ message: `Subscription created successfully` });
-    //   dispatchDrawerAction({ type: 'CLOSE' });
-    //   dispatch(refresh());
-    // } else if (action == 'EDIT') {
-    //   const entityId = drawerState.defaultValues?.ID;
-    //   if (!entityId) {
-    //     return showSnackbar({
-    //       message: `Failed to update subscription: Missing entity ID`,
-    //       action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
-    //     });
-    //   }
-    //   // const [updatedSubscription, error] = await SubscriptionService.update(entityId, payload);
-    //   // if (error) {
-    //   //   return showSnackbar({
-    //   //     message: `Failed to update subscription: ${error.message}`,
-    //   //     action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
-    //   //   });
-    //   // }
-    //   showSnackbar({ message: `Subscription updated successfully` });
-    //   dispatchDrawerAction({ type: 'CLOSE' });
-    //   dispatch(refresh());
-    // }
+
+    const parsedPayload = CreateOrUpdateSubscription.omit({
+      ID: true,
+      executeAt: true,
+      receiver: true,
+      toCategory_ID: true,
+      toPaymentMethod_ID: true,
+    }).extend({
+      executeAt: CdsDate,
+      toCategory: Category_VH,
+      toPaymentMethod: PaymentMethod_VH,
+      receiver: ReceiverVH,
+    }).safeParse({...payload, transferAmount: Number(payload.transferAmount)});
+    if (!parsedPayload.success) {
+      const issues: string = parsedPayload.error.issues.map((issue) => issue.message).join(', ');
+      showSnackbar({
+        message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} subscription: ${issues}`,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+      });
+      return;
+    }
+
+    if (action == 'CREATE') {
+      const { executeAt, toCategory, toPaymentMethod, receiver, information, transferAmount } =
+        parsedPayload.data;
+      const [_, error] = await SubscriptionService.create({
+        executeAt: executeAt.getDate(),
+        toCategory_ID: toCategory.ID,
+        toPaymentMethod_ID: toPaymentMethod.ID,
+        receiver: receiver.receiver,
+        information: information && information.length > 0 ? information : null,
+        transferAmount: transferAmount,
+      });
+      if (error) {
+        return showSnackbar({
+          message: `Failed to create subscription: ${error.message}`,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        });
+      }
+      showSnackbar({ message: `Subscription created successfully` });
+      dispatchDrawerAction({ type: 'CLOSE' });
+      dispatch(refresh());
+    } else if (action == 'EDIT') {
+      const entityId = drawerState.defaultValues?.ID;
+      if (!entityId) {
+        return showSnackbar({
+          message: `Failed to update subscription: Missing entity ID`,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        });
+      }
+      const { executeAt, toCategory, toPaymentMethod, receiver, information, transferAmount } =
+        parsedPayload.data;
+      const [_, error] = await SubscriptionService.update(entityId,{
+        executeAt: executeAt.getDate(),
+        toCategory_ID: toCategory.ID,
+        toPaymentMethod_ID: toPaymentMethod.ID,
+        receiver: receiver.receiver,
+        information: information && information.length > 0 ? information : null,
+        transferAmount: transferAmount,
+      });
+      if (error) {
+        return showSnackbar({
+          message: `Failed to update subscription: ${error.message}`,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        });
+      }
+      showSnackbar({ message: `Subscription updated successfully` });
+      dispatchDrawerAction({ type: 'CLOSE' });
+      dispatch(refresh());
+    }
   };
 
   const handleCreateEntity = () => {
@@ -105,18 +179,37 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
     });
   };
 
-  const handleEditEntity = (entity: TExpandedSubscription) => {
+  const handleEditEntity = ({
+    ID,
+    executeAt,
+    receiver,
+    toCategory,
+    toPaymentMethod,
+    transferAmount,
+    information,
+  }: TExpandedSubscription) => {
     const now = new Date();
-    const executeAt = entity.executeAt;
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'EDIT',
       defaultValues: {
-        ID: entity.ID,
+        ID: ID,
         executeAt: new Date(now.getFullYear(), now.getMonth(), executeAt),
-        receiver: entity.receiver,
-        transferAmount: entity.transferAmount,
-        information: entity.information,
+        receiver: { receiver: receiver },
+        toCategory: {
+          ID: toCategory.ID,
+          name: toCategory.name,
+          description: toCategory.description,
+        },
+        toPaymentMethod: {
+          ID: toPaymentMethod.ID,
+          name: toPaymentMethod.name,
+          address: toPaymentMethod.address,
+          provider: toPaymentMethod.provider,
+          description: toPaymentMethod.description,
+        },
+        transferAmount: transferAmount,
+        information: information,
       },
     });
   };
@@ -179,6 +272,114 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
     },
     [dispatch, setRowsPerPage]
   );
+
+  // @ts-expect-error REVISIT: Fix the typing
+  const EntityFormFields: EntityDrawerField<EntityFormFields>[] = React.useMemo(() => {
+    return [
+      {
+        type: 'date',
+        name: 'executeAt',
+        label: 'Execute at',
+        placeholder: 'Execute at',
+        required: true,
+      },
+      {
+        type: 'autocomplete',
+        name: 'toCategory',
+        label: 'Category',
+        placeholder: 'Category',
+        required: true,
+        retrieveOptionsFunc: async () => {
+          const [categories, error] = await CategoryService.getCategoryVH();
+          if (error) {
+            logger.error('Failed to fetch receiver options:', error);
+            return [];
+          }
+          return categories ?? [];
+        },
+        getOptionLabel: (option: TCategory_VH) => {
+          return option.name;
+        },
+        noOptionsText: 'No categories found',
+      },
+      {
+        type: 'autocomplete',
+        name: 'toPaymentMethod',
+        label: 'Payment Method',
+        placeholder: 'Payment Method',
+        required: true,
+        retrieveOptionsFunc: async () => {
+          const [paymentMethods, error] = await PaymentMethodService.getPaymentMethodVH();
+          if (error) {
+            logger.error('Failed to fetch payment method options:', error);
+            return [];
+          }
+          return paymentMethods ?? [];
+        },
+        getOptionLabel: (option: TPaymentMethod_VH) => {
+          return option.name;
+        },
+        noOptionsText: 'No payment methods found',
+      },
+      {
+        type: 'autocomplete',
+        name: 'receiver',
+        label: 'Receiver',
+        placeholder: 'Receiver',
+        required: true,
+        retrieveOptionsFunc: async () => {
+          const [categories, error] = await TransactionService.getReceiverVH();
+          if (error) {
+            logger.error('Failed to fetch receiver options:', error);
+            return [];
+          }
+          return categories ?? [];
+        },
+        getOptionLabel: (option: SubscriptionFormFields['receiver']) => {
+          return option?.receiver;
+        },
+        filterOptions: (options, state) => {
+          if (state.inputValue.length < 1) return options;
+          const filter = createFilterOptions<(typeof options)[0]>({ ignoreCase: true });
+          const filtered = filter(options, state);
+          return filtered.length > 0
+            ? filtered
+            : [
+                {
+                  new: true,
+                  receiver: state.inputValue,
+                },
+              ];
+        },
+        renderOption: (props, option: SubscriptionFormFields['receiver']) => {
+          if (!option) return null;
+          const isNew = 'new' in option;
+          return (
+            <li {...props} key={option.receiver}>
+              {isNew && <Chip label="New" size="small" sx={{ mr: 0.5 }} />}
+              {option.receiver}
+            </li>
+          );
+        },
+        noOptionsText: 'No receivers found',
+      },
+      {
+        type: 'number',
+        name: 'transferAmount',
+        label: 'Transfer Amount',
+        placeholder: 'Transfer Amount',
+        required: true,
+      },
+      {
+        type: 'text',
+        name: 'information',
+        label: 'Information',
+        placeholder: 'Information',
+        area: true,
+        rows: 2,
+      },
+    ];
+  }, []);
 
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
@@ -289,98 +490,17 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
         closeOnBackdropClick
         onResetForm={() => {
           return {
-            ID: '',
-            // executeAt: ,
-            receiver: '',
-            transferAmount: undefined,
-            information: '',
+            ID: null,
+            executeAt: new Date(),
+            toCategory: null,
+            toPaymentMethod: null,
+            receiver: null,
+            transferAmount: null,
+            information: null,
           };
         }}
         defaultValues={drawerState.defaultValues ?? undefined}
-        fields={[
-          {
-            type: 'date',
-            name: 'executeAt',
-            label: 'Execute at',
-            placeholder: 'Execute at',
-            required: true,
-          },
-          // Category_VH
-          {
-            type: 'autocomplete',
-            name: 'toCategory_ID',
-            label: 'Category',
-            placeholder: 'Category',
-            required: true,
-            retrieveOptionsFunc: async () => {
-              const [categories, error] = await CategoryService.getCategoryVH();
-              if (error) {
-                logger.error('Failed to fetch receiver options:', error);
-                return [];
-              }
-              return categories ?? [];
-            },
-            getOptionLabel: (option) => {
-              return (option as TCategory_VH).name;
-            },
-            noOptionsText: 'No categories found',
-          },
-          // PaymentMethod_VH
-          {
-            type: 'autocomplete',
-            name: 'toPaymentMethod_ID',
-            label: 'Payment Method',
-            placeholder: 'Payment Method',
-            required: true,
-            retrieveOptionsFunc: async () => {
-              const [paymentMethods, error] = await PaymentMethodService.getPaymentMethodVH();
-              if (error) {
-                logger.error('Failed to fetch payment method options:', error);
-                return [];
-              }
-              return paymentMethods ?? [];
-            },
-            getOptionLabel: (option) => {
-              return (option as TPaymentMethod_VH).name;
-            },
-            noOptionsText: 'No payment methods found',
-          },
-          // Receiver_VH
-          {
-            type: 'autocomplete',
-            name: 'receiver',
-            label: 'Receiver',
-            placeholder: 'Receiver',
-            required: true,
-            retrieveOptionsFunc: async () => {
-              const [receivers, error] = await TransactionService.getReceiverVH();
-              if (error) {
-                logger.error('Failed to fetch receiver options:', error);
-                return [];
-              }
-              return receivers ?? [];
-            },
-            getOptionLabel: (option) => {
-              return (option as { receiver: string }).receiver;
-            },
-            noOptionsText: 'No receivers found',
-          },
-          {
-            type: 'number',
-            name: 'transferAmount',
-            label: 'Transfer Amount',
-            placeholder: 'Transfer Amount',
-            required: true,
-          },
-          {
-            type: 'text',
-            name: 'information',
-            label: 'Information',
-            placeholder: 'Information',
-            area: true,
-            rows: 2,
-          },
-        ]}
+        fields={EntityFormFields}
       />
     </React.Fragment>
   );

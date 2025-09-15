@@ -10,7 +10,7 @@ import {
   type TCategory,
   type TCdsDate,
   type TExpandedCategoryStats,
-  TCategory_VH,
+  type TCategory_VH,
   Category_VH,
 } from '@/types';
 import { EntityService } from './Entity.service';
