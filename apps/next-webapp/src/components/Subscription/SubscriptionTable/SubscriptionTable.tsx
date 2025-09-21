@@ -104,12 +104,14 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
       receiver: true,
       toCategory_ID: true,
       toPaymentMethod_ID: true,
-    }).extend({
-      executeAt: CdsDate,
-      toCategory: Category_VH,
-      toPaymentMethod: PaymentMethod_VH,
-      receiver: ReceiverVH,
-    }).safeParse({...payload, transferAmount: Number(payload.transferAmount)});
+    })
+      .extend({
+        executeAt: CdsDate,
+        toCategory: Category_VH,
+        toPaymentMethod: PaymentMethod_VH,
+        receiver: ReceiverVH,
+      })
+      .safeParse({ ...payload, transferAmount: Number(payload.transferAmount) });
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map((issue) => issue.message).join(', ');
       showSnackbar({
@@ -149,7 +151,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
       }
       const { executeAt, toCategory, toPaymentMethod, receiver, information, transferAmount } =
         parsedPayload.data;
-      const [_, error] = await SubscriptionService.update(entityId,{
+      const [_, error] = await SubscriptionService.update(entityId, {
         executeAt: executeAt.getDate(),
         toCategory_ID: toCategory.ID,
         toPaymentMethod_ID: toPaymentMethod.ID,
@@ -193,7 +195,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
       type: 'OPEN',
       action: 'EDIT',
       defaultValues: {
-        ID: ID,
+        ID,
         executeAt: new Date(now.getFullYear(), now.getMonth(), executeAt),
         receiver: { receiver: receiver },
         toCategory: {
@@ -208,8 +210,8 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
           provider: toPaymentMethod.provider,
           description: toPaymentMethod.description,
         },
-        transferAmount: transferAmount,
-        information: information,
+        transferAmount,
+        information,
       },
     });
   };

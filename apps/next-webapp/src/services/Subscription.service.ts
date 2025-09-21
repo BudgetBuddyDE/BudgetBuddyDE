@@ -7,6 +7,7 @@ import {
   type TCreateOrUpdateSubscription,
   SubscriptionResponse,
   type TSubscription,
+  TSubscriptionResponse,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';
@@ -24,7 +25,7 @@ export class SubscriptionService extends EntityService {
    */
   static async create(
     payload: TCreateOrUpdateSubscription
-  ): Promise<ServiceResponse<TSubscription>> {
+  ): Promise<ServiceResponse<TSubscriptionResponse>> {
     try {
       const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
       const parsingResult = SubscriptionResponse.safeParse(record);
@@ -38,15 +39,15 @@ export class SubscriptionService extends EntityService {
   }
 
   /**
-   * Updates an existing category.
-   * @param entityId The ID of the category to update.
-   * @param payload The updated category data.
-   * @returns A promise that resolves to the updated category or an error.
+   * Updates an existing subscription.
+   * @param entityId The ID of the subscription to update.
+   * @param payload The updated subscription data.
+   * @returns A promise that resolves to the updated subscription or an error.
    */
   static async update(
     entityId: string,
     payload: TCreateOrUpdateSubscription
-  ): Promise<ServiceResponse<TSubscription>> {
+  ): Promise<ServiceResponse<TSubscriptionResponse>> {
     try {
       const record = await this.newOdataHandler()
         .patch(`${this.$entityPath}(ID=${entityId})`, payload)

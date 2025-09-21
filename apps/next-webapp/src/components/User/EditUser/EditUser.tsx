@@ -19,6 +19,7 @@ export const EditUser = () => {
   const { showSnackbar } = useSnackbarContext();
   const saveBtnRef = React.useRef<HTMLButtonElement>(null);
   const formRef = React.useRef<HTMLFormElement>(null);
+  const cardRef = React.useRef<HTMLDivElement>(null);
   const [isFormEditable, setFormEditable] = React.useState(false);
 
   async function onSubmit(formData: FormData) {
@@ -67,14 +68,16 @@ export const EditUser = () => {
     showSnackbar({ message: 'Changes were discarded' });
   };
 
-  // FIXME: Doen't work anymore :()
   useKeyPress(
     ['s'],
-    () => {
-      if (!saveBtnRef.current || !isFormEditable) return;
+    (e) => {
+      console.log(saveBtnRef, isFormEditable)
+      if (!saveBtnRef.current || !isFormEditable) return alert('Make the form editable first by clicking the Edit button');
+      e.preventDefault();
       saveBtnRef.current.click();
     },
-    formRef.current,
+    // cardRef.current,
+    undefined,
     true
   );
 
@@ -86,86 +89,84 @@ export const EditUser = () => {
 
   if (isSessionPending || !sessionData) return null; // should never be the case
   return (
-    <React.Fragment>
-      {!sessionData.user.emailVerified && (
-        <Alert severity="warning" title="E-Mail" sx={{ mb: 2 }}>
-          Please verify your email address to access all features of Budget Buddy.
-        </Alert>
-      )}
-
-      <Card>
-        <Card.Header>
-          <Box>
-            <Card.Title>Profile</Card.Title>
-            <Card.Subtitle>Make changes to your account</Card.Subtitle>
-          </Box>
-        </Card.Header>
-        <Card.Body>
-          <form ref={formRef} action={onSubmit}>
-            <Grid container spacing={2} rowSpacing={1}>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  fullWidth
-                  disabled
-                  id="uuid"
-                  name="uuid"
-                  label="UUID"
-                  defaultValue={sessionData.user.id}
-                  sx={{ mt: 2 }}
-                  required
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  id="name"
-                  name="name"
-                  label="Name"
-                  defaultValue={sessionData.user.name}
-                  sx={{ mt: 2 }}
-                  fullWidth
-                  disabled={!isFormEditable}
-                  required
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  fullWidth
-                  id="email"
-                  name="email"
-                  label="E-Mail"
-                  defaultValue={sessionData.user.email}
-                  sx={{ mt: 2 }}
-                  disabled={!isFormEditable}
-                  required
-                />
-              </Grid>
+    <Card ref={cardRef}>
+      <Card.Header>
+        <Box>
+          <Card.Title>Profile</Card.Title>
+          <Card.Subtitle>Make changes to your account</Card.Subtitle>
+        </Box>
+      </Card.Header>
+      <Card.Body>
+        <form ref={formRef} action={onSubmit}>
+          <Grid container spacing={2} rowSpacing={1}>
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                disabled
+                id="uuid"
+                name="uuid"
+                label="UUID"
+                defaultValue={sessionData.user.id}
+                sx={{ mt: 2 }}
+                required
+              />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                id="name"
+                name="name"
+                label="Name"
+                defaultValue={sessionData.user.name}
+                sx={{ mt: 2 }}
+                fullWidth
+                disabled={!isFormEditable}
+                required
+              />
             </Grid>
 
-            <Stack direction={'row'} justifyContent={'space-between'} sx={{ mt: 2 }}>
-              {/* <Button startIcon={<DeleteRounded />} color="error" onClick={handler.openDeleteDialog}>
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                id="email"
+                name="email"
+                label="E-Mail"
+                defaultValue={sessionData.user.email}
+                sx={{ mt: 2 }}
+                disabled={!isFormEditable}
+                required
+              />
+
+              {!sessionData.user.emailVerified && (
+                <Alert severity="warning" title="E-Mail" sx={{ mt: 2 }}>
+                  Please verify your email address to access all features of Budget Buddy.
+                </Alert>
+              )}
+            </Grid>
+          </Grid>
+
+          <Stack direction={'row'} justifyContent={'space-between'} sx={{ mt: 2 }}>
+            {/* <Button startIcon={<DeleteRounded />} color="error" onClick={handler.openDeleteDialog}>
               Delete Account
             </Button> */}
 
-              {isFormEditable ? (
-                <Box>
-                  <Button variant="text" sx={{ mr: 1 }} onClick={handleDiscard}>
-                    Discard
-                  </Button>
-
-                  <Button type="submit" variant="contained">
-                    Save changes
-                  </Button>
-                </Box>
-              ) : (
-                <Button variant="contained" onClick={handleEdit}>
-                  Edit
+            {isFormEditable ? (
+              <Box>
+                <Button variant="text" sx={{ mr: 1 }} onClick={handleDiscard}>
+                  Discard
                 </Button>
-              )}
-            </Stack>
-          </form>
-        </Card.Body>
-      </Card>
-    </React.Fragment>
+
+                <Button ref={saveBtnRef} type="submit" variant="contained">
+                  Save changes
+                </Button>
+              </Box>
+            ) : (
+              <Button variant="contained" onClick={handleEdit}>
+                Edit
+              </Button>
+            )}
+          </Stack>
+        </form>
+      </Card.Body>
+    </Card>
   );
 };

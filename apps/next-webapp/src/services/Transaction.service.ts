@@ -8,6 +8,10 @@ import {
   ExpandedTransactionsWithCount,
   ReceiverVH,
   type TReceiverVH,
+  TCreateOrUpdateTransaction,
+  TTransaction,
+  TransactionResponse,
+  TTransactionResponse,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';
@@ -16,6 +20,50 @@ import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 export class TransactionService extends EntityService {
   static {
     this.entity = 'Transaction';
+  }
+
+/**
+   * Creates a new transaction.
+   * @param payload The transaction data to create.
+   * @returns A promise that resolves to the created transaction or an error.
+   */
+  static async create(
+    payload: TCreateOrUpdateTransaction
+  ): Promise<ServiceResponse<TTransactionResponse>> {
+    try {
+      const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
+      const parsingResult = TransactionResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse created transaction'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  /**
+   * Updates an existing transaction.
+   * @param entityId The ID of the transaction to update.
+   * @param payload The updated transaction data.
+   * @returns A promise that resolves to the updated transaction or an error.
+   */
+  static async update(
+    entityId: string,
+    payload: TCreateOrUpdateTransaction
+  ): Promise<ServiceResponse<TTransactionResponse>> {
+    try {
+      const record = await this.newOdataHandler()
+        .patch(`${this.$entityPath}(ID=${entityId})`, payload)
+        .query();
+      const parsingResult = TransactionResponse.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleError(new Error('Failed to parse updated transaction'));
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
   }
 
   /**
