@@ -13,10 +13,11 @@ export default function AnalyticsDashboard() {
       <Grid size={{ xs: 12, md: 6 }}>
         <BudgetListWrapper />
       </Grid>
+
       <Grid size={{ xs: 12, md: 6 }} />
 
       {[
-        { key: 'monthly-balance-pie-chart', children: <SubscriptionPieChart /> },
+        { key: 'monthly-balance-pie-chart', children: <SubscriptionPieChart withViewMore /> },
         { key: 'category-income-pie-chart', children: <CategoryIncomeChart withViewMore /> },
         { key: 'category-expense-pie-chart', children: <CategoryExpenseChart withViewMore /> },
       ].map(({ key, children }) => (

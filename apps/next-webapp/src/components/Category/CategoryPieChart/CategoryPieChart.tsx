@@ -2,7 +2,7 @@
 
 import React from 'react';
 import NextLink from 'next/link';
-import { Box, Button, Skeleton, Stack, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Box, Button, Stack, ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 import { ErrorAlert as ErrorComp } from '@/components/ErrorAlert';
 import { Card } from '@/components/Card';
@@ -127,8 +127,6 @@ export function CategoryPieChart({
   const [currentTimeframe, setCurrentTimeframe] =
     React.useState<CategoryPieChartTimeframe>(defaultTimeframe);
 
-  // Track latest request to prevent race conditions when switching quickly
-  const requestIdRef = React.useRef(0);
   // Track mount status to avoid setState on unmounted component
   const isMountedRef = React.useRef(true);
 
@@ -144,7 +142,6 @@ export function CategoryPieChart({
       if (state.data[timeframe]) return; // use cached data
 
       dispatch({ type: 'start', tf: timeframe });
-      const reqId = ++requestIdRef.current;
 
       try {
         const [start, end] = TIMEFRAME_META[timeframe].range();
@@ -158,14 +155,10 @@ export function CategoryPieChart({
           expenses: d.expenses,
         }));
 
-        if (isMountedRef.current && reqId === requestIdRef.current) {
-          dispatch({ type: 'success', tf: timeframe, payload: normalized });
-        }
+        dispatch({ type: 'success', tf: timeframe, payload: normalized });
       } catch (e) {
-        const message = e instanceof Error ? e.message : 'Failed to load data';
-        if (isMountedRef.current && reqId === requestIdRef.current) {
-          dispatch({ type: 'error', tf: timeframe, message });
-        }
+        const message = e instanceof Error ? e.message : String(e);
+        dispatch({ type: 'error', tf: timeframe, message });
       }
     },
     [state.data]
@@ -205,9 +198,8 @@ export function CategoryPieChart({
       <Card.Header>
         <Box>
           <Card.Title>{title}</Card.Title>
-          {subtitle ? <Card.Subtitle>{subtitle}</Card.Subtitle> : null}
+          {Boolean(subtitle) && <Card.Subtitle>{subtitle}</Card.Subtitle>}
         </Box>
-
         <Card.HeaderActions
           sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}
         >
@@ -228,7 +220,6 @@ export function CategoryPieChart({
           </ToggleButtonGroup>
         </Card.HeaderActions>
       </Card.Header>
-
       <Card.Body sx={{ pt: 1 }}>
         {isLoading ? (
           <CircularProgress />
@@ -250,7 +241,6 @@ export function CategoryPieChart({
           <NoResults text={TIMEFRAME_META[currentTimeframe].emptyText} />
         )}
       </Card.Body>
-
       {!isLoading && withViewMore && (
         <Card.Footer>
           <Stack direction="row" justifyContent="flex-end">

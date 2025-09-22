@@ -6,8 +6,7 @@ import {
   type TExpandedSubscription,
   type TCreateOrUpdateSubscription,
   SubscriptionResponse,
-  type TSubscription,
-  TSubscriptionResponse,
+  type TSubscriptionResponse,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';

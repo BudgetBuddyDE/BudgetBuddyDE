@@ -23,10 +23,12 @@ export const useDrawerStore = create<IDrawerStore>(set => ({
 }));
 
 function getSavedState() {
-  const state = localStorage.getItem('bb.sidebar.show');
+  if (!window) return true
+  const state = window.localStorage.getItem('bb.sidebar.show');
   return state == null ? true : state == 'true';
 }
 
 function saveState(state: boolean) {
-  localStorage.setItem('bb.sidebar.show', state.toString());
+  if (!window) return
+  window.localStorage.setItem('bb.sidebar.show', state.toString());
 }

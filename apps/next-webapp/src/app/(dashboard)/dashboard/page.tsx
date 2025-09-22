@@ -8,8 +8,6 @@ import {
 import { UpcomingSubscriptionsList } from '@/components/Subscription/SubscriptionList';
 import { CategoryExpenseChart } from '@/components/Category/CategoryPieChart';
 import { BudgetPieChart } from '@/components/Budget/BudgetPieChart';
-import { Quotes } from '@/components/Quotes';
-import { Counter } from '@/components/Counter';
 
 export default function DashboardPage() {
   return (
@@ -21,7 +19,6 @@ export default function DashboardPage() {
       <Grid size={{ xs: 12, md: 6, lg: 4 }} order={{ xs: 3, md: 1 }}>
         <Stack spacing={2}>
           <UpcomingSubscriptionsList />
-          <Quotes />
         </Stack>
       </Grid>
 
@@ -36,7 +33,6 @@ export default function DashboardPage() {
         <Stack spacing={2}>
           <LatestTransactionsList />
           <UpcomingTransactionsList />
-          <Counter />
         </Stack>
       </Grid>
     </React.Fragment>

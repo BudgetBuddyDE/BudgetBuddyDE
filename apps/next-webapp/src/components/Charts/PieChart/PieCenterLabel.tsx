@@ -4,16 +4,14 @@ import { styled } from '@mui/material';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 import React from 'react';
 
-type TStyledTextProps = {
-  variant: 'primary' | 'secondary';
-};
-
 const StyledText = styled('text', {
   shouldForwardProp: (prop) => prop !== 'variant',
-})<TStyledTextProps>(({ theme }) => ({
+})<{
+  variant: 'primary' | 'secondary';
+}>(({ theme }) => ({
   textAnchor: 'middle',
   dominantBaseline: 'central',
-  fill: theme.palette.text.secondary,
+  fill: theme.palette.primary.contrastText,
   variants: [
     {
       props: {
@@ -21,25 +19,13 @@ const StyledText = styled('text', {
       },
       style: {
         fontSize: theme.typography.h5.fontSize,
-      },
-    },
-    {
-      props: ({ variant }) => variant !== 'primary',
-      style: {
-        fontSize: theme.typography.body2.fontSize,
-      },
-    },
-    {
-      props: {
-        variant: 'primary',
-      },
-      style: {
         fontWeight: theme.typography.h5.fontWeight,
       },
     },
     {
       props: ({ variant }) => variant !== 'primary',
       style: {
+        fontSize: theme.typography.body2.fontSize,
         fontWeight: theme.typography.body2.fontWeight,
       },
     },
