@@ -32,13 +32,13 @@ export class EntityService {
 
   static handleZodError<T, S>(errors: z.ZodError<S>[]): ServiceResponse<T> {
     const msg = errors.map((e) => e.message).join(', ');
-    logger.error('ZodError in TransactionService: %s', msg);
+    logger.error('ZodError in EntityService: %s', msg);
     return [null, new Error(msg)];
   }
 
   static handleError<T>(e: unknown): ServiceResponse<T> {
     const msg = e instanceof Error ? e.message : String(e);
-    logger.error('Error in TransactionService: %s', msg);
+    logger.error('Error in EntityService: %s', msg);
     if (e instanceof Response) {
       return [null, new Error(e.statusText)];
     }

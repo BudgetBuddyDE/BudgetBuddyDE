@@ -6,6 +6,7 @@ import { categorySlice } from './features/categories/categorySlice';
 import { paymentMethodSlice } from './features/paymentMethods/paymentMethodSlice';
 import { transactionSlice } from './features/transactions/transactionSlice';
 import { subscriptionSlice } from './features/subscriptions/subscriptionSlice';
+import { budgetSlice } from './features/budgets/budgetSlice';
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
@@ -15,7 +16,8 @@ const rootReducer = combineSlices(
   categorySlice,
   paymentMethodSlice,
   transactionSlice,
-  subscriptionSlice
+  subscriptionSlice,
+  budgetSlice
 );
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof rootReducer>;

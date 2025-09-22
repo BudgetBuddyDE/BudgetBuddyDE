@@ -1,72 +1,27 @@
-import { Grid, type GridProps, TextField, type TextFieldProps } from '@mui/material';
-import React from 'react';
-import {
-  Controller,
-  type DefaultValues,
-  type FieldValues,
-  useForm,
-  type Path,
-} from 'react-hook-form';
+import { Grid } from '@mui/material';
+import React, { JSX } from 'react';
+import { type DefaultValues, type FieldValues, useForm } from 'react-hook-form';
 import { useKeyPress } from '@/hooks/useKeyPress';
-import { Drawer, type DrawerProps } from '../Drawer';
+import { Drawer } from '../Drawer';
 import { EntityHeader } from './EntityHeader';
 import { EntityFooter } from './EntityFooter';
 import { ErrorAlert } from '@/components/ErrorAlert';
-import { isRunningOnIOs } from '@/utils/determineOS';
-import { DatePicker } from '@/components/Form/DatePicker';
-import { Autocomplete, type AutocompleteProps } from '@/components/Form/Autocomplete';
-import { parseNumber } from '@/utils/parseNumber';
-
-export type FirstLevelNullable<T extends object> = {
-  [P in keyof T]: T[P] | null;
-};
-
-type BaseAttributes<T, U extends FieldValues> = {
-  size?: GridProps['size'];
-  name: Path<U>;
-  label: string;
-} & Pick<TextFieldProps, 'placeholder' | 'required'> &
-  T;
-
-type DateField<T extends FieldValues> = BaseAttributes<
-  {
-    type: 'date';
-  },
-  T
->;
-type TextField<T extends FieldValues> = BaseAttributes<
-  { type: 'text' } & ({ area?: false } | { area: true; rows: number }),
-  T
->;
-type NumberField<T extends FieldValues> = BaseAttributes<{ type: 'number' }, T>;
-
-type AutocompleteField<T extends FieldValues, Value> = BaseAttributes<
-  { type: 'autocomplete' /*inputValueKey: keyof Value */ },
-  T
-> &
-  Pick<
-    //  REVISIT: Make this more specific
-    AutocompleteProps<Value, any, any, any, any>,
-    | 'retrieveOptionsFunc'
-    | 'isOptionEqualToValue'
-    | 'renderOption'
-    | 'getOptionLabel'
-    | 'noOptionsText'
-    | 'filterOptions'
-  >;
-
-export type EntityDrawerField<T extends FieldValues> =
-  | DateField<T>
-  | TextField<T>
-  | NumberField<T>
-  | AutocompleteField<T, unknown>;
+import {
+  DateFieldComponent,
+  TextFieldComponent,
+  NumberFieldComponent,
+  AutocompleteFieldComponent,
+  SelectFieldComponent,
+} from './Fields';
+import { type EntityDrawerField } from './types';
+import { type DrawerProps } from '../Drawer';
 
 export type EntityDrawerFormHandler<T extends FieldValues> = (
   payload: T,
   onSuccess: () => void
 ) => void;
 
-export type EntityDrawer<T extends FieldValues> = Pick<
+export type EntityDrawerProps<T extends FieldValues> = Pick<
   DrawerProps,
   'open' | 'closeOnEscape' | 'closeOnBackdropClick'
 > & {
@@ -80,6 +35,11 @@ export type EntityDrawer<T extends FieldValues> = Pick<
   fields?: EntityDrawerField<T>[];
 };
 
+/**
+ * Generische Drawer-Komponente mit welcher dynamisch Formulare generiert werden können.
+ * Verwendet React-Hook-Form für optimale Performance und Typensicherheit.
+ * Unterstützt Standardwerte für das Bearbeiten von Datensätzen.
+ */
 export const EntityDrawer = <T extends FieldValues>({
   open,
   onClose,
@@ -92,15 +52,20 @@ export const EntityDrawer = <T extends FieldValues>({
   closeOnEscape,
   isLoading = false,
   fields = [],
-}: EntityDrawer<T>) => {
+}: EntityDrawerProps<T>) => {
   const drawerRef = React.useRef<HTMLDivElement | null>(null);
   const saveBtnRef = React.useRef<HTMLButtonElement | null>(null);
-  const form = useForm<T>({ defaultValues: defaultValues });
+  // Form mit Memoization für bessere Performance
+  const form = useForm<T>({
+    defaultValues: defaultValues,
+    mode: 'onBlur', // Validation nur bei Blur für bessere UX
+  });
 
+  // Keyboard-Shortcut for saving/submitting (Strg/Cmd + S)
   useKeyPress(
     ['s'],
     (e) => {
-      if (saveBtnRef.current) {
+      if (saveBtnRef.current && open) {
         e.preventDefault();
         saveBtnRef.current.click();
       }
@@ -109,201 +74,133 @@ export const EntityDrawer = <T extends FieldValues>({
     true
   );
 
-  const handler = {
-    handleClose() {
-      onClose();
-      handler.handleFormReset();
-    },
-    handleSubmit(data: T) {
-      onSubmit(data, handler.handleFormReset);
-      handler.handleFormReset();
-    },
-    handleFormReset() {
-      if (onResetForm) {
-        const newValues = onResetForm();
-        form.reset(newValues);
-      } else {
-        form.reset(
-          Object.fromEntries(
-            Object.entries(form.getValues() || {}).map(([key, value]) => [key, null])
-          ) as DefaultValues<T>
-        );
-      }
-    },
-  };
+  // Optimierte Handler-Funktionen
+  const handlers = React.useMemo(
+    () => ({
+      handleClose: () => {
+        onClose();
+        handlers.handleFormReset();
+      },
+      handleSubmit: (data: T) => {
+        onSubmit(data, () => {
+          handlers.handleFormReset();
+        });
+      },
+      handleFormReset: () => {
+        if (onResetForm) {
+          const newValues = onResetForm();
+          console.log('Handler - onResetForm provided, resetting to:', newValues);
+          form.reset(newValues);
+        } else {
+          console.log('Handler - No onResetForm, using defaultValues:', defaultValues);
+          form.reset(defaultValues);
+        }
+      },
+    }),
+    [onClose, onSubmit, onResetForm, form, defaultValues]
+  );
 
+  // Defaultwerte nur bei Änderung aktualisieren
   React.useEffect(() => {
-    form.reset(defaultValues);
-  }, [defaultValues]);
+    if (open && defaultValues) {
+      console.log('Resetting form to default values:', defaultValues);
+      form.reset(defaultValues);
+    }
+  }, [open, defaultValues, form]);
+
+  // Memoized Feld-Rendering für bessere Performance
+  const renderedFields: JSX.Element[] = React.useMemo(() => {
+    return fields.map((field) => {
+      const wrapperSize = field.size || { xs: 12 };
+
+      switch (field.type) {
+        case 'date':
+          return (
+            <DateFieldComponent
+              key={field.name}
+              field={field}
+              control={form.control}
+              wrapperSize={wrapperSize}
+            />
+          );
+
+        case 'text':
+          return (
+            <TextFieldComponent
+              key={field.name}
+              field={field}
+              control={form.control}
+              wrapperSize={wrapperSize}
+            />
+          );
+
+        case 'number':
+          return (
+            <NumberFieldComponent
+              key={field.name}
+              field={field}
+              control={form.control}
+              wrapperSize={wrapperSize}
+            />
+          );
+
+        case 'autocomplete':
+          return (
+            <AutocompleteFieldComponent
+              key={field.name}
+              field={field}
+              control={form.control}
+              wrapperSize={wrapperSize}
+            />
+          );
+
+        case 'select':
+          return (
+            <SelectFieldComponent
+              key={field.name}
+              field={field}
+              control={form.control}
+              wrapperSize={wrapperSize}
+            />
+          );
+
+        default:
+          return (
+            <Grid key={(field as any).name || `unknown-${Math.random()}`} size={{ xs: 12 }}>
+              <ErrorAlert
+                error={new Error(`Unbekannter Feldtyp: ${(field as any).type}`)}
+                sx={{ width: '100%' }}
+              />
+            </Grid>
+          );
+      }
+    });
+  }, [fields, form.control]);
 
   return (
     <Drawer
       ref={drawerRef}
       open={open}
-      onClose={handler.handleClose}
+      onClose={handlers.handleClose}
       closeOnBackdropClick={closeOnBackdropClick}
       closeOnEscape={closeOnEscape}
     >
-      <React.Fragment>
-        <EntityHeader title={title} subtitle={subtitle} onClose={handler.handleClose} />
+      <EntityHeader title={title} subtitle={subtitle} onClose={handlers.handleClose} />
 
-        <form
-          onSubmit={form.handleSubmit(handler.handleSubmit)}
-          style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
-          noValidate
-        >
-          <Grid container spacing={2} sx={{ m: 2 }}>
-            {fields.map((input) => {
-              const isInputRequired = input.required || false;
-              const inputRequiredMessage: string | undefined = isInputRequired
-                ? `${input.label} is required`
-                : undefined;
-              const inputType = input.type;
-              const wrapperSize = input.size || { xs: 12 };
+      <form
+        onSubmit={form.handleSubmit(handlers.handleSubmit)}
+        style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+        noValidate
+      >
+        <Grid container spacing={2} sx={{ m: 2 }}>
+          {renderedFields}
+        </Grid>
 
-              switch (inputType) {
-                case 'date':
-                  const formDefaultValues = form.formState.defaultValues;
-                  const defaultDate = formDefaultValues ? formDefaultValues[input.name] : undefined;
-                  return (
-                    <Grid size={wrapperSize}>
-                      <Controller
-                        name={input.name}
-                        control={form.control}
-                        // @ts-expect-error
-                        defaultValue={defaultDate ? new Date(defaultDate) : new Date()}
-                        render={({
-                          field: { name, onChange, value, ref },
-                          fieldState: { error },
-                        }) => (
-                          <DatePicker
-                            value={value}
-                            onChange={onChange}
-                            onAccept={onChange}
-                            inputRef={ref}
-                            slotProps={{
-                              textField: {
-                                ...form.register(name, { required: inputRequiredMessage }),
-                                label: input.label,
-                                error: !!error,
-                                helperText: error?.message,
-                                required: isInputRequired,
-                                fullWidth: true,
-                              },
-                            }}
-                          />
-                        )}
-                      />
-                    </Grid>
-                  );
-
-                case 'number':
-                  return (
-                    <Grid size={wrapperSize}>
-                      <Controller
-                        name={input.name}
-                        control={form.control}
-                        render={({ field, fieldState: { error } }) => {
-                          field.onChange = (
-                            e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                          ) => {
-                            const value = e.target.value;
-                            const parsedValue = parseNumber(value);
-                            field.onChange(parsedValue);
-                          };
-
-                          return (
-                            <TextField
-                              type={'number'}
-                              {...field}
-                              label={input.label}
-                              placeholder={input.placeholder}
-                              {...form.register(field.name, { required: inputRequiredMessage })}
-                              error={!!error}
-                              helperText={error?.message}
-                              fullWidth
-                              required={isInputRequired}
-                              slotProps={{
-                                htmlInput: { inputMode: isRunningOnIOs() ? 'text' : 'numeric' },
-                              }}
-                            />
-                          );
-                        }}
-                      />
-                    </Grid>
-                  );
-
-                case 'text':
-                  return (
-                    <Grid size={wrapperSize}>
-                      <Controller
-                        name={input.name}
-                        control={form.control}
-                        render={({ field, fieldState: { error } }) => (
-                          <TextField
-                            type={'text'}
-                            {...field}
-                            label={input.label}
-                            placeholder={input.placeholder}
-                            {...form.register(field.name, { required: inputRequiredMessage })}
-                            error={!!error}
-                            helperText={error?.message}
-                            fullWidth
-                            required={isInputRequired}
-                            multiline={input.area}
-                            rows={input.area ? input.rows : undefined}
-                          />
-                        )}
-                      />
-                    </Grid>
-                  );
-
-                case 'autocomplete':
-                  return (
-                    <Grid size={wrapperSize}>
-                      <Controller
-                        name={input.name}
-                        control={form.control}
-                        render={({
-                          field,
-                          fieldState: { error },
-                          formState: { defaultValues },
-                        }) => (
-                          <Autocomplete
-                            // REVISIT: Will break if used
-                            // {...form.register(field.name, { required: inputRequiredMessage })}
-                            name={input.name}
-                            required={isInputRequired}
-                            label={input.label}
-                            placeholder={input.placeholder}
-                            value={field.value}
-                            onChange={(_, value) => field.onChange(value)}
-                            defaultValue={defaultValues ? defaultValues[input.name] : undefined}
-                            retrieveOptionsFunc={input.retrieveOptionsFunc}
-                            getOptionLabel={input.getOptionLabel}
-                            error={!!error}
-                            helperText={error?.message}
-                            fullWidth
-                            autoSelect
-                            autoComplete
-                            isOptionEqualToValue={input.isOptionEqualToValue}
-                            filterOptions={input.filterOptions}
-                            renderOption={input.renderOption}
-                          />
-                        )}
-                      />
-                    </Grid>
-                  );
-
-                default:
-                  return <ErrorAlert error={new Error(`Unknown field type: ${inputType}`)} />;
-              }
-            })}
-          </Grid>
-
-          <EntityFooter ref={saveBtnRef} onClose={handler.handleClose} isLoading={isLoading} />
-        </form>
-      </React.Fragment>
+        <EntityFooter ref={saveBtnRef} onClose={handlers.handleClose} isLoading={isLoading} />
+      </form>
     </Drawer>
   );
 };
+
+// Export types for convenience
+export type { FirstLevelNullable, EntityDrawerField } from './types';

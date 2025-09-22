@@ -44,6 +44,7 @@ export type EntityTableProps<T> = {
   renderRow: (cell: keyof T, item: T, data: T[]) => React.ReactNode;
   error?: ErrorAlertProps['error'];
   pagination: PaginationProps;
+  rowHeight?: number;
 };
 
 export const ITEMS_IN_VIEW = 8; // Number of items to display in the table view
@@ -61,8 +62,9 @@ export const EntityTable = <T,>({
   slots,
   error,
   pagination,
+  rowHeight = 73.5,
 }: EntityTableProps<T>) => {
-  const MAX_HEIGHT = 56 + 58 * ITEMS_IN_VIEW;
+  const MAX_HEIGHT = 56 + rowHeight * ITEMS_IN_VIEW;
   const NO_RESULTS_TEXT = 'No items found';
   const hasError = !!(
     error &&

@@ -8,10 +8,9 @@ import {
   ExpandedTransactionsWithCount,
   ReceiverVH,
   type TReceiverVH,
-  TCreateOrUpdateTransaction,
-  TTransaction,
+  type TCreateOrUpdateTransaction,
   TransactionResponse,
-  TTransactionResponse,
+  type TTransactionResponse,
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { type ServiceResponse } from '@/types/Service';
@@ -22,7 +21,7 @@ export class TransactionService extends EntityService {
     this.entity = 'Transaction';
   }
 
-/**
+  /**
    * Creates a new transaction.
    * @param payload The transaction data to create.
    * @returns A promise that resolves to the created transaction or an error.

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { IdAspect, ManagedAspect, OptionalIdAspect } from './_Aspects';
+import { IdAspect, ManagedAspect } from './_Aspects';
 import {
   DescriptionType,
   ODataContextAspect,
@@ -30,7 +30,7 @@ export type TCategory = z.infer<typeof Category>;
 export const CreateOrUpdateCategory = Category.pick({
   name: true,
   description: true,
-}).merge(OptionalIdAspect);
+});
 /**
  * Create or Update Category
  */

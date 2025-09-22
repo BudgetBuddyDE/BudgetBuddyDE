@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import {create} from 'zustand';
+import { create } from 'zustand';
 
 export interface IDrawerStore {
   open: boolean;
@@ -8,27 +8,27 @@ export interface IDrawerStore {
   toggle: () => void;
 }
 
-export const useDrawerStore = create<IDrawerStore>(set => ({
+export const useDrawerStore = create<IDrawerStore>((set) => ({
   open: getSavedState(),
-  set: state => {
-    set({open: state});
+  set: (state) => {
+    set({ open: state });
     saveState(state);
   },
   toggle: () =>
-    set(state => {
+    set((state) => {
       const newState = !state.open;
       saveState(newState);
-      return {open: newState};
+      return { open: newState };
     }),
 }));
 
 function getSavedState() {
-  if (!window) return true
+  if (typeof window === 'undefined') return true;
   const state = window.localStorage.getItem('bb.sidebar.show');
   return state == null ? true : state == 'true';
 }
 
 function saveState(state: boolean) {
-  if (!window) return
+  if (typeof window === 'undefined') return;
   window.localStorage.setItem('bb.sidebar.show', state.toString());
 }

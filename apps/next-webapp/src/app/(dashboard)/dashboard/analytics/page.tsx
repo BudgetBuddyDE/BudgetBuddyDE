@@ -14,7 +14,7 @@ export default function AnalyticsDashboard() {
         <BudgetListWrapper />
       </Grid>
 
-      <Grid size={{ xs: 12, md: 6 }} />
+      <Grid size={{ xs: 12, md: 6 }} display={{ xs: 'none', md: 'block' }} />
 
       {[
         { key: 'monthly-balance-pie-chart', children: <SubscriptionPieChart withViewMore /> },

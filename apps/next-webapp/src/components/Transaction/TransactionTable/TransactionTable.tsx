@@ -1,6 +1,5 @@
 'use client';
 
-import { ActionPaper } from '@/components/ActionPaper';
 import { CategoryChip } from '@/components/Category/CategoryChip';
 import {
   EntityDrawer,
@@ -12,7 +11,6 @@ import {
 } from '@/components/Drawer';
 import { PaymentMethodChip } from '@/components/PaymentMethod/PaymentMethodChip';
 import { useSnackbarContext } from '@/components/Snackbar';
-import { SubscriptionFormFields } from '@/components/Subscription/SubscriptionTable';
 import { EntityMenu, EntityTable } from '@/components/Table/EntityTable';
 import { transactionSlice } from '@/lib/features/transactions/transactionSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
@@ -33,7 +31,6 @@ import {
   ReceiverVH,
 } from '@/types';
 import { Formatter } from '@/utils/Formatter';
-import { MoreVertRounded } from '@mui/icons-material';
 import {
   Button,
   Chip,
@@ -132,6 +129,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
       }
       showSnackbar({ message: `Transaction created successfully` });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     } else if (action == 'EDIT') {
       const entityId = drawerState.defaultValues?.ID;
@@ -159,6 +157,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
       }
       showSnackbar({ message: `Transaction updated successfully` });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     }
   };
@@ -263,6 +262,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         required: true,
       },
       {
+        size: { xs: 12, md: 6 },
         type: 'autocomplete',
         name: 'toCategory',
         label: 'Category',
@@ -279,9 +279,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         getOptionLabel: (option: TCategory_VH) => {
           return option.name;
         },
+        isOptionEqualToValue(option: TCategory_VH, value: TCategory_VH) {
+          return option.ID === value.ID;
+        },
         noOptionsText: 'No categories found',
       },
       {
+        size: { xs: 12, md: 6 },
         type: 'autocomplete',
         name: 'toPaymentMethod',
         label: 'Payment Method',
@@ -297,6 +301,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         },
         getOptionLabel: (option: TPaymentMethod_VH) => {
           return option.name;
+        },
+        isOptionEqualToValue(option: TPaymentMethod_VH, value: TPaymentMethod_VH) {
+          return option.ID === value.ID;
         },
         noOptionsText: 'No payment methods found',
       },
@@ -314,8 +321,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
           }
           return categories ?? [];
         },
-        getOptionLabel: (option: SubscriptionFormFields['receiver']) => {
+        getOptionLabel: (option: EntityFormFields['receiver']) => {
           return option?.receiver;
+        },
+        isOptionEqualToValue(
+          option: EntityFormFields['receiver'],
+          value: EntityFormFields['receiver']
+        ) {
+          return option?.receiver === value?.receiver;
         },
         filterOptions: (options, state) => {
           if (state.inputValue.length < 1) return options;
@@ -330,7 +343,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
                 },
               ];
         },
-        renderOption: (props, option: SubscriptionFormFields['receiver']) => {
+        renderOption: (props, option: EntityFormFields['receiver']) => {
           if (!option) return null;
           const isNew = 'new' in option;
           return (
@@ -388,7 +401,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
             placeholder: 'Search transactions…',
             onSearch: handleTextSearch,
           },
-          create: {enabled: true, onClick: handleCreateEntity}
+          create: { enabled: true, onClick: handleCreateEntity },
         }}
         totalEntityCount={totalEntityCount}
         isLoading={status === 'loading'}
@@ -445,6 +458,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
             </TableRow>
           );
         }}
+        rowHeight={83.5}
       />
 
       <EntityDrawer<EntityFormFields>

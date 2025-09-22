@@ -5,6 +5,7 @@ export type PaginationState = {
 
 export type PaginationAction =
   | { type: 'CHANGE_PAGE'; page: number }
+  | { type: 'NEXT_PAGE' | 'PREVIOUS_PAGE' }
   | { type: 'CHANGE_ROWS_PER_PAGE'; rowsPerPage: number };
 
 export function PaginationReducer(state: PaginationState, action: PaginationAction) {
@@ -13,6 +14,18 @@ export function PaginationReducer(state: PaginationState, action: PaginationActi
       return {
         ...state,
         page: action.page,
+      };
+
+    case 'NEXT_PAGE':
+      return {
+        ...state,
+        page: state.page++,
+      };
+
+    case 'PREVIOUS_PAGE':
+      return {
+        ...state,
+        page: state.page--,
       };
 
     case 'CHANGE_ROWS_PER_PAGE':

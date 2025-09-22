@@ -1,8 +1,8 @@
 import { ITEMS_IN_VIEW } from '@/components/Table/EntityTable';
 import { createAppSlice } from '@/lib/createAppSlice';
 import { type RootState } from '@/lib/store';
+import { logger } from '@/logger';
 import { type ServiceResponse } from '@/types/Service';
-import { continuousColorLegendClasses } from '@mui/x-charts';
 import { type PayloadAction } from '@reduxjs/toolkit';
 import { type OdataQuery } from '@tklein1801/o.js';
 
@@ -48,7 +48,6 @@ export function createEntitySlice<T, Q extends OdataQuery>(
     reducers: (create) => ({
       refresh: create.asyncThunk(
         async (_, api) => {
-          console.log('refreshing data');
           // REVISIT: Check if I can solve this logic more elegant
           // Get cached filters
           const thunkState = api.getState() as RootState;
@@ -74,8 +73,6 @@ export function createEntitySlice<T, Q extends OdataQuery>(
           },
           fulfilled: (state, action) => {
             state.status = 'idle';
-            // state.currentPage = action.meta.arg?.page;
-            // state.rowsPerPage = action.meta.arg?.rowsPerPage;
             // @ts-expect-error
             state.data = action.payload.value;
             state.count = action.payload['@odata.count'];
@@ -100,6 +97,11 @@ export function createEntitySlice<T, Q extends OdataQuery>(
           },
           api
         ) => {
+          if (page < 0) {
+            logger.warn(`Requested page ${page} is invalid, resetting to 0`);
+            page = 0;
+          }
+
           // Get cached filters
           const thunkState = api.getState() as RootState;
           const sliceState = thunkState[name];

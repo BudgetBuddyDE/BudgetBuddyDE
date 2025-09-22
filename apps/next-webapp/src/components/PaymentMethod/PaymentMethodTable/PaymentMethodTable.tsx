@@ -17,10 +17,9 @@ import { CreateOrUpdatePaymentMethod, type TPaymentMethod } from '@/types';
 import { Button, TableCell, TableRow, Typography } from '@mui/material';
 import React from 'react';
 
-type EntityFormFields = FirstLevelNullable<Pick<
-  TPaymentMethod,
-  'ID' | 'name' | 'address' | 'provider' | 'description'
->>;
+type EntityFormFields = FirstLevelNullable<
+  Pick<TPaymentMethod, 'ID' | 'name' | 'address' | 'provider' | 'description'>
+>;
 
 export type PaymentMethodTableProps = {};
 
@@ -78,6 +77,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
         message: `Payment Method '${createdPaymentMethod.name}' created successfully`,
       });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     } else if (action == 'EDIT') {
       const entityId = drawerState.defaultValues?.ID;
@@ -87,7 +87,10 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
           action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
         });
       }
-      const [updatedPaymentMethod, error] = await PaymentMethodService.update(entityId, parsedPayload.data);
+      const [updatedPaymentMethod, error] = await PaymentMethodService.update(
+        entityId,
+        parsedPayload.data
+      );
       if (error) {
         return showSnackbar({
           message: `Failed to update payment method: ${error.message}`,
@@ -98,6 +101,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
         message: `Payment Method '${updatedPaymentMethod.name}' updated successfully`,
       });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     }
   };
@@ -252,11 +256,11 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
         closeOnBackdropClick
         onResetForm={() => {
           return {
-            ID: '',
-            name: '',
-            address: '',
-            provider: '',
-            description: '',
+            ID: null,
+            name: null,
+            address: null,
+            provider: null,
+            description: null,
           };
         }}
         defaultValues={drawerState.defaultValues ?? undefined}

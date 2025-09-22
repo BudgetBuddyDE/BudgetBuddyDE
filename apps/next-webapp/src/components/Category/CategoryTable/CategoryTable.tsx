@@ -52,7 +52,6 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
     onSuccess
   ) => {
     const action = drawerState.action;
-    
     const parsedPayload = CreateOrUpdateCategory.safeParse(payload);
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map((issue) => issue.message).join(', ');
@@ -73,6 +72,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
       }
       showSnackbar({ message: `Category '${createdCategory.name}' created successfully` });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     } else if (action == 'EDIT') {
       const entityId = drawerState.defaultValues?.ID;
@@ -91,6 +91,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
       }
       showSnackbar({ message: `Category '${updatedCategory.name}' updated successfully` });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     }
   };

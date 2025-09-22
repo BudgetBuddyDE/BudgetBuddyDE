@@ -1,32 +1,30 @@
 'use client';
 
-import { DeleteRounded, EditRounded, ThumbUpAltRounded, WarningRounded } from '@mui/icons-material';
-import { Box, Chip, IconButton, Stack, Typography } from '@mui/material';
+import { ThumbUpAltRounded, WarningRounded } from '@mui/icons-material';
+import { Box, Chip, Stack, Typography } from '@mui/material';
 import React from 'react';
 
-import { ActionPaper } from '@/components/ActionPaper';
 import { Icon } from '@/components/Icon';
 import { HideHorizontalScrollbarStyle } from '@/style';
-import { type BudgetListProps } from './BudgetList';
 import { Formatter } from '@/utils/Formatter';
-
-// REVISIT: Rework this component
+import { Budget, type TCategory_VH } from '@/types';
+import { EntityMenu } from '@/components/Table/EntityTable';
 
 export type Budget = {
   ID: string;
   type: 'i' | 'e'; // 'i' for income, 'e' for expense
   name: string;
-  categories: {
-    ID: string;
-    name: string;
-  }[];
+  categories: TCategory_VH[];
   budget: number;
   balance?: number;
 };
 
 export type BudgetItemProps = {
   budget: Budget;
-} & Pick<BudgetListProps, 'onEditBudget' | 'onDeleteBudget' | 'onClickBudget'>;
+  onEditBudget: (budget: Budget) => void;
+  onDeleteBudget: (budget: Budget) => void;
+  onClickBudget?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, budget: Budget) => void;
+};
 
 export const BudgetItem: React.FC<BudgetItemProps> = ({
   budget,
@@ -68,10 +66,12 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
           sx={{ mr: 1 }}
         />
         <Box sx={{ mr: 1 }}>
-          <Typography variant="body1" fontWeight="bolder">
-            {budget.name}{' '}
+          <Stack flexDirection={'row'} gap={1}>
+            <Typography variant="body1" fontWeight="bolder">
+              {budget.name}{' '}
+            </Typography>
             <Chip label={budget.type == 'i' ? 'Include' : 'Exclude'} variant="outlined" />
-          </Typography>
+          </Stack>
           <Stack flexDirection={'row'} columnGap={1}>
             {budget.categories.map(({ ID, name }) => (
               <Chip key={ID} label={name} variant="outlined" />
@@ -81,7 +81,7 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
         <Box
           sx={{
             ml: 'auto',
-            display: { xs: 'none', md: 'flex' },
+            textAlign: 'right',
             flexDirection: { xs: 'column', md: 'row' },
             alignItems: 'baseline',
             columnGap: 0.5,
@@ -93,14 +93,12 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
           </Typography>
         </Box>
       </Stack>
-      <ActionPaper>
-        <IconButton onClick={() => onEditBudget(budget)}>
-          <EditRounded color="primary" />
-        </IconButton>
-        <IconButton onClick={() => onDeleteBudget(budget)}>
-          <DeleteRounded color="primary" />
-        </IconButton>
-      </ActionPaper>
+
+      <EntityMenu<Budget>
+        entity={budget}
+        handleEditEntity={() => onEditBudget(budget)}
+        handleDeleteEntity={() => onDeleteBudget(budget)}
+      />
     </Stack>
   );
 };

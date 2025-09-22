@@ -58,16 +58,6 @@ type EntityFormFields = FirstLevelNullable<
   }
 >;
 
-export type SubscriptionFormFields = FirstLevelNullable<{
-  ID: string;
-  executeAt: Date;
-  toCategory: TCategory_VH;
-  toPaymentMethod: TPaymentMethod_VH;
-  receiver: TReceiverVH | ({ new: true } & TReceiverVH);
-  transferAmount: number;
-  information: string;
-}>;
-
 export type SubscriptionTableProps = {};
 
 export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
@@ -140,6 +130,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
       }
       showSnackbar({ message: `Subscription created successfully` });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     } else if (action == 'EDIT') {
       const entityId = drawerState.defaultValues?.ID;
@@ -167,6 +158,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
       }
       showSnackbar({ message: `Subscription updated successfully` });
       dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
       dispatch(refresh());
     }
   };
@@ -286,6 +278,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
         required: true,
       },
       {
+        size: { xs: 12, md: 6 },
         type: 'autocomplete',
         name: 'toCategory',
         label: 'Category',
@@ -302,9 +295,13 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
         getOptionLabel: (option: TCategory_VH) => {
           return option.name;
         },
+        isOptionEqualToValue(option: TCategory_VH, value: TCategory_VH) {
+          return option.ID === value.ID;
+        },
         noOptionsText: 'No categories found',
       },
       {
+        size: { xs: 12, md: 6 },
         type: 'autocomplete',
         name: 'toPaymentMethod',
         label: 'Payment Method',
@@ -320,6 +317,9 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
         },
         getOptionLabel: (option: TPaymentMethod_VH) => {
           return option.name;
+        },
+        isOptionEqualToValue(option: TPaymentMethod_VH, value: TPaymentMethod_VH) {
+          return option.ID === value.ID;
         },
         noOptionsText: 'No payment methods found',
       },
@@ -337,8 +337,14 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
           }
           return categories ?? [];
         },
-        getOptionLabel: (option: SubscriptionFormFields['receiver']) => {
+        getOptionLabel: (option: EntityFormFields['receiver']) => {
           return option?.receiver;
+        },
+        isOptionEqualToValue(
+          option: EntityFormFields['receiver'],
+          value: EntityFormFields['receiver']
+        ) {
+          return option?.receiver === value?.receiver;
         },
         filterOptions: (options, state) => {
           if (state.inputValue.length < 1) return options;
@@ -353,7 +359,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
                 },
               ];
         },
-        renderOption: (props, option: SubscriptionFormFields['receiver']) => {
+        renderOption: (props, option: EntityFormFields['receiver']) => {
           if (!option) return null;
           const isNew = 'new' in option;
           return (
@@ -481,6 +487,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
             </TableRow>
           );
         }}
+        rowHeight={83.5}
       />
 
       <EntityDrawer<EntityFormFields>

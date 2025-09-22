@@ -25,7 +25,6 @@ type CategoryStats = {
 export type CategoryPieChartProps = {
   title: string;
   subtitle?: string;
-  // FIXME: Change default to 'MONTH' later
   defaultTimeframe?: CategoryPieChartTimeframe;
   transactionsType: CategoryPieChartTransactionType;
   withViewMore?: boolean;
@@ -118,8 +117,7 @@ function reducer(state: State, action: Action): State {
 export function CategoryPieChart({
   title,
   subtitle,
-  // FIXME: Change default to 'MONTH' later
-  defaultTimeframe = 'YTD',
+  defaultTimeframe = 'MONTH',
   transactionsType,
   withViewMore = false,
 }: CategoryPieChartProps) {

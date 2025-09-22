@@ -1,0 +1,25 @@
+import type { GridProps, TextFieldProps } from '@mui/material';
+import type { FieldValues, Path } from 'react-hook-form';
+import type { AutocompleteField } from './Fields/AutocompleteFieldComponent';
+import { DateField } from './Fields/DateFieldComponent';
+import { NumberField } from './Fields/NumberFieldComponent';
+import { SelectField } from './Fields/SelectFieldComponent';
+import { TextField } from './Fields/TextFieldComponent';
+
+export type FirstLevelNullable<T extends object> = {
+  [P in keyof T]: T[P] | null;
+};
+
+export type BaseAttributes<T, U extends FieldValues> = {
+  size?: GridProps['size'];
+  name: Path<U>;
+  label: string;
+} & Pick<TextFieldProps, 'placeholder' | 'required'> &
+  T;
+
+export type EntityDrawerField<T extends FieldValues> =
+  | DateField<T>
+  | TextField<T>
+  | NumberField<T>
+  | AutocompleteField<T, unknown>
+  | SelectField<T>;

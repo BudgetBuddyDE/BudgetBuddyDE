@@ -8,7 +8,7 @@ export const CdsDate = z
   .transform(val => (typeof val === 'string' ? new Date(val) : val));
 export type TCdsDate = z.infer<typeof CdsDate>;
 
-export const GUID = z.string().uuid();
+export const GUID = z.uuid();
 export type TGUID = z.infer<typeof GUID>;
 
 export const IdAspect = z.object({
