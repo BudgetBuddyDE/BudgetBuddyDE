@@ -1,3 +1,5 @@
+"use client";
+
 import {create} from 'zustand';
 
 export interface IDrawerStore {
@@ -21,16 +23,10 @@ export const useDrawerStore = create<IDrawerStore>(set => ({
 }));
 
 function getSavedState() {
-  if (typeof window !== 'undefined') {
-    const state = localStorage.getItem('bb.sidebar.show');
-    return state == null ? true : state == 'true';
-  }
-  // Default-Wert für SSR
-  return true;
+  const state = localStorage.getItem('bb.sidebar.show');
+  return state == null ? true : state == 'true';
 }
 
 function saveState(state: boolean) {
-  if (typeof window !== 'undefined') {
-    return localStorage.setItem('bb.sidebar.show', state.toString());
-  }
+  localStorage.setItem('bb.sidebar.show', state.toString());
 }

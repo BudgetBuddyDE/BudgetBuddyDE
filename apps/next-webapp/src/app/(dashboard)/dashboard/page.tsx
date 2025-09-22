@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
       <Grid size={{ xs: 12, md: 6, lg: 4 }} order={{ xs: 3, md: 1 }}>
         <Stack spacing={2}>
-          <UpcomingSubscriptionsList /* REVISIT: onAddEntity={handler.onAddSubscription}*/ />
+          <UpcomingSubscriptionsList />
           <Quotes />
         </Stack>
       </Grid>
@@ -34,8 +34,8 @@ export default function DashboardPage() {
 
       <Grid size={{ xs: 12, md: 6, lg: 4 }} order={{ xs: 2, md: 3 }}>
         <Stack spacing={2}>
-          <LatestTransactionsList /* REVISIT: onAddEntity={handler.onAddTransaction}*/ />
-          <UpcomingTransactionsList /* REVISIT: onAddEntity={handler.onAddTransaction}*/ />
+          <LatestTransactionsList />
+          <UpcomingTransactionsList />
           <Counter />
         </Stack>
       </Grid>

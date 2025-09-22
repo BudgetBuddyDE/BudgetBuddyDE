@@ -13,6 +13,7 @@ export type DrawerHeaderProps = IconButtonProps;
 export const DrawerHamburger: React.FC<DrawerHeaderProps> = ({ ...iconButtonProps }) => {
   const screenSize = useScreenSize();
   const { open, toggle } = useDrawerStore();
+
   return (
     <IconButton onClick={() => toggle()} {...iconButtonProps}>
       <Icon open={open} screenSize={screenSize} />

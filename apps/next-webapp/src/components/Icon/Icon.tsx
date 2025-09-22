@@ -28,6 +28,6 @@ export type TIconProps = BoxProps & {
   iconColor?: TColorKeys;
 };
 
-export const Icon: React.FC<TIconProps> = (props) => {
-  return <IconBackground {...props}>{props.icon}</IconBackground>;
-};
+export const Icon: React.FC<TIconProps> = React.forwardRef((props, ref) => {
+  return <IconBackground {...props} ref={ref}>{props.icon}</IconBackground>;
+});
