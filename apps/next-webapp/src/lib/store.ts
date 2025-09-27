@@ -32,7 +32,22 @@ export const makeStore = () => {
     // Adding the api middleware enables caching, invalidation, polling,
     // and other useful features of `rtk-query`.
     middleware: (getDefaultMiddleware) => {
-      return getDefaultMiddleware().concat(quotesApiSlice.middleware);
+      return getDefaultMiddleware({
+        // Look up this documentation for more information:
+        // https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data
+        // ignoreActions: true,
+        serializableCheck: {
+          // REVISIT: Refine paths to only ignore createdAt|modifiedAt|nextExecution|processedAt
+          /**
+           * Opt out of checking state. When set to `true`, other state-related params will be ignored.
+           */
+          ignoreState: true,
+          /**
+           * Opt out of checking actions. When set to `true`, other action-related params will be ignored.
+           */
+          ignoreActions: true,
+        },
+      }).concat(quotesApiSlice.middleware);
     },
   });
 };

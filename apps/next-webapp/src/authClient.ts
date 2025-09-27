@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { createAuthClient } from 'better-auth/react';
 import { nextCookies } from 'better-auth/next-js';
 import { logger } from './logger';
-import { continuousColorLegendClasses } from '@mui/x-charts';
 
 export const authClient = createAuthClient({
   baseURL: 'http://localhost:8080',
@@ -35,7 +34,7 @@ export const revalidateSession = (onSuccess?: () => void, onError?: () => void) 
   authClient.getSession({
     fetchOptions: {
       onSuccess(context) {
-        if (context.response.status == 401) {
+        if (context.response.status == 401 || !context.data) {
           logger.info('Session is invalid, redirecting to sign-in page...');
           onError?.();
           redirect('/sign-in');

@@ -35,8 +35,10 @@ export const ProfileHeader = () => {
           />
 
           <Box sx={{ mt: 'auto', mb: { xs: 0, md: 2 }, ml: 2 }}>
-            <Typography variant="h2">{data.user.name}</Typography>
-            <Typography variant="body1" fontWeight="bolder">
+            <Typography variant="h5" fontWeight="bolder">
+              {data.user.name}
+            </Typography>
+            <Typography variant="body2" fontWeight="bolder">
               {data.user.email}
             </Typography>
           </Box>

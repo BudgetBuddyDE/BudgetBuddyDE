@@ -73,7 +73,11 @@ export const AppBar = () => {
     <MuiAppBar
       position="sticky"
       elevation={0}
-      sx={{ border: 0, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
+      sx={{
+        borderBottomWidth: '1px',
+        borderBottomStyle: 'solid',
+        borderBottomColor: 'divider',
+      }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>

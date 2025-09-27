@@ -1,7 +1,9 @@
-import {useWindowDimensions} from '../useWindowDimensions';
+import { useWindowDimensions } from '../useWindowDimensions';
 
-export function useScreenSize() {
-  const {breakpoint} = useWindowDimensions();
+export type ScreenSize = 'small' | 'medium' | 'large';
+
+export function useScreenSize(): ScreenSize {
+  const { breakpoint } = useWindowDimensions();
 
   if (breakpoint === 'xs' || breakpoint === 'sm') {
     return 'small';

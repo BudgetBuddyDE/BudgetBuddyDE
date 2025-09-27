@@ -6,26 +6,21 @@ import React from 'react';
 
 import { useScreenSize } from '@/hooks/useScreenSize';
 
-import { useDrawerStore } from '../Drawer.store';
+import { useDrawerContext } from '../DrawerContext';
 
 export type DrawerHeaderProps = IconButtonProps;
 
 export const DrawerHamburger: React.FC<DrawerHeaderProps> = ({ ...iconButtonProps }) => {
   const screenSize = useScreenSize();
-  const { open, toggle } = useDrawerStore();
+  const { isOpen, toggleVisibility } = useDrawerContext();
 
+  React.useEffect(() => console.log(isOpen(screenSize)), [isOpen, screenSize]);
+
+  // MenuIcon = Three horizontal lines
+  // MenuOpenIcon = Arrow pointing left with three horizontal lines
   return (
-    <IconButton onClick={() => toggle()} {...iconButtonProps}>
-      <Icon open={open} screenSize={screenSize} />
+    <IconButton onClick={() => toggleVisibility()} {...iconButtonProps}>
+      {isOpen(screenSize) ? <MenuOpenIcon /> : <MenuIcon />}
     </IconButton>
   );
-};
-
-const Icon: React.FC<{ open: boolean; screenSize: ReturnType<typeof useScreenSize> }> = ({
-  open,
-  screenSize,
-}) => {
-  if (screenSize === 'small') {
-    return open ? <MenuIcon /> : <MenuOpenIcon />;
-  } else return open ? <MenuOpenIcon /> : <MenuIcon />;
 };

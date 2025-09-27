@@ -3,18 +3,18 @@
 import { Divider, List, Drawer as MuiDrawer } from '@mui/material';
 import React from 'react';
 
-import { useDrawerStore } from './Drawer.store';
 import { DrawerLinks } from './Links/DrawerLinks';
 import { DrawerProfile } from './Profile/DrawerProfile';
 import { StyledDrawer } from './StyledDrawer';
 import { DrawerItem } from './Item';
 import { DrawerHeader } from './Header';
+import { useDrawerContext } from './DrawerContext';
 
 /**
  * We're inverting the showDrawer-value on mobile devices because it should be hidden by default on mobile devices for better UX
  */
 export const Drawer = () => {
-  const { open: showDrawer, toggle: toggleDrawer } = useDrawerStore();
+  const { isOpen, toggleVisibility } = useDrawerContext();
   const DrawerItems: React.FC<{ open: boolean; closeOnClick?: boolean }> = ({
     open,
     closeOnClick = false,
@@ -36,8 +36,8 @@ export const Drawer = () => {
       {/* Mobile */}
       <MuiDrawer
         variant="temporary"
-        open={!showDrawer}
-        onClose={(_ev, reason) => reason === 'backdropClick' && toggleDrawer()}
+        open={isOpen('small')}
+        onClose={(_ev, reason) => reason === 'backdropClick' && toggleVisibility()}
         ModalProps={{
           keepMounted: true, // Better open performance on mobile.
         }}
@@ -52,21 +52,21 @@ export const Drawer = () => {
         }}
       >
         <DrawerHeader />
-        <DrawerItems open={!showDrawer} closeOnClick />
+        <DrawerItems open={isOpen('small')} closeOnClick />
         <DrawerProfile />
       </MuiDrawer>
 
       {/* Desktop */}
       <StyledDrawer
         variant="permanent"
-        open={showDrawer}
+        open={isOpen('medium')}
         sx={{ display: { xs: 'none', md: 'unset' } }}
         ModalProps={{
           keepMounted: true, // Better open performance
         }}
       >
         <DrawerHeader />
-        <DrawerItems open={showDrawer} />
+        <DrawerItems open={isOpen('medium')} />
         <DrawerProfile />
       </StyledDrawer>
     </React.Fragment>

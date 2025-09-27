@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useDrawerStore } from '../Drawer.store';
+import { useDrawerContext } from '../DrawerContext';
 
 export type TDrawerItemProps = {
   open: boolean;
@@ -31,7 +31,7 @@ export const DrawerItem: React.FC<TDrawerItemProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
-  const { toggle } = useDrawerStore();
+  const { toggleVisibility } = useDrawerContext();
 
   const isActive: boolean = React.useMemo(() => {
     return pathname === path || pathname.startsWith(`${path}/`);
@@ -39,7 +39,9 @@ export const DrawerItem: React.FC<TDrawerItemProps> = ({
 
   const handler = {
     onClick: () => {
-      if (closeOnClick) toggle();
+      if (closeOnClick) {
+        toggleVisibility();
+      }
       router.push(path);
     },
   };

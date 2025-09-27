@@ -6,12 +6,11 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useScreenSize } from '@/hooks/useScreenSize';
-import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
-import { useDrawerStore } from '../Drawer.store';
 import { Avatar } from '@/components/User';
 import { authClient, signOut } from '@/authClient';
 import { useSnackbarContext } from '@/components/Snackbar';
+import { useDrawerContext } from '../DrawerContext';
 
 export type DrawerProfileProps = {};
 
@@ -20,9 +19,8 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
   const router = useRouter();
   const screenSize = useScreenSize();
   const { showSnackbar } = useSnackbarContext();
-  const { isPending: isSessionPending, data: sessionData } = authClient.useSession();
-  const { open, toggle } = useDrawerStore();
-  const { breakpoint } = useWindowDimensions();
+  const { data: sessionData } = authClient.useSession();
+  const { isOpen, toggleVisibility } = useDrawerContext();
 
   const handleLogout = async () => {
     await signOut(
@@ -38,9 +36,9 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
     );
   };
 
-  const handleClick = () => {
-    if (!open && (breakpoint == 'sm' || breakpoint == 'xs')) {
-      toggle();
+  const handleProfileClick = () => {
+    if (isOpen('small')) {
+      toggleVisibility();
     }
     router.push('/settings/profile');
   };
@@ -61,7 +59,13 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
         <Box
           sx={{
             transition: '100ms',
-            display: screenSize === 'small' ? (open ? 'none' : 'flex') : open ? 'flex' : 'none',
+            display:
+              screenSize == 'small'
+                ? 'flex'
+                : // On wider devices, the profile needs to be hidden when the drawer is closed
+                isOpen('medium')
+                ? 'flex'
+                : 'none',
             flexGrow: 1,
             flexDirection: 'row',
             alignItems: 'center',
@@ -72,7 +76,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
               cursor: 'Pointer',
             },
           }}
-          onClick={handleClick}
+          onClick={handleProfileClick}
         >
           <Avatar />
           <Box sx={{ ml: '.5rem' }}>
@@ -83,7 +87,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
         <LogoutButton
           onClick={handleLogout}
           sx={{
-            ml: open ? 'auto' : '-.5rem',
+            ml: isOpen('medium') ? 'auto' : '-.5rem',
             ':hover': {
               backgroundColor: (theme) => theme.palette.action.hover,
             },
