@@ -1,17 +1,9 @@
-import {
-  type LogClientOptions,
-  LogLevel,
-  type Runtime,
-  getCurrentRuntime,
-  getPort,
-  isRunningInProd,
-} from '@budgetbuddyde/utils';
-import {getLogLevel} from '@budgetbuddyde/utils/lib/getLogLevel';
+import {type Runtime, getCurrentRuntime, getPort, isRunningInProd} from '@budgetbuddyde/utils';
+import {LogClientOptions, getLogLevel} from '@tklein1801/logger.js';
 import {type CorsOptions} from 'cors';
 import 'dotenv/config';
 
 import {name, version} from '../package.json';
-import {initWinstonLogger} from './core/logger.winston';
 
 export type Config = {
   service: typeof name;
@@ -19,7 +11,7 @@ export type Config = {
   baseUrl: string;
   port: ReturnType<typeof getPort>;
   runtime: Runtime;
-  log: Pick<LogClientOptions, 'level' | 'log' | 'scope'>;
+  log: Pick<LogClientOptions, 'label' | 'level'>;
   cors: CorsOptions;
   jobs: {
     timezone: string;
@@ -29,18 +21,6 @@ export type Config = {
 const SERVICE_NAME = name;
 const SERVICE_VERSION = version;
 const SERVICE_RUNTIME = getCurrentRuntime();
-const LOG_LEVEL = getLogLevel();
-
-const logger = initWinstonLogger(
-  {
-    level: LOG_LEVEL,
-  },
-  {
-    service: SERVICE_NAME,
-    version: SERVICE_VERSION,
-    runtime: SERVICE_RUNTIME,
-  },
-);
 
 export const config: Config = {
   service: SERVICE_NAME,
@@ -49,23 +29,8 @@ export const config: Config = {
   port: getPort(),
   runtime: SERVICE_RUNTIME,
   log: {
-    scope: `${SERVICE_NAME}:${SERVICE_VERSION}`,
-    level: LOG_LEVEL,
-    log: (level, msg, ...meta) => {
-      switch (level) {
-        case LogLevel.DEBUG:
-          return logger.debug({message: msg, labels: {...meta}});
-        case LogLevel.INFO:
-          return logger.info({message: msg, labels: {...meta}});
-        case LogLevel.WARN:
-          return logger.warn({message: msg, labels: {...meta}});
-        case LogLevel.FATAL:
-        case LogLevel.ERROR:
-          return logger.error({message: msg, labels: {...meta}});
-        case LogLevel.SILENT:
-          return;
-      }
-    },
+    label: `${SERVICE_NAME}:${SERVICE_VERSION}`,
+    level: getLogLevel(process.env.LOG_LEVEL || 'INFO'),
   },
   cors: {
     origin: isRunningInProd()

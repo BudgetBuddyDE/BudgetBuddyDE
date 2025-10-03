@@ -5,7 +5,8 @@ import {config} from '../config';
 import {dbLogger, pool} from './pool';
 import * as schema from './schema';
 
-const drizzleLogger = dbLogger.child({scope: 'drizzle'});
+const drizzleLogger = dbLogger.child({label: 'drizzle'});
+
 export const db = drizzle({
   client: pool,
   schema: schema,

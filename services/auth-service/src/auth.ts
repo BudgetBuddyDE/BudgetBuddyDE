@@ -1,17 +1,18 @@
 import {LogLevel, getTrustedOrigins} from '@budgetbuddyde/utils';
 import {type BetterAuthOptions, type Logger, betterAuth} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
-import {createAuthMiddleware, openAPI} from 'better-auth/plugins';
+import {openAPI} from 'better-auth/plugins';
 
 import {config} from './config';
-import {logger} from './core/logger';
 import {db} from './db';
 import * as authSchema from './db/schema/auth.schema';
+import {logger} from './lib/logger';
+import {resendManager} from './lib/resend';
 import {isCSRFCheckDisabled} from './utils';
 
 const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET} = process.env;
 
-const authLogger = logger.child({scope: 'auth'});
+const authLogger = logger.child({label: 'auth'});
 
 const options: BetterAuthOptions = {
   baseURL: `${config.baseUrl}:${config.port}`,
@@ -20,6 +21,7 @@ const options: BetterAuthOptions = {
     provider: 'pg',
     schema: authSchema,
   }),
+  secondaryStorage: undefined, // TODO: Add Redis for storing sessions
   logger: {
     disabled: false,
     level: mapLogLevelForBetterAuth(config.log.level),
@@ -47,7 +49,7 @@ const options: BetterAuthOptions = {
   advanced: {
     disableCSRFCheck: isCSRFCheckDisabled(),
     useSecureCookies: config.runtime == 'production',
-    cookiePrefix: '',
+    // cookiePrefix: '',
     crossSubDomainCookies: {
       enabled: true,
     },
@@ -59,16 +61,89 @@ const options: BetterAuthOptions = {
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
+    requireEmailVerification: false,
+    revokeSessionsOnPasswordReset: true,
+    disableSignUp: process.env.DISABLE_SIGNUP === 'true',
+    async sendResetPassword({user: {id, email, name}, url}) {
+      authLogger.info(`Password reset requested for user: ${email}`, {userId: id});
+
+      const [result, error] = await resendManager.sendPasswordReset(email, name, url);
+      if (error) {
+        authLogger.error('Error while sending password reset email to %s: %o', email, error);
+        return;
+      }
+
+      authLogger.info('Password reset email (%s) sent to %s: %o', result.id, email);
+    },
+  },
+  user: {
+    changeEmail: {
+      enabled: true,
+      async sendChangeEmailVerification({user: {id, email}, url, newEmail}, _request) {
+        authLogger.info(`Change email verification requested for user: ${email}`, {userId: id});
+        const [result, error] = await resendManager.sendChangeEmailRequest(email, newEmail, url);
+        if (error) {
+          authLogger.error('Error while sending verification email to %s: %o', email, error);
+          return;
+        }
+
+        authLogger.info('Verification email (%s) sent to %s: %o', result.id, email);
+      },
+    },
+    deleteUser: {
+      enabled: true,
+      async beforeDelete(user) {
+        authLogger.info(`User deletion requested for user: ${user.email}`);
+      },
+      async sendDeleteAccountVerification({user: {id, email}, url}) {
+        authLogger.info(`Delete account requested for user: ${email}`, {userId: id});
+
+        const [result, error] = await resendManager.sendAccountDeletionVerification(email, url);
+        if (error) {
+          authLogger.error('Error while sending account deletion verification email to %s: %o', email, error);
+          return;
+        }
+
+        authLogger.info('Account deletion verification email (%s) sent to %s: %o', result.id, email);
+      },
+      async afterDelete(user) {
+        authLogger.info(`User deleted: ${user.email}`);
+        authLogger.warn('User deletion handling (for other services)not yet implemented!');
+        // TODO: Delete all user data from other services
+      },
+    },
+  },
+  emailVerification: {
+    autoSignInAfterVerification: true,
+    sendOnSignUp: true,
+    async onEmailVerification({email, emailVerified}) {
+      emailVerified
+        ? authLogger.info(`Email verified for user: ${email}`)
+        : authLogger.error(`Email verification failed for user: ${email}`);
+    },
+    async sendVerificationEmail({user: {email}, url}, _request) {
+      authLogger.info(`Email verification requested for user: ${email}`);
+      const [result, error] = await resendManager.sendVerificationEmail(email, url);
+      if (error) {
+        authLogger.error('Error while sending verification email to %s: %o', email, error);
+        return;
+      }
+
+      authLogger.info('Verification email (%s) sent to %s: %o', result.id, email);
+    },
   },
   account: {
+    updateAccountOnSignIn: true,
     accountLinking: {
       enabled: true,
+      allowUnlinkingAll: false,
+      allowDifferentEmails: false,
       trustedProviders: ['email-password', 'github', 'google'],
     },
   },
   socialProviders: {
     github: {
-      enabled: Boolean(GITHUB_CLIENT_ID) && Boolean(GITHUB_CLIENT_SECRET), // TODO: Write test to ensure that Boolean(ENV) will always return true if the env var is set
+      enabled: Boolean(GITHUB_CLIENT_ID) && Boolean(GITHUB_CLIENT_SECRET),
       clientId: GITHUB_CLIENT_ID as string,
       clientSecret: GITHUB_CLIENT_SECRET as string,
     },
@@ -79,16 +154,6 @@ const options: BetterAuthOptions = {
     },
   },
   plugins: [config.runtime === 'development' ? openAPI() : null].filter(p => p !== null),
-  hooks: {
-    after: createAuthMiddleware(async ctx => {
-      if (ctx.path.startsWith('/sign-up')) {
-        const newSession = ctx.context.newSession;
-        if (newSession) {
-          // TODO: Implement user replication to the backend
-        }
-      }
-    }),
-  },
 };
 
 export const auth = betterAuth(options);

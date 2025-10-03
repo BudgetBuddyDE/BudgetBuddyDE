@@ -2,46 +2,32 @@
 
 import { AppLogo } from '@/components/AppLogo';
 import { Card } from '@/components/Card';
-import { PasswordInput } from '@/components/Form/PasswordInput';
 import { SendRounded } from '@mui/icons-material';
 import { Box, Button, Divider, Grid, Link, TextField, Typography } from '@mui/material';
 import React from 'react';
 import NextLink from 'next/link';
 import { authClient } from '@/authClient';
-import { redirect, useRouter, useSearchParams } from 'next/navigation';
-import { type AuthProvider, SocialAuthButton } from '@/components/User/SocialAuthButton';
+import { useSearchParams } from 'next/navigation';
 import { useSnackbarContext } from '@/components/Snackbar';
 import { useFormStatus } from 'react-dom';
 
-export default function SignInPage() {
+export default function RequestPasswordResetPage() {
   const { showSnackbar } = useSnackbarContext();
   const { pending: isPending } = useFormStatus();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const emailFromQuery = searchParams?.get('email') || '';
 
   async function onSubmit(formData: FormData) {
     const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
 
-    await authClient.signIn.email({
+    await authClient.requestPasswordReset({
       email,
-      password,
-      fetchOptions: {
-        onError: (ctx) => {
-          showSnackbar({ message: ctx.error.message });
-          // Set email as query-param on errors
-          const params = new URLSearchParams();
-          if (email) {
-            params.set('email', email);
-          }
-          router.push(`/sign-in?${params.toString()}`);
-        },
-        onSuccess: async () => {
-          showSnackbar({ message: "You have been signed in! You're getting redirected..." });
-          redirect('/dashboard');
-        },
-      },
+      redirectTo: window.location.origin + '/password/reset',
+    });
+
+    showSnackbar({
+      message:
+        'If an account with that email exists, a password reset link has been sent. Check your inbox',
     });
   }
 
@@ -62,22 +48,12 @@ export default function SignInPage() {
               />
 
               <Typography variant={'h5'} textAlign={'center'} fontWeight={'bolder'} sx={{ mt: 2 }}>
-                Sign in
+                Request password reset
               </Typography>
             </Box>
 
             <form action={onSubmit}>
               <Grid container spacing={2} sx={{ mt: 1 }}>
-                {(['google', 'github'] as AuthProvider[]).map((provider) => (
-                  <Grid key={provider} size={{ xs: 6 }}>
-                    <SocialAuthButton key={provider} provider={provider} disabled={isPending} />
-                  </Grid>
-                ))}
-
-                <Grid size={{ xs: 12 }}>
-                  <Divider>or with</Divider>
-                </Grid>
-
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     variant="outlined"
@@ -91,20 +67,6 @@ export default function SignInPage() {
                     required
                   />
                 </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <PasswordInput />
-
-                  <Link
-                    tabIndex={-1}
-                    variant="caption"
-                    href="/password/request-reset"
-                    sx={{ textDecoration: 'none', mt: 0.5 }}
-                    component={Button}
-                  >
-                    Forgot password?
-                  </Link>
-                </Grid>
               </Grid>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <Button
@@ -114,12 +76,22 @@ export default function SignInPage() {
                   sx={{ mt: 1 }}
                   disabled={isPending}
                 >
-                  Sign in
+                  Submit request
                 </Button>
               </Box>
             </form>
 
-            <Divider sx={{ my: 2 }}>No account?</Divider>
+            <Divider sx={{ my: 2 }}>or</Divider>
+
+            <Button
+              LinkComponent={NextLink}
+              href="/sign-in"
+              variant="contained"
+              fullWidth
+              sx={{ mb: 2 }}
+            >
+              Sign in
+            </Button>
 
             <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
               Create an account

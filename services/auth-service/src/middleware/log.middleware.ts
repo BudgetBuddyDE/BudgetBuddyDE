@@ -1,9 +1,9 @@
 import {LogLevel} from '@budgetbuddyde/utils';
 import {type NextFunction, type Request, type Response} from 'express';
 
-import {logger} from '../core/logger';
+import {logger} from '../lib/logger';
 
-export const requestLogger = logger.child({scope: 'request'});
+export const requestLogger = logger.child({label: 'request'});
 
 export function log(req: Request, res: Response, next: NextFunction): void {
   const requestId = crypto.randomUUID();

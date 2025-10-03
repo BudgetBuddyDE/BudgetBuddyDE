@@ -4,8 +4,8 @@ import express from 'express';
 
 import {auth} from './auth';
 import {config} from './config';
-import {logger} from './core/logger';
 import {checkConnection} from './db';
+import {logger} from './lib/logger';
 import {handleError, log, servedBy} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 import {router as JobRouter} from './router/job.router';
@@ -52,7 +52,7 @@ export const server = app.listen(config.port, () => {
     'Application Version': config.version,
     'Runtime Environment': config.runtime,
     'Node Version': process.version,
-    'Log Level': config.log.level,
+    'Log Level': logger.getLogLevelName(),
     'Server Port': config.port,
   };
   console.table(options);

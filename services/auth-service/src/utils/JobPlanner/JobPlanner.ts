@@ -1,7 +1,7 @@
-import {type LogClient} from '@budgetbuddyde/utils';
+import {type LogClient} from '@tklein1801/logger.js';
 import cron, {ScheduledTask} from 'node-cron';
 
-import {logger} from '../../core/logger';
+import {logger} from '../../lib/logger';
 
 type JobStatus = 'scheduled' | 'running' | 'stopped' | 'finished' | 'failed';
 
@@ -29,7 +29,7 @@ export class JobPlanner {
 
   constructor(timezone: string, logClient?: LogClient) {
     this.timezone = timezone;
-    this.logger = logClient || logger.child({scope: JobPlanner.name});
+    this.logger = logClient || logger.child({label: JobPlanner.name});
   }
 
   addJob(name: string, cronTime: string, handler: (ctx: JobPlannerContext) => Promise<void> | void): string {
