@@ -51,13 +51,16 @@ export const CommandPalette: React.FC = () => {
     const cmd = commands.find((c) => c.id === cmdId);
     if (!cmd) return;
     setOpen(false);
-    // Clear search query in order to provide a fresh start when the palette is reopened
-    setQuery('');
-    // Reset navigation state
-    setSelectedIndex(-1);
-    setFocusMode('input');
+
     // Execute after close for smoother UX
-    setTimeout(() => cmd.onSelect(), 50);
+    setTimeout(() => {
+      // Clear search query in order to provide a fresh start when the palette is reopened
+      setQuery('');
+      // Reset navigation state
+      setSelectedIndex(-1);
+      setFocusMode('input');
+      cmd.onSelect();
+    }, 100);
   };
 
   const executeSelectedCommand = () => {
@@ -97,12 +100,10 @@ export const CommandPalette: React.FC = () => {
             }
           } else {
             // Navigate down in list
-            setSelectedIndex((prev) => 
-              prev < flatCommands.length - 1 ? prev + 1 : prev
-            );
+            setSelectedIndex((prev) => (prev < flatCommands.length - 1 ? prev + 1 : prev));
           }
           break;
-          
+
         case 'ArrowUp':
           e.preventDefault();
           if (focusMode === 'list') {
@@ -117,14 +118,14 @@ export const CommandPalette: React.FC = () => {
             }
           }
           break;
-          
+
         case 'Enter':
           e.preventDefault();
           if (focusMode === 'list' && selectedIndex >= 0) {
             executeSelectedCommand();
           }
           break;
-          
+
         case 'Escape':
           e.preventDefault();
           setOpen(false);
@@ -182,12 +183,12 @@ export const CommandPalette: React.FC = () => {
               </Typography>
               <List disablePadding>
                 {items.map((item) => {
-                  const itemIndex = flatCommands.findIndex(cmd => cmd.id === item.id);
+                  const itemIndex = flatCommands.findIndex((cmd) => cmd.id === item.id);
                   const isSelected = focusMode === 'list' && selectedIndex === itemIndex;
-                  
+
                   return (
                     <ListItem key={item.id} disablePadding>
-                      <ListItemButton 
+                      <ListItemButton
                         onClick={() => handleSelectCommand(item.id)}
                         selected={isSelected}
                         sx={{
