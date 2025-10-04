@@ -1,5 +1,5 @@
-import {LogLevel, getTrustedOrigins} from '@budgetbuddyde/utils';
-import {type BetterAuthOptions, type Logger, betterAuth} from 'better-auth';
+import {getTrustedOrigins, LogLevel} from '@budgetbuddyde/utils';
+import {type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
 
@@ -33,7 +33,6 @@ const options: BetterAuthOptions = {
           return authLogger.warn(message, args);
         case 'error':
           return authLogger.error(message, args);
-        case 'info':
         default:
           return authLogger.info(message, args);
       }
@@ -48,7 +47,7 @@ const options: BetterAuthOptions = {
   },
   advanced: {
     disableCSRFCheck: isCSRFCheckDisabled(),
-    useSecureCookies: config.runtime == 'production',
+    useSecureCookies: config.runtime === 'production',
     // cookiePrefix: '',
     crossSubDomainCookies: {
       enabled: true,
@@ -169,7 +168,6 @@ export function mapLogLevelForBetterAuth(level: typeof config.log.level): Logger
     case LogLevel.ERROR:
     case LogLevel.FATAL:
       return 'error';
-    case LogLevel.SILENT:
     default:
       return undefined;
   }

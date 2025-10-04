@@ -8,11 +8,8 @@ import {checkConnection} from './db';
 import {logger} from './lib/logger';
 import {handleError, log, servedBy} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
-import {router as JobRouter} from './router/job.router';
-import {JobPlanner} from './utils/JobPlanner/JobPlanner';
 
 export const app = express();
-export const jobPlanner = new JobPlanner(config.jobs.timezone);
 
 app.use(servedBy);
 app.use(log);
@@ -41,7 +38,6 @@ app.get('/api/me', async (req, res) => {
   });
   res.json(session);
 });
-app.use('/jobs', JobRouter);
 
 // Mount an global error handler
 app.use(handleError);
@@ -64,12 +60,4 @@ export const server = app.listen(config.port, () => {
   //   await new Promise(resolve => setTimeout(resolve, 1000));
   //   ctx.logger.info('Replication of registered users completed.');
   // });
-
-  logger.info(
-    'Scheduled jobs: %s',
-    jobPlanner
-      .getAllJobs()
-      .map(job => job.name)
-      .join(', '),
-  );
 });

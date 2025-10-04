@@ -1,6 +1,6 @@
-import {type Runtime, getCurrentRuntime, getPort, isRunningInProd} from '@budgetbuddyde/utils';
-import {LogClientOptions, getLogLevel} from '@tklein1801/logger.js';
-import {type CorsOptions} from 'cors';
+import {getCurrentRuntime, getPort, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
+import {getLogLevel, type LogClientOptions} from '@tklein1801/logger.js';
+import type {CorsOptions} from 'cors';
 import 'dotenv/config';
 
 import {name, version} from '../package.json';

@@ -1,5 +1,5 @@
 import {LogLevel} from '@budgetbuddyde/utils';
-import {type NextFunction, type Request, type Response} from 'express';
+import type {NextFunction, Request, Response} from 'express';
 
 import {logger} from '../lib/logger';
 
@@ -41,7 +41,6 @@ export function log(req: Request, res: Response, next: NextFunction): void {
       case LogLevel.WARN:
         requestLogger.warn(msg, requestMetaInformation);
         break;
-      case LogLevel.INFO:
       default:
         requestLogger.info(msg, requestMetaInformation);
     }

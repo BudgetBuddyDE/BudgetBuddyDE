@@ -1,7 +1,7 @@
-import {CreateEmailResponseSuccess, Resend} from 'resend';
+import {type CreateEmailResponseSuccess, Resend} from 'resend';
 
 import {config} from '../config';
-import {ServiceResponse} from '../types';
+import type {ServiceResponse} from '../types';
 
 class ResendManager {
   private resend: Resend;
