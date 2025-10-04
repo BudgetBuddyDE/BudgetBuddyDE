@@ -1,6 +1,7 @@
 'use client';
 
 import { CategoryChip } from '@/components/Category/CategoryChip';
+import { Command, useCommandPalette } from '@/components/CommandPalette';
 import {
   EntityDrawer,
   EntityDrawerField,
@@ -31,6 +32,7 @@ import {
   ReceiverVH,
 } from '@/types';
 import { Formatter } from '@/utils/Formatter';
+import { ReceiptRounded } from '@mui/icons-material';
 import {
   Button,
   Chip,
@@ -60,6 +62,7 @@ type EntityFormFields = FirstLevelNullable<
 export type TransactionTableProps = {};
 
 export const TransactionTable: React.FC<TransactionTableProps> = () => {
+  const { register: registerCommand, unregister: unregisterCommand } = useCommandPalette();
   const { showSnackbar } = useSnackbarContext();
   const { refresh, getPage, setPage, setRowsPerPage, applyFilters } = transactionSlice.actions;
   const dispatch = useAppDispatch();
@@ -382,6 +385,22 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
       })
     );
   }, [dispatch, getPage, currentPage, rowsPerPage]);
+
+  React.useEffect(() => {
+    const commands: Command[] = [
+      {
+        id: 'create-transaction',
+        label: 'Create Transaction',
+        section: 'Transaction',
+        icon: <ReceiptRounded />,
+        onSelect: () => {
+          handleCreateEntity();
+        },
+      },
+    ];
+    registerCommand(commands);
+    return () => unregisterCommand(commands.map((c) => c.id));
+  }, []);
 
   return (
     <React.Fragment>
