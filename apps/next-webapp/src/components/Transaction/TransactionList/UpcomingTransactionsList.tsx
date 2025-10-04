@@ -4,6 +4,7 @@ import { type TransactionListProps, TransactionList } from './TransactionList';
 import { TransactionService } from '@/services/Transaction.service';
 import { Formatter } from '@/utils/Formatter';
 import { headers } from 'next/headers';
+import { addDays } from 'date-fns';
 
 export type UpcomingTransactionsList = Pick<TransactionListProps, 'onAddEntity'>;
 
@@ -12,7 +13,10 @@ export const UpcomingTransactionsList: React.FC<UpcomingTransactionsList> = asyn
 }) => {
   const [transactions, error] = await TransactionService.getTransactions(
     {
-      $filter: `processedAt ge ${Formatter.date.formatWithPattern(new Date(), 'yyyy-MM-dd')}`,
+      $filter: `processedAt ge ${Formatter.date.formatWithPattern(
+        addDays(new Date(), 1),
+        'yyyy-MM-dd'
+      )}`,
       $top: 6,
     },
     { headers: await headers() }
