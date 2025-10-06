@@ -13,7 +13,7 @@ import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDrawerContext } from '../DrawerContext';
 
-export type TDrawerItemProps = {
+export type DrawerItemProps = {
   open: boolean;
   text: string;
   path: string;
@@ -21,7 +21,7 @@ export type TDrawerItemProps = {
   closeOnClick?: boolean;
 };
 
-export const DrawerItem: React.FC<TDrawerItemProps> = ({
+export const DrawerItem: React.FC<DrawerItemProps> = ({
   open,
   text,
   path,

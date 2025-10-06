@@ -6,14 +6,16 @@ import { UnauthenticatedMain } from '@/components/Layout/Main';
 import { Alert, AlertTitle, Box, Button, Grid, Typography } from '@mui/material';
 import { Footer } from '@/components/Layout/Footer';
 import { LayoutWrapper } from './layout-wrapper';
+import { useRouter } from 'next/navigation';
 
 export default function GlobalError({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  reset?: () => void;
 }) {
+  const router = useRouter();
   return (
     // global-error must include html and body tags
     <html>
@@ -43,11 +45,19 @@ export default function GlobalError({
                     Home
                   </Button>
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Button onClick={() => reset()} fullWidth>
-                    Try again
-                  </Button>
-                </Grid>
+                {reset ? (
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Button onClick={() => reset()} fullWidth>
+                      Try again
+                    </Button>
+                  </Grid>
+                ) : (
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Button onClick={() => router.refresh()} fullWidth>
+                      Refresh
+                    </Button>
+                  </Grid>
+                )}
               </Grid>
             </ActionPaper>
             <Box sx={{ mt: 'auto' }} children={<Footer />} />

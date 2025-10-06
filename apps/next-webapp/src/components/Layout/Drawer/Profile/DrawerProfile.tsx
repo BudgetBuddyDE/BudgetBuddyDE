@@ -72,7 +72,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
             borderRadius: theme.shape.borderRadius + 'px',
             px: 0.5,
             ':hover': {
-              backgroundColor: theme.palette.action.hover,
+              backgroundColor: 'action.hover',
               cursor: 'Pointer',
             },
           }}
@@ -89,7 +89,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
           sx={{
             ml: isOpen('medium') ? 'auto' : '-.5rem',
             ':hover': {
-              backgroundColor: (theme) => theme.palette.action.hover,
+              backgroundColor: 'action.hover',
             },
           }}
         />

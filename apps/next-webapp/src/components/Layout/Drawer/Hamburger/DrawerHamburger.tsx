@@ -14,8 +14,6 @@ export const DrawerHamburger: React.FC<DrawerHeaderProps> = ({ ...iconButtonProp
   const screenSize = useScreenSize();
   const { isOpen, toggleVisibility } = useDrawerContext();
 
-  React.useEffect(() => console.log(isOpen(screenSize)), [isOpen, screenSize]);
-
   // MenuIcon = Three horizontal lines
   // MenuOpenIcon = Arrow pointing left with three horizontal lines
   return (

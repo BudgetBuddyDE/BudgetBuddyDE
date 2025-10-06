@@ -1,8 +1,8 @@
 import { DashboardViewIconMapping } from '@/app/(dashboard)/dashboard/DashboardNavigation';
 import {
-  CompareArrowsRounded as CompareArrowsIcon,
   LabelRounded as LabelIcon,
   PaymentsRounded as PaymentsIcon,
+  ReceiptRounded,
   ScheduleSendRounded as ScheduleSendIcon,
 } from '@mui/icons-material';
 
@@ -20,7 +20,7 @@ export const DrawerLinks = [
   {
     text: 'Transactions',
     path: '/transactions',
-    icon: <CompareArrowsIcon />,
+    icon: <ReceiptRounded />,
   },
   {
     text: 'Subscriptions',

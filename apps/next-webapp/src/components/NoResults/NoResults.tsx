@@ -21,10 +21,10 @@ export const NoResults: React.FC<NoResultsProps> = ({ sx, icon, text = 'No items
       }}
     >
       {typeof text === 'string' ? (
-        <Typography textAlign="center">
+        <React.Fragment>
           {icon && <Icon icon={icon} sx={{ mx: 'auto', mb: 1 }} />}
-          {text}
-        </Typography>
+          <Typography textAlign="center">{text}</Typography>
+        </React.Fragment>
       ) : (
         text
       )}
