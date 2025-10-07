@@ -2,6 +2,7 @@ import { Grid } from '@mui/material';
 import React, { JSX } from 'react';
 import { type DefaultValues, type FieldValues, useForm } from 'react-hook-form';
 import { useKeyPress } from '@/hooks/useKeyPress';
+import { parseNumber } from '@/utils/parseNumber';
 import { Drawer } from '../Drawer';
 import { EntityHeader } from './EntityHeader';
 import { EntityFooter } from './EntityFooter';
@@ -186,7 +187,9 @@ export const EntityDrawer = <T extends FieldValues>({
       <EntityHeader title={title} subtitle={subtitle} onClose={handlers.handleClose} />
 
       <form
-        onSubmit={form.handleSubmit(handlers.handleSubmit)}
+        onSubmit={form.handleSubmit((data) =>
+          handlers.handleSubmit(preProcessFormPayload(data, fields))
+        )}
         style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
         noValidate
       >
@@ -202,3 +205,35 @@ export const EntityDrawer = <T extends FieldValues>({
 
 // Export types for convenience
 export type { FirstLevelNullable, EntityDrawerField } from './types';
+
+/**
+ * This function takes the raw form data and checks which fields are of type number. It looks into the fields and filters by type "number", using "name" to get the corresponding values.
+ * @param formData Object containing the form data
+ * @param fields Array of field definitions
+ * @returns Object containing the processed form data
+ */
+function preProcessFormPayload<T extends FieldValues>(
+  formData: T,
+  fields: EntityDrawerField<T>[]
+): T {
+  // Create a copy of the original form data
+  const processedData = { ...formData };
+
+  // Get all fields with type "number"
+  const numberFields = fields.filter((field) => field.type === 'number');
+
+  // Iterate over all number fields and parse the numbers
+  numberFields.forEach((field) => {
+    const fieldName = field.name;
+    const fieldValue = processedData[fieldName];
+
+    if (fieldValue != null && fieldValue !== '') {
+      const parsedValue = parseNumber(String(fieldValue));
+      if (!isNaN(parsedValue)) {
+        (processedData as any)[fieldName] = parsedValue;
+      }
+    }
+  });
+
+  return processedData;
+}

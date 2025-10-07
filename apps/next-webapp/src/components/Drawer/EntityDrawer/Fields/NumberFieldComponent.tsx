@@ -1,7 +1,7 @@
+import { logger } from '@/logger';
 import { Grid, TextField, type GridProps } from '@mui/material';
 import React from 'react';
 import { Controller, type Control, type FieldValues } from 'react-hook-form';
-import { parseNumber } from '@/utils/parseNumber';
 import { isRunningOnIOs } from '@/utils/determineOS';
 import { type BaseAttributes } from '../types';
 
@@ -22,6 +22,13 @@ export const NumberFieldComponent = <T extends FieldValues>({
     ? `${field.label ?? field.name} is required`
     : undefined;
 
+  const htmlInputMode = isRunningOnIOs() ? 'text' : 'numeric';
+  logger.debug(
+    "NumberFieldComponent: Using htmlInputMode '%s' for field '%s'",
+    htmlInputMode,
+    field.name
+  );
+
   return (
     <Grid key={field.name} size={wrapperSize}>
       <Controller
@@ -32,11 +39,6 @@ export const NumberFieldComponent = <T extends FieldValues>({
           <TextField
             {...controllerField}
             value={controllerField.value || ''}
-            onChange={(e) => {
-              const value = e.target.value;
-              const parsedValue = parseNumber(value);
-              controllerField.onChange(parsedValue);
-            }}
             label={field.label}
             placeholder={field.placeholder}
             error={!!error}
@@ -46,7 +48,7 @@ export const NumberFieldComponent = <T extends FieldValues>({
             slotProps={{
               ...field.slotProps,
               htmlInput: {
-                inputMode: isRunningOnIOs() ? 'text' : 'numeric',
+                inputMode: htmlInputMode,
                 ...field.slotProps?.htmlInput,
               },
             }}
