@@ -31,7 +31,7 @@ export class PaymentMethodService extends EntityService {
       const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
       const parsingResult = PaymentMethodResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse created payment method'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -55,7 +55,7 @@ export class PaymentMethodService extends EntityService {
         .query();
       const parsingResult = PaymentMethodResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse updated payment method'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -76,7 +76,7 @@ export class PaymentMethodService extends EntityService {
       const records = await this.newOdataHandler(config).get(this.$entityPath).query(query);
       const parsingResult = z.array(PaymentMethod).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse payment methods'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -101,7 +101,7 @@ export class PaymentMethodService extends EntityService {
       this.logger.debug('Fetched payment methods:', records);
       const parsingResult = PaymentMethodsWithCount.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse payment methods'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -119,7 +119,7 @@ export class PaymentMethodService extends EntityService {
         .query(query);
       const parsingResult = z.array(PaymentMethod_VH).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse payment method value-helps'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {

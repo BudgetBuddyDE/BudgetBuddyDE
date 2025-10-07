@@ -28,7 +28,7 @@ export class StockExchangeService extends EntityService {
       this.logger.debug('Fetched stock exchanges:', records);
       const parsingResult = StockExchangesWithCount.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse stock exchanges'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -46,7 +46,7 @@ export class StockExchangeService extends EntityService {
         .query(query);
       const parsingResult = z.array(StockExchangeVH).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse stock exchange value-helps'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {

@@ -33,7 +33,7 @@ export class TransactionService extends EntityService {
       const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
       const parsingResult = TransactionResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse created transaction'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -57,7 +57,7 @@ export class TransactionService extends EntityService {
         .query();
       const parsingResult = TransactionResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse updated transaction'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -83,7 +83,7 @@ export class TransactionService extends EntityService {
         });
       const parsingResult = z.array(ExpandedTransasction).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse transactions'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -112,7 +112,7 @@ export class TransactionService extends EntityService {
       this.logger.debug('Fetched transactions:', records);
       const parsingResult = ExpandedTransactionsWithCount.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse transactions'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -134,7 +134,7 @@ export class TransactionService extends EntityService {
         .query();
       const parsingResult = MonthlyKPIResponse.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleZodError([parsingResult.error]);
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -152,7 +152,7 @@ export class TransactionService extends EntityService {
         .query(query);
       const parsingResult = z.array(ReceiverVH).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleZodError([parsingResult.error]);
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {

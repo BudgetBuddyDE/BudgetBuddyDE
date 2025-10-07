@@ -33,7 +33,7 @@ export class BudgetService extends EntityService {
         .query(this.$defaultQuery);
       const parsingResult = ExpandedBudget.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse created budget'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -57,7 +57,7 @@ export class BudgetService extends EntityService {
         .query();
       const parsingResult = BudgetResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse updated budget'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -83,7 +83,7 @@ export class BudgetService extends EntityService {
         });
       const parsingResult = z.array(ExpandedBudget).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse budgets'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -111,7 +111,7 @@ export class BudgetService extends EntityService {
         });
       const parsingResult = ExpandedBudgetsWithCount.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse budgets'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {

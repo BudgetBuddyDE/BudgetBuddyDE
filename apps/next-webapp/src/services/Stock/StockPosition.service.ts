@@ -4,7 +4,7 @@ import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 import {
   SearchAsset,
   StockPositionsWithCount,
-  TSearchAsset,
+  type TSearchAsset,
   type TStockPositionsWithCount,
 } from '@/types';
 import z from 'zod';
@@ -29,7 +29,7 @@ export class StockPositionService extends EntityService {
       this.logger.debug('Fetched stock positions:', records);
       const parsingResult = StockPositionsWithCount.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(parsingResult.error);
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -59,7 +59,7 @@ export class StockPositionService extends EntityService {
         });
       const parsingResult = z.array(SearchAsset).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse stock search results'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {

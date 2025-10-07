@@ -30,8 +30,8 @@ export class EntityService {
     return o(this.$backendHost, { ...this.$odataClientConfig, ...config });
   }
 
-  static handleZodError<T, S>(errors: z.ZodError<S>[]): ServiceResponse<T> {
-    const msg = errors.map((e) => e.message).join(', ');
+  static handleZodError<T, S>(errors: z.ZodError<S>[] | z.ZodError<S>): ServiceResponse<T> {
+    const msg = Array.isArray(errors) ? errors.map((e) => e.message).join(', ') : errors.message;
     logger.error('ZodError in EntityService: %s', msg);
     return [null, new Error(msg)];
   }
@@ -59,8 +59,7 @@ export class EntityService {
           return [true, null];
         }
         return this.handleError(new Error('Failed to delete ' + (cfg?.entityName || 'entity')));
-      }
-      if (!response.ok) {
+      } else if (!response.ok) {
         return this.handleError(new Error('Failed to delete ' + (cfg?.entityName || 'entity')));
       }
       return [true, null];

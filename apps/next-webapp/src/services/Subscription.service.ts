@@ -29,7 +29,7 @@ export class SubscriptionService extends EntityService {
       const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
       const parsingResult = SubscriptionResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse created subscription'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -53,7 +53,7 @@ export class SubscriptionService extends EntityService {
         .query();
       const parsingResult = SubscriptionResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse updated subscription'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -79,7 +79,7 @@ export class SubscriptionService extends EntityService {
         });
       const parsingResult = z.array(ExpandedSubscription).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse subscriptions'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -108,7 +108,7 @@ export class SubscriptionService extends EntityService {
       this.logger.debug('Fetched subscriptions:', records);
       const parsingResult = ExpandedSubscriptionsWithCount.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse subscriptions'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {

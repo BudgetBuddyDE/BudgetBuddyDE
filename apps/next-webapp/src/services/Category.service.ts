@@ -35,7 +35,7 @@ export class CategoryService extends EntityService {
       const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
       const parsingResult = CategoryResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse created category'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -59,7 +59,7 @@ export class CategoryService extends EntityService {
         .query();
       const parsingResult = CategoryResponse.safeParse(record);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse updated category'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -80,7 +80,7 @@ export class CategoryService extends EntityService {
       const records = await this.newOdataHandler(config).get(this.$entityPath).query(query);
       const parsingResult = z.array(Category).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse categories'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -105,7 +105,7 @@ export class CategoryService extends EntityService {
       this.logger.debug('Fetched categories:', records);
       const parsingResult = CategoriesWithCount.safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse categories'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -139,7 +139,7 @@ export class CategoryService extends EntityService {
         });
       const parsingResult = z.array(ExpandedCategoryStats).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse response'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
@@ -157,7 +157,7 @@ export class CategoryService extends EntityService {
         .query(query);
       const parsingResult = z.array(Category_VH).safeParse(records);
       if (!parsingResult.success) {
-        return this.handleError(new Error('Failed to parse category value-helps'));
+        return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
     } catch (e) {
