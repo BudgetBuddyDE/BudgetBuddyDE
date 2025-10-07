@@ -1,6 +1,5 @@
 'use client';
 
-import debounce from 'lodash.debounce';
 import { Grid, type GridProps } from '@mui/material';
 import React from 'react';
 import { Controller, type Control, type FieldValues } from 'react-hook-form';
@@ -11,7 +10,6 @@ export type AutocompleteField<T extends FieldValues, Value> = Omit<
   BaseAttributes<
     {
       type: 'autocomplete';
-      retrieveOptionsFunc: (inputValue?: string) => Value[] | Promise<Value[]>;
     },
     T
   >,
@@ -19,7 +17,8 @@ export type AutocompleteField<T extends FieldValues, Value> = Omit<
 > &
   Pick<
     AutocompleteProps<Value, any, any, any, any>,
-    // | 'retrieveOptionsFunc' // Replace retrieveOptionsFunc with an customized function
+    | 'searchAsYouType'
+    | 'retrieveOptionsFunc'
     | 'isOptionEqualToValue'
     | 'renderOption'
     | 'getOptionLabel'
@@ -44,7 +43,6 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
   const inputRequiredMessage = field.required
     ? `${field.label ?? field.name} is required`
     : undefined;
-  const [currentInputText, setCurrentInputText] = React.useState('');
 
   return (
     <Grid key={field.name} size={wrapperSize}>
@@ -59,17 +57,9 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
             label={field.label}
             placeholder={field.placeholder}
             value={controllerField.value || null}
-            onInputChange={(_, value, reason) => {
-              console.log('AutocompleteFieldComponent - onInputChange', { value, reason });
-              setCurrentInputText(value);
-            }}
             onChange={(_, value) => controllerField.onChange(value)}
-            retrieveOptionsFunc={async () => {
-              console.log('AutocompleteFieldComponent - Calling retrieveOptionsFunc');
-              const options = await field.retrieveOptionsFunc(currentInputText);
-              console.log('Retrieved options:', options);
-              return options;
-            }}
+            searchAsYouType={field.searchAsYouType ? true : false}
+            retrieveOptionsFunc={field.retrieveOptionsFunc}
             getOptionLabel={field.getOptionLabel}
             error={!!error}
             helperText={error?.message}

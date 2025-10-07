@@ -5,12 +5,14 @@ import { DescriptionType, ODataContextAspect, ODataCountAspect, OwnerAspect } fr
 import { StockExchange } from './StockExchange';
 
 export const ISIN = z.string().min(12).max(12);
+export const AssetType = z.enum(['Security', 'Commodity', 'Crypto']);
 
 // Base model
 export const StockPosition = z.object({
   ...IdAspect.shape,
   toExchange_symbol: StockExchange.shape.symbol,
   logoUrl: z.url(),
+  assetType: AssetType,
   securityName: z.string(),
   isin: ISIN,
   quantity: z.number().positive({ message: 'Quantity must be positive' }),

@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { ISIN } from './StockPosition';
+import { AssetType, ISIN } from './StockPosition';
 
 export const SearchAsset = z.object({
-  isin: ISIN,
+  isin: ISIN.or(z.string()), // REVISIT: Implement better support for commodities and cryptos without ISIN
   name: z.string(),
   logoUrl: z.url(),
-  securityType: z.enum(['Security', 'Commodity']),
+  assetType: AssetType,
 });
 export type TSearchAsset = z.infer<typeof SearchAsset>;

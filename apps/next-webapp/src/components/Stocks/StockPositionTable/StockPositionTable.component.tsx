@@ -1,9 +1,11 @@
 'use client';
 
 import NextLink from 'next/link';
-import { ArrowForwardRounded, EuroRounded } from '@mui/icons-material';
+import { ArrowForwardRounded } from '@mui/icons-material';
 import {
+  Button,
   Chip,
+  Grid,
   IconButton,
   InputAdornment,
   Stack,
@@ -23,7 +25,10 @@ import {
   type TStockExchangeVH,
   type TStockPosition,
   type TExpandedStockPosition,
-  TSearchAsset,
+  type TSearchAsset,
+  CreateorUpdateStockPosition,
+  SearchAsset,
+  StockExchangeVH,
 } from '@/types';
 import { EntityMenu, EntityTable } from '@/components/Table/EntityTable';
 import { useRouter } from 'next/navigation';
@@ -38,12 +43,12 @@ import {
 import { Command, useCommandPalette } from '@/components/CommandPalette';
 import { StockExchangeService } from '@/services/Stock';
 import { StockPositionService } from '@/services/Stock/StockPosition.service';
+import { StyledAutocompleteOption } from '@/components/Form/Autocomplete';
+import { useSnackbarContext } from '@/components/Snackbar';
 
 type EntityFormFields = FirstLevelNullable<
-  Pick<
-    TStockPosition,
-    'ID' | 'isin' | 'quantity' | 'purchasePrice' | 'purchasedAt' | 'description'
-  > & {
+  Pick<TStockPosition, 'ID' | 'quantity' | 'purchasePrice' | 'purchasedAt' | 'description'> & {
+    asset: TSearchAsset;
     toExchange: TStockExchangeVH;
   }
 >;
@@ -57,6 +62,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
   withRedirect = false,
   redirectTimeframe = '3m',
 }) => {
+  const { showSnackbar } = useSnackbarContext();
   const { register: registerCommand, unregister: unregisterCommand } = useCommandPalette();
   const router = useRouter();
   const { refresh, getPage, setPage, setRowsPerPage, applyFilters } = stockPositionSlice.actions;
@@ -80,10 +86,93 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
   };
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (
-    isPayloadMethod,
+    payload,
     onSuccess
   ) => {
     const action = drawerState.action;
+
+    const parsedPayload = CreateorUpdateStockPosition.omit({
+      ID: true,
+      isin: true,
+      toExchange_symbol: true,
+    })
+      .extend({
+        asset: SearchAsset,
+        toExchange: StockExchangeVH,
+      })
+      .safeParse(payload);
+    if (!parsedPayload.success) {
+      const issues: string = parsedPayload.error.issues.map((issue) => issue.message).join(', ');
+      showSnackbar({
+        message: `Failed to ${action === 'CREATE' ? 'add' : 'update'} stock position: ${issues}`,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+      });
+      return;
+    }
+
+    if (action == 'CREATE') {
+      const {
+        asset: { isin },
+        purchasePrice,
+        purchasedAt,
+        quantity,
+        toExchange: { symbol },
+        description,
+      } = parsedPayload.data;
+      const [_, error] = await StockPositionService.create({
+        isin,
+        purchasedAt,
+        purchasePrice,
+        quantity,
+        toExchange_symbol: symbol,
+        description,
+      });
+      if (error) {
+        return showSnackbar({
+          message: `Failed to add stock position: ${error.message}`,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        });
+      }
+      showSnackbar({ message: `Stock position created successfully` });
+      dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
+      dispatch(refresh());
+    } else if (action == 'EDIT') {
+      const entityId = drawerState.defaultValues?.ID;
+      if (!entityId) {
+        return showSnackbar({
+          message: `Failed to update stock position: Missing entity ID`,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        });
+      }
+      const {
+        asset: { isin },
+        purchasePrice,
+        purchasedAt,
+        quantity,
+        toExchange: { symbol },
+        description,
+      } = parsedPayload.data;
+      const [_, error] = await StockPositionService.update(entityId, {
+        isin,
+        purchasedAt,
+        purchasePrice,
+        quantity,
+        toExchange_symbol: symbol,
+        description,
+      });
+
+      if (error) {
+        return showSnackbar({
+          message: `Failed to update stock position: ${error.message}`,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        });
+      }
+      showSnackbar({ message: `Stock position updated successfully` });
+      dispatchDrawerAction({ type: 'CLOSE' });
+      onSuccess?.();
+      dispatch(refresh());
+    }
   };
 
   const handleCreateEntity = () => {
@@ -99,6 +188,9 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
   const handleEditEntity = ({
     ID,
     isin,
+    assetType,
+    securityName,
+    logoUrl,
     purchasedAt,
     purchasePrice,
     description,
@@ -114,7 +206,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
       action: 'EDIT',
       defaultValues: {
         ID,
-        isin,
+        asset: { name: securityName, isin, logoUrl, assetType },
         purchasedAt,
         purchasePrice,
         description,
@@ -129,15 +221,15 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
   };
 
   const handleDeleteEntity = async (entity: TExpandedStockPosition) => {
-    // const [success, error] = await TransactionService.delete(entity.ID);
-    // if (error || !success) {
-    //   return showSnackbar({
-    //     message: error.message,
-    //     action: <Button onClick={() => handleDeleteEntity(entity)}>Retry</Button>,
-    //   });
-    // }
-    // showSnackbar({ message: `Transaction deleted successfully` });
-    // dispatch(refresh());
+    const [success, error] = await StockPositionService.delete(entity.ID);
+    if (error || !success) {
+      return showSnackbar({
+        message: error.message,
+        action: <Button onClick={() => handleDeleteEntity(entity)}>Retry</Button>,
+      });
+    }
+    showSnackbar({ message: `Stock position deleted successfully` });
+    dispatch(refresh());
   };
 
   const handleTextSearch = React.useCallback(
@@ -203,14 +295,15 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
       },
       {
         type: 'autocomplete',
-        name: 'isin',
+        name: 'asset',
         label: 'Asset',
         placeholder: 'Volkswagen (Vz)',
         required: true,
+        searchAsYouType: true,
+        filterOptions: (x) => x, // Disable client-side filtering, as the results are already filtered by the server
         async retrieveOptionsFunc(fieldText?: string) {
-          console.log('StockPositionTable - Retrieving options for input:', fieldText);
           if (!fieldText || fieldText.length < 1) {
-            console.log(
+            logger.warn(
               'StockPositionTable - No input text provided, returning empty list of options'
             );
             return [];
@@ -226,64 +319,8 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
             );
             return [];
           }
-          console.log(
-            'StockPositionTable - Retrieved options for input:',
-            fieldText,
-            searchResults
-          );
 
-          return [
-            {
-              isin: 'DE0007664039',
-              name: 'Volkswagen (Vz)',
-              logoUrl: 'https://img.parqet.com/stocks/DE0007664005.svg',
-            },
-            {
-              isin: 'DE0007664005',
-              name: 'Volkswagen',
-              logoUrl: 'https://img.parqet.com/stocks/DE0007664005.svg',
-            },
-            {
-              isin: 'US9286626000',
-              name: 'Volkswagen (ADR)',
-              logoUrl: 'https://img.parqet.com/stocks/DE0007664005.svg',
-            },
-            {
-              isin: 'XS1972548231',
-              name: 'Volkswagen Financial Services AG 1.5%',
-              logoUrl: 'https://img.parqet.com/assets/fallback.png',
-            },
-            {
-              isin: 'US9286625010',
-              name: 'VolkswagenPref. ADR',
-              logoUrl: 'https://img.parqet.com/stocks2/US9286625010.png',
-            },
-            {
-              isin: 'XS2837886105',
-              name: 'Volkswagen Financial Services AG',
-              logoUrl: 'https://img.parqet.com/assets/fallback.png',
-            },
-            {
-              isin: 'AU3CB0306470',
-              name: 'Volkswagen Financial Services Australia Ltd. 5.3%',
-              logoUrl: 'https://img.parqet.com/assets/fallback.png',
-            },
-            {
-              isin: 'CA918423AY04',
-              name: 'Volkswagen Credit Canada Inc. 1.5%',
-              logoUrl: 'https://img.parqet.com/assets/fallback.png',
-            },
-            {
-              isin: 'CA918423BA19',
-              name: 'Volkswagen Credit Canada Inc. 2.05%',
-              logoUrl: 'https://img.parqet.com/assets/fallback.png',
-            },
-            {
-              isin: 'XS2289841087',
-              name: 'Volkswagen International Finance N.V. 1.5%',
-              logoUrl: 'https://img.parqet.com/assets/fallback.png',
-            },
-          ];
+          return searchResults ?? [];
         },
         getOptionLabel(option: TSearchAsset) {
           return option.name;
@@ -291,7 +328,30 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
         isOptionEqualToValue(option: TSearchAsset, value: TSearchAsset) {
           return option.isin === value.isin;
         },
-        noOptionsText: 'No stock exchanges found',
+        renderOption(props, option: TSearchAsset, { selected }) {
+          return (
+            <StyledAutocompleteOption {...props} key={option.isin} selected={selected}>
+              <Grid container alignItems="center">
+                <Grid sx={{ display: 'flex', width: '40px' }}>
+                  <Image
+                    src={option.logoUrl}
+                    alt={option.isin + ' logo'}
+                    sx={{ width: '40px', height: '40px' }}
+                  />
+                </Grid>
+                <Grid sx={{ width: 'calc(100% - 44px)', wordWrap: 'break-word', pl: 1 }}>
+                  <Typography variant="body1" noWrap>
+                    {option.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" noWrap>
+                    {option.assetType} - {option.isin}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </StyledAutocompleteOption>
+          );
+        },
+        noOptionsText: 'No assets found',
       },
       {
         size: { xs: 12, md: 6 },
@@ -327,6 +387,14 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
             endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
           },
         },
+      },
+      {
+        type: 'text',
+        name: 'description',
+        label: 'Note',
+        placeholder: 'This will make me rich!',
+        area: true,
+        rows: 2,
       },
     ] as EntityDrawerField<EntityFormFields>[];
   }, []);
@@ -441,12 +509,9 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
                   </ActionPaper>
 
                   <Stack>
-                    <Stack direction="row" spacing={2}>
-                      {/* <Typography variant="caption">{'Symbol'}</Typography> */}
-                      <Typography variant="caption">{position.isin}</Typography>
-                      {/* <Typography variant="caption">{'WKN'}</Typography> */}
-                    </Stack>
-
+                    <Typography variant="caption">
+                      {position.assetType} - {position.isin}
+                    </Typography>
                     <Typography variant="body1" fontWeight={'bolder'}>
                       {position.securityName}
                     </Typography>
@@ -548,19 +613,3 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
     </React.Fragment>
   );
 };
-
-// renderOption={(props, option, {selected}) => (
-//   <StyledAutocompleteOption {...props} key={option.isin} selected={selected}>
-//     <Grid container alignItems="center">
-//       <Grid sx={{display: 'flex', width: '40px'}}>
-//         <Image src={option.logo} alt={option.label + ' logo'} sx={{width: '40px', height: '40px'}} />
-//       </Grid>
-//       <Grid sx={{width: 'calc(100% - 44px)', wordWrap: 'break-word', pl: 1}}>
-//         <Typography variant="body1">{option.label}</Typography>
-//         <Typography variant="body2" color="text.secondary">
-//           {option.type} - {option.isin}
-//         </Typography>
-//       </Grid>
-//     </Grid>
-//   </StyledAutocompleteOption>
-// )}

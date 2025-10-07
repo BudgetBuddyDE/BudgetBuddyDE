@@ -3,15 +3,55 @@ import { EntityService } from '../Entity.service';
 import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 import {
   SearchAsset,
+  StockPosition,
   StockPositionsWithCount,
+  type TStockPosition,
+  type TCreateOrUpdateStockPosition,
   type TSearchAsset,
   type TStockPositionsWithCount,
 } from '@/types';
 import z from 'zod';
 
 export class StockPositionService extends EntityService {
+  private static $defaultQuery: OdataQuery = {
+    $expand: 'toExchange',
+  };
+
   static {
     this.entity = 'StockPosition';
+  }
+
+  static async create(
+    payload: TCreateOrUpdateStockPosition
+  ): Promise<ServiceResponse<TStockPosition>> {
+    try {
+      const record = await this.newOdataHandler().post(this.$entityPath, payload);
+      const parsingResult = StockPosition.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  static async update(
+    entityId: string,
+    payload: TCreateOrUpdateStockPosition
+  ): Promise<ServiceResponse<TStockPosition>> {
+    try {
+      const record = await this.newOdataHandler()
+        .patch(`${this.$entityPath}(ID=${entityId})`, payload)
+        .query();
+      const parsingResult = StockPosition.safeParse(record);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
   }
 
   static async getWithCount(
@@ -22,11 +62,10 @@ export class StockPositionService extends EntityService {
       const records = await this.newOdataHandler({ ...config, fragment: undefined })
         .get(this.$entityPath)
         .query({
-          $expand: 'toExchange',
+          ...this.$defaultQuery,
           ...query,
           $count: true,
         });
-      this.logger.debug('Fetched stock positions:', records);
       const parsingResult = StockPositionsWithCount.safeParse(records);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
@@ -35,10 +74,6 @@ export class StockPositionService extends EntityService {
     } catch (e) {
       return this.handleError(e);
     }
-  }
-
-  static async delete(): Promise<ServiceResponse<true>> {
-    return [null, new Error('Stock exchanges cannot be deleted.')];
   }
 
   /**
@@ -54,9 +89,7 @@ export class StockPositionService extends EntityService {
     try {
       const records = await this.newOdataHandler(config)
         .get(this.$servicePath + '/SearchAsset')
-        .query({
-          $search: query,
-        });
+        .query({ $search: query });
       const parsingResult = z.array(SearchAsset).safeParse(records);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
