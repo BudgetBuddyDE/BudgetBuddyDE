@@ -1,7 +1,7 @@
 'use client';
 
 import { CategoryChip } from '@/components/Category/CategoryChip';
-import { Command, useCommandPalette } from '@/components/CommandPalette';
+import { type Command, useCommandPalette } from '@/components/CommandPalette';
 import {
   EntityDrawer,
   EntityDrawerField,
@@ -37,6 +37,7 @@ import {
   Button,
   Chip,
   createFilterOptions,
+  InputAdornment,
   Stack,
   TableCell,
   TableRow,
@@ -184,7 +185,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
     transferAmount,
     information,
   }: TExpandedTransaction) => {
-    const now = new Date();
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'EDIT',
@@ -364,6 +364,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         label: 'Transfer Amount',
         placeholder: 'Transfer Amount',
         required: true,
+        slotProps: {
+          input: {
+            endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
+          },
+        },
       },
       {
         type: 'text',

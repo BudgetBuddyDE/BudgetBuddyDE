@@ -1,7 +1,7 @@
 'use client';
 
 import { AddRounded } from '@mui/icons-material';
-import { Box, Button, IconButton, Stack } from '@mui/material';
+import { Box, Button, IconButton, InputAdornment, Stack } from '@mui/material';
 import React from 'react';
 
 import { Card } from '@/components/Card';
@@ -213,6 +213,11 @@ export const BudgetList: React.FC<BudgetListProps> = ({}) => {
         required: true,
         label: 'Budget Amount',
         placeholder: 'e.g. 500.00',
+        slotProps: {
+          input: {
+            endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
+          },
+        },
       },
       {
         type: 'autocomplete',

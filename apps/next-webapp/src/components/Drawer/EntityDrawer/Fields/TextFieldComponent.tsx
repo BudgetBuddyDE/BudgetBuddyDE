@@ -18,7 +18,9 @@ export const TextFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: TextFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label} ist erforderlich` : undefined;
+  const inputRequiredMessage = field.required
+    ? `${field.label ?? field.name} is required`
+    : undefined;
 
   return (
     <Grid key={field.name} size={wrapperSize}>
@@ -39,6 +41,7 @@ export const TextFieldComponent = <T extends FieldValues>({
             required={field.required}
             multiline={field.area}
             rows={field.area ? field.rows : undefined}
+            slotProps={field.slotProps}
           />
         )}
       />

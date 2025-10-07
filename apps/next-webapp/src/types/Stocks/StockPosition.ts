@@ -1,8 +1,8 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
-import {CdsDate, IdAspect, ManagedAspect, OptionalIdAspect} from '../_Aspects';
-import {DescriptionType, ODataContextAspect, OwnerAspect} from '../_Base';
-import {StockExchange} from './StockExchange';
+import { CdsDate, IdAspect, ManagedAspect, OptionalIdAspect } from '../_Aspects';
+import { DescriptionType, ODataContextAspect, ODataCountAspect, OwnerAspect } from '../_Base';
+import { StockExchange } from './StockExchange';
 
 export const ISIN = z.string().min(12).max(12);
 
@@ -10,11 +10,17 @@ export const ISIN = z.string().min(12).max(12);
 export const StockPosition = z.object({
   ...IdAspect.shape,
   toExchange_symbol: StockExchange.shape.symbol,
+  logoUrl: z.url(),
+  securityName: z.string(),
   isin: ISIN,
-  quantity: z.number().positive({message: 'Quantity must be positive'}),
+  quantity: z.number().positive({ message: 'Quantity must be positive' }),
   purchasedAt: CdsDate,
-  purchasePrice: z.number().positive({message: 'Purchase price must be positive'}),
+  purchasePrice: z.number().positive({ message: 'Purchase price must be positive' }),
   description: DescriptionType,
+  currentPrice: z.number(),
+  positionValue: z.number(),
+  absoluteProfit: z.number(),
+  relativeProfit: z.number(),
   ...OwnerAspect.shape,
   ...ManagedAspect.shape,
 });
@@ -26,6 +32,19 @@ export const ExpandedStockPosition = StockPosition.omit({
   toExchange: StockExchange,
 });
 export type TExpandedStockPosition = z.infer<typeof ExpandedStockPosition>;
+
+/**
+ * Stock Positions with Count
+ */
+export const StockPositionsWithCount = z.object({
+  ...ODataContextAspect.shape,
+  ...ODataCountAspect.shape,
+  value: z.array(ExpandedStockPosition),
+});
+/**
+ * Stock Positions with Count
+ */
+export type TStockPositionsWithCount = z.infer<typeof StockPositionsWithCount>;
 
 export const CreateorUpdateStockPosition = StockPosition.pick({
   toExchange_symbol: true,

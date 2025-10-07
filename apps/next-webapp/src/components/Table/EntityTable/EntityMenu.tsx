@@ -1,4 +1,4 @@
-import { ActionPaper } from '@/components/ActionPaper';
+import { ActionPaper, type ActionPaperProps } from '@/components/ActionPaper';
 import { Menu, type MenuProps } from '@/components/Menu';
 import { MoreVertRounded } from '@mui/icons-material';
 import React from 'react';
@@ -8,16 +8,18 @@ export type EntityMenuProps<T> = {
   handleEditEntity: (item: T) => void;
   handleDeleteEntity: (item: T) => void;
   actions?: MenuProps['actions'];
-};
+} & Omit<ActionPaperProps, 'children'>;
 
 export const EntityMenu = <T,>({
   entity,
   handleEditEntity,
   handleDeleteEntity,
   actions = [],
-}: EntityMenuProps<T>) => {
+  children,
+  ...actionPaperProps
+}: React.PropsWithChildren<EntityMenuProps<T>>) => {
   return (
-    <ActionPaper sx={{ width: 'fit-content', ml: 'auto' }}>
+    <ActionPaper sx={{ width: 'fit-content', ml: 'auto' }} {...actionPaperProps}>
       <Menu
         useIconButton
         iconButtonProps={{
@@ -35,6 +37,7 @@ export const EntityMenu = <T,>({
           ...actions,
         ]}
       />
+      {children}
     </ActionPaper>
   );
 };

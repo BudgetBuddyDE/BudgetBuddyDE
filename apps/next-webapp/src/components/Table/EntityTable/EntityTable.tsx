@@ -9,10 +9,12 @@ import {
   Table,
   TableBody,
   TableCell,
+  type TableCellProps,
   TableContainer,
   TableHead,
   TableRow,
   Tooltip,
+  Typography,
   type IconButtonProps,
 } from '@mui/material';
 import React from 'react';
@@ -39,7 +41,11 @@ export type EntityTableProps<T> = {
   data: T[];
   totalEntityCount?: number;
   dataKey: keyof T;
-  headerCells: (keyof T | { key: keyof T; label: string } | { placeholder: true })[];
+  headerCells: (
+    | keyof T
+    | { key: keyof T; label: string; align?: TableCellProps['align'] }
+    | { placeholder: true }
+  )[];
   renderHeaderCell?: (cell: keyof T, data: T[]) => React.ReactNode;
   renderRow: (cell: keyof T, item: T, data: T[]) => React.ReactNode;
   error?: ErrorAlertProps['error'];
@@ -125,7 +131,7 @@ export const EntityTable = <T,>({
 
         {data.length > 0 && (
           <TableContainer sx={{ maxHeight: MAX_HEIGHT }}>
-            <Table stickyHeader sx={{ tableLayout: 'auto', backgroundColor: 'unset' }}>
+            <Table stickyHeader sx={{ tableLayout: 'auto' }}>
               <TableHead>
                 <TableRow>
                   {headerCells.map((cell) => {
@@ -135,9 +141,17 @@ export const EntityTable = <T,>({
                       return renderHeaderCell(key as keyof T, data);
                     }
                     const label = isBasicKey ? String(cell) : 'label' in cell ? cell.label : '';
+                    const textAlignment: TableCellProps['align'] =
+                      !isBasicKey && 'align' in cell ? cell.align : 'left';
                     return (
-                      <TableCell key={typeof key === 'string' ? key : key.toString()}>
-                        {label}
+                      <TableCell
+                        key={typeof key === 'string' ? key : key.toString()}
+                        sx={{ backgroundColor: 'unset' }}
+                        align={textAlignment}
+                      >
+                        <Typography variant="body1" fontWeight="bolder">
+                          {label}
+                        </Typography>
                       </TableCell>
                     );
                   })}

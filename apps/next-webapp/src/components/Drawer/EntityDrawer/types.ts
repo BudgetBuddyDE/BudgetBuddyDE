@@ -14,7 +14,7 @@ export type BaseAttributes<T, U extends FieldValues> = {
   size?: GridProps['size'];
   name: Path<U>;
   label: string;
-} & Pick<TextFieldProps, 'placeholder' | 'required'> &
+} & Pick<TextFieldProps, 'placeholder' | 'required' | 'slotProps'> &
   T;
 
 export type EntityDrawerField<T extends FieldValues> =

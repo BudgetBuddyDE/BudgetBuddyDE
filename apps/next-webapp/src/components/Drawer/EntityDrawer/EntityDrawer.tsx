@@ -36,9 +36,9 @@ export type EntityDrawerProps<T extends FieldValues> = Pick<
 };
 
 /**
- * Generische Drawer-Komponente mit welcher dynamisch Formulare generiert werden können.
- * Verwendet React-Hook-Form für optimale Performance und Typensicherheit.
- * Unterstützt Standardwerte für das Bearbeiten von Datensätzen.
+ * Generic drawer component that can dynamically generate forms.
+ * Uses React-Hook-Form for optimal performance and type safety.
+ * Supports default values for editing records.
  */
 export const EntityDrawer = <T extends FieldValues>({
   open,
@@ -55,13 +55,12 @@ export const EntityDrawer = <T extends FieldValues>({
 }: EntityDrawerProps<T>) => {
   const drawerRef = React.useRef<HTMLDivElement | null>(null);
   const saveBtnRef = React.useRef<HTMLButtonElement | null>(null);
-  // Form mit Memoization für bessere Performance
   const form = useForm<T>({
     defaultValues: defaultValues,
-    mode: 'onBlur', // Validation nur bei Blur für bessere UX
+    mode: 'onBlur', // Validation on blur only for better UX
   });
 
-  // Keyboard-Shortcut for saving/submitting (Strg/Cmd + S)
+  // Shortcut for saving/submitting (Strg/Cmd + S)
   useKeyPress(
     ['s'],
     (e) => {
@@ -74,7 +73,6 @@ export const EntityDrawer = <T extends FieldValues>({
     true
   );
 
-  // Optimierte Handler-Funktionen
   const handlers = React.useMemo(
     () => ({
       handleClose: () => {
@@ -100,7 +98,7 @@ export const EntityDrawer = <T extends FieldValues>({
     [onClose, onSubmit, onResetForm, form, defaultValues]
   );
 
-  // Defaultwerte nur bei Änderung aktualisieren
+  // Only reset form when drawer is opened or defaultValues change
   React.useEffect(() => {
     if (open && defaultValues) {
       console.log('Resetting form to default values:', defaultValues);
@@ -108,7 +106,7 @@ export const EntityDrawer = <T extends FieldValues>({
     }
   }, [open, defaultValues, form]);
 
-  // Memoized Feld-Rendering für bessere Performance
+  // Memoize the rendered fields to optimize performance
   const renderedFields: JSX.Element[] = React.useMemo(() => {
     return fields.map((field) => {
       const wrapperSize = field.size || { xs: 12 };

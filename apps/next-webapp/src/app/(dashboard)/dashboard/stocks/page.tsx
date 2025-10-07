@@ -2,7 +2,7 @@ import { StatsCard } from '@/components/Analytics/StatsCard';
 import { MetalQuoteList } from '@/components/Metal/MetalQuoteList';
 import { DividendTable } from '@/components/Stocks/Dividend';
 import { PortfolioDiversityChart } from '@/components/Stocks/PortfolioDiversityChart';
-import { StockPositionTableWrapper } from '@/components/Stocks/StockPositionTable';
+import { StockPositionTable } from '@/components/Stocks/StockPositionTable';
 import { StockWatchlist } from '@/components/Stocks/StockWatchlist';
 import { Formatter } from '@/utils/Formatter';
 import {
@@ -62,7 +62,7 @@ export default function StocksDashboard() {
 
       <Grid container size={{ xs: 12, md: 8 }} sx={{ height: 'fit-content' }} spacing={2}>
         <Grid size={{ xs: 12 }} order={{ xs: 4 }}>
-          <StockPositionTableWrapper />
+          <StockPositionTable withRedirect />
         </Grid>
 
         <Grid size={{ xs: 12 }} order={{ xs: 5 }}>

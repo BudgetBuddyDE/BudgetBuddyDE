@@ -22,7 +22,9 @@ export const DateFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: DateFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label} ist erforderlich` : undefined;
+  const inputRequiredMessage = field.required
+    ? `${field.label ?? field.name} is required`
+    : undefined;
 
   return (
     <Grid key={field.name} size={wrapperSize}>
@@ -37,6 +39,7 @@ export const DateFieldComponent = <T extends FieldValues>({
             onAccept={onChange}
             inputRef={ref}
             slotProps={{
+              ...field.slotProps,
               textField: {
                 label: field.label,
                 error: !!error,
@@ -44,6 +47,7 @@ export const DateFieldComponent = <T extends FieldValues>({
                 required: field.required,
                 fullWidth: true,
                 placeholder: field.placeholder,
+                ...field.slotProps,
               },
             }}
           />

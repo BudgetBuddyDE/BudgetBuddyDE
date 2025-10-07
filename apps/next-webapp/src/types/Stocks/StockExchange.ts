@@ -1,7 +1,7 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
-import {CdsDate} from '../_Aspects';
-import {ODataContextAspect} from '../_Base';
+import { CdsDate } from '../_Aspects';
+import { ODataContextAspect, ODataCountAspect } from '../_Base';
 
 // Base model
 export const StockExchange = z.object({
@@ -13,6 +13,22 @@ export const StockExchange = z.object({
 });
 export type TStockExchange = z.infer<typeof StockExchange>;
 
-// Response from OData
-export const StockExchangeResponse = StockExchange.extend(ODataContextAspect.shape);
-export type TStockExchangeResponse = z.infer<typeof StockExchangeResponse>;
+export const StockExchangeVH = StockExchange.pick({
+  symbol: true,
+  name: true,
+  technicalName: true,
+});
+export type TStockExchangeVH = z.infer<typeof StockExchangeVH>;
+
+/**
+ * Stock Exchanges with Count
+ */
+export const StockExchangesWithCount = z.object({
+  ...ODataContextAspect.shape,
+  ...ODataCountAspect.shape,
+  value: z.array(StockExchange),
+});
+/**
+ * Transactions with Count
+ */
+export type TStockExchangesWithCount = z.infer<typeof StockExchangesWithCount>;

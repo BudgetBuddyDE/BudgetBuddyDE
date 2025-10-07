@@ -7,5 +7,10 @@ export default async function Page({ params }: { params: Promise<{ isin: string 
     `https://api.parqet.com/v1/assets/${isin}?currency=EUR&expand=details&expand=yieldTTM`
   ).then((res) => res.json());
   console.log(data);
-  return <div>My Post: {isin}</div>;
+  return (
+    <div>
+      My Post: {isin}
+      <pre>{JSON.stringify(data, null, 4)}</pre>
+    </div>
+  );
 }

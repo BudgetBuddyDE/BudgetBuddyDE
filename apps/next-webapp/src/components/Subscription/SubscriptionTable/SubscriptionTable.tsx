@@ -36,6 +36,7 @@ import {
   Button,
   Chip,
   createFilterOptions,
+  InputAdornment,
   Stack,
   TableCell,
   TableRow,
@@ -377,6 +378,11 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
         label: 'Transfer Amount',
         placeholder: 'Transfer Amount',
         required: true,
+        slotProps: {
+          input: {
+            endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
+          },
+        },
       },
       {
         type: 'text',

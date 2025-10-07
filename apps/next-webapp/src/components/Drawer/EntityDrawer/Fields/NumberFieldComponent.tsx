@@ -18,7 +18,9 @@ export const NumberFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: NumberFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label} ist erforderlich` : undefined;
+  const inputRequiredMessage = field.required
+    ? `${field.label ?? field.name} is required`
+    : undefined;
 
   return (
     <Grid key={field.name} size={wrapperSize}>
@@ -28,7 +30,6 @@ export const NumberFieldComponent = <T extends FieldValues>({
         rules={{ required: inputRequiredMessage }}
         render={({ field: controllerField, fieldState: { error } }) => (
           <TextField
-            type="number"
             {...controllerField}
             value={controllerField.value || ''}
             onChange={(e) => {
@@ -43,7 +44,11 @@ export const NumberFieldComponent = <T extends FieldValues>({
             fullWidth
             required={field.required}
             slotProps={{
-              htmlInput: { inputMode: isRunningOnIOs() ? 'text' : 'numeric' },
+              ...field.slotProps,
+              htmlInput: {
+                inputMode: isRunningOnIOs() ? 'text' : 'numeric',
+                ...field.slotProps?.htmlInput,
+              },
             }}
           />
         )}

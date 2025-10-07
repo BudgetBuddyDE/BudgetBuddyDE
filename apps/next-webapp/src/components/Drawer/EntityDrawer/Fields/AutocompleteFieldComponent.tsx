@@ -1,16 +1,25 @@
+'use client';
+
+import debounce from 'lodash.debounce';
 import { Grid, type GridProps } from '@mui/material';
 import React from 'react';
 import { Controller, type Control, type FieldValues } from 'react-hook-form';
 import { Autocomplete, type AutocompleteProps } from '@/components/Form/Autocomplete';
 import { type BaseAttributes } from '../types';
 
-export type AutocompleteField<T extends FieldValues, Value> = BaseAttributes<
-  { type: 'autocomplete' },
-  T
+export type AutocompleteField<T extends FieldValues, Value> = Omit<
+  BaseAttributes<
+    {
+      type: 'autocomplete';
+      retrieveOptionsFunc: (inputValue?: string) => Value[] | Promise<Value[]>;
+    },
+    T
+  >,
+  'slotProps' // Omit the slotProps from TextFieldProps as we extend it with slotsProps from AutocompleteProps
 > &
   Pick<
     AutocompleteProps<Value, any, any, any, any>,
-    | 'retrieveOptionsFunc'
+    // | 'retrieveOptionsFunc' // Replace retrieveOptionsFunc with an customized function
     | 'isOptionEqualToValue'
     | 'renderOption'
     | 'getOptionLabel'
@@ -18,6 +27,7 @@ export type AutocompleteField<T extends FieldValues, Value> = BaseAttributes<
     | 'filterOptions'
     | 'disableCloseOnSelect'
     | 'multiple'
+    | 'slotProps'
   >;
 
 export type AutocompleteFieldComponentProps<T extends FieldValues> = {
@@ -31,7 +41,10 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: AutocompleteFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label} ist erforderlich` : undefined;
+  const inputRequiredMessage = field.required
+    ? `${field.label ?? field.name} is required`
+    : undefined;
+  const [currentInputText, setCurrentInputText] = React.useState('');
 
   return (
     <Grid key={field.name} size={wrapperSize}>
@@ -46,8 +59,17 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
             label={field.label}
             placeholder={field.placeholder}
             value={controllerField.value || null}
+            onInputChange={(_, value, reason) => {
+              console.log('AutocompleteFieldComponent - onInputChange', { value, reason });
+              setCurrentInputText(value);
+            }}
             onChange={(_, value) => controllerField.onChange(value)}
-            retrieveOptionsFunc={field.retrieveOptionsFunc}
+            retrieveOptionsFunc={async () => {
+              console.log('AutocompleteFieldComponent - Calling retrieveOptionsFunc');
+              const options = await field.retrieveOptionsFunc(currentInputText);
+              console.log('Retrieved options:', options);
+              return options;
+            }}
             getOptionLabel={field.getOptionLabel}
             error={!!error}
             helperText={error?.message}
@@ -60,6 +82,7 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
             multiple={field.multiple}
             disableCloseOnSelect={field.disableCloseOnSelect}
             noOptionsText={field.noOptionsText}
+            slotProps={field.slotProps}
           />
         )}
       />
