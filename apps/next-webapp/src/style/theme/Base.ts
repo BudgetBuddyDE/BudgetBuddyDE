@@ -3,11 +3,11 @@ import {
   type Direction,
   type Theme,
   type TransitionsOptions,
+  type TypographyVariantsOptions,
   chipClasses,
   svgIconClasses,
 } from '@mui/material';
 import { type Components } from '@mui/material/styles';
-import { type TypographyOptions } from '@mui/material/styles/createTypography';
 
 import { colors } from './colors';
 import { chartsCustomizations } from './customizations';
@@ -163,14 +163,10 @@ export const components: Components<Theme> = {
   },
   MuiGrid: {
     styleOverrides: {
-      item: {
+      root: {
         height: 'fit-content',
       },
-    },
-  },
-  MuiGrid2: {
-    styleOverrides: {
-      root: {
+      container: {
         height: 'fit-content',
       },
     },
@@ -228,7 +224,7 @@ export const components: Components<Theme> = {
   },
 };
 
-export const typography: TypographyOptions = {
+export const typography: TypographyVariantsOptions = {
   fontFamily:
     '"Source Sans Pro","IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
   h1: {

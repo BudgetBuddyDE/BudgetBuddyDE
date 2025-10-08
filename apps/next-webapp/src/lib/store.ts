@@ -1,7 +1,5 @@
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 import { combineSlices, configureStore } from '@reduxjs/toolkit';
-import { counterSlice } from './features/counter/counterSlice';
-import { quotesApiSlice } from './features/quotes/quotesApiSlice';
 import { categorySlice } from './features/categories/categorySlice';
 import { paymentMethodSlice } from './features/paymentMethods/paymentMethodSlice';
 import { transactionSlice } from './features/transactions/transactionSlice';
@@ -13,8 +11,6 @@ import { stockPositionSlice } from './features/stocks/stockPositionSlice';
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
 const rootReducer = combineSlices(
-  counterSlice,
-  quotesApiSlice,
   categorySlice,
   paymentMethodSlice,
   transactionSlice,
@@ -51,7 +47,7 @@ export const makeStore = () => {
            */
           ignoreActions: true,
         },
-      }).concat(quotesApiSlice.middleware);
+      }); /*.concat(quotesApiSlice.middleware);*/
     },
   });
 };

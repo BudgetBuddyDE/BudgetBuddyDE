@@ -1,1 +1,1 @@
-export * from './StockPositionTable.component';
+export * from './StockPositionTable';

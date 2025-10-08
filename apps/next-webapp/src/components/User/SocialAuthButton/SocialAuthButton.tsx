@@ -41,7 +41,6 @@ export const SocialAuthButton: React.FC<SocialAuthButton> = ({ provider, ...butt
     } catch (error) {
       logger.error('Something went wrong', error);
       showSnackbar({
-        severity: 'error',
         message: error instanceof Error ? error.message : 'Authentication failed',
       });
     }

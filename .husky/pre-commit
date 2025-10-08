@@ -15,9 +15,9 @@ if has_changes "apps/website"; then
   cd apps/website && npx prettier --check src && go_back || exit 1
 fi
 
-if has_changes "apps/webapp"; then
-  echo "Running checks for apps/webapp..."
-  cd apps/webapp && npm run format && npx prettier --check src && npm run test:run && go_back || exit 1
+if has_changes "apps/next-webapp"; then
+  echo "Running checks for apps/next-webapp..."
+  cd apps/next-webapp && npm run lint && go_back || exit 1
 fi
 
 if has_changes "packages/types"; then
@@ -39,11 +39,6 @@ if has_changes "services/backend"; then
   echo "Running checks for services/backend..."
   cd services/backend && npm run format:check && npm run test && npm run build && go_back || exit 1
 fi 
-
-if has_changes "services/mail-service"; then
-  echo "Running checks for services/mail-service..."
-  cd services/mail-service && npm run test:run && npx prettier --check src && go_back || exit 1
-fi
 
 if has_changes "services/stock-service"; then
   echo "Running checks for services/stock-service..."

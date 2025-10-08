@@ -80,6 +80,9 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>()
   );
+  // const [stockPopoverData, setStockPopoverData] = React.useState<
+  //   Pick<StockPopoverProps, 'securityDetails' | 'anchorElement'>
+  // >({ anchorElement: null, securityDetails: null });
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({ type: 'CLOSE' });
@@ -496,6 +499,22 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
                     },
                   }}
                   onClick={() => router.push(redirectPath)}
+                  // onMouseEnter={(e) =>
+                  //   setStockPopoverData({
+                  //     anchorElement: e.currentTarget,
+                  //     securityDetails: {
+                  //       logoUrl: position.logoUrl,
+                  //       securityName: position.securityName,
+                  //       assetType: position.assetType,
+                  //       toExchange: position.toExchange,
+                  //       purchasedAt: position.purchasedAt,
+                  //       isin: position.isin,
+                  //     },
+                  //   })
+                  // }
+                  // onMouseLeave={() =>
+                  //   setStockPopoverData({ anchorElement: null, securityDetails: null })
+                  // }
                 >
                   <ActionPaper
                     sx={{
@@ -586,6 +605,10 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
           );
         }}
       />
+      {/* TODO: Implement <StockPopover
+        {...stockPopoverData}
+        onClose={() => setStockPopoverData({ anchorElement: null, securityDetails: null })}
+      /> */}
 
       <EntityDrawer<EntityFormFields>
         title={'Stock Position'}

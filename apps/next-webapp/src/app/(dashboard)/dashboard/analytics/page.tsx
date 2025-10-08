@@ -3,7 +3,7 @@ import { DashboardStatsWrapper } from '../DashboardStatsWrapper';
 import { Grid } from '@mui/material';
 import { CategoryExpenseChart, CategoryIncomeChart } from '@/components/Category/CategoryPieChart';
 import { SubscriptionPieChart } from '@/components/Subscription/SubscriptionPieChart';
-import { BudgetListWrapper } from '@/components/Budget/BudgetList';
+import { BudgetList } from '@/components/Budget/BudgetList';
 
 export default function AnalyticsDashboard() {
   return (
@@ -11,7 +11,7 @@ export default function AnalyticsDashboard() {
       <DashboardStatsWrapper />
 
       <Grid size={{ xs: 12, md: 6 }}>
-        <BudgetListWrapper />
+        <BudgetList />
       </Grid>
 
       <Grid size={{ xs: 12, md: 6 }} display={{ xs: 'none', md: 'block' }} />
