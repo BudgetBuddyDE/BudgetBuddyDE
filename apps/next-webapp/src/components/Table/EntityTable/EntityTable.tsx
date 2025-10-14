@@ -16,6 +16,8 @@ import {
   Tooltip,
   Typography,
   type IconButtonProps,
+  lighten,
+  darken,
 } from '@mui/material';
 import React from 'react';
 import { ErrorAlert, type ErrorAlertProps } from '@/components/ErrorAlert';
@@ -24,6 +26,7 @@ import { ActionPaper } from '@/components/ActionPaper';
 import { Pagination, type PaginationProps } from './Pagination';
 import { SearchInput, type SearchInputProps } from '@/components/Form/SearchInput';
 import { AddRounded, CloudDownloadRounded } from '@mui/icons-material';
+import { Theme } from '@/components/Theme';
 
 export type EntityTableProps<T> = {
   title: string;
@@ -146,7 +149,10 @@ export const EntityTable = <T,>({
                     return (
                       <TableCell
                         key={typeof key === 'string' ? key : key.toString()}
-                        sx={{ backgroundColor: 'unset' }}
+                        sx={{
+                          backgroundColor: (theme) =>
+                            lighten(theme.palette.background.paper, 4.25 * 0.025),
+                        }}
                         align={textAlignment}
                       >
                         <Typography variant="body1" fontWeight="bolder">

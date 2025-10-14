@@ -50,4 +50,10 @@ service AssetService {
 
   @plural: 'StockPositionsKPIs'
   entity StockPositionsKPI                              as projection on db.StockPositionsKPI;
+
+  @plural: 'Metals'
+  entity Metal                                          as projection on db.Metal;
+
+  @plural: 'MetalQuotes'
+  entity MetalQuote                                     as projection on db.MetalQuote;
 }

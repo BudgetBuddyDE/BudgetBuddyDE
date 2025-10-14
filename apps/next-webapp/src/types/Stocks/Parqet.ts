@@ -1,11 +1,11 @@
 import { z } from 'zod';
+import { ISIN } from './StockPosition';
 
 export const ZodDate = z
   .date()
   .or(z.number())
   .or(z.string())
   .transform((val) => new Date(val));
-export const ISIN = z.string().regex(/^([A-Z]{2})([A-Z0-9]{9})([0-9])$/);
 export const WKN = z.string().length(6);
 export const CurrencyCode = z.string().toUpperCase().length(3);
 export const AssetType = z.enum(['Security']);
@@ -26,7 +26,7 @@ export const Dividend = z.object({
   datetime: ZodDate,
   paymentDate: ZodDate,
   declarationDate: ZodDate.optional(),
-  recordDate: ZodDate.or(z.string()).optional(),
+  recordDate: ZodDate.or(z.string()).nullable().optional(),
   exDate: ZodDate,
   isEstimated: z.boolean(),
 });

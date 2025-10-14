@@ -1,6 +1,6 @@
-import { StockPositionService } from '@/services/Stock/StockPosition.service';
 import { createEntitySlice } from '../createEntitySlice';
+import { AssetService } from '@/services/Stock';
 
 export const stockPositionSlice = createEntitySlice('stockPosition', (query) =>
-  StockPositionService.getWithCount(query)
+  AssetService.positions.getWithCount(query)
 );

@@ -10,7 +10,7 @@ export class EntityService {
     credentials: 'include',
   };
   static entity: string;
-  static readonly $servicePath = '/odata/v4/backend';
+  static $servicePath = '/odata/v4/backend';
   static $odata: OHandler;
   static readonly logger = logger.child({ scope: EntityService.name });
 

@@ -1,6 +1,6 @@
+import { AssetService } from '@/services/Stock';
 import { createEntitySlice } from '../createEntitySlice';
-import { StockExchangeService } from '@/services/Stock/StockExchange.service';
 
 export const stockExchangeSlice = createEntitySlice('stockExchange', (query) =>
-  StockExchangeService.getWithCount(query)
+  AssetService.exchange.getWithCount(query)
 );

@@ -19,7 +19,16 @@ export const EntityMenu = <T,>({
   ...actionPaperProps
 }: React.PropsWithChildren<EntityMenuProps<T>>) => {
   return (
-    <ActionPaper sx={{ width: 'fit-content', ml: 'auto' }} {...actionPaperProps}>
+    <ActionPaper
+      {...actionPaperProps}
+      sx={{
+        width: 'fit-content',
+        ml: 'auto',
+        display: 'flex',
+        flexWrap: 'nowrap',
+        ...actionPaperProps.sx,
+      }}
+    >
       <Menu
         useIconButton
         iconButtonProps={{

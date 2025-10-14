@@ -11,12 +11,12 @@ import {
   Stack,
   TableCell,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import React from 'react';
 import { ActionPaper } from '@/components/ActionPaper';
 import { Image } from '@/components/Image';
-import { type Timeframe } from '../Dividend';
 import { Formatter } from '@/utils/Formatter';
 import { stockPositionSlice } from '@/lib/features/stocks/stockPositionSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
@@ -41,18 +41,20 @@ import {
   type FirstLevelNullable,
 } from '@/components/Drawer';
 import { Command, useCommandPalette } from '@/components/CommandPalette';
-import { StockExchangeService } from '@/services/Stock';
-import { StockPositionService } from '@/services/Stock/StockPosition.service';
 import { StyledAutocompleteOption } from '@/components/Form/Autocomplete';
 import { useSnackbarContext } from '@/components/Snackbar';
+import { AssetService } from '@/services/Stock/Asset.service';
 
 type EntityFormFields = FirstLevelNullable<
-  Pick<TStockPosition, 'ID' | 'quantity' | 'purchasePrice' | 'purchasedAt' | 'description'> & {
+  Pick<
+    TStockPosition,
+    'ID' | 'quantity' | 'purchasePrice' | 'purchaseFee' | 'purchasedAt' | 'description'
+  > & {
     asset: TSearchAsset;
     toExchange: TStockExchangeVH;
   }
 >;
-
+export type Timeframe = '1d' | '1w' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y' | '10y' | 'max';
 export type StockPositionTableProps = {
   withRedirect?: boolean;
   redirectTimeframe?: Timeframe;
@@ -80,9 +82,6 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>()
   );
-  // const [stockPopoverData, setStockPopoverData] = React.useState<
-  //   Pick<StockPopoverProps, 'securityDetails' | 'anchorElement'>
-  // >({ anchorElement: null, securityDetails: null });
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({ type: 'CLOSE' });
@@ -118,14 +117,16 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
         asset: { isin },
         purchasePrice,
         purchasedAt,
+        purchaseFee,
         quantity,
         toExchange: { symbol },
         description,
       } = parsedPayload.data;
-      const [_, error] = await StockPositionService.create({
+      const [_, error] = await AssetService.positions.create({
         isin,
         purchasedAt,
         purchasePrice,
+        purchaseFee,
         quantity,
         toExchange_symbol: symbol,
         description,
@@ -151,15 +152,17 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
       const {
         asset: { isin },
         purchasePrice,
+        purchaseFee,
         purchasedAt,
         quantity,
         toExchange: { symbol },
         description,
       } = parsedPayload.data;
-      const [_, error] = await StockPositionService.update(entityId, {
+      const [_, error] = await AssetService.positions.update(entityId, {
         isin,
         purchasedAt,
         purchasePrice,
+        purchaseFee,
         quantity,
         toExchange_symbol: symbol,
         description,
@@ -196,6 +199,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
     logoUrl,
     purchasedAt,
     purchasePrice,
+    purchaseFee,
     description,
     quantity,
     toExchange: {
@@ -212,6 +216,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
         asset: { name: securityName, isin, logoUrl, assetType },
         purchasedAt,
         purchasePrice,
+        purchaseFee,
         description,
         quantity,
         toExchange: {
@@ -224,7 +229,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
   };
 
   const handleDeleteEntity = async (entity: TExpandedStockPosition) => {
-    const [success, error] = await StockPositionService.delete(entity.ID);
+    const [success, error] = await AssetService.positions.delete(entity.ID);
     if (error || !success) {
       return showSnackbar({
         message: error.message,
@@ -281,7 +286,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
         placeholder: 'Select stock exchange',
         required: true,
         async retrieveOptionsFunc() {
-          const [stockExchanges, error] = await StockExchangeService.getValueHelps();
+          const [stockExchanges, error] = await AssetService.exchange.getValueHelps();
           if (error) {
             logger.error('Failed to fetch stock exchange options:', error);
             return [];
@@ -312,7 +317,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
             return [];
           }
 
-          const [searchResults, error] = await StockPositionService.search(fieldText || '');
+          const [searchResults, error] = await AssetService.positions.search(fieldText || '');
           if (error) {
             logger.error(
               "Failed to fetch stock options with '%s' because of %s",
@@ -357,7 +362,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
         noOptionsText: 'No assets found',
       },
       {
-        size: { xs: 12, md: 6 },
+        size: { xs: 12, md: 4 },
         type: 'number',
         name: 'quantity',
         label: 'Quantity',
@@ -379,12 +384,25 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
         },
       },
       {
-        size: { xs: 12, md: 6 },
+        size: { xs: 12, md: 4 },
         type: 'number',
         name: 'purchasePrice',
         label: 'Purchase price',
         placeholder: '68.45',
         required: true,
+        slotProps: {
+          input: {
+            endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
+          },
+        },
+      },
+      {
+        size: { xs: 12, md: 4 },
+        type: 'number',
+        name: 'purchaseFee',
+        label: 'Paid fees',
+        placeholder: '68.45',
+        required: false,
         slotProps: {
           input: {
             endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
@@ -499,22 +517,6 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
                     },
                   }}
                   onClick={() => router.push(redirectPath)}
-                  // onMouseEnter={(e) =>
-                  //   setStockPopoverData({
-                  //     anchorElement: e.currentTarget,
-                  //     securityDetails: {
-                  //       logoUrl: position.logoUrl,
-                  //       securityName: position.securityName,
-                  //       assetType: position.assetType,
-                  //       toExchange: position.toExchange,
-                  //       purchasedAt: position.purchasedAt,
-                  //       isin: position.isin,
-                  //     },
-                  //   })
-                  // }
-                  // onMouseLeave={() =>
-                  //   setStockPopoverData({ anchorElement: null, securityDetails: null })
-                  // }
                 >
                   <ActionPaper
                     sx={{
@@ -538,17 +540,25 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
                 </Stack>
               </TableCell>
               <TableCell size={'medium'}>
-                <Stack sx={{ textAlign: 'right' }}>
-                  <Typography fontWeight={'bolder'}>
-                    {Formatter.currency.formatBalance(
-                      position.quantity * position.purchasePrice,
-                      currency
-                    )}
-                  </Typography>
-                  <Typography variant="caption" fontWeight={'unset'}>
-                    {Formatter.currency.formatBalance(position.purchasePrice, currency)}
-                  </Typography>
-                </Stack>
+                <Tooltip
+                  title={
+                    'Paid fees: ' + Formatter.currency.formatBalance(position.purchaseFee, currency)
+                  }
+                  placement="top"
+                  // arrow
+                >
+                  <Stack sx={{ textAlign: 'right' }}>
+                    <Typography fontWeight={'bolder'}>
+                      {Formatter.currency.formatBalance(
+                        position.quantity * position.purchasePrice,
+                        currency
+                      )}
+                    </Typography>
+                    <Typography variant="caption" fontWeight={'unset'}>
+                      {Formatter.currency.formatBalance(position.purchasePrice, currency)}
+                    </Typography>
+                  </Stack>
+                </Tooltip>
               </TableCell>
               <TableCell size={'medium'}>
                 <Typography textAlign={'right'} noWrap>
@@ -605,10 +615,6 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
           );
         }}
       />
-      {/* TODO: Implement <StockPopover
-        {...stockPopoverData}
-        onClose={() => setStockPopoverData({ anchorElement: null, securityDetails: null })}
-      /> */}
 
       <EntityDrawer<EntityFormFields>
         title={'Stock Position'}
@@ -626,6 +632,7 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
             isin: null,
             description: null,
             purchasePrice: null,
+            purchaseFee: null,
             quantity: null,
             toExchange: null,
           };

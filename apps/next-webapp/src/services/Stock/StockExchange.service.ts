@@ -11,6 +11,7 @@ import {
 
 export class StockExchangeService extends EntityService {
   static {
+    this.$servicePath = '/odata/v4/asset';
     this.entity = 'StockExchange';
   }
 

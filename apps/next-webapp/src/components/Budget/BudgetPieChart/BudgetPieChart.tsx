@@ -2,7 +2,6 @@
 
 import { Box } from '@mui/material';
 import React from 'react';
-
 import { Card } from '@/components/Card';
 import { PieChart } from '@/components/Charts';
 import { CircularProgress } from '@/components/Loading';
@@ -10,7 +9,7 @@ import { NoResults } from '@/components/NoResults';
 import { Formatter } from '@/utils/Formatter';
 import { EntityService } from '@/services/Entity.service';
 import { MonthlyKPIResponse } from '@/types';
-import { logger } from '@/logger';
+import { useFetch } from '@/hooks/useFetch';
 
 export type BudgetStats = {
   expenses: number;
@@ -30,8 +29,22 @@ export type BudgetPieChartProps = {};
  * ```
  */
 export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [data, setData] = React.useState<BudgetStats | null>(null);
+  const { isLoading, data, error } = useFetch<BudgetStats>(async () => {
+    const records = await EntityService.newOdataHandler()
+      .get('/odata/v4/backend/MonthlyKPI')
+      .query();
+    const parsingResult = MonthlyKPIResponse.safeParse(records);
+    if (parsingResult.error) {
+      throw parsingResult.error;
+    }
+
+    const { paidExpenses, upcomingExpenses, receivedIncome, upcomingIncome } = parsingResult.data;
+    return {
+      expenses: paidExpenses,
+      upcomingExpenses: upcomingExpenses,
+      freeAmount: receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses),
+    };
+  });
 
   const chartData = React.useMemo(() => {
     if (!data) return [];
@@ -53,35 +66,6 @@ export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
       },
     ].filter(({ value }) => value > 0);
   }, [data]);
-
-  React.useEffect(() => {
-    // FIXME: Replace with actual data fetching logic
-    const fetchData = async () => {
-      if (!isLoading) setIsLoading(true);
-
-      try {
-        const records = await EntityService.newOdataHandler()
-          .get('/odata/v4/backend/MonthlyKPI')
-          .query();
-        const parsingResult = MonthlyKPIResponse.safeParse(records);
-        if (parsingResult.error) {
-          throw parsingResult.error;
-        }
-
-        const { paidExpenses, upcomingExpenses, receivedIncome, upcomingIncome } =
-          parsingResult.data;
-        setIsLoading(false);
-        setData({
-          expenses: paidExpenses,
-          upcomingExpenses: upcomingExpenses,
-          freeAmount: receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses),
-        });
-      } catch (e) {
-        logger.error('Something went wrong: %s', e instanceof Error ? e.message : String(e));
-      }
-    };
-    fetchData();
-  }, []);
 
   return (
     <Card>

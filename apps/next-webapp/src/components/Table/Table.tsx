@@ -41,7 +41,7 @@ export type TableProps<T> = {
   subtitle?: string;
   headerCells: string[];
   renderHeaderCell?: (headerCell: string) => React.ReactNode;
-  data: T[];
+  data: readonly T[];
   renderRow: (row: T) => React.ReactNode;
   tableActions?: React.ReactNode;
   isLoading?: boolean;

@@ -9,6 +9,10 @@ import {
   type TCreateOrUpdateStockPosition,
   type TSearchAsset,
   type TStockPositionsWithCount,
+  type TStockPositionsKPI,
+  StockPositionsKPI,
+  TStockPositionAllocation,
+  StockPositionAllocation,
 } from '@/types';
 import z from 'zod';
 
@@ -18,15 +22,22 @@ export class StockPositionService extends EntityService {
   };
 
   static {
+    this.$servicePath = '/odata/v4/asset';
     this.entity = 'StockPosition';
   }
 
-  static async create(
-    payload: TCreateOrUpdateStockPosition
-  ): Promise<ServiceResponse<TStockPosition>> {
+  static async create(payload: TCreateOrUpdateStockPosition): Promise<ServiceResponse<unknown>> {
     try {
-      const record = await this.newOdataHandler().post(this.$entityPath, payload);
-      const parsingResult = StockPosition.safeParse(record);
+      const record = await this.newOdataHandler().post(this.$entityPath, payload).query();
+      const parsingResult = StockPosition.omit({
+        logoUrl: true,
+        securityName: true,
+        assetType: true,
+        currentPrice: true,
+        positionValue: true,
+        absoluteProfit: true,
+        relativeProfit: true,
+      }).safeParse(record);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
       }
@@ -91,6 +102,40 @@ export class StockPositionService extends EntityService {
         .get(this.$servicePath + '/SearchAsset')
         .query({ $search: query });
       const parsingResult = z.array(SearchAsset).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  static async getKPIs(
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<TStockPositionsKPI>> {
+    try {
+      const records = await this.newOdataHandler(config)
+        .get(this.$servicePath + '/StockPositionsKPI')
+        .query();
+      const parsingResult = StockPositionsKPI.safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  static async getPositionAllocations(
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<TStockPositionAllocation[]>> {
+    try {
+      const records = await this.newOdataHandler(config)
+        .get(this.$servicePath + '/StockPositionAllocation')
+        .query();
+      const parsingResult = z.array(StockPositionAllocation).safeParse(records);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
       }

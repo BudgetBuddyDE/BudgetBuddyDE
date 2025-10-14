@@ -5,10 +5,15 @@ import {
   SearchAsset,
   Dividends,
   StockPositionAllocations,
+  MetalQuotes,
 } from "#cds-models/AssetService";
 import assert from "node:assert";
 import { Parqet } from "./lib/Parqet";
 import { BaseService } from "./lib/BaseService";
+import {
+  MetalPriceAPI,
+  type SuccessMetalQuoteResponse,
+} from "./lib/MetalPriceAPI";
 
 export class AssetService extends BaseService {
   async init() {
@@ -407,6 +412,46 @@ export class AssetService extends BaseService {
                 : result.asset.logo,
           }) as SearchAsset,
       );
+    });
+
+    this.after("READ", MetalQuotes, async (metals) => {
+      if (!metals) return;
+
+      // FIXME: Get cached values from Redis in order to reduce number of requests to MetalPriceAPI and reduce costs
+
+      const symbols = Array.from(
+        new Set(metals.map((metal) => metal.symbol as string)),
+      );
+
+      const prices = new Map<string, SuccessMetalQuoteResponse<string>>();
+      await Promise.all(
+        symbols.map(async (symbol) => {
+          // const CacheServicedValue = await MetCache.get(metal);
+          // if (CacheServicedValue) return MetalService.getMetalWithQuote(metal, CacheServicedValue);
+
+          const price = await MetalPriceAPI.getPrice(symbol);
+          if (!price || !price.success) return false;
+
+          // await MetCache.set(metal, price.rates);
+          // return MetalPriceAPI.getMetalWithQuote(metal, price.rates);
+          prices.set(symbol, price);
+
+          return true;
+        }),
+      );
+
+      for (const metal of metals) {
+        if (!metal.symbol) continue;
+        if (!prices.has(metal.symbol)) {
+          this.logger.warn(`No price found for metal symbol ${metal.symbol}`);
+          continue;
+        }
+
+        const price = prices.get(metal.symbol);
+        assert(price, "Price should be defined if prices has the symbol");
+        metal.eur = price.rates.EUR;
+        metal.usd = price.rates.USD;
+      }
     });
 
     return super.init();

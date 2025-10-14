@@ -1,20 +1,10 @@
 namespace de.budgetbuddy;
 
+using {de.budgetbuddy as types} from './types';
 using {
     cuid,
     managed,
 } from '@sap/cds/common';
-
-type Description  : LargeString default null;
-
-type UserID       : String @assert.notNull
-                           @cds.on.insert: $user;
-// Automatically set to the user ID of the current user
-// This may not even be necessary, as the user ID is already set by the framework when the entity inherits the `managed` aspect.
-
-type ISIN         : String(12) @assert.notNull;
-type CurrencyCode : String(3) @assert.notNull;
-
 
 @plural       : 'Categories'
 @assert.unique: {owner: [
@@ -26,20 +16,15 @@ type CurrencyCode : String(3) @assert.notNull;
     description
 }
 entity Category : cuid, managed {
-    owner       : UserID;
+    owner       : types.UserID;
     name        : String(80) @assert.notNull;
-    description : Description;
-}
-
-type BudgetType   : String(1) enum {
-    INCLUDE = 'i';
-    EXCLUDE = 'e';
+    description : types.Description;
 }
 
 @plural: 'Budgets'
 entity Budget : cuid, managed {
-            owner        : UserID;
-            type         : BudgetType;
+            owner        : types.UserID;
+            type         : types.BudgetType;
     virtual balance      : Double;
             toCategories : Composition of many {
                                key toCategory : Association to one Category @assert.target;
@@ -66,11 +51,11 @@ entity Budget : cuid, managed {
     description
 }
 entity PaymentMethod : cuid, managed {
-    owner       : UserID;
+    owner       : types.UserID;
     name        : String(80)  @assert.notNull;
     provider    : String(100) @assert.notNull;
     address     : String(100) @assert.notNull;
-    description : Description;
+    description : types.Description;
 }
 
 @plural    : 'Transactions'
@@ -80,7 +65,7 @@ entity PaymentMethod : cuid, managed {
     toCategory.name
 }
 entity Transaction : cuid, managed {
-    owner           : UserID;
+    owner           : types.UserID;
     toCategory      : Association to one Category      @assert.target
                                                        @assert.notNull;
     toPaymentMethod : Association to one PaymentMethod @assert.target
@@ -88,7 +73,7 @@ entity Transaction : cuid, managed {
     processedAt     : DateTime                         @assert.notNull;
     receiver        : String(255)                      @assert.notNull;
     transferAmount  : Double                           @assert.notNull;
-    information     : Description;
+    information     : types.Description;
 // FIXME: Add field for file attachments
 }
 
@@ -127,7 +112,7 @@ entity MonthlyKPI {
     toCategory.name
 }
 entity Subscription : cuid, managed {
-            owner           : UserID;
+            owner           : types.UserID;
             toCategory      : Association to one Category      @assert.target
                                                                @assert.notNull;
             toPaymentMethod : Association to one PaymentMethod @assert.target
@@ -168,13 +153,13 @@ entity StockPosition : cuid, managed {
     virtual logoUrl        : String;
     virtual assetType      : String;
     virtual securityName   : String;
-            isin           : ISIN;
+            isin           : types.ISIN;
             quantity       : Double                           @assert.notNull;
             purchasedAt    : DateTime                         @assert.notNull;
             purchasePrice  : Double                           @assert.notNull;
             purchaseFee    : Double default 0.0               @assert.notNull;
-            description    : Description;
-            owner          : UserID;
+            description    : types.Description;
+            owner          : types.UserID;
     virtual currentPrice   : Double;
     virtual positionValue  : Double;
     virtual absoluteProfit : Double;
@@ -205,10 +190,10 @@ entity StockPositionsKPI {
 @cds.persistence.skip
 @plural: 'Dividends'
 entity Dividend {
-    key identifier     : ISIN;
+    key identifier     : types.ISIN;
         payoutInterval : String;
         price          : Double;
-        currency       : CurrencyCode;
+        currency       : types.CurrencyCode;
         date           : Date;
         datetime       : DateTime;
         paymentDate    : Date;
@@ -226,13 +211,13 @@ entity Dividend {
 entity StockWatchlist : cuid, managed {
     toExchange  : Association to one StockExchange @assert.target
                                                    @assert.notNull;
-    isin        : ISIN;
+    isin        : types.ISIN;
     targetPrice : Double                           @assert.notNull
                                                    @assert.range: [
         (0),
         _
     ];
-    owner       : UserID;
+    owner       : types.UserID;
 }
 
 
@@ -244,3 +229,20 @@ entity SearchAsset {
         logoUrl   : String;
         assetType : String;
 }
+
+@plural: 'Metals'
+entity Metal {
+    key symbol : String(3);
+        name   : String(20);
+        unit   : types.MetalUnit;
+}
+
+@plural: 'MetalQuotes'
+entity MetalQuote              as
+    select from Metal {
+        symbol,
+        name,
+        unit,
+        0 as eur : Double,
+        0 as usd : Double,
+    }

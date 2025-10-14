@@ -100,6 +100,7 @@ const components: Components<Theme> = {
 };
 
 const theme = createTheme({
+  defaultColorScheme: 'dark',
   colorSchemes: { light: true, dark: true },
   cssVariables: {
     colorSchemeSelector: 'class',
