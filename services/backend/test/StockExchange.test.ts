@@ -9,19 +9,25 @@ describe("StockExchange", () => {
   const testInstance = testFactory.init({ profile: "test" });
   const util = testFactory.getODataUtil(ODataService.Backend);
 
-  test("it should return an empty list", async () => {
-    const result = await util.core.get<StockExchange>(StockExchange.name);
-    expect(result.status).toBe(200);
-    expect(result.data).toEqual([]);
+  beforeEach(async () => {
+    await testFactory.resetData();
   });
 
-  test.skip("it should return the list of available stock exchanges", async () => {
+  test("it should return the list of available stock exchanges", async () => {
     const result = await util.core.get<StockExchange>(StockExchange.name);
     expect(result.status).toBe(200);
     expect(result.data).toBeDefined();
-    expect(result.data).toEqual([
-      /*ENTER DATA*/
-    ]);
+    expect(result.data?.map((exchange) => exchange.symbol)).toEqual(
+      expect.arrayContaining([
+        "DU",
+        "F",
+        "HM",
+        "tradegate",
+        "ETR",
+        "GTX",
+        "LSX",
+      ]),
+    );
   });
 
   test.skip("it should not be possible to create new stock exchanges", async () => {

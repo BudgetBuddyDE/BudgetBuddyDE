@@ -5,14 +5,15 @@ using {
     managed,
 } from '@sap/cds/common';
 
-type Description : LargeString default null;
+type Description  : LargeString default null;
 
-type UserID      : String @assert.notNull
-                          @cds.on.insert: $user;
+type UserID       : String @assert.notNull
+                           @cds.on.insert: $user;
 // Automatically set to the user ID of the current user
 // This may not even be necessary, as the user ID is already set by the framework when the entity inherits the `managed` aspect.
 
-type ISIN        : String(12) @assert.notNull;
+type ISIN         : String(12) @assert.notNull;
+type CurrencyCode : String(3) @assert.notNull;
 
 
 @plural       : 'Categories'
@@ -20,13 +21,17 @@ type ISIN        : String(12) @assert.notNull;
     owner,
     name
 ]}
+@cds.search   : {
+    name,
+    description
+}
 entity Category : cuid, managed {
     owner       : UserID;
     name        : String(80) @assert.notNull;
     description : Description;
 }
 
-type BudgetType  : String(1) enum {
+type BudgetType   : String(1) enum {
     INCLUDE = 'i';
     EXCLUDE = 'e';
 }
@@ -54,6 +59,12 @@ entity Budget : cuid, managed {
     provider,
     address
 ]}
+@cds.search   : {
+    name,
+    provider,
+    address,
+    description
+}
 entity PaymentMethod : cuid, managed {
     owner       : UserID;
     name        : String(80)  @assert.notNull;
@@ -62,7 +73,12 @@ entity PaymentMethod : cuid, managed {
     description : Description;
 }
 
-@plural: 'Transactions'
+@plural    : 'Transactions'
+@cds.search: {
+    receiver,
+    information,
+    toCategory.name
+}
 entity Transaction : cuid, managed {
     owner           : UserID;
     toCategory      : Association to one Category      @assert.target
@@ -79,15 +95,15 @@ entity Transaction : cuid, managed {
 @plural: 'CategoryStats'
 view CategoryStats as
     select from Transaction {
-        toCategory,
-        virtual 0 as income   : type of Transaction : transferAmount,
-        virtual 0 as expenses : type of Transaction : transferAmount,
-        virtual 0 as balance  : type of Transaction : transferAmount,
-        // REVISIT: start, end and processedAt needs to be included for filtering
-        // min(processedAt) as start    : type of Transaction : processedAt,
-        // max(processedAt) as end      : type of Transaction : processedAt,
-        processedAt           : type of Transaction : processedAt,
-        createdBy
+        key toCategory,
+            virtual 0 as income   : type of Transaction : transferAmount,
+            virtual 0 as expenses : type of Transaction : transferAmount,
+            virtual 0 as balance  : type of Transaction : transferAmount,
+            // REVISIT: start, end and processedAt needs to be included for filtering
+            // min(processedAt) as start    : type of Transaction : processedAt,
+            // max(processedAt) as end      : type of Transaction : processedAt,
+            processedAt           : type of Transaction : processedAt,
+            createdBy
     }
     group by
         toCategory.ID;
@@ -96,15 +112,20 @@ view CategoryStats as
 @cds.persistence.skip
 @plural: 'MonthlyKPIs'
 entity MonthlyKPI {
-    virtual receivedIncome   : Double;
-    virtual upcomingIncome   : Double;
-    virtual paidExpenses     : Double;
-    virtual upcomingExpenses : Double;
-    virtual currentBalance   : Double;
-    virtual estimatedBalance : Double;
+    receivedIncome   : Double;
+    upcomingIncome   : Double;
+    paidExpenses     : Double;
+    upcomingExpenses : Double;
+    currentBalance   : Double;
+    estimatedBalance : Double;
 }
 
-@plural: 'Subscriptions'
+@plural    : 'Subscriptions'
+@cds.search: {
+    receiver,
+    information,
+    toCategory.name
+}
 entity Subscription : cuid, managed {
             owner           : UserID;
             toCategory      : Association to one Category      @assert.target
@@ -136,18 +157,65 @@ entity StockExchange {
 @assert.unique: {owner: [
     owner,
     toExchange,
-    isin
+    isin,
+    quantity,
+    purchasePrice,
+    purchasedAt
 ]}
 entity StockPosition : cuid, managed {
-    toExchange    : Association to one StockExchange @assert.target
-                                                     @assert.notNull;
-    isin          : ISIN;
-    quantity      : Double                           @assert.notNull;
-    purchaseAt    : DateTime                         @assert.notNull;
-    purchasePrice : Double                           @assert.notNull;
-    description   : Description;
-    owner         : UserID;
+            toExchange     : Association to one StockExchange @assert.target
+                                                              @assert.notNull;
+    virtual logoUrl        : String;
+    virtual assetType      : String;
+    virtual securityName   : String;
+            isin           : ISIN;
+            quantity       : Double                           @assert.notNull;
+            purchasedAt    : DateTime                         @assert.notNull;
+            purchasePrice  : Double                           @assert.notNull;
+            purchaseFee    : Double default 0.0               @assert.notNull;
+            description    : Description;
+            owner          : UserID;
+    virtual currentPrice   : Double;
+    virtual positionValue  : Double;
+    virtual absoluteProfit : Double;
+    virtual relativeProfit : Double;
 }
+
+
+@plural: 'StockPositionAllocations'
+entity StockPositionAllocation as
+    select from StockPosition {
+        isin,
+        null     as securityName         : StockPosition:securityName,
+        quantity as absolutePositionSize : StockPosition:positionValue,
+        null     as relativePositionSize : Double,
+    };
+
+@odata.singleton
+entity StockPositionsKPI {
+    totalPositionValue               : Double;
+    absoluteCapitalGains             : Double;
+    unrealisedProfit                 : Double;
+    freeCapitalOnProfitablePositions : Double;
+    unrealisedLoss                   : Double;
+    boundCapitalOnLosingPositions    : Double;
+    upcomingDividends                : Double;
+};
+
+@cds.persistence.skip
+@plural: 'Dividends'
+entity Dividend {
+    key identifier     : ISIN;
+        payoutInterval : String;
+        price          : Double;
+        currency       : CurrencyCode;
+        date           : Date;
+        datetime       : DateTime;
+        paymentDate    : Date;
+        recordDate     : Date;
+    key exDate         : Date;
+        isEstimated    : Boolean;
+};
 
 @plural       : 'StockWatchlists'
 @assert.unique: {owner: [
@@ -165,4 +233,14 @@ entity StockWatchlist : cuid, managed {
         _
     ];
     owner       : UserID;
+}
+
+
+@cds.persistence.skip
+@plural: 'SearchAssets'
+entity SearchAsset {
+    key isin      : String(12);
+        name      : String;
+        logoUrl   : String;
+        assetType : String;
 }

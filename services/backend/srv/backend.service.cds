@@ -1,6 +1,8 @@
 using {de.budgetbuddy as db} from '../db/schema';
 
-@restr
+@protocol: ['odata',
+// 'rest',
+]
 service BackendService {
 
   @plural                : 'Categories'
@@ -13,7 +15,7 @@ service BackendService {
       'DELETE'
     ],
     where: 'createdBy = $user'
-  }])                                                   as projection on db.Category;
+  }])               as projection on db.Category;
 
   @readonly
   view Category_VH @(restrict: [{
@@ -44,33 +46,35 @@ service BackendService {
 
   @plural                : 'Budgets'
   @cds.redirection.target: 'Budget'
-  entity Budget                                         as
+  entity Budget     as
     projection on db.Budget {
       *,
-      (
-        select sum(t.transferAmount) * -1 from db.Transaction as t
-        where
-              t.owner              = Budget.owner
-          and month(t.processedAt) = month(current_date)
-          and year(t.processedAt)  = year(current_date)
-          and (
-            (
-              Budget.type          = 'i'
-              and exists(
-                select from db.Budget.toCategories as bc
-                where
-                  bc.toCategory.ID = t.toCategory.ID
+      coalesce(
+        (
+          select sum(t.transferAmount) * -1 from db.Transaction as t
+          where
+                t.owner              = Budget.owner
+            and month(t.processedAt) = month(current_date)
+            and year(t.processedAt)  = year(current_date)
+            and (
+              (
+                Budget.type          = 'i'
+                and exists(
+                  select from db.Budget.toCategories as bc
+                  where
+                    bc.toCategory.ID = t.toCategory.ID
+                )
+              )
+              or (
+                Budget.type          = 'e'
+                and not exists(
+                  select from db.Budget.toCategories as bc
+                  where
+                    bc.toCategory.ID = t.toCategory.ID
+                )
               )
             )
-            or (
-              Budget.type          = 'e'
-              and not exists(
-                select from db.Budget.toCategories as bc
-                where
-                  bc.toCategory.ID = t.toCategory.ID
-              )
-            )
-          )
+        ), 0
       ) as balance : type of db.Transaction : transferAmount
     };
 
@@ -99,7 +103,7 @@ service BackendService {
       'DELETE'
     ],
     where: 'createdBy = $user'
-  }])                                                   as projection on db.PaymentMethod;
+  }])               as projection on db.PaymentMethod;
 
   @readonly
   view PaymentMethod_VH @(restrict: [{
@@ -124,9 +128,9 @@ service BackendService {
       'DELETE'
     ],
     where: 'createdBy = $user'
-  }])                                                   as projection on db.Transaction
-                                                           order by
-                                                             processedAt desc;
+  }])               as projection on db.Transaction
+                       order by
+                         processedAt desc;
 
   @plural: 'Subscriptions'
   entity Subscription @(restrict: [{
@@ -137,40 +141,14 @@ service BackendService {
       'DELETE'
     ],
     where: 'createdBy = $user'
-  }])                                                   as projection on db.Subscription
-                                                           order by
-                                                             executeAt asc;
+  }])               as projection on db.Subscription
+                       order by
+                         executeAt asc;
 
 
   @plural: 'CategoryStats'
   view CategoryStats as select from db.CategoryStats;
 
   @plural: 'MonthlyKPIs'
-  entity MonthlyKPI                                     as projection on db.MonthlyKPI;
-
-  @plural: 'StockExchanges'
-  entity StockExchange @(restrict: [{grant: ['READ']}]) as projection on db.StockExchange;
-
-  @plural: 'StockWatchlists'
-  entity StockWatchlist @(restrict: [{
-    grant: [
-      'READ',
-      'CREATE',
-      'UPDATE',
-      'DELETE'
-    ],
-    where: 'createdBy = $user'
-  }])                                                   as projection on db.StockWatchlist;
-
-  @plural: 'StockPositions'
-  entity StockPosition @(restrict: [{
-    grant: [
-      'READ',
-      'CREATE',
-      'UPDATE',
-      'DELETE'
-    ],
-    where: 'createdBy = $user'
-  }])                                                   as projection on db.StockPosition;
-
+  entity MonthlyKPI as projection on db.MonthlyKPI;
 }
