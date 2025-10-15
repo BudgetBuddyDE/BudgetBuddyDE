@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 import React from 'react';
 
 import { Card } from '@/components/Card';
@@ -20,7 +20,6 @@ export const PortfolioDiversityChart: React.FC<PortfolioDiversityChartProps> = (
     data: positionAllocations,
     error,
   } = useFetch(async () => {
-    const theme = useTheme();
     const [allocations, err] = await AssetService.positions.getPositionAllocations();
     if (err) throw err;
     return allocations;

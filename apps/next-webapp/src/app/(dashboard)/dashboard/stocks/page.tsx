@@ -1,3 +1,4 @@
+import { MetalQuoteList } from '@/components/Metal/MetalQuoteList';
 import { PortfolioDiversityChart } from '@/components/Stocks/PortfolioDiversityChart';
 import { StockPositionTable } from '@/components/Stocks/StockPositionTable';
 import { StockStats } from '@/components/Stocks/StockStats';
@@ -20,9 +21,9 @@ export default function StocksDashboard() {
           <PortfolioDiversityChart />
         </Grid>
 
-        {/* FIXME: Enable me after caching is implemented <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12 }}>
           <MetalQuoteList />
-        </Grid> */}
+        </Grid>
       </Grid>
     </React.Fragment>
   );

@@ -1,4 +1,14 @@
-import { Box, Chip, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Chip,
+  Link,
+  List,
+  ListItem,
+  ListItemText,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { headers } from 'next/headers';
 import { Card } from '@/components/Card';
 import { Formatter } from '@/utils/Formatter';
@@ -62,6 +72,15 @@ export const MetalQuoteList = async () => {
           </List>
         )}
       </Card.Body>
+      <Card.Footer sx={{ p: 2, pt: 0 }}>
+        <Alert severity="info">
+          The prices are provided by{' '}
+          <Link href="https://metalpriceapi.com/" target="_blank" rel="noreferrer">
+            metalpriceapi.com
+          </Link>
+          .
+        </Alert>
+      </Card.Footer>
     </Card>
   );
 };
