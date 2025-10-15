@@ -14,8 +14,11 @@ import {
   MetalPriceAPI,
   type SuccessMetalQuoteResponse,
 } from "./lib/MetalPriceAPI";
+import { MetalCache } from "./cache";
 
 export class AssetService extends BaseService {
+  private metalCache = new MetalCache();
+
   async init() {
     this.after("READ", StockPositions, async (positions) => {
       if (!positions) return;
@@ -423,18 +426,23 @@ export class AssetService extends BaseService {
         new Set(metals.map((metal) => metal.symbol as string)),
       );
 
-      const prices = new Map<string, SuccessMetalQuoteResponse<string>>();
+      const prices = new Map<
+        string,
+        SuccessMetalQuoteResponse<string>["rates"]
+      >();
       await Promise.all(
         symbols.map(async (symbol) => {
-          // const CacheServicedValue = await MetCache.get(metal);
-          // if (CacheServicedValue) return MetalService.getMetalWithQuote(metal, CacheServicedValue);
+          const CacheServicedValue = await this.metalCache.get(symbol);
+          if (CacheServicedValue) {
+            prices.set(symbol, CacheServicedValue);
+            return true;
+          }
 
           const price = await MetalPriceAPI.getPrice(symbol);
           if (!price || !price.success) return false;
 
-          // await MetCache.set(metal, price.rates);
-          // return MetalPriceAPI.getMetalWithQuote(metal, price.rates);
-          prices.set(symbol, price);
+          await this.metalCache.set(symbol, price.rates);
+          prices.set(symbol, price.rates);
 
           return true;
         }),
@@ -449,8 +457,8 @@ export class AssetService extends BaseService {
 
         const price = prices.get(metal.symbol);
         assert(price, "Price should be defined if prices has the symbol");
-        metal.eur = price.rates.EUR;
-        metal.usd = price.rates.USD;
+        metal.eur = price.EUR;
+        metal.usd = price.USD;
       }
     });
 
