@@ -167,6 +167,35 @@ entity StockPosition : cuid, managed {
 }
 
 
+@cds.persistence.skip
+@plural: 'SecuritySectors'
+entity SecuritySector {
+    key _id     : String;
+        labelDE : String;
+        labelEN : String;
+}
+
+@cds.persistence.skip
+@plural: 'RelatedAssets'
+entity RelatedAsset {
+    key identifier   : String;
+        assetType    : String;
+        securityName : String;
+        securityType : String;
+        logoUrl      : String;
+        quotes       : Association to many RelatedAssetQuote
+                           on quotes.identifier = $self.identifier;
+}
+
+@cds.persistence.skip
+@plural: 'RelatedAssetQuotes'
+entity RelatedAssetQuote {
+    key identifier : String;
+    key date       : Date;
+    key currency   : types.CurrencyCode;
+        price      : Double;
+}
+
 @plural: 'StockPositionAllocations'
 entity StockPositionAllocation as
     select from StockPosition {

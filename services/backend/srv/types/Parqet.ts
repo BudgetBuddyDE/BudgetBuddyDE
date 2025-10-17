@@ -23,7 +23,7 @@ export const SecuritySymbol = z.object({
   exchange: z.string(),
   symbol: z.string(),
 });
-export const SecurityType = z.enum(["Aktie", "ETF"]);
+export const SecurityType = z.enum(["Aktie", "ETF", "Zertifikat"]);
 
 export const DividendPayoutInterval = z.enum([
   "year",
@@ -314,7 +314,7 @@ export const AssetQuote = z.object({
       mark: z.enum(["bod", "eod", "most_recent", "mark"]),
     }),
   ),
-  exchange: z.string(), // FIXME: Use actual technical type for stock-exchanges
+  exchange: z.string().optional(), // FIXME: Use actual technical type for stock-exchanges
 });
 
 export const DividendDetails = z.object({
@@ -329,4 +329,54 @@ export const DividendDetails = z.object({
       dividendKPIs: DividendKPI,
     }),
   ),
+});
+
+export const RelatedAsset = z.object({
+  asset: z.discriminatedUnion("assetType", [
+    z.object({
+      _id: z.object({ identifier: ISIN, assetType: z.literal("Security") }),
+      assetType: z.literal("Security"),
+      name: z.string(),
+      logo: z.url(),
+      security: z.discriminatedUnion("type", [
+        z.object({
+          type: z.literal("Aktie"),
+          website: z.url(),
+          wkn: WKN,
+          isin: ISIN,
+          sectors: z.array(AssetSecurityCategorySplit),
+        }),
+        z.object({
+          type: z.literal("ETF"),
+          website: z.url(),
+          factsheet: z.url().optional(),
+          wkn: WKN,
+          isin: ISIN,
+          etfDomicile: CountryCode,
+          etfCompany: z.string(),
+          sectors: z.array(AssetSecurityCategorySplit),
+        }),
+        z.object({
+          type: z.literal("Zertifikat"),
+          website: z.url(),
+          wkn: WKN.or(z.string()),
+          isin: ISIN,
+          sectors: z.array(AssetSecurityCategorySplit),
+        }),
+      ]),
+    }),
+    z.object({
+      _id: z.object({ identifier: z.string(), assetType: z.literal("Crypto") }),
+      assetType: z.literal("Crypto"),
+      name: z.string(),
+      logo: z.url(),
+      crypto: z.object({ website: z.url(), symbol: z.string() }),
+    }),
+  ]),
+});
+
+export const Sector = z.object({
+  _id: z.string(),
+  labelEN: z.string(),
+  labelDE: z.string(),
 });

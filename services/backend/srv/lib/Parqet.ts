@@ -6,8 +6,11 @@ import {
   SearchResultItem,
   AssetQuote,
   DividendDetails,
+  RelatedAsset,
+  Sector,
 } from "../types";
 
+// FIXME: Improve error handling and logging by a LOT
 export class Parqet {
   private static apiHost = "https://api.parqet.com/v1"; // FIXME: Retrieve from environment variable
 
@@ -49,16 +52,17 @@ export class Parqet {
     assets: {
       identifier: string;
     }[],
+    timeframe: "1d" | "1m" | "3m" | "1y" | "5y" | "ytd" = "1d",
   ): Promise<ServiceResponse<Map<string, z.infer<typeof AssetQuote>>>> {
     const query = new URLSearchParams();
-    query.append("skipNormalization", "true");
+    // query.append('skipNormalization', 'true');
     query.append("currency", "EUR");
-    query.append("resolution", "10");
+    // query.append('resolution', '10');
 
     const requestBody: { identifier: string; timeframe: string }[] = assets.map(
       ({ identifier }) => ({
         identifier,
-        timeframe: "1d",
+        timeframe: timeframe,
       }),
     );
 
@@ -179,5 +183,57 @@ export class Parqet {
     }
 
     return [parsingResult.data.results, null];
+  }
+
+  public static async getRelatedAssets(
+    isin: string,
+    limit = 6,
+  ): Promise<ServiceResponse<z.infer<typeof RelatedAsset>[]>> {
+    try {
+      const query = new URLSearchParams();
+      query.append("limit", limit.toString());
+
+      const response = await fetch(
+        `${this.apiHost}/assets/${isin}/related?${query.toString()}`,
+      );
+      if (!response.ok) {
+        return [null, new Error(response.statusText)];
+      }
+
+      const json = await response.json();
+      const parsingResult = z
+        .object({
+          searchStrategy: z.string(),
+          relatedAssets: z.array(RelatedAsset),
+        })
+        .safeParse(json);
+      if (!parsingResult.success) {
+        console.dir(json, { depth: null });
+        throw parsingResult.error;
+      }
+      return [parsingResult.data.relatedAssets, null];
+    } catch (error) {
+      return [null, error instanceof Error ? error : new Error(String(error))];
+    }
+  }
+
+  public static async getSectors(): Promise<
+    ServiceResponse<z.infer<typeof Sector>[]>
+  > {
+    try {
+      const response = await fetch(`${this.apiHost}/sectors`);
+      if (!response.ok) {
+        return [null, new Error(response.statusText)];
+      }
+
+      const json = await response.json();
+      const parsingResult = z.array(Sector).safeParse(json);
+      if (!parsingResult.success) {
+        throw parsingResult.error;
+      }
+      return [parsingResult.data, null];
+    } catch (error) {
+      return [null, error instanceof Error ? error : new Error(String(error))];
+    }
   }
 }

@@ -6,6 +6,8 @@ import {
   Dividends,
   StockPositionAllocations,
   MetalQuotes,
+  RelatedAssets,
+  SecuritySectors,
 } from "#cds-models/AssetService";
 import assert from "node:assert";
 import { Parqet } from "./lib/Parqet";
@@ -15,9 +17,12 @@ import {
   type SuccessMetalQuoteResponse,
 } from "./lib/MetalPriceAPI";
 import { MetalCache } from "./cache";
+import { ISIN } from "./types";
+import { AssetCache } from "./cache/AssetCache";
 
 export class AssetService extends BaseService {
   private metalCache = new MetalCache();
+  private assetCache = new AssetCache();
 
   async init() {
     this.after("READ", StockPositions, async (positions) => {
@@ -460,6 +465,116 @@ export class AssetService extends BaseService {
         metal.eur = price.EUR;
         metal.usd = price.USD;
       }
+    });
+
+    this.on("READ", RelatedAssets, async (req) => {
+      this.assertRequestValueIsSet(req, "user");
+
+      const reqQuery = this.getReqQuery(req);
+      if (!("identifier" in reqQuery)) {
+        req.reject(400, 'Query parameter "identifier" is required');
+        return;
+      }
+      this.logger.info(reqQuery);
+
+      const parsingResult = ISIN.safeParse(reqQuery.identifier);
+      if (!parsingResult.success) {
+        req.reject(
+          400,
+          `Query parameter "identifier" is not a valid ISIN: ${JSON.stringify(parsingResult.error.issues)}`,
+        );
+        return;
+      }
+
+      const [relatedAssets, err] = await Parqet.getRelatedAssets(
+        parsingResult.data,
+        6,
+      );
+      if (err) {
+        req.error(err);
+        return;
+      }
+
+      type AssetQuote = {
+        identifier: string;
+        date: Date;
+        currency: string;
+        price: number;
+      };
+      const assetQuoteMap = new Map<string, AssetQuote[]>();
+      const shouldExpandQuotes =
+        "$expand" in reqQuery && reqQuery.$expand === "quotes";
+      if (shouldExpandQuotes) {
+        this.logger.debug(
+          "Fetching quotes for related assets as they were requested via $expand=quotes",
+          reqQuery,
+        );
+        const [quotes, err] = await Parqet.getQuotes(
+          relatedAssets.map(({ asset }) => ({
+            identifier: asset._id.identifier,
+          })),
+          "1m",
+        );
+        if (err) {
+          this.logger.error("Error fetching quotes for related assets", err);
+          req.error(err);
+          return;
+        }
+
+        for (const [identifier, details] of quotes.entries()) {
+          const currency = details.currency;
+          const relatedAssetQuotes = details.quotes.map((quote) => ({
+            identifier: identifier,
+            date: quote.date,
+            currency: currency,
+            price: quote.price,
+          }));
+          assetQuoteMap.set(identifier, relatedAssetQuotes);
+        }
+      }
+
+      return relatedAssets.map(({ asset }) => {
+        const identifier = asset._id.identifier;
+        let assetObj = {
+          identifier: identifier,
+          assetType: asset.assetType,
+          securityName: asset.name,
+          securityType:
+            asset.assetType !== "Crypto" ? asset.security.type : "Crypto",
+          logoUrl: asset.logo,
+        } as {
+          identifier: string;
+          assetType: string;
+          securityName: string;
+          securityType: string;
+          logoUrl: string;
+          quotes?: AssetQuote[];
+        };
+
+        if (shouldExpandQuotes) {
+          assetObj.quotes = assetQuoteMap.get(identifier) || [];
+        }
+
+        return assetObj;
+      });
+    });
+
+    this.on("READ", SecuritySectors, async () => {
+      const cachedSectors = await this.assetCache.getSectors();
+      if (cachedSectors) {
+        this.logger.debug("Returning cached security sectors", {
+          count: cachedSectors.length,
+        });
+        return cachedSectors;
+      }
+
+      const [sectors, err] = await Parqet.getSectors();
+      if (err) {
+        this.logger.error("Error fetching security sectors", err);
+        return [];
+      }
+      await this.assetCache.setSectors(sectors);
+      return sectors;
     });
 
     return super.init();
