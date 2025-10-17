@@ -65,4 +65,7 @@ service AssetService {
 
   @plural: 'SecuritySectors'
   entity SecuritySector                                 as projection on db.SecuritySector;
+
+  @plural: 'SecurityRegions'
+  entity SecurityRegion                                 as projection on db.SecurityRegion;
 }

@@ -8,6 +8,7 @@ import {
   MetalQuotes,
   RelatedAssets,
   SecuritySectors,
+  SecurityRegions,
 } from "#cds-models/AssetService";
 import assert from "node:assert";
 import { Parqet } from "./lib/Parqet";
@@ -575,6 +576,24 @@ export class AssetService extends BaseService {
       }
       await this.assetCache.setSectors(sectors);
       return sectors;
+    });
+
+    this.on("READ", SecurityRegions, async () => {
+      const cachedRegions = await this.assetCache.getRegions();
+      if (cachedRegions) {
+        this.logger.debug("Returning cached security regions", {
+          count: cachedRegions.length,
+        });
+        return cachedRegions;
+      }
+
+      const [regions, err] = await Parqet.getRegions();
+      if (err) {
+        this.logger.error("Error fetching security regions", err);
+        return [];
+      }
+      await this.assetCache.setRegions(regions);
+      return regions;
     });
 
     return super.init();

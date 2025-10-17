@@ -176,6 +176,14 @@ entity SecuritySector {
 }
 
 @cds.persistence.skip
+@plural: 'SecurityRegions'
+entity SecurityRegion {
+    key _id     : String;
+        labelDE : String;
+        labelEN : String;
+}
+
+@cds.persistence.skip
 @plural: 'RelatedAssets'
 entity RelatedAsset {
     key identifier   : String;

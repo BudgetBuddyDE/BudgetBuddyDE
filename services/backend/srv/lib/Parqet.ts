@@ -8,6 +8,7 @@ import {
   DividendDetails,
   RelatedAsset,
   Sector,
+  Region,
 } from "../types";
 
 // FIXME: Improve error handling and logging by a LOT
@@ -228,6 +229,26 @@ export class Parqet {
 
       const json = await response.json();
       const parsingResult = z.array(Sector).safeParse(json);
+      if (!parsingResult.success) {
+        throw parsingResult.error;
+      }
+      return [parsingResult.data, null];
+    } catch (error) {
+      return [null, error instanceof Error ? error : new Error(String(error))];
+    }
+  }
+
+  public static async getRegions(): Promise<
+    ServiceResponse<z.infer<typeof Region>[]>
+  > {
+    try {
+      const response = await fetch(`${this.apiHost}/regions`);
+      if (!response.ok) {
+        return [null, new Error(response.statusText)];
+      }
+
+      const json = await response.json();
+      const parsingResult = z.array(Region).safeParse(json);
       if (!parsingResult.success) {
         throw parsingResult.error;
       }

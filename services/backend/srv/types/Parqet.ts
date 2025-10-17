@@ -266,11 +266,17 @@ export const SearchResultItem = z.discriminatedUnion("assetType", [
       assetType: z.literal("Crypto"),
     }),
     asset: z.looseObject({
-      _id: z.object({ identifier: z.string(), assetType: z.literal("Crypto") }),
+      _id: z.object({
+        identifier: z.string(),
+        assetType: z.literal("Crypto"),
+      }),
       assetType: z.literal("Crypto"),
       name: z.string(),
       logo: z.url(),
-      crypto: z.object({ website: z.url(), symbol: z.string() }),
+      crypto: z.object({
+        website: z.url().or(z.string()),
+        symbol: z.string(),
+      }),
       score: z.number(),
     }),
     score: z.number(),
@@ -278,7 +284,7 @@ export const SearchResultItem = z.discriminatedUnion("assetType", [
       symbol: z.string(),
       name: z.string(),
       logo: z.url(),
-      website: z.url(),
+      website: z.url().or(z.string()),
     }),
   }),
 ]);
@@ -380,3 +386,5 @@ export const Sector = z.object({
   labelEN: z.string(),
   labelDE: z.string(),
 });
+
+export const Region = Sector;
