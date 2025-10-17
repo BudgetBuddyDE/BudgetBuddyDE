@@ -12,7 +12,7 @@ export class EntityService {
   static entity: string;
   static $servicePath = '/odata/v4/backend';
   static $odata: OHandler;
-  static readonly logger = logger.child({ scope: EntityService.name });
+  static readonly logger = logger.child({ scope: this.name });
 
   static {
     this.$odata = o(this.$backendHost, this.$odataClientConfig);
@@ -32,13 +32,13 @@ export class EntityService {
 
   static handleZodError<T, S>(errors: z.ZodError<S>[] | z.ZodError<S>): ServiceResponse<T> {
     const msg = Array.isArray(errors) ? errors.map((e) => e.message).join(', ') : errors.message;
-    logger.error('ZodError in EntityService: %s', msg);
+    logger.error(`ZodError in ${this.name}: %s`, msg);
     return [null, new Error(msg)];
   }
 
   static handleError<T>(e: unknown): ServiceResponse<T> {
     const msg = e instanceof Error ? e.message : String(e);
-    logger.error('Error in EntityService: %s', msg);
+    logger.error(msg);
     if (e instanceof Response) {
       return [null, new Error(e.statusText)];
     }

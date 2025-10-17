@@ -1,16 +1,15 @@
-import {z} from 'zod';
-
-import {IdAspect, ManagedAspect, OptionalIdAspect} from '../_Aspects';
-import {ODataContextAspect, OwnerAspect} from '../_Base';
-import {StockExchange} from './StockExchange';
-import {ISIN} from './StockPosition';
+import { z } from 'zod';
+import { IdAspect, ManagedAspect, OptionalIdAspect } from '../_Aspects';
+import { ODataContextAspect, OwnerAspect } from '../_Base';
+import { StockExchange } from './StockExchange';
+import { ISIN } from './Parqet';
 
 // Base model
 export const StockWatchlist = z.object({
   ...IdAspect.shape,
   toExchange_symbol: StockExchange.shape.symbol,
   isin: ISIN,
-  targetPrice: z.number().positive({message: 'Purchase price must be positive'}),
+  targetPrice: z.number().positive({ message: 'Purchase price must be positive' }),
   ...OwnerAspect.shape,
   ...ManagedAspect.shape,
 });

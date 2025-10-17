@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { type ServiceResponse } from '@/types/Service';
 import { EntityService } from '../Entity.service';
 import { type OdataConfig } from '@tklein1801/o.js';
-import { ISIN } from '@/types';
 import { Dividend, type TDividend } from '@/types/Stocks/Dividend';
+import { ISIN } from '@/types/Stocks/Parqet';
 
 export class DividendService extends EntityService {
   static {

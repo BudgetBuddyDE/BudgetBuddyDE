@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { Dividend as ParqetDividend } from './Parqet';
-import { ISIN } from './StockPosition';
+import { ISIN, Dividend as ParqetDividend } from './Parqet';
 
 export const Dividend = ParqetDividend.pick({
   price: true,

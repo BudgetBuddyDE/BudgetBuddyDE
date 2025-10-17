@@ -11,8 +11,10 @@ import {
   type TStockPositionsWithCount,
   type TStockPositionsKPI,
   StockPositionsKPI,
-  TStockPositionAllocation,
+  type TStockPositionAllocation,
   StockPositionAllocation,
+  RelatedAsset,
+  type TRelatedAsset,
 } from '@/types';
 import z from 'zod';
 
@@ -87,6 +89,7 @@ export class StockPositionService extends EntityService {
     }
   }
 
+  // TODO: Move to AssetService.assets
   /**
    * Search securities via Parqet using keywords
    * @param query Search query
@@ -136,6 +139,33 @@ export class StockPositionService extends EntityService {
         .get(this.$servicePath + '/StockPositionAllocation')
         .query();
       const parsingResult = z.array(StockPositionAllocation).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  // TODO: Move to AssetService.assets
+  static async getRelatedAssets(
+    isin: string,
+    includeQuotes: boolean = false,
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<TRelatedAsset[]>> {
+    try {
+      const query = new URLSearchParams();
+      query.set('identifier', isin);
+      if (includeQuotes) {
+        query.set('$expand', 'quotes');
+      }
+
+      const records = await this.newOdataHandler(config)
+        .get(`${this.$servicePath}/RelatedAsset?${query.toString()}`)
+        .query();
+
+      const parsingResult = z.array(RelatedAsset).safeParse(records);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
       }

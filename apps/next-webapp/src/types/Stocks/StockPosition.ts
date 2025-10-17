@@ -3,9 +3,7 @@ import { z } from 'zod';
 import { CdsDate, IdAspect, ManagedAspect, OptionalIdAspect } from '../_Aspects';
 import { DescriptionType, ODataContextAspect, ODataCountAspect, OwnerAspect } from '../_Base';
 import { StockExchange } from './StockExchange';
-
-export const ISIN = z.string().min(12).max(12);
-export const AssetType = z.enum(['Security', 'Commodity', 'Crypto']);
+import { AssetType, CurrencyCode, ISIN, SecurityType, ZodDate } from './Parqet';
 
 // Base model
 export const StockPosition = z.object({
@@ -84,3 +82,21 @@ export const StockPositionsKPI = z.object({
   upcomingDividends: z.number(),
 });
 export type TStockPositionsKPI = z.infer<typeof StockPositionsKPI>;
+
+export const RelatedAssetQuote = z.object({
+  identifier: ISIN,
+  date: ZodDate,
+  currency: CurrencyCode,
+  price: z.number(),
+});
+export type TRelatedAssetQuote = z.infer<typeof RelatedAssetQuote>;
+
+export const RelatedAsset = z.object({
+  identifier: ISIN,
+  assetType: AssetType,
+  securityName: z.string(),
+  securityType: SecurityType,
+  logoUrl: z.string(),
+  quotes: z.array(RelatedAssetQuote).optional(),
+});
+export type TRelatedAsset = z.infer<typeof RelatedAsset>;

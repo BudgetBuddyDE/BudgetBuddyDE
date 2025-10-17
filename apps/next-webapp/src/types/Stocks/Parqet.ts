@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { ISIN } from './StockPosition';
 
+export const ISIN = z.string().min(12).max(12);
 export const ZodDate = z
   .date()
   .or(z.number())
@@ -8,14 +8,13 @@ export const ZodDate = z
   .transform((val) => new Date(val));
 export const WKN = z.string().length(6);
 export const CurrencyCode = z.string().toUpperCase().length(3);
-export const AssetType = z.enum(['Security']);
-// REVISIT: Rename this
+export const AssetType = z.enum(['Security', 'Commodity', 'Crypto']); // REVISIT: Rename this
 export const AssetSecurityCategorySplit = z.object({
   share: z.number().min(0).max(100),
   id: z.string(),
 });
 export const SecuritySymbol = z.object({ exchange: z.string(), symbol: z.string() });
-export const SecurityType = z.enum(['Aktie']);
+export const SecurityType = z.enum(['Aktie', 'ETF', 'Zertifikat']);
 
 export const Dividend = z.object({
   type: z.enum(['Dividend']),
