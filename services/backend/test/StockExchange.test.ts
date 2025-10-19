@@ -1,7 +1,7 @@
 import path from "path";
 import { TestFactory } from "./utils/TestFactory";
 import { ODataService } from "./utils/ODataUtil";
-import { StockExchange } from "#cds-models/BackendService";
+import { StockExchange } from "#cds-models/AssetService";
 
 describe("StockExchange", () => {
   const testFactory = new TestFactory(path.join(__dirname, "../"));

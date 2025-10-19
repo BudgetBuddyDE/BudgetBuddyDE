@@ -1,37 +1,70 @@
 import { z } from "zod";
 import { Cache } from "./Cache";
-import { Region, Sector } from "../types";
+import { Region, Sector, Industry, Country } from "../types";
 
 export class AssetCache extends Cache {
   private readonly cacheKeys = {
     sectors: "asset_sectors",
     regions: "asset_regions",
+    industries: "asset_industries",
   };
+  private readonly countriesCacheKey = "asset_countries";
   private readonly sectorTtlHours = 1;
 
   constructor() {
     super("asset");
   }
 
-  public async setSectors(sectors: z.infer<typeof Sector>[]) {
-    return this.setValue(this.cacheKeys.sectors, JSON.stringify(sectors), {
+  public async setMapping(
+    type: keyof typeof this.cacheKeys,
+    values:
+      | z.infer<typeof Sector>[]
+      | z.infer<typeof Region>[]
+      | z.infer<typeof Industry>[],
+  ) {
+    return this.setValue(this.cacheKeys[type], JSON.stringify(values), {
       ttl: this.sectorTtlHours * 60 * 60,
     });
   }
 
-  public async getSectors(): Promise<z.infer<typeof Sector>[] | null> {
-    const result = await this.getValue(this.cacheKeys.sectors);
-    return result ? (JSON.parse(result) as z.infer<typeof Sector>[]) : null;
+  public async getMapping(
+    type: keyof typeof this.cacheKeys,
+  ): Promise<
+    | z.infer<typeof Sector>[]
+    | z.infer<typeof Region>[]
+    | z.infer<typeof Industry>[]
+    | null
+  > {
+    const result = await this.getValue(this.cacheKeys[type]);
+    return result
+      ? (JSON.parse(result) as
+          | z.infer<typeof Sector>[]
+          | z.infer<typeof Region>[]
+          | z.infer<typeof Industry>[])
+      : null;
   }
 
-  public async setRegions(regions: z.infer<typeof Region>[]) {
-    return this.setValue(this.cacheKeys.regions, JSON.stringify(regions), {
+  public async setCountries(countries: z.infer<typeof Country>[]) {
+    return this.setValue(this.countriesCacheKey, JSON.stringify(countries), {
       ttl: this.sectorTtlHours * 60 * 60,
     });
   }
 
-  public async getRegions(): Promise<z.infer<typeof Region>[] | null> {
-    const result = await this.getValue(this.cacheKeys.regions);
-    return result ? (JSON.parse(result) as z.infer<typeof Region>[]) : null;
+  public async getCountries(): Promise<z.infer<typeof Country>[] | null> {
+    const result = await this.getValue(this.countriesCacheKey);
+    return result ? (JSON.parse(result) as z.infer<typeof Country>[]) : null;
+  }
+
+  public resolveEntityMapping(entity: string): keyof typeof this.cacheKeys {
+    switch (entity) {
+      case "AssetService.SecuritySector":
+        return "sectors";
+      case "AssetService.SecurityRegion":
+        return "regions";
+      case "AssetService.SecurityIndustry":
+        return "industries";
+      default:
+        throw new Error(`Unknown entity type: ${entity}`);
+    }
   }
 }

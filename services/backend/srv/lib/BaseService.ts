@@ -89,4 +89,10 @@ export abstract class BaseService extends cds.ApplicationService {
     );
     return query;
   }
+
+  protected async handleError<T>(error: unknown, request: cds.Request<T>) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    this.logger.error(err);
+    request.error(500, err.message);
+  }
 }

@@ -1,47 +1,37 @@
 import { z } from "zod";
-import {
-  type ServiceResponse,
-  Asset,
-  SearchResponse,
-  SearchResultItem,
-  AssetQuote,
-  DividendDetails,
-  RelatedAsset,
-  Sector,
-  Region,
-} from "../types";
+import { type ServiceResponse, ApiSchemas } from "../types";
 
 // FIXME: Improve error handling and logging by a LOT
 export class Parqet {
   private static apiHost = "https://api.parqet.com/v1"; // FIXME: Retrieve from environment variable
 
   public static async getAsset(
-    isin: string,
-  ): Promise<ServiceResponse<z.infer<typeof Asset>>> {
+    identifier: string,
+  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.Asset>>> {
     const query = new URLSearchParams();
     query.append("currency", "EUR");
     query.append("expand", "details");
     query.append("expand", "yieldTTM");
 
     const response = await fetch(
-      `${this.apiHost}/assets/${isin}?${query.toString()}`,
+      `${this.apiHost}/assets/${identifier}?${query.toString()}`,
     );
     if (!response.ok) {
       return [
         null,
         new Error(
-          `Failed to fetch asset data for ISIN ${isin}: ${response.statusText}`,
+          `Failed to fetch asset data for ISIN ${identifier}: ${response.statusText}`,
         ),
       ];
     }
     const jsonResponse = await response.json();
 
-    const parsingResult = Asset.safeParse(jsonResponse);
+    const parsingResult = ApiSchemas.Asset.safeParse(jsonResponse);
     if (!parsingResult.success) {
       return [
         null,
         new Error(
-          `Failed to parse asset data for ISIN ${isin}: ${JSON.stringify(parsingResult.error.issues)}`,
+          `Failed to parse asset data for ISIN ${identifier}: ${JSON.stringify(parsingResult.error.issues)}`,
         ),
       ];
     }
@@ -54,7 +44,9 @@ export class Parqet {
       identifier: string;
     }[],
     timeframe: "1d" | "1m" | "3m" | "1y" | "5y" | "ytd" = "1d",
-  ): Promise<ServiceResponse<Map<string, z.infer<typeof AssetQuote>>>> {
+  ): Promise<
+    ServiceResponse<Map<string, z.infer<typeof ApiSchemas.AssetQuote>>>
+  > {
     const query = new URLSearchParams();
     // query.append('skipNormalization', 'true');
     query.append("currency", "EUR");
@@ -82,7 +74,9 @@ export class Parqet {
     }
     const jsonResponse = await response.json();
 
-    const parsingResult = z.array(AssetQuote).safeParse(jsonResponse);
+    const parsingResult = z
+      .array(ApiSchemas.AssetQuote)
+      .safeParse(jsonResponse);
     if (!parsingResult.success) {
       return [
         null,
@@ -93,7 +87,10 @@ export class Parqet {
       ];
     }
 
-    const quotes: Map<string, z.infer<typeof AssetQuote>> = new Map();
+    const quotes: Map<
+      string,
+      z.infer<typeof ApiSchemas.AssetQuote>
+    > = new Map();
 
     for (const quote of parsingResult.data) {
       const key = quote.assetIdentifier;
@@ -112,7 +109,7 @@ export class Parqet {
       future = true,
       historical = false,
     }: { future: boolean; historical: boolean },
-  ): Promise<ServiceResponse<z.infer<typeof DividendDetails>>> {
+  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.DividendDetails>>> {
     const query = new URLSearchParams();
     if (future) {
       query.append("expand", "futureDividends");
@@ -137,9 +134,8 @@ export class Parqet {
 
     const jsonResponse = await response.json();
 
-    const parsingResult = DividendDetails.safeParse(jsonResponse);
+    const parsingResult = ApiSchemas.DividendDetails.safeParse(jsonResponse);
     if (!parsingResult.success) {
-      console.dir(jsonResponse, { depth: null });
       return [
         null,
         new Error(
@@ -154,7 +150,7 @@ export class Parqet {
 
   public static async search(
     query: string,
-  ): Promise<ServiceResponse<z.infer<typeof SearchResultItem>[]>> {
+  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.SearchResultItem>[]>> {
     const response = await fetch(`${this.apiHost}/search`, {
       method: "POST",
       headers: {
@@ -172,7 +168,7 @@ export class Parqet {
     }
     const jsonResponse = await response.json();
 
-    const parsingResult = SearchResponse.safeParse(jsonResponse);
+    const parsingResult = ApiSchemas.SearchResponse.safeParse(jsonResponse);
     if (!parsingResult.success) {
       return [
         null,
@@ -189,7 +185,7 @@ export class Parqet {
   public static async getRelatedAssets(
     isin: string,
     limit = 6,
-  ): Promise<ServiceResponse<z.infer<typeof RelatedAsset>[]>> {
+  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.RelatedAsset>[]>> {
     try {
       const query = new URLSearchParams();
       query.append("limit", limit.toString());
@@ -205,11 +201,10 @@ export class Parqet {
       const parsingResult = z
         .object({
           searchStrategy: z.string(),
-          relatedAssets: z.array(RelatedAsset),
+          relatedAssets: z.array(ApiSchemas.RelatedAsset),
         })
         .safeParse(json);
       if (!parsingResult.success) {
-        console.dir(json, { depth: null });
         throw parsingResult.error;
       }
       return [parsingResult.data.relatedAssets, null];
@@ -219,7 +214,7 @@ export class Parqet {
   }
 
   public static async getSectors(): Promise<
-    ServiceResponse<z.infer<typeof Sector>[]>
+    ServiceResponse<z.infer<typeof ApiSchemas.Sector>[]>
   > {
     try {
       const response = await fetch(`${this.apiHost}/sectors`);
@@ -228,7 +223,7 @@ export class Parqet {
       }
 
       const json = await response.json();
-      const parsingResult = z.array(Sector).safeParse(json);
+      const parsingResult = z.array(ApiSchemas.Sector).safeParse(json);
       if (!parsingResult.success) {
         throw parsingResult.error;
       }
@@ -239,7 +234,7 @@ export class Parqet {
   }
 
   public static async getRegions(): Promise<
-    ServiceResponse<z.infer<typeof Region>[]>
+    ServiceResponse<z.infer<typeof ApiSchemas.Region>[]>
   > {
     try {
       const response = await fetch(`${this.apiHost}/regions`);
@@ -248,7 +243,47 @@ export class Parqet {
       }
 
       const json = await response.json();
-      const parsingResult = z.array(Region).safeParse(json);
+      const parsingResult = z.array(ApiSchemas.Region).safeParse(json);
+      if (!parsingResult.success) {
+        throw parsingResult.error;
+      }
+      return [parsingResult.data, null];
+    } catch (error) {
+      return [null, error instanceof Error ? error : new Error(String(error))];
+    }
+  }
+
+  public static async getIndustries(): Promise<
+    ServiceResponse<z.infer<typeof ApiSchemas.Industry>[]>
+  > {
+    try {
+      const response = await fetch(`${this.apiHost}/industries`);
+      if (!response.ok) {
+        return [null, new Error(response.statusText)];
+      }
+
+      const json = await response.json();
+      const parsingResult = z.array(ApiSchemas.Industry).safeParse(json);
+      if (!parsingResult.success) {
+        throw parsingResult.error;
+      }
+      return [parsingResult.data, null];
+    } catch (error) {
+      return [null, error instanceof Error ? error : new Error(String(error))];
+    }
+  }
+
+  public static async getCountries(): Promise<
+    ServiceResponse<z.infer<typeof ApiSchemas.Country>[]>
+  > {
+    try {
+      const response = await fetch(`${this.apiHost}/countries`);
+      if (!response.ok) {
+        return [null, new Error(response.statusText)];
+      }
+
+      const json = await response.json();
+      const parsingResult = z.array(ApiSchemas.Country).safeParse(json);
       if (!parsingResult.success) {
         throw parsingResult.error;
       }

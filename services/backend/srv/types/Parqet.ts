@@ -1,38 +1,38 @@
 import { z } from "zod";
 
-export const ZodDate = z
+const ZodDate = z
   .date()
   .or(z.number())
   .or(z.string())
   .transform((val) => new Date(val));
-export const ISIN = z
+const ISIN = z
   .string()
   .max(12, { message: "ISIN can only be 12 characters long" });
-export const WKN = z
-  .string()
-  .max(6, { message: "WKN can only be 6 characters long" });
-export const CurrencyCode = z.string().toUpperCase().length(3);
-export const CountryCode = z.string().toUpperCase();
-export const AssetType = z.enum(["Security", "Commodity", "Crypto"]);
+const CryptoSymbol = z.string().min(3).max(6);
+const AssetIdentifier = z.union([ISIN, CryptoSymbol, z.string()]);
+const WKN = z.string().max(6, { message: "WKN can only be 6 characters long" });
+const CurrencyCode = z.string().toUpperCase().length(3);
+const CountryCode = z.string().toUpperCase();
+const AssetType = z.enum(["Security", "Commodity", "Crypto"]);
 // REVISIT: Rename this
-export const AssetSecurityCategorySplit = z.object({
+const AssetSecurityCategorySplit = z.object({
   share: z.number().min(0).max(100),
   id: z.string(),
 });
-export const SecuritySymbol = z.object({
+const SecuritySymbol = z.object({
   exchange: z.string(),
   symbol: z.string(),
 });
-export const SecurityType = z.enum(["Aktie", "ETF", "Zertifikat"]);
+const SecurityType = z.enum(["Aktie", "ETF", "Zertifikat"]);
 
-export const DividendPayoutInterval = z.enum([
+const DividendPayoutInterval = z.enum([
   "year",
   "halfyear",
   "quarter",
   "month",
   "none",
 ]);
-export const Dividend = z.object({
+const Dividend = z.object({
   type: z.enum(["Dividend"]),
   security: ISIN,
   price: z.number().min(0),
@@ -46,23 +46,25 @@ export const Dividend = z.object({
   isEstimated: z.boolean(),
 });
 
-export const Quote = z.object({
+const Quote = z.object({
   currency: CurrencyCode,
   exchange: z.string(),
   date: ZodDate,
   datetime: ZodDate,
   price: z.number().min(0),
-  isin: ISIN,
+  originalCurrency: CurrencyCode.optional(),
+  isin: AssetIdentifier,
   cachedAt: ZodDate,
+  fxRate: z.number().optional(),
 });
 
-export const IncomeStatementGrowth = z.object({
+const IncomeStatementGrowth = z.object({
   date: ZodDate,
   growthRevenue: z.number(),
   growthNetIncome: z.number(),
 });
 
-export const FinancialResult = z.object({
+const FinancialResult = z.object({
   currency: CurrencyCode,
   date: ZodDate,
   revenue: z.number(),
@@ -71,7 +73,7 @@ export const FinancialResult = z.object({
   ebitda: z.number(),
 });
 
-export const AnalystEstimates = z.object({
+const AnalystEstimates = z.object({
   strongBuy: z.number().min(0),
   buy: z.number().min(0),
   hold: z.number().min(0),
@@ -79,7 +81,7 @@ export const AnalystEstimates = z.object({
   strongSell: z.number().min(0),
 });
 
-export const SecurityAnalysis = z.object({
+const SecurityAnalysis = z.object({
   analysisDate: ZodDate,
   mediaType: z.enum(["video", "article"]).or(z.string()),
   ratingCount: z.number().min(0),
@@ -89,7 +91,7 @@ export const SecurityAnalysis = z.object({
   url: z.url(),
 });
 
-export const PriceTargetConsensus = z.object({
+const PriceTargetConsensus = z.object({
   currency: CurrencyCode,
   high: z.number(),
   low: z.number(),
@@ -97,7 +99,7 @@ export const PriceTargetConsensus = z.object({
   median: z.number(),
 });
 
-export const News = z.object({
+const News = z.object({
   publishedAt: ZodDate,
   title: z.string(),
   description: z.string(),
@@ -105,7 +107,18 @@ export const News = z.object({
   url: z.url(),
 });
 
-export const SecurityScoring = z.object({
+const PartnerNews = z.object({
+  title: z.string(),
+  url: z.url(),
+  source: z.object({
+    partner: z.string().lowercase(),
+    title: z.string(),
+    image: z.url(),
+  }),
+  publishedAt: ZodDate,
+});
+
+const SecurityScoring = z.object({
   source: z.string(),
   type: z.string(),
   value: z.number(),
@@ -113,7 +126,7 @@ export const SecurityScoring = z.object({
   badgeColor: z.string().regex(/^#[0-9A-F]{6}$/i), // hex color
 });
 
-export const DividendKPI = z.object({
+const DividendKPI = z.object({
   cagr3Y: z.number().nullable(),
   cagr5Y: z.number().nullable(),
   cagr10Y: z.number().nullable(),
@@ -121,77 +134,176 @@ export const DividendKPI = z.object({
   dividendPerShareTTM: z.number(),
 });
 
-export const Asset = z.object({
-  asset: z.object({
-    _id: z.object({
-      identifier: ISIN,
-      assetType: AssetType,
-    }),
+const BaseAsset = z.object({
+  _id: z.object({
+    identifier: AssetIdentifier,
     assetType: AssetType,
-    name: z.string(),
-    logo: z.url(),
-    createdAt: ZodDate,
-    updatedAt: ZodDate,
-    security: z.looseObject({
-      regions: z.array(AssetSecurityCategorySplit),
-      sectors: z.array(AssetSecurityCategorySplit),
-      countries: z.array(AssetSecurityCategorySplit),
-      industries: z.array(AssetSecurityCategorySplit),
-      isin: ISIN,
-      symbols: z.array(SecuritySymbol),
-      website: z.url(),
-      wkn: WKN,
-      type: SecurityType,
-      ipoDate: ZodDate,
-      hasDividends: z.boolean(),
-    }),
   }),
-  quote: Quote,
+  assetType: AssetType,
+  name: z.string(),
+  logo: z.url(),
+  createdAt: ZodDate,
+  updatedAt: ZodDate,
+});
+
+const Asset = z.object({
+  asset: z.discriminatedUnion("assetType", [
+    z
+      .looseObject({
+        assetType: z.literal("Security"),
+        security: z.discriminatedUnion("type", [
+          z.looseObject({
+            type: z.literal("Aktie"),
+            regions: z.array(AssetSecurityCategorySplit),
+            sectors: z.array(AssetSecurityCategorySplit),
+            countries: z.array(AssetSecurityCategorySplit),
+            industries: z.array(AssetSecurityCategorySplit),
+            isin: ISIN,
+            symbols: z.array(SecuritySymbol),
+            website: z.url(),
+            wkn: WKN,
+            ipoDate: ZodDate,
+            hasDividends: z.boolean(),
+            etfDomicile: CountryCode.optional(),
+            etfCompany: z.string().optional(),
+          }),
+          z.looseObject({
+            type: z.literal("ETF"),
+            regions: z.array(AssetSecurityCategorySplit),
+            sectors: z.array(AssetSecurityCategorySplit),
+            countries: z.array(AssetSecurityCategorySplit),
+            industries: z.array(AssetSecurityCategorySplit),
+            isin: ISIN,
+            symbols: z.array(SecuritySymbol),
+            website: z.url(),
+            wkn: WKN,
+            ipoDate: ZodDate,
+            hasDividends: z.boolean().optional(),
+            etfDomicile: CountryCode.optional(),
+            etfCompany: z.string().optional(),
+          }),
+          z.looseObject({
+            type: z.literal("Zertifikat"),
+            regions: z.array(AssetSecurityCategorySplit),
+            sectors: z.array(AssetSecurityCategorySplit),
+            countries: z.array(AssetSecurityCategorySplit),
+            industries: z.array(AssetSecurityCategorySplit),
+            isin: ISIN,
+            wkn: WKN,
+          }),
+        ]),
+      })
+      .extend(BaseAsset.omit({ assetType: true }).shape),
+    z
+      .looseObject({
+        assetType: z.literal("Commodity"),
+      })
+      .extend(BaseAsset.omit({ assetType: true }).shape),
+    z
+      .looseObject({
+        assetType: z.literal("Crypto"),
+        crypto: z.object({
+          symbol: CryptoSymbol,
+          website: z.url().or(z.string()),
+          technicalDocumentation: z.array(z.url()),
+          sourceCode: z.array(z.url()),
+        }),
+      })
+      .extend(BaseAsset.omit({ assetType: true }).shape),
+  ]),
+  quote: Quote.nullable(),
   details: z.looseObject({
-    description: z.string(),
-    securityDetails: z.looseObject({
-      description: z.string(),
-      currency: CurrencyCode,
-      marketCap: z.number(),
-      shares: z.number(),
-      fullTimeEmployees: z.number(),
-      beta: z.number(),
-      peRatioTTM: z.number(),
-      priceSalesRatioTTM: z.number(),
-      priceToBookRatioTTM: z.number(),
-      pegRatioTTM: z.number(),
-      priceFairValueTTM: z.number(),
-      dividendPerShareTTM: z.number().nullable(),
-      payoutRatioTTM: z.number(),
-      fiftyTwoWeekRange: z.object({
-        from: z.number(),
-        to: z.number(),
-      }),
-      address: z.object({
-        addressLine: z.string(),
-        city: z.string(),
-        state: z.string(),
-        zip: z.string().or(z.number()),
-      }),
-      incomeStatementGrowth: z.array(IncomeStatementGrowth),
-      annualFinancials: z.array(FinancialResult),
-      quarterlyFinancials: z.array(FinancialResult),
-      ceo: z.string(),
-    }),
-    etfBreakdown: z.object().nullable(),
-    analystEstimates: AnalystEstimates,
-    historicalDividends: z.array(Dividend),
-    futureDividends: z.array(Dividend),
+    description: z.string().optional(),
+    etfDetails: z
+      .object({
+        currency: CurrencyCode,
+        nav: z.number(),
+        description: z.string(),
+        priceToBook: z.number(),
+        priceToEarnings: z.number(),
+        aum: z.number(),
+        expenseRatio: z.number(),
+      })
+      .optional(),
+    etfBreakdown: z
+      .object({
+        currency: CurrencyCode,
+        updatedAt: ZodDate,
+        holdings: z.array(
+          z.object({
+            share: z.number(),
+            marketValue: z.number(),
+            amountOfShares: z.number(),
+            name: z.string(),
+          }),
+        ),
+      })
+      .nullable(),
+    securityDetails: z
+      .looseObject({
+        description: z.string(),
+        currency: CurrencyCode,
+        marketCap: z.number(),
+        shares: z.number(),
+        fullTimeEmployees: z.number(),
+        beta: z.number(),
+        peRatioTTM: z.number(),
+        priceSalesRatioTTM: z.number(),
+        priceToBookRatioTTM: z.number(),
+        pegRatioTTM: z.number(),
+        priceFairValueTTM: z.number(),
+        dividendYielPercentageTTM: z.number().nullable(),
+        dividendPerShareTTM: z.number().nullable(),
+        payoutRatioTTM: z.number(),
+        fiftyTwoWeekRange: z.object({
+          from: z.number(),
+          to: z.number(),
+        }),
+        address: z.object({
+          addressLine: z.string(),
+          city: z.string(),
+          state: z.string(),
+          zip: z.string(),
+        }),
+        incomeStatementGrowth: z.array(IncomeStatementGrowth),
+        annualFinancials: z.array(FinancialResult),
+        quarterlyFinancials: z.array(FinancialResult),
+        ceo: z.string(),
+      })
+      .optional(),
+    analystEstimates: AnalystEstimates.or(z.null()).transform(
+      (val) =>
+        val ?? {
+          strongBuy: 0,
+          buy: 0,
+          hold: 0,
+          sell: 0,
+          strongSell: 0,
+        },
+    ),
+    historicalDividends: z.array(Dividend).optional(),
+    futureDividends: z.array(Dividend).optional(),
     priceTargetConsensus: PriceTargetConsensus.nullable(),
     analysis: z
       .object({
-        entries: z.array(SecurityAnalysis),
+        entries: z.array(
+          z.object({
+            analysisDate: ZodDate,
+            mediaType: z.enum(["video", "article"]).or(z.string()),
+            ratingCount: z.number(),
+            rating: z.number(),
+            author: z.string(),
+            title: z.string(),
+            url: z.url(),
+          }),
+        ),
       })
+      .nullable()
       .optional(),
     news: z.array(News),
-    partnerNews: z.array(News),
+    partnerNews: z.array(PartnerNews),
     scoring: z.array(SecurityScoring).optional(),
-    payoutInterval: DividendPayoutInterval.or(z.string()),
+    payoutInterval: DividendPayoutInterval.or(z.string()).optional(),
     payoutIntervalSource: z.enum(["divvy_diary"]).or(z.string()).nullable(),
     dividendKPIs: DividendKPI.optional(),
     dividendYearlyTTM: z
@@ -205,7 +317,7 @@ const SecurityAssetId = z.object({
   assetType: AssetType,
 });
 
-export const SearchResultItem = z.discriminatedUnion("assetType", [
+const SearchResultItem = z.discriminatedUnion("assetType", [
   z.looseObject({
     name: z.string(),
     assetType: z.literal("Security"),
@@ -274,7 +386,7 @@ export const SearchResultItem = z.discriminatedUnion("assetType", [
       name: z.string(),
       logo: z.url(),
       crypto: z.object({
-        website: z.url().or(z.string()),
+        website: z.url().or(z.string()).optional(),
         symbol: z.string(),
       }),
       score: z.number(),
@@ -284,17 +396,17 @@ export const SearchResultItem = z.discriminatedUnion("assetType", [
       symbol: z.string(),
       name: z.string(),
       logo: z.url(),
-      website: z.url().or(z.string()),
+      website: z.url().or(z.string()).optional(),
     }),
   }),
 ]);
 
-export const SearchResponse = z.object({
+const SearchResponse = z.object({
   fallbackResults: z.boolean(),
   results: z.array(SearchResultItem),
 });
 
-export const AssetQuote = z.object({
+const AssetQuote = z.object({
   assetId: z.object({
     identifier: ISIN,
     assetType: AssetType,
@@ -323,7 +435,7 @@ export const AssetQuote = z.object({
   exchange: z.string().optional(), // FIXME: Use actual technical type for stock-exchanges
 });
 
-export const DividendDetails = z.object({
+const DividendDetails = z.object({
   dividendDetails: z.record(
     ISIN,
     z.object({
@@ -337,7 +449,7 @@ export const DividendDetails = z.object({
   ),
 });
 
-export const RelatedAsset = z.object({
+const RelatedAsset = z.object({
   asset: z.discriminatedUnion("assetType", [
     z.object({
       _id: z.object({ identifier: ISIN, assetType: z.literal("Security") }),
@@ -372,6 +484,15 @@ export const RelatedAsset = z.object({
       ]),
     }),
     z.object({
+      _id: z.object({
+        identifier: z.string(),
+        assetType: z.literal("Commodity"),
+      }),
+      assetType: z.literal("Commodity"),
+      name: z.string(),
+      logo: z.url(),
+    }),
+    z.object({
       _id: z.object({ identifier: z.string(), assetType: z.literal("Crypto") }),
       assetType: z.literal("Crypto"),
       name: z.string(),
@@ -381,10 +502,69 @@ export const RelatedAsset = z.object({
   ]),
 });
 
-export const Sector = z.object({
+const Sector = z.object({
   _id: z.string(),
   labelEN: z.string(),
   labelDE: z.string(),
 });
 
-export const Region = Sector;
+const Region = Sector;
+const Industry = Sector;
+const Country = z.object({
+  _id: z.string().length(2).uppercase(),
+  name: z.string(),
+  labelDE: z.string(),
+  labelGenderDE: z.string().nullable(),
+  code: z.string().length(2).uppercase(),
+  capital: z.string(),
+  region: z.string(),
+  currency: z.object({
+    code: z.string().length(3).uppercase(),
+    name: z.string(),
+    symbol: z.string(),
+  }),
+  language: z.object({
+    code: z.string(),
+    name: z.string(),
+  }),
+  flag: z.url(),
+});
+
+export const ApiSchemas = Object.assign(
+  {},
+  {
+    ZodDate,
+    ISIN,
+    CryptoSymbol,
+    AssetIdentifier,
+    WKN,
+    CurrencyCode,
+    CountryCode,
+    AssetType,
+    AssetSecurityCategorySplit,
+    SecuritySymbol,
+    SecurityType,
+    DividendPayoutInterval,
+    Dividend,
+    Quote,
+    IncomeStatementGrowth,
+    FinancialResult,
+    AnalystEstimates,
+    SecurityAnalysis,
+    PriceTargetConsensus,
+    News,
+    PartnerNews,
+    SecurityScoring,
+    DividendKPI,
+    Asset,
+    SearchResultItem,
+    SearchResponse,
+    AssetQuote,
+    DividendDetails,
+    RelatedAsset,
+    Sector,
+    Region,
+    Industry,
+    Country,
+  },
+);

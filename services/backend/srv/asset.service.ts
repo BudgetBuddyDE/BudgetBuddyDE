@@ -1,3 +1,5 @@
+import { z } from "zod";
+import cds from "@sap/cds";
 import {
   StockPositions,
   StockPositionsKPIs,
@@ -9,6 +11,9 @@ import {
   RelatedAssets,
   SecuritySectors,
   SecurityRegions,
+  SecurityIndustries,
+  SecurityCountries,
+  Assets,
 } from "#cds-models/AssetService";
 import assert from "node:assert";
 import { Parqet } from "./lib/Parqet";
@@ -18,8 +23,9 @@ import {
   type SuccessMetalQuoteResponse,
 } from "./lib/MetalPriceAPI";
 import { MetalCache } from "./cache";
-import { ISIN } from "./types";
+import { ApiSchemas } from "./types";
 import { AssetCache } from "./cache/AssetCache";
+import { ResponseSchemas } from "./types/Asset";
 
 export class AssetService extends BaseService {
   private metalCache = new MetalCache();
@@ -426,8 +432,6 @@ export class AssetService extends BaseService {
     this.after("READ", MetalQuotes, async (metals) => {
       if (!metals) return;
 
-      // FIXME: Get cached values from Redis in order to reduce number of requests to MetalPriceAPI and reduce costs
-
       const symbols = Array.from(
         new Set(metals.map((metal) => metal.symbol as string)),
       );
@@ -440,6 +444,7 @@ export class AssetService extends BaseService {
         symbols.map(async (symbol) => {
           const CacheServicedValue = await this.metalCache.get(symbol);
           if (CacheServicedValue) {
+            this.logger.debug(`Metal price for ${symbol} served from cache`);
             prices.set(symbol, CacheServicedValue);
             return true;
           }
@@ -448,6 +453,9 @@ export class AssetService extends BaseService {
           if (!price || !price.success) return false;
 
           await this.metalCache.set(symbol, price.rates);
+          this.logger.debug(
+            `Metal price for ${symbol} fetched from API and cached`,
+          );
           prices.set(symbol, price.rates);
 
           return true;
@@ -478,7 +486,7 @@ export class AssetService extends BaseService {
       }
       this.logger.info(reqQuery);
 
-      const parsingResult = ISIN.safeParse(reqQuery.identifier);
+      const parsingResult = ApiSchemas.ISIN.safeParse(reqQuery.identifier);
       if (!parsingResult.success) {
         req.reject(
           400,
@@ -536,12 +544,18 @@ export class AssetService extends BaseService {
 
       return relatedAssets.map(({ asset }) => {
         const identifier = asset._id.identifier;
+        const securityType =
+          asset.assetType === "Security"
+            ? asset.security.type
+            : asset.assetType === "Crypto"
+              ? "Crypto"
+              : "Commodity";
+
         let assetObj = {
           identifier: identifier,
           assetType: asset.assetType,
           securityName: asset.name,
-          securityType:
-            asset.assetType !== "Crypto" ? asset.security.type : "Crypto",
+          securityType,
           logoUrl: asset.logo,
         } as {
           identifier: string;
@@ -560,42 +574,356 @@ export class AssetService extends BaseService {
       });
     });
 
-    this.on("READ", SecuritySectors, async () => {
-      const cachedSectors = await this.assetCache.getSectors();
-      if (cachedSectors) {
-        this.logger.debug("Returning cached security sectors", {
-          count: cachedSectors.length,
+    this.on("READ", SecuritySectors, this.handleSecurityMappingRequest);
+    this.on("READ", SecurityRegions, this.handleSecurityMappingRequest);
+    this.on("READ", SecurityIndustries, this.handleSecurityMappingRequest);
+    this.on("READ", SecurityCountries, async (req) => {
+      const cachedValues = await this.assetCache.getCountries();
+      if (cachedValues) {
+        this.logger.debug("Returning cached country values", {
+          count: cachedValues.length,
         });
-        return cachedSectors;
+        return cachedValues;
       }
 
-      const [sectors, err] = await Parqet.getSectors();
+      const [countries, err] = await Parqet.getCountries();
       if (err) {
-        this.logger.error("Error fetching security sectors", err);
-        return [];
+        this.handleError(err, req);
+        return;
       }
-      await this.assetCache.setSectors(sectors);
-      return sectors;
+
+      await this.assetCache.setCountries(countries);
+      return countries;
     });
 
-    this.on("READ", SecurityRegions, async () => {
-      const cachedRegions = await this.assetCache.getRegions();
-      if (cachedRegions) {
-        this.logger.debug("Returning cached security regions", {
-          count: cachedRegions.length,
-        });
-        return cachedRegions;
+    this.on("READ", Assets, async (req) => {
+      const reqQuery = this.getReqQuery(req);
+      // Determine which identifiers to fetch dividends for
+      if (!("identifier" in reqQuery)) {
+        req.reject(400, 'Query parameter "identifier" is required');
+        return;
       }
 
-      const [regions, err] = await Parqet.getRegions();
-      if (err) {
-        this.logger.error("Error fetching security regions", err);
-        return [];
+      const rawIdentifiers = Array.isArray(reqQuery.identifier)
+        ? reqQuery.identifier
+        : [reqQuery.identifier];
+      const identifiers = z
+        .array(ApiSchemas.AssetIdentifier)
+        .safeParse(rawIdentifiers);
+      if (!identifiers.success) {
+        req.reject(
+          400,
+          `One or more provided identifiers are invalid: ${JSON.stringify(
+            identifiers.error.issues,
+          )}`,
+        );
+        return;
       }
-      await this.assetCache.setRegions(regions);
-      return regions;
+
+      // Retrieve static mappings
+      const [countries, regions, sectors, industries] = await Promise.all([
+        Parqet.getCountries().then(([countries, err]) => {
+          if (err) throw err;
+          return countries;
+        }),
+        this.getSecurityMapping("regions"),
+        this.getSecurityMapping("sectors"),
+        this.getSecurityMapping("industries"),
+      ]);
+
+      // Retrieve asset details
+      this.logger.debug("Fetching assets with identifiers", { identifiers });
+      const assetPromises: Promise<z.infer<
+        typeof ResponseSchemas.Asset
+      > | null>[] = identifiers.data.map(async (identifier) => {
+        const [assetDetails, err] = await Parqet.getAsset(identifier);
+        if (err) {
+          this.logger.error(
+            `Error fetching asset details for identifier ${identifier}: ${err.message}`,
+          );
+          return null;
+        }
+
+        const assetType = assetDetails.asset.assetType;
+        const securityType: z.infer<
+          typeof ResponseSchemas.Asset
+        >["securityType"] =
+          assetType === "Security"
+            ? assetDetails.asset.security.type
+            : assetType === "Crypto"
+              ? "Crypto"
+              : "Commodity";
+        const assetSecurity =
+          assetType === "Security" ? assetDetails.asset.security : null;
+        const assetRegions = assetSecurity?.regions || [];
+        const assetIndustries = assetSecurity?.industries || [];
+        const assetSectors = assetSecurity?.sectors || [];
+        const assetCountries = assetSecurity?.countries || [];
+        const currency = assetDetails.details.securityDetails?.currency || null;
+        const marketCap =
+          assetDetails.details.securityDetails?.marketCap || null;
+        const shares = assetDetails.details.securityDetails?.shares || null;
+        const beta = assetDetails.details.securityDetails?.beta || null;
+        const priceSalesRatioTTM =
+          assetDetails.details.securityDetails?.priceSalesRatioTTM || null;
+        const priceToBookRatioTTM =
+          assetDetails.details.securityDetails?.priceToBookRatioTTM || null;
+        const peRatioTTM =
+          assetDetails.details.securityDetails?.peRatioTTM || null;
+        const pegRatioTTM =
+          assetDetails.details.securityDetails?.pegRatioTTM || null;
+        const priceFairValueRatio =
+          assetDetails.details.securityDetails?.priceFairValueTTM || null;
+        const dividendYieldPercentageTTM =
+          assetDetails.details.securityDetails?.dividendYielPercentageTTM ||
+          null;
+        const dividendPerShareTTM =
+          assetDetails.details.securityDetails?.dividendPerShareTTM || null;
+        const payoutRatioTTM =
+          assetDetails.details.securityDetails?.payoutRatioTTM || null;
+        const fiftyTwoWeekRange =
+          assetDetails.details.securityDetails?.fiftyTwoWeekRange || null;
+        const dividendPayoutInterval =
+          assetDetails.details.payoutInterval ?? "none";
+        const historicalDividends =
+          assetDetails.details.historicalDividends || [];
+        const futureDividends = assetDetails.details.futureDividends || [];
+        const dividendKPIs = assetDetails.details.dividendKPIs || null;
+        const dividendYearlyTTM = assetDetails.details.dividendYearlyTTM;
+        const etfDetails = assetDetails.details.etfDetails;
+        const etfBreakdown = assetDetails.details.etfBreakdown;
+        const combinedEtfDetails: z.infer<
+          typeof ResponseSchemas.Asset
+        >["etfDetails"] =
+          etfDetails && etfBreakdown
+            ? {
+                ...etfDetails,
+                breakdown: {
+                  updatedAt: etfBreakdown.updatedAt,
+                  holdings: etfBreakdown.holdings,
+                },
+              }
+            : null;
+
+        const result: z.infer<typeof ResponseSchemas.Asset> = {
+          identifier: assetDetails.asset._id.identifier,
+          wkn:
+            assetDetails.asset.assetType === "Security"
+              ? assetDetails.asset.security.wkn
+              : null,
+          name: assetDetails.asset.name,
+          etfDomicile:
+            assetDetails.asset.assetType === "Security" &&
+            assetDetails.asset.security.type === "ETF" &&
+            assetDetails.asset.security.etfDomicile
+              ? assetDetails.asset.security.etfDomicile
+              : null,
+          etfCompany:
+            assetDetails.asset.assetType === "Security" &&
+            assetDetails.asset.security.type === "ETF" &&
+            assetDetails.asset.security.etfCompany
+              ? assetDetails.asset.security.etfCompany
+              : null,
+          etfDetails: combinedEtfDetails,
+          assetType,
+          securityType,
+          description: assetDetails.details.description || null,
+          ipoDate:
+            assetDetails.asset.assetType === "Security" &&
+            assetDetails.asset.security.type !== "Zertifikat"
+              ? assetDetails.asset.security.ipoDate
+              : null,
+          logoUrl: assetDetails.asset.logo,
+          hasDividends: assetSecurity
+            ? assetSecurity.type === "Aktie"
+              ? assetSecurity.hasDividends
+              : false
+            : false,
+          currency,
+          marketCap,
+          shares,
+          beta,
+          peRatioTTM,
+          priceSalesRatioTTM,
+          priceToBookRatioTTM,
+          pegRatioTTM,
+          priceFairValueRatio,
+          dividendYieldPercentageTTM,
+          dividendPerShareTTM,
+          payoutRatioTTM,
+          fiftyTwoWeekRange,
+          financials: {
+            annual:
+              assetDetails.details.securityDetails?.annualFinancials || [],
+            quarterly:
+              assetDetails.details.securityDetails?.quarterlyFinancials || [],
+            incomeStatementGrowth:
+              assetDetails.details.securityDetails?.incomeStatementGrowth || [],
+          },
+          symbols:
+            assetSecurity && assetSecurity.type !== "Zertifikat"
+              ? assetSecurity?.symbols
+              : [],
+          dividends: {
+            payoutInterval: dividendPayoutInterval,
+            KPIs: dividendKPIs as any,
+            yearlyTTM: dividendYearlyTTM
+              ? Object.entries(dividendYearlyTTM).map(
+                  ([year, dividend]) =>
+                    ({
+                      year,
+                      dividend,
+                    }) as { year: string; dividend: number },
+                )
+              : null,
+            future: futureDividends.map((dividend) => ({
+              type: dividend.type,
+              security: dividend.security,
+              price: dividend.price,
+              currency: dividend.currency,
+              date: dividend.date,
+              datetime: dividend.datetime,
+              paymentDate: dividend.paymentDate,
+              declarationDate: dividend.declarationDate || null,
+              recordDate:
+                dividend.recordDate instanceof Date
+                  ? dividend.recordDate
+                  : null,
+              exDate: dividend.exDate,
+              isEstimated: dividend.isEstimated,
+            })),
+            historical: historicalDividends.map((dividend) => ({
+              type: dividend.type,
+              security: dividend.security,
+              price: dividend.price,
+              currency: dividend.currency,
+              date: dividend.date,
+              datetime: dividend.datetime,
+              paymentDate: dividend.paymentDate,
+              declarationDate: dividend.declarationDate || null,
+              recordDate:
+                dividend.recordDate instanceof Date
+                  ? dividend.recordDate
+                  : null,
+              exDate: dividend.exDate,
+              isEstimated: dividend.isEstimated,
+            })),
+          },
+          analysis: {
+            scoring: assetDetails.details.scoring || [],
+            media: assetDetails.details.analysis?.entries || [],
+            priceTargetConsensus:
+              assetDetails.details.priceTargetConsensus || null,
+            recommendation: assetDetails.details.analystEstimates,
+          },
+          regions: assetRegions.map((region) => {
+            const regionId = region.id;
+            const mapping = regions.find((r) => r._id === regionId);
+            return {
+              id: regionId,
+              name: mapping?.labelEN || regionId,
+              share: region.share,
+            };
+          }),
+          industries: assetIndustries.map((industry) => {
+            const industryId = industry.id;
+            const mapping = industries.find((r) => r._id === industryId);
+            return {
+              id: industryId,
+              name: mapping?.labelEN || industryId,
+              share: industry.share,
+            };
+          }),
+          sectors: assetSectors.map((sector) => {
+            const sectorId = sector.id;
+            const mapping = sectors.find((s) => s._id === sectorId);
+            return {
+              id: sectorId,
+              name: mapping?.labelEN || sectorId,
+              share: sector.share,
+            };
+          }),
+          countries: assetCountries.map((country) => {
+            const countryId = country.id;
+            const mapping = countries.find((c) => c._id === countryId);
+            return {
+              id: countryId,
+              name: mapping?.name || countryId,
+              share: country.share,
+            };
+          }),
+          news: assetDetails.details.news,
+        };
+
+        return result;
+      });
+
+      const assets = await Promise.all(assetPromises);
+      return (
+        assets.filter(
+          (asset): asset is z.infer<typeof ResponseSchemas.Asset> =>
+            asset !== null,
+        ) || []
+      );
     });
 
     return super.init();
+  }
+
+  private async getSecurityMapping(
+    cacheKey: "sectors" | "regions" | "industries",
+  ) {
+    const cachedValues = await this.assetCache.getMapping(cacheKey);
+    if (cachedValues) {
+      this.logger.debug(`Returning cached values for '${cacheKey}'`, {
+        count: cachedValues.length,
+      });
+      return cachedValues;
+    }
+
+    let fetchedData: z.infer<
+      | typeof ApiSchemas.Sector
+      | typeof ApiSchemas.Region
+      | typeof ApiSchemas.Industry
+    >[] = [];
+    switch (cacheKey) {
+      case "sectors": {
+        const [sectors, err] = await Parqet.getSectors();
+        if (err) throw err;
+        fetchedData = sectors;
+        break;
+      }
+      case "regions": {
+        const [regions, err] = await Parqet.getRegions();
+        if (err) throw err;
+        fetchedData = regions;
+        break;
+      }
+      case "industries": {
+        const [industries, err] = await Parqet.getIndustries();
+        if (err) throw err;
+        fetchedData = industries;
+        break;
+      }
+    }
+
+    await this.assetCache.setMapping(cacheKey, fetchedData);
+    return fetchedData;
+  }
+
+  private async handleSecurityMappingRequest(
+    request: cds.Request<
+      | typeof SecurityIndustries
+      | typeof SecurityRegions
+      | typeof SecuritySectors
+    >,
+  ) {
+    try {
+      const cacheKey = this.assetCache.resolveEntityMapping(request.entity);
+      return this.getSecurityMapping(cacheKey);
+    } catch (error) {
+      this.handleError(error, request);
+      return []; // Only for linting; this line is never reached due to handleError rejecting the request
+    }
   }
 }

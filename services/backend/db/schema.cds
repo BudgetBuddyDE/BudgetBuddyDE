@@ -166,23 +166,6 @@ entity StockPosition : cuid, managed {
     virtual relativeProfit : Double;
 }
 
-
-@cds.persistence.skip
-@plural: 'SecuritySectors'
-entity SecuritySector {
-    key _id     : String;
-        labelDE : String;
-        labelEN : String;
-}
-
-@cds.persistence.skip
-@plural: 'SecurityRegions'
-entity SecurityRegion {
-    key _id     : String;
-        labelDE : String;
-        labelEN : String;
-}
-
 @cds.persistence.skip
 @plural: 'RelatedAssets'
 entity RelatedAsset {
@@ -223,6 +206,7 @@ entity StockPositionsKPI {
     boundCapitalOnLosingPositions    : Double;
     upcomingDividends                : Double;
 };
+
 
 @cds.persistence.skip
 @plural: 'Dividends'
@@ -283,3 +267,138 @@ entity MetalQuote              as
         0 as eur : Double,
         0 as usd : Double,
     }
+
+@cds.persistence.skip
+@plural: 'SecurityIndustries'
+entity SecurityIndustry {
+    key _id     : String @assert.notNull;
+        labelDE : String @assert.notNull;
+        labelEN : String @assert.notNull;
+}
+
+@cds.persistence.skip
+@plural: 'SecuritySectors'
+entity SecuritySector {
+    key _id     : String @assert.notNull;
+        labelDE : String @assert.notNull;
+        labelEN : String @assert.notNull;
+}
+
+@cds.persistence.skip
+@plural: 'SecurityRegions'
+entity SecurityRegion {
+    key _id     : String @assert.notNull;
+        labelDE : String @assert.notNull;
+        labelEN : String @assert.notNull;
+}
+
+@cds.persistence.sjip
+@plural: 'SecurityCountries'
+entity SecurityCountry {
+    key _id           : String                                     @assert.notNull;
+        name          : String                                     @assert.notNull;
+        labelDE       : String                                     @assert.notNull;
+        labelGenderDE : String;
+    key code          : String(2)                                  @assert.notNull;
+        capital       : String                                     @assert.notNull;
+        region        : Association to one SecurityRegion          @assert.target
+                                                                   @assert.notNull;
+        currency      : Association to one SecurityCountryCurrency @assert.target
+                                                                   @assert.notNull;
+        flag          : String                                     @assert.notNull;
+}
+
+@cds.persistence.skip
+@plural: 'SecurityCountryCurrencies'
+entity SecurityCountryCurrency {
+    key code   : String(3) @assert.notNull;
+        name   : String    @assert.notNull;
+        symbol : String    @assert.notNull;
+}
+
+@cds.persistence.skip
+@plural: 'SecurityCountryLanguages'
+entity SecurityCountryLanguage {
+    key code : String(2) @assert.notNull;
+        name : String    @assert.notNull;
+}
+
+@cds.persistence.skip
+@plural: 'Assets'
+entity Asset {
+    key identifier                 : String;
+        wkn                        : String;
+        name                       : String;
+        etfDomicile                : String;
+        etfCompany                 : String;
+        etfDetails                 : Composition of one EtfDetails;
+        securityType               : String;
+        assetType                  : String;
+        description                : String;
+        hasDividends               : Boolean;
+        logoUrl                    : String;
+        ipoDate                    : Date;
+        currency                   : String;
+        marketCap                  : Double;
+        shares                     : Integer;
+        beta                       : Double;
+        peRatioTTM                 : Double;
+        priceSalesRatioTTM         : Double;
+        priceToBookRatioTTM        : Double;
+        pegRatioTTM                : Double;
+        priceFairValueRatio        : Double;
+        dividendYieldPercentageTTM : Double;
+        dividendPerShareTTM        : Double;
+        payoutRatioTTM             : Double;
+        fiftyTwoWeekRange          : Composition of types.FiftyTwoWeekRange;
+        financials                 : Association to one AssetFinancials;
+        symbols                    : Composition of many types.AssetSymbol;
+        dividends                  : Association to one AssetDividends;
+        analysis                   : Association to one AssetAnalysis;
+        regions                    : Composition of many types.StaticAssetMapping;
+        countries                  : Composition of many types.StaticAssetMapping;
+        sectors                    : Composition of many types.StaticAssetMapping;
+        industries                 : Composition of many types.StaticAssetMapping;
+        news                       : Composition of many types.NewsArticle;
+}
+
+entity EtfDetails {
+    key toAsset         : Association to Asset; // mocked
+        currency        : String;
+        nav             : Double;
+        description     : String;
+        priceToBook     : Double;
+        priceToEarnings : Double;
+        aum             : Double;
+        expenseRatio    : Double;
+        breakdown       : Composition of one EtfBreakdown;
+}
+
+entity EtfBreakdown {
+    key updatedAt : Date;
+        holdings  : Composition of many types.EtfHolding;
+}
+
+entity AssetAnalysis {
+    key toAsset              : Association to Asset; // mocked
+        priceTargetConsensus : Composition of one types.PriceTargetConsensus;
+        recommendation       : Composition of one types.AnalystRecommendation;
+        scoring              : Composition of many types.AssetAnalysisScoring;
+        media                : Composition of many types.MediaAnalysis;
+}
+
+entity AssetFinancials {
+    key toAsset               : Association to Asset; // mocked
+        annual                : Composition of many types.FinancialRelease;
+        quarterly             : Composition of many types.FinancialRelease;
+        incomeStatementGrowth : Composition of many types.IncomeStatementGrowth;
+}
+
+entity AssetDividends {
+    key toAsset        : Association to Asset; // mocked
+        payoutInterval : String;
+        historical     : Composition of many types.AssetDividend;
+        future         : Composition of many types.AssetDividend;
+        KPIs           : Composition of one types.AssetDividendKPIs;
+        yearlyTTM      : Composition of many types.AssetYearlyDividendTTM;
+}
