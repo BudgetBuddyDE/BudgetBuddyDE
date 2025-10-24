@@ -10,7 +10,7 @@ class ResendManager {
   constructor() {
     this.resend = new Resend(process.env.RESEND_API_KEY as string);
     this.fromMailAdress =
-      config.runtime === 'development' ? 'System <auth@mail.budget-buddy.de>' : 'Acme <onboarding@resend.dev>';
+      config.runtime === 'production' ? 'System <auth@mail.budget-buddy.de>' : 'Acme <onboarding@resend.dev>';
   }
 
   public async sendVerificationEmail(
