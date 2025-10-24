@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 import { determineOS } from '@/utils/determineOS';

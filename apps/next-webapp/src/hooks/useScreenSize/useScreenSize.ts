@@ -1,3 +1,5 @@
+'use client';
+
 import { useWindowDimensions } from '../useWindowDimensions';
 
 export type ScreenSize = 'small' | 'medium' | 'large';
