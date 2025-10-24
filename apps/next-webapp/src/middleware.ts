@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionCookie } from 'better-auth/cookies';
+import { headers } from 'next/headers';
 import { logger } from './logger';
+import { authClient } from './authClient';
 
 const middlewareLogger = logger.child({ scope: 'middleware' });
 
@@ -10,19 +11,31 @@ export async function middleware(request: NextRequest) {
     url: request.url,
   };
   try {
-    const cookies = getSessionCookie(request);
-    if (!cookies) {
-      middlewareLogger.warn('Redirecting to sign-in due to missing session cookie', meta);
+    middlewareLogger.debug('Checking if client has a valid session', meta);
+    const { data: session, error } = await authClient.getSession({
+      fetchOptions: {
+        headers: await headers(),
+      },
+    });
+    if (error) {
+      middlewareLogger.error('Error retrieving session:', { error, ...meta });
+    }
+
+    if (!session || !session.session) {
+      middlewareLogger.warn('No valid session found, redirecting to sign-in', meta);
       return NextResponse.redirect(new URL('/sign-in', request.url));
     }
 
-    middlewareLogger.debug('Session cookie found, proceeding with request', {
-      cookies: cookies,
+    middlewareLogger.debug('Session found, proceeding with request', {
       ...meta,
     });
     return NextResponse.next();
   } catch (error) {
-    middlewareLogger.error('Error retrieving session cookie:', { error, ...meta });
+    middlewareLogger.error(
+      'Uncaught error while fetching session: %s',
+      error instanceof Error ? error.message : String(error),
+      { error, ...meta }
+    );
   }
 }
 
@@ -34,15 +47,12 @@ export const config = {
     // {
     //   source: '/((?!.*(?:sign-in|sign-up|forgot-password|reset-password|_next|favicon.ico)).*)',
     // },
-    '/dashboard',
     '/dashboard/:path*',
-    '/stocks',
     '/stocks/:path*',
     '/transactions',
     '/subscriptions',
     '/paymentMethods',
     '/categories',
-    '/settings',
     '/settings/:path*',
   ], // REVISIT: For every page except sign-in, sign-up and public pages like 404 and 500
 };
