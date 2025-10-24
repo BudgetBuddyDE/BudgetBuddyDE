@@ -8,13 +8,13 @@ export class CurrencyFormatter {
    */
   static formatBalance(
     balance: number,
-    currency = 'EUR',
+    currency?: string,
     minimumFractionDigits = 2,
     maximumFractionDigits = 2
   ): string {
     return balance.toLocaleString('de-DE', {
       style: 'currency',
-      currency,
+      currency: Boolean(currency) ? currency : 'EUR',
       minimumFractionDigits,
       maximumFractionDigits,
     });

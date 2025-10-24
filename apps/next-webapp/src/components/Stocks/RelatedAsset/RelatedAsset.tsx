@@ -12,7 +12,7 @@ import { areaElementClasses, SparkLineChart } from '@mui/x-charts';
 
 export type RelatedAssetProps = { asset: TRelatedAsset };
 
-export const RelatedAsset: React.FC<RelatedAssetProps> = ({ asset }) => {
+const Component: React.FC<RelatedAssetProps> = ({ asset }) => {
   const router = useRouter();
   const theme = useTheme();
   const handleClick = React.useCallback(() => {
@@ -101,3 +101,5 @@ export const RelatedAsset: React.FC<RelatedAssetProps> = ({ asset }) => {
     </Card>
   );
 };
+
+export const RelatedAsset = React.memo(Component);

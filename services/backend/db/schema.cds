@@ -251,6 +251,21 @@ entity SearchAsset {
         assetType : String;
 }
 
+@cds.persistence.skip
+@plural: 'AssetQuotes'
+entity AssetQuote {
+    key identifier : types.ISIN;
+        ![from]    : Date;
+        to         : Date;
+        timeframe  : String;
+        exchange   : String;
+        currency   : types.CurrencyCode;
+        quotes     : Composition of many {
+                         key date  : Date;
+                             price : Double
+                     }
+}
+
 @plural: 'Metals'
 entity Metal {
     key symbol : String(3);

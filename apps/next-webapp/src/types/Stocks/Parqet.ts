@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const ISIN = z.string().min(12).max(12);
+export const CryptoSymbol = z.string().min(3).max(6);
+export const AssetIdentifier = z.union([ISIN, CryptoSymbol, z.string()]);
 export const ZodDate = z
   .date()
   .or(z.number())

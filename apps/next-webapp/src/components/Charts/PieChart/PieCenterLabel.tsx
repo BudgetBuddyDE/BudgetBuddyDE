@@ -11,7 +11,7 @@ const StyledText = styled('text', {
 }>(({ theme }) => ({
   textAnchor: 'middle',
   dominantBaseline: 'central',
-  fill: theme.palette.primary.contrastText,
+  fill: theme.palette.text.primary,
   variants: [
     {
       props: {

@@ -57,12 +57,10 @@ export const DrawerItem: React.FC<DrawerItemProps> = ({
             justifyContent: open ? 'initial' : 'center',
             px: 2,
             backgroundColor: isActive ? alpha(theme.palette.primary.main, 0.2) : 'transparent',
-            color: isActive ? theme.palette.primary.main : theme.palette.background.default,
+            color: isActive ? 'primary.main' : 'text.primary',
             borderRadius: `${theme.shape.borderRadius}px`,
             ':hover': {
-              backgroundColor: isActive
-                ? alpha(theme.palette.primary.main, 0.3)
-                : theme.palette.action.hover,
+              backgroundColor: isActive ? alpha(theme.palette.primary.main, 0.3) : 'action.hover',
             },
           }}
           onClick={handler.onClick}

@@ -44,12 +44,13 @@ export class Parqet {
       identifier: string;
     }[],
     timeframe: "1d" | "1m" | "3m" | "1y" | "5y" | "ytd" = "1d",
+    currency = "EUR",
   ): Promise<
     ServiceResponse<Map<string, z.infer<typeof ApiSchemas.AssetQuote>>>
   > {
     const query = new URLSearchParams();
     // query.append('skipNormalization', 'true');
-    query.append("currency", "EUR");
+    query.append("currency", currency);
     // query.append('resolution', '10');
 
     const requestBody: { identifier: string; timeframe: string }[] = assets.map(

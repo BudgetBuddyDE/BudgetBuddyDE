@@ -1,5 +1,6 @@
 'use client';
 
+import { z } from 'zod';
 import NextLink from 'next/link';
 import { ArrowForwardRounded } from '@mui/icons-material';
 import {
@@ -44,6 +45,8 @@ import { Command, useCommandPalette } from '@/components/CommandPalette';
 import { StyledAutocompleteOption } from '@/components/Form/Autocomplete';
 import { useSnackbarContext } from '@/components/Snackbar';
 import { AssetService } from '@/services/Stock/Asset.service';
+import { type TTimeframe } from '../AssetPriceChart';
+import { AssetIdentifier } from '@/types/Stocks/Parqet';
 
 type EntityFormFields = FirstLevelNullable<
   Pick<
@@ -54,15 +57,21 @@ type EntityFormFields = FirstLevelNullable<
     toExchange: TStockExchangeVH;
   }
 >;
-export type Timeframe = '1d' | '1w' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y' | '10y' | 'max';
 export type StockPositionTableProps = {
+  assets?: z.infer<typeof AssetIdentifier>[];
   withRedirect?: boolean;
-  redirectTimeframe?: Timeframe;
+  defaultValues?: Partial<{
+    createEntity?: TSearchAsset;
+    redirectTimeframe: TTimeframe;
+  }>;
 };
 
 export const StockPositionTable: React.FC<StockPositionTableProps> = ({
+  assets = [],
   withRedirect = false,
-  redirectTimeframe = '3m',
+  defaultValues = {
+    redirectTimeframe: '3m',
+  },
 }) => {
   const { showSnackbar } = useSnackbarContext();
   const { register: registerCommand, unregister: unregisterCommand } = useCommandPalette();
@@ -181,15 +190,16 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
     }
   };
 
-  const handleCreateEntity = () => {
+  const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'CREATE',
       defaultValues: {
         purchasedAt: new Date(),
+        asset: defaultValues.createEntity,
       },
     });
-  };
+  }, [defaultValues]);
 
   const handleEditEntity = ({
     ID,
@@ -426,34 +436,41 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
       getPage({
         page: currentPage,
         rowsPerPage: rowsPerPage,
+        query:
+          assets.length > 0
+            ? {
+                $filter: `isin in (${assets.map((a) => `'${a}'`).join(',')})`,
+              }
+            : undefined,
       })
     );
   }, [dispatch, getPage, currentPage, rowsPerPage]);
 
-  React.useEffect(() => {
-    const commands: Command[] = [
-      {
-        id: 'add-stock-position',
-        label: 'Add Stock Position',
-        section: 'Stocks',
-        // icon: <ReceiptRounded />,
-        onSelect: () => {
-          alert('Add Stock Position');
-        },
-      },
-      {
-        id: 'open-stock-watchlist',
-        label: 'Open Stock Watchlist',
-        section: 'Stocks',
-        // icon: <ReceiptRounded />,
-        onSelect: () => {
-          alert('Open Stock Watchlist');
-        },
-      },
-    ];
-    registerCommand(commands);
-    return () => unregisterCommand(commands.map((c) => c.id));
-  }, []);
+  // TODO: Implement some commands
+  // React.useEffect(() => {
+  //   const commands: Command[] = [
+  //     {
+  //       id: 'add-stock-position',
+  //       label: 'Add Stock Position',
+  //       section: 'Stocks',
+  //       // icon: <ReceiptRounded />,
+  //       onSelect: () => {
+  //         alert('Add Stock Position');
+  //       },
+  //     },
+  //     {
+  //       id: 'open-stock-watchlist',
+  //       label: 'Open Stock Watchlist',
+  //       section: 'Stocks',
+  //       // icon: <ReceiptRounded />,
+  //       onSelect: () => {
+  //         alert('Open Stock Watchlist');
+  //       },
+  //     },
+  //   ];
+  //   registerCommand(commands);
+  //   return () => unregisterCommand(commands.map((c) => c.id));
+  // }, []);
 
   return (
     <React.Fragment>
@@ -501,7 +518,8 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
         rowHeight={83.5}
         renderRow={(cell, position, list) => {
           const currency = 'EUR'; // REVISIT: make dynamic based on stock exchange
-          const redirectPath = `/stocks/${position.isin}?timeframe=${redirectTimeframe}`;
+          // const redirectPath = `/stocks/${position.isin}?timeframe=${redirectTimeframe}`;
+          const redirectPath = `/stocks/${position.isin}`;
           return (
             <TableRow key={position.ID}>
               <TableCell size={'medium'} sx={{ minWidth: { xs: '250px', md: 'unset' } }}>
@@ -511,12 +529,16 @@ export const StockPositionTable: React.FC<StockPositionTableProps> = ({
                     alignItems: 'center',
                     borderRadius: (theme) => theme.shape.borderRadius + 'px',
                     px: 0.5,
-                    ':hover': {
-                      backgroundColor: 'action.hover',
-                      cursor: 'Pointer',
-                    },
+                    ':hover': withRedirect
+                      ? {
+                          backgroundColor: 'action.hover',
+                          cursor: 'Pointer',
+                        }
+                      : undefined,
                   }}
-                  onClick={() => router.push(redirectPath)}
+                  {...(withRedirect && {
+                    onClick: () => router.push(redirectPath),
+                  })}
                 >
                   <ActionPaper
                     sx={{

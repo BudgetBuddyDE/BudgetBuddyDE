@@ -10,13 +10,13 @@ export default function StocksDashboard() {
     <React.Fragment>
       <StockStats />
 
-      <Grid container size={{ xs: 12, md: 8 }} sx={{ height: 'fit-content' }} spacing={2}>
+      <Grid container size={{ xs: 12, md: 8.5 }} sx={{ height: 'fit-content' }} spacing={2}>
         <Grid size={{ xs: 12 }} order={{ xs: 4 }}>
           <StockPositionTable withRedirect />
         </Grid>
       </Grid>
 
-      <Grid container size={{ xs: 12, md: 4 }} spacing={2}>
+      <Grid container size={{ xs: 12, md: 3.5 }} spacing={2}>
         <Grid size={{ xs: 12 }}>
           <PortfolioDiversityChart />
         </Grid>

@@ -15,15 +15,12 @@ import { ErrorAlert } from '@/components/ErrorAlert';
 export type PortfolioDiversityChartProps = {};
 
 export const PortfolioDiversityChart: React.FC<PortfolioDiversityChartProps> = () => {
-  const {
-    isLoading,
-    data: positionAllocations,
-    error,
-  } = useFetch(async () => {
+  const fetchDataFunc = React.useCallback(async () => {
     const [allocations, err] = await AssetService.positions.getPositionAllocations();
     if (err) throw err;
     return allocations;
-  });
+  }, []);
+  const { isLoading, data: positionAllocations, error } = useFetch(fetchDataFunc);
 
   const preparedData: PieChartData[] = React.useMemo(() => {
     if (!positionAllocations) return [];

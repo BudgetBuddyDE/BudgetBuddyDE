@@ -48,6 +48,8 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export type SearchInputProps = Omit<InputBaseProps, 'onChange'> & {
   onSearch: (text: string) => void;
   debounceWaitInMilliseconds?: number;
+  // Used in slots but must not be passed to the DOM
+  enabled?: boolean;
 };
 
 export const SearchInput: React.FC<SearchInputProps> = ({
@@ -55,8 +57,13 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   onSearch,
   sx,
   debounceWaitInMilliseconds = 500,
+  // get enbaled prop; if explicitly false, disable the field (without overriding props.disabled)
+  enabled,
   ...props
 }) => {
+  // If enabled is explicitly false, disable the field (without overriding props.disabled)
+  const disabled = props.disabled ?? enabled === false;
+
   return (
     <Search sx={sx}>
       <SearchIconWrapper>
@@ -66,6 +73,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         placeholder={placeholder}
         inputProps={{ 'aria-label': 'search' }}
         onChange={debounce((e) => onSearch(e.target.value), debounceWaitInMilliseconds)}
+        disabled={disabled}
         {...props}
       />
     </Search>

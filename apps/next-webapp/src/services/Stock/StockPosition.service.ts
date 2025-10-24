@@ -15,8 +15,11 @@ import {
   StockPositionAllocation,
   RelatedAsset,
   type TRelatedAsset,
+  AssetServiceSchemas,
 } from '@/types';
 import z from 'zod';
+import { AssetIdentifier } from '@/types/Stocks/Parqet';
+import { TTimeframe } from '@/components/Stocks/AssetPriceChart';
 
 export class StockPositionService extends EntityService {
   private static $defaultQuery: OdataQuery = {
@@ -143,6 +146,80 @@ export class StockPositionService extends EntityService {
         return this.handleZodError(parsingResult.error);
       }
       return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  // TODO: Move to AssetService.assets
+  static async getAssets(
+    identifiers: z.infer<typeof AssetIdentifier>[],
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<z.infer<typeof AssetServiceSchemas.Asset>[]>> {
+    try {
+      const query = new URLSearchParams();
+      identifiers.forEach((id) => {
+        query.append('identifier', id);
+      });
+
+      const records = await this.newOdataHandler(config)
+        .get(`${this.$servicePath}/Asset?${query.toString()}`)
+        .query();
+
+      const parsingResult = z.array(AssetServiceSchemas.Asset).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  // TODO: Move to AssetService.assets
+  static async getAsset(
+    identifier: string,
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<z.infer<typeof AssetServiceSchemas.Asset>>> {
+    try {
+      const query = new URLSearchParams();
+      query.append('identifier', identifier);
+
+      const records = await this.newOdataHandler(config)
+        .get(`${this.$servicePath}/Asset?${query.toString()}`)
+        .query();
+
+      const parsingResult = AssetServiceSchemas.Asset.safeParse(records[0]);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (e) {
+      return this.handleError(e);
+    }
+  }
+
+  static async getAssetQuotes(
+    identifier: z.infer<typeof AssetIdentifier>,
+    timeframe: TTimeframe,
+    currency: string = 'EUR',
+    config?: Partial<OdataConfig>
+  ): Promise<ServiceResponse<z.infer<typeof AssetServiceSchemas.AssetQuote>>> {
+    try {
+      const query = new URLSearchParams();
+      query.append('identifier', identifier);
+      query.append('timeframe', timeframe);
+      query.append('currency', currency);
+
+      const records = await this.newOdataHandler(config)
+        .get(`${this.$servicePath}/AssetQuote?${query.toString()}`)
+        .query();
+
+      const parsingResult = z.array(AssetServiceSchemas.AssetQuote).safeParse(records);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data[0], null];
     } catch (e) {
       return this.handleError(e);
     }

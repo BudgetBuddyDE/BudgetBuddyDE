@@ -302,7 +302,7 @@ const Asset = z.object({
       .optional(),
     news: z.array(News),
     partnerNews: z.array(PartnerNews),
-    scoring: z.array(SecurityScoring).optional(),
+    scorings: z.array(SecurityScoring).optional(),
     payoutInterval: DividendPayoutInterval.or(z.string()).optional(),
     payoutIntervalSource: z.enum(["divvy_diary"]).or(z.string()).nullable(),
     dividendKPIs: DividendKPI.optional(),

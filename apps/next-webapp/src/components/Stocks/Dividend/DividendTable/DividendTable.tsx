@@ -19,18 +19,15 @@ export const DividendTable: React.FC<DividendTableProps> = ({
   withRedirect = false,
   ...tableProps
 }) => {
-  const {
-    isLoading,
-    data: dividends,
-    error,
-  } = useFetch(async () => {
+  const fetchDataFunc = React.useCallback(async () => {
     const [dividendDetails, err] = await AssetService.dividends.get({
       future: true,
       historical: true,
     });
     if (err) throw err;
     return dividendDetails;
-  });
+  }, []);
+  const { isLoading, data: dividends, error } = useFetch(fetchDataFunc);
 
   if (error) {
     return <ErrorAlert error={error} />;

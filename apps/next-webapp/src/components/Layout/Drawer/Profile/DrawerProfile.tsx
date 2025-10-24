@@ -45,7 +45,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
 
   if (!sessionData) return null;
   return (
-    <Box sx={{ mt: 'auto', backgroundColor: theme.palette.action.focus }}>
+    <Box sx={{ mt: 'auto', backgroundColor: 'action.focus' }}>
       <Divider />
       <Box
         sx={{
@@ -112,7 +112,7 @@ export const LogoutButton: React.FC<ButtonProps> = (props) => {
         ...props.sx,
       }}
     >
-      <LogoutIcon sx={{ color: theme.palette.background.default }} />
+      <LogoutIcon sx={{ color: 'text.primary' }} />
     </Button>
   );
 };

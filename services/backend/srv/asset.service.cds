@@ -77,4 +77,7 @@ service AssetService {
 
   @plural: 'Assets'
   entity Asset                                          as projection on db.Asset;
+
+  @plural: 'AssetQuotes'
+  entity AssetQuote                                     as projection on db.AssetQuote;
 }

@@ -14,6 +14,7 @@ import {
   SecurityIndustries,
   SecurityCountries,
   Assets,
+  AssetQuotes,
 } from "#cds-models/AssetService";
 import assert from "node:assert";
 import { Parqet } from "./lib/Parqet";
@@ -810,7 +811,7 @@ export class AssetService extends BaseService {
             })),
           },
           analysis: {
-            scoring: assetDetails.details.scoring || [],
+            scorings: assetDetails.details.scorings || [],
             media: assetDetails.details.analysis?.entries || [],
             priceTargetConsensus:
               assetDetails.details.priceTargetConsensus || null,
@@ -865,6 +866,63 @@ export class AssetService extends BaseService {
             asset !== null,
         ) || []
       );
+    });
+
+    this.on("READ", AssetQuotes, async (req) => {
+      const reqQuery = this.getReqQuery(req);
+      // Determine which identifiers to fetch dividends for
+      if (!("identifier" in reqQuery)) {
+        req.reject(400, 'Query parameter "identifier" is required');
+        return;
+      }
+      if (!("timeframe" in reqQuery)) {
+        req.reject(400, 'Query parameter "timeframe" is required');
+        return;
+      } else if (typeof reqQuery.timeframe !== "string") {
+        req.reject(400, 'Query parameter "timeframe" must be a string');
+        return;
+      }
+      const timeframe = reqQuery.timeframe;
+      const rawIdentifiers = Array.isArray(reqQuery.identifier)
+        ? reqQuery.identifier
+        : [reqQuery.identifier];
+      const identifiers = z
+        .array(ApiSchemas.AssetIdentifier)
+        .safeParse(rawIdentifiers);
+      if (!identifiers.success) {
+        req.reject(
+          400,
+          `One or more provided identifiers are invalid: ${JSON.stringify(
+            identifiers.error.issues,
+          )}`,
+        );
+        return;
+      }
+
+      const [quotes, err] = await Parqet.getQuotes(
+        identifiers.data.map((identifier) => ({ identifier })),
+        // @ts-expect-error
+        timeframe,
+        "currency" in reqQuery && typeof reqQuery.currency === "string"
+          ? reqQuery.currency
+          : undefined,
+      );
+      if (err) {
+        this.handleError(err, req);
+        return;
+      }
+
+      return Array.from(quotes.entries()).map(([identifier, details]) => {
+        return {
+          identifier: identifier,
+          from: details.interval.from,
+          to: details.interval.to,
+          timeframe: details.interval.timeframe,
+          exchange: details.exchange,
+          currency: details.currency,
+          quotes: details.quotes,
+        };
+      });
     });
 
     return super.init();

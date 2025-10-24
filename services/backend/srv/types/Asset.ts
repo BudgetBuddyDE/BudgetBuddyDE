@@ -91,7 +91,7 @@ const Asset = z.object({
   analysis: z.object({
     priceTargetConsensus: ApiSchemas.PriceTargetConsensus.nullable(),
     recommendation: ApiSchemas.AnalystEstimates,
-    scoring: z.array(ApiSchemas.SecurityScoring),
+    scorings: z.array(ApiSchemas.SecurityScoring),
     media: z.array(
       z.object({
         analysisDate: ApiSchemas.ZodDate,

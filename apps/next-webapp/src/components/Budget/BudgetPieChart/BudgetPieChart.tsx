@@ -10,6 +10,7 @@ import { Formatter } from '@/utils/Formatter';
 import { EntityService } from '@/services/Entity.service';
 import { MonthlyKPIResponse } from '@/types';
 import { useFetch } from '@/hooks/useFetch';
+import { ErrorAlert } from '@/components/ErrorAlert';
 
 export type BudgetStats = {
   expenses: number;
@@ -29,7 +30,7 @@ export type BudgetPieChartProps = {};
  * ```
  */
 export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
-  const { isLoading, data, error } = useFetch<BudgetStats>(async () => {
+  const fetchDataFunc = React.useCallback(async () => {
     const records = await EntityService.newOdataHandler()
       .get('/odata/v4/backend/MonthlyKPI')
       .query();
@@ -44,7 +45,8 @@ export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
       upcomingExpenses: upcomingExpenses,
       freeAmount: receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses),
     };
-  });
+  }, []);
+  const { isLoading, data, error } = useFetch<BudgetStats>(fetchDataFunc);
 
   const chartData = React.useMemo(() => {
     if (!data) return [];
@@ -76,6 +78,8 @@ export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
         </Box>
       </Card.Header>
       <Card.Body sx={{ pt: 1 }}>
+        {error && <ErrorAlert error={error} />}
+
         {isLoading || !data ? (
           <CircularProgress />
         ) : chartData.length > 0 ? (
