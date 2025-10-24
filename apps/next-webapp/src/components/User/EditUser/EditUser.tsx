@@ -161,7 +161,8 @@ export const EditUser = () => {
 
   React.useEffect(() => {
     return () => {
-      handleDiscard();
+      formRef.current?.reset();
+      setFormEditable(false);
     };
   }, []);
 
