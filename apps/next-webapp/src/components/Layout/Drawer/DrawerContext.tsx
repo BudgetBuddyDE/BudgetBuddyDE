@@ -34,8 +34,7 @@ export const DrawerProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   };
 
   const isOpen = (screenSize: ScreenSize) => {
-    // REVISIT: Check if we really want to have a closed drawer on scmall and medium screens by default
-    if (screenSize !== 'large') {
+    if (screenSize === 'small') {
       return state === 'hidden';
     }
     return state === 'shown';
