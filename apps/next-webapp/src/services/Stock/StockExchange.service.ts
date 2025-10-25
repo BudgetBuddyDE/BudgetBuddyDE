@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type ServiceResponse } from '@/types/Service';
+import { type ServiceResponse } from '@budgetbuddyde/types';
 import { EntityService } from '../Entity.service';
 import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 import {

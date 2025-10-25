@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 import { EntityService } from '../Entity.service';
 import { Metal, MetalQuote, type TMetal, type TMetalQuote } from '@/types/Stocks/Metal';
-import { ServiceResponse } from '@/types/Service';
+import { ServiceResponse } from '@budgetbuddyde/types';
 
 export class MetalService extends EntityService {
   static {

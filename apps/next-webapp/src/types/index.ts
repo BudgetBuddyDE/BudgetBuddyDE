@@ -1,4 +1,3 @@
-export type NotNullable<T> = T extends null ? never : T;
 export * from './_Aspects';
 export * from './_Base';
 export * from './Category';

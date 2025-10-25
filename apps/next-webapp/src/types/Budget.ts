@@ -1,8 +1,7 @@
-import {z} from 'zod';
-
-import {Category} from './Category';
-import {IdAspect, ManagedAspect, OptionalIdAspect} from './_Aspects';
-import {ODataContextAspect, ODataCountAspect, OwnerAspect} from './_Base';
+import { z } from 'zod';
+import { Category } from './Category';
+import { IdAspect, ManagedAspect, OptionalIdAspect } from './_Aspects';
+import { ODataContextAspect, ODataCountAspect, OwnerAspect } from './_Base';
 
 export const BudgetType = z.enum(['i', 'e']);
 export type TBudgetType = z.infer<typeof BudgetType>;
@@ -26,7 +25,7 @@ export const ExpandedBudget = Budget.extend({
       up__ID: Budget.shape.ID,
       toCategory_ID: Category.shape.ID,
       toCategory: Category,
-    }),
+    })
   ),
 });
 export type TExpandedBudget = z.infer<typeof ExpandedBudget>;
@@ -52,7 +51,7 @@ export const CreateOrUpdateBudget = Budget.pick({
     toCategories: z.array(
       z.object({
         toCategory_ID: Category.shape.ID,
-      }),
+      })
     ),
   });
 export type TCreateOrUpdateBudget = z.infer<typeof CreateOrUpdateBudget>;

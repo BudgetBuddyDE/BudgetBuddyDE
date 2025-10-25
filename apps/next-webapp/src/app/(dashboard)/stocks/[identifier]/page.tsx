@@ -55,7 +55,7 @@ export default async function StockPage({ params }: { params: Promise<{ identifi
       : null,
   };
   const isCommodity = asset.assetType === 'Commodity';
-  const isCrypto = asset.securityType === 'Crypto';
+  const isCrypto = asset.assetType === 'Crypto';
   const isSecurity = !isCommodity && !isCrypto;
   return (
     <ContentGrid title={asset.name} description={identifier}>

@@ -1,4 +1,4 @@
-import { symbol, z } from 'zod';
+import { z } from 'zod';
 
 export const Metal = z.object({
   symbol: z.string().min(1).max(3),

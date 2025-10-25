@@ -1,1 +1,1 @@
-# @budgetbuddyde/types
+# `@budgetbuddyde/types`

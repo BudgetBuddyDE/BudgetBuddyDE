@@ -17,33 +17,33 @@ fi
 
 if has_changes "apps/next-webapp"; then
   echo "Running checks for apps/next-webapp..."
-  cd apps/next-webapp && npm run lint && go_back || exit 1
+  cd apps/next-webapp && npm run build && go_back || exit 1
 fi
 
 if has_changes "packages/types"; then
   echo "Running checks for packages/types..."
-  cd packages/types && npx prettier --check src && npm run test && go_back || exit 1
+  cd packages/types && npx test && go_back || exit 1
+fi
+
+if has_changes "packages/logger"; then
+  echo "Running checks for packages/logger..."
+  cd packages/logger && npm test && go_back || exit 1
 fi
 
 if has_changes "packages/utils"; then
   echo "Running checks for packages/utils..."
-  cd packages/utils && npm run test:run && go_back || exit 1
+  cd packages/utils && npm test && go_back || exit 1
 fi
 
 if has_changes "services/auth-service"; then
   echo "Running checks for services/auth-service..."
-  cd services/auth-service && npm run test && npm run build && go_back || exit 1
+  cd services/auth-service && npm test && npm run build && go_back || exit 1
 fi 
 
 if has_changes "services/backend"; then
   echo "Running checks for services/backend..."
-  cd services/backend && npm run format:check && npm run test && npm run build && go_back || exit 1
+  cd services/backend && npm test && npm run build && go_back || exit 1
 fi 
-
-if has_changes "services/stock-service"; then
-  echo "Running checks for services/stock-service..."
-  cd services/stock-service && npx prettier --check src && npm run test:run && go_back || exit 1
-fi
 
 echo "✅ Pre-commit checks passed!"
 echo ""

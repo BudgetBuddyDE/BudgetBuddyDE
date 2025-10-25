@@ -1,0 +1,43 @@
+{
+  "name": "@budgetbuddyde/logger",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [
+    "logger.js",
+    "logging",
+    "utility"
+  ],
+  "author": "Thorben Klein",
+  "license": "MIT",
+  "homepage": "https://github.com/budgetbuddyde/logger",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/budgetbuddyde/logger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/budgetbuddyde/logger/issues"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "rimraf lib && tsc",
+    "pretest": "npm run check",
+    "test": "vitest run --silent",
+    "test:watch": "vitest",
+    "check": "biome check --error-on-warnings",
+    "lint": "biome lint --write",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "lodash.debounce": "^4.0.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.1.3",
+    "@types/lodash.debounce": "^4.0.8",
+    "@types/node": "^24.0.14",
+    "@vitest/ui": "^3.0.9",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.9"
+  }
+}

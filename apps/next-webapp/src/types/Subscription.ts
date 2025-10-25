@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 import { ExpandedTransasction, Transaction } from './Transaction';
 import { CdsDate, OptionalIdAspect } from './_Aspects';
 import { ODataContextAspect, ODataCountAspect } from './_Base';

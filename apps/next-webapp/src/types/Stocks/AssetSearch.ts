@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AssetType, ISIN } from './Parqet';
+import { AssetType, ISIN } from '@budgetbuddyde/types';
 
 export const SearchAsset = z.object({
   isin: ISIN.or(z.string()), // REVISIT: Implement better support for commodities and cryptos without ISIN

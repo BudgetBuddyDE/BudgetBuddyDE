@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { IdAspect, ManagedAspect, OptionalIdAspect } from '../_Aspects';
 import { ODataContextAspect, OwnerAspect } from '../_Base';
 import { StockExchange } from './StockExchange';
-import { ISIN } from './Parqet';
+import { ISIN } from '@budgetbuddyde/types';
 
 // Base model
 export const StockWatchlist = z.object({

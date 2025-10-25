@@ -1,4 +1,5 @@
-import {getTrustedOrigins, LogLevel} from '@budgetbuddyde/utils';
+import {LogLevel} from '@budgetbuddyde/logger';
+import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';

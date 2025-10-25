@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { ISIN, Dividend as ParqetDividend } from './Parqet';
+import { ISIN, ParqetSchemas } from '@budgetbuddyde/types';
 
-export const Dividend = ParqetDividend.pick({
+export const Dividend = ParqetSchemas.Dividend.pick({
   price: true,
   currency: true,
   date: true,

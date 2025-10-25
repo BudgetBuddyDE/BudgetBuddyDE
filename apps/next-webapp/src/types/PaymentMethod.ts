@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 import { IdAspect, ManagedAspect, OptionalIdAspect } from './_Aspects';
 import { DescriptionType, ODataContextAspect, ODataCountAspect, OwnerAspect } from './_Base';
 

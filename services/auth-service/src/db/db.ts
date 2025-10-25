@@ -1,4 +1,4 @@
-import {LogLevel} from '@budgetbuddyde/utils';
+import {LogLevel} from '@budgetbuddyde/logger';
 import {drizzle} from 'drizzle-orm/node-postgres';
 
 import {config} from '../config';

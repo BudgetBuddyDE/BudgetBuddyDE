@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 import { CdsDate } from '../_Aspects';
 import { ODataContextAspect, ODataCountAspect } from '../_Base';
 

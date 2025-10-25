@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 import { Category } from './Category';
 import { PaymentMethod } from './PaymentMethod';
 import { CdsDate, IdAspect, ManagedAspect, OptionalIdAspect } from './_Aspects';

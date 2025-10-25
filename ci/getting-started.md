@@ -61,6 +61,23 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 fly -t kleithor set-pipeline -p bb-webapp -c ./ci/pipelines/build-webapp.pipeline.yml -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" -v repo_path="apps/webapp" -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
 ```
 
+### Publish `@budetbuddyde/logger`
+
+```bash
+fly -t kleithor set-pipeline -p bb-logger -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+  -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" \
+  -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" \
+  -v repo_path="packages/logger" \
+  -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" \
+  -v service="pck_logger" \
+  -v service_name="logger" \
+  -v version_bucket_region="$(cat ./ci/secrets/aws/bucket.txt | sed -n '4p')" \
+  -v version_bucket_access_key="$(cat ./ci/secrets/aws/bucket.txt | sed -n '1p')" \
+  -v version_bucket_secret="$(cat ./ci/secrets/aws/bucket.txt | sed -n '2p')" \
+  -v npm_token="$(cat ./ci/secrets/npmjs/npm_token)" \
+  -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
+```
+
 ### Publish `@budetbuddyde/types`
 
 ```bash

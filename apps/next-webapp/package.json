@@ -11,6 +11,8 @@
     "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
   },
   "dependencies": {
+    "@budgetbuddyde/logger": "^0.0.0",
+    "@budgetbuddyde/types": "^1.0.6",
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
@@ -20,7 +22,6 @@
     "@mui/x-charts": "^8.9.2",
     "@mui/x-date-pickers": "^8.11.1",
     "@reduxjs/toolkit": "^2.8.2",
-    "@tklein1801/logger.js": "^0.0.2",
     "@tklein1801/o.js": "^0.1.1",
     "better-auth": "^1.2.9",
     "date-fns": "^4.1.0",

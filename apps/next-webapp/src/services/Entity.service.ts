@@ -12,7 +12,7 @@ export class EntityService {
   static entity: string;
   static $servicePath = '/odata/v4/backend';
   static $odata: OHandler;
-  static readonly logger = logger.child({ scope: this.name });
+  static readonly logger = logger.child({ label: this.name });
 
   static {
     this.$odata = o(this.$backendHost, this.$odataClientConfig);

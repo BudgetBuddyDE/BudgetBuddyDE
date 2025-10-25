@@ -13,7 +13,7 @@ import {
   type TTransactionResponse,
 } from '@/types';
 import { EntityService } from './Entity.service';
-import { type ServiceResponse } from '@/types/Service';
+import { type ServiceResponse } from '@budgetbuddyde/types';
 import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 
 export class TransactionService extends EntityService {

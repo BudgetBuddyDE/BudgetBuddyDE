@@ -1,4 +1,9 @@
-import { type ServiceResponse } from '@/types/Service';
+import {
+  type ServiceResponse,
+  AssetIdentifier,
+  BackendSchemas,
+  Timeframe,
+} from '@budgetbuddyde/types';
 import { EntityService } from '../Entity.service';
 import { type OdataConfig, type OdataQuery } from '@tklein1801/o.js';
 import {
@@ -15,11 +20,8 @@ import {
   StockPositionAllocation,
   RelatedAsset,
   type TRelatedAsset,
-  AssetServiceSchemas,
 } from '@/types';
 import z from 'zod';
-import { AssetIdentifier } from '@/types/Stocks/Parqet';
-import { TTimeframe } from '@/components/Stocks/AssetPriceChart';
 
 export class StockPositionService extends EntityService {
   private static $defaultQuery: OdataQuery = {
@@ -155,7 +157,7 @@ export class StockPositionService extends EntityService {
   static async getAssets(
     identifiers: z.infer<typeof AssetIdentifier>[],
     config?: Partial<OdataConfig>
-  ): Promise<ServiceResponse<z.infer<typeof AssetServiceSchemas.Asset>[]>> {
+  ): Promise<ServiceResponse<z.infer<typeof BackendSchemas.Asset>[]>> {
     try {
       const query = new URLSearchParams();
       identifiers.forEach((id) => {
@@ -166,7 +168,7 @@ export class StockPositionService extends EntityService {
         .get(`${this.$servicePath}/Asset?${query.toString()}`)
         .query();
 
-      const parsingResult = z.array(AssetServiceSchemas.Asset).safeParse(records);
+      const parsingResult = z.array(BackendSchemas.Asset).safeParse(records);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
       }
@@ -180,7 +182,7 @@ export class StockPositionService extends EntityService {
   static async getAsset(
     identifier: string,
     config?: Partial<OdataConfig>
-  ): Promise<ServiceResponse<z.infer<typeof AssetServiceSchemas.Asset>>> {
+  ): Promise<ServiceResponse<z.infer<typeof BackendSchemas.Asset>>> {
     try {
       const query = new URLSearchParams();
       query.append('identifier', identifier);
@@ -189,7 +191,7 @@ export class StockPositionService extends EntityService {
         .get(`${this.$servicePath}/Asset?${query.toString()}`)
         .query();
 
-      const parsingResult = AssetServiceSchemas.Asset.safeParse(records[0]);
+      const parsingResult = BackendSchemas.Asset.safeParse(records[0]);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
       }
@@ -201,10 +203,10 @@ export class StockPositionService extends EntityService {
 
   static async getAssetQuotes(
     identifier: z.infer<typeof AssetIdentifier>,
-    timeframe: TTimeframe,
+    timeframe: z.infer<typeof Timeframe>,
     currency: string = 'EUR',
     config?: Partial<OdataConfig>
-  ): Promise<ServiceResponse<z.infer<typeof AssetServiceSchemas.AssetQuote>>> {
+  ): Promise<ServiceResponse<z.infer<typeof BackendSchemas.AssetQuote>>> {
     try {
       const query = new URLSearchParams();
       query.append('identifier', identifier);
@@ -215,7 +217,7 @@ export class StockPositionService extends EntityService {
         .get(`${this.$servicePath}/AssetQuote?${query.toString()}`)
         .query();
 
-      const parsingResult = z.array(AssetServiceSchemas.AssetQuote).safeParse(records);
+      const parsingResult = z.array(BackendSchemas.AssetQuote).safeParse(records);
       if (!parsingResult.success) {
         return this.handleZodError(parsingResult.error);
       }

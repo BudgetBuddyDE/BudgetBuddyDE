@@ -1,4 +1,4 @@
-import {LogLevel} from '@budgetbuddyde/utils';
+import {LogLevel} from '@budgetbuddyde/logger';
 import type {NextFunction, Request, Response} from 'express';
 
 import {logger} from '../lib/logger';

@@ -1,27 +1,18 @@
 import { z } from 'zod';
-
 import { CdsDate, IdAspect, ManagedAspect, OptionalIdAspect } from '../_Aspects';
 import { DescriptionType, ODataContextAspect, ODataCountAspect, OwnerAspect } from '../_Base';
 import { StockExchange } from './StockExchange';
 import {
-  AnalystEstimates,
   AssetIdentifier,
   AssetType,
-  CurrencyCode,
-  Dividend,
-  DividendKPI,
-  FinancialResult,
-  IncomeStatementGrowth,
   ISIN,
-  News,
-  PriceTargetConsensus,
-  SecurityScoring,
-  SecuritySymbol,
+  common,
   SecurityType,
-  WKN,
-  ZodDate,
-} from './Parqet';
-import { Timeframe } from '@/components/Stocks/AssetPriceChart';
+  BackendSchemas,
+} from '@budgetbuddyde/types';
+
+export type TAsset = z.infer<typeof BackendSchemas.Asset>;
+export type TAssetQuote = z.infer<typeof BackendSchemas.AssetQuote>;
 
 // Base model
 export const StockPosition = z.object({
@@ -103,8 +94,8 @@ export type TStockPositionsKPI = z.infer<typeof StockPositionsKPI>;
 
 export const RelatedAssetQuote = z.object({
   identifier: AssetIdentifier,
-  date: ZodDate,
-  currency: CurrencyCode,
+  date: common.ZodDate,
+  currency: common.CurrencyCode,
   price: z.number(),
 });
 export type TRelatedAssetQuote = z.infer<typeof RelatedAssetQuote>;
@@ -118,130 +109,3 @@ export const RelatedAsset = z.object({
   quotes: z.array(RelatedAssetQuote).optional(),
 });
 export type TRelatedAsset = z.infer<typeof RelatedAsset>;
-
-///
-
-const StaticMapping = z.object({
-  id: z.string(),
-  name: z.string(),
-  share: z.number(),
-});
-
-const UpdatedDividend = Dividend.extend({
-  declarationDate: ZodDate.nullable(),
-  recordDate: ZodDate.nullable(),
-});
-
-const Asset = z.object({
-  identifier: AssetIdentifier,
-  wkn: WKN.nullable(),
-  name: z.string(),
-  etfDomicile: z.string().nullable(),
-  etfCompany: z.string().nullable(),
-  securityType: z.union([SecurityType, z.literal('Crypto'), z.literal('Commodity')]),
-  assetType: AssetType,
-  description: z.string().nullable(),
-  hasDividends: z.boolean(),
-  logoUrl: z.string().nullable(),
-  ipoDate: ZodDate.nullable(),
-  currency: CurrencyCode.nullable(),
-  marketCap: z.number().nullable(),
-  shares: z.number().nullable(),
-  beta: z.number().nullable(),
-  peRatioTTM: z.number().nullable(),
-  priceSalesRatioTTM: z.number().nullable(),
-  priceToBookRatioTTM: z.number().nullable(),
-  pegRatioTTM: z.number().nullable(),
-  priceFairValueRatio: z.number().nullable(),
-  dividendYieldPercentageTTM: z.number().nullable(),
-  dividendPerShareTTM: z.number().nullable(),
-  payoutRatioTTM: z.number().nullable(),
-  etfDetails: z
-    .object({
-      currency: CurrencyCode,
-      description: z.string(),
-      nav: z.number(),
-      priceToBook: z.number(),
-      priceToEarnings: z.number(),
-      aum: z.number(),
-      expenseRatio: z.number(),
-      breakdown: z.object({
-        updatedAt: ZodDate,
-        holdings: z.array(
-          z.object({
-            name: z.string(),
-            share: z.number(),
-            marketValue: z.number(),
-            amountOfShares: z.number(),
-          })
-        ),
-      }),
-    })
-    .nullable(),
-  fiftyTwoWeekRange: z
-    .object({
-      from: z.number(),
-      to: z.number(),
-    })
-    .nullable(),
-  financials: z.object({
-    annual: z.array(FinancialResult),
-    quarterly: z.array(FinancialResult),
-    incomeStatementGrowth: z.array(IncomeStatementGrowth),
-  }),
-  symbols: z.array(SecuritySymbol),
-  dividends: z.object({
-    payoutInterval: z.string(), // REVISIT: ApiSchemas.DividendPayoutInterval,
-    historical: z.array(UpdatedDividend),
-    future: z.array(UpdatedDividend),
-    KPIs: DividendKPI.nullable(),
-    yearlyTTM: z
-      .array(
-        z.object({
-          year: z.string(),
-          dividend: z.number(),
-        })
-      )
-      .nullable(),
-  }),
-  analysis: z.object({
-    priceTargetConsensus: PriceTargetConsensus.nullable(),
-    recommendation: AnalystEstimates,
-    scorings: z.array(SecurityScoring),
-    media: z.array(
-      z.object({
-        analysisDate: ZodDate,
-        mediaType: z.enum(['video', 'article']).or(z.string()),
-        ratingCount: z.number(),
-        rating: z.number(),
-        author: z.string(),
-        title: z.string(),
-        url: z.url(),
-      })
-    ),
-  }),
-  regions: z.array(StaticMapping),
-  countries: z.array(StaticMapping),
-  sectors: z.array(StaticMapping),
-  industries: z.array(StaticMapping),
-  news: z.array(News),
-});
-export type TAsset = z.infer<typeof Asset>;
-
-export const AssetQuote = z.object({
-  identifier: AssetIdentifier,
-  from: ZodDate,
-  to: ZodDate,
-  timeframe: Timeframe,
-  exchange: z.string(),
-  currency: CurrencyCode,
-  quotes: z.array(
-    z.object({
-      date: ZodDate,
-      price: z.number(),
-    })
-  ),
-});
-export type TAssetQuote = z.infer<typeof AssetQuote>;
-
-export const AssetServiceSchemas = Object.assign({}, { Asset, AssetQuote });

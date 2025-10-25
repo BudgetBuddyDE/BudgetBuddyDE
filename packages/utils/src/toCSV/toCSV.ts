@@ -27,7 +27,7 @@ export function toCSV<T extends object>(
     throw new Error('No fields have been defined which are to be mapped');
   }
   const headerFields = fields.map(field => (typeof field === 'object' && 'as' in field ? field.as : field));
-  const header = headerFields.join(separator) + '\n';
+  const header = `${headerFields.join(separator)}\n`;
   const rows = arr
     .map((item, index) =>
       fields

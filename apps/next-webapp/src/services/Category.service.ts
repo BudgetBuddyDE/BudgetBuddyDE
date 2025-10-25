@@ -15,7 +15,7 @@ import {
 } from '@/types';
 import { EntityService } from './Entity.service';
 import { Formatter } from '@/utils/Formatter';
-import { type ServiceResponse } from '@/types/Service';
+import { type ServiceResponse } from '@budgetbuddyde/types';
 import { type OdataQuery, type OdataConfig } from '@tklein1801/o.js';
 
 export class CategoryService extends EntityService {

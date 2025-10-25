@@ -7,35 +7,40 @@
     "helper",
     "functions"
   ],
-  "author": "Thorben Klein",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "author": "Thorben",
   "license": "MIT",
-  "homepage": "https://github.com/budgetbuddyde/budgetbuddyde",
+  "homepage": "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/budgetbuddyde/budgetbuddyde.git"
+    "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE.git"
   },
   "bugs": {
-    "url": "https://github.com/budgetbuddyde/budgetbuddyde/issues"
+    "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "rimraf lib && tsc",
-    "test": "npm run format:check && vitest",
-    "test:run": "npm run format:check && vitest run",
-    "format:check": "prettier --check ./src",
-    "format": "prettier --write ./src"
+    "pretest": "npm run check",
+    "test": "vitest run --silent",
+    "test:watch": "vitest",
+    "check": "biome check --error-on-warnings",
+    "lint": "biome lint --write",
+    "format": "biome format --write"
+  },
+  "peerDependencies": {
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.0",
     "@types/node": "^22.10.5",
-    "@vitest/coverage-v8": "^3.0.9",
     "@vitest/ui": "^3.0.9",
-    "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "typescript": "^5.7.3",
     "vitest": "^3.0.9"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.7"
   }
 }

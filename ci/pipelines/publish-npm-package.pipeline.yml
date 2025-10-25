@@ -1,14 +1,13 @@
 groups:
+  - name: all
+    jobs:
+      - '*'
   - name: release
     jobs:
       - 'release-*'
   - name: build
     jobs:
       - build
-  - name: all
-    jobs:
-      - build
-      - 'release-*'
 
 resource_types:
   - name: discord-alert
@@ -34,7 +33,7 @@ resources:
     source:
       uri: ((repo_uri))
       private_key: ((repo_private_key))
-      branch: main
+      branch: auth
       paths: [((repo_path))/**]
       depth: 1
 

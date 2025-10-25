@@ -1,37 +1,33 @@
-import { z } from "zod";
-import { type ServiceResponse, ApiSchemas } from "../types";
+import { z } from 'zod';
+import { type ServiceResponse, ParqetSchemas, Timeframe } from '@budgetbuddyde/types';
 
 // FIXME: Improve error handling and logging by a LOT
 export class Parqet {
-  private static apiHost = "https://api.parqet.com/v1"; // FIXME: Retrieve from environment variable
+  private static apiHost = 'https://api.parqet.com/v1'; // FIXME: Retrieve from environment variable
 
   public static async getAsset(
-    identifier: string,
-  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.Asset>>> {
+    identifier: string
+  ): Promise<ServiceResponse<z.infer<typeof ParqetSchemas.Asset>>> {
     const query = new URLSearchParams();
-    query.append("currency", "EUR");
-    query.append("expand", "details");
-    query.append("expand", "yieldTTM");
+    query.append('currency', 'EUR');
+    query.append('expand', 'details');
+    query.append('expand', 'yieldTTM');
 
-    const response = await fetch(
-      `${this.apiHost}/assets/${identifier}?${query.toString()}`,
-    );
+    const response = await fetch(`${this.apiHost}/assets/${identifier}?${query.toString()}`);
     if (!response.ok) {
       return [
         null,
-        new Error(
-          `Failed to fetch asset data for ISIN ${identifier}: ${response.statusText}`,
-        ),
+        new Error(`Failed to fetch asset data for ISIN ${identifier}: ${response.statusText}`),
       ];
     }
     const jsonResponse = await response.json();
 
-    const parsingResult = ApiSchemas.Asset.safeParse(jsonResponse);
+    const parsingResult = ParqetSchemas.Asset.safeParse(jsonResponse);
     if (!parsingResult.success) {
       return [
         null,
         new Error(
-          `Failed to parse asset data for ISIN ${identifier}: ${JSON.stringify(parsingResult.error.issues)}`,
+          `Failed to parse asset data for ISIN ${identifier}: ${JSON.stringify(parsingResult.error.issues)}`
         ),
       ];
     }
@@ -43,55 +39,42 @@ export class Parqet {
     assets: {
       identifier: string;
     }[],
-    timeframe: "1d" | "1m" | "3m" | "1y" | "5y" | "ytd" = "1d",
-    currency = "EUR",
-  ): Promise<
-    ServiceResponse<Map<string, z.infer<typeof ApiSchemas.AssetQuote>>>
-  > {
+    timeframe: z.infer<typeof Timeframe> = '3m',
+    currency = 'EUR'
+  ): Promise<ServiceResponse<Map<string, z.infer<typeof ParqetSchemas.AssetQuote>>>> {
     const query = new URLSearchParams();
     // query.append('skipNormalization', 'true');
-    query.append("currency", currency);
+    query.append('currency', currency);
     // query.append('resolution', '10');
 
     const requestBody: { identifier: string; timeframe: string }[] = assets.map(
       ({ identifier }) => ({
         identifier,
         timeframe: timeframe,
-      }),
+      })
     );
 
     const response = await fetch(`${this.apiHost}/quotes?${query.toString()}`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
     });
     if (!response.ok) {
-      return [
-        null,
-        new Error("Failed to fetch quotes: " + response.statusText),
-      ];
+      return [null, new Error('Failed to fetch quotes: ' + response.statusText)];
     }
     const jsonResponse = await response.json();
 
-    const parsingResult = z
-      .array(ApiSchemas.AssetQuote)
-      .safeParse(jsonResponse);
+    const parsingResult = z.array(ParqetSchemas.AssetQuote).safeParse(jsonResponse);
     if (!parsingResult.success) {
       return [
         null,
-        new Error(
-          "Failed to parse quotes: " +
-            JSON.stringify(parsingResult.error.issues),
-        ),
+        new Error('Failed to parse quotes: ' + JSON.stringify(parsingResult.error.issues)),
       ];
     }
 
-    const quotes: Map<
-      string,
-      z.infer<typeof ApiSchemas.AssetQuote>
-    > = new Map();
+    const quotes: Map<string, z.infer<typeof ParqetSchemas.AssetQuote>> = new Map();
 
     for (const quote of parsingResult.data) {
       const key = quote.assetIdentifier;
@@ -106,42 +89,33 @@ export class Parqet {
     assets: {
       identifier: string;
     }[],
-    {
-      future = true,
-      historical = false,
-    }: { future: boolean; historical: boolean },
-  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.DividendDetails>>> {
+    { future = true, historical = false }: { future: boolean; historical: boolean }
+  ): Promise<ServiceResponse<z.infer<typeof ParqetSchemas.DividendDetails>>> {
     const query = new URLSearchParams();
     if (future) {
-      query.append("expand", "futureDividends");
+      query.append('expand', 'futureDividends');
     }
     if (historical) {
-      query.append("expand", "historicalDividends");
+      query.append('expand', 'historicalDividends');
     }
     // query.append("expand", "asset");
     for (const { identifier } of assets) {
-      query.append("identifier", identifier);
+      query.append('identifier', identifier);
     }
 
-    const response = await fetch(
-      `${this.apiHost}/assets/dividends?${query.toString()}`,
-    );
+    const response = await fetch(`${this.apiHost}/assets/dividends?${query.toString()}`);
     if (!response.ok) {
-      return [
-        null,
-        new Error("Failed to fetch dividends: " + response.statusText),
-      ];
+      return [null, new Error('Failed to fetch dividends: ' + response.statusText)];
     }
 
     const jsonResponse = await response.json();
 
-    const parsingResult = ApiSchemas.DividendDetails.safeParse(jsonResponse);
+    const parsingResult = ParqetSchemas.DividendDetails.safeParse(jsonResponse);
     if (!parsingResult.success) {
       return [
         null,
         new Error(
-          "Failed to parse dividend details: " +
-            JSON.stringify(parsingResult.error.issues),
+          'Failed to parse dividend details: ' + JSON.stringify(parsingResult.error.issues)
         ),
       ];
     }
@@ -150,33 +124,28 @@ export class Parqet {
   }
 
   public static async search(
-    query: string,
-  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.SearchResultItem>[]>> {
+    query: string
+  ): Promise<ServiceResponse<z.infer<typeof ParqetSchemas.SearchResultItem>[]>> {
     const response = await fetch(`${this.apiHost}/search`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ term: query }),
     });
     if (!response.ok) {
       return [
         null,
-        new Error(
-          `Failed to search assets for query ${query}: ${response.statusText}`,
-        ),
+        new Error(`Failed to search assets for query ${query}: ${response.statusText}`),
       ];
     }
     const jsonResponse = await response.json();
 
-    const parsingResult = ApiSchemas.SearchResponse.safeParse(jsonResponse);
+    const parsingResult = ParqetSchemas.SearchResponse.safeParse(jsonResponse);
     if (!parsingResult.success) {
       return [
         null,
-        new Error(
-          "Failed to parse search results: " +
-            JSON.stringify(parsingResult.error.issues),
-        ),
+        new Error('Failed to parse search results: ' + JSON.stringify(parsingResult.error.issues)),
       ];
     }
 
@@ -185,15 +154,13 @@ export class Parqet {
 
   public static async getRelatedAssets(
     isin: string,
-    limit = 6,
-  ): Promise<ServiceResponse<z.infer<typeof ApiSchemas.RelatedAsset>[]>> {
+    limit = 6
+  ): Promise<ServiceResponse<z.infer<typeof ParqetSchemas.RelatedAsset>[]>> {
     try {
       const query = new URLSearchParams();
-      query.append("limit", limit.toString());
+      query.append('limit', limit.toString());
 
-      const response = await fetch(
-        `${this.apiHost}/assets/${isin}/related?${query.toString()}`,
-      );
+      const response = await fetch(`${this.apiHost}/assets/${isin}/related?${query.toString()}`);
       if (!response.ok) {
         return [null, new Error(response.statusText)];
       }
@@ -202,7 +169,7 @@ export class Parqet {
       const parsingResult = z
         .object({
           searchStrategy: z.string(),
-          relatedAssets: z.array(ApiSchemas.RelatedAsset),
+          relatedAssets: z.array(ParqetSchemas.RelatedAsset),
         })
         .safeParse(json);
       if (!parsingResult.success) {
@@ -215,7 +182,7 @@ export class Parqet {
   }
 
   public static async getSectors(): Promise<
-    ServiceResponse<z.infer<typeof ApiSchemas.Sector>[]>
+    ServiceResponse<z.infer<typeof ParqetSchemas.Sector>[]>
   > {
     try {
       const response = await fetch(`${this.apiHost}/sectors`);
@@ -224,7 +191,7 @@ export class Parqet {
       }
 
       const json = await response.json();
-      const parsingResult = z.array(ApiSchemas.Sector).safeParse(json);
+      const parsingResult = z.array(ParqetSchemas.Sector).safeParse(json);
       if (!parsingResult.success) {
         throw parsingResult.error;
       }
@@ -235,7 +202,7 @@ export class Parqet {
   }
 
   public static async getRegions(): Promise<
-    ServiceResponse<z.infer<typeof ApiSchemas.Region>[]>
+    ServiceResponse<z.infer<typeof ParqetSchemas.Region>[]>
   > {
     try {
       const response = await fetch(`${this.apiHost}/regions`);
@@ -244,7 +211,7 @@ export class Parqet {
       }
 
       const json = await response.json();
-      const parsingResult = z.array(ApiSchemas.Region).safeParse(json);
+      const parsingResult = z.array(ParqetSchemas.Region).safeParse(json);
       if (!parsingResult.success) {
         throw parsingResult.error;
       }
@@ -255,7 +222,7 @@ export class Parqet {
   }
 
   public static async getIndustries(): Promise<
-    ServiceResponse<z.infer<typeof ApiSchemas.Industry>[]>
+    ServiceResponse<z.infer<typeof ParqetSchemas.Industry>[]>
   > {
     try {
       const response = await fetch(`${this.apiHost}/industries`);
@@ -264,7 +231,7 @@ export class Parqet {
       }
 
       const json = await response.json();
-      const parsingResult = z.array(ApiSchemas.Industry).safeParse(json);
+      const parsingResult = z.array(ParqetSchemas.Industry).safeParse(json);
       if (!parsingResult.success) {
         throw parsingResult.error;
       }
@@ -275,7 +242,7 @@ export class Parqet {
   }
 
   public static async getCountries(): Promise<
-    ServiceResponse<z.infer<typeof ApiSchemas.Country>[]>
+    ServiceResponse<z.infer<typeof ParqetSchemas.Country>[]>
   > {
     try {
       const response = await fetch(`${this.apiHost}/countries`);
@@ -284,7 +251,7 @@ export class Parqet {
       }
 
       const json = await response.json();
-      const parsingResult = z.array(ApiSchemas.Country).safeParse(json);
+      const parsingResult = z.array(ParqetSchemas.Country).safeParse(json);
       if (!parsingResult.success) {
         throw parsingResult.error;
       }

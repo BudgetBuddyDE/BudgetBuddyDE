@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { logger } from './logger';
 import { authClient } from './authClient';
 
-const middlewareLogger = logger.child({ scope: 'middleware' });
+const middlewareLogger = logger.child({ label: 'middleware' });
 
 export async function middleware(request: NextRequest) {
   let meta: Record<string, string | number> = {

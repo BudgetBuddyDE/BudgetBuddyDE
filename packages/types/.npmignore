@@ -1,8 +1,5 @@
-.git/
-node_modules/
-tsconfig.json
-.github/
-npm-debug.log
-jest.config.ts
-.prettierrc.js
+biome.json
 src/
+tsconfig.json
+vitest.config.ts
+**.(test|spec).ts

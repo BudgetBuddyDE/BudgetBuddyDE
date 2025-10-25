@@ -15,7 +15,7 @@ import React from 'react';
 import { z } from 'zod';
 import { CircularProgress } from '@/components/Loading';
 
-export const TimeframeOptions = ['1w', '1m', '3m', '6m', 'ytd', '1y', '3y', '5y', 'max'];
+export const TimeframeOptions = ['1w', '1m', '3m', '6m', 'ytd', '1y', '3y', '5y', 'max'] as const;
 export const Timeframe = z.enum(['1w', '1m', '3m', '6m', 'ytd', '1y', '3y', '5y', 'max']);
 export type TTimeframe = z.infer<typeof Timeframe>;
 
