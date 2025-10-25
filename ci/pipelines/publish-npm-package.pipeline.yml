@@ -2,12 +2,13 @@ groups:
   - name: all
     jobs:
       - '*'
-  - name: release
-    jobs:
-      - 'release-*'
   - name: build
     jobs:
       - build
+      - update-dependencies
+  - name: release
+    jobs:
+      - 'release-*'
 
 resource_types:
   - name: discord-alert
@@ -20,6 +21,12 @@ resources:
     type: discord-alert
     source:
       url: ((discord_webhook))
+
+  - name: weekly
+    type: time
+    icon: clock-outline
+    source:
+      interval: 168h
 
   - name: node-image
     type: registry-image
@@ -68,7 +75,7 @@ task-config: &task-release
         git config --global user.email thorben@tklein.it
         NEW_VERSION="$(cat version/version)"
         cd repo/((repo_path))
-        npm ci
+        npm install --no-package-lock
         npm test
         npm run build
         npm version "$NEW_VERSION" --no-git-tag-version
@@ -110,13 +117,58 @@ jobs:
               - |
                 NEW_VERSION=$(cat version/version)
                 cd repo/((repo_path))
-                npm ci
+                npm install --no-package-lock
                 npm test
                 npm run build
                 npm version "$NEW_VERSION" --no-git-tag-version
                 npm publish --access public --dry-run
       - put: version
         params: { file: version/version }
+
+  - name: update-dependencies
+    public: true
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+        message: 'Failed to update dependencies for ((service_name))'
+        role: '1342563020215291936'
+    on_success:
+      put: repo
+      params:
+        repository: repo
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repo
+          - get: weekly
+            trigger: true
+      - task: npm-update
+        image: node-image
+        config:
+          inputs:
+            - name: repo
+          outputs:
+            - name: repo
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+          platform: linux
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repo/((repo_path))
+                npm install --no-package-lock
+                npm update
+                npm audit fix --force
+                npm test
+                npm run build
+                git config --global user.name 'Thorben Klein'
+                git config --global user.email thorben@tklein.it
+                git add .
+                git commit -m 'build(dependencies): Automated update of dependencies'
 
   - name: release-patch
     on_failure:
