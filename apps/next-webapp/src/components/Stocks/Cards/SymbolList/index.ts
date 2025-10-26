@@ -1,1 +1,1 @@
-export * from './SymbolList';
+export * from "./SymbolList";

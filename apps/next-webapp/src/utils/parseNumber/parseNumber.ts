@@ -6,5 +6,5 @@
  * @returns The number representing the balance value
  */
 export function parseNumber(balance: string): number {
-  return Number(balance.replace(',', '.'));
+	return Number(balance.replace(",", "."));
 }

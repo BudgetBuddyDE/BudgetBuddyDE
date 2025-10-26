@@ -1,1 +1,1 @@
-export * from './DividendInformation';
+export * from "./DividendInformation";

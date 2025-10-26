@@ -1,40 +1,39 @@
-'use client';
+"use client";
 
 import {
-  TablePagination as MuiTablePagination,
-  type TablePaginationProps as MuiTablePaginationProps,
-} from '@mui/material';
-import React from 'react';
-import { useSearchParams } from 'next/navigation';
-
-import { type PaginationState } from './Pagination.reducer';
-import { ActionPaper } from '@/components/ActionPaper';
+	TablePagination as MuiTablePagination,
+	type TablePaginationProps as MuiTablePaginationProps,
+} from "@mui/material";
+import { useSearchParams } from "next/navigation";
+import React from "react";
+import { ActionPaper } from "@/components/ActionPaper";
+import type { PaginationState } from "./Pagination.reducer";
 
 /**
  * Props for the Pagination component.
  */
 export type PaginationProps = Pick<
-  MuiTablePaginationProps,
-  'count' | 'page' | 'rowsPerPage' | 'labelRowsPerPage'
+	MuiTablePaginationProps,
+	"count" | "page" | "rowsPerPage" | "labelRowsPerPage"
 > & {
-  /**
-   * Callback function triggered when the page is changed.
-   * @param newPage - The new page number.
-   */
-  onPageChange: (newPage: number) => void;
-  /**
-   * Callback function triggered when the number of rows per page is changed.
-   * @param rowsPerPage - The new number of rows per page.
-   */
-  onRowsPerPageChange: (rowsPerPage: number) => void;
+	/**
+	 * Callback function triggered when the page is changed.
+	 * @param newPage - The new page number.
+	 */
+	onPageChange: (newPage: number) => void;
+	/**
+	 * Callback function triggered when the number of rows per page is changed.
+	 * @param rowsPerPage - The new number of rows per page.
+	 */
+	onRowsPerPageChange: (rowsPerPage: number) => void;
 };
 
 /**
  * Represents a handler for pagination events.
  */
 export interface IPaginationHandler {
-  onPageChange: PaginationProps['onPageChange'];
-  onRowsPerPageChange: PaginationProps['onRowsPerPageChange'];
+	onPageChange: PaginationProps["onPageChange"];
+	onRowsPerPageChange: PaginationProps["onRowsPerPageChange"];
 }
 
 /**
@@ -46,8 +45,8 @@ export const RowsPerPageOptions = [10, 15, 25, 50];
  * Represents the initial state for pagination.
  */
 export const InitialPaginationState: PaginationState = {
-  page: 0,
-  rowsPerPage: RowsPerPageOptions[0],
+	page: 0,
+	rowsPerPage: RowsPerPageOptions[0],
 };
 
 /**
@@ -74,61 +73,73 @@ export const InitialPaginationState: PaginationState = {
  * @returns {JSX.Element} The pagination component.
  */
 export const Pagination: React.FC<PaginationProps> = ({
-  count,
-  page,
-  onPageChange,
-  rowsPerPage = RowsPerPageOptions[0],
-  labelRowsPerPage = 'Rows:',
-  onRowsPerPageChange,
+	count,
+	page,
+	onPageChange,
+	rowsPerPage = RowsPerPageOptions[0],
+	labelRowsPerPage = "Rows:",
+	onRowsPerPageChange,
 }) => {
-  const searchParams = useSearchParams();
-  const queryPage = parseInt(
-    searchParams.get('page') ?? InitialPaginationState.page.toString(),
-    10
-  );
-  const queryRowsPerPage = parseInt(
-    searchParams.get('rpp') ?? InitialPaginationState.rowsPerPage.toString(),
-    10
-  );
+	const searchParams = useSearchParams();
+	const queryPage = parseInt(
+		searchParams.get("page") ?? InitialPaginationState.page.toString(),
+		10,
+	);
+	const queryRowsPerPage = parseInt(
+		searchParams.get("rpp") ?? InitialPaginationState.rowsPerPage.toString(),
+		10,
+	);
 
-  const validRowsPerPage = RowsPerPageOptions.includes(queryRowsPerPage)
-    ? queryRowsPerPage
-    : RowsPerPageOptions[0];
+	const validRowsPerPage = RowsPerPageOptions.includes(queryRowsPerPage)
+		? queryRowsPerPage
+		: RowsPerPageOptions[0];
 
-  const maxPage = Math.ceil(count / validRowsPerPage) - 1;
-  const validPage = queryPage < 0 ? 0 : queryPage > maxPage ? maxPage : queryPage;
+	const maxPage = Math.ceil(count / validRowsPerPage) - 1;
+	const validPage =
+		queryPage < 0 ? 0 : queryPage > maxPage ? maxPage : queryPage;
 
-  React.useEffect(() => {
-    if (page !== validPage) {
-      onPageChange(validPage);
-    }
-    if (rowsPerPage !== validRowsPerPage) {
-      onRowsPerPageChange(validRowsPerPage);
-    }
-  }, [validPage, validRowsPerPage, onPageChange, onRowsPerPageChange, page, rowsPerPage, count]);
+	React.useEffect(() => {
+		if (page !== validPage) {
+			onPageChange(validPage);
+		}
+		if (rowsPerPage !== validRowsPerPage) {
+			onRowsPerPageChange(validRowsPerPage);
+		}
+	}, [
+		validPage,
+		validRowsPerPage,
+		onPageChange,
+		onRowsPerPageChange,
+		page,
+		rowsPerPage,
+	]);
 
-  const handlePageChange: MuiTablePaginationProps['onPageChange'] = (_event, newPage) => {
-    // FIXME: setSearchParams({ page: newPage.toString(), rpp: rowsPerPage.toString() });
-    onPageChange(newPage);
-  };
+	const handlePageChange: MuiTablePaginationProps["onPageChange"] = (
+		_event,
+		newPage,
+	) => {
+		// FIXME: setSearchParams({ page: newPage.toString(), rpp: rowsPerPage.toString() });
+		onPageChange(newPage);
+	};
 
-  const handleRowsPerPageChange: MuiTablePaginationProps['onRowsPerPageChange'] = (event) => {
-    const newRowsPerPage = Number(event.target.value);
-    // FIXME: setSearchParams({ page: page.toString(), rpp: newRowsPerPage.toString() });
-    onRowsPerPageChange(newRowsPerPage);
-  };
+	const handleRowsPerPageChange: MuiTablePaginationProps["onRowsPerPageChange"] =
+		(event) => {
+			const newRowsPerPage = Number(event.target.value);
+			// FIXME: setSearchParams({ page: page.toString(), rpp: newRowsPerPage.toString() });
+			onRowsPerPageChange(newRowsPerPage);
+		};
 
-  return (
-    <ActionPaper sx={{ width: 'fit-content', ml: 'auto', pr: 0.5 }}>
-      <MuiTablePagination
-        component="div"
-        count={count}
-        page={validPage}
-        onPageChange={handlePageChange}
-        labelRowsPerPage={labelRowsPerPage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleRowsPerPageChange}
-      />
-    </ActionPaper>
-  );
+	return (
+		<ActionPaper sx={{ width: "fit-content", ml: "auto", pr: 0.5 }}>
+			<MuiTablePagination
+				component="div"
+				count={count}
+				page={validPage}
+				onPageChange={handlePageChange}
+				labelRowsPerPage={labelRowsPerPage}
+				rowsPerPage={rowsPerPage}
+				onRowsPerPageChange={handleRowsPerPageChange}
+			/>
+		</ActionPaper>
+	);
 };

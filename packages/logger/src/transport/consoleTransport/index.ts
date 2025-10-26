@@ -1,1 +1,1 @@
-export * from './consoleTransport';
+export * from "./consoleTransport";

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export type ParentSizeProps = {
-  children: (size: { width: number; height: number }) => React.ReactNode;
+	children: (size: { width: number; height: number }) => React.ReactNode;
 };
 
 /**
@@ -23,25 +23,25 @@ export type ParentSizeProps = {
  * ```
  */
 export const ParentSize: React.FC<ParentSizeProps> = ({ children }) => {
-  const [size, setSize] = React.useState({ width: 0, height: 0 });
-  const containerRef = React.useRef<HTMLDivElement>(null);
+	const [size, setSize] = React.useState({ width: 0, height: 0 });
+	const containerRef = React.useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        setSize({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight,
-        });
-      }
-    };
+	React.useEffect(() => {
+		const updateSize = () => {
+			if (containerRef.current) {
+				setSize({
+					width: containerRef.current.offsetWidth,
+					height: containerRef.current.offsetHeight,
+				});
+			}
+		};
 
-    updateSize();
+		updateSize();
 
-    window.addEventListener('resize', updateSize);
+		window.addEventListener("resize", updateSize);
 
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
+		return () => window.removeEventListener("resize", updateSize);
+	}, []);
 
-  return <div ref={containerRef}>{children(size)}</div>;
+	return <div ref={containerRef}>{children(size)}</div>;
 };

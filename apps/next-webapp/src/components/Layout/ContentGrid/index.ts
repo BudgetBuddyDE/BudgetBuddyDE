@@ -1,1 +1,1 @@
-export * from './ContentGrid';
+export * from "./ContentGrid";

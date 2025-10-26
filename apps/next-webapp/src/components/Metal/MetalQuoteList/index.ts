@@ -1,1 +1,1 @@
-export * from './MetalQuoteList';
+export * from "./MetalQuoteList";

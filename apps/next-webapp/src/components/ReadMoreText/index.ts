@@ -1,1 +1,1 @@
-export * from './ReadMoreText';
+export * from "./ReadMoreText";

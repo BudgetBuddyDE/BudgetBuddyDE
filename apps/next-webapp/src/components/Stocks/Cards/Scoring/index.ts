@@ -1,1 +1,1 @@
-export * from './Scoring';
+export * from "./Scoring";

@@ -1,1 +1,1 @@
-export * from './StockPositionTable';
+export * from "./StockPositionTable";

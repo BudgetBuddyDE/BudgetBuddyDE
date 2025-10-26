@@ -1,23 +1,23 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { IdAspect, ManagedAspect } from './_Aspects';
+import { IdAspect, ManagedAspect } from "./_Aspects";
 import {
-  DescriptionType,
-  ODataContextAspect,
-  ODataCountAspect,
-  OwnerAspect,
-  UserID,
-} from './_Base';
+	DescriptionType,
+	ODataContextAspect,
+	ODataCountAspect,
+	OwnerAspect,
+	UserID,
+} from "./_Base";
 
 /**
  * Category
  */
 export const Category = z.object({
-  ...IdAspect.shape,
-  name: z.string().min(1).max(80),
-  description: DescriptionType,
-  ...OwnerAspect.shape,
-  ...ManagedAspect.shape,
+	...IdAspect.shape,
+	name: z.string().min(1).max(80),
+	description: DescriptionType,
+	...OwnerAspect.shape,
+	...ManagedAspect.shape,
 });
 /**
  * Category
@@ -28,8 +28,8 @@ export type TCategory = z.infer<typeof Category>;
  * Create or Update Category
  */
 export const CreateOrUpdateCategory = Category.pick({
-  name: true,
-  description: true,
+	name: true,
+	description: true,
 });
 /**
  * Create or Update Category
@@ -49,9 +49,9 @@ export type TCategoryResponse = z.infer<typeof CategoryResponse>;
  * Categories with Count
  */
 export const CategoriesWithCount = z.object({
-  ...ODataContextAspect.shape,
-  ...ODataCountAspect.shape,
-  value: z.array(Category),
+	...ODataContextAspect.shape,
+	...ODataCountAspect.shape,
+	value: z.array(Category),
 });
 /**
  * Categories with Count
@@ -62,9 +62,9 @@ export type TCategoriesWithCount = z.infer<typeof CategoriesWithCount>;
  * Value Help for Category
  */
 export const Category_VH = Category.pick({
-  ID: true,
-  name: true,
-  description: true,
+	ID: true,
+	name: true,
+	description: true,
 });
 /**
  * Value Help for Category
@@ -75,13 +75,13 @@ export type TCategory_VH = z.infer<typeof Category_VH>;
  * Category Statistics
  */
 export const CategoryStats = z.object({
-  toCategory_ID: Category.shape.ID,
-  balance: z.number(),
-  income: z.number(),
-  expenses: z.number(),
-  // start: CdsDate,
-  // end: CdsDate,
-  createdBy: UserID,
+	toCategory_ID: Category.shape.ID,
+	balance: z.number(),
+	income: z.number(),
+	expenses: z.number(),
+	// start: CdsDate,
+	// end: CdsDate,
+	createdBy: UserID,
 });
 /**
  * Category Statistics
@@ -93,9 +93,9 @@ export type TCategoryStats = z.infer<typeof CategoryStats>;
  * Includes the full Category object instead of just the ID
  */
 export const ExpandedCategoryStats = CategoryStats.omit({
-  toCategory_ID: true,
+	toCategory_ID: true,
 }).extend({
-  toCategory: Category,
+	toCategory: Category,
 });
 /**
  * Expanded Category Statistics

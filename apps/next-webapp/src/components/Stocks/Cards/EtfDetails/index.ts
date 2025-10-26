@@ -1,1 +1,1 @@
-export * from './EtfDetails';
+export * from "./EtfDetails";

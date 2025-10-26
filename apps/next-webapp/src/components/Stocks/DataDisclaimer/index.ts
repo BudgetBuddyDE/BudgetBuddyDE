@@ -1,1 +1,1 @@
-export * from './DataDisclaimer';
+export * from "./DataDisclaimer";

@@ -1,2 +1,1 @@
-export * from './DividendList';
-export * from './DividendTable';
+export * from "./DividendTable";

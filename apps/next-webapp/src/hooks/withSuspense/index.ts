@@ -1,1 +1,1 @@
-export * from './withSuspense';
+export * from "./withSuspense";

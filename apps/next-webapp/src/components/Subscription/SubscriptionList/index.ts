@@ -1,2 +1,2 @@
-export * from './SubscriptionList';
-export * from './UpcomingSubscriptionsList';
+export * from "./SubscriptionList";
+export * from "./UpcomingSubscriptionsList";

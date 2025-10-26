@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
+import type React from "react";
 
+// biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
 export type SubscriptionReceiverAutocompleteProps = {};
 
 export const SubscriptionReceiverAutocomplete: React.FC<
-  SubscriptionReceiverAutocompleteProps
+	SubscriptionReceiverAutocompleteProps
 > = () => {
-  return <div>Subscription Receiver Autocomplete</div>;
+	return <div>Subscription Receiver Autocomplete</div>;
 };

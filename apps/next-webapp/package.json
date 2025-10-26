@@ -6,12 +6,15 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test": "vitest",
+    "pretest": "npm run check",
+    "test": "vitest run --silent",
+    "test:watch": "vitest",
+    "check": "biome check --error-on-warnings",
+    "lint": "biome lint --write",
+    "format": "biome format --write",
     "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
   },
   "dependencies": {
-    "@budgetbuddyde/logger": "^0.0.0",
     "@budgetbuddyde/types": "^1.0.6",
     "@emotion/cache": "latest",
     "@emotion/react": "latest",

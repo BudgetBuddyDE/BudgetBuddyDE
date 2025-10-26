@@ -1,1 +1,1 @@
-export * from './PriceTargetConsensus';
+export * from "./PriceTargetConsensus";

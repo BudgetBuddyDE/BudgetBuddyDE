@@ -1,1 +1,1 @@
-export * from './RelatedAsset';
+export * from "./RelatedAsset";

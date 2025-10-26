@@ -1,1 +1,1 @@
-export * from './Asset.service';
+export * from "./Asset.service";

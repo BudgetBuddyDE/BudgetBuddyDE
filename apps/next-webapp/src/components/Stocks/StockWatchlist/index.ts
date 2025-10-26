@@ -1,1 +1,1 @@
-export * from './StockWatchlist';
+export * from "./StockWatchlist";

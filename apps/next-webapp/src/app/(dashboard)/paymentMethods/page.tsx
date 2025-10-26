@@ -1,13 +1,13 @@
-import { ContentGrid } from '@/components/Layout/ContentGrid';
-import { PaymentMethodTable } from '@/components/PaymentMethod/PaymentMethodTable';
-import { Grid } from '@mui/material';
+import { Grid } from "@mui/material";
+import { ContentGrid } from "@/components/Layout/ContentGrid";
+import { PaymentMethodTable } from "@/components/PaymentMethod/PaymentMethodTable";
 
 export default async function PaymentMethodsPage() {
-  return (
-    <ContentGrid title="Payment Methods">
-      <Grid size={{ xs: 12, md: 9 }}>
-        <PaymentMethodTable />
-      </Grid>
-    </ContentGrid>
-  );
+	return (
+		<ContentGrid title="Payment Methods">
+			<Grid size={{ xs: 12, md: 9 }}>
+				<PaymentMethodTable />
+			</Grid>
+		</ContentGrid>
+	);
 }

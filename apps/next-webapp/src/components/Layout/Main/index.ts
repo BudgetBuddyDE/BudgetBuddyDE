@@ -1,2 +1,2 @@
-export * from './UnauthenticatedMain';
-export * from './AuthenticatedMain';
+export * from "./AuthenticatedMain";
+export * from "./UnauthenticatedMain";

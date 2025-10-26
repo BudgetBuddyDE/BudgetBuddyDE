@@ -1,7 +1,6 @@
-import { TransactionService } from '@/services/Transaction.service';
-import { createEntitySlice } from '../createEntitySlice';
-import { SubscriptionService } from '@/services/Subscription.service';
+import { SubscriptionService } from "@/services/Subscription.service";
+import { createEntitySlice } from "../createEntitySlice";
 
-export const subscriptionSlice = createEntitySlice('subscription', (query) =>
-  SubscriptionService.getSubscriptionsWithCount(query)
+export const subscriptionSlice = createEntitySlice("subscription", (query) =>
+	SubscriptionService.getSubscriptionsWithCount(query),
 );

@@ -1,1 +1,1 @@
-export * from './EntityDrawer';
+export * from "./EntityDrawer";

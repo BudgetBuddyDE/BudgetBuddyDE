@@ -1,30 +1,30 @@
-import {z} from 'zod';
+import { z } from "zod";
 
-import {UserID} from './_Base';
+import { UserID } from "./_Base";
 
 export const CdsDate = z
-  .date()
-  .or(z.string())
-  .transform(val => (typeof val === 'string' ? new Date(val) : val));
+	.date()
+	.or(z.string())
+	.transform((val) => (typeof val === "string" ? new Date(val) : val));
 export type TCdsDate = z.infer<typeof CdsDate>;
 
 export const GUID = z.uuid();
 export type TGUID = z.infer<typeof GUID>;
 
 export const IdAspect = z.object({
-  ID: GUID,
+	ID: GUID,
 });
 export type TIdAspect = z.infer<typeof IdAspect>;
 
 export const OptionalIdAspect = z.object({
-  ID: GUID.optional(),
+	ID: GUID.optional(),
 });
 export type TOptionalIdAspect = z.infer<typeof OptionalIdAspect>;
 
 export const ManagedAspect = z.object({
-  createdAt: CdsDate,
-  createdBy: UserID,
-  modifiedAt: CdsDate,
-  modifiedBy: UserID,
+	createdAt: CdsDate,
+	createdBy: UserID,
+	modifiedAt: CdsDate,
+	modifiedBy: UserID,
 });
 export type TManagedAspect = z.infer<typeof ManagedAspect>;

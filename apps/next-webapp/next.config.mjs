@@ -3,6 +3,9 @@ const nextConfig = {
   env: {
     NEXT_TELEMETRY_DISABLED: '1',
   },
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   async redirects() {
     return [
       // Basic app redirects

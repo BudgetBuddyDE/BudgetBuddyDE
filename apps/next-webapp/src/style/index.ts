@@ -1,1 +1,1 @@
-export * from './HideHorizontalScrollbar';
+export * from "./HideHorizontalScrollbar";

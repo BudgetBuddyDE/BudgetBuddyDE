@@ -1,2 +1,2 @@
-export * from './CompanyDetails';
-export * from './EtfCompanyDetails';
+export * from "./CompanyDetails";
+export * from "./EtfCompanyDetails";

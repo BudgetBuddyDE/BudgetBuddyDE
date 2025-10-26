@@ -1,1 +1,1 @@
-export * from './SearchStockDialog';
+export * from "./SearchStockDialog";

@@ -1,1 +1,1 @@
-export * from './SubscriptionReceiverAutocomplete';
+export * from "./SubscriptionReceiverAutocomplete";

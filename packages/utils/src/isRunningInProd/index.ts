@@ -1,1 +1,1 @@
-export * from './isRunningInProd';
+export * from "./isRunningInProd";

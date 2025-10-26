@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useTheme } from '@mui/material';
+import { useTheme } from "@mui/material";
 import {
-  PieChart as MuiPieChart,
-  type PieSeries,
-  type PieChartProps as MuiPieChartProps,
-} from '@mui/x-charts';
-import React from 'react';
+	PieChart as MuiPieChart,
+	type PieChartProps as MuiPieChartProps,
+	type PieSeries,
+} from "@mui/x-charts";
+import React from "react";
 
-import { useScreenSize } from '@/hooks/useScreenSize';
+import { useScreenSize } from "@/hooks/useScreenSize";
 
-import { ParentSize } from '../ParentSize';
-import { PieCenterLabel } from './PieCenterLabel';
+import { ParentSize } from "../ParentSize";
+import { PieCenterLabel } from "./PieCenterLabel";
 
 /**
  * Type definition for the props of the PieChart component.
@@ -21,10 +21,10 @@ import { PieCenterLabel } from './PieCenterLabel';
  *
  * @public
  */
-export type PieChartProps = Omit<MuiPieChartProps, 'children'> & {
-  fullWidth?: boolean;
-  primaryText?: string;
-  secondaryText?: string;
+export type PieChartProps = Omit<MuiPieChartProps, "children"> & {
+	fullWidth?: boolean;
+	primaryText?: string;
+	secondaryText?: string;
 };
 
 /**
@@ -49,60 +49,66 @@ export type PieChartProps = Omit<MuiPieChartProps, 'children'> & {
  * @returns {React.ReactNode} The rendered PieChart component.
  */
 export const PieChart: React.FC<PieChartProps> = ({
-  fullWidth = false,
-  primaryText,
-  secondaryText,
-  ...props
+	fullWidth = false,
+	primaryText,
+	secondaryText,
+	...props
 }) => {
-  const theme = useTheme();
-  const screenSize = useScreenSize();
-  const defaultProps: Partial<MuiPieChartProps> = {
-    hideLegend: true,
-    margin: { left: 0, right: 0, top: 0, bottom: 0 },
-    skipAnimation: false,
-  };
+	const theme = useTheme();
+	const screenSize = useScreenSize();
+	const defaultProps: Partial<MuiPieChartProps> = {
+		hideLegend: true,
+		margin: { left: 0, right: 0, top: 0, bottom: 0 },
+		skipAnimation: false,
+	};
 
-  const preparedData: PieSeries[] = React.useMemo(() => {
-    const updatedSeries: PieSeries[] = props.series.map((serie) => ({
-      innerRadius: screenSize === 'small' ? 90 : 110,
-      paddingAngle: 1,
-      cornerRadius: theme.shape.borderRadius as number,
-      arcLabel: (params) => params.label ?? '',
-      arcLabelMinAngle: 18,
-      highlightScope: { fade: 'global', highlight: 'item' },
-      sortingValues(a, b) {
-        return b - a;
-      },
-      ...serie,
-    }));
+	const preparedData: PieSeries[] = React.useMemo(() => {
+		const updatedSeries: PieSeries[] = props.series.map((serie) => ({
+			innerRadius: screenSize === "small" ? 90 : 110,
+			paddingAngle: 1,
+			cornerRadius: theme.shape.borderRadius as number,
+			arcLabel: (params) => params.label ?? "",
+			arcLabelMinAngle: 18,
+			highlightScope: { fade: "global", highlight: "item" },
+			sortingValues(a, b) {
+				return b - a;
+			},
+			...serie,
+		}));
 
-    return updatedSeries;
-  }, [props.series]);
+		return updatedSeries;
+	}, [props.series, screenSize, theme.shape.borderRadius]);
 
-  return fullWidth ? (
-    <ParentSize>
-      {({ width }) => (
-        <MuiPieChart
-          width={width}
-          height={width}
-          {...defaultProps}
-          {...props}
-          series={preparedData}
-          // This will prevent loading the bars every time the chart is resized
-          // or changed (data) when the state changed
-          skipAnimation
-        >
-          {(primaryText || secondaryText) && (
-            <PieCenterLabel primaryText={primaryText} secondaryText={secondaryText} />
-          )}
-        </MuiPieChart>
-      )}
-    </ParentSize>
-  ) : (
-    <MuiPieChart {...defaultProps} {...props} series={preparedData}>
-      {(primaryText || secondaryText) && (
-        <PieCenterLabel primaryText={primaryText} secondaryText={secondaryText} />
-      )}
-    </MuiPieChart>
-  );
+	return fullWidth ? (
+		<ParentSize>
+			{({ width }) => (
+				<MuiPieChart
+					width={width}
+					height={width}
+					{...defaultProps}
+					{...props}
+					series={preparedData}
+					// This will prevent loading the bars every time the chart is resized
+					// or changed (data) when the state changed
+					skipAnimation
+				>
+					{(primaryText || secondaryText) && (
+						<PieCenterLabel
+							primaryText={primaryText}
+							secondaryText={secondaryText}
+						/>
+					)}
+				</MuiPieChart>
+			)}
+		</ParentSize>
+	) : (
+		<MuiPieChart {...defaultProps} {...props} series={preparedData}>
+			{(primaryText || secondaryText) && (
+				<PieCenterLabel
+					primaryText={primaryText}
+					secondaryText={secondaryText}
+				/>
+			)}
+		</MuiPieChart>
+	);
 };

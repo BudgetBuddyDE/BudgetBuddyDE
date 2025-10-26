@@ -1,1 +1,1 @@
-export * from './PaymentMethodTable';
+export * from "./PaymentMethodTable";

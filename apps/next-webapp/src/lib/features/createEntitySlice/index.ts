@@ -1,1 +1,1 @@
-export * from './createEntitySlice';
+export * from "./createEntitySlice";
