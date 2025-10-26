@@ -6,8 +6,11 @@ describe("Parqet - Retrieve asset details", () => {
     expect(error).toBeNull();
     expect(asset).not.toBeNull();
     expect(asset?.asset.assetType).toBe("Security");
-    // @ts-expect-error
-    expect(asset?.asset.security.type).toBe("Aktie");
+    expect(
+      asset?.asset && asset?.asset.assetType === "Security"
+        ? asset.asset.security.type
+        : null,
+    ).toBe("Aktie");
   });
 
   test("assetType = Security and securityType = ETF", async () => {
@@ -15,8 +18,11 @@ describe("Parqet - Retrieve asset details", () => {
     expect(error).toBeNull();
     expect(asset).not.toBeNull();
     expect(asset?.asset.assetType).toBe("Security");
-    // @ts-expect-error
-    expect(asset?.asset.security.type).toBe("ETF");
+    expect(
+      asset?.asset && asset?.asset.assetType === "Security"
+        ? asset.asset.security.type
+        : null,
+    ).toBe("ETF");
   });
 
   test("assetType = Security and securityType = Zertifikat", async () => {
@@ -24,8 +30,11 @@ describe("Parqet - Retrieve asset details", () => {
     expect(error).toBeNull();
     expect(asset).not.toBeNull();
     expect(asset?.asset.assetType).toBe("Security");
-    // @ts-expect-error
-    expect(asset?.asset.security.type).toBe("Zertifikat");
+    expect(
+      asset?.asset && asset?.asset.assetType === "Security"
+        ? asset.asset.security.type
+        : null,
+    ).toBe("Zertifikat");
   });
 
   test("assetType = Commodity", async () => {

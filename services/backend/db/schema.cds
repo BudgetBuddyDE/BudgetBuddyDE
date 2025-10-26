@@ -190,10 +190,10 @@ entity RelatedAssetQuote {
 @plural: 'StockPositionAllocations'
 entity StockPositionAllocation as
     select from StockPosition {
-        isin,
-        null     as securityName         : StockPosition:securityName,
-        quantity as absolutePositionSize : StockPosition:positionValue,
-        null     as relativePositionSize : Double,
+        key isin,
+            null     as securityName         : StockPosition:securityName,
+            quantity as absolutePositionSize : StockPosition:positionValue,
+            null     as relativePositionSize : Double,
     };
 
 @odata.singleton
@@ -206,7 +206,6 @@ entity StockPositionsKPI {
     boundCapitalOnLosingPositions    : Double;
     upcomingDividends                : Double;
 };
-
 
 @cds.persistence.skip
 @plural: 'Dividends'
@@ -240,7 +239,6 @@ entity StockWatchlist : cuid, managed {
     ];
     owner       : types.UserID;
 }
-
 
 @cds.persistence.skip
 @plural: 'SearchAssets'
@@ -307,7 +305,7 @@ entity SecurityRegion {
         labelEN : String @assert.notNull;
 }
 
-@cds.persistence.sjip
+@cds.persistence.skip
 @plural: 'SecurityCountries'
 entity SecurityCountry {
     key _id           : String                                     @assert.notNull;
@@ -346,7 +344,7 @@ entity Asset {
         name                       : String;
         etfDomicile                : String;
         etfCompany                 : String;
-        etfDetails                 : Composition of one EtfDetails;
+        etfDetails                 : Composition of one EtfDetail;
         securityType               : String;
         assetType                  : String;
         description                : String;
@@ -366,9 +364,9 @@ entity Asset {
         dividendPerShareTTM        : Double;
         payoutRatioTTM             : Double;
         fiftyTwoWeekRange          : Composition of types.FiftyTwoWeekRange;
-        financials                 : Association to one AssetFinancials;
-        symbols                    : Composition of many types.AssetSymbol;
-        dividends                  : Association to one AssetDividends;
+        financials                 : Association to one AssetFinancial;
+        assetSymbols               : Composition of many types.AssetSymbol;
+        dividends                  : Association to one AssetDividend;
         analysis                   : Association to one AssetAnalysis;
         regions                    : Composition of many types.StaticAssetMapping;
         countries                  : Composition of many types.StaticAssetMapping;
@@ -377,7 +375,9 @@ entity Asset {
         news                       : Composition of many types.NewsArticle;
 }
 
-entity EtfDetails {
+@cds.persistence.skip
+@plural: 'EtfDetails'
+entity EtfDetail {
     key toAsset         : Association to Asset; // mocked
         currency        : String;
         nav             : Double;
@@ -389,11 +389,15 @@ entity EtfDetails {
         breakdown       : Composition of one EtfBreakdown;
 }
 
+@cds.persistence.skip
+@plural: 'EtfBreakdowns'
 entity EtfBreakdown {
     key updatedAt : Date;
         holdings  : Composition of many types.EtfHolding;
 }
 
+@cds.persistence.skip
+@plural: 'AssetAnalyses'
 entity AssetAnalysis {
     key toAsset              : Association to Asset; // mocked
         priceTargetConsensus : Composition of one types.PriceTargetConsensus;
@@ -402,18 +406,22 @@ entity AssetAnalysis {
         media                : Composition of many types.MediaAnalysis;
 }
 
-entity AssetFinancials {
+@cds.persistence.skip
+@plural: 'AssetFinancials'
+entity AssetFinancial {
     key toAsset               : Association to Asset; // mocked
         annual                : Composition of many types.FinancialRelease;
         quarterly             : Composition of many types.FinancialRelease;
         incomeStatementGrowth : Composition of many types.IncomeStatementGrowth;
 }
 
-entity AssetDividends {
+@cds.persistence.skip
+@plural: 'AssetDividends'
+entity AssetDividend {
     key toAsset        : Association to Asset; // mocked
         payoutInterval : String;
-        historical     : Composition of many types.AssetDividend;
-        future         : Composition of many types.AssetDividend;
+        historical     : Composition of many types.AssetDividendAscpect;
+        future         : Composition of many types.AssetDividendAscpect;
         KPIs           : Composition of one types.AssetDividendKPIs;
         yearlyTTM      : Composition of many types.AssetYearlyDividendTTM;
 }

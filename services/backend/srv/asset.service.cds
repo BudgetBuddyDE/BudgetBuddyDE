@@ -60,9 +60,6 @@ service AssetService {
   @plural: 'RelatedAssets'
   entity RelatedAsset                                   as projection on db.RelatedAsset;
 
-  // @plural: 'RelatedAssetQuotes'
-  // entity RelatedAssetQuote                              as projection on db.RelatedAssetQuote;
-
   @plural: 'SecuritySectors'
   entity SecuritySector                                 as projection on db.SecuritySector;
 

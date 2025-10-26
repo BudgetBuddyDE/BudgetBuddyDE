@@ -12,6 +12,7 @@ export type AuthConfig = axios.AxiosBasicCredentials;
  */
 export enum ODataService {
   Backend = "backend",
+  Asset = "asset",
 }
 
 /**
@@ -24,6 +25,10 @@ const ODataServiceMapping: Record<
   backend: {
     baseUrl: "/odata/v4/backend",
     serviceName: "BackendService",
+  },
+  asset: {
+    baseUrl: "/odata/v4/asset",
+    serviceName: "AssetService",
   },
 } as const;
 

@@ -4,6 +4,7 @@ import path from "path";
 const config: Config = {
   verbose: true,
   preset: "ts-jest",
+  silent: true,
   testEnvironment: "node",
   testTimeout: 50 * 1000, // 50 seconds
   testMatch: ["<rootDir>/test/**/*.(test|spec).ts"],

@@ -20,7 +20,7 @@ type MetalUnit    : String(7) enum {
   OUNCE = 'oz';
 }
 
-aspect AssetDividend {
+aspect AssetDividendAscpect {
       type            : String;
       security        : String;
       price           : Double;
@@ -56,7 +56,7 @@ aspect IncomeStatementGrowth {
 
 aspect AssetSymbol {
   key exchange : String;
-  key symbol   : String
+  key symbol   : String;
 }
 
 // Used for regions, countries, sectors, industries
