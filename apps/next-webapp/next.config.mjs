@@ -1,10 +1,32 @@
+
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // FIXME: Use turbopack instead of webpack
+  // turbopack: {
+  //   resolveAlias: {
+  //     'better-auth/react$': path.resolve(__dirname, '../../node_modules/better-auth/dist/client/react/index.cjs'),
+  //   },
+  // },
   env: {
     NEXT_TELEMETRY_DISABLED: '1',
   },
   eslint: {
     ignoreDuringBuilds: true
+  },
+  transpilePackages: ["better-auth"],
+  webpack: (config) => {
+    // Alias better-auth/react to use CommonJS version to fix React 19 compatibility
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'better-auth/react$': path.resolve(__dirname, '../../node_modules/better-auth/dist/client/react/index.cjs'),
+    };
+    return config;
   },
   async redirects() {
     return [

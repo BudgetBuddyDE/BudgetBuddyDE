@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -18,7 +19,7 @@ export class BudgetService extends EntityService {
 	};
 
 	static {
-		BudgetService.entity = "Budget";
+		this.entity = "Budget";
 	}
 
 	/**
@@ -30,16 +31,16 @@ export class BudgetService extends EntityService {
 		payload: TCreateOrUpdateBudget,
 	): Promise<ServiceResponse<TExpandedBudget>> {
 		try {
-			const record = await BudgetService.newOdataHandler()
-				.post(BudgetService.$entityPath, payload)
-				.query(BudgetService.$defaultQuery);
+			const record = await this.newOdataHandler()
+				.post(this.$entityPath, payload)
+				.query(this.$defaultQuery);
 			const parsingResult = ExpandedBudget.safeParse(record);
 			if (!parsingResult.success) {
-				return BudgetService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return BudgetService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -54,16 +55,16 @@ export class BudgetService extends EntityService {
 		payload: TCreateOrUpdateBudget,
 	): Promise<ServiceResponse<TBudgetResponse>> {
 		try {
-			const record = await BudgetService.newOdataHandler()
-				.patch(`${BudgetService.$entityPath}(ID=${entityId})`, payload)
+			const record = await this.newOdataHandler()
+				.patch(`${this.$entityPath}(ID=${entityId})`, payload)
 				.query();
 			const parsingResult = BudgetResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return BudgetService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return BudgetService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -77,19 +78,19 @@ export class BudgetService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TExpandedBudget[]>> {
 		try {
-			const records = await BudgetService.newOdataHandler(config)
-				.get(BudgetService.$entityPath)
+			const records = await this.newOdataHandler(config)
+				.get(this.$entityPath)
 				.query({
-					...BudgetService.$defaultQuery,
+					...this.$defaultQuery,
 					...query,
 				});
 			const parsingResult = z.array(ExpandedBudget).safeParse(records);
 			if (!parsingResult.success) {
-				return BudgetService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return BudgetService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -104,23 +105,23 @@ export class BudgetService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TExpandedBudgetsWithCount>> {
 		try {
-			const records = await BudgetService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(BudgetService.$entityPath)
+				.get(this.$entityPath)
 				.query({
-					...BudgetService.$defaultQuery,
+					...this.$defaultQuery,
 					$count: true,
 					...query,
 				});
 			const parsingResult = ExpandedBudgetsWithCount.safeParse(records);
 			if (!parsingResult.success) {
-				return BudgetService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return BudgetService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }

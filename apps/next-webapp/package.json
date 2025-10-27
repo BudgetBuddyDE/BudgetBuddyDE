@@ -15,7 +15,8 @@
     "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
   },
   "dependencies": {
-    "@budgetbuddyde/types": "^1.0.6",
+    "@budgetbuddyde/types": "*",
+    "@budgetbuddyde/logger": "*",
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
@@ -41,7 +42,7 @@
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.0",
-    "@types/lodash.debounce": "^4.0.9",
+    "@types/lodash.debounce": "^4.0.8",
     "@types/node": "latest",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { Card } from "@/components/Card";
-import type { NotNullable, TAsset } from "@/types";
+import type { TAsset } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
 export type DividendInformationProps = Pick<
@@ -31,7 +31,7 @@ export const DividendInformation: React.FC<DividendInformationProps> = ({
 		value: value ?? 0,
 	}));
 	const KpiLabels: Record<
-		keyof NotNullable<DividendInformationProps["KPIs"]>,
+		keyof NonNullable<DividendInformationProps["KPIs"]>,
 		{ label: string; formatting: "currency" | "percentage" }
 	> = {
 		cagr10Y: { label: "CAGR 10 Years", formatting: "percentage" },

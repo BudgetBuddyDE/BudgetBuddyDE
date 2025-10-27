@@ -1,9 +1,24 @@
 {
+  "name": "budgetbuddyde",
+  "private": true,
+  "packageManager": "npm@11.4.2",
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "apps/next-webapp"
+  ],
   "scripts": {
-    "prepare": "node .husky/install.mjs"
+    "prepare": "node .husky/install.mjs",
+    "format": "turbo run format",
+    "lint": "turbo run lint",
+    "check": "turbo run check",
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "build-packages": "turbo run build --filter=@budgetbuddyde*"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.0",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "turbo": "^2.5.8"
   }
 }

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -16,7 +17,7 @@ import { EntityService } from "./Entity.service";
 
 export class PaymentMethodService extends EntityService {
 	static {
-		PaymentMethodService.entity = "PaymentMethod";
+		this.entity = "PaymentMethod";
 	}
 
 	/**
@@ -28,16 +29,16 @@ export class PaymentMethodService extends EntityService {
 		payload: TCreateOrUpdatePaymentMethod,
 	): Promise<ServiceResponse<TPaymentMethodResponse>> {
 		try {
-			const record = await PaymentMethodService.newOdataHandler()
-				.post(PaymentMethodService.$entityPath, payload)
+			const record = await this.newOdataHandler()
+				.post(this.$entityPath, payload)
 				.query();
 			const parsingResult = PaymentMethodResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return PaymentMethodService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return PaymentMethodService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -52,16 +53,16 @@ export class PaymentMethodService extends EntityService {
 		payload: TCreateOrUpdatePaymentMethod,
 	): Promise<ServiceResponse<TPaymentMethod>> {
 		try {
-			const record = await PaymentMethodService.newOdataHandler()
-				.patch(`${PaymentMethodService.$entityPath}(ID=${entityId})`, payload)
+			const record = await this.newOdataHandler()
+				.patch(`${this.$entityPath}(ID=${entityId})`, payload)
 				.query();
 			const parsingResult = PaymentMethodResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return PaymentMethodService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return PaymentMethodService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -75,16 +76,16 @@ export class PaymentMethodService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TPaymentMethod[]>> {
 		try {
-			const records = await PaymentMethodService.newOdataHandler(config)
-				.get(PaymentMethodService.$entityPath)
+			const records = await this.newOdataHandler(config)
+				.get(this.$entityPath)
 				.query(query);
 			const parsingResult = z.array(PaymentMethod).safeParse(records);
 			if (!parsingResult.success) {
-				return PaymentMethodService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return PaymentMethodService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -99,20 +100,20 @@ export class PaymentMethodService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TPaymentMethodsWithCount>> {
 		try {
-			const records = await PaymentMethodService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(PaymentMethodService.$entityPath)
+				.get(this.$entityPath)
 				.query({ ...query, $count: true });
-			PaymentMethodService.logger.debug("Fetched payment methods:", records);
+			this.logger.debug("Fetched payment methods:", records);
 			const parsingResult = PaymentMethodsWithCount.safeParse(records);
 			if (!parsingResult.success) {
-				return PaymentMethodService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return PaymentMethodService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -121,16 +122,16 @@ export class PaymentMethodService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TPaymentMethod_VH[]>> {
 		try {
-			const records = await PaymentMethodService.newOdataHandler(config)
-				.get(`${PaymentMethodService.$servicePath}/PaymentMethod_VH`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/PaymentMethod_VH`)
 				.query(query);
 			const parsingResult = z.array(PaymentMethod_VH).safeParse(records);
 			if (!parsingResult.success) {
-				return PaymentMethodService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return PaymentMethodService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }

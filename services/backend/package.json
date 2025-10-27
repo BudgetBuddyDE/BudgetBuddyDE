@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@budgetbuddyde/types": "^1.0.53",
+    "@budgetbuddyde/types": "*",
     "@cap-js/postgres": "^1",
     "@sap/cds": "^8",
     "better-auth": "^1.2.12",

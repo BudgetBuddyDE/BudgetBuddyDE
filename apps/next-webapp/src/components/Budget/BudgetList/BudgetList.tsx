@@ -32,7 +32,8 @@ type EntityFormFields = FirstLevelNullable<
 	}
 >;
 
-export type BudgetListProps = undefined;
+// biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
+export type BudgetListProps = {};
 
 export const BudgetList: React.FC<BudgetListProps> = () => {
 	const { showSnackbar } = useSnackbarContext();

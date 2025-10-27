@@ -1,10 +1,10 @@
+import type { ServiceResponse } from "@budgetbuddyde/types/";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { OdataQuery } from "@tklein1801/o.js";
 import { ITEMS_IN_VIEW } from "@/components/Table/EntityTable";
 import { createAppSlice } from "@/lib/createAppSlice";
 import type { RootState } from "@/lib/store";
 import { logger } from "@/logger";
-import type { ServiceResponse } from "@/types/Service";
 
 export type EntityFilters = {
 	keyword: string | null;

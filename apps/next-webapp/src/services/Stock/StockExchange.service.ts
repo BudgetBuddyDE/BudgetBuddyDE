@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -11,8 +12,8 @@ import { EntityService } from "../Entity.service";
 
 export class StockExchangeService extends EntityService {
 	static {
-		StockExchangeService.$servicePath = "/odata/v4/asset";
-		StockExchangeService.entity = "StockExchange";
+		this.$servicePath = "/odata/v4/asset";
+		this.entity = "StockExchange";
 	}
 
 	static async getWithCount(
@@ -20,23 +21,23 @@ export class StockExchangeService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TStockExchangesWithCount>> {
 		try {
-			const records = await StockExchangeService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(StockExchangeService.$entityPath)
+				.get(this.$entityPath)
 				.query({
 					...query,
 					$count: true,
 				});
-			StockExchangeService.logger.debug("Fetched stock exchanges:", records);
+			this.logger.debug("Fetched stock exchanges:", records);
 			const parsingResult = StockExchangesWithCount.safeParse(records);
 			if (!parsingResult.success) {
-				return StockExchangeService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockExchangeService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -45,16 +46,16 @@ export class StockExchangeService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TStockExchangeVH[]>> {
 		try {
-			const records = await StockExchangeService.newOdataHandler(config)
-				.get(`${StockExchangeService.$servicePath}/StockExchange_VH`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/StockExchange_VH`)
 				.query(query);
 			const parsingResult = z.array(StockExchangeVH).safeParse(records);
 			if (!parsingResult.success) {
-				return StockExchangeService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockExchangeService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 

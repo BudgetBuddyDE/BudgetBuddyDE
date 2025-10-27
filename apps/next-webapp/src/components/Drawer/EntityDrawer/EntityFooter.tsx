@@ -26,7 +26,7 @@ export const EntityFooter = React.forwardRef<
 				startIcon={
 					isLoading ? <CircularProgress color="inherit" size={16} /> : undefined
 				}
-				tabIndex="0"
+				tabIndex={0}
 			>
 				Save
 			</Button>

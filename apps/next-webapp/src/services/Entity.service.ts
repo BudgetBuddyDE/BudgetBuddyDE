@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import { type OdataConfig, type OHandler, o } from "@tklein1801/o.js";
 import type { z } from "zod";
@@ -16,14 +17,15 @@ export class EntityService {
 	static readonly logger = logger.child({ label: this.name });
 
 	static {
-		EntityService.$odata = o(
-			EntityService.$backendHost,
-			EntityService.$odataClientConfig,
-		);
+		this.$odata = o(this.$backendHost, this.$odataClientConfig);
+	}
+
+	static getEntityPath() {
+		return `${this.$servicePath}/${this.entity}`;
 	}
 
 	static get $entityPath() {
-		return `${EntityService.$servicePath}/${EntityService.entity}`;
+		return `${this.$servicePath}/${this.entity}`;
 	}
 
 	/**
@@ -31,8 +33,8 @@ export class EntityService {
 	 * @returns A new OData handler instance.
 	 */
 	static newOdataHandler(config?: Partial<OdataConfig>): OHandler {
-		return o(EntityService.$backendHost, {
-			...EntityService.$odataClientConfig,
+		return o(this.$backendHost, {
+			...this.$odataClientConfig,
 			...config,
 		});
 	}
@@ -43,7 +45,7 @@ export class EntityService {
 		const msg = Array.isArray(errors)
 			? errors.map((e) => e.message).join(", ")
 			: errors.message;
-		logger.error(`ZodError in ${EntityService.name}: %s`, msg);
+		logger.error(`ZodError in ${this.name}: %s`, msg);
 		return [null, new Error(msg)];
 	}
 
@@ -61,25 +63,25 @@ export class EntityService {
 		cfg?: { entityName: string },
 	): Promise<ServiceResponse<true>> {
 		try {
-			const response = await EntityService.newOdataHandler()
-				.delete(`${EntityService.$entityPath}(ID=${entityId})`)
+			const response = await this.newOdataHandler()
+				.delete(`${this.$entityPath}(ID=${entityId})`)
 				.fetch();
 			if (Array.isArray(response)) {
 				const results = response.map((res) => res.ok);
 				if (results.every((ok) => ok)) {
 					return [true, null];
 				}
-				return EntityService.handleError(
+				return this.handleError(
 					new Error(`Failed to delete ${cfg?.entityName || "entity"}`),
 				);
 			} else if (!response.ok) {
-				return EntityService.handleError(
+				return this.handleError(
 					new Error(`Failed to delete ${cfg?.entityName || "entity"}`),
 				);
 			}
 			return [true, null];
 		} catch (e) {
-			return EntityService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }

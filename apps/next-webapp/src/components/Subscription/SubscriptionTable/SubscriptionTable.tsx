@@ -308,8 +308,8 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 		[dispatch, setRowsPerPage],
 	);
 
-	// @ts-expect-error REVISIT: Fix the typing
 	const EntityFormFields: EntityDrawerField<EntityFormFields>[] =
+		// @ts-expect-error REVISIT: Fix the typing
 		React.useMemo(() => {
 			return [
 				{

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -14,7 +15,7 @@ import { EntityService } from "./Entity.service";
 
 export class SubscriptionService extends EntityService {
 	static {
-		SubscriptionService.entity = "Subscription";
+		this.entity = "Subscription";
 	}
 
 	/**
@@ -26,16 +27,16 @@ export class SubscriptionService extends EntityService {
 		payload: TCreateOrUpdateSubscription,
 	): Promise<ServiceResponse<TSubscriptionResponse>> {
 		try {
-			const record = await SubscriptionService.newOdataHandler()
-				.post(SubscriptionService.$entityPath, payload)
+			const record = await this.newOdataHandler()
+				.post(this.$entityPath, payload)
 				.query();
 			const parsingResult = SubscriptionResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return SubscriptionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return SubscriptionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -50,16 +51,16 @@ export class SubscriptionService extends EntityService {
 		payload: TCreateOrUpdateSubscription,
 	): Promise<ServiceResponse<TSubscriptionResponse>> {
 		try {
-			const record = await SubscriptionService.newOdataHandler()
-				.patch(`${SubscriptionService.$entityPath}(ID=${entityId})`, payload)
+			const record = await this.newOdataHandler()
+				.patch(`${this.$entityPath}(ID=${entityId})`, payload)
 				.query();
 			const parsingResult = SubscriptionResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return SubscriptionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return SubscriptionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -73,19 +74,19 @@ export class SubscriptionService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TExpandedSubscription[]>> {
 		try {
-			const records = await SubscriptionService.newOdataHandler(config)
-				.get(SubscriptionService.$entityPath)
+			const records = await this.newOdataHandler(config)
+				.get(this.$entityPath)
 				.query({
 					$expand: "toCategory,toPaymentMethod",
 					...query,
 				});
 			const parsingResult = z.array(ExpandedSubscription).safeParse(records);
 			if (!parsingResult.success) {
-				return SubscriptionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return SubscriptionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -100,24 +101,24 @@ export class SubscriptionService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TExpandedSubscriptionsWithCount>> {
 		try {
-			const records = await SubscriptionService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(SubscriptionService.$entityPath)
+				.get(this.$entityPath)
 				.query({
 					...query,
 					$expand: "toCategory,toPaymentMethod",
 					$count: true,
 				});
-			SubscriptionService.logger.debug("Fetched subscriptions:", records);
+			this.logger.debug("Fetched subscriptions:", records);
 			const parsingResult = ExpandedSubscriptionsWithCount.safeParse(records);
 			if (!parsingResult.success) {
-				return SubscriptionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return SubscriptionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }

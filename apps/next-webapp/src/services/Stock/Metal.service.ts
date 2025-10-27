@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -11,8 +12,8 @@ import { EntityService } from "../Entity.service";
 
 export class MetalService extends EntityService {
 	static {
-		MetalService.$servicePath = "/odata/v4/asset";
-		MetalService.entity = "Metal";
+		this.$servicePath = "/odata/v4/asset";
+		this.entity = "Metal";
 	}
 
 	static async getList(
@@ -20,19 +21,19 @@ export class MetalService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TMetal[]>> {
 		try {
-			const records = await MetalService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(MetalService.$entityPath)
+				.get(this.$entityPath)
 				.query(query);
 			const parsingResult = z.array(Metal).safeParse(records.value);
 			if (!parsingResult.success) {
-				return MetalService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return MetalService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -41,19 +42,19 @@ export class MetalService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TMetalQuote[]>> {
 		try {
-			const records = await MetalService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(`${MetalService.$servicePath}/MetalQuote`)
+				.get(`${this.$servicePath}/MetalQuote`)
 				.query(query);
 			const parsingResult = z.array(MetalQuote).safeParse(records.value);
 			if (!parsingResult.success) {
-				return MetalService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return MetalService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }

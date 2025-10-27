@@ -1,4 +1,4 @@
-import util from "node:util";
+import { format } from "util";
 import { LOG_COLORS, LOG_LEVEL_COLORS } from "./config";
 import { ConsoleTransport, type Transport } from "./transport";
 import { TransportManager } from "./transportManager";
@@ -142,7 +142,7 @@ export function createLogger(options: LogClientOptions): LogClient {
 				defaultMeta || meta ? { ...defaultMeta, ...meta } : undefined;
 
 			// Format message like console.log with util.format
-			const formattedText = args.length > 0 ? util.format(msg, ...params) : msg;
+			const formattedText = args.length > 0 ? format(msg, ...params) : msg;
 			const dateTime = new Date();
 
 			transportManager.addLogToQueue({

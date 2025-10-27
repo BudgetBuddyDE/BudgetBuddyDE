@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ISIN, ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -6,8 +7,8 @@ import { EntityService } from "../Entity.service";
 
 export class DividendService extends EntityService {
 	static {
-		DividendService.$servicePath = "/odata/v4/asset";
-		DividendService.entity = "Dividend";
+		this.$servicePath = "/odata/v4/asset";
+		this.entity = "Dividend";
 	}
 
 	static async get(
@@ -32,20 +33,20 @@ export class DividendService extends EntityService {
 				}
 			}
 
-			const records = await DividendService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(`${DividendService.$entityPath}?${searchQuery.toString()}`)
+				.get(`${this.$entityPath}?${searchQuery.toString()}`)
 				.query();
-			DividendService.logger.debug("Fetched dividends:", records);
+			this.logger.debug("Fetched dividends:", records);
 			const parsingResult = z.array(Dividend).safeParse(records.value);
 			if (!parsingResult.success) {
-				return DividendService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return DividendService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -18,7 +19,7 @@ import { EntityService } from "./Entity.service";
 
 export class TransactionService extends EntityService {
 	static {
-		TransactionService.entity = "Transaction";
+		this.entity = "Transaction";
 	}
 
 	/**
@@ -30,16 +31,16 @@ export class TransactionService extends EntityService {
 		payload: TCreateOrUpdateTransaction,
 	): Promise<ServiceResponse<TTransactionResponse>> {
 		try {
-			const record = await TransactionService.newOdataHandler()
-				.post(TransactionService.$entityPath, payload)
+			const record = await this.newOdataHandler()
+				.post(this.$entityPath, payload)
 				.query();
 			const parsingResult = TransactionResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return TransactionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return TransactionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -54,16 +55,16 @@ export class TransactionService extends EntityService {
 		payload: TCreateOrUpdateTransaction,
 	): Promise<ServiceResponse<TTransactionResponse>> {
 		try {
-			const record = await TransactionService.newOdataHandler()
-				.patch(`${TransactionService.$entityPath}(ID=${entityId})`, payload)
+			const record = await this.newOdataHandler()
+				.patch(`${this.$entityPath}(ID=${entityId})`, payload)
 				.query();
 			const parsingResult = TransactionResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return TransactionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return TransactionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -77,19 +78,19 @@ export class TransactionService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TExpandedTransaction[]>> {
 		try {
-			const records = await TransactionService.newOdataHandler(config)
-				.get(TransactionService.$entityPath)
+			const records = await this.newOdataHandler(config)
+				.get(this.$entityPath)
 				.query({
 					$expand: "toCategory,toPaymentMethod",
 					...query,
 				});
 			const parsingResult = z.array(ExpandedTransasction).safeParse(records);
 			if (!parsingResult.success) {
-				return TransactionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return TransactionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -104,24 +105,24 @@ export class TransactionService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TExpandedTransactionsWithCount>> {
 		try {
-			const records = await TransactionService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(TransactionService.$entityPath)
+				.get(this.$entityPath)
 				.query({
 					...query,
 					$expand: "toCategory,toPaymentMethod",
 					$count: true,
 				});
-			TransactionService.logger.debug("Fetched transactions:", records);
+			this.logger.debug("Fetched transactions:", records);
 			const parsingResult = ExpandedTransactionsWithCount.safeParse(records);
 			if (!parsingResult.success) {
-				return TransactionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return TransactionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -134,16 +135,16 @@ export class TransactionService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TMonthlyKPIResponse>> {
 		try {
-			const records = await TransactionService.newOdataHandler(config)
-				.get(`${TransactionService.$servicePath}/MonthlyKPI`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/MonthlyKPI`)
 				.query();
 			const parsingResult = MonthlyKPIResponse.safeParse(records);
 			if (!parsingResult.success) {
-				return TransactionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return TransactionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -152,16 +153,16 @@ export class TransactionService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TReceiverVH[]>> {
 		try {
-			const records = await TransactionService.newOdataHandler(config)
-				.get(`${TransactionService.$servicePath}/Receiver_VH`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/Receiver_VH`)
 				.query(query);
 			const parsingResult = z.array(ReceiverVH).safeParse(records);
 			if (!parsingResult.success) {
-				return TransactionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return TransactionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }

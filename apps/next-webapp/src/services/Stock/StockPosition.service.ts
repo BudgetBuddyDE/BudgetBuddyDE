@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: This will break the implementation */
 import {
 	type AssetIdentifier,
 	BackendSchemas,
@@ -29,16 +30,16 @@ export class StockPositionService extends EntityService {
 	};
 
 	static {
-		StockPositionService.$servicePath = "/odata/v4/asset";
-		StockPositionService.entity = "StockPosition";
+		this.$servicePath = "/odata/v4/asset";
+		this.entity = "StockPosition";
 	}
 
 	static async create(
 		payload: TCreateOrUpdateStockPosition,
 	): Promise<ServiceResponse<unknown>> {
 		try {
-			const record = await StockPositionService.newOdataHandler()
-				.post(StockPositionService.$entityPath, payload)
+			const record = await this.newOdataHandler()
+				.post(this.$entityPath, payload)
 				.query();
 			const parsingResult = StockPosition.omit({
 				logoUrl: true,
@@ -50,11 +51,11 @@ export class StockPositionService extends EntityService {
 				relativeProfit: true,
 			}).safeParse(record);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -63,16 +64,16 @@ export class StockPositionService extends EntityService {
 		payload: TCreateOrUpdateStockPosition,
 	): Promise<ServiceResponse<TStockPosition>> {
 		try {
-			const record = await StockPositionService.newOdataHandler()
-				.patch(`${StockPositionService.$entityPath}(ID=${entityId})`, payload)
+			const record = await this.newOdataHandler()
+				.patch(`${this.$entityPath}(ID=${entityId})`, payload)
 				.query();
 			const parsingResult = StockPosition.safeParse(record);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -81,23 +82,23 @@ export class StockPositionService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TStockPositionsWithCount>> {
 		try {
-			const records = await StockPositionService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(StockPositionService.$entityPath)
+				.get(this.$entityPath)
 				.query({
-					...StockPositionService.$defaultQuery,
+					...this.$defaultQuery,
 					...query,
 					$count: true,
 				});
 			const parsingResult = StockPositionsWithCount.safeParse(records);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -113,16 +114,16 @@ export class StockPositionService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TSearchAsset[]>> {
 		try {
-			const records = await StockPositionService.newOdataHandler(config)
-				.get(`${StockPositionService.$servicePath}/SearchAsset`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/SearchAsset`)
 				.query({ $search: query });
 			const parsingResult = z.array(SearchAsset).safeParse(records);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -130,16 +131,16 @@ export class StockPositionService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TStockPositionsKPI>> {
 		try {
-			const records = await StockPositionService.newOdataHandler(config)
-				.get(`${StockPositionService.$servicePath}/StockPositionsKPI`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/StockPositionsKPI`)
 				.query();
 			const parsingResult = StockPositionsKPI.safeParse(records);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -147,16 +148,16 @@ export class StockPositionService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TStockPositionAllocation[]>> {
 		try {
-			const records = await StockPositionService.newOdataHandler(config)
-				.get(`${StockPositionService.$servicePath}/StockPositionAllocation`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/StockPositionAllocation`)
 				.query();
 			const parsingResult = z.array(StockPositionAllocation).safeParse(records);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -171,17 +172,17 @@ export class StockPositionService extends EntityService {
 				query.append("identifier", id);
 			});
 
-			const records = await StockPositionService.newOdataHandler(config)
-				.get(`${StockPositionService.$servicePath}/Asset?${query.toString()}`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/Asset?${query.toString()}`)
 				.query();
 
 			const parsingResult = z.array(BackendSchemas.Asset).safeParse(records);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -194,17 +195,17 @@ export class StockPositionService extends EntityService {
 			const query = new URLSearchParams();
 			query.append("identifier", identifier);
 
-			const records = await StockPositionService.newOdataHandler(config)
-				.get(`${StockPositionService.$servicePath}/Asset?${query.toString()}`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/Asset?${query.toString()}`)
 				.query();
 
 			const parsingResult = BackendSchemas.Asset.safeParse(records[0]);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -220,21 +221,19 @@ export class StockPositionService extends EntityService {
 			query.append("timeframe", timeframe);
 			query.append("currency", currency);
 
-			const records = await StockPositionService.newOdataHandler(config)
-				.get(
-					`${StockPositionService.$servicePath}/AssetQuote?${query.toString()}`,
-				)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/AssetQuote?${query.toString()}`)
 				.query();
 
 			const parsingResult = z
 				.array(BackendSchemas.AssetQuote)
 				.safeParse(records);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data[0], null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -251,19 +250,17 @@ export class StockPositionService extends EntityService {
 				query.set("$expand", "quotes");
 			}
 
-			const records = await StockPositionService.newOdataHandler(config)
-				.get(
-					`${StockPositionService.$servicePath}/RelatedAsset?${query.toString()}`,
-				)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/RelatedAsset?${query.toString()}`)
 				.query();
 
 			const parsingResult = z.array(RelatedAsset).safeParse(records);
 			if (!parsingResult.success) {
-				return StockPositionService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return StockPositionService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }

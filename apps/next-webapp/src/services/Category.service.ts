@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
@@ -20,7 +21,7 @@ import { EntityService } from "./Entity.service";
 
 export class CategoryService extends EntityService {
 	static {
-		CategoryService.entity = "Category";
+		this.entity = "Category";
 	}
 
 	/**
@@ -32,16 +33,16 @@ export class CategoryService extends EntityService {
 		payload: TCreateOrUpdateCategory,
 	): Promise<ServiceResponse<TCategoryResponse>> {
 		try {
-			const record = await CategoryService.newOdataHandler()
-				.post(CategoryService.$entityPath, payload)
+			const record = await this.newOdataHandler()
+				.post(this.$entityPath, payload)
 				.query();
 			const parsingResult = CategoryResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return CategoryService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return CategoryService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -56,16 +57,16 @@ export class CategoryService extends EntityService {
 		payload: TCreateOrUpdateCategory,
 	): Promise<ServiceResponse<TCategory>> {
 		try {
-			const record = await CategoryService.newOdataHandler()
-				.patch(`${CategoryService.$entityPath}(ID=${entityId})`, payload)
+			const record = await this.newOdataHandler()
+				.patch(`${this.$entityPath}(ID=${entityId})`, payload)
 				.query();
 			const parsingResult = CategoryResponse.safeParse(record);
 			if (!parsingResult.success) {
-				return CategoryService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return CategoryService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -79,16 +80,16 @@ export class CategoryService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TCategory[]>> {
 		try {
-			const records = await CategoryService.newOdataHandler(config)
-				.get(CategoryService.$entityPath)
+			const records = await this.newOdataHandler(config)
+				.get(this.$entityPath)
 				.query(query);
 			const parsingResult = z.array(Category).safeParse(records);
 			if (!parsingResult.success) {
-				return CategoryService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return CategoryService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -103,20 +104,20 @@ export class CategoryService extends EntityService {
 		config?: Partial<Omit<OdataConfig, "fragment">>,
 	): Promise<ServiceResponse<TCategoriesWithCount>> {
 		try {
-			const records = await CategoryService.newOdataHandler({
+			const records = await this.newOdataHandler({
 				...config,
 				fragment: undefined,
 			})
-				.get(CategoryService.$entityPath)
+				.get(this.$entityPath)
 				.query({ ...query, $count: true });
-			CategoryService.logger.debug("Fetched categories:", records);
+			this.logger.debug("Fetched categories:", records);
 			const parsingResult = CategoriesWithCount.safeParse(records);
 			if (!parsingResult.success) {
-				return CategoryService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return CategoryService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -138,19 +139,19 @@ export class CategoryService extends EntityService {
 		try {
 			const startDate = Formatter.date.formatWithPattern(start, "yyyy-MM-dd");
 			const endDate = Formatter.date.formatWithPattern(end, "yyyy-MM-dd");
-			const records = await CategoryService.newOdataHandler(config)
-				.get(`${CategoryService.$servicePath}/CategoryStats`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/CategoryStats`)
 				.query({
 					$filter: `processedAt ge ${startDate} and processedAt le ${endDate}`,
 					$expand: "toCategory",
 				});
 			const parsingResult = z.array(ExpandedCategoryStats).safeParse(records);
 			if (!parsingResult.success) {
-				return CategoryService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return CategoryService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 
@@ -159,16 +160,16 @@ export class CategoryService extends EntityService {
 		config?: Partial<OdataConfig>,
 	): Promise<ServiceResponse<TCategory_VH[]>> {
 		try {
-			const records = await CategoryService.newOdataHandler(config)
-				.get(`${CategoryService.$servicePath}/Category_VH`)
+			const records = await this.newOdataHandler(config)
+				.get(`${this.$servicePath}/Category_VH`)
 				.query(query);
 			const parsingResult = z.array(Category_VH).safeParse(records);
 			if (!parsingResult.success) {
-				return CategoryService.handleZodError(parsingResult.error);
+				return this.handleZodError(parsingResult.error);
 			}
 			return [parsingResult.data, null];
 		} catch (e) {
-			return CategoryService.handleError(e);
+			return this.handleError(e);
 		}
 	}
 }
