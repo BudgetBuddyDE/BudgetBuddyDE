@@ -1,12 +1,9 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, mergeConfig } from 'vitest/config';
+import baseConfig from "../../vitest.config"
 
-export default defineConfig({
+export default mergeConfig(baseConfig, defineConfig({
   test: {
-    globals: true,
-    silent: 'passed-only',
+    name: "logger",
     exclude: ['**/lib/**', '**/node_modules/**'],
-    coverage: {
-      exclude: ['vitest.config.ts', 'lib/**', '**/index.ts'],
-    },
-  },
-});
+  }
+}));
