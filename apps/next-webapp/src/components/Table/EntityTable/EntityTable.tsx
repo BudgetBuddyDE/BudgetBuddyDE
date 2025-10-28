@@ -170,7 +170,7 @@ export const EntityTable = <T,>({
 													backgroundColor: (theme) =>
 														lighten(
 															theme.palette.background.paper,
-															4.25 * 0.025,
+															3.35 * 0.025,
 														),
 												}}
 												align={textAlignment}
