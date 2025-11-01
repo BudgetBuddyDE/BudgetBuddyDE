@@ -65,7 +65,9 @@ fly -t kleithor set-pipeline -p bb-webapp -c ./ci/pipelines/build-webapp.pipelin
 
 ```bash
 fly -t kleithor set-pipeline -p bb-logger -c ./ci/pipelines/publish-npm-package.pipeline.yml \
-  -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" \
+  -v github_pat="$(cat ./ci/secrets/github/pat)" \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
   -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" \
   -v repo_path="packages/logger" \
   -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" \
@@ -82,7 +84,9 @@ fly -t kleithor set-pipeline -p bb-logger -c ./ci/pipelines/publish-npm-package.
 
 ```bash
 fly -t kleithor set-pipeline -p bb-types -c ./ci/pipelines/publish-npm-package.pipeline.yml \
-  -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" \
+  -v github_pat="$(cat ./ci/secrets/github/pat)" \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
   -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" \
   -v repo_path="packages/types" \
   -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" \
@@ -99,7 +103,9 @@ fly -t kleithor set-pipeline -p bb-types -c ./ci/pipelines/publish-npm-package.p
 
 ```bash
 fly -t kleithor set-pipeline -p bb-utils -c ./ci/pipelines/publish-npm-package.pipeline.yml \
-  -v repo_uri="git@github.com:budgetbuddyde/budgetbuddyde.git" \
+  -v github_pat="$(cat ./ci/secrets/github/pat)" \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
   -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" \
   -v repo_path="packages/utils" \
   -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" \
