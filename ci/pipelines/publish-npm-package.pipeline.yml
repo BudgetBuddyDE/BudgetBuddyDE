@@ -116,6 +116,8 @@ task-config: &task-release
         npm test
         npm run build
         npm version "$NEW_VERSION" --no-git-tag-version
+        git add package.json package-lock.json
+        git commit -m "chore(release): Release ((service_name))-v$NEW_VERSION"
         git tag | xargs git tag -d > /dev/null
         git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
         echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
@@ -173,6 +175,7 @@ jobs:
       put: repo
       params:
         repository: repo
+        rebase: tue
     plan:
       - in_parallel:
           - get: node-image
@@ -203,7 +206,7 @@ jobs:
                 npm run build
                 git config --global user.name 'Thorben Klein'
                 git config --global user.email thorben@tklein.it
-                git add .
+                git add package.json package-lock.json
                 git commit -m 'build(dependencies): Automated update of dependencies'
 
   - name: release-patch
@@ -230,7 +233,7 @@ jobs:
           - put: repo
             params:
               repository: repo
-              only_tag: true
+              rebase: true
 
   - name: release-minor
     on_failure:
@@ -256,7 +259,7 @@ jobs:
           - put: repo
             params:
               repository: repo
-              only_tag: true
+              rebase: true
 
   - name: release-major
     on_failure:
@@ -282,4 +285,4 @@ jobs:
           - put: repo
             params:
               repository: repo
-              only_tag: true
+              rebase: true
