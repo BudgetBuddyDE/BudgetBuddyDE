@@ -64,7 +64,8 @@ fly -t kleithor set-pipeline -p bb-webapp -c ./ci/pipelines/build-webapp.pipelin
 ### Publish `@budetbuddyde/logger`
 
 ```bash
-fly -t kleithor set-pipeline -p bb-logger -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+fly -t ci set-pipeline -p logger -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+  --team budgetbuddyde \
   -v github_pat="$(cat ./ci/secrets/github/pat)" \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
@@ -83,7 +84,8 @@ fly -t kleithor set-pipeline -p bb-logger -c ./ci/pipelines/publish-npm-package.
 ### Publish `@budetbuddyde/types`
 
 ```bash
-fly -t kleithor set-pipeline -p bb-types -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+fly -t ci set-pipeline -p types -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+  --team budgetbuddyde \
   -v github_pat="$(cat ./ci/secrets/github/pat)" \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
@@ -102,7 +104,8 @@ fly -t kleithor set-pipeline -p bb-types -c ./ci/pipelines/publish-npm-package.p
 ### Publish `@budetbuddyde/utils`
 
 ```bash
-fly -t kleithor set-pipeline -p bb-utils -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+fly -t ci set-pipeline -p utils -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+  --team budgetbuddyde \
   -v github_pat="$(cat ./ci/secrets/github/pat)" \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \

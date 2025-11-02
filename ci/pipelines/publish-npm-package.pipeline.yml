@@ -4,7 +4,7 @@ groups:
       - '*'
   - name: build
     jobs:
-      - build
+      - build*
       - update-dependencies
   - name: release
     jobs:
@@ -116,7 +116,7 @@ task-config: &task-release
         npm test
         npm run build
         npm version "$NEW_VERSION" --no-git-tag-version
-        git add package.json package-lock.json
+        git add package*.json
         git commit -m "chore(release): Release ((service_name))-v$NEW_VERSION"
         git tag | xargs git tag -d > /dev/null
         git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
@@ -124,7 +124,7 @@ task-config: &task-release
         npm publish --access public
 
 jobs:
-  - name: build
+  - name: build-((service_name))
     public: true
     <<: *gh-status-handlers
     plan:
@@ -206,7 +206,7 @@ jobs:
                 npm run build
                 git config --global user.name 'Thorben Klein'
                 git config --global user.email thorben@tklein.it
-                git add package.json package-lock.json
+                git add package*.json
                 git commit -m 'build(dependencies): Automated update of dependencies'
 
   - name: release-patch
@@ -219,7 +219,7 @@ jobs:
     plan:
       - in_parallel:
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: patch }
           - get: repo
           - get: node-image
@@ -245,7 +245,7 @@ jobs:
     plan:
       - in_parallel:
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: minor }
           - get: repo
           - get: node-image
@@ -271,7 +271,7 @@ jobs:
     plan:
       - in_parallel:
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: major }
           - get: repo
           - get: node-image
