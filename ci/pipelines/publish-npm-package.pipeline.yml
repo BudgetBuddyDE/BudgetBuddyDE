@@ -117,10 +117,11 @@ task-config: &task-release
         npm run build
         npm version "$NEW_VERSION" --no-git-tag-version
         git add package*.json
+        git add ../../package*.json
         git commit -m "chore(release): Release ((service_name))-v$NEW_VERSION"
         git tag | xargs git tag -d > /dev/null
         git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
-        echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
+        echo "//registry.npmjs.org/:_authToken=((npm_token))" > ~/.npmrc
         npm publish --access public
 
 jobs:
