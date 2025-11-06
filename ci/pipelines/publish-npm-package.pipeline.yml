@@ -207,6 +207,7 @@ jobs:
                 git config --global user.name 'Thorben Klein'
                 git config --global user.email thorben@tklein.it
                 git add package*.json
+                git add ../../package*.json
                 git commit -m 'build(dependencies): Automated update of dependencies'
 
   - name: release-patch
