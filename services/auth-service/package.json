@@ -1,5 +1,5 @@
 {
-  "name": "auth-service",
+  "name": "@budgetbuddyde/auth-service",
   "version": "1.0.0",
   "main": "build/src/server.js",
   "scripts": {
