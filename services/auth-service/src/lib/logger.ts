@@ -1,4 +1,4 @@
-import {ConsoleTransport, createLogger} from '@tklein1801/logger.js';
+import {ConsoleTransport, createLogger} from '@budgetbuddyde/logger';
 
 import {config} from '../config';
 
