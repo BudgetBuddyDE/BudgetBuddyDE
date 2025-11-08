@@ -30,9 +30,9 @@
   "homepage": "https://github.com/budgetbuddyde/budgetbuddyde#readme",
   "description": "",
   "dependencies": {
-    "@budgetbuddyde/logger": "^0.0.2",
     "@budgetbuddyde/types": "*",
     "@budgetbuddyde/utils": "*",
+    "@tklein1801/logger.js": "^0.2.6",
     "better-auth": "^1.2.9",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
