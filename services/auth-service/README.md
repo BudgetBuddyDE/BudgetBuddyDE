@@ -1,7 +1,6 @@
 # Auth-Service
 
-> [!INFO]
-> dasddasd
+![CI](https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/auth-service/jobs/build-auth-service/badge)
 
 ## Getting started
 

@@ -1,9 +1,9 @@
 # `@budgetbuddyde/logger`
 
-![CI](https://ci.tools.tklein.it/api/v1/teams/main/pipelines/logger.js/badge)
-![NPM Version](https://img.shields.io/npm/v/%40tklein1801%2Flogger.js)
-![NPM License](https://img.shields.io/npm/l/%40tklein1801%2Flogger.js)
-![NPM Last Update](https://img.shields.io/npm/last-update/%40tklein1801%2Flogger.js)
+![CI](https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/logger/jobs/build-logger/badge)
+![NPM Version](https://img.shields.io/npm/v/%40budgetbuddyde%2Flogger)
+![NPM License](https://img.shields.io/npm/l/%40budgetbuddyde%2Flogger)
+![NPM Last Update](https://img.shields.io/npm/last-update/%40budgetbuddyde%2Flogger)
 
 A flexible and efficient JavaScript/TypeScript logging library with modular transport system, built-in batching, and debouncing capabilities for high-performance applications.
 
