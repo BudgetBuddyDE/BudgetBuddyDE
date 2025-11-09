@@ -35,7 +35,7 @@
   "scripts": {
     "generate-cds-models": "rimraf @cds-models && npx @cap-js/cds-typer \"*\"",
     "before:cds-watch": "npm run generate-cds-models",
-    "build": "npx cds build --production",
+    "build": "cds build --production",
     "start": "cds-serve",
     "test": "jest",
     "test-api-schemas": "jest test/Schema.test.ts",
@@ -44,7 +44,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "postinstall": "npm run generate-cds-models",
-    "gen-openapi": "npx cds compile srv --service all -o docs --to openapi"
+    "gen-openapi": "cds compile srv --service all -o docs --to openapi"
   },
   "imports": {
     "#cds-models/*": "./@cds-models/*/index.js"
