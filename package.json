@@ -14,7 +14,9 @@
     "check": "turbo run check",
     "test": "turbo run test",
     "build": "turbo run build",
-    "build-packages": "turbo run build --filter=@budgetbuddyde*"
+    "build-packages": "turbo run build --filter=./packages/*",
+    "build-services": "turbo run build --filter=./services/*",
+    "build-apps": "turbo run build --filter=./apps/*"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.0",
