@@ -6,6 +6,9 @@ groups:
     jobs:
       - build*
       - update-dependencies
+  - name: test
+    jobs:
+      - test*
   - name: release
     jobs:
       - 'release-*'
@@ -28,6 +31,12 @@ resources:
     icon: bell-ring
     source:
       url: ((discord_webhook))
+
+  - name: daily
+    type: time
+    icon: clock-outline
+    source:
+      interval: 24h
 
   - name: weekly
     type: time
@@ -180,6 +189,7 @@ jobs:
                 NEW_VERSION=$(cat version/version)
                 cd repository
                 npm install
+                npm run build-packages
                 npm test -- -F=@budgetbuddyde/((service_name))
                 npm run build -- -F=@budgetbuddyde/((service_name))
                 cd ((repo_path))
@@ -194,6 +204,41 @@ jobs:
           tag_as_latest: true
       - put: version
         params: { file: version/version }
+
+  - name: test-api-schemas
+    public: true
+    on_failure:
+      put: notification
+      params:
+        alert_type: failed
+        message: 'The schemas for ((service_name)) have changed and are incompatible!'
+        role: '1342563020215291936'
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+          - get: daily
+            trigger: true
+      - task: run-tests
+        image: node-image
+        config:
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
+          platform: linux
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository
+                npm install
+                npm run build-packages
+                cd ((repo_path))
+                npm run test-api-schemas
 
   - name: update-dependencies
     public: true
@@ -235,6 +280,7 @@ jobs:
                 npm install --no-package-lock --workspaces=false
                 npm update
                 npm audit fix --force
+                npm run build-packages
                 npm test
                 npm run build
                 git config --global user.name 'Thorben Klein'
