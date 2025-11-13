@@ -91,7 +91,9 @@ view CategoryStats as
             createdBy
     }
     group by
-        toCategory.ID;
+        toCategory.ID,
+        processedAt,
+        createdBy;
 
 @odata.singleton
 @cds.persistence.skip

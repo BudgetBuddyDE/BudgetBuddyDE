@@ -53,12 +53,13 @@ service BackendService {
         (
           select sum(t.transferAmount) * -1 from db.Transaction as t
           where
-                t.owner              = Budget.owner
-            and month(t.processedAt) = month(current_date)
-            and year(t.processedAt)  = year(current_date)
+                t.owner                           = Budget.owner
+            // FIXME: Re-enable filtering by current month/year when needed
+            and EXTRACT(month from t.processedAt) = EXTRACT(month from current_date)
+            and EXTRACT(year from t.processedAt)  = EXTRACT(year from current_date)
             and (
               (
-                Budget.type          = 'i'
+                Budget.type                       = 'i'
                 and exists(
                   select from db.Budget.toCategories as bc
                   where
@@ -66,7 +67,7 @@ service BackendService {
                 )
               )
               or (
-                Budget.type          = 'e'
+                Budget.type                       = 'e'
                 and not exists(
                   select from db.Budget.toCategories as bc
                   where
