@@ -48,9 +48,10 @@ const options: BetterAuthOptions = {
   advanced: {
     disableCSRFCheck: isCSRFCheckDisabled(),
     useSecureCookies: config.runtime === 'production',
-    // cookiePrefix: '',
+    cookiePrefix: 'budget-buddy',
     crossSubDomainCookies: {
       enabled: true,
+      domain: 'next.app.budget-buddy.de',
     },
     defaultCookieAttributes: {
       sameSite: 'none',
