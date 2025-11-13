@@ -50,6 +50,7 @@ export const server = app.listen(config.port, () => {
     'Node Version': process.version,
     'Log Level': logger.getLogLevelName(),
     'Server Port': config.port,
+    'Trusted Origins': config.cors.origin,
   };
   console.table(options);
   logger.info('%s is available under http://localhost:%d', config.service, config.port, options);

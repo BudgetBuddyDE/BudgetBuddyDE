@@ -6,7 +6,8 @@ import { logger } from "@/logger";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: This class is a simple container for static services
 export class EntityService {
-	private static readonly $backendHost = process.env.NEXT_PUBLIC_BACKEND_SERVICE_HOST || "http://localhost:4004";
+	private static readonly $backendHost =
+		process.env.NEXT_PUBLIC_BACKEND_SERVICE_HOST || "http://localhost:4004";
 	private static readonly $odataClientConfig: Partial<OdataConfig> = {
 		// TODO: Configure the $batch endpoint
 		credentials: "include",
