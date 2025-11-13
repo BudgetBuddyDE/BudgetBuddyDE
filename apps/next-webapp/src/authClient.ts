@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { logger } from "./logger";
 
 export const authClient = createAuthClient({
-	baseURL: "http://localhost:8080",
+	baseURL: process.env.AUTH_SERVICE_HOST || "http://localhost:8080",
 	fetchOptions: {
 		onError(e) {
 			if (e.error.status === 429) {
