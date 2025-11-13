@@ -1,8 +1,8 @@
 import {LogLevel} from '@budgetbuddyde/logger';
+import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
-
 import {config} from './config';
 import {db} from './db';
 import * as authSchema from './db/schema/auth.schema';
@@ -38,7 +38,7 @@ const options: BetterAuthOptions = {
       }
     },
   },
-  trustedOrigins: config.cors.origin as string[],
+  trustedOrigins: getTrustedOrigins('TRUSTED_ORIGINS'),
   session: {
     cookieCache: {
       enabled: true,
