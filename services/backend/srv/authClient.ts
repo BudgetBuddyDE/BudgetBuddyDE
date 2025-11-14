@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/client";
 export const authClient = createAuthClient({
   /** The base URL of the server (optional if you're using the same domain) */
-  baseURL: "http://localhost:8080",
+  baseURL: process.env.AUTH_SERVICE_HOST || "http://localhost:8080",
 });
