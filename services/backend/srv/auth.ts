@@ -26,7 +26,7 @@ export default async function auth(
     const session = await authClient.getSession(undefined, {
       headers: new Headers(req.headers as HeadersInit),
     });
-    authLogger.debug("Session retrieved", { session: session, ...logOptions });
+    authLogger.debug("Session retrieved", { session: session.data?.session.id, ...logOptions });
 
     if (!session || !session.data) {
       const err = new Error("No session found");

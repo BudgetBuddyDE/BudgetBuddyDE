@@ -4,9 +4,16 @@
 
 ## Deployment
 
+> [!IMPORTANT]
+> Der Service wird mithilfe eines Docker-Images deployed. Um die Datenbankverbindung innerhalb des Docker-Containers aufzubauen, muss während des Build-Prozesses die `.cdsrc` generiert und mit den Verbindungsinformationen der Postres-Instanz befüllt werden.
+> Learn more at [SAP Capire Postgres Deployment](https://cap.cloud.sap/docs/guides/databases-postgres#deployment)
+
 ### Environment Variables
 
 #### Database Configuration
+
+> [!NOTE]
+> These environment variables are only required to be set during the build-process as these will be used to generate the `.cdsrc`-file for the instance.
 
 - `DB_HOST`: The hostname of the PostgreSQL database.
 - `DB_PORT`: The port number of the PostgreSQL database.
