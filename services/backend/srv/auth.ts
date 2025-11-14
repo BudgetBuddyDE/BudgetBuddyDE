@@ -17,7 +17,8 @@ export default async function auth(
     requestId: req.requestId,
     baseUrl: req.baseUrl,
     path: req.path,
-    user: req.user,
+    user: null as string | null,
+    sessionId: null as string | null,
     method: req.method,
   };
 
@@ -44,10 +45,11 @@ export default async function auth(
         sessionToken: session.data.session.token,
       },
     });
-    logOptions.user = req.user;
+    logOptions.user = req.user.id;
+    logOptions.sessionId = session.data.session.id;
 
     authLogger.debug(
-      "User (" + session.data.user.email + ") authenticated",
+      "User (" + req.user.id + ") authenticated",
       logOptions,
     );
 
