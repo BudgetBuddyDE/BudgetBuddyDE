@@ -14,7 +14,7 @@ const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_S
 const authLogger = logger.child({label: 'auth'});
 
 const options: BetterAuthOptions = {
-  baseURL: `${config.baseUrl}:${config.port}`,
+  baseURL: config.runtime === 'production' ? config.baseUrl : `${config.baseUrl}:${config.port}`,
   appName: config.service,
   database: drizzleAdapter(db, {
     provider: 'pg',
