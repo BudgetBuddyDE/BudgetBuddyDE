@@ -1,5 +1,4 @@
 import {LogLevel} from '@budgetbuddyde/logger';
-import {getTrustedOrigins} from '@budgetbuddyde/utils';
 import {type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
@@ -38,7 +37,7 @@ const options: BetterAuthOptions = {
       }
     },
   },
-  trustedOrigins: getTrustedOrigins('TRUSTED_ORIGINS'),
+  trustedOrigins: ['https://next.app.budget-buddy.de', 'https://next.backend.budget-buddy.de'],
   session: {
     cookieCache: {
       enabled: true,
@@ -51,7 +50,7 @@ const options: BetterAuthOptions = {
     cookiePrefix: 'budget-buddy',
     crossSubDomainCookies: {
       enabled: true,
-      domain: 'next.app.budget-buddy.de',
+      domain: '.budget-buddy.de',
     },
     defaultCookieAttributes: {
       sameSite: 'none',
