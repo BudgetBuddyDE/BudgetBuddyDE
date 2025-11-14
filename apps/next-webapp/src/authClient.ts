@@ -9,7 +9,7 @@ export const authClient = createAuthClient({
 		onError(e) {
 			if (e.error.status === 429) {
 				console.error("Too many requests. Please try again later.");
-			}
+			} else console.error("An error occurred:", e.error);
 		},
 	},
 	plugins: [nextCookies()], // make sure nextCookies is the last plugin in the array

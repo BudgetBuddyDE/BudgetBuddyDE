@@ -1,45 +1,34 @@
-import { headers } from "next/headers";
+import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
-import { authClient } from "./authClient";
 import { logger } from "./logger";
 
 const middlewareLogger = logger.child({ label: "middleware" });
 
 export async function middleware(request: NextRequest) {
+	const url = request.nextUrl;
 	const meta: Record<string, string | number> = {
 		method: request.method,
-		url: request.url,
+		path: url.pathname,
+		origin: url.origin,
 	};
-	try {
-		middlewareLogger.debug("Checking if client has a valid session", meta);
-		const { data: session, error } = await authClient.getSession({
-			fetchOptions: {
-				headers: await headers(),
-			},
-		});
-		if (error) {
-			middlewareLogger.error("Error retrieving session:", { error, ...meta });
-		}
 
-		if (!session || !session.session) {
-			middlewareLogger.warn(
-				"No valid session found, redirecting to sign-in",
-				meta,
-			);
-			return NextResponse.redirect(new URL("/sign-in", request.url));
-		}
-
-		middlewareLogger.debug("Session found, proceeding with request", {
-			...meta,
-		});
-		return NextResponse.next();
-	} catch (error) {
-		middlewareLogger.error(
-			"Uncaught error while fetching session: %s",
-			error instanceof Error ? error.message : String(error),
-			{ error, ...meta },
+	middlewareLogger.debug("Processing incoming request", meta);
+	const cookies = getSessionCookie(request, {
+		cookiePrefix: "budget-buddy",
+	});
+	if (!cookies) {
+		middlewareLogger.warn(
+			"No valid session cookie found, redirecting to sign-in",
+			meta,
 		);
+		return NextResponse.redirect(new URL("/sign-in", request.url));
 	}
+
+	middlewareLogger.debug(
+		"Valid session cookie found, proceeding with request",
+		meta,
+	);
+	return NextResponse.next();
 }
 
 // For more informations about the matcher configration take a look into the documentation:
