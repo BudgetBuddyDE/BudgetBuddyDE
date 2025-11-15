@@ -1,4 +1,3 @@
-import { nextCookies } from "better-auth/next-js";
 import { createAuthClient } from "better-auth/react";
 import { redirect } from "next/navigation";
 import { logger } from "./logger";
@@ -6,13 +5,21 @@ import { logger } from "./logger";
 export const authClient = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_AUTH_SERVICE_HOST || "http://localhost:8080",
 	fetchOptions: {
+		// onRequest(context) {
+		// 	logger.debug("onRequest", context);
+		// },
+		// onResponse(context) {
+		// 	logger.debug("onResponse", context);
+		// },
+		// onSuccess(context) {
+		// 	logger.debug("onSuccess", context);
+		// },
 		onError(e) {
 			if (e.error.status === 429) {
-				console.error("Too many requests. Please try again later.");
-			} else console.error("An error occurred:", e.error);
+				logger.warn("Too many requests made to the auth service!");
+			} else logger.error("An error occurred: %o", e.error);
 		},
 	},
-	plugins: [nextCookies()], // make sure nextCookies is the last plugin in the array
 });
 
 export const signOut = (onSuccess?: () => void, onError?: () => void) =>
