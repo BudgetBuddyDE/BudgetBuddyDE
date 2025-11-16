@@ -10,6 +10,7 @@ const ORIGINS = Object.fromEntries(
 cds.on("bootstrap", (app) => {
   // FIXME: This is a temporary solution, consider using a more robust CORS middleware in production
   app.use((req, res, next) => {
+    cds.log("cors").debug(`CORS check for ${req.headers.origin}. Allowed origins: ${Object.keys(ORIGINS).join(", ")}`);
     if (req.headers.origin && req.headers.origin in ORIGINS) {
       res
         .set("Access-Control-Allow-Origin", req.headers.origin)
