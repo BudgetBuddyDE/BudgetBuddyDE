@@ -5,6 +5,7 @@ import express from 'express';
 import {auth} from './auth';
 import {config} from './config';
 import {checkConnection} from './db';
+import {getRedisClient} from './db/redis';
 import {logger} from './lib/logger';
 import {handleError, log, servedBy} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
@@ -18,16 +19,27 @@ app.use(cors(config.cors));
 app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
-  const isRedisReachable = false;
+  const redisStatus = getRedisClient().status;
+  const isRedisReachable = redisStatus === 'ready';
   const isServiceDegraded = isDatabaseConnected && isRedisReachable;
 
-  return ApiResponse.expressBuilder<{status: string; database: boolean; redis: boolean}>(res)
+  return ApiResponse.expressBuilder<{
+    status: string;
+    database: boolean;
+    redis: {
+      status: ReturnType<typeof getRedisClient>['status'];
+      isReachable: boolean;
+    };
+  }>(res)
     .withMessage('Status of the application')
     .withStatus(isServiceDegraded ? HTTPStatusCode.OK : HTTPStatusCode.INTERNAL_SERVER_ERROR)
     .withData({
       status: isServiceDegraded ? 'ok' : 'degraded',
       database: isDatabaseConnected,
-      redis: isRedisReachable,
+      redis: {
+        status: redisStatus,
+        isReachable: isRedisReachable,
+      },
     })
     .buildAndSend();
 });
