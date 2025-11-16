@@ -26,7 +26,10 @@ export default async function auth(
     const session = await authClient.getSession(undefined, {
       headers: new Headers(req.headers as HeadersInit),
     });
-    authLogger.debug("Session retrieved", { session: session.data?.session.id, ...logOptions });
+    authLogger.debug("Session retrieved", {
+      session: session.data?.session.id,
+      ...logOptions,
+    });
 
     if (!session || !session.data) {
       const err = new Error("No session found");
@@ -48,10 +51,7 @@ export default async function auth(
     logOptions.user = req.user.id;
     logOptions.sessionId = session.data.session.id;
 
-    authLogger.debug(
-      "User (" + req.user.id + ") authenticated",
-      logOptions,
-    );
+    authLogger.debug("User (" + req.user.id + ") authenticated", logOptions);
 
     next();
   } catch (error) {
