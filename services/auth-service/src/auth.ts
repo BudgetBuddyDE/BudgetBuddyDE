@@ -21,20 +21,22 @@ const options: BetterAuthOptions = {
     provider: 'pg',
     schema: authSchema,
   }),
-  secondaryStorage: {
-    set(key, value, ttl) {
-      const client = getRedisClient();
-      client.set(key, value, 'EX', ttl || 0);
-    },
-    get(key) {
-      const client = getRedisClient();
-      client.get(key);
-    },
-    delete(key) {
-      const client = getRedisClient();
-      client.del(key);
-    },
-  },
+  secondaryStorage: Boolean(process.env.REDIS_URL)
+    ? {
+        set(key, value, ttl) {
+          const client = getRedisClient();
+          client.set(key, value, 'EX', ttl || 0);
+        },
+        get(key) {
+          const client = getRedisClient();
+          client.get(key);
+        },
+        delete(key) {
+          const client = getRedisClient();
+          client.del(key);
+        },
+      }
+    : undefined,
   logger: {
     disabled: false,
     level: mapLogLevelForBetterAuth(config.log.level),
@@ -51,7 +53,7 @@ const options: BetterAuthOptions = {
       }
     },
   },
-  trustedOrigins: ['https://next.app.budget-buddy.de', 'https://next.backend.budget-buddy.de'],
+  trustedOrigins: process.env.TRUSTED_ORIGINS?.split(',') || ['http://localhost:3000'],
   session: {
     cookieCache: {
       enabled: true,
@@ -64,7 +66,7 @@ const options: BetterAuthOptions = {
     cookiePrefix: 'budget-buddy',
     crossSubDomainCookies: {
       enabled: true,
-      domain: '.budget-buddy.de',
+      domain: config.runtime === 'production' ? '.budget-buddy.de' : 'localhost',
     },
     defaultCookieAttributes: {
       sameSite: 'none',
