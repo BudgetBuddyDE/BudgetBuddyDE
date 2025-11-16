@@ -57,7 +57,7 @@ const options: BetterAuthOptions = {
   session: {
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60, // Cache duration in seconds
+      maxAge: 30 * 60, // Cache duration in seconds
     },
   },
   advanced: {
