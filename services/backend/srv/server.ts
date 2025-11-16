@@ -20,7 +20,11 @@ cds.on("bootstrap", (app) => {
       cds
         .log("cors")
         .debug(`CORS preflight request from ${req.headers.origin}`);
+    
+      if (req.method === "OPTIONS") {
+        return res.set('access-control-allow-methods', 'GET,HEAD,PUT,PATCH,POST,DELETE').end()
+      }
+      return next();
     }
-    next();
   });
 });
