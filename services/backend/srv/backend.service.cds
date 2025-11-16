@@ -77,7 +77,9 @@ service BackendService {
             )
         ), 0
       ) as balance : type of db.Transaction : transferAmount
-    };
+    }
+    where
+      owner = $user;
 
   @plural                : 'PaymentMethods'
   @cds.redirection.target: 'PaymentMethod'
