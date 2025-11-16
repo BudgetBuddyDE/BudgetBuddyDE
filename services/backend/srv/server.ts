@@ -13,6 +13,8 @@ cds.on("bootstrap", (app) => {
     const origin = req.headers.origin;
     if (!origin) {
       cds.log("cors").debug("No origin header present in the request");
+      // REVISIT: Bad behavior? BUT it will be resolved by the next major version
+      return next()
     }
     cds
       .log("cors")
