@@ -1,10 +1,11 @@
 import { AddRounded, BalanceRounded, RemoveRounded } from "@mui/icons-material";
 import { Grid } from "@mui/material";
-import { headers } from "next/headers";
+
 import {
 	StatsCard,
 	type TStatsCardProps,
 } from "@/components/Analytics/StatsCard";
+import { headers } from "@/lib/headers";
 import { TransactionService } from "@/services/Transaction.service";
 import { Formatter } from "@/utils/Formatter";
 

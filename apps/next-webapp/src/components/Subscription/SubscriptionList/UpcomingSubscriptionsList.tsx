@@ -1,5 +1,6 @@
-import { headers } from "next/headers";
+
 import type React from "react";
+import { headers } from "@/lib/headers";
 import { SubscriptionService } from "@/services/Subscription.service";
 import {
 	SubscriptionList,

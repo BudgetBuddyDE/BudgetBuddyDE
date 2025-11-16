@@ -19,7 +19,6 @@ export async function middleware(request: NextRequest) {
 			headers: request.headers,
 		},
 	});
-	console.log(data, error);
 	if (error) {
 		middlewareLogger.error("Error retrieving the session: %o", error);
 		return NextResponse.redirect(new URL(SIGN_IN_ROUTE, request.url));
@@ -35,7 +34,7 @@ export async function middleware(request: NextRequest) {
 
 	middlewareLogger.debug(
 		"Session %s retrieved for user %s",
-		data?.session.id,
+		data?.session.token,
 		data?.user.id,
 		meta,
 	);

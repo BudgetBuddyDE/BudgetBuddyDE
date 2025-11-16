@@ -1,6 +1,6 @@
 import { addDays } from "date-fns";
-import { headers } from "next/headers";
 import type React from "react";
+import { headers } from "@/lib/headers";
 import { TransactionService } from "@/services/Transaction.service";
 import { Formatter } from "@/utils/Formatter";
 import { TransactionList, type TransactionListProps } from "./TransactionList";

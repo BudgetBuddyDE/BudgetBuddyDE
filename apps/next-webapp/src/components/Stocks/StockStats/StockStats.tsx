@@ -5,8 +5,8 @@ import {
 	RemoveRounded,
 } from "@mui/icons-material";
 import { Grid } from "@mui/material";
-import { headers } from "next/headers";
 import { StatsCard } from "@/components/Analytics/StatsCard";
+import { headers } from "@/lib/headers";
 import { AssetService } from "@/services/Stock";
 import { Formatter } from "@/utils/Formatter";
 

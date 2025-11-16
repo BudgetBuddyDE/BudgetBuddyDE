@@ -1,5 +1,5 @@
-import { headers } from "next/headers";
 import type React from "react";
+import { headers } from "@/lib/headers";
 import { TransactionService } from "@/services/Transaction.service";
 import { TransactionList, type TransactionListProps } from "./TransactionList";
 
@@ -11,11 +11,12 @@ export type LatestTransactionsListProps = Pick<
 export const LatestTransactionsList: React.FC<
 	LatestTransactionsListProps
 > = async ({ onAddEntity }) => {
+	const clientHeaders = await headers();
 	const [transactions, error] = await TransactionService.getTransactions(
 		{
 			$top: 6,
 		},
-		{ headers: await headers() },
+		{ headers: clientHeaders },
 	);
 	if (error) throw error;
 	return (

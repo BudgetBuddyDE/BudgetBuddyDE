@@ -9,10 +9,10 @@ import {
 	Stack,
 	Typography,
 } from "@mui/material";
-import { headers } from "next/headers";
 import { Card } from "@/components/Card";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { NoResults } from "@/components/NoResults";
+import { headers } from "@/lib/headers";
 import { AssetService } from "@/services/Stock";
 import { Formatter } from "@/utils/Formatter";
 

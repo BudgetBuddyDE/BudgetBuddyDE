@@ -1,5 +1,4 @@
 import { Grid, Typography } from "@mui/material";
-import { headers } from "next/headers";
 import { Card } from "@/components/Card";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
@@ -23,6 +22,7 @@ import { EtfDetails } from "@/components/Stocks/Cards/EtfDetails";
 import { SymbolList } from "@/components/Stocks/Cards/SymbolList";
 import { RelatedAsset } from "@/components/Stocks/RelatedAsset";
 import { StockPositionTable } from "@/components/Stocks/StockPositionTable";
+import { headers } from "@/lib/headers";
 import { AssetService } from "@/services/Stock";
 
 export default async function StockPage({
