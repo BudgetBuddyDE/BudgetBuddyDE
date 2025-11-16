@@ -4,6 +4,7 @@ import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
 import {config} from './config';
 import {db} from './db';
+import {getRedisClient} from './db/redis';
 import * as authSchema from './db/schema/auth.schema';
 import {logger} from './lib/logger';
 import {resendManager} from './lib/resend';
@@ -20,7 +21,20 @@ const options: BetterAuthOptions = {
     provider: 'pg',
     schema: authSchema,
   }),
-  secondaryStorage: undefined, // TODO: Add Redis for storing sessions
+  secondaryStorage: {
+    set(key, value, ttl) {
+      const client = getRedisClient();
+      client.set(key, value, 'EX', ttl || 0);
+    },
+    get(key) {
+      const client = getRedisClient();
+      client.get(key);
+    },
+    delete(key) {
+      const client = getRedisClient();
+      client.del(key);
+    },
+  },
   logger: {
     disabled: false,
     level: mapLogLevelForBetterAuth(config.log.level),
