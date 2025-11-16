@@ -79,21 +79,6 @@ service BackendService {
       ) as balance : type of db.Transaction : transferAmount
     };
 
-  // FIXME: The following commented-out code is not used in the current implementation.
-  // It will currently break the service if uncommented.
-  // Unfortunately, it is not possible to use the @Core.AutoExpand annotation righ now
-  // entity TestBudget                                     as
-  //   select from db.Budget {
-  //     *,
-  //     toCategories.{
-  //       *,
-  //       toCategory.{
-  //         ID   as categoryId,
-  //         name as categoryName
-  //       }
-  //     }
-  //   };
-
   @plural                : 'PaymentMethods'
   @cds.redirection.target: 'PaymentMethod'
   entity PaymentMethod @(restrict: [{

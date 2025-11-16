@@ -196,7 +196,10 @@ entity StockPositionAllocation as
             null     as securityName         : StockPosition:securityName,
             quantity as absolutePositionSize : StockPosition:positionValue,
             null     as relativePositionSize : Double,
-    };
+            owner                            : StockPosition:owner
+    }
+    where
+        owner = $user;
 
 @odata.singleton
 entity StockPositionsKPI {
