@@ -111,6 +111,23 @@ npm run db:generate # will generate all required schemas
 npm run db:migrate # will apply the generated schema to the database
 ```
 
+### Environment Variables
+
+#### `DATABASE_URL`
+The URL of the PostgreSQL database used for storing user data. Example:
+
+```txt
+DATABASE_URL=postgresql://user:password@db-host:5432/auth-database
+```
+
+#### `REDIS_URL`
+
+The URL of the Redis instance used for storing sessions. Example:
+
+```txt
+REDIS_URL=redis://default:password@redis-host:6379
+```
+
 ## Credits
 
 - [Better-Auth](https://better-auth.com)
