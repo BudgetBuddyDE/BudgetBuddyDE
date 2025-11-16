@@ -5,7 +5,7 @@
 ## Deployment
 
 > [!IMPORTANT]
-> Der Service wird mithilfe eines Docker-Images deployed. Um die Datenbankverbindung innerhalb des Docker-Containers aufzubauen, muss während des Build-Prozesses die `.cdsrc` generiert und mit den Verbindungsinformationen der Postres-Instanz befüllt werden.
+> The service is deployed using a Docker image. To establish the database connection within the Docker container, the `.cdsrc` must be generated during the build process and filled with the connection information for the Postres instance.
 > Learn more at [SAP Capire Postgres Deployment](https://cap.cloud.sap/docs/guides/databases-postgres#deployment)
 
 ### Environment Variables
