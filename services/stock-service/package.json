@@ -18,7 +18,7 @@
     "format": "prettier --write . --log-level silent"
   },
   "dependencies": {
-    "@budgetbuddyde/types": "^1.0.53",
+    "@budgetbuddyde/types": "^1.1.0",
     "@budgetbuddyde/utils": "^1.0.0",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
