@@ -1,0 +1,51 @@
+{
+  "name": "@budgetbuddyde/new-backend",
+  "version": "1.0.0",
+  "main": "build/src/server.js",
+  "scripts": {
+    "start": "node build/src/server.js",
+    "watch": "tsx watch src/server.ts",
+    "dev": "npm run watch",
+    "build": "npx rimraf build && npx tsc",
+    "pretest": "npm run check",
+    "test": "vitest run",
+    "check": "biome check --error-on-warnings",
+    "lint": "biome lint --write",
+    "format": "biome format --write",
+    "db:generate": "npx drizzle-kit generate",
+    "db:migrate": "npx drizzle-kit migrate",
+    "db:studio": "npx drizzle-kit studio"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/budgetbuddyde/budgetbuddyde.git"
+  },
+  "author": "Thorben Klein",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/budgetbuddyde/budgetbuddyde/issues"
+  },
+  "homepage": "https://github.com/budgetbuddyde/budgetbuddyde#readme",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
+    "express": "^5.1.0",
+    "ioredis": "^5.8.2",
+    "node-cron": "^4.2.0",
+    "pg": "^8.16.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.3",
+    "@types/pg": "^8.15.4",
+    "drizzle-kit": "^0.31.1",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
