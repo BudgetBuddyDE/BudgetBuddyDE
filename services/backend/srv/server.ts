@@ -53,7 +53,12 @@ cds.on('bootstrap', (app) => {
             'receiver',
             'information'
           )
-          .where({ executeAt: new Date().getDate() });
+          .where({
+            executeAt: new Date().getDate(),
+            and: {
+              paused: false,
+            },
+          });
 
         await INSERT.into(Transactions).entries(
           records.map(
