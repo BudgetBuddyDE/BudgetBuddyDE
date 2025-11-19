@@ -8,6 +8,12 @@
 
 The connection string for the PostgreSQL database.
 
+#### `TRUSTED_ORIGINS`
+
+#### `PORT`
+
+#### `LOG_LEVEL`
+
 ## Deployment
 
 ### Service

@@ -1,5 +1,11 @@
 import { getLogLevel, type LogClientOptions } from '@budgetbuddyde/logger';
-import { getCurrentRuntime, getPort, isRunningInProd, type Runtime } from '@budgetbuddyde/utils';
+import {
+  getCurrentRuntime,
+  getPort,
+  getTrustedOrigins,
+  isRunningInProd,
+  type Runtime,
+} from '@budgetbuddyde/utils';
 import type { CorsOptions } from 'cors';
 import 'dotenv/config';
 
@@ -33,13 +39,7 @@ export const config: Config = {
     level: getLogLevel(process.env.LOG_LEVEL || 'INFO'),
   },
   cors: {
-    origin: isRunningInProd()
-      ? [
-          /\.budget-buddy\.de$/,
-          /^(http|https):\/\/localhost(:\d+)?$/,
-          'https://next.backend.budget-buddy.de',
-        ]
-      : [/^(http|https):\/\/localhost(:\d+)?$/],
+    origin: isRunningInProd() ? getTrustedOrigins() : [/^(http|https):\/\/localhost(:\d+)?$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,

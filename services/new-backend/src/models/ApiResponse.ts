@@ -1,6 +1,5 @@
-import type {Response} from 'express';
-
-import {HTTPStatusCode} from './HttpStatusCode';
+import type { Response } from 'express';
+import { HTTPStatusCode } from './HttpStatusCode';
 
 type BaseProperties<T> = {
   data: T | null;
@@ -160,16 +159,35 @@ export class ApiResponseBuilder<T> {
     return this.responseBody;
   }
 
+  public fromError(error: Error): ApiResponseBuilder<T> {
+    this.withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR);
+    this.withMessage(error.message);
+    if (error.stack) {
+      this.withData(error.stack as T);
+    }
+
+    return this;
+  }
+
   /**
    * Sends the constructed response using the ExpressJS response object.
    */
-  public buildAndSend(): void {
-    if (this.res) {
-      if (!this.responseBody.from) delete this.responseBody.from;
-      if (!this.responseBody.message) delete this.responseBody.message;
-      if (!this.responseBody.error) delete this.responseBody.error;
-      this.res.status(this.responseBody.status).json(this.build()).end();
-    } else {
+  public buildAndSend(response?: Response): void {
+    if (!this.res && !response) {
+      throw new Error('ExpressJS response object is not set.');
+    }
+
+    this.res = (this.res || response) as Response;
+    this.responseObjIsSet(this.res);
+
+    if (!this.responseBody.from) delete this.responseBody.from;
+    if (!this.responseBody.message) delete this.responseBody.message;
+    if (!this.responseBody.error) delete this.responseBody.error;
+    this.res.status(this.responseBody.status).json(this.build()).end();
+  }
+
+  private responseObjIsSet(response: Response | undefined | null): asserts response is Response {
+    if (!this.res && !response) {
       throw new Error('ExpressJS response object is not set.');
     }
   }

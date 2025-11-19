@@ -1,16 +1,20 @@
 import cors from 'cors';
 import express from 'express';
+import bodyParser from 'body-parser';
 import { config } from './config';
 import { checkConnection } from './db';
 import { logger } from './lib/logger';
-import { handleError, log, servedBy } from './middleware';
+import { setRequestContext, handleError, log, servedBy } from './middleware';
 import { ApiResponse, HTTPStatusCode } from './models';
+import { CategoryRouter } from './router';
 
 export const app = express();
 
-app.use(servedBy);
-app.use(log);
 app.use(cors(config.cors));
+app.use(setRequestContext);
+app.use(bodyParser.json());
+app.use(log);
+app.use(servedBy);
 
 app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
@@ -39,13 +43,13 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
     })
     .buildAndSend();
 });
-// app.all('/api/auth/{*splat}', toNodeHandler(auth));
 // app.get('/api/me', async (req, res) => {
 //   const session = await auth.api.getSession({
 //     headers: fromNodeHeaders(req.headers),
 //   });
 //   res.json(session);
 // });
+app.use('/api/category', CategoryRouter);
 
 // Mount an global error handler
 app.use(handleError);
@@ -61,5 +65,5 @@ export const server = app.listen(config.port, () => {
     'Trusted Origins': JSON.stringify(config.cors.origin),
   };
   console.table(options);
-  logger.info('%s is available under http://localhost:%d', config.service, config.port, options);
+  logger.info('%s is available under http://localhost:%d', config.service, config.port);
 });

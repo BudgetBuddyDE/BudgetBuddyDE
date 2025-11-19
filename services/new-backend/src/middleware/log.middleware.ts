@@ -1,12 +1,12 @@
-import {LogLevel} from '@budgetbuddyde/logger';
-import type {NextFunction, Request, Response} from 'express';
+import { LogLevel } from '@budgetbuddyde/logger';
+import type { NextFunction, Request, Response } from 'express';
 
-import {logger} from '../lib/logger';
+import { logger } from '../lib/logger';
 
-export const requestLogger = logger.child({label: 'request'});
+export const requestLogger = logger.child({ label: 'request' });
 
 export function log(req: Request, res: Response, next: NextFunction): void {
-  const requestId = crypto.randomUUID();
+  const requestId = req.context.requestId;
   req.requestId = requestId;
   res.setHeader('X-Request-Id', requestId);
 
@@ -33,7 +33,7 @@ export function log(req: Request, res: Response, next: NextFunction): void {
       responseCode: statusCode,
     };
 
-    const msg = `[${requestMetaInformation.ip}] ${req.method} ${req.originalUrl} ${statusCode} - ${requestMetaInformation.responseTimeInMillis}`;
+    const msg = `[${requestMetaInformation.ip}] ${req.method} ${req.originalUrl} ${statusCode} - ${requestMetaInformation.responseTimeInMillis} ms`;
     switch (targetLogLevel) {
       case LogLevel.ERROR:
         requestLogger.error(msg, requestMetaInformation);

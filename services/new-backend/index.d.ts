@@ -1,7 +1,9 @@
 import 'express';
+import type { RequestContext } from './src/types';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    requestId?: ReturnType<typeof crypto.randomUUID>;
+    requestId?: string;
+    context: RequestContext;
   }
 }
