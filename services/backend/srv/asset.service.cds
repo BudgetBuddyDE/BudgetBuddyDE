@@ -28,7 +28,7 @@ service AssetService {
       'UPDATE',
       'DELETE'
     ],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }])                                                   as projection on db.StockWatchlist;
 
   @plural: 'StockPositions'
@@ -39,7 +39,7 @@ service AssetService {
       'UPDATE',
       'DELETE'
     ],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }])                                                   as projection on db.StockPosition;
 
   @plural: 'StockPositionAllocations'

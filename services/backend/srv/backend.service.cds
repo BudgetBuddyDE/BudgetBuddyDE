@@ -14,13 +14,13 @@ service BackendService {
       'UPDATE',
       'DELETE'
     ],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }])               as projection on db.Category;
 
   @readonly
   view Category_VH @(restrict: [{
     grant: ['READ'],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }]) as
     select from db.Category {
       ID,
@@ -90,13 +90,13 @@ service BackendService {
       'UPDATE',
       'DELETE'
     ],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }])               as projection on db.PaymentMethod;
 
   @readonly
   view PaymentMethod_VH @(restrict: [{
     grant: ['READ'],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }]) as
     select from db.PaymentMethod {
       ID,
@@ -115,7 +115,7 @@ service BackendService {
       'UPDATE',
       'DELETE'
     ],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }])               as projection on db.Transaction
                        order by
                          processedAt desc;
@@ -128,7 +128,7 @@ service BackendService {
       'UPDATE',
       'DELETE'
     ],
-    where: 'createdBy = $user'
+    where: 'owner = $user'
   }])               as projection on db.Subscription
                        order by
                          executeAt asc;
