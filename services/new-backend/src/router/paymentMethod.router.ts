@@ -1,39 +1,38 @@
 import {and, eq} from 'drizzle-orm';
 import {Router} from 'express';
-import {z} from 'zod';
+import z from 'zod';
 import {db} from '../db';
-import {categories} from '../db/schema';
-import {CategorySchemas} from '../db/schema/types';
+import {paymentMethods} from '../db/schema';
+import {PaymentMethodSchemas} from '../db/schema/types';
 import {validateRequest} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
-export const categoryRouter = Router();
+export const paymentMethodRouter = Router();
 
-categoryRouter.get('/', async (req, res) => {
+paymentMethodRouter.get('/', async (req, res) => {
   const userId = req.context.user?.id;
   if (!userId) {
     ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
     return;
   }
-  const categories = await db.query.categories.findMany({
+  const records = await db.query.paymentMethods.findMany({
     where(fields, operators) {
       return operators.eq(fields.ownerId, userId);
     },
   });
-
-  ApiResponse.builder<typeof categories>()
+  ApiResponse.builder<typeof records>()
     .withStatus(HTTPStatusCode.OK)
-    .withMessage("Fetched user's categories successfully")
-    .withData(categories)
+    .withMessage("Fetched user's payment methods successfully")
+    .withData(records)
     .withFrom('db')
     .buildAndSend(res);
 });
 
-categoryRouter.get(
+paymentMethodRouter.get(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: PaymentMethodSchemas.select.shape.id,
     }),
   }),
   async (req, res) => {
@@ -43,7 +42,7 @@ categoryRouter.get(
       return;
     }
     const entityId = req.params.id;
-    const record = await db.query.categories.findFirst({
+    const record = await db.query.paymentMethods.findFirst({
       where(fields, operators) {
         return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
       },
@@ -52,7 +51,7 @@ categoryRouter.get(
     if (!record) {
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.NOT_FOUND)
-        .withMessage(`Category ${entityId} not found`)
+        .withMessage(`Payment method ${entityId} not found`)
         .withFrom('db')
         .buildAndSend(res);
       return;
@@ -60,18 +59,18 @@ categoryRouter.get(
 
     ApiResponse.builder<typeof record>()
       .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's category successfully")
+      .withMessage("Fetched user's payment method successfully")
       .withData(record)
       .withFrom('db')
       .buildAndSend(res);
   },
 );
 
-categoryRouter.post(
+paymentMethodRouter.post(
   '/',
   validateRequest({
-    body: CategorySchemas.insert.omit({ownerId: true}).extend({
-      ownerId: CategorySchemas.insert.shape.ownerId.optional(),
+    body: PaymentMethodSchemas.insert.omit({ownerId: true}).extend({
+      ownerId: PaymentMethodSchemas.insert.shape.ownerId.optional(),
     }),
   }),
   async (req, res) => {
@@ -80,20 +79,19 @@ categoryRouter.post(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-
     const requestBody = [req.body].map(body => {
       body.ownerId = userId;
-      return body as z.infer<typeof CategorySchemas.insert>;
+      return body as z.infer<typeof PaymentMethodSchemas.insert>;
     });
 
     try {
-      const createdRecords = await db.insert(categories).values(requestBody).returning();
+      const createdRecords = await db.insert(paymentMethods).values(requestBody).returning();
       if (createdRecords.length === 0) {
-        throw new Error('No category created');
+        throw new Error('No payment method created');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category created successfully')
+        .withMessage('Payment method created successfully')
         .withData(createdRecords)
         .withFrom('db')
         .buildAndSend(res);
@@ -105,14 +103,14 @@ categoryRouter.post(
   },
 );
 
-categoryRouter.put(
+paymentMethodRouter.put(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: PaymentMethodSchemas.select.shape.id,
     }),
-    body: CategorySchemas.update.omit({ownerId: true}).extend({
-      ownerId: CategorySchemas.update.shape.ownerId.optional(),
+    body: PaymentMethodSchemas.update.omit({ownerId: true}).extend({
+      ownerId: PaymentMethodSchemas.update.shape.ownerId.optional(),
     }),
   }),
   async (req, res) => {
@@ -125,19 +123,18 @@ categoryRouter.put(
     requestBody.ownerId = userId;
 
     try {
-      const updatedRecords = await db
-        .update(categories)
+      const updatedRecord = await db
+        .update(paymentMethods)
         .set(requestBody)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, req.params.id)))
+        .where(and(eq(paymentMethods.ownerId, userId), eq(paymentMethods.id, req.params.id)))
         .returning();
-
-      if (updatedRecords.length === 0) {
-        throw new Error('No category updated');
+      if (updatedRecord.length === 0) {
+        throw new Error('No payment method updated');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category updated successfully')
-        .withData(updatedRecords)
+        .withMessage('Payment method updated successfully')
+        .withData(updatedRecord)
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {
@@ -148,11 +145,11 @@ categoryRouter.put(
   },
 );
 
-categoryRouter.delete(
+paymentMethodRouter.delete(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: PaymentMethodSchemas.select.shape.id,
     }),
   }),
   async (req, res) => {
@@ -162,19 +159,17 @@ categoryRouter.delete(
       return;
     }
     const entityId = req.params.id;
-
     try {
       const deletedRecord = await db
-        .delete(categories)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, entityId)))
+        .delete(paymentMethods)
+        .where(and(eq(paymentMethods.ownerId, userId), eq(paymentMethods.id, entityId)))
         .returning();
-
       if (deletedRecord.length === 0) {
-        throw new Error('No category deleted');
+        throw new Error('No payment method deleted');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category deleted successfully')
+        .withMessage('Payment method deleted successfully')
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {

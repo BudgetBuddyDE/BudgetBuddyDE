@@ -1,39 +1,42 @@
 import {and, eq} from 'drizzle-orm';
 import {Router} from 'express';
-import {z} from 'zod';
+import z from 'zod';
 import {db} from '../db';
-import {categories} from '../db/schema';
-import {CategorySchemas} from '../db/schema/types';
+import {recurringPayments} from '../db/schema';
+import {RecurringPaymentSchemas} from '../db/schema/types';
 import {validateRequest} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
-export const categoryRouter = Router();
+export const recurringPaymentRouter = Router();
 
-categoryRouter.get('/', async (req, res) => {
+recurringPaymentRouter.get('/', async (req, res) => {
   const userId = req.context.user?.id;
   if (!userId) {
     ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
     return;
   }
-  const categories = await db.query.categories.findMany({
+  const records = await db.query.recurringPayments.findMany({
     where(fields, operators) {
       return operators.eq(fields.ownerId, userId);
     },
+    with: {
+      category: true,
+      paymentMethod: true,
+    },
   });
-
-  ApiResponse.builder<typeof categories>()
+  ApiResponse.builder<typeof records>()
     .withStatus(HTTPStatusCode.OK)
-    .withMessage("Fetched user's categories successfully")
-    .withData(categories)
+    .withMessage("Fetched user's recurring payments successfully")
+    .withData(records)
     .withFrom('db')
     .buildAndSend(res);
 });
 
-categoryRouter.get(
+recurringPaymentRouter.get(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: RecurringPaymentSchemas.select.shape.id,
     }),
   }),
   async (req, res) => {
@@ -43,35 +46,37 @@ categoryRouter.get(
       return;
     }
     const entityId = req.params.id;
-    const record = await db.query.categories.findFirst({
+    const records = await db.query.recurringPayments.findFirst({
       where(fields, operators) {
         return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
       },
+      with: {
+        category: true,
+        paymentMethod: true,
+      },
     });
-
-    if (!record) {
+    if (!records) {
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.NOT_FOUND)
-        .withMessage(`Category ${entityId} not found`)
+        .withMessage(`Recurring payment ${entityId} not found`)
         .withFrom('db')
         .buildAndSend(res);
       return;
     }
-
-    ApiResponse.builder<typeof record>()
+    ApiResponse.builder<typeof records>()
       .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's category successfully")
-      .withData(record)
+      .withMessage("Fetched user's recurring payment successfully")
+      .withData(records)
       .withFrom('db')
       .buildAndSend(res);
   },
 );
 
-categoryRouter.post(
+recurringPaymentRouter.post(
   '/',
   validateRequest({
-    body: CategorySchemas.insert.omit({ownerId: true}).extend({
-      ownerId: CategorySchemas.insert.shape.ownerId.optional(),
+    body: RecurringPaymentSchemas.insert.omit({ownerId: true}).extend({
+      ownerId: RecurringPaymentSchemas.insert.shape.ownerId.optional(),
     }),
   }),
   async (req, res) => {
@@ -80,20 +85,19 @@ categoryRouter.post(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-
     const requestBody = [req.body].map(body => {
       body.ownerId = userId;
-      return body as z.infer<typeof CategorySchemas.insert>;
+      return body as z.infer<typeof RecurringPaymentSchemas.insert>;
     });
 
     try {
-      const createdRecords = await db.insert(categories).values(requestBody).returning();
+      const createdRecords = await db.insert(recurringPayments).values(requestBody).returning();
       if (createdRecords.length === 0) {
-        throw new Error('No category created');
+        throw new Error('No recurring payment created');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category created successfully')
+        .withMessage('Recurring payment created successfully')
         .withData(createdRecords)
         .withFrom('db')
         .buildAndSend(res);
@@ -105,16 +109,17 @@ categoryRouter.post(
   },
 );
 
-categoryRouter.put(
+recurringPaymentRouter.put(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: RecurringPaymentSchemas.select.shape.id,
     }),
-    body: CategorySchemas.update.omit({ownerId: true}).extend({
-      ownerId: CategorySchemas.update.shape.ownerId.optional(),
+    body: RecurringPaymentSchemas.update.omit({ownerId: true}).extend({
+      ownerId: RecurringPaymentSchemas.update.shape.ownerId.optional(),
     }),
   }),
+
   async (req, res) => {
     const userId = req.context.user?.id;
     if (!userId) {
@@ -125,19 +130,18 @@ categoryRouter.put(
     requestBody.ownerId = userId;
 
     try {
-      const updatedRecords = await db
-        .update(categories)
+      const updatedRecord = await db
+        .update(recurringPayments)
         .set(requestBody)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, req.params.id)))
+        .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, req.params.id)))
         .returning();
-
-      if (updatedRecords.length === 0) {
-        throw new Error('No category updated');
+      if (updatedRecord.length === 0) {
+        throw new Error('No recurring payment updated');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category updated successfully')
-        .withData(updatedRecords)
+        .withMessage('Recurring payment updated successfully')
+        .withData(updatedRecord)
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {
@@ -148,11 +152,11 @@ categoryRouter.put(
   },
 );
 
-categoryRouter.delete(
+recurringPaymentRouter.delete(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: RecurringPaymentSchemas.select.shape.id,
     }),
   }),
   async (req, res) => {
@@ -162,19 +166,17 @@ categoryRouter.delete(
       return;
     }
     const entityId = req.params.id;
-
     try {
       const deletedRecord = await db
-        .delete(categories)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, entityId)))
+        .delete(recurringPayments)
+        .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, entityId)))
         .returning();
-
       if (deletedRecord.length === 0) {
-        throw new Error('No category deleted');
+        throw new Error('No recurring payment deleted');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category deleted successfully')
+        .withMessage('Recurring payment deleted successfully')
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {

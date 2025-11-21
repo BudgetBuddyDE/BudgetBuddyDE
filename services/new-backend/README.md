@@ -41,3 +41,4 @@ Now your database schema should be up-to-date with the application's requirement
 
 - ExpressJS
 - Drizzle ORM
+- [zod-express-middleware](https://github.com/Aquila169/zod-express-middleware/tree/main) _Not installed as an npm package, but included as source code in this project_

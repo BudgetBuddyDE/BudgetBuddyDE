@@ -1,5 +1,5 @@
-import type { Response } from 'express';
-import { HTTPStatusCode } from './HttpStatusCode';
+import type {Response} from 'express';
+import {HTTPStatusCode} from './HttpStatusCode';
 
 type BaseProperties<T> = {
   data: T | null;

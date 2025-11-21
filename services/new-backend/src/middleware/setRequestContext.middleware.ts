@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
-import type { NextFunction, Request, Response } from 'express';
+import {randomUUID} from 'node:crypto';
+import type {NextFunction, Request, Response} from 'express';
 
-import type { RequestContext } from '../types';
+import type {RequestContext} from '../types';
 
 export function setRequestContext(req: Request, res: Response, next: NextFunction): void {
   const context: RequestContext = {

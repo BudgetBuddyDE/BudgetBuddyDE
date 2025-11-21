@@ -28,7 +28,7 @@
   "homepage": "https://github.com/budgetbuddyde/budgetbuddyde#readme",
   "description": "",
   "dependencies": {
-    "better-auth": "^1.2.12",
+    "better-auth": "^1.2.9",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -37,7 +37,8 @@
     "express": "^5.1.0",
     "ioredis": "^5.8.2",
     "node-cron": "^4.2.0",
-    "pg": "^8.16.1"
+    "pg": "^8.16.1",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",

@@ -1,15 +1,9 @@
-import { getLogLevel, type LogClientOptions } from '@budgetbuddyde/logger';
-import {
-  getCurrentRuntime,
-  getPort,
-  getTrustedOrigins,
-  isRunningInProd,
-  type Runtime,
-} from '@budgetbuddyde/utils';
-import type { CorsOptions } from 'cors';
+import {getLogLevel, type LogClientOptions} from '@budgetbuddyde/logger';
+import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
+import type {CorsOptions} from 'cors';
 import 'dotenv/config';
 
-import { name, version } from '../package.json';
+import {name, version} from '../package.json';
 
 export type Config = {
   service: typeof name;

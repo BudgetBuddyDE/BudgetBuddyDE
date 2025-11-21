@@ -1,8 +1,8 @@
-import { sql } from 'drizzle-orm';
-import { backendSchema } from './schema';
-import { transactions, subscriptions, stockPositions } from './tables';
+import {sql} from 'drizzle-orm';
+import {backendSchema} from './schema';
+import {recurringPayments, stockPositions, transactions} from './tables';
 
-export const transactionReceiverView = backendSchema.view('transaction_receiver_view').as((qb) =>
+export const transactionReceiverView = backendSchema.view('transaction_receiver_view').as(qb =>
   qb
     .selectDistinct({
       receiver: transactions.receiver,
@@ -12,14 +12,14 @@ export const transactionReceiverView = backendSchema.view('transaction_receiver_
     .unionAll(
       qb
         .selectDistinct({
-          receiver: subscriptions.receiver,
-          ownerId: subscriptions.ownerId,
+          receiver: recurringPayments.receiver,
+          ownerId: recurringPayments.ownerId,
         })
-        .from(subscriptions)
-    )
+        .from(recurringPayments),
+    ),
 );
 
-export const stockPositionView = backendSchema.view('stock_position_grouped').as((qb) =>
+export const stockPositionView = backendSchema.view('stock_position_grouped').as(qb =>
   qb
     .select({
       ownerId: stockPositions.ownerId,
@@ -30,5 +30,5 @@ export const stockPositionView = backendSchema.view('stock_position_grouped').as
       totalPurchaseFee: sql`SUM(${stockPositions.purchaseFee})`.as('total_purchase_fee'),
     })
     .from(stockPositions)
-    .groupBy(stockPositions.ownerId, stockPositions.identifier, stockPositions.stockExchangeSymbol)
+    .groupBy(stockPositions.ownerId, stockPositions.identifier, stockPositions.stockExchangeSymbol),
 );

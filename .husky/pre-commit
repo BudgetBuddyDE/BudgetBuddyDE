@@ -40,6 +40,11 @@ if has_changes "services/auth-service"; then
   cd services/auth-service && npm test && npm run build && go_back || exit 1
 fi 
 
+if has_changes "services/new-backend"; then
+  echo "Running checks for services/new-backend..."
+  cd services/new-backend && npm test && npm run build && go_back || exit 1
+fi 
+
 if has_changes "services/backend"; then
   echo "Running checks for services/backend..."
   cd services/backend && npm test && npm run build && go_back || exit 1

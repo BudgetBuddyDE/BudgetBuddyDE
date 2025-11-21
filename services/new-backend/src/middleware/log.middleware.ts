@@ -1,9 +1,9 @@
-import { LogLevel } from '@budgetbuddyde/logger';
-import type { NextFunction, Request, Response } from 'express';
+import {LogLevel} from '@budgetbuddyde/logger';
+import type {NextFunction, Request, Response} from 'express';
 
-import { logger } from '../lib/logger';
+import {logger} from '../lib/logger';
 
-export const requestLogger = logger.child({ label: 'request' });
+export const requestLogger = logger.child({label: 'request'});
 
 export function log(req: Request, res: Response, next: NextFunction): void {
   const requestId = req.context.requestId;

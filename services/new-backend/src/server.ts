@@ -1,19 +1,26 @@
+import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
-import bodyParser from 'body-parser';
-import { config } from './config';
-import { checkConnection } from './db';
-import { logger } from './lib/logger';
-import { setRequestContext, handleError, log, servedBy } from './middleware';
-import { ApiResponse, HTTPStatusCode } from './models';
-import { CategoryRouter } from './router';
+import {config} from './config';
+import {checkConnection} from './db';
+import {logger} from './lib/logger';
+import {handleError, log, servedBy, setRequestContext} from './middleware';
+import {ApiResponse, HTTPStatusCode} from './models';
+import {
+  BudgetRouter,
+  CategoryRouter,
+  PaymentMethodRouter,
+  RecurringPaymentRouter,
+  StockExchangeRouter,
+  TransactionRouter,
+} from './router';
 
 export const app = express();
 
 app.use(cors(config.cors));
 app.use(setRequestContext);
-app.use(bodyParser.json());
 app.use(log);
+app.use(bodyParser.json());
 app.use(servedBy);
 
 app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
@@ -43,13 +50,20 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
     })
     .buildAndSend();
 });
-// app.get('/api/me', async (req, res) => {
-//   const session = await auth.api.getSession({
-//     headers: fromNodeHeaders(req.headers),
-//   });
-//   res.json(session);
-// });
+app.get('/api/me', async (req, res) => {
+  ApiResponse.builder<typeof req.context>().withData(req.context).buildAndSend(res);
+});
 app.use('/api/category', CategoryRouter);
+app.use('/api/paymentMethod', PaymentMethodRouter);
+app.use('/api/transaction', TransactionRouter);
+app.use('/api/recurringPayment', RecurringPaymentRouter);
+app.use('/api/budget', BudgetRouter);
+
+app.use('/api/asset/stock/exchange', StockExchangeRouter);
+app.use('/api/asset/stock/position', StockExchangeRouter);
+// TODO: This feature is not implemented yet (soon)
+// app.use('/api/asset/stock/watchlist', StockExchangeRouter);
+app.use('/api/asset/metal', StockExchangeRouter);
 
 // Mount an global error handler
 app.use(handleError);

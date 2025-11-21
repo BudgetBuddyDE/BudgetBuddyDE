@@ -1,4 +1,4 @@
-import { type Session as AuthSession, type User as AuthUser } from 'better-auth';
+import type {Session as AuthSession, User as AuthUser} from 'better-auth';
 
 // export interface RequestUser {
 
