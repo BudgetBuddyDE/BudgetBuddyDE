@@ -3,12 +3,14 @@ import cors from 'cors';
 import express from 'express';
 import {config} from './config';
 import {checkConnection} from './db';
+import {getRedisClient} from './db/redis';
 import {logger} from './lib/logger';
 import {handleError, log, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 import {
   BudgetRouter,
   CategoryRouter,
+  MetalRouter,
   PaymentMethodRouter,
   RecurringPaymentRouter,
   StockExchangeRouter,
@@ -26,27 +28,27 @@ app.use(servedBy);
 app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
-  // const redisStatus = getRedisClient().status;
-  // const isRedisReachable = redisStatus === 'ready';
-  const isServiceDegraded = isDatabaseConnected; /*&& isRedisReachable*/
+  const redisStatus = getRedisClient().status;
+  const isRedisReachable = redisStatus === 'ready';
+  const isServiceDegraded = isDatabaseConnected && isRedisReachable;
 
   return ApiResponse.expressBuilder<{
     status: string;
     database: boolean;
-    // redis: {
-    //   status: ReturnType<typeof getRedisClient>['status'];
-    //   isReachable: boolean;
-    // };
+    redis: {
+      status: ReturnType<typeof getRedisClient>['status'];
+      isReachable: boolean;
+    };
   }>(res)
     .withMessage('Status of the application')
     .withStatus(isServiceDegraded ? HTTPStatusCode.OK : HTTPStatusCode.INTERNAL_SERVER_ERROR)
     .withData({
       status: isServiceDegraded ? 'ok' : 'degraded',
       database: isDatabaseConnected,
-      // redis: {
-      //   status: redisStatus,
-      //   isReachable: isRedisReachable,
-      // },
+      redis: {
+        status: redisStatus,
+        isReachable: isRedisReachable,
+      },
     })
     .buildAndSend();
 });
@@ -63,7 +65,7 @@ app.use('/api/asset/stock/exchange', StockExchangeRouter);
 app.use('/api/asset/stock/position', StockExchangeRouter);
 // TODO: This feature is not implemented yet (soon)
 // app.use('/api/asset/stock/watchlist', StockExchangeRouter);
-app.use('/api/asset/metal', StockExchangeRouter);
+app.use('/api/asset/metal', MetalRouter);
 
 // Mount an global error handler
 app.use(handleError);

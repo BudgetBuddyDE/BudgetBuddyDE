@@ -136,7 +136,7 @@ export class ApiResponseBuilder<T> {
    * @param from The source of the response data. Must be either "db" or "cache".
    * @returns The ApiResponseBuilder instance.
    */
-  public withFrom(from: 'db' | 'cache'): ApiResponseBuilder<T> {
+  public withFrom(from: 'db' | 'cache' | 'external'): ApiResponseBuilder<T> {
     this.responseBody.from = from;
     return this;
   }
@@ -159,10 +159,10 @@ export class ApiResponseBuilder<T> {
     return this.responseBody;
   }
 
-  public fromError(error: Error): ApiResponseBuilder<T> {
+  public fromError(error: Error, showStack = false): ApiResponseBuilder<T> {
     this.withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR);
     this.withMessage(error.message);
-    if (error.stack) {
+    if (error.stack && showStack) {
       this.withData(error.stack as T);
     }
 

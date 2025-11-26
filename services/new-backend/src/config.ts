@@ -2,8 +2,8 @@ import {getLogLevel, type LogClientOptions} from '@budgetbuddyde/logger';
 import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
 import 'dotenv/config';
-
 import {name, version} from '../package.json';
+import type {TMetalSymbol} from './router/metal.router';
 
 export type Config = {
   service: typeof name;
@@ -15,6 +15,9 @@ export type Config = {
   cors: CorsOptions;
   jobs: {
     timezone: string;
+  };
+  metal: {
+    symbols: Record<TMetalSymbol, {name: string; unit: string}>;
   };
 };
 
@@ -40,5 +43,12 @@ export const config: Config = {
   },
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',
+  },
+  metal: {
+    symbols: {
+      XAG: {name: 'Silver', unit: 'troy_oz'},
+      XAU: {name: 'Gold', unit: 'troy_oz'},
+      XPT: {name: 'Platinum', unit: 'troy_oz'},
+    },
   },
 };

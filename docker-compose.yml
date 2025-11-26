@@ -21,7 +21,17 @@ services:
       - '5433:5432'
     volumes:
       - backend_db_data:/var/lib/postgresql/data
+  cache:
+    image: redis:7-alpine
+    container_name: cache
+    restart: always
+    command: ["redis-server", "--requirepass", "mycachepassword"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache_data:/data
 
 volumes:
   auth_db_data:
   backend_db_data:
+  cache_data:
