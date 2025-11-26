@@ -31,6 +31,7 @@ export function log(req: Request, res: Response, next: NextFunction): void {
       responseTime: `${durationMs} ms`,
       responseTimeInMillis: durationMs,
       responseCode: statusCode,
+      origin: req.headers['X-Served-By'] || req.headers.origin || 'unknown',
     };
 
     const msg = `[${requestMetaInformation.ip}] ${req.method} ${req.originalUrl} ${statusCode} - ${requestMetaInformation.responseTimeInMillis}`;
