@@ -1,7 +1,15 @@
 import type {Table} from 'drizzle-orm';
 import {createInsertSchema, createSelectSchema, createUpdateSchema} from 'drizzle-zod';
 import {z} from 'zod';
-import {budgetCategories, budgets, categories, paymentMethods, recurringPayments, transactions} from './tables';
+import {
+  budgetCategories,
+  budgets,
+  categories,
+  paymentMethods,
+  recurringPayments,
+  stockPositions,
+  transactions,
+} from './tables';
 
 function createTableSchemas<T extends Table>(table: T) {
   return {
@@ -37,3 +45,5 @@ export const BudgetWithCategoriesSchema = {
     categories: z.array(z.string()),
   }),
 };
+
+export const StockPositionSchemas = createTableSchemas(stockPositions);

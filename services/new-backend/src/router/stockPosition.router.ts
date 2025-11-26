@@ -2,38 +2,41 @@ import {and, eq} from 'drizzle-orm';
 import {Router} from 'express';
 import {z} from 'zod';
 import {db} from '../db';
-import {categories} from '../db/schema';
-import {CategorySchemas} from '../db/schema/types';
+import {stockPositions} from '../db/schema';
+import {StockPositionSchemas} from '../db/schema/types';
 import {validateRequest} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
-export const categoryRouter = Router();
+export const stockPositionRouter = Router();
 
-categoryRouter.get('/', async (req, res) => {
+stockPositionRouter.get('/', async (req, res) => {
   const userId = req.context.user?.id;
   if (!userId) {
     ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
     return;
   }
-  const records = await db.query.categories.findMany({
+  const records = await db.query.stockPositions.findMany({
     where(fields, operators) {
       return operators.eq(fields.ownerId, userId);
+    },
+    with: {
+      stockExchange: true,
     },
   });
 
   ApiResponse.builder<typeof records>()
     .withStatus(HTTPStatusCode.OK)
-    .withMessage("Fetched user's categories successfully")
+    .withMessage("Fetched user's stock positions successfully")
     .withData(records)
     .withFrom('db')
     .buildAndSend(res);
 });
 
-categoryRouter.get(
+stockPositionRouter.get(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: StockPositionSchemas.select.shape.id,
     }),
   }),
   async (req, res) => {
@@ -43,16 +46,19 @@ categoryRouter.get(
       return;
     }
     const entityId = req.params.id;
-    const record = await db.query.categories.findFirst({
+    const record = await db.query.stockPositions.findFirst({
       where(fields, operators) {
         return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
+      },
+      with: {
+        stockExchange: true,
       },
     });
 
     if (!record) {
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.NOT_FOUND)
-        .withMessage(`Category ${entityId} not found`)
+        .withMessage(`Stock position ${entityId} not found`)
         .withFrom('db')
         .buildAndSend(res);
       return;
@@ -60,18 +66,18 @@ categoryRouter.get(
 
     ApiResponse.builder<typeof record>()
       .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's category successfully")
+      .withMessage("Fetched user's stock position successfully")
       .withData(record)
       .withFrom('db')
       .buildAndSend(res);
   },
 );
 
-categoryRouter.post(
+stockPositionRouter.post(
   '/',
   validateRequest({
-    body: CategorySchemas.insert.omit({ownerId: true}).extend({
-      ownerId: CategorySchemas.insert.shape.ownerId.optional(),
+    body: StockPositionSchemas.insert.omit({ownerId: true}).extend({
+      ownerId: StockPositionSchemas.insert.shape.ownerId.optional(),
     }),
   }),
   async (req, res) => {
@@ -83,17 +89,17 @@ categoryRouter.post(
 
     const requestBody = [req.body].map(body => {
       body.ownerId = userId;
-      return body as z.infer<typeof CategorySchemas.insert>;
+      return body as z.infer<typeof StockPositionSchemas.insert>;
     });
 
     try {
-      const createdRecords = await db.insert(categories).values(requestBody).returning();
+      const createdRecords = await db.insert(stockPositions).values(requestBody).returning();
       if (createdRecords.length === 0) {
-        throw new Error('No category created');
+        throw new Error('No stock position created');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category created successfully')
+        .withMessage('Stock position created successfully')
         .withData(createdRecords)
         .withFrom('db')
         .buildAndSend(res);
@@ -105,14 +111,14 @@ categoryRouter.post(
   },
 );
 
-categoryRouter.put(
+stockPositionRouter.put(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: StockPositionSchemas.select.shape.id,
     }),
-    body: CategorySchemas.update.omit({ownerId: true}).extend({
-      ownerId: CategorySchemas.update.shape.ownerId.optional(),
+    body: StockPositionSchemas.update.omit({ownerId: true}).extend({
+      ownerId: StockPositionSchemas.update.shape.ownerId.optional(),
     }),
   }),
   async (req, res) => {
@@ -126,17 +132,17 @@ categoryRouter.put(
 
     try {
       const updatedRecords = await db
-        .update(categories)
+        .update(stockPositions)
         .set(requestBody)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, req.params.id)))
+        .where(and(eq(stockPositions.ownerId, userId), eq(stockPositions.id, req.params.id)))
         .returning();
 
       if (updatedRecords.length === 0) {
-        throw new Error('No category updated');
+        throw new Error('No stock position updated');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category updated successfully')
+        .withMessage('Stock position updated successfully')
         .withData(updatedRecords)
         .withFrom('db')
         .buildAndSend(res);
@@ -148,11 +154,11 @@ categoryRouter.put(
   },
 );
 
-categoryRouter.delete(
+stockPositionRouter.delete(
   '/:id',
   validateRequest({
     params: z.object({
-      id: CategorySchemas.select.shape.id,
+      id: StockPositionSchemas.select.shape.id,
     }),
   }),
   async (req, res) => {
@@ -165,16 +171,16 @@ categoryRouter.delete(
 
     try {
       const deletedRecord = await db
-        .delete(categories)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, entityId)))
+        .delete(stockPositions)
+        .where(and(eq(stockPositions.ownerId, userId), eq(stockPositions.id, entityId)))
         .returning();
 
       if (deletedRecord.length === 0) {
-        throw new Error('No category deleted');
+        throw new Error('No stock position deleted');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category deleted successfully')
+        .withMessage('Stock position deleted successfully')
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {

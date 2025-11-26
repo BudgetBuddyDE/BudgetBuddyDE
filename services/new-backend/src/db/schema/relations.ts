@@ -48,7 +48,7 @@ export const budgetCategoryRelations = relations(budgetCategories, ({one}) => ({
 }));
 
 export const stockPositionRelations = relations(stockPositions, ({one}) => ({
-  stockExchanges: one(stockExchanges, {
+  stockExchange: one(stockExchanges, {
     fields: [stockPositions.stockExchangeSymbol],
     references: [stockExchanges.symbol],
   }),
