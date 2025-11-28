@@ -24,7 +24,6 @@ services:
   cache:
     image: redis:7-alpine
     container_name: cache
-    restart: always
     command: ["redis-server", "--requirepass", "mycachepassword"]
     ports:
       - "6379:6379"
