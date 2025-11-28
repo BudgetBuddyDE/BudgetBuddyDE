@@ -19,7 +19,7 @@ export const transactionReceiverView = backendSchema.view('transaction_receiver_
     ),
 );
 
-export const stockPositionView = backendSchema.view('stock_position_grouped').as(qb =>
+export const stockPositionGroupedView = backendSchema.view('stock_position_grouped').as(qb =>
   qb
     .select({
       ownerId: stockPositions.ownerId,

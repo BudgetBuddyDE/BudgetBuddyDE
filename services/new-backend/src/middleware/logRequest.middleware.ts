@@ -5,7 +5,7 @@ import {logger} from '../lib/logger';
 
 export const requestLogger = logger.child({label: 'request'});
 
-export function log(req: Request, res: Response, next: NextFunction): void {
+export function logRequest(req: Request, res: Response, next: NextFunction): void {
   const requestId = req.context.requestId;
   req.requestId = requestId;
   res.setHeader('X-Request-Id', requestId);

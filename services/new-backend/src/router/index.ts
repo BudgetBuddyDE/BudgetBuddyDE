@@ -1,3 +1,4 @@
+export {assetRouter as AssetRouter} from './asset.router';
 export {budgetRouter as BudgetRouter} from './budget.router';
 export {categoryRouter as CategoryRouter} from './category.router';
 export {metalRouter as MetalRouter} from './metal.router';

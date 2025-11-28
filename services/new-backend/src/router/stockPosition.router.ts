@@ -1,136 +1,58 @@
-import {AssetIdentifier, type ParqetSchemas} from '@budgetbuddyde/types';
+import type {AssetType} from '@budgetbuddyde/types';
 import {and, eq} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
-import {stockPositions} from '../db/schema';
+import {stockExchanges, stockPositionGroupedView, stockPositions} from '../db/schema';
 import {StockPositionSchemas} from '../db/schema/types';
 import {logger} from '../lib';
-import {AssetCache} from '../lib/cache/asset.cache';
 import {Parqet} from '../lib/services';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
+// TODO: Move to utils file
+type ArrayElement<A> = A extends readonly (infer T)[] ? T : never;
+// TODO: Move to utils file
+
+function toDecimal(num: number, fractionDigits: number = 2): number {
+  return Number(num.toFixed(fractionDigits));
+}
+
 export const stockPositionRouter = Router();
 
-stockPositionRouter.get('/search', (_req, res) => {
-  res.json({msg: 'Search assets - to be implemented'});
-});
+stockPositionRouter.get('/allocation', async (req, res) => {
+  const userId = req.context.user?.id;
+  if (!userId) {
+    ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+    return;
+  }
+  const records = await db
+    .select()
+    .from(stockPositionGroupedView)
+    .innerJoin(stockExchanges, eq(stockPositionGroupedView.stockExchangeSymbol, stockExchanges.symbol))
+    .where(eq(stockPositionGroupedView.ownerId, userId));
+  const uniqueIdentifiers = Array.from(new Set(records.map(record => record.stock_position_grouped.identifier)));
+  const assetDetailsPromises = uniqueIdentifiers.map(async (identifier: string) => {
+    const [assetDetails, err] = await Parqet.getAsset(identifier);
+    return {identifier, assetDetails, err};
+  });
+  const assetDetailsResults = await Promise.allSettled(assetDetailsPromises);
 
-stockPositionRouter.get('/allocation', (_req, res) => {
-  res.json({msg: 'Get asset allocation - to be implemented'});
+  // Create a Map for quick access to asset details
+  const assetDetailsMap = new Map();
+  assetDetailsResults.forEach((result, index) => {
+    if (result.status === 'fulfilled' && !result.value.err) {
+      assetDetailsMap.set(uniqueIdentifiers[index], result.value.assetDetails);
+    } else {
+      const identifier = uniqueIdentifiers[index];
+      const error = result.status === 'rejected' ? result.reason : result.value.err;
+      logger.error(`Error fetching asset details for identifier ${identifier}: ${error.message}`);
+    }
+  });
 });
 
 stockPositionRouter.get('/summary', (_req, res) => {
   res.json({msg: 'Get asset summary (KPIs) - to be implemented'});
-});
-
-stockPositionRouter.get('/dividends', (_req, res) => {
-  res.json({msg: 'Get dividend overview - to be implemented'});
-});
-
-stockPositionRouter.get(
-  '/relatedAssets/:identifier',
-  validateRequest({
-    params: z.object({
-      identifier: AssetIdentifier,
-    }),
-  }),
-  (req, res) => {
-    const identifier = req.params.identifier;
-    res.json({msg: `Get related assets for ${identifier} - to be implemented`});
-  },
-);
-
-stockPositionRouter.get(
-  '/static/:mapping',
-  validateRequest({
-    params: z.object({
-      mapping: z.enum(['sectors', 'industries', 'countries', 'regions']),
-    }),
-  }),
-  async (req, res) => {
-    const mappingKey = req.params.mapping;
-
-    const assetCache = new AssetCache();
-    if (mappingKey === 'countries') {
-      const cachedValues = await assetCache.getCountries();
-      if (cachedValues) {
-        logger.debug(`Returning cached values for '${mappingKey}'`, {
-          count: cachedValues.length,
-        });
-        return ApiResponse.builder<typeof cachedValues>()
-          .withMessage(`Fetched '${mappingKey}' successfully`)
-          .withData(cachedValues)
-          .withFrom('cache')
-          .buildAndSend(res);
-      }
-
-      const [countries, err] = await Parqet.getCountries();
-      if (err) {
-        return ApiResponse.builder().fromError(err).buildAndSend(res);
-      }
-
-      await assetCache.setCountries(countries);
-      return ApiResponse.builder<typeof countries>()
-        .withMessage(`Fetched '${mappingKey}' successfully`)
-        .withData(countries)
-        .withFrom('external')
-        .buildAndSend(res);
-    } else {
-      const cachedValues = await assetCache.getMapping(mappingKey);
-      if (cachedValues) {
-        logger.debug(`Returning cached values for '${mappingKey}'`, {
-          count: cachedValues.length,
-        });
-        return ApiResponse.builder<typeof cachedValues>()
-          .withMessage(`Fetched '${mappingKey}' successfully`)
-          .withData(cachedValues)
-          .withFrom('cache')
-          .buildAndSend(res);
-      }
-
-      let fetchedData: z.infer<
-        typeof ParqetSchemas.Sector | typeof ParqetSchemas.Region | typeof ParqetSchemas.Industry
-      >[] = [];
-      try {
-        switch (mappingKey) {
-          case 'sectors': {
-            const [sectors, err] = await Parqet.getSectors();
-            if (err) throw err;
-            fetchedData = sectors;
-            break;
-          }
-          case 'regions': {
-            const [regions, err] = await Parqet.getRegions();
-            if (err) throw err;
-            fetchedData = regions;
-            break;
-          }
-          case 'industries': {
-            const [industries, err] = await Parqet.getIndustries();
-            if (err) throw err;
-            fetchedData = industries;
-            break;
-          }
-        }
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error(String(err));
-        return ApiResponse.builder().fromError(error).buildAndSend(res);
-      }
-
-      await assetCache.setMapping(mappingKey, fetchedData);
-      return ApiResponse.builder<typeof fetchedData>()
-        .withMessage(`Fetched '${mappingKey}' successfully`)
-        .withData(fetchedData)
-        .withFrom('external')
-        .buildAndSend(res);
-    }
-  },
-);
-
-stockPositionRouter.get('/quotes', (_req, res) => {
-  res.json({msg: 'Get stock quotes - to be implemented'});
 });
 
 stockPositionRouter.get('/', async (req, res) => {
@@ -147,11 +69,66 @@ stockPositionRouter.get('/', async (req, res) => {
       stockExchange: true,
     },
   });
+  const uniqueIdentifiers = Array.from(new Set(records.map(record => record.identifier)));
+  const assetDetailsPromises = uniqueIdentifiers.map(async (identifier: string) => {
+    const [assetDetails, err] = await Parqet.getAsset(identifier);
+    return {identifier, assetDetails, err};
+  });
+  const assetDetailsResults = await Promise.allSettled(assetDetailsPromises);
 
-  ApiResponse.builder<typeof records>()
+  // Create a Map for quick access to asset details
+  const assetDetailsMap = new Map();
+  assetDetailsResults.forEach((result, index) => {
+    if (result.status === 'fulfilled' && !result.value.err) {
+      assetDetailsMap.set(uniqueIdentifiers[index], result.value.assetDetails);
+    } else {
+      const identifier = uniqueIdentifiers[index];
+      const error = result.status === 'rejected' ? result.reason : result.value.err;
+      logger.error(`Error fetching asset details for identifier ${identifier}: ${error.message}`);
+    }
+  });
+
+  // Update all positions with the fetched data
+  const enhancedRecords = [] as (ArrayElement<typeof records> & {
+    logoUrl: string;
+    securityName: string;
+    assetType: z.infer<typeof AssetType>;
+    currentPrice: number;
+    absoluteProfit: number;
+    relativeProfit: number;
+    positionValue: number;
+  })[];
+  for (const record of records) {
+    if (!record.purchasePrice || !record.quantity) {
+      logger.warn(`Skipping position ${record.id} due to missing purchasePrice or quantity`);
+      continue;
+    }
+    const assetDetails = assetDetailsMap.get(record.identifier);
+    if (!assetDetails) {
+      logger.warn(`No asset details found for identifier ${record.identifier}`);
+      continue;
+    }
+
+    const enhancedRecord = {...record} as ArrayElement<typeof enhancedRecords>;
+    const currentPricePerShare = assetDetails.quote.price;
+    const positionPurchasePrice = enhancedRecord.purchasePrice + enhancedRecord.purchaseFee;
+    const currentPositionValue = currentPricePerShare * enhancedRecord.quantity;
+    const absoluteProfit = currentPositionValue - positionPurchasePrice;
+    enhancedRecord.logoUrl = assetDetails.asset.logo;
+    enhancedRecord.securityName = assetDetails.asset.name;
+    enhancedRecord.assetType = assetDetails.asset.assetType;
+    enhancedRecord.currentPrice = toDecimal(currentPricePerShare);
+    enhancedRecord.absoluteProfit = toDecimal(absoluteProfit);
+    enhancedRecord.relativeProfit = toDecimal((absoluteProfit / positionPurchasePrice) * 100);
+    enhancedRecord.positionValue = toDecimal(currentPositionValue);
+
+    enhancedRecords.push(enhancedRecord);
+  }
+
+  ApiResponse.builder<typeof enhancedRecords>()
     .withStatus(HTTPStatusCode.OK)
     .withMessage("Fetched user's stock positions successfully")
-    .withData(records)
+    .withData(enhancedRecords)
     .withFrom('db')
     .buildAndSend(res);
 });
@@ -188,10 +165,43 @@ stockPositionRouter.get(
       return;
     }
 
-    ApiResponse.builder<typeof record>()
+    const [assetDetails, err] = await Parqet.getAsset(record.identifier);
+    if (err) {
+      return ApiResponse.builder().fromError(err).buildAndSend(res);
+    }
+    if (!assetDetails) {
+      return ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage(`Asset details for identifier ${record.identifier} not found`)
+        .withFrom('external')
+        .buildAndSend(res);
+    }
+
+    const enhancedRecord = {...record} as typeof record & {
+      logoUrl: string;
+      securityName: string;
+      assetType: z.infer<typeof AssetType>;
+      currentPrice: number;
+      absoluteProfit: number;
+      relativeProfit: number;
+      positionValue: number;
+    };
+    const currentPricePerShare = assetDetails.quote?.price || 0;
+    const positionPurchasePrice = enhancedRecord.purchasePrice + enhancedRecord.purchaseFee;
+    const currentPositionValue = currentPricePerShare * enhancedRecord.quantity;
+    const absoluteProfit = currentPositionValue - positionPurchasePrice;
+    enhancedRecord.logoUrl = assetDetails.asset.logo;
+    enhancedRecord.securityName = assetDetails.asset.name;
+    enhancedRecord.assetType = assetDetails.asset.assetType;
+    enhancedRecord.currentPrice = toDecimal(currentPricePerShare);
+    enhancedRecord.absoluteProfit = toDecimal(absoluteProfit);
+    enhancedRecord.relativeProfit = toDecimal((absoluteProfit / positionPurchasePrice) * 100);
+    enhancedRecord.positionValue = toDecimal(currentPositionValue);
+
+    ApiResponse.builder<typeof enhancedRecord>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's stock position successfully")
-      .withData(record)
+      .withData(enhancedRecord)
       .withFrom('db')
       .buildAndSend(res);
   },

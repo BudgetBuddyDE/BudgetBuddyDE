@@ -5,9 +5,10 @@ import {config} from './config';
 import {checkConnection} from './db';
 import {getRedisClient} from './db/redis';
 import {logger} from './lib/logger';
-import {handleError, log, servedBy, setRequestContext} from './middleware';
+import {handleError, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 import {
+  AssetRouter,
   BudgetRouter,
   CategoryRouter,
   MetalRouter,
@@ -22,9 +23,14 @@ export const app = express();
 
 app.use(cors(config.cors));
 app.use(setRequestContext);
-app.use(log);
+app.use(logRequest);
 app.use(bodyParser.json());
 app.use(servedBy);
+// FIXME: Re-enable global error handler once express-zod-safe supports TypeScript 5
+// import { setGlobalErrorHandler } from 'express-zod-safe';
+// setGlobalErrorHandler((errors, req, res) => {
+//   // Your error handling here
+// })
 
 app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
@@ -62,6 +68,7 @@ app.use('/api/transaction', TransactionRouter);
 app.use('/api/recurringPayment', RecurringPaymentRouter);
 app.use('/api/budget', BudgetRouter);
 
+app.use('/api/asset', AssetRouter);
 app.use('/api/asset/stock/exchange', StockExchangeRouter);
 app.use('/api/asset/stock/position', StockPositionRouter);
 // TODO: This feature is not implemented yet (soon)
