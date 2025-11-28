@@ -7,9 +7,6 @@ export const requestLogger = logger.child({label: 'request'});
 
 export function logRequest(req: Request, res: Response, next: NextFunction): void {
   const requestId = req.context.requestId;
-  req.requestId = requestId;
-  res.setHeader('X-Request-Id', requestId);
-
   const start = process.hrtime();
   res.on('finish', () => {
     const [seconds, nanoseconds] = process.hrtime(start);

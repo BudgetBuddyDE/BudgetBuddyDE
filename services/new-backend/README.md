@@ -46,13 +46,17 @@ The connection string for the PostgreSQL database.
 
 The connection string for the Redis cache.
 
+#### `AUTH_SERVICE_HOST`
+
+The base URL of the authentication service. If not set, it defaults to `http://localhost:8080`.
+
 #### `TRUSTED_ORIGINS`
 
 A comma-separated list of trusted origins that are allowed to make CORS requests to the backend.
 
 #### `PORT`
 
-The `PORT` environment variable defines the port on which the backend server listens. If the variable is not explicitly set, port `3000` is used by default.
+The `PORT` environment variable defines the port on which the backend server listens. If the variable is not explicitly set, port `9000` is used by default.
 
 #### `LOG_LEVEL`
 
