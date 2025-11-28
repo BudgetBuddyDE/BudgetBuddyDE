@@ -10,6 +10,7 @@
     "pretest": "npm run check",
     "test": "vitest run",
     "check": "biome check --error-on-warnings",
+    "check:write": "npm run check -- --write --unsafe",
     "lint": "biome lint --write",
     "format": "biome format --write",
     "ba:schema-generate": "npx @better-auth/cli generate --output src/db/schema/auth.schema.ts -y",

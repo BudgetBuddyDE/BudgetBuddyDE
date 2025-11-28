@@ -1,14 +1,17 @@
 import {LogLevel} from '@budgetbuddyde/logger';
 import type {NextFunction, Request, Response} from 'express';
-
+import {config} from '../config';
 import {logger} from '../lib/logger';
 
 export const requestLogger = logger.child({label: 'request'});
 
 export function log(req: Request, res: Response, next: NextFunction): void {
-  const requestId = crypto.randomUUID();
+  const requestId =
+    req.headers[config.requestIdHeaderName] !== undefined
+      ? (String(req.headers[config.requestIdHeaderName]) as ReturnType<typeof crypto.randomUUID>)
+      : crypto.randomUUID();
   req.requestId = requestId;
-  res.setHeader('X-Request-Id', requestId);
+  res.setHeader(config.requestIdHeaderName, requestId);
 
   const start = process.hrtime();
   res.on('finish', () => {

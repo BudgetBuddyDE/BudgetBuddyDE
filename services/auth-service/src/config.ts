@@ -10,6 +10,7 @@ export type Config = {
   version: typeof version;
   baseUrl: string;
   port: ReturnType<typeof getPort>;
+  requestIdHeaderName: string;
   runtime: Runtime;
   log: Pick<LogClientOptions, 'label' | 'level'>;
   cors: CorsOptions;
@@ -21,12 +22,14 @@ export type Config = {
 const SERVICE_NAME = name;
 const SERVICE_VERSION = version;
 const SERVICE_RUNTIME = getCurrentRuntime();
+const SERVICE_REQUEST_ID_HEADER_NAME = 'x-request-id';
 
 export const config: Config = {
   service: SERVICE_NAME,
   version: SERVICE_VERSION,
   baseUrl: process.env.BASE_URL || 'http://localhost',
-  port: getPort(),
+  port: getPort(8080),
+  requestIdHeaderName: SERVICE_REQUEST_ID_HEADER_NAME,
   runtime: SERVICE_RUNTIME,
   log: {
     label: `${SERVICE_NAME}:${SERVICE_VERSION}`,
@@ -37,7 +40,7 @@ export const config: Config = {
       ? [/\.budget-buddy\.de$/, /^(http|https):\/\/localhost(:\d+)?$/, 'https://next.auth.budget-buddy.de']
       : [/^(http|https):\/\/localhost(:\d+)?$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', SERVICE_REQUEST_ID_HEADER_NAME],
     credentials: true,
   },
   jobs: {
