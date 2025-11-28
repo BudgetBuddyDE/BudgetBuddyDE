@@ -2,17 +2,65 @@
 
 ## Getting started
 
+1. Install dependencies
+
+   ```bash
+   npm install
+   ```
+
+2. Create a `.env` file in the root of the `new-backend` service by copying the provided `.env.example` file and adjusting the values as needed.
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Start the development server
+
+   ```bash
+   npm run dev
+   ```
+
+4. Build the project
+
+   ```bash
+   npm run build
+   ```
+
+5. Start the production server
+
+   ```bash
+   npm start
+   ```
+
 ### Environment Variables
+
+#### `NODE_ENV`
+
+The `NODE_ENV` environment variable defines the execution environment of the backend. Possible values are `development`, `production`, and `test`. By default, the value is set to `development`. To ensure correct behavior in production environments, this variable should be set to `production`.
 
 #### `DATABASE_URL`
 
 The connection string for the PostgreSQL database.
 
+#### `REDIS_URL`
+
+The connection string for the Redis cache.
+
 #### `TRUSTED_ORIGINS`
+
+A comma-separated list of trusted origins that are allowed to make CORS requests to the backend.
 
 #### `PORT`
 
+The `PORT` environment variable defines the port on which the backend server listens. If the variable is not explicitly set, port `3000` is used by default.
+
 #### `LOG_LEVEL`
+
+The `LOG_LEVEL` environment variable determines the level of detail for logging in the backend. Possible values are: `DEBUG`, `INFO`, `WARN`, `ERROR`, and `FATAL`. By default, the value is set to `INFO`.
+
+#### `TIMEZONE`
+
+The `TIMEZONE` environment variable defines the time zone used for time-related operations in the backend (e.g., for scheduling jobs). By default, the time zone is set to `Europe/Berlin`.
 
 ## Deployment
 
@@ -21,7 +69,7 @@ The connection string for the PostgreSQL database.
 ### Database
 
 > [!TIP]
-> Das Backend verwendet Drizzle ORM für die Datenbankmigrationen. In [der Dokumentation](https://orm.drizzle.team/docs/kit-overview) von Drizzle ORM können weitere Informationen zum Thema Schema-Migration gefunden werden.
+> The backend uses Drizzle ORM for database migrations. More information on schema migration can be found in [the documentation](https://orm.drizzle.team/docs/kit-overview) of Drizzle ORM.
 
 1. Generate migration SQL files using Drizzle ORM.
 
@@ -39,6 +87,5 @@ Now your database schema should be up-to-date with the application's requirement
 
 ## Credits
 
-- ExpressJS
-- Drizzle ORM
-- [zod-express-middleware](https://github.com/Aquila169/zod-express-middleware/tree/main) _Not installed as an npm package, but included as source code in this project_
+- [ExpressJS](https://expressjs.com/)
+- [Drizzle ORM](https://orm.drizzle.team/)

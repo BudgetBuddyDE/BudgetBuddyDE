@@ -3,21 +3,16 @@ import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Run
 import type {CorsOptions} from 'cors';
 import 'dotenv/config';
 import {name, version} from '../package.json';
-import type {TMetalSymbol} from './router/metal.router';
 
 export type Config = {
   service: typeof name;
   version: typeof version;
-  baseUrl: string;
   port: ReturnType<typeof getPort>;
   runtime: Runtime;
   log: Pick<LogClientOptions, 'label' | 'level'>;
   cors: CorsOptions;
   jobs: {
     timezone: string;
-  };
-  metal: {
-    symbols: Record<TMetalSymbol, {name: string; unit: string}>;
   };
 };
 
@@ -28,7 +23,6 @@ const SERVICE_RUNTIME = getCurrentRuntime();
 export const config: Config = {
   service: SERVICE_NAME,
   version: SERVICE_VERSION,
-  baseUrl: process.env.BASE_URL || 'http://localhost',
   port: getPort(),
   runtime: SERVICE_RUNTIME,
   log: {
@@ -43,12 +37,5 @@ export const config: Config = {
   },
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',
-  },
-  metal: {
-    symbols: {
-      XAG: {name: 'Silver', unit: 'troy_oz'},
-      XAU: {name: 'Gold', unit: 'troy_oz'},
-      XPT: {name: 'Platinum', unit: 'troy_oz'},
-    },
   },
 };

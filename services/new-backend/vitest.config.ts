@@ -6,6 +6,7 @@ export default mergeConfig(baseConfig, defineConfig({
     name: "auth-service",
     setupFiles: ['./src/__tests__/setup.ts'],
     exclude: ['**/build/**', '**/node_modules/**'],
+    passWithNoTests: true
   }
 }));
 

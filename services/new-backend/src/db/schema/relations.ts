@@ -1,14 +1,5 @@
 import {relations} from 'drizzle-orm';
-import {
-  budgetCategories,
-  budgets,
-  categories,
-  paymentMethods,
-  recurringPayments,
-  stockExchanges,
-  stockPositions,
-  transactions,
-} from './tables';
+import {budgetCategories, budgets, categories, paymentMethods, recurringPayments, transactions} from './tables';
 
 export const transactionRelations = relations(transactions, ({one}) => ({
   category: one(categories, {
@@ -44,12 +35,5 @@ export const budgetCategoryRelations = relations(budgetCategories, ({one}) => ({
   category: one(categories, {
     fields: [budgetCategories.categoryId],
     references: [categories.id],
-  }),
-}));
-
-export const stockPositionRelations = relations(stockPositions, ({one}) => ({
-  stockExchange: one(stockExchanges, {
-    fields: [stockPositions.stockExchangeSymbol],
-    references: [stockExchanges.symbol],
   }),
 }));

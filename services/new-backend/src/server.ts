@@ -1,23 +1,14 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
+import {setGlobalErrorHandler} from 'express-zod-safe';
 import {config} from './config';
 import {checkConnection} from './db';
 import {getRedisClient} from './db/redis';
 import {logger} from './lib/logger';
 import {handleError, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
-import {
-  AssetRouter,
-  BudgetRouter,
-  CategoryRouter,
-  MetalRouter,
-  PaymentMethodRouter,
-  RecurringPaymentRouter,
-  StockExchangeRouter,
-  StockPositionRouter,
-  TransactionRouter,
-} from './router';
+import {BudgetRouter, CategoryRouter, PaymentMethodRouter, RecurringPaymentRouter, TransactionRouter} from './router';
 
 export const app = express();
 
@@ -26,11 +17,15 @@ app.use(setRequestContext);
 app.use(logRequest);
 app.use(bodyParser.json());
 app.use(servedBy);
-// FIXME: Re-enable global error handler once express-zod-safe supports TypeScript 5
-// import { setGlobalErrorHandler } from 'express-zod-safe';
-// setGlobalErrorHandler((errors, req, res) => {
-//   // Your error handling here
-// })
+
+// Set a global error handler for validation errors
+setGlobalErrorHandler((errors, _req, res) => {
+  ApiResponse.builder()
+    .withStatus(HTTPStatusCode.BAD_REQUEST)
+    .withMessage('Validation Error')
+    .withData(errors)
+    .buildAndSend(res);
+});
 
 app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
@@ -67,13 +62,6 @@ app.use('/api/paymentMethod', PaymentMethodRouter);
 app.use('/api/transaction', TransactionRouter);
 app.use('/api/recurringPayment', RecurringPaymentRouter);
 app.use('/api/budget', BudgetRouter);
-
-app.use('/api/asset', AssetRouter);
-app.use('/api/asset/stock/exchange', StockExchangeRouter);
-app.use('/api/asset/stock/position', StockPositionRouter);
-// TODO: This feature is not implemented yet (soon)
-// app.use('/api/asset/stock/watchlist', StockExchangeRouter);
-app.use('/api/asset/metal', MetalRouter);
 
 // Mount an global error handler
 app.use(handleError);
