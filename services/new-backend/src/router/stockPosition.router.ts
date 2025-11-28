@@ -1,13 +1,137 @@
+import {AssetIdentifier, type ParqetSchemas} from '@budgetbuddyde/types';
 import {and, eq} from 'drizzle-orm';
 import {Router} from 'express';
+import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
 import {stockPositions} from '../db/schema';
 import {StockPositionSchemas} from '../db/schema/types';
-import {validateRequest} from '../lib';
+import {logger} from '../lib';
+import {AssetCache} from '../lib/cache/asset.cache';
+import {Parqet} from '../lib/services';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const stockPositionRouter = Router();
+
+stockPositionRouter.get('/search', (_req, res) => {
+  res.json({msg: 'Search assets - to be implemented'});
+});
+
+stockPositionRouter.get('/allocation', (_req, res) => {
+  res.json({msg: 'Get asset allocation - to be implemented'});
+});
+
+stockPositionRouter.get('/summary', (_req, res) => {
+  res.json({msg: 'Get asset summary (KPIs) - to be implemented'});
+});
+
+stockPositionRouter.get('/dividends', (_req, res) => {
+  res.json({msg: 'Get dividend overview - to be implemented'});
+});
+
+stockPositionRouter.get(
+  '/relatedAssets/:identifier',
+  validateRequest({
+    params: z.object({
+      identifier: AssetIdentifier,
+    }),
+  }),
+  (req, res) => {
+    const identifier = req.params.identifier;
+    res.json({msg: `Get related assets for ${identifier} - to be implemented`});
+  },
+);
+
+stockPositionRouter.get(
+  '/static/:mapping',
+  validateRequest({
+    params: z.object({
+      mapping: z.enum(['sectors', 'industries', 'countries', 'regions']),
+    }),
+  }),
+  async (req, res) => {
+    const mappingKey = req.params.mapping;
+
+    const assetCache = new AssetCache();
+    if (mappingKey === 'countries') {
+      const cachedValues = await assetCache.getCountries();
+      if (cachedValues) {
+        logger.debug(`Returning cached values for '${mappingKey}'`, {
+          count: cachedValues.length,
+        });
+        return ApiResponse.builder<typeof cachedValues>()
+          .withMessage(`Fetched '${mappingKey}' successfully`)
+          .withData(cachedValues)
+          .withFrom('cache')
+          .buildAndSend(res);
+      }
+
+      const [countries, err] = await Parqet.getCountries();
+      if (err) {
+        return ApiResponse.builder().fromError(err).buildAndSend(res);
+      }
+
+      await assetCache.setCountries(countries);
+      return ApiResponse.builder<typeof countries>()
+        .withMessage(`Fetched '${mappingKey}' successfully`)
+        .withData(countries)
+        .withFrom('external')
+        .buildAndSend(res);
+    } else {
+      const cachedValues = await assetCache.getMapping(mappingKey);
+      if (cachedValues) {
+        logger.debug(`Returning cached values for '${mappingKey}'`, {
+          count: cachedValues.length,
+        });
+        return ApiResponse.builder<typeof cachedValues>()
+          .withMessage(`Fetched '${mappingKey}' successfully`)
+          .withData(cachedValues)
+          .withFrom('cache')
+          .buildAndSend(res);
+      }
+
+      let fetchedData: z.infer<
+        typeof ParqetSchemas.Sector | typeof ParqetSchemas.Region | typeof ParqetSchemas.Industry
+      >[] = [];
+      try {
+        switch (mappingKey) {
+          case 'sectors': {
+            const [sectors, err] = await Parqet.getSectors();
+            if (err) throw err;
+            fetchedData = sectors;
+            break;
+          }
+          case 'regions': {
+            const [regions, err] = await Parqet.getRegions();
+            if (err) throw err;
+            fetchedData = regions;
+            break;
+          }
+          case 'industries': {
+            const [industries, err] = await Parqet.getIndustries();
+            if (err) throw err;
+            fetchedData = industries;
+            break;
+          }
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        return ApiResponse.builder().fromError(error).buildAndSend(res);
+      }
+
+      await assetCache.setMapping(mappingKey, fetchedData);
+      return ApiResponse.builder<typeof fetchedData>()
+        .withMessage(`Fetched '${mappingKey}' successfully`)
+        .withData(fetchedData)
+        .withFrom('external')
+        .buildAndSend(res);
+    }
+  },
+);
+
+stockPositionRouter.get('/quotes', (_req, res) => {
+  res.json({msg: 'Get stock quotes - to be implemented'});
+});
 
 stockPositionRouter.get('/', async (req, res) => {
   const userId = req.context.user?.id;

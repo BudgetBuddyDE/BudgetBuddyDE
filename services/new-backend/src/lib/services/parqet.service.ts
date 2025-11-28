@@ -60,7 +60,7 @@ export class Parqet {
 
     const parsingResult = z.array(ParqetSchemas.AssetQuote).safeParse(jsonResponse);
     if (!parsingResult.success) {
-      return [null, new Error('Failed to parse quotes: ' + JSON.stringify(parsingResult.error.issues))];
+      return [null, new Error(`Failed to parse quotes: ${JSON.stringify(parsingResult.error.issues)}`)];
     }
 
     const quotes: Map<string, z.infer<typeof ParqetSchemas.AssetQuote>> = new Map();
@@ -101,7 +101,7 @@ export class Parqet {
 
     const parsingResult = ParqetSchemas.DividendDetails.safeParse(jsonResponse);
     if (!parsingResult.success) {
-      return [null, new Error('Failed to parse dividend details: ' + JSON.stringify(parsingResult.error.issues))];
+      return [null, new Error(`Failed to parse dividend details: ${JSON.stringify(parsingResult.error.issues)}`)];
     }
 
     return [parsingResult.data, null];
@@ -124,7 +124,7 @@ export class Parqet {
 
     const parsingResult = ParqetSchemas.SearchResponse.safeParse(jsonResponse);
     if (!parsingResult.success) {
-      return [null, new Error('Failed to parse search results: ' + JSON.stringify(parsingResult.error.issues))];
+      return [null, new Error(`Failed to parse search results: ${JSON.stringify(parsingResult.error.issues)}`)];
     }
 
     return [parsingResult.data.results, null];

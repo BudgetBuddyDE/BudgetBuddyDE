@@ -14,6 +14,7 @@ import {
   PaymentMethodRouter,
   RecurringPaymentRouter,
   StockExchangeRouter,
+  StockPositionRouter,
   TransactionRouter,
 } from './router';
 
@@ -62,7 +63,7 @@ app.use('/api/recurringPayment', RecurringPaymentRouter);
 app.use('/api/budget', BudgetRouter);
 
 app.use('/api/asset/stock/exchange', StockExchangeRouter);
-app.use('/api/asset/stock/position', StockExchangeRouter);
+app.use('/api/asset/stock/position', StockPositionRouter);
 // TODO: This feature is not implemented yet (soon)
 // app.use('/api/asset/stock/watchlist', StockExchangeRouter);
 app.use('/api/asset/metal', MetalRouter);
