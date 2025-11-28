@@ -1,9 +1,9 @@
 import {createSelectSchema} from 'drizzle-zod';
 import {Router} from 'express';
+import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
 import {stockExchanges} from '../db/schema';
-import {validateRequest} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const stockExchangeRouter = Router();

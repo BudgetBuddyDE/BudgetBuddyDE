@@ -1,7 +1,8 @@
 import {Router} from 'express';
+import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {config} from '../config';
-import {logger as MainLogger, MetalCache, validateRequest} from '../lib';
+import {logger as MainLogger, MetalCache} from '../lib';
 import {MetalPriceAPI, type SuccessMetalQuoteResponse} from '../lib/services';
 import {ApiResponse, HTTPStatusCode} from '../models';
 

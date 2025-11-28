@@ -1,10 +1,10 @@
 import {and, eq} from 'drizzle-orm';
 import {Router} from 'express';
+import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
 import {transactionReceiverView, transactions} from '../db/schema';
 import {TransactionSchemas} from '../db/schema/types';
-import {validateRequest} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const transactionRouter = Router();
