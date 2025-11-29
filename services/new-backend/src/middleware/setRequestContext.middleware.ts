@@ -56,5 +56,7 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   req.requestId = context.requestId;
   res.locals.context = context;
 
+  logger.debug('Request context set', {requestId: req.requestId, userId: req.context.user?.id});
+
   next();
 }
