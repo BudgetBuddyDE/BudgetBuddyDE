@@ -2,9 +2,11 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import {setGlobalErrorHandler} from 'express-zod-safe';
+import cron from 'node-cron';
 import {config} from './config';
 import {checkConnection} from './db';
 import {getRedisClient} from './db/redis';
+import {processRecurringPayments} from './jobs/processRecurringPayments';
 import {logger} from './lib/logger';
 import {handleError, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
@@ -78,4 +80,11 @@ export const server = app.listen(config.port, () => {
   };
   console.table(options);
   logger.info('%s is available under http://localhost:%d', config.service, config.port);
+
+  const jobName = 'process-recurring-payments';
+  cron.schedule('30 1 * * *', processRecurringPayments, {
+    name: jobName,
+    timezone: config.jobs.timezone,
+  });
+  logger.info('Scheduled job "%s" to run daily at 01:30 AM (%s timezone)', jobName, config.jobs.timezone);
 });

@@ -1,5 +1,5 @@
 {
-  "id": "ff0ee798-9f6f-4ced-b736-be9cb2decf6f",
+  "id": "30b560a6-44f4-48eb-bd53-169182069f67",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -278,7 +278,7 @@
         },
         "execute_at": {
           "name": "execute_at",
-          "type": "timestamp",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },

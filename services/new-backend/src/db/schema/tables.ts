@@ -1,4 +1,4 @@
-import {boolean, doublePrecision, primaryKey, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core';
+import {boolean, doublePrecision, integer, primaryKey, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core';
 import {backendSchema} from './schema';
 
 export const paymentMethods = backendSchema.table('payment_method', {
@@ -56,7 +56,7 @@ export const recurringPayments = backendSchema.table('recurring_payment', {
   paymentMethodId: uuid('payment_method_id')
     .references(() => paymentMethods.id, {onDelete: 'cascade'})
     .notNull(),
-  executeAt: timestamp('execute_at').notNull(),
+  executeAt: integer('execute_at').notNull(),
   paused: boolean().default(false).notNull(),
   receiver: varchar({length: 100}).notNull(),
   transferAmount: doublePrecision('transfer_amount').notNull(),

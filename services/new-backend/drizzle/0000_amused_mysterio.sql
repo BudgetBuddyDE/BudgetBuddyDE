@@ -43,7 +43,7 @@ CREATE TABLE "budgetbuddy_backend"."recurring_payment" (
 	"owner_id" varchar NOT NULL,
 	"category_id" uuid NOT NULL,
 	"payment_method_id" uuid NOT NULL,
-	"execute_at" timestamp NOT NULL,
+	"execute_at" integer NOT NULL,
 	"paused" boolean DEFAULT false NOT NULL,
 	"receiver" varchar(100) NOT NULL,
 	"transfer_amount" double precision NOT NULL,

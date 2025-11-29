@@ -89,6 +89,15 @@ The `TIMEZONE` environment variable defines the time zone used for time-related 
 
 Now your database schema should be up-to-date with the application's requirements.
 
+## Jobs
+
+### `process-recurring-payments`
+
+This job processes all due recurring payments and creates corresponding transactions. It is scheduled to run daily at 01:30 AM in the configured timezone.
+
+> [!IMPORTANT]
+> All recurring payments due on today's date will be processed. Payments that fall on days that do not exist in a month (e.g., February 31) will be processed on the last day of the current month.
+
 ## Credits
 
 - [ExpressJS](https://expressjs.com/)
