@@ -20,4 +20,6 @@ COPY --from=builder /usr/src/auth-service/package*.json ./
 COPY --from=builder /usr/src/auth-service/node_modules ./node_modules
 COPY --from=builder /usr/src/auth-service/build ./build
 
+ENV NODE_ENV=production
+
 CMD ["npm", "start"]
