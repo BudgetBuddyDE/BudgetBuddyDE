@@ -57,6 +57,9 @@ transactionRouter.get(
         }
         return operators.eq(fields.ownerId, userId);
       },
+      orderBy(fields, operators) {
+        return [operators.desc(fields.processedAt), operators.desc(fields.createdAt)];
+      },
       offset: req.query.from,
       limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
       with: {
