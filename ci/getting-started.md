@@ -140,7 +140,8 @@ fly -t ci set-pipeline -p auth-service -c ./ci/pipelines/publish-auth-service.pi
   -v version_bucket_region="$(cat ./ci/secrets/aws/bucket.txt | sed -n '4p')" \
   -v version_bucket_access_key="$(cat ./ci/secrets/aws/bucket.txt | sed -n '1p')" \
   -v version_bucket_secret="$(cat ./ci/secrets/aws/bucket.txt | sed -n '2p')" \
-  -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
+  -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)" \
+  -v database_url="$(cat ./ci/secrets/services/auth_service_db)"
 ```
 
 ### Publish `backend`
