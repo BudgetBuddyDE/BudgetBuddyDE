@@ -9,32 +9,53 @@ import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const budgetRouter = Router();
 
-budgetRouter.get('/', async (req, res) => {
-  const userId = req.context.user?.id;
-  if (!userId) {
-    ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
-    return;
-  }
-  const records = await db.query.budgets.findMany({
-    where(fields, operators) {
-      return operators.eq(fields.ownerId, userId);
-    },
-    with: {
-      categories: {
-        with: {
-          category: true,
+budgetRouter.get(
+  '/',
+  validateRequest({
+    query: z.object({
+      search: z.string().optional(),
+      from: z.coerce.number().optional(),
+      to: z.coerce.number().optional(),
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+    const records = await db.query.budgets.findMany({
+      where(fields, operators) {
+        if (req.query.search) {
+          return operators.and(
+            operators.eq(fields.ownerId, userId),
+            operators.or(
+              operators.ilike(fields.name, `%${req.query.search}%`),
+              operators.ilike(fields.description, `%${req.query.search}%`),
+            ),
+          );
+        }
+        return operators.eq(fields.ownerId, userId);
+      },
+      offset: req.query.from,
+      limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+      with: {
+        categories: {
+          with: {
+            category: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  ApiResponse.builder<typeof records>()
-    .withStatus(HTTPStatusCode.OK)
-    .withMessage("Fetched user's categories successfully")
-    .withData(records)
-    .withFrom('db')
-    .buildAndSend(res);
-});
+    ApiResponse.builder<typeof records>()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage("Fetched user's categories successfully")
+      .withData(records)
+      .withFrom('db')
+      .buildAndSend(res);
+  },
+);
 
 budgetRouter.get(
   '/:id',

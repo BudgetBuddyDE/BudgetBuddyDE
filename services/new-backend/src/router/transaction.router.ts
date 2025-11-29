@@ -29,29 +29,50 @@ transactionRouter.get('/receiver', async (req, res) => {
     .buildAndSend(res);
 });
 
-transactionRouter.get('/', async (req, res) => {
-  const userId = req.context.user?.id;
-  if (!userId) {
-    ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
-    return;
-  }
-  const records = await db.query.transactions.findMany({
-    where(fields, operators) {
-      return operators.eq(fields.ownerId, userId);
-    },
-    with: {
-      category: true,
-      paymentMethod: true,
-    },
-  });
+transactionRouter.get(
+  '/',
+  validateRequest({
+    query: z.object({
+      search: z.string().optional(),
+      from: z.coerce.number().optional(),
+      to: z.coerce.number().optional(),
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+    const records = await db.query.transactions.findMany({
+      where(fields, operators) {
+        if (req.query.search) {
+          return operators.and(
+            operators.eq(fields.ownerId, userId),
+            operators.or(
+              operators.ilike(fields.receiver, `%${req.query.search}%`),
+              operators.ilike(fields.information, `%${req.query.search}%`),
+            ),
+          );
+        }
+        return operators.eq(fields.ownerId, userId);
+      },
+      offset: req.query.from,
+      limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+      with: {
+        category: true,
+        paymentMethod: true,
+      },
+    });
 
-  ApiResponse.builder<typeof records>()
-    .withStatus(HTTPStatusCode.OK)
-    .withMessage("Fetched user's transactions successfully")
-    .withData(records)
-    .withFrom('db')
-    .buildAndSend(res);
-});
+    ApiResponse.builder<typeof records>()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage("Fetched user's transactions successfully")
+      .withData(records)
+      .withFrom('db')
+      .buildAndSend(res);
+  },
+);
 
 transactionRouter.get(
   '/:id',
