@@ -20,4 +20,6 @@ COPY --from=builder /usr/src/backend/package*.json ./
 COPY --from=builder /usr/src/backend/node_modules ./node_modules
 COPY --from=builder /usr/src/backend/build ./build
 
+ENV NODE_ENV=production
+
 CMD ["npm", "start"]
