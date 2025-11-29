@@ -152,15 +152,16 @@ fly -t ci set-pipeline -p backend -c ./ci/pipelines/publish-backend.pipeline.yml
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
   -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" \
-  -v repo_path="services/backend" \
+  -v repo_path="services/new-backend" \
   -v docker_image="ghcr.io/budgetbuddyde/backend" \
   -v docker_username="tklein1801" \
   -v docker_password="$(cat ./ci/secrets/github/pat)" \
   -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" \
   -v service="bb_backend" \
-  -v service_name="backend" \
+  -v service_name="new-backend" \
   -v version_bucket_region="$(cat ./ci/secrets/aws/bucket.txt | sed -n '4p')" \
   -v version_bucket_access_key="$(cat ./ci/secrets/aws/bucket.txt | sed -n '1p')" \
   -v version_bucket_secret="$(cat ./ci/secrets/aws/bucket.txt | sed -n '2p')" \
-  -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
+  -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)" \
+  -v database_url="$(cat ./ci/secrets/services/backend_db)"
 ```

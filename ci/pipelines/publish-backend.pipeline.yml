@@ -6,9 +6,9 @@ groups:
     jobs:
       - build*
       - update-dependencies
-  - name: test
+  - name: database
     jobs:
-      - test*
+      - update-database-schema
   - name: release
     jobs:
       - 'release-*'
@@ -31,12 +31,6 @@ resources:
     icon: bell-ring
     source:
       url: ((discord_webhook))
-
-  - name: daily
-    type: time
-    icon: clock-outline
-    source:
-      interval: 24h
 
   - name: weekly
     type: time
@@ -189,7 +183,6 @@ jobs:
                 NEW_VERSION=$(cat version/version)
                 cd repository
                 npm install
-                npm run build-packages
                 npm test -- -F=@budgetbuddyde/((service_name))
                 npm run build -- -F=@budgetbuddyde/((service_name))
                 cd ((repo_path))
@@ -205,30 +198,30 @@ jobs:
       - put: version
         params: { file: version/version }
 
-  - name: test-api-schemas
-    public: true
+  - name: update-database-schema
+    public: false
     on_failure:
       put: notification
       params:
         alert_type: failed
-        message: 'The schemas for ((service_name)) have changed and are incompatible!'
+        message: 'Failed to update database schema for ((service_name))'
         role: '1342563020215291936'
     plan:
       - in_parallel:
           - get: node-image
           - get: repository
-          - get: daily
-            trigger: true
-      - task: run-tests
+            passed: [build-((service_name))]
+      - task: apply-migrations
         image: node-image
         config:
+          platform: linux
           inputs:
             - name: repository
           params:
             CI: 'true'
             FORCE_COLOR: 1
             TURBO_TELEMETRY_DISABLED: 1
-          platform: linux
+            DATABASE_URL: ((database_url))
           run:
             path: sh
             args:
@@ -236,9 +229,9 @@ jobs:
               - |
                 cd repository
                 npm install
-                npm run build-packages
                 cd ((repo_path))
-                npm run test-api-schemas
+                npx drizzle-kit check
+                npm run db:migrate
 
   - name: update-dependencies
     public: true
@@ -280,7 +273,6 @@ jobs:
                 npm install --no-package-lock --workspaces=false
                 npm update
                 npm audit fix --force
-                npm run build-packages
                 npm test
                 npm run build
                 git config --global user.name 'Thorben Klein'
@@ -300,8 +292,8 @@ jobs:
       - in_parallel:
           - get: node-image
           - get: repository
-          - get: version
             passed: [build-((service_name))]
+          - get: version
             params: { bump: patch }
       - task: build
         image: node-image
@@ -334,8 +326,8 @@ jobs:
       - in_parallel:
           - get: node-image
           - get: repository
-          - get: version
             passed: [build-((service_name))]
+          - get: version
             params: { bump: minor }
       - task: build
         image: node-image
@@ -368,8 +360,8 @@ jobs:
       - in_parallel:
           - get: node-image
           - get: repository
-          - get: version
             passed: [build-((service_name))]
+          - get: version
             params: { bump: major }
       - task: build
         image: node-image
