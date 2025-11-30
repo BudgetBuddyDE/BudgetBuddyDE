@@ -1,4 +1,5 @@
-import {and, eq} from 'drizzle-orm';
+import {and, eq, ilike, or, sql} from 'drizzle-orm';
+import type {PgTableWithColumns, TableConfig} from 'drizzle-orm/pg-core';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -44,33 +45,70 @@ transactionRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const records = await db.query.transactions.findMany({
-      where(fields, operators) {
-        if (req.query.search) {
-          return operators.and(
-            operators.eq(fields.ownerId, userId),
-            operators.or(
-              operators.ilike(fields.receiver, `%${req.query.search}%`),
-              operators.ilike(fields.information, `%${req.query.search}%`),
-            ),
-          );
-        }
-        return operators.eq(fields.ownerId, userId);
+
+    function assembleFilter<Table extends TableConfig>(
+      table: PgTableWithColumns<Table>,
+      {ownerColumnName, ownerValue}: {ownerColumnName: keyof Table['columns']; ownerValue: string},
+      {searchTerm, searchableColumnName}: {searchTerm?: string; searchableColumnName?: (keyof Table['columns'])[]},
+    ) {
+      if (searchTerm && searchableColumnName) {
+        return searchableColumnName.length > 1
+          ? and(
+              eq(table[ownerColumnName], ownerValue),
+              or(
+                ...searchableColumnName.map(columnName => {
+                  const col = table[columnName];
+                  return ilike(col, `%${searchTerm}%`);
+                }),
+              ),
+            )
+          : and(eq(table[ownerColumnName], ownerValue), ilike(table[searchableColumnName[0]], `%${searchTerm}%`));
+      }
+      return eq(table[ownerColumnName], ownerValue);
+    }
+
+    const filter = assembleFilter(
+      transactions,
+      {ownerColumnName: 'ownerId', ownerValue: userId},
+      {
+        searchTerm: req.query.search,
+        searchableColumnName: ['receiver', 'information'],
       },
-      orderBy(fields, operators) {
-        return [operators.desc(fields.processedAt), operators.desc(fields.createdAt)];
-      },
-      offset: req.query.from,
-      limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
-      with: {
-        category: true,
-        paymentMethod: true,
-      },
-    });
+    );
+
+    const [totalRecordCount, records] = await Promise.all([
+      db
+        .select({
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(transactions)
+        .where(filter)
+        .limit(1),
+      db.query.transactions.findMany({
+        where() {
+          return filter;
+        },
+        // extras(fields, operators) {
+        //   return {
+        //     totalCount: db.$count(transactions,filter).as('total_count'),
+        //   }
+        // },
+        orderBy(fields, operators) {
+          return [operators.desc(fields.processedAt), operators.desc(fields.createdAt)];
+        },
+        offset: req.query.from,
+        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        with: {
+          category: true,
+          paymentMethod: true,
+        },
+      }),
+    ]);
 
     ApiResponse.builder<typeof records>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's transactions successfully")
+      .withTotalCount(totalRecordCount[0].count)
       .withData(records)
       .withFrom('db')
       .buildAndSend(res);

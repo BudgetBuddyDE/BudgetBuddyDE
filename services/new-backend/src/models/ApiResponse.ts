@@ -2,6 +2,7 @@ import type {Response} from 'express';
 import {HTTPStatusCode} from './HttpStatusCode';
 
 type BaseProperties<T> = {
+  totalCount?: number;
   data: T | null;
   message: string | null;
   error?: string | null;
@@ -50,6 +51,7 @@ export type TApiResponse<T> = (BaseProperties<T> & {
 export class ApiResponse<T> {
   public status: number | HTTPStatusCode = HTTPStatusCode.OK;
   public message: string | null = null;
+  public totalCount: number | undefined = undefined;
   public data: T | null = null;
   public error: string | null = null;
   public from: 'db' | 'cache' | null = null;
@@ -128,6 +130,16 @@ export class ApiResponseBuilder<T> {
    */
   public withData(data: T | null): ApiResponseBuilder<T> {
     this.responseBody.data = data;
+    return this;
+  }
+
+  /**
+   * Sets the total count of records in the database
+   * @param totalCount - The total count of records.
+   * @returns The ApiResponseBuilder instance.
+   */
+  public withTotalCount(totalCount: number): ApiResponseBuilder<T> {
+    this.responseBody.totalCount = totalCount;
     return this;
   }
 
