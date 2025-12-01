@@ -139,7 +139,7 @@ export class ApiResponseBuilder<T> {
    * @returns The ApiResponseBuilder instance.
    */
   public withTotalCount(totalCount: TApiResponse<T>['totalCount']): ApiResponseBuilder<T> {
-    this.responseBody.totalCount = totalCount;
+    this.responseBody.totalCount = typeof totalCount === 'number' ? totalCount : Number(totalCount);
     return this;
   }
 
