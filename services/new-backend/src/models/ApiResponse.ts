@@ -6,7 +6,7 @@ type BaseProperties<T> = {
   data: T | null;
   message: string | null;
   error?: string | null;
-  from?: 'db' | 'cache';
+  from?: 'db' | 'cache' | 'external';
 };
 
 /**
@@ -98,7 +98,7 @@ export class ApiResponseBuilder<T> {
    * @param status - The status code.
    * @returns The ApiResponseBuilder instance.
    */
-  public withStatus(status: number | HTTPStatusCode): ApiResponseBuilder<T> {
+  public withStatus(status: HTTPStatusCode | number): ApiResponseBuilder<T> {
     this.responseBody.status = status;
     return this;
   }
@@ -108,7 +108,7 @@ export class ApiResponseBuilder<T> {
    * @param message - The message.
    * @returns The ApiResponseBuilder instance.
    */
-  public withMessage(message: string | null): ApiResponseBuilder<T> {
+  public withMessage(message: TApiResponse<T>['message']): ApiResponseBuilder<T> {
     this.responseBody.message = message;
     return this;
   }
@@ -118,7 +118,7 @@ export class ApiResponseBuilder<T> {
    * @param error - The error message.
    * @returns The ApiResponseBuilder instance.
    */
-  public withError(error: string | null): ApiResponseBuilder<T> {
+  public withError(error: TApiResponse<T>['error']): ApiResponseBuilder<T> {
     this.responseBody.error = error;
     return this;
   }
@@ -128,7 +128,7 @@ export class ApiResponseBuilder<T> {
    * @param data - The data.
    * @returns The ApiResponseBuilder instance.
    */
-  public withData(data: T | null): ApiResponseBuilder<T> {
+  public withData(data: TApiResponse<T>['data']): ApiResponseBuilder<T> {
     this.responseBody.data = data;
     return this;
   }
@@ -138,7 +138,7 @@ export class ApiResponseBuilder<T> {
    * @param totalCount - The total count of records.
    * @returns The ApiResponseBuilder instance.
    */
-  public withTotalCount(totalCount: number): ApiResponseBuilder<T> {
+  public withTotalCount(totalCount: TApiResponse<T>['totalCount']): ApiResponseBuilder<T> {
     this.responseBody.totalCount = totalCount;
     return this;
   }
@@ -148,7 +148,7 @@ export class ApiResponseBuilder<T> {
    * @param from The source of the response data. Must be either "db" or "cache".
    * @returns The ApiResponseBuilder instance.
    */
-  public withFrom(from: 'db' | 'cache' | 'external'): ApiResponseBuilder<T> {
+  public withFrom(from: TApiResponse<T>['from']): ApiResponseBuilder<T> {
     this.responseBody.from = from;
     return this;
   }
