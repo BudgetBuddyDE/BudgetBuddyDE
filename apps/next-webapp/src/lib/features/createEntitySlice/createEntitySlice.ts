@@ -1,10 +1,11 @@
 import type { ServiceResponse } from "@budgetbuddyde/types/";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { OdataQuery } from "@tklein1801/o.js";
 import { ITEMS_IN_VIEW } from "@/components/Table/EntityTable";
 import { createAppSlice } from "@/lib/createAppSlice";
 import type { RootState } from "@/lib/store";
 import { logger } from "@/logger";
+import type { BaseGetAllQuery } from "@/services/Entity.service";
+import type { TApiResponse } from "@/types";
 
 export type EntityFilters = {
 	keyword: string | null;
@@ -32,12 +33,9 @@ export function createInitialState<T>(initalData?: T[]): EntitySliceState<T> {
 	};
 }
 
-type ResponseBody<T> = {
-	"@odata.count": number;
-	value: T[];
-};
+type ResponseBody<T> = TApiResponse<T>;
 
-export function createEntitySlice<T, Q extends OdataQuery>(
+export function createEntitySlice<T, Q extends BaseGetAllQuery>(
 	name: string,
 	getPageFunc: (query?: Q) => Promise<ServiceResponse<ResponseBody<T>>>,
 ) {
@@ -55,12 +53,13 @@ export function createEntitySlice<T, Q extends OdataQuery>(
 					const currentFilters = sliceState.filter;
 					const currentPage = sliceState.currentPage;
 					const rowsPerPage = sliceState.rowsPerPage;
+					const start = currentPage * rowsPerPage;
 					const query = {
-						$skip: currentPage * rowsPerPage,
-						$top: rowsPerPage,
+						from: start,
+						to: start + rowsPerPage,
 					} as Q;
 					if (currentFilters.keyword && currentFilters.keyword.length > 0) {
-						query.$search = currentFilters.keyword;
+						query.search = currentFilters.keyword;
 					}
 					const [data, err] = await Promise.resolve(getPageFunc(query));
 					if (err) throw err;
@@ -74,8 +73,8 @@ export function createEntitySlice<T, Q extends OdataQuery>(
 					fulfilled: (state, action) => {
 						state.status = "idle";
 						// @ts-expect-error
-						state.data = action.payload.value;
-						state.count = action.payload["@odata.count"];
+						state.data = action.payload.data;
+						state.count = action.payload.totalCount || 0;
 					},
 					rejected: (state, { error }) => {
 						state.status = "failed";
@@ -106,13 +105,14 @@ export function createEntitySlice<T, Q extends OdataQuery>(
 					const thunkState = api.getState() as RootState;
 					const sliceState = thunkState[name];
 					const currentFilters = sliceState.filter;
+					const start = page * rowsPerPage;
 					const query = {
-						$skip: page * rowsPerPage,
-						$top: rowsPerPage,
+						from: start,
+						to: start + rowsPerPage,
 						...q,
 					} as Q;
 					if (currentFilters.keyword && currentFilters.keyword.length > 0) {
-						query.$search = currentFilters.keyword;
+						query.search = currentFilters.keyword;
 					}
 					const [data, err] = await Promise.resolve(getPageFunc(query));
 					if (err) throw err;
@@ -128,8 +128,8 @@ export function createEntitySlice<T, Q extends OdataQuery>(
 						state.currentPage = action.meta.arg?.page;
 						state.rowsPerPage = action.meta.arg?.rowsPerPage;
 						// @ts-expect-error
-						state.data = action.payload.value;
-						state.count = action.payload["@odata.count"];
+						state.data = action.payload.data;
+						state.count = action.payload.totalCount || 0;
 					},
 					rejected: (state, { error }) => {
 						state.status = "failed";
@@ -143,11 +143,11 @@ export function createEntitySlice<T, Q extends OdataQuery>(
 					const state = api.getState() as RootState;
 					const currentSliceState = state[name] as EntitySliceState<T>;
 					const query = {
-						$skip: 0,
-						$top: currentSliceState.rowsPerPage,
+						from: 0,
+						to: currentSliceState.rowsPerPage,
 					} as Q;
 					if (filters.keyword && filters.keyword.length > 0) {
-						query.$search = filters.keyword;
+						query.search = filters.keyword;
 					}
 					const [data, err] = await Promise.resolve(getPageFunc(query));
 					if (err) throw err;
@@ -164,8 +164,8 @@ export function createEntitySlice<T, Q extends OdataQuery>(
 						state.filter = { ...state.filter, ...action.payload.filters };
 						const data = action.payload.data;
 						// @ts-expect-error
-						state.data = data.value;
-						state.count = data["@odata.count"];
+						state.data = data.data;
+						state.count = data.totalCount || 0;
 					},
 					rejected: (state) => {
 						state.status = "failed";

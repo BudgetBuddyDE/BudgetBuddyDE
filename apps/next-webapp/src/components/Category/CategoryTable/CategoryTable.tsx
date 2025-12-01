@@ -14,11 +14,11 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { categorySlice } from "@/lib/features/categories/categorySlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { CategoryService } from "@/services/Category.service";
+import { NewCategoryService } from "@/services/Category.service";
 import { CreateOrUpdateCategory, type TCategory } from "@/types";
 
 type EntityFormFields = FirstLevelNullable<
-	Pick<TCategory, "ID" | "name" | "description">
+	Pick<TCategory, "id" | "name" | "description">
 >;
 
 // biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
@@ -72,10 +72,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 		}
 
 		if (action === "CREATE") {
-			const [createdCategory, error] = await CategoryService.createCategory(
+			const [createdCategory, error] = await new NewCategoryService().create(
 				parsedPayload.data,
 			);
-			if (error) {
+			if (!createdCategory || error) {
 				return showSnackbar({
 					message: `Failed to create category: ${error.message}`,
 					action: (
@@ -85,14 +85,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 					),
 				});
 			}
-			showSnackbar({
-				message: `Category '${createdCategory.name}' created successfully`,
-			});
+			showSnackbar({ message: createdCategory.message || "Category created" });
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
 			dispatch(refresh());
 		} else if (action === "EDIT") {
-			const entityId = drawerState.defaultValues?.ID;
+			const entityId = drawerState.defaultValues?.id;
 			if (!entityId) {
 				return showSnackbar({
 					message: `Failed to update category: Missing entity ID`,
@@ -103,10 +101,8 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 					),
 				});
 			}
-			const [updatedCategory, error] = await CategoryService.update(
-				entityId,
-				parsedPayload.data,
-			);
+			const [updatedCategory, error] =
+				await new NewCategoryService().updateById(entityId, parsedPayload.data);
 			if (error) {
 				return showSnackbar({
 					message: `Failed to update category: ${error.message}`,
@@ -117,9 +113,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 					),
 				});
 			}
-			showSnackbar({
-				message: `Category '${updatedCategory.name}' updated successfully`,
-			});
+			showSnackbar({ message: updatedCategory.message || "Category updated" });
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
 			dispatch(refresh());
@@ -131,7 +125,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 			type: "OPEN",
 			action: "EDIT",
 			defaultValues: {
-				ID: entity.ID,
+				id: entity.id,
 				name: entity.name,
 				description: entity.description,
 			},
@@ -139,8 +133,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 	};
 
 	const handleDeleteEntity = async (entity: TCategory) => {
-		const [success, error] = await CategoryService.delete(entity.ID);
-		if (error || !success) {
+		const [deletedCategory, error] = await new NewCategoryService().deleteById(
+			entity.id,
+		);
+		if (error || !deletedCategory) {
 			return showSnackbar({
 				message: error.message,
 				action: (
@@ -149,7 +145,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 			});
 		}
 
-		showSnackbar({ message: `Category '${entity.name}' deleted successfully` });
+		showSnackbar({
+			message: deletedCategory.message ?? `Category was deleted successfully`,
+		});
 		dispatch(refresh());
 	};
 
@@ -217,7 +215,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
 				data={categories}
-				dataKey={"ID"}
+				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
 					page: currentPage,

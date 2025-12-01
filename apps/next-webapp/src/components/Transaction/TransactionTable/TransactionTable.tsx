@@ -28,18 +28,18 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { transactionSlice } from "@/lib/features/transactions/transactionSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { CategoryService } from "@/services/Category.service";
-import { PaymentMethodService } from "@/services/PaymentMethod.service";
-import { TransactionService } from "@/services/Transaction.service";
+import { NewCategoryService } from "@/services/Category.service";
+import { NewPaymentMethodService } from "@/services/PaymentMethod.service";
+import { _TransactionService } from "@/services/Transaction.service";
 import {
-	Category_VH,
+	CategoryVH,
 	CdsDate,
 	CreateOrUpdateTransaction,
-	PaymentMethod_VH,
+	PaymentMethodVH,
 	ReceiverVH,
-	type TCategory_VH,
+	type TCategoryVH,
 	type TExpandedTransaction,
-	type TPaymentMethod_VH,
+	type TPaymentMethodVH,
 	type TReceiverVH,
 	type TTransaction,
 } from "@/types";
@@ -48,14 +48,14 @@ import { Formatter } from "@/utils/Formatter";
 type EntityFormFields = FirstLevelNullable<
 	Pick<
 		TTransaction,
-		| "ID"
+		| "id"
 		| "processedAt"
-		| /*'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' |*/ "transferAmount"
+		| /*'categoryId' | 'paymentMethodId' | 'receiver' |*/ "transferAmount"
 		| "information"
 	> & {
 		// Because we're gonna use Autocompletes for relations, we need to override those types
-		toCategory: TCategory_VH;
-		toPaymentMethod: TPaymentMethod_VH;
+		toCategory: TCategoryVH;
+		toPaymentMethod: TPaymentMethodVH;
 		receiver: TReceiverVH | ({ new: true; label: string } & TReceiverVH);
 	}
 >;
@@ -102,8 +102,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 		})
 			.extend({
 				processedAt: CdsDate,
-				toCategory: Category_VH,
-				toPaymentMethod: PaymentMethod_VH,
+				toCategory: CategoryVH,
+				toPaymentMethod: PaymentMethodVH,
 				receiver: ReceiverVH,
 			})
 			.safeParse({
@@ -134,10 +134,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				information,
 				transferAmount,
 			} = parsedPayload.data;
-			const [_, error] = await TransactionService.create({
+			const [_, error] = await new _TransactionService().create({
 				processedAt: processedAt,
-				toCategory_ID: toCategory.ID,
-				toPaymentMethod_ID: toPaymentMethod.ID,
+				categoryId: toCategory.id,
+				paymentMethodId: toPaymentMethod.id,
 				receiver: receiver.receiver,
 				information: information && information.length > 0 ? information : null,
 				transferAmount: transferAmount,
@@ -157,7 +157,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 			onSuccess?.();
 			dispatch(refresh());
 		} else if (action === "EDIT") {
-			const entityId = drawerState.defaultValues?.ID;
+			const entityId = drawerState.defaultValues?.id;
 			if (!entityId) {
 				return showSnackbar({
 					message: `Failed to update transaction: Missing entity ID`,
@@ -176,10 +176,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				information,
 				transferAmount,
 			} = parsedPayload.data;
-			const [_, error] = await TransactionService.update(entityId, {
+			const [_, error] = await new _TransactionService().updateById(entityId, {
 				processedAt: processedAt,
-				toCategory_ID: toCategory.ID,
-				toPaymentMethod_ID: toPaymentMethod.ID,
+				categoryId: toCategory.id,
+				paymentMethodId: toPaymentMethod.id,
 				receiver: receiver.receiver,
 				information: information && information.length > 0 ? information : null,
 				transferAmount: transferAmount,
@@ -212,11 +212,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 	}, []);
 
 	const handleEditEntity = ({
-		ID,
+		id,
 		processedAt,
 		receiver,
-		toCategory,
-		toPaymentMethod,
+		category,
+		paymentMethod,
 		transferAmount,
 		information,
 	}: TExpandedTransaction) => {
@@ -224,20 +224,20 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 			type: "OPEN",
 			action: "EDIT",
 			defaultValues: {
-				ID,
+				id,
 				processedAt,
 				receiver: { receiver: receiver },
 				toCategory: {
-					ID: toCategory.ID,
-					name: toCategory.name,
-					description: toCategory.description,
+					id: category.id,
+					name: category.name,
+					description: category.description,
 				},
 				toPaymentMethod: {
-					ID: toPaymentMethod.ID,
-					name: toPaymentMethod.name,
-					address: toPaymentMethod.address,
-					provider: toPaymentMethod.provider,
-					description: toPaymentMethod.description,
+					id: paymentMethod.id,
+					name: paymentMethod.name,
+					address: paymentMethod.address,
+					provider: paymentMethod.provider,
+					description: paymentMethod.description,
 				},
 				transferAmount,
 				information,
@@ -246,8 +246,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 	};
 
 	const handleDeleteEntity = async (entity: TExpandedTransaction) => {
-		const [success, error] = await TransactionService.delete(entity.ID);
-		if (error || !success) {
+		const [deletedTransaction, error] =
+			await new _TransactionService().deleteById(entity.id);
+		if (error || !deletedTransaction) {
 			return showSnackbar({
 				message: error.message,
 				action: (
@@ -256,7 +257,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 			});
 		}
 
-		showSnackbar({ message: `Transaction deleted successfully` });
+		showSnackbar({
+			message:
+				deletedTransaction.message ?? "Transaction was deleted successfully",
+		});
 		dispatch(refresh());
 	};
 
@@ -310,18 +314,19 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 					placeholder: "Category",
 					required: true,
 					retrieveOptionsFunc: async () => {
-						const [categories, error] = await CategoryService.getCategoryVH();
+						const [categories, error] =
+							await new NewCategoryService().getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];
 						}
 						return categories ?? [];
 					},
-					getOptionLabel: (option: TCategory_VH) => {
+					getOptionLabel: (option: TCategoryVH) => {
 						return option.name;
 					},
-					isOptionEqualToValue(option: TCategory_VH, value: TCategory_VH) {
-						return option.ID === value.ID;
+					isOptionEqualToValue(option: TCategoryVH, value: TCategoryVH) {
+						return option.id === value.id;
 					},
 					noOptionsText: "No categories found",
 				},
@@ -334,21 +339,21 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [paymentMethods, error] =
-							await PaymentMethodService.getPaymentMethodVH();
+							await new NewPaymentMethodService().getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch payment method options:", error);
 							return [];
 						}
 						return paymentMethods ?? [];
 					},
-					getOptionLabel: (option: TPaymentMethod_VH) => {
+					getOptionLabel: (option: TPaymentMethodVH) => {
 						return option.name;
 					},
 					isOptionEqualToValue(
-						option: TPaymentMethod_VH,
-						value: TPaymentMethod_VH,
+						option: TPaymentMethodVH,
+						value: TPaymentMethodVH,
 					) {
-						return option.ID === value.ID;
+						return option.id === value.id;
 					},
 					noOptionsText: "No payment methods found",
 				},
@@ -360,7 +365,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [categories, error] =
-							await TransactionService.getReceiverVH();
+							await new _TransactionService().getReceiverVH();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];
@@ -477,7 +482,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
 				data={transactions}
-				dataKey={"ID"}
+				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
 					page: currentPage,
@@ -510,12 +515,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 								<Typography variant="body1">{item.receiver}</Typography>
 								<Stack flexDirection={"row"}>
 									<CategoryChip
-										categoryName={item.toCategory.name}
+										categoryName={item.category.name}
 										size="small"
 										sx={{ mr: 1 }}
 									/>
 									<PaymentMethodChip
-										paymentMethodName={item.toPaymentMethod.name}
+										paymentMethodName={item.paymentMethod.name}
 										size="small"
 									/>
 								</Stack>

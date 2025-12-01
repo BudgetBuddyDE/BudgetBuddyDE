@@ -1,23 +1,16 @@
 import { z } from "zod";
-
-import { IdAspect, ManagedAspect } from "./_Aspects";
-import {
-	DescriptionType,
-	ODataContextAspect,
-	ODataCountAspect,
-	OwnerAspect,
-	UserID,
-} from "./_Base";
+import { ODataContextAspect, ODataCountAspect, UserID } from "./_Base";
 
 /**
  * Category
  */
 export const Category = z.object({
-	...IdAspect.shape,
-	name: z.string().min(1).max(80),
-	description: DescriptionType,
-	...OwnerAspect.shape,
-	...ManagedAspect.shape,
+	id: z.uuid().brand("CategoryID"),
+	ownerId: UserID,
+	name: z.string(),
+	description: z.string().nullable(),
+	createdAt: z.iso.datetime(),
+	updatedAt: z.iso.datetime(),
 });
 /**
  * Category
@@ -37,15 +30,6 @@ export const CreateOrUpdateCategory = Category.pick({
 export type TCreateOrUpdateCategory = z.infer<typeof CreateOrUpdateCategory>;
 
 /**
- * Response from OData
- */
-export const CategoryResponse = Category.extend(ODataContextAspect.shape);
-/**
- * Response from OData
- */
-export type TCategoryResponse = z.infer<typeof CategoryResponse>;
-
-/**
  * Categories with Count
  */
 export const CategoriesWithCount = z.object({
@@ -61,44 +45,32 @@ export type TCategoriesWithCount = z.infer<typeof CategoriesWithCount>;
 /**
  * Value Help for Category
  */
-export const Category_VH = Category.pick({
-	ID: true,
+export const CategoryVH = Category.pick({
+	id: true,
 	name: true,
 	description: true,
 });
 /**
  * Value Help for Category
  */
-export type TCategory_VH = z.infer<typeof Category_VH>;
+export type TCategoryVH = z.infer<typeof CategoryVH>;
 
 /**
  * Category Statistics
  */
 export const CategoryStats = z.object({
-	toCategory_ID: Category.shape.ID,
-	balance: z.number(),
-	income: z.number(),
-	expenses: z.number(),
-	// start: CdsDate,
-	// end: CdsDate,
-	createdBy: UserID,
+	from: z.coerce.date(),
+	to: z.coerce.date(),
+	stats: z.array(
+		z.object({
+			balance: z.number(),
+			income: z.number(),
+			expenses: z.number(),
+			category: Category.pick({ id: true, name: true, description: true }),
+		}),
+	),
 });
 /**
  * Category Statistics
  */
 export type TCategoryStats = z.infer<typeof CategoryStats>;
-
-/**
- * Expanded Category Statistics
- * Includes the full Category object instead of just the ID
- */
-export const ExpandedCategoryStats = CategoryStats.omit({
-	toCategory_ID: true,
-}).extend({
-	toCategory: Category,
-});
-/**
- * Expanded Category Statistics
- * Includes the full Category object instead of just the ID
- */
-export type TExpandedCategoryStats = z.infer<typeof ExpandedCategoryStats>;

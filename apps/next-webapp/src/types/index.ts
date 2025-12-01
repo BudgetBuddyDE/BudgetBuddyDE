@@ -4,6 +4,6 @@ export * from "./Budget";
 export * from "./Category";
 export * from "./MonthlyKPI";
 export * from "./PaymentMethod";
+export * from "./RecurringPayment";
 export * from "./Stocks";
-export * from "./Subscription";
 export * from "./Transaction";

@@ -3,16 +3,102 @@ import type { ServiceResponse } from "@budgetbuddyde/types";
 import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
 import {
+	ApiResponse,
+	Budget,
 	BudgetResponse,
-	ExpandedBudget,
+	EstimatedBudget,
 	ExpandedBudgetsWithCount,
 	type TBudgetResponse,
 	type TCreateOrUpdateBudget,
-	type TExpandedBudget,
+	type TEstimatedBudget,
 	type TExpandedBudgetsWithCount,
 } from "@/types";
-import { EntityService } from "./Entity.service";
+import { EntityService, NewEntityService } from "./Entity.service";
 
+const GetAllBudget = ApiResponse.extend({
+	data: z.array(Budget).nullable(),
+});
+const GetBudget = ApiResponse.extend({
+	data: Budget.nullable(),
+});
+const PostBudget = ApiResponse.extend({
+	data: z
+		.array(
+			Budget.pick({
+				type: true,
+				name: true,
+				ownerId: true,
+				budget: true,
+				description: true,
+			}),
+		)
+		.nullable(),
+});
+const PutBudget = PostBudget;
+const DeleteBudget = PostBudget;
+
+export class _BudgetService extends NewEntityService<
+	TCreateOrUpdateBudget,
+	TCreateOrUpdateBudget,
+	typeof GetAllBudget,
+	typeof GetBudget,
+	typeof PostBudget,
+	typeof PutBudget,
+	typeof DeleteBudget
+> {
+	constructor() {
+		super("/api/budget", {
+			getAll: GetAllBudget,
+			get: GetBudget,
+			create: PostBudget,
+			update: PutBudget,
+			delete: DeleteBudget,
+		});
+	}
+
+	async getEstimatedBudget(
+		requestConfig?: RequestInit,
+	): Promise<ServiceResponse<TEstimatedBudget>> {
+		try {
+			const response = await fetch(
+				`${this.getBaseRequestPath()}/estimated`,
+				this.mergeRequestConfig(
+					{
+						method: "GET",
+						credentials: "include",
+						headers: this.enhanceHeadersWithRequestId(
+							new Headers(requestConfig?.headers || {}),
+						),
+					},
+					requestConfig,
+				),
+			);
+			if (!response.ok) {
+				throw new Error(
+					`Failed to fetch budget estimations: ${response.statusText}`,
+				);
+			}
+			if (!this.isJsonResponse(response)) {
+				throw new Error("Response is not JSON");
+			}
+			const data = await response.json();
+
+			const parsingResult = ApiResponse.extend({
+				data: EstimatedBudget,
+			}).safeParse(data);
+			if (!parsingResult.success) {
+				return this.handleZodError(parsingResult.error);
+			}
+
+			return [parsingResult.data.data ?? [], null];
+		} catch (error) {
+			return this.handleError(error);
+		}
+	}
+}
+
+const ExpandedBudget = Budget;
+type TExpandedBudget = z.infer<typeof ExpandedBudget>;
 export class BudgetService extends EntityService {
 	private static $defaultQuery: OdataQuery = {
 		$expand: "toCategories($expand=toCategory)",
@@ -59,32 +145,6 @@ export class BudgetService extends EntityService {
 				.patch(`${this.$entityPath}(ID=${entityId})`, payload)
 				.query();
 			const parsingResult = BudgetResponse.safeParse(record);
-			if (!parsingResult.success) {
-				return this.handleZodError(parsingResult.error);
-			}
-			return [parsingResult.data, null];
-		} catch (e) {
-			return this.handleError(e);
-		}
-	}
-
-	/**
-	 * Retrieves the list of budgets from the database.
-	 * @returns A promise that resolves to an array of TExpandedBudget objects.
-	 * @throws If there is an error parsing the retrieved records.
-	 */
-	static async get(
-		query?: OdataQuery,
-		config?: Partial<OdataConfig>,
-	): Promise<ServiceResponse<TExpandedBudget[]>> {
-		try {
-			const records = await this.newOdataHandler(config)
-				.get(this.$entityPath)
-				.query({
-					...this.$defaultQuery,
-					...query,
-				});
-			const parsingResult = z.array(ExpandedBudget).safeParse(records);
 			if (!parsingResult.success) {
 				return this.handleZodError(parsingResult.error);
 			}

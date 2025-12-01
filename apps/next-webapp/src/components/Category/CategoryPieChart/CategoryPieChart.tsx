@@ -14,18 +14,14 @@ import { PieChart, type PieChartData } from "@/components/Charts";
 import { ErrorAlert as ErrorComp } from "@/components/ErrorAlert";
 import { CircularProgress } from "@/components/Loading";
 import { NoResults } from "@/components/NoResults";
-import { CategoryService } from "@/services/Category.service";
+import { NewCategoryService } from "@/services/Category.service";
+import type { TCategoryStats } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
 export type CategoryPieChartTimeframe = "MONTH" | "YTD" | "ALL_TIME";
 export type CategoryPieChartTransactionType = "INCOME" | "EXPENSE";
 
-type CategoryStats = {
-	category: { ID: string; name: string };
-	balance: number;
-	income: number;
-	expenses: number;
-};
+type Stats = TCategoryStats["stats"][number];
 
 export type CategoryPieChartProps = {
 	title: string;
@@ -67,8 +63,7 @@ const TIMEFRAME_META: Record<
 	ALL_TIME: {
 		label: "All Time",
 		range: () => {
-			const now = new Date();
-			return [new Date("1900-01-01"), now];
+			return [new Date("1900-01-01"), new Date("2999-12-31")];
 		},
 		emptyText: "There are no transactions for all time!",
 	},
@@ -78,14 +73,14 @@ const TIMEFRAMES: CategoryPieChartTimeframe[] = ["MONTH", "YTD", "ALL_TIME"];
 
 /** Local data/loading/error state */
 type State = {
-	data: Partial<Record<CategoryPieChartTimeframe, CategoryStats[]>>;
+	data: Partial<Record<CategoryPieChartTimeframe, Stats[]>>;
 	loading: Partial<Record<CategoryPieChartTimeframe, boolean>>;
 	error: Partial<Record<CategoryPieChartTimeframe, string | undefined>>;
 };
 
 type Action =
 	| { type: "start"; tf: CategoryPieChartTimeframe }
-	| { type: "success"; tf: CategoryPieChartTimeframe; payload: CategoryStats[] }
+	| { type: "success"; tf: CategoryPieChartTimeframe; payload: Stats[] }
 	| { type: "error"; tf: CategoryPieChartTimeframe; message: string };
 
 const initialState: State = {
@@ -148,20 +143,14 @@ export function CategoryPieChart({
 
 			try {
 				const [start, end] = TIMEFRAME_META[timeframe].range();
-				const [raw, err] = await CategoryService.getCategoryStats({
-					start,
-					end,
+				const [categoryStats, err] = await new NewCategoryService().getCategoryStats({
+					from: start,
+					to: end,
 				});
 				if (err) throw err;
 
-				const normalized: CategoryStats[] = raw.map((d) => ({
-					category: { ID: d.toCategory.ID, name: d.toCategory.name },
-					balance: d.balance,
-					income: d.income,
-					expenses: d.expenses,
-				}));
 
-				dispatch({ type: "success", tf: timeframe, payload: normalized });
+				dispatch({ type: "success", tf: timeframe, payload: categoryStats.stats });
 			} catch (e) {
 				const message = e instanceof Error ? e.message : String(e);
 				dispatch({ type: "error", tf: timeframe, message });
@@ -281,10 +270,10 @@ export function CategoryPieChart({
  * Convert raw category stats into PieChart data format
  */
 function toPieData(
-	stats: CategoryStats[],
+	stats: Stats[],
 	type: CategoryPieChartTransactionType,
 ): PieChartData[] {
-	const pick: keyof CategoryStats = type === "INCOME" ? "income" : "expenses";
+	const pick: keyof Stats = type === "INCOME" ? "income" : "expenses";
 	return stats
 		.map((s) => ({ label: s.category.name, value: s[pick] }))
 		.filter((d) =>

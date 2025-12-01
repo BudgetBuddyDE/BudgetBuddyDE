@@ -14,14 +14,14 @@ import { PieChart, type PieChartData } from "@/components/Charts";
 import { ErrorAlert as ErrorComp } from "@/components/ErrorAlert";
 import { CircularProgress } from "@/components/Loading";
 import { NoResults } from "@/components/NoResults";
-import { SubscriptionService } from "@/services/Subscription.service";
-import type { TCategory, TExpandedSubscription } from "@/types";
+import { RecurringPaymentService } from "@/services/RecurringPayment.service";
+import type { TCategory, TExpandedRecurringPayment } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
 export type SubscriptionType = "INCOME" | "EXPENSE";
 
 type CategoryStats = {
-	category: Pick<TCategory, "ID" | "name">;
+	category: Pick<TCategory, "id" | "name">;
 	value: number;
 };
 
@@ -112,16 +112,19 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 			dispatch({ type: "start", subscriptionType: type });
 
 			try {
-				const filter = getSubscriptionFilter(type);
-				const [subscriptions, err] = await SubscriptionService.getSubscriptions(
-					{
-						$filter: filter,
-					},
+				const [subscriptionResponse, err] = await new RecurringPaymentService().getAll(
+					undefined, {
+						credentials: "include"
+					}
 				);
-
 				if (err) throw err;
-
-				const categoryStats = groupSubscriptionsByCategory(subscriptions || []);
+				if (!subscriptionResponse) {
+					throw new Error("No subscription data received");
+				}
+				const subscriptions = (subscriptionResponse.data ?? []).filter(
+					subscription => subscription.transferAmount >= 0 === (type === "INCOME")
+				)
+				const categoryStats = groupSubscriptionsByCategory(subscriptions);
 				dispatch({
 					type: "success",
 					subscriptionType: type,
@@ -222,12 +225,8 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 	);
 };
 
-function getSubscriptionFilter(type: SubscriptionType): string {
-	return `transferAmount ${type === "INCOME" ? "gt" : "lt"} 0`;
-}
-
 function groupSubscriptionsByCategory(
-	subscriptions: TExpandedSubscription[],
+	subscriptions: TExpandedRecurringPayment[],
 ): CategoryStats[] {
 	const grouped = new Map<string, CategoryStats>();
 
@@ -235,17 +234,17 @@ function groupSubscriptionsByCategory(
 		if (subscription.paused) continue;
 
 		const absTransferAmount = Math.abs(subscription.transferAmount);
-		const { ID, name } = subscription.toCategory;
+		const { id, name } = subscription.category;
 
-		if (grouped.has(ID)) {
-			const existing = grouped.get(ID) as CategoryStats;
-			grouped.set(ID, {
+		if (grouped.has(id)) {
+			const existing = grouped.get(id) as CategoryStats;
+			grouped.set(id, {
 				category: existing.category,
 				value: existing.value + absTransferAmount,
 			});
 		} else {
-			grouped.set(ID, {
-				category: { ID, name },
+			grouped.set(id, {
+				category: { id, name },
 				value: absTransferAmount,
 			});
 		}

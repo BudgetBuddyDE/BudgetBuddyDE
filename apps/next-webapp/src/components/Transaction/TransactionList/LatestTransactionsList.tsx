@@ -1,6 +1,6 @@
 import type React from "react";
 import { headers } from "@/lib/headers";
-import { TransactionService } from "@/services/Transaction.service";
+import { _TransactionService } from "@/services/Transaction.service";
 import { TransactionList, type TransactionListProps } from "./TransactionList";
 
 export type LatestTransactionsListProps = Pick<
@@ -12,9 +12,10 @@ export const LatestTransactionsList: React.FC<
 	LatestTransactionsListProps
 > = async ({ onAddEntity }) => {
 	const clientHeaders = await headers();
-	const [transactions, error] = await TransactionService.getTransactions(
+	const [transactions, error] = await new _TransactionService().getAll(
 		{
-			$top: 6,
+			to: 6,
+			$dateTo: new Date()
 		},
 		{ headers: clientHeaders },
 	);
@@ -23,18 +24,18 @@ export const LatestTransactionsList: React.FC<
 		<TransactionList
 			title="Transactions"
 			subtitle="Your latest transactions"
-			data={transactions.map((t) => ({
-				ID: t.ID,
+			data={(transactions.data??[]).map((t) => ({
+				ID: t.id,
 				receiver: t.receiver,
-				processedAt: t.processedAt,
+				processedAt: t.processedAt as Date,
 				transferAmount: t.transferAmount,
 				category: {
-					ID: t.toCategory.ID,
-					name: t.toCategory.name,
+					ID: t.category.id,
+					name: t.category.name,
 				},
 				paymentMethod: {
-					ID: t.toPaymentMethod.ID,
-					name: t.toPaymentMethod.name,
+					ID: t.paymentMethod.id,
+					name: t.paymentMethod.name,
 				},
 			}))}
 			onAddEntity={onAddEntity}

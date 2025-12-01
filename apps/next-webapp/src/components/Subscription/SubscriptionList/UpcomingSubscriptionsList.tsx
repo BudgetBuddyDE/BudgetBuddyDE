@@ -1,7 +1,6 @@
-
 import type React from "react";
 import { headers } from "@/lib/headers";
-import { SubscriptionService } from "@/services/Subscription.service";
+import { RecurringPaymentService } from "@/services/RecurringPayment.service";
 import {
 	SubscriptionList,
 	type SubscriptionListProps,
@@ -15,31 +14,32 @@ export type UpcomingSubscriptionsList = Pick<
 export const UpcomingSubscriptionsList: React.FC<
 	UpcomingSubscriptionsList
 > = async ({ onAddEntity }) => {
-	const [subscriptions, error] = await SubscriptionService.getSubscriptions(
+	const [subscriptions, error] = await new RecurringPaymentService().getAll(
 		{
-			$filter: `executeAt ge ${new Date().getDate()}`,
-			$top: 6,
+			to: 6,
+			$executeFrom: new Date().getDate(),
 		},
 		{ headers: await headers() },
 	);
 	if (error) throw error;
 
+	const now = new Date()
 	return (
 		<SubscriptionList
 			title="Upcoming Subscriptions"
 			subtitle="Your upcoming subscriptions"
-			data={subscriptions.map((t) => ({
-				ID: t.ID,
+			data={(subscriptions.data ?? []).map((t) => ({
+				ID: t.id,
 				receiver: t.receiver,
-				nextExecution: t.nextExecution,
+				nextExecution: new Date(now.getFullYear(), now.getMonth(), t.executeAt),
 				transferAmount: t.transferAmount,
 				category: {
-					ID: t.toCategory.ID,
-					name: t.toCategory.name,
+					ID: t.category.id,
+					name: t.category.name,
 				},
 				paymentMethod: {
-					ID: t.toPaymentMethod.ID,
-					name: t.toPaymentMethod.name,
+					ID: t.paymentMethod.id,
+					name: t.paymentMethod.name,
 				},
 			}))}
 			onAddEntity={onAddEntity}

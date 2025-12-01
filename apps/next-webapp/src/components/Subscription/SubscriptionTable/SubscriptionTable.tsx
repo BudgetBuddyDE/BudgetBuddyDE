@@ -26,35 +26,35 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { subscriptionSlice } from "@/lib/features/subscriptions/subscriptionSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { CategoryService } from "@/services/Category.service";
-import { PaymentMethodService } from "@/services/PaymentMethod.service";
-import { SubscriptionService } from "@/services/Subscription.service";
-import { TransactionService } from "@/services/Transaction.service";
+import { NewCategoryService } from "@/services/Category.service";
+import { NewPaymentMethodService } from "@/services/PaymentMethod.service";
+import { RecurringPaymentService } from "@/services/RecurringPayment.service";
+import { _TransactionService } from "@/services/Transaction.service";
 import {
-	Category_VH,
+	CategoryVH,
 	CdsDate,
-	CreateOrUpdateSubscription,
-	PaymentMethod_VH,
+	CreateOrUpdateRecurringPayment,
+	PaymentMethodVH,
 	ReceiverVH,
-	type TCategory_VH,
-	type TExpandedSubscription,
-	type TPaymentMethod_VH,
+	type TCategoryVH,
+	type TExpandedRecurringPayment,
+	type TPaymentMethodVH,
 	type TReceiverVH,
-	type TSubscription,
+	type TRecurringPayment,
 } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
 type EntityFormFields = FirstLevelNullable<
 	Pick<
-		TSubscription,
-		| "ID"
-		| /*'toCategory_ID' | 'toPaymentMethod_ID' | 'receiver' |*/ "transferAmount"
+		TRecurringPayment,
+		| "id"
+		| /*'categoryId' | 'paymentMethodId' | 'receiver' |*/ "transferAmount"
 		| "information"
 	> & {
 		// Because we're gonna use a Date Picker and Autocompletes for relations, we need to override those types
 		executeAt: Date;
-		toCategory: TCategory_VH;
-		toPaymentMethod: TPaymentMethod_VH;
+		category: TCategoryVH;
+		paymentMethod: TPaymentMethodVH;
 		receiver: TReceiverVH | ({ new: true; label: string } & TReceiverVH);
 	}
 >;
@@ -90,17 +90,17 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 	> = async (payload, onSuccess) => {
 		const action = drawerState.action;
 
-		const parsedPayload = CreateOrUpdateSubscription.omit({
+		const parsedPayload = CreateOrUpdateRecurringPayment.omit({
 			ID: true,
 			executeAt: true,
 			receiver: true,
-			toCategory_ID: true,
-			toPaymentMethod_ID: true,
+			categoryId: true,
+			paymentMethodId: true,
 		})
 			.extend({
 				executeAt: CdsDate,
-				toCategory: Category_VH,
-				toPaymentMethod: PaymentMethod_VH,
+				category: CategoryVH,
+				paymentMethod: PaymentMethodVH,
 				receiver: ReceiverVH,
 			})
 			.safeParse({
@@ -125,21 +125,23 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 		if (action === "CREATE") {
 			const {
 				executeAt,
-				toCategory,
-				toPaymentMethod,
+				category,
+				paymentMethod,
 				receiver,
 				information,
 				transferAmount,
 			} = parsedPayload.data;
-			const [_, error] = await SubscriptionService.create({
-				executeAt: executeAt.getDate(),
-				toCategory_ID: toCategory.ID,
-				toPaymentMethod_ID: toPaymentMethod.ID,
-				receiver: receiver.receiver,
-				information: information && information.length > 0 ? information : null,
-				transferAmount: transferAmount,
-			});
-			if (error) {
+			const [createdRecurringPayment, error] =
+				await new RecurringPaymentService().create({
+					executeAt: executeAt.getDate(),
+					categoryId: category.id,
+					paymentMethodId: paymentMethod.id,
+					receiver: receiver.receiver,
+					information:
+						information && information.length > 0 ? information : null,
+					transferAmount: transferAmount,
+				});
+			if (!createdRecurringPayment || error) {
 				return showSnackbar({
 					message: `Failed to create subscription: ${error.message}`,
 					action: (
@@ -149,12 +151,16 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					),
 				});
 			}
-			showSnackbar({ message: `Subscription created successfully` });
+			showSnackbar({
+				message:
+					createdRecurringPayment.message ??
+					"Subscription created successfully",
+			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
 			dispatch(refresh());
 		} else if (action === "EDIT") {
-			const entityId = drawerState.defaultValues?.ID;
+			const entityId = drawerState.defaultValues?.id;
 			if (!entityId) {
 				return showSnackbar({
 					message: `Failed to update subscription: Missing entity ID`,
@@ -167,21 +173,23 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 			}
 			const {
 				executeAt,
-				toCategory,
-				toPaymentMethod,
+				category,
+				paymentMethod,
 				receiver,
 				information,
 				transferAmount,
 			} = parsedPayload.data;
-			const [_, error] = await SubscriptionService.update(entityId, {
-				executeAt: executeAt.getDate(),
-				toCategory_ID: toCategory.ID,
-				toPaymentMethod_ID: toPaymentMethod.ID,
-				receiver: receiver.receiver,
-				information: information && information.length > 0 ? information : null,
-				transferAmount: transferAmount,
-			});
-			if (error) {
+			const [updatedRecurringPayment, error] =
+				await new RecurringPaymentService().updateById(entityId, {
+					executeAt: executeAt.getDate(),
+					categoryId: category.id,
+					paymentMethodId: paymentMethod.id,
+					receiver: receiver.receiver,
+					information:
+						information && information.length > 0 ? information : null,
+					transferAmount: transferAmount,
+				});
+			if (!updatedRecurringPayment || error) {
 				return showSnackbar({
 					message: `Failed to update subscription: ${error.message}`,
 					action: (
@@ -191,7 +199,11 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					),
 				});
 			}
-			showSnackbar({ message: `Subscription updated successfully` });
+			showSnackbar({
+				message:
+					updatedRecurringPayment.message ??
+					"Subscription updated successfully",
+			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
 			dispatch(refresh());
@@ -209,33 +221,33 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 	};
 
 	const handleEditEntity = ({
-		ID,
+		id,
 		executeAt,
 		receiver,
-		toCategory,
-		toPaymentMethod,
+		category,
+		paymentMethod,
 		transferAmount,
 		information,
-	}: TExpandedSubscription) => {
+	}: TExpandedRecurringPayment) => {
 		const now = new Date();
 		dispatchDrawerAction({
 			type: "OPEN",
 			action: "EDIT",
 			defaultValues: {
-				ID,
+				id,
 				executeAt: new Date(now.getFullYear(), now.getMonth(), executeAt),
 				receiver: { receiver: receiver },
-				toCategory: {
-					ID: toCategory.ID,
-					name: toCategory.name,
-					description: toCategory.description,
+				category: {
+					id: category.id,
+					name: category.name,
+					description: category.description,
 				},
-				toPaymentMethod: {
-					ID: toPaymentMethod.ID,
-					name: toPaymentMethod.name,
-					address: toPaymentMethod.address,
-					provider: toPaymentMethod.provider,
-					description: toPaymentMethod.description,
+				paymentMethod: {
+					id: paymentMethod.id,
+					name: paymentMethod.name,
+					address: paymentMethod.address,
+					provider: paymentMethod.provider,
+					description: paymentMethod.description,
 				},
 				transferAmount,
 				information,
@@ -243,11 +255,14 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 		});
 	};
 
-	const handleTogglePauseOnEntity = async (entity: TExpandedSubscription) => {
-		const [_, error] = await SubscriptionService.update(entity.ID, {
-			paused: !entity.paused,
-		});
-		if (error) {
+	const handleTogglePauseOnEntity = async (
+		entity: TExpandedRecurringPayment,
+	) => {
+		const [updatedRecurringPayment, error] =
+			await new RecurringPaymentService().updateById(entity.id, {
+				paused: !entity.paused,
+			});
+		if (!updatedRecurringPayment || error) {
 			return showSnackbar({
 				message: `Failed to update subscription: ${error.message}`,
 				action: (
@@ -257,14 +272,18 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				),
 			});
 		}
-		showSnackbar({ message: `Subscription updated successfully` });
+		showSnackbar({
+			message:
+				updatedRecurringPayment.message ?? "Subscription updated successfully",
+		});
 		dispatchDrawerAction({ type: "CLOSE" });
 		dispatch(refresh());
 	};
 
-	const handleDeleteEntity = async (entity: TExpandedSubscription) => {
-		const [success, error] = await SubscriptionService.delete(entity.ID);
-		if (error || !success) {
+	const handleDeleteEntity = async (entity: TExpandedRecurringPayment) => {
+		const [deletedRecurringPayment, error] =
+			await new RecurringPaymentService().deleteById(entity.id);
+		if (!deletedRecurringPayment || error) {
 			return showSnackbar({
 				message: error.message,
 				action: (
@@ -273,7 +292,10 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 			});
 		}
 
-		showSnackbar({ message: `Subscription deleted successfully` });
+		showSnackbar({
+			message:
+				deletedRecurringPayment.message ?? "Subscription deleted successfully",
+		});
 		dispatch(refresh());
 	};
 
@@ -327,18 +349,19 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					placeholder: "Category",
 					required: true,
 					retrieveOptionsFunc: async () => {
-						const [categories, error] = await CategoryService.getCategoryVH();
+						const [categories, error] =
+							await new NewCategoryService().getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];
 						}
 						return categories ?? [];
 					},
-					getOptionLabel: (option: TCategory_VH) => {
+					getOptionLabel: (option: TCategoryVH) => {
 						return option.name;
 					},
-					isOptionEqualToValue(option: TCategory_VH, value: TCategory_VH) {
-						return option.ID === value.ID;
+					isOptionEqualToValue(option: TCategoryVH, value: TCategoryVH) {
+						return option.id === value.id;
 					},
 					noOptionsText: "No categories found",
 				},
@@ -351,21 +374,21 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [paymentMethods, error] =
-							await PaymentMethodService.getPaymentMethodVH();
+							await new NewPaymentMethodService().getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch payment method options:", error);
 							return [];
 						}
 						return paymentMethods ?? [];
 					},
-					getOptionLabel: (option: TPaymentMethod_VH) => {
+					getOptionLabel: (option: TPaymentMethodVH) => {
 						return option.name;
 					},
 					isOptionEqualToValue(
-						option: TPaymentMethod_VH,
-						value: TPaymentMethod_VH,
+						option: TPaymentMethodVH,
+						value: TPaymentMethodVH,
 					) {
-						return option.ID === value.ID;
+						return option.id === value.id;
 					},
 					noOptionsText: "No payment methods found",
 				},
@@ -377,7 +400,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [categories, error] =
-							await TransactionService.getReceiverVH();
+							await new _TransactionService().getReceiverVH();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];
@@ -457,7 +480,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 
 	return (
 		<React.Fragment>
-			<EntityTable<TExpandedSubscription>
+			<EntityTable<TExpandedRecurringPayment>
 				title="Subscriptions"
 				subtitle="Manage your recurring payments"
 				error={error}
@@ -478,7 +501,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
 				data={subscriptions}
-				dataKey={"ID"}
+				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
 					page: currentPage,
@@ -491,7 +514,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					},
 				}}
 				headerCells={[
-					{ key: "nextExecution", label: "Execute at" },
+					{ key: "executeAt", label: "Execute at" },
 					{ key: "receiver", label: "Details" },
 					{ key: "transferAmount", label: "Transfer Amount" },
 					{ key: "information", label: "Information" },
@@ -509,19 +532,20 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 										textDecoration: item.paused ? "line-through" : "unset",
 									}}
 								>
-									{Formatter.date.format(item.nextExecution)}
+									{/* {Formatter.date.format()} */}
+									{item.executeAt}
 								</Typography>
 							</TableCell>
 							<TableCell>
 								<Typography variant="body1">{item.receiver}</Typography>
 								<Stack flexDirection={"row"}>
 									<CategoryChip
-										categoryName={item.toCategory.name}
+										categoryName={item.category.name}
 										size="small"
 										sx={{ mr: 1 }}
 									/>
 									<PaymentMethodChip
-										paymentMethodName={item.toPaymentMethod.name}
+										paymentMethodName={item.paymentMethod.name}
 										size="small"
 									/>
 								</Stack>
@@ -535,7 +559,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 								<Typography variant="body1">{item.information}</Typography>
 							</TableCell>
 							<TableCell align="right">
-								<EntityMenu<TExpandedSubscription>
+								<EntityMenu<TExpandedRecurringPayment>
 									entity={item}
 									handleEditEntity={handleEditEntity}
 									handleDeleteEntity={handleDeleteEntity}

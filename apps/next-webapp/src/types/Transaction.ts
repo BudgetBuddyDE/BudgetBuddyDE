@@ -1,52 +1,43 @@
 import { z } from "zod";
-import { CdsDate, IdAspect, ManagedAspect, OptionalIdAspect } from "./_Aspects";
-import {
-	DescriptionType,
-	ODataContextAspect,
-	ODataCountAspect,
-	OwnerAspect,
-} from "./_Base";
+import { ODataContextAspect, ODataCountAspect, UserID } from "./_Base";
 import { Category } from "./Category";
 import { PaymentMethod } from "./PaymentMethod";
 
 // Base model
 export const Transaction = z.object({
-	...IdAspect.shape,
-	toCategory_ID: Category.shape.ID,
-	toPaymentMethod_ID: PaymentMethod.shape.ID,
-	processedAt: CdsDate,
-	receiver: z.string().min(1).max(255),
+	id: z.uuid().brand("TransactionID"),
+	ownerId: UserID,
+	categoryId: Category.shape.id,
+	paymentMethodId: PaymentMethod.shape.id,
+	processedAt: z.iso.datetime().or(z.date()),
+	receiver: z.string(),
 	transferAmount: z.number(),
-	information: DescriptionType,
-	...OwnerAspect.shape,
-	...ManagedAspect.shape,
+	information: z.string().nullable(),
+	createdAt: z.iso.datetime(),
+	updatedAt: z.iso.datetime(),
 });
 export type TTransaction = z.infer<typeof Transaction>;
 
-export const ExpandedTransasction = Transaction.omit({
-	toCategory_ID: true,
-	toPaymentMethod_ID: true,
+export const ExpandedTransaction = Transaction.omit({
+	categoryId: true,
+	paymentMethodId: true,
 }).extend({
-	toCategory: Category,
-	toPaymentMethod: PaymentMethod,
+	category: Category,
+	paymentMethod: PaymentMethod,
 });
-export type TExpandedTransaction = z.infer<typeof ExpandedTransasction>;
+export type TExpandedTransaction = z.infer<typeof ExpandedTransaction>;
 
 export const CreateOrUpdateTransaction = Transaction.pick({
-	toCategory_ID: true,
-	toPaymentMethod_ID: true,
+	categoryId: true,
+	paymentMethodId: true,
 	processedAt: true,
 	receiver: true,
 	transferAmount: true,
 	information: true,
-}).merge(OptionalIdAspect);
+});
 export type TCreateOrUpdateTransaction = z.infer<
 	typeof CreateOrUpdateTransaction
 >;
-
-// Response from OData
-export const TransactionResponse = Transaction.extend(ODataContextAspect.shape);
-export type TTransactionResponse = z.infer<typeof TransactionResponse>;
 
 /**
  * Transactions with Count
@@ -54,7 +45,7 @@ export type TTransactionResponse = z.infer<typeof TransactionResponse>;
 export const ExpandedTransactionsWithCount = z.object({
 	...ODataContextAspect.shape,
 	...ODataCountAspect.shape,
-	value: z.array(ExpandedTransasction),
+	value: z.array(ExpandedTransaction),
 });
 /**
  * Transactions with Count

@@ -21,14 +21,14 @@ import { Pagination } from "@/components/Table/EntityTable/Pagination";
 import { budgetSlice } from "@/lib/features/budgets/budgetSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { BudgetService } from "@/services/Budget.service";
-import { CategoryService } from "@/services/Category.service";
-import { CreateOrUpdateBudget, type TBudget, type TCategory_VH } from "@/types";
+import { _BudgetService, BudgetService } from "@/services/Budget.service";
+import { NewCategoryService } from "@/services/Category.service";
+import { CreateOrUpdateBudget, type TBudget, type TCategoryVH } from "@/types";
 import { type Budget, BudgetItem, type BudgetItemProps } from "./BudgetItem";
 
 type EntityFormFields = FirstLevelNullable<
-	Pick<TBudget, "ID" | "type" | "name" | "budget"> & {
-		toCategories: TCategory_VH[];
+	Pick<TBudget, "id" | "type" | "name" | "budget"> & {
+		toCategories: TCategoryVH[];
 	}
 >;
 
@@ -57,7 +57,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 			type: "OPEN",
 			action: "CREATE",
 			defaultValues: {
-				ID: null,
+				id: null,
 				type: "i",
 				name: null,
 				budget: null,
@@ -66,13 +66,13 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		});
 	};
 
-	const handleEditEntity = ({ ID, type, name, budget, categories }: Budget) => {
+	const handleEditEntity = ({ID, type, name, budget, categories }: Budget) => {
 		const _now = new Date();
 		dispatchDrawerAction({
 			type: "OPEN",
 			action: "EDIT",
 			defaultValues: {
-				ID,
+				id: ID,
 				type,
 				name,
 				budget,
@@ -111,13 +111,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 			type: true,
 			name: true,
 			budget: true,
-			toCategories: true,
+			description: true,
+			categories: true,
 		}).safeParse({
-			...payload,
+			...payload, 
 			budget: Number(payload.budget),
-			toCategories: payload.toCategories?.map((category) => ({
-				toCategory_ID: category.ID,
-			})),
+			categories: payload.toCategories?.map((category) => category.id),
 		});
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
@@ -135,8 +134,8 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		}
 
 		if (action === "CREATE") {
-			const [_, error] = await BudgetService.create(parsedPayload.data);
-			if (error) {
+			const [createdBudgets, error] = await new _BudgetService().create(parsedPayload.data);
+			if (!createdBudgets || error) {
 				return showSnackbar({
 					message: `Failed to create budget: ${error.message}`,
 					action: (
@@ -147,13 +146,13 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 				});
 			}
 			showSnackbar({
-				message: `Budget '${parsedPayload.data.name}' created successfully`,
+				message: createdBudgets.message || "Budget created successfully",
 			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
 			dispatch(refresh());
 		} else if (action === "EDIT") {
-			const entityId = drawerState.defaultValues?.ID;
+			const entityId = drawerState.defaultValues?.id;
 			if (!entityId) {
 				return showSnackbar({
 					message: `Failed to update budget: Missing entity ID`,
@@ -165,11 +164,11 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 				});
 			}
 
-			const [_, error] = await BudgetService.update(
+			const [updatedBudgets, error] = await new _BudgetService().updateById(
 				entityId,
 				parsedPayload.data,
 			);
-			if (error) {
+			if (!updatedBudgets ||error) {
 				return showSnackbar({
 					message: `Failed to create budget: ${error.message}`,
 					action: (
@@ -180,7 +179,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 				});
 			}
 			showSnackbar({
-				message: `Budget '${parsedPayload.data.name}' created successfully`,
+				message: updatedBudgets.message || `Budget updated successfully`,
 			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
@@ -254,18 +253,19 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 					placeholder: "Select categories",
 					required: true,
 					retrieveOptionsFunc: async () => {
-						const [categories, error] = await CategoryService.getCategoryVH();
+						const [categories, error] =
+							await new NewCategoryService().getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch category options:", error);
 							return [];
 						}
 						return categories ?? [];
 					},
-					getOptionLabel: (option: TCategory_VH) => {
+					getOptionLabel: (option: TCategoryVH) => {
 						return option.name;
 					},
-					isOptionEqualToValue(option: TCategory_VH, value: TCategory_VH) {
-						return option.ID === value.ID;
+					isOptionEqualToValue(option: TCategoryVH, value: TCategoryVH) {
+						return option.id === value.id;
 					},
 					multiple: true,
 					disableCloseOnSelect: true,
@@ -309,23 +309,23 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 					) : budgets && budgets.length > 0 ? (
 						<Stack rowGap={1}>
 							{budgets.map(
-								({ ID, name, budget, toCategories, type, balance }) => {
+								({ id, name, budget, type, categories }) => {
 									return (
 										<BudgetItem
-											key={ID}
+											key={id}
 											budget={{
-												ID,
+												ID: id,
 												name,
 												type,
 												budget,
-												categories: toCategories.map(
-													({ toCategory: { ID, name, description } }) => ({
-														ID,
+												balance: 0, // FIXME: Get actuall current balance
+												categories: categories.map(
+													({ category: {id, name, description} }) => ({
+														id,
 														name,
 														description,
 													}),
-												),
-												balance,
+												)
 											}}
 											onEditBudget={handleEditEntity}
 											onDeleteBudget={handleDeleteEntity}

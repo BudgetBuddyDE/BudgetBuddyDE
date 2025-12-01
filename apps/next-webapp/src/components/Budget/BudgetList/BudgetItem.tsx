@@ -7,14 +7,14 @@ import type React from "react";
 import { Icon } from "@/components/Icon";
 import { EntityMenu } from "@/components/Table/EntityTable";
 import { HideHorizontalScrollbarStyle } from "@/style";
-import type { TCategory_VH } from "@/types";
+import type { TCategoryVH } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
 export type Budget = {
 	ID: string;
 	type: "i" | "e"; // 'i' for income, 'e' for expense
 	name: string;
-	categories: TCategory_VH[];
+	categories: TCategoryVH[];
 	budget: number;
 	balance?: number;
 };
@@ -80,8 +80,8 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
 						/>
 					</Stack>
 					<Stack flexDirection={"row"} columnGap={1}>
-						{budget.categories.map(({ ID, name }) => (
-							<Chip key={ID} label={name} variant="outlined" />
+						{budget.categories.map(({ id, name }) => (
+							<Chip key={id} label={name} variant="outlined" />
 						))}
 					</Stack>
 				</Box>

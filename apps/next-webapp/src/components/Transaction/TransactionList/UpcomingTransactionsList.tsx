@@ -1,8 +1,7 @@
 import { addDays } from "date-fns";
 import type React from "react";
 import { headers } from "@/lib/headers";
-import { TransactionService } from "@/services/Transaction.service";
-import { Formatter } from "@/utils/Formatter";
+import { _TransactionService} from "@/services/Transaction.service";
 import { TransactionList, type TransactionListProps } from "./TransactionList";
 
 export type UpcomingTransactionsList = Pick<
@@ -13,13 +12,10 @@ export type UpcomingTransactionsList = Pick<
 export const UpcomingTransactionsList: React.FC<
 	UpcomingTransactionsList
 > = async ({ onAddEntity }) => {
-	const [transactions, error] = await TransactionService.getTransactions(
+	const [transactions, error] = await new _TransactionService().getAll(
 		{
-			$filter: `processedAt ge ${Formatter.date.formatWithPattern(
-				addDays(new Date(), 1),
-				"yyyy-MM-dd",
-			)}`,
-			$top: 6,
+			to: 6,
+			$dateFrom: addDays(new Date(), 1)
 		},
 		{ headers: await headers() },
 	);
@@ -29,18 +25,18 @@ export const UpcomingTransactionsList: React.FC<
 		<TransactionList
 			title="Transactions"
 			subtitle="Your upcoming transactions"
-			data={transactions.map((t) => ({
-				ID: t.ID,
+			data={(transactions.data??[]).map((t) => ({
+				ID: t.id,
 				receiver: t.receiver,
-				processedAt: t.processedAt,
+				processedAt: t.processedAt as Date,
 				transferAmount: t.transferAmount,
 				category: {
-					ID: t.toCategory.ID,
-					name: t.toCategory.name,
+					ID: t.category.id,
+					name: t.category.name,
 				},
 				paymentMethod: {
-					ID: t.toPaymentMethod.ID,
-					name: t.toPaymentMethod.name,
+					ID: t.paymentMethod.id,
+					name: t.paymentMethod.name,
 				},
 			}))}
 			onAddEntity={onAddEntity}

@@ -1,34 +1,29 @@
 import { z } from "zod";
-import { IdAspect, ManagedAspect, OptionalIdAspect } from "./_Aspects";
-import { ODataContextAspect, ODataCountAspect, OwnerAspect } from "./_Base";
+import { ODataContextAspect, ODataCountAspect, UserID } from "./_Base";
 import { Category } from "./Category";
 
 export const BudgetType = z.enum(["i", "e"]);
-export type TBudgetType = z.infer<typeof BudgetType>;
 
 // Base model
 export const Budget = z.object({
-	...IdAspect.shape,
+	id: z.uuid(),
+	ownerId: UserID,
 	type: BudgetType,
-	balance: z.number().optional(),
 	budget: z.number().min(0, "The budget must be a positive number"),
+	balance: z.number().optional(),
 	name: z.string().min(1).max(40),
-	...OwnerAspect.shape,
-	...ManagedAspect.shape,
-});
-export type TBudget = z.infer<typeof Budget>;
-
-// Expanded model
-export const ExpandedBudget = Budget.extend({
-	toCategories: z.array(
+	description: z.string().max(200).nullable().default(null),
+	createdAt: z.iso.datetime(),
+	updatedAt: z.iso.datetime(),
+	categories: z.array(
 		z.object({
-			up__ID: Budget.shape.ID,
-			toCategory_ID: Category.shape.ID,
-			toCategory: Category,
+			budgetId: z.uuid(),
+			categoryId: Category.shape.id,
+			category: Category,
 		}),
 	),
 });
-export type TExpandedBudget = z.infer<typeof ExpandedBudget>;
+export type TBudget = z.infer<typeof Budget>;
 
 /**
  * Budgets with Count
@@ -36,7 +31,7 @@ export type TExpandedBudget = z.infer<typeof ExpandedBudget>;
 export const ExpandedBudgetsWithCount = z.object({
 	...ODataContextAspect.shape,
 	...ODataCountAspect.shape,
-	value: z.array(ExpandedBudget),
+	value: z.array(Budget),
 });
 export type TExpandedBudgetsWithCount = z.infer<
 	typeof ExpandedBudgetsWithCount
@@ -46,18 +41,26 @@ export type TExpandedBudgetsWithCount = z.infer<
 export const CreateOrUpdateBudget = Budget.pick({
 	type: true,
 	name: true,
+	description: true,
 	budget: true,
-})
-	.merge(OptionalIdAspect)
-	.extend({
-		toCategories: z.array(
-			z.object({
-				toCategory_ID: Category.shape.ID,
-			}),
-		),
-	});
+}).extend({
+	categories: z.array(Category.shape.id),
+});
 export type TCreateOrUpdateBudget = z.infer<typeof CreateOrUpdateBudget>;
 
 // Response from OData
 export const BudgetResponse = Budget.extend(ODataContextAspect.shape);
 export type TBudgetResponse = z.infer<typeof BudgetResponse>;
+
+export const EstimatedBudget = z.object({
+	expenses: z.object({
+		paid: z.number(),
+		upcoming: z.number(),
+	}),
+	income: z.object({
+		received: z.number(),
+		upcoming: z.number(),
+	}),
+	freeAmount: z.number(),
+});
+export type TEstimatedBudget = z.infer<typeof EstimatedBudget>;

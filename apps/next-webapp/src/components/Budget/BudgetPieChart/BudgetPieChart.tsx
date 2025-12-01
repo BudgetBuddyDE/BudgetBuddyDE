@@ -8,8 +8,7 @@ import { ErrorAlert } from "@/components/ErrorAlert";
 import { CircularProgress } from "@/components/Loading";
 import { NoResults } from "@/components/NoResults";
 import { useFetch } from "@/hooks/useFetch";
-import { EntityService } from "@/services/Entity.service";
-import { MonthlyKPIResponse } from "@/types";
+import { _BudgetService } from "@/services/Budget.service";
 import { Formatter } from "@/utils/Formatter";
 
 export type BudgetStats = {
@@ -32,26 +31,20 @@ export type BudgetPieChartProps = {};
  */
 export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
 	const fetchDataFunc = React.useCallback(async () => {
-		const records = await EntityService.newOdataHandler()
-			.get("/odata/v4/backend/MonthlyKPI")
-			.query();
-		const parsingResult = MonthlyKPIResponse.safeParse(records);
-		if (parsingResult.error) {
-			throw parsingResult.error;
+		const [estimations, err] = await new _BudgetService().getEstimatedBudget()
+		if (err) {
+			throw err
 		}
-
-		const { paidExpenses, upcomingExpenses, receivedIncome, upcomingIncome } =
-			parsingResult.data;
 		return {
-			expenses: paidExpenses,
-			upcomingExpenses: upcomingExpenses,
-			freeAmount:
-				receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses),
+			expenses: estimations.expenses.paid,
+			upcomingExpenses: estimations.expenses.upcoming,
+			freeAmount: estimations.freeAmount,
 		};
 	}, []);
 	const { isLoading, data, error } = useFetch<BudgetStats>(fetchDataFunc);
 
 	const chartData = React.useMemo(() => {
+		console.log('Budget data:', data);
 		if (!data) return [];
 		return [
 			{

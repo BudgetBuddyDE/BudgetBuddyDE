@@ -14,11 +14,11 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { paymentMethodSlice } from "@/lib/features/paymentMethods/paymentMethodSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { PaymentMethodService } from "@/services/PaymentMethod.service";
+import { NewPaymentMethodService } from "@/services/PaymentMethod.service";
 import { CreateOrUpdatePaymentMethod, type TPaymentMethod } from "@/types";
 
 type EntityFormFields = FirstLevelNullable<
-	Pick<TPaymentMethod, "ID" | "name" | "address" | "provider" | "description">
+	Pick<TPaymentMethod, "id" | "name" | "address" | "provider" | "description">
 >;
 
 // biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
@@ -73,10 +73,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 		}
 
 		if (action === "CREATE") {
-			const [createdPaymentMethod, error] = await PaymentMethodService.create(
-				parsedPayload.data,
-			);
-			if (error) {
+			const [createdPaymentMethod, error] =
+				await new NewPaymentMethodService().create(parsedPayload.data);
+			if (!createdPaymentMethod || error) {
 				return showSnackbar({
 					message: `Failed to create payment method: ${error.message}`,
 					action: (
@@ -87,13 +86,13 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 				});
 			}
 			showSnackbar({
-				message: `Payment Method '${createdPaymentMethod.name}' created successfully`,
+				message: createdPaymentMethod.message || "Payment Method created",
 			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
 			dispatch(refresh());
 		} else if (action === "EDIT") {
-			const entityId = drawerState.defaultValues?.ID;
+			const entityId = drawerState.defaultValues?.id;
 			if (!entityId) {
 				return showSnackbar({
 					message: `Failed to update payment method: Missing entity ID`,
@@ -104,10 +103,11 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 					),
 				});
 			}
-			const [updatedPaymentMethod, error] = await PaymentMethodService.update(
-				entityId,
-				parsedPayload.data,
-			);
+			const [updatedPaymentMethod, error] =
+				await new NewPaymentMethodService().updateById(
+					entityId,
+					parsedPayload.data,
+				);
 			if (error) {
 				return showSnackbar({
 					message: `Failed to update payment method: ${error.message}`,
@@ -119,7 +119,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 				});
 			}
 			showSnackbar({
-				message: `Payment Method '${updatedPaymentMethod.name}' updated successfully`,
+				message: updatedPaymentMethod.message || "Payment Method updated",
 			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
@@ -132,7 +132,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 			type: "OPEN",
 			action: "EDIT",
 			defaultValues: {
-				ID: entity.ID,
+				id: entity.id,
 				name: entity.name,
 				address: entity.address,
 				provider: entity.provider,
@@ -142,8 +142,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 	};
 
 	const handleDeleteEntity = async (entity: TPaymentMethod) => {
-		const [success, error] = await PaymentMethodService.delete(entity.ID);
-		if (error || !success) {
+		const [deletedPaymentMethod, error] =
+			await new NewPaymentMethodService().deleteById(entity.id);
+		if (error || !deletedPaymentMethod) {
 			return showSnackbar({
 				message: error.message,
 				action: (
@@ -153,7 +154,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 		}
 
 		showSnackbar({
-			message: `Payment Method '${entity.name}' deleted successfully`,
+			message:
+				deletedPaymentMethod.message ??
+				"Payment Method was deleted successfully",
 		});
 		dispatch(refresh());
 	};
@@ -222,7 +225,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
 				data={paymentMethods}
-				dataKey={"ID"}
+				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
 					page: currentPage,
