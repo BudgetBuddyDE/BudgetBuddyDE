@@ -1,4 +1,4 @@
-import {and, eq} from 'drizzle-orm';
+import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -6,6 +6,7 @@ import {db} from '../db';
 import {paymentMethods} from '../db/schema';
 import {PaymentMethodSchemas} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
+import {assembleFilter} from './assembleFilter';
 
 export const paymentMethodRouter = Router();
 
@@ -24,27 +25,40 @@ paymentMethodRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const records = await db.query.paymentMethods.findMany({
-      where(fields, operators) {
-        if (req.query.search) {
-          return operators.and(
-            operators.eq(fields.ownerId, userId),
-            operators.or(
-              operators.ilike(fields.name, `%${req.query.search}%`),
-              operators.ilike(fields.address, `%${req.query.search}%`),
-              operators.ilike(fields.provider, `%${req.query.search}%`),
-              operators.ilike(fields.description, `%${req.query.search}%`),
-            ),
-          );
-        }
-        return operators.eq(fields.ownerId, userId);
+
+    const filter = assembleFilter(
+      paymentMethods,
+      {ownerColumnName: 'ownerId', ownerValue: userId},
+      {
+        searchTerm: req.query.search,
+        searchableColumnName: ['name', 'address', 'provider', 'description'],
       },
-      offset: req.query.from,
-      limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
-    });
+    );
+
+    const [[{count: totalCount}], records] = await Promise.all([
+      db
+        .select({
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(paymentMethods)
+        .where(filter)
+        .limit(1),
+      db.query.paymentMethods.findMany({
+        where() {
+          return filter;
+        },
+        orderBy(fields, operators) {
+          return [operators.desc(fields.updatedAt)];
+        },
+        offset: req.query.from,
+        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+      }),
+    ]);
+
     ApiResponse.builder<typeof records>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's payment methods successfully")
+      .withTotalCount(totalCount)
       .withData(records)
       .withFrom('db')
       .buildAndSend(res);

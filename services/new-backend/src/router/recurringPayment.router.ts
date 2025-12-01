@@ -1,4 +1,4 @@
-import {and, eq} from 'drizzle-orm';
+import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -6,6 +6,7 @@ import {db} from '../db';
 import {recurringPayments} from '../db/schema';
 import {RecurringPaymentSchemas} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
+import {assembleFilter} from './assembleFilter';
 
 export const recurringPaymentRouter = Router();
 
@@ -25,29 +26,44 @@ recurringPaymentRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const records = await db.query.recurringPayments.findMany({
-      where(fields, operators) {
-        if (req.query.search) {
-          return operators.and(
-            operators.eq(fields.ownerId, userId),
-            operators.or(
-              operators.ilike(fields.receiver, `%${req.query.search}%`),
-              operators.ilike(fields.information, `%${req.query.search}%`),
-            ),
-          );
-        }
-        return operators.eq(fields.ownerId, userId);
+
+    const filter = assembleFilter(
+      recurringPayments,
+      {ownerColumnName: 'ownerId', ownerValue: userId},
+      {
+        searchTerm: req.query.search,
+        searchableColumnName: ['receiver', 'information'],
       },
-      offset: req.query.from,
-      limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
-      with: {
-        category: true,
-        paymentMethod: true,
-      },
-    });
+    );
+
+    const [[{count: totalCount}], records] = await Promise.all([
+      db
+        .select({
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(recurringPayments)
+        .where(filter)
+        .limit(1),
+      db.query.recurringPayments.findMany({
+        where() {
+          return filter;
+        },
+        orderBy(fields, operators) {
+          return [operators.desc(fields.executeAt), operators.desc(fields.updatedAt)];
+        },
+        offset: req.query.from,
+        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        with: {
+          category: true,
+          paymentMethod: true,
+        },
+      }),
+    ]);
+
     ApiResponse.builder<typeof records>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's recurring payments successfully")
+      .withTotalCount(totalCount)
       .withData(records)
       .withFrom('db')
       .buildAndSend(res);

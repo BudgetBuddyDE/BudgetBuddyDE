@@ -1,4 +1,4 @@
-import {and, eq, inArray} from 'drizzle-orm';
+import {and, eq, inArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -6,6 +6,7 @@ import {db} from '../db';
 import {budgetCategories, budgets} from '../db/schema/tables';
 import {BudgetWithCategoriesSchema} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
+import {assembleFilter} from './assembleFilter';
 
 export const budgetRouter = Router();
 
@@ -24,34 +25,48 @@ budgetRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const records = await db.query.budgets.findMany({
-      where(fields, operators) {
-        if (req.query.search) {
-          return operators.and(
-            operators.eq(fields.ownerId, userId),
-            operators.or(
-              operators.ilike(fields.name, `%${req.query.search}%`),
-              operators.ilike(fields.description, `%${req.query.search}%`),
-            ),
-          );
-        }
-        return operators.eq(fields.ownerId, userId);
+
+    const filter = assembleFilter(
+      budgets,
+      {ownerColumnName: 'ownerId', ownerValue: userId},
+      {
+        searchTerm: req.query.search,
+        searchableColumnName: ['name', 'description'],
       },
-      offset: req.query.from,
-      limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
-      with: {
-        categories: {
-          with: {
-            category: true,
+    );
+
+    const [[{count: totalCount}], records] = await Promise.all([
+      db
+        .select({
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(budgets)
+        .where(filter)
+        .limit(1),
+      db.query.budgets.findMany({
+        where() {
+          return filter;
+        },
+        orderBy(fields, operators) {
+          return [operators.desc(fields.updatedAt)];
+        },
+        offset: req.query.from,
+        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        with: {
+          categories: {
+            with: {
+              category: true,
+            },
           },
         },
-      },
-    });
+      }),
+    ]);
 
     ApiResponse.builder<typeof records>()
       .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's categories successfully")
+      .withMessage("Fetched user's budgets successfully")
       .withData(records)
+      .withTotalCount(totalCount)
       .withFrom('db')
       .buildAndSend(res);
   },

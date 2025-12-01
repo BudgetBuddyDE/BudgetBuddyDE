@@ -1,5 +1,4 @@
-import {and, eq, ilike, or, sql} from 'drizzle-orm';
-import type {PgTableWithColumns, TableConfig} from 'drizzle-orm/pg-core';
+import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -7,6 +6,7 @@ import {db} from '../db';
 import {transactionReceiverView, transactions} from '../db/schema';
 import {TransactionSchemas} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
+import {assembleFilter} from './assembleFilter';
 
 export const transactionRouter = Router();
 
@@ -46,27 +46,6 @@ transactionRouter.get(
       return;
     }
 
-    function assembleFilter<Table extends TableConfig>(
-      table: PgTableWithColumns<Table>,
-      {ownerColumnName, ownerValue}: {ownerColumnName: keyof Table['columns']; ownerValue: string},
-      {searchTerm, searchableColumnName}: {searchTerm?: string; searchableColumnName?: (keyof Table['columns'])[]},
-    ) {
-      if (searchTerm && searchableColumnName) {
-        return searchableColumnName.length > 1
-          ? and(
-              eq(table[ownerColumnName], ownerValue),
-              or(
-                ...searchableColumnName.map(columnName => {
-                  const col = table[columnName];
-                  return ilike(col, `%${searchTerm}%`);
-                }),
-              ),
-            )
-          : and(eq(table[ownerColumnName], ownerValue), ilike(table[searchableColumnName[0]], `%${searchTerm}%`));
-      }
-      return eq(table[ownerColumnName], ownerValue);
-    }
-
     const filter = assembleFilter(
       transactions,
       {ownerColumnName: 'ownerId', ownerValue: userId},
@@ -76,7 +55,7 @@ transactionRouter.get(
       },
     );
 
-    const [totalRecordCount, records] = await Promise.all([
+    const [[{count: totalCount}], records] = await Promise.all([
       db
         .select({
           count: sql<number>`count(*)`.as('count'),
@@ -94,7 +73,7 @@ transactionRouter.get(
         //   }
         // },
         orderBy(fields, operators) {
-          return [operators.desc(fields.processedAt), operators.desc(fields.createdAt)];
+          return [operators.desc(fields.processedAt), operators.desc(fields.updatedAt)];
         },
         offset: req.query.from,
         limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
@@ -108,7 +87,7 @@ transactionRouter.get(
     ApiResponse.builder<typeof records>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's transactions successfully")
-      .withTotalCount(totalRecordCount[0].count)
+      .withTotalCount(totalCount)
       .withData(records)
       .withFrom('db')
       .buildAndSend(res);
