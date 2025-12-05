@@ -6,7 +6,7 @@ import {db} from '../db';
 import {transactionReceiverView, transactions} from '../db/schema';
 import {TransactionSchemas} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
-import {assembleFilter} from './assembleFilter';
+import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 
 export const transactionRouter = Router();
 
@@ -37,6 +37,8 @@ transactionRouter.get(
       search: z.string().optional(),
       from: z.coerce.number().optional(),
       to: z.coerce.number().optional(),
+      $dateFrom: z.coerce.date().optional(),
+      $dateTo: z.coerce.date().optional(),
     }),
   }),
   async (req, res) => {
@@ -46,13 +48,23 @@ transactionRouter.get(
       return;
     }
 
+    const query = req.query;
+    const additionalFilters: TAdditionalFilter<(typeof transactions)['_']['config']>[] = [];
+    if (query.$dateFrom) {
+      additionalFilters.push({columnName: 'processedAt', operator: 'gte', value: query.$dateFrom});
+    }
+    if (query.$dateTo) {
+      additionalFilters.push({columnName: 'processedAt', operator: 'lte', value: query.$dateTo});
+    }
+
     const filter = assembleFilter(
       transactions,
       {ownerColumnName: 'ownerId', ownerValue: userId},
       {
-        searchTerm: req.query.search,
+        searchTerm: query.search,
         searchableColumnName: ['receiver', 'information'],
       },
+      additionalFilters,
     );
 
     const [[{count: totalCount}], records] = await Promise.all([
