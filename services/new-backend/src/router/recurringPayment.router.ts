@@ -6,7 +6,7 @@ import {db} from '../db';
 import {recurringPayments} from '../db/schema';
 import {RecurringPaymentSchemas} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
-import {assembleFilter} from './assembleFilter';
+import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 
 export const recurringPaymentRouter = Router();
 
@@ -17,6 +17,8 @@ recurringPaymentRouter.get(
       search: z.string().optional(),
       from: z.coerce.number().optional(),
       to: z.coerce.number().optional(),
+      $executeFrom: z.coerce.number().min(1).max(31).optional(),
+      $executeTo: z.coerce.number().min(1).max(31).optional(),
     }),
   }),
 
@@ -27,13 +29,22 @@ recurringPaymentRouter.get(
       return;
     }
 
+    const query = req.query;
+    const additionalFilters: TAdditionalFilter<(typeof recurringPayments)['_']['config']>[] = [];
+    if (query.$executeFrom) {
+      additionalFilters.push({columnName: 'executeAt', operator: 'gte', value: query.$executeFrom});
+    }
+    if (query.$executeTo) {
+      additionalFilters.push({columnName: 'executeAt', operator: 'lte', value: query.$executeTo});
+    }
     const filter = assembleFilter(
       recurringPayments,
       {ownerColumnName: 'ownerId', ownerValue: userId},
       {
-        searchTerm: req.query.search,
+        searchTerm: query.search,
         searchableColumnName: ['receiver', 'information'],
       },
+      additionalFilters,
     );
 
     const [[{count: totalCount}], records] = await Promise.all([
