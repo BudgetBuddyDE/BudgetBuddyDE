@@ -13,11 +13,6 @@ export const DrawerLinks = [
 		icon: DashboardViewIconMapping["/dashboard"],
 	},
 	{
-		text: "Stocks",
-		path: "/stocks",
-		icon: DashboardViewIconMapping["/dashboard/stocks"],
-	},
-	{
 		text: "Transactions",
 		path: "/transactions",
 		icon: <ReceiptRounded />,

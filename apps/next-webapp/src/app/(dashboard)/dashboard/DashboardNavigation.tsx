@@ -14,11 +14,7 @@ export const DashboardViewMapping = {
 	"/dashboard/analytics": {
 		label: "Analytics",
 		description: "View analytics data",
-	},
-	"/dashboard/stocks": {
-		label: "Stocks",
-		description: "Manage your stock portfolio",
-	},
+	}
 } as const;
 
 export const DashboardViewIconMapping: Record<
@@ -26,8 +22,7 @@ export const DashboardViewIconMapping: Record<
 	React.ReactNode | undefined
 > = {
 	"/dashboard": <DashboardRounded />,
-	"/dashboard/analytics": <TrendingUpRounded />,
-	"/dashboard/stocks": <TrendingUpRounded />,
+	"/dashboard/analytics": <TrendingUpRounded />
 };
 
 // biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
