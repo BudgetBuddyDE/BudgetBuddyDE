@@ -112,10 +112,6 @@ categoryRouter.get(
         },
         offset: req.query.from,
         limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
-        with: {
-          category: true,
-          paymentMethod: true,
-        },
       }),
     ]);
 
