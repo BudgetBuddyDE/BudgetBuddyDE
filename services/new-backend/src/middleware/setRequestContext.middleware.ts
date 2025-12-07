@@ -41,7 +41,7 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   if (!sessionData) {
     logger.error('No session data found', {requestId});
     return ApiResponse.builder()
-      .withStatus(HTTPStatusCode.UNPROCESSABLE_ENTITY)
+      .withStatus(HTTPStatusCode.UNAUTHORIZED)
       .withMessage('No session data found')
       .buildAndSend(res);
   }
