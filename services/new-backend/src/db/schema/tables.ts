@@ -29,7 +29,7 @@ export const categories = backendSchema.table('category', {
 
 export const transactions = backendSchema.table('transaction', {
   id: uuid('transaction_id').primaryKey().defaultRandom(),
-  ownerId: varchar().notNull(),
+  ownerId: varchar('owner_id').notNull(),
   categoryId: uuid('category_id')
     .references(() => categories.id, {onDelete: 'cascade'})
     .notNull(),

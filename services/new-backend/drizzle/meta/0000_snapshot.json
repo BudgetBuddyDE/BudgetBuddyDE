@@ -1,5 +1,5 @@
 {
-  "id": "30b560a6-44f4-48eb-bd53-169182069f67",
+  "id": "6116123b-cd52-4276-8875-4a82b7e30651",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -370,8 +370,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "ownerId": {
-          "name": "ownerId",
+        "owner_id": {
+          "name": "owner_id",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
@@ -490,14 +490,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "ownerId": {
-          "name": "ownerId",
+        "owner_id": {
+          "name": "owner_id",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
         }
       },
-      "definition": "(select distinct \"receiver\", \"ownerId\" from \"budgetbuddy_backend\".\"transaction\") union all (select distinct \"receiver\", \"owner_id\" from \"budgetbuddy_backend\".\"recurring_payment\")",
+      "definition": "(select distinct \"receiver\", \"owner_id\" from \"budgetbuddy_backend\".\"transaction\") union all (select distinct \"receiver\", \"owner_id\" from \"budgetbuddy_backend\".\"recurring_payment\")",
       "name": "transaction_receiver_view",
       "schema": "budgetbuddy_backend",
       "isExisting": false,
