@@ -3,8 +3,6 @@ import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { budgetSlice } from "./features/budgets/budgetSlice";
 import { categorySlice } from "./features/categories/categorySlice";
 import { paymentMethodSlice } from "./features/paymentMethods/paymentMethodSlice";
-import { stockExchangeSlice } from "./features/stocks/stockExchangeSlice";
-import { stockPositionSlice } from "./features/stocks/stockPositionSlice";
 import { subscriptionSlice } from "./features/subscriptions/subscriptionSlice";
 import { transactionSlice } from "./features/transactions/transactionSlice";
 
@@ -16,8 +14,6 @@ const rootReducer = combineSlices(
 	transactionSlice,
 	subscriptionSlice,
 	budgetSlice,
-	stockExchangeSlice,
-	stockPositionSlice,
 );
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof rootReducer>;
