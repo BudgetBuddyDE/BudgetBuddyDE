@@ -79,12 +79,16 @@ export const server = app.listen(config.port, () => {
     'Trusted Origins': JSON.stringify(config.cors.origin),
   };
   console.table(options);
-  logger.info('%s is available under http://localhost:%d', config.service, config.port);
+  logger.info('%s is available under http://localhost:%d', config.service, config.port, {...options});
 
   const jobName = 'process-recurring-payments';
   cron.schedule('30 1 * * *', processRecurringPayments, {
     name: jobName,
     timezone: config.jobs.timezone,
   });
-  logger.info('Scheduled job "%s" to run daily at 01:30 AM (%s timezone)', jobName, config.jobs.timezone);
+  logger.info('Scheduled job "%s" to run daily at 01:30 AM (%s timezone)', jobName, config.jobs.timezone, {
+    job: jobName,
+    schedule: '30 1 * * *',
+    timezone: config.jobs.timezone,
+  });
 });

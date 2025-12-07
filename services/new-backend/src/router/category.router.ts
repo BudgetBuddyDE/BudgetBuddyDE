@@ -1,14 +1,74 @@
-import {and, eq, sql} from 'drizzle-orm';
+import {and, eq, gte, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
-import {categories} from '../db/schema';
+import {categories, transactions} from '../db/schema';
 import {CategorySchemas} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
 
 export const categoryRouter = Router();
+
+categoryRouter.get(
+  '/stats',
+  validateRequest({
+    query: z.object({
+      from: z.coerce.date(),
+      to: z.coerce.date(),
+    }),
+  }),
+  async (req, res) => {
+    const {from, to} = req.query;
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const results = await db
+      .select({
+        categoryId: transactions.categoryId,
+        categoryName: categories.name,
+        categoryDescription: categories.description,
+        balance: sql<number>`sum(${transactions.transferAmount})`.as('balance'),
+        income:
+          sql<number>`SUM(CASE WHEN ${transactions.transferAmount} > 0 THEN ${transactions.transferAmount} ELSE 0 END)`.as(
+            'income',
+          ),
+        expenses:
+          sql<number>`SUM(CASE WHEN ${transactions.transferAmount} < 0 THEN ABS(${transactions.transferAmount}) ELSE 0 END)`.as(
+            'expenses',
+          ),
+      })
+      .from(transactions)
+      .leftJoin(categories, eq(transactions.categoryId, categories.id))
+      .where(
+        and(eq(transactions.ownerId, userId), gte(transactions.processedAt, from), lte(transactions.processedAt, to)),
+      )
+      .groupBy(transactions.ownerId, transactions.categoryId, categories.name, categories.description);
+
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage("Fetched user's category stats successfully")
+      .withData({
+        from,
+        to,
+        stats: results.map(row => ({
+          balance: row.balance,
+          income: row.income,
+          expenses: row.expenses,
+          category: {
+            id: row.categoryId,
+            name: row.categoryName,
+            description: row.categoryDescription,
+          },
+        })),
+      })
+      .withFrom('db')
+      .buildAndSend(res);
+  },
+);
 
 categoryRouter.get(
   '/',
