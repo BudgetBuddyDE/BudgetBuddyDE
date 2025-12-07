@@ -151,7 +151,8 @@ transactionRouter.get(
 transactionRouter.post(
   '/',
   validateRequest({
-    body: TransactionSchemas.insert.omit({ownerId: true}).extend({
+    body: TransactionSchemas.insert.omit({ownerId: true, processedAt: true}).extend({
+      processedAt: z.coerce.date(),
       ownerId: TransactionSchemas.insert.shape.ownerId.optional(),
     }),
   }),
@@ -191,7 +192,8 @@ transactionRouter.put(
     params: z.object({
       id: TransactionSchemas.select.shape.id,
     }),
-    body: TransactionSchemas.update.omit({ownerId: true}).extend({
+    body: TransactionSchemas.update.omit({ownerId: true, processedAt: true}).extend({
+      processedAt: z.coerce.date(),
       ownerId: TransactionSchemas.update.shape.ownerId.optional(),
     }),
   }),
