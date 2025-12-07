@@ -1,14 +1,133 @@
-import {and, eq, inArray, sql} from 'drizzle-orm';
+import {and, eq, gte, inArray, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
-import {budgetCategories, budgets} from '../db/schema/tables';
+import {budgetCategories, budgets, recurringPayments, transactions} from '../db/schema/tables';
 import {BudgetWithCategoriesSchema} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
 
 export const budgetRouter = Router();
+
+// REVISIT: Optimize the queries below for performance and cache the results where possibleg
+budgetRouter.get('/estimated', async (req, res) => {
+  const userId = req.context.user?.id;
+  if (!userId) {
+    ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+    return;
+  }
+
+  const today = new Date();
+  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const [
+    paidExpensesResult,
+    upcomingTransactionsExpensesResult,
+    upcomingRecurringExpensesResult,
+    receivedIncomeResult,
+    upcomingTransactionIncomeResult,
+    upcomingRecurringIncomeResult,
+  ] = await Promise.all([
+    db
+      .select({
+        expenses: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('expenses'),
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.ownerId, userId),
+          lte(transactions.transferAmount, 0),
+          gte(transactions.processedAt, firstOfMonth),
+          lte(transactions.processedAt, today),
+        ),
+      ),
+    db
+      .select({
+        expenses: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('expenses'),
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.ownerId, userId),
+          lte(transactions.transferAmount, 0),
+          gte(transactions.processedAt, today),
+          lte(transactions.processedAt, endOfMonth),
+        ),
+      ),
+    db
+      .select({
+        expenses: sql<number>`SUM(ABS(${recurringPayments.transferAmount}))`.as('expenses'),
+      })
+      .from(recurringPayments)
+      .where(
+        and(
+          eq(recurringPayments.ownerId, userId),
+          lte(recurringPayments.transferAmount, 0),
+          gte(recurringPayments.executeAt, today.getDate()),
+          lte(recurringPayments.executeAt, 31),
+        ),
+      ),
+    db
+      .select({
+        income: sql<number>`SUM(${transactions.transferAmount})`.as('income'),
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.ownerId, userId),
+          gte(transactions.transferAmount, 0),
+          gte(transactions.processedAt, firstOfMonth),
+          lte(transactions.processedAt, today),
+        ),
+      ),
+    db
+      .select({
+        income: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('income'),
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.ownerId, userId),
+          gte(transactions.transferAmount, 0),
+          gte(transactions.processedAt, today),
+          lte(transactions.processedAt, endOfMonth),
+        ),
+      ),
+    db
+      .select({
+        expenses: sql<number>`SUM(ABS(${recurringPayments.transferAmount}))`.as('expenses'),
+      })
+      .from(recurringPayments)
+      .where(
+        and(
+          eq(recurringPayments.ownerId, userId),
+          gte(recurringPayments.transferAmount, 0),
+          gte(recurringPayments.executeAt, today.getDate()),
+          lte(recurringPayments.executeAt, 31),
+        ),
+      ),
+  ]);
+
+  const paidExpenses = paidExpensesResult[0].expenses;
+  const upcomingExpenses = upcomingTransactionsExpensesResult[0].expenses + upcomingRecurringExpensesResult[0].expenses;
+  const receivedIncome = receivedIncomeResult[0].income;
+  const upcomingIncome = upcomingTransactionIncomeResult[0].income + upcomingRecurringIncomeResult[0].expenses;
+  const freeAmount = receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses);
+  ApiResponse.builder()
+    .withData({
+      expenses: {
+        paid: paidExpenses,
+        upcoming: upcomingExpenses,
+      },
+      income: {
+        received: receivedIncome,
+        upcoming: upcomingIncome,
+      },
+      freeAmount: freeAmount,
+    })
+    .buildAndSend(res);
+});
 
 budgetRouter.get(
   '/',
