@@ -1,6 +1,6 @@
 import {LogLevel} from '@budgetbuddyde/logger';
 import type {NextFunction, Request, Response} from 'express';
-
+import {config} from '../config';
 import {logger} from '../lib/logger';
 
 export const requestLogger = logger.child({label: 'request'});
@@ -23,8 +23,8 @@ export function logRequest(req: Request, res: Response, next: NextFunction): voi
       requestId: requestId,
       method: req.method,
       ip: req.ip,
-      baseUrl: req.baseUrl,
-      url: req.originalUrl,
+      originalUrl: req.originalUrl,
+      url: `http://localhost:${config.port}${req.originalUrl}`,
       responseTime: `${durationMs} ms`,
       responseTimeInMillis: durationMs,
       responseCode: statusCode,
