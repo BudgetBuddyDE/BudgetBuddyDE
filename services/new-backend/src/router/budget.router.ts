@@ -31,7 +31,7 @@ budgetRouter.get('/estimated', async (req, res) => {
   ] = await Promise.all([
     db
       .select({
-        expenses: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('expenses'),
+        expenses: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('expenses'),
       })
       .from(transactions)
       .where(
@@ -44,7 +44,7 @@ budgetRouter.get('/estimated', async (req, res) => {
       ),
     db
       .select({
-        expenses: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('expenses'),
+        expenses: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('expenses'),
       })
       .from(transactions)
       .where(
@@ -57,7 +57,7 @@ budgetRouter.get('/estimated', async (req, res) => {
       ),
     db
       .select({
-        expenses: sql<number>`SUM(ABS(${recurringPayments.transferAmount}))`.as('expenses'),
+        expenses: sql<number>`COALESCE(SUM(ABS(${recurringPayments.transferAmount})), 0)`.as('expenses'),
       })
       .from(recurringPayments)
       .where(
@@ -70,7 +70,7 @@ budgetRouter.get('/estimated', async (req, res) => {
       ),
     db
       .select({
-        income: sql<number>`SUM(${transactions.transferAmount})`.as('income'),
+        income: sql<number>`COALESCE(SUM(${transactions.transferAmount}), 0)`.as('income'),
       })
       .from(transactions)
       .where(
@@ -83,7 +83,7 @@ budgetRouter.get('/estimated', async (req, res) => {
       ),
     db
       .select({
-        income: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('income'),
+        income: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('income'),
       })
       .from(transactions)
       .where(
@@ -96,7 +96,7 @@ budgetRouter.get('/estimated', async (req, res) => {
       ),
     db
       .select({
-        expenses: sql<number>`SUM(ABS(${recurringPayments.transferAmount}))`.as('expenses'),
+        expenses: sql<number>`COALESCE(SUM(ABS(${recurringPayments.transferAmount})), 0)`.as('expenses'),
       })
       .from(recurringPayments)
       .where(
@@ -181,10 +181,52 @@ budgetRouter.get(
       }),
     ]);
 
-    ApiResponse.builder<typeof records>()
+    // Calculate balances for each budget
+    const updatedBudgets = [] as ((typeof records)[number] & {balance: number})[];
+    for await (const budget of records) {
+      updatedBudgets.push({
+        ...budget,
+        balance: 0,
+      });
+    }
+
+    // for (const budget of records) {
+    //   const categoryIds = budget.categories.map(c => c.categoryId);
+
+    //   const incomeResult = await db
+    //     .select({
+    //       total: sql<number>`SUM(${transactions.transferAmount})`.as('total'),
+    //     })
+    //     .from(transactions)
+    //     .where(
+    //       and(
+    //         eq(transactions.ownerId, userId),
+    //         gte(transactions.transferAmount, 0),
+    //         inArray(transactions.categoryId, categoryIds),
+    //       ),
+    //     );
+    //   const expenseResult = await db
+    //     .select({
+    //       total: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('total'),
+    //     })
+    //     .from(transactions)
+    //     .where(
+    //       and(
+    //         eq(transactions.ownerId, userId),
+    //         lte(transactions.transferAmount, 0),
+    //         inArray(transactions.categoryId, categoryIds),
+    //       ),
+    //     );
+
+    //   const totalIncome = incomeResult[0].total || 0;
+    //   const totalExpenses = expenseResult[0].total || 0;
+    //   budget.balance = totalIncome - totalExpenses;
+    // }
+
+    ApiResponse.builder<typeof updatedBudgets>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's budgets successfully")
-      .withData(records)
+      .withData(updatedBudgets)
       .withTotalCount(totalCount)
       .withFrom('db')
       .buildAndSend(res);
