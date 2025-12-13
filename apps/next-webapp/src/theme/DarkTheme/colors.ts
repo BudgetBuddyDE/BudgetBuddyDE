@@ -1,4 +1,4 @@
-import type { PaletteOptions } from "@mui/material";
+import type { PaletteOptions } from "@mui/material/styles";
 
 export const colors: PaletteOptions = {
 	mode: "dark",

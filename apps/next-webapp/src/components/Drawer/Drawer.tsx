@@ -7,9 +7,8 @@ import {
 	type SwipeableDrawerProps,
 } from "@mui/material";
 import React from "react";
-
 import { useScreenSize } from "@/hooks/useScreenSize";
-import { drawerWidth } from "@/style/theme/theme";
+import { DrawerWidth } from "@/theme/style";
 import { determineOS } from "@/utils/determineOS";
 
 export type DrawerProps = React.PropsWithChildren<
@@ -87,7 +86,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 					...props.slotProps?.paper,
 					sx: {
 						boxSizing: "border-box",
-						width: drawerWidth * 2,
+						width: DrawerWidth * 2,
 						// REVISIT:...props.slotProps?.paper?.sx,
 					},
 				},

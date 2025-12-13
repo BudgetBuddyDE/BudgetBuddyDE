@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type React from "react";
+import { colors } from "@/theme/DarkTheme/colors";
 import { LayoutWrapper } from "./layout-wrapper";
 import { StoreProvider } from "./StoreProvider";
 
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
 	themeColor: [
-		{ media: "(prefers-color-scheme: light)", color: "#151936" },
-		{ media: "(prefers-color-scheme: dark)", color: "#151936" },
+		{ media: "(prefers-color-scheme: light)", color: colors.background?.default as string },
+		{ media: "(prefers-color-scheme: dark)", color: colors.background?.default as string },
 	],
 };
 export default function RootLayout({

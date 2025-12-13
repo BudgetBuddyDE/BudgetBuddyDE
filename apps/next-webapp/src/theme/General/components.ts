@@ -1,10 +1,10 @@
-import type { Theme } from "@mui/material/styles";
+import type { Components, Theme } from "@mui/material/styles";
 import { axisClasses, chartsGridClasses, legendClasses } from "@mui/x-charts";
 import type { ChartsComponents } from "@mui/x-charts/themeAugmentation";
+import { colors } from "../DarkTheme/colors";
+import { shape } from "./shape";
 
-import { colors } from "../colors";
-
-export const chartsCustomizations: ChartsComponents<Theme> = {
+const ChartOptions: ChartsComponents<Theme> = {
 	MuiBarChart: {
 		defaultProps: {
 			skipAnimation: true,
@@ -89,6 +89,90 @@ export const chartsCustomizations: ChartsComponents<Theme> = {
 					},
 				}),
 			}),
+		},
+	},
+};
+
+export const components: Components<Theme> = {
+	...ChartOptions,
+	MuiGrid: {
+		styleOverrides: {
+			root: {
+				height: "fit-content",
+			},
+		},
+	},
+	MuiMenu: {
+		styleOverrides: {
+			root: {
+				"& .MuiList-root": {
+					paddingTop: 0,
+					paddingBottom: 0,
+					margin: ".3rem",
+				},
+			},
+		},
+	},
+	MuiMenuItem: {
+		styleOverrides: {
+			root: {
+				borderRadius: shape.borderRadius,
+			},
+		},
+	},
+	MuiToggleButtonGroup: {
+		styleOverrides: {
+			root: {
+				"& .MuiToggleButtonGroup-grouped": {
+					margin: ".25rem",
+					border: 0,
+					"&.Mui-disabled": {
+						border: 0,
+					},
+					"&:not(:first-of-type)": {
+						borderRadius: shape.borderRadius,
+					},
+					"&:first-of-type": {
+						borderRadius: shape.borderRadius,
+					},
+				},
+			},
+		},
+	},
+	MuiTable: {
+		styleOverrides: {
+			stickyHeader: {
+				"& th": {
+					// FIXME: Replace with correct color
+					// backgroundColor: '#121212',
+				},
+			},
+		},
+	},
+	MuiAlert: {
+		styleOverrides: {
+			root: {
+				variants: [
+					{
+						props: { severity: "info" },
+						style: {
+							// backgroundColor: '#60a5fa',
+						},
+					},
+				],
+			},
+		},
+	},
+	MuiChip: {
+		defaultProps: {
+			size: "small",
+		},
+	},
+	MuiIconButton: {
+		styleOverrides: {
+			root: {
+				borderRadius: shape.borderRadius,
+			},
 		},
 	},
 };

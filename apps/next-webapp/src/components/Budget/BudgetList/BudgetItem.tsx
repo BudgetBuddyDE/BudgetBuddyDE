@@ -6,7 +6,7 @@ import type React from "react";
 
 import { Icon } from "@/components/Icon";
 import { EntityMenu } from "@/components/Table/EntityTable";
-import { HideHorizontalScrollbarStyle } from "@/style";
+import { HideHorizontalScrollbarStyle } from "@/theme/style";
 import type { TCategoryVH } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 

@@ -8,7 +8,7 @@ import {
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import React from "react";
 import { SnackbarProvider } from "@/components/Snackbar";
-import theme from "@/theme";
+import { AppTheme } from "@/theme/AppTheme";
 // import ModeSwitch from '@/components/ModeSwitch';
 
 export const LayoutWrapper: React.FC<React.PropsWithChildren> = ({
@@ -18,7 +18,7 @@ export const LayoutWrapper: React.FC<React.PropsWithChildren> = ({
 		<React.Fragment>
 			<InitColorSchemeScript attribute="class" />
 			<AppRouterCacheProvider options={{ enableCssLayer: true }}>
-				<ThemeProvider theme={theme}>
+				<ThemeProvider theme={AppTheme}>
 					{/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
 					<CssBaseline />
 					{/* <ModeSwitch /> */}
