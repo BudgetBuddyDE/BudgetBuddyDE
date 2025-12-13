@@ -15,21 +15,6 @@ import {BudgetRouter, CategoryRouter, PaymentMethodRouter, RecurringPaymentRoute
 export const app = express();
 
 app.use(cors(config.cors));
-app.use(setRequestContext);
-app.use(logRequest);
-app.use(bodyParser.json());
-app.use(servedBy);
-
-// Set a global error handler for validation errors
-setGlobalErrorHandler((errors, _req, res) => {
-  ApiResponse.builder()
-    .withStatus(HTTPStatusCode.BAD_REQUEST)
-    .withMessage('Validation Error')
-    .withData(errors)
-    .buildAndSend(res);
-});
-
-app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const redisStatus = getRedisClient().status;
@@ -56,6 +41,21 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
     })
     .buildAndSend();
 });
+app.use(setRequestContext);
+app.use(logRequest);
+app.use(bodyParser.json());
+app.use(servedBy);
+
+// Set a global error handler for validation errors
+setGlobalErrorHandler((errors, _req, res) => {
+  ApiResponse.builder()
+    .withStatus(HTTPStatusCode.BAD_REQUEST)
+    .withMessage('Validation Error')
+    .withData(errors)
+    .buildAndSend(res);
+});
+
+app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.get('/api/me', async (req, res) => {
   ApiResponse.builder<typeof req.context>().withData(req.context).buildAndSend(res);
 });
