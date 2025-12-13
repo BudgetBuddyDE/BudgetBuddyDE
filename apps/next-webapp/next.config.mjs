@@ -24,7 +24,7 @@ const nextConfig = {
     // Alias better-auth/react to use CommonJS version to fix React 19 compatibility
     config.resolve.alias = {
       ...config.resolve.alias,
-      'better-auth/react$': path.resolve(__dirname, '../../node_modules/better-auth/dist/client/react/index.cjs'),
+      'better-auth/react$': path.resolve(__dirname, 'node_modules/better-auth/dist/client/react/index.cjs'),
     };
     return config;
   },
