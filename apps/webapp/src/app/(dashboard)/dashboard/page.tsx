@@ -3,7 +3,7 @@ import React from "react";
 import { BudgetPieChart } from "@/components/Budget/BudgetPieChart";
 import { CategoryExpenseChart } from "@/components/Category/CategoryPieChart";
 import { CircularProgress } from "@/components/Loading";
-import { UpcomingSubscriptionsList } from "@/components/Subscription/SubscriptionList";
+import { UpcomingRecurringPaymentList } from "@/components/RecurringPayment/RecurringPaymentList";
 import {
 	LatestTransactionsList,
 	UpcomingTransactionsList,
@@ -20,7 +20,7 @@ export default function DashboardPage() {
 			<Grid size={{ xs: 12, md: 6, lg: 4 }} order={{ xs: 3, md: 1 }}>
 				<Stack spacing={2}>
 					<React.Suspense fallback={<CircularProgress />}>
-						<UpcomingSubscriptionsList />
+						<UpcomingRecurringPaymentList />
 					</React.Suspense>
 				</Stack>
 			</Grid>

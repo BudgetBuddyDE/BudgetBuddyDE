@@ -23,7 +23,7 @@ import {
 import { PaymentMethodChip } from "@/components/PaymentMethod/PaymentMethodChip";
 import { useSnackbarContext } from "@/components/Snackbar";
 import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
-import { subscriptionSlice } from "@/lib/features/subscriptions/subscriptionSlice";
+import { recurringPaymentSlice } from "@/lib/features/recurringPayments/recurringPaymentSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
 import { Backend } from "@/services/Backend";
@@ -57,12 +57,12 @@ type EntityFormFields = FirstLevelNullable<
 >;
 
 // biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
-export type SubscriptionTableProps = {};
+export type RecurringPaymentTableProps = {};
 
-export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
+export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () => {
 	const { showSnackbar } = useSnackbarContext();
 	const { refresh, getPage, setPage, setRowsPerPage, applyFilters } =
-		subscriptionSlice.actions;
+		recurringPaymentSlice.actions;
 	const dispatch = useAppDispatch();
 	const {
 		status,
@@ -70,9 +70,9 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 		currentPage,
 		rowsPerPage,
 		count: totalEntityCount,
-		data: subscriptions,
+		data: recurringPayments,
 		filter: filters,
-	} = useAppSelector(subscriptionSlice.selectors.getState);
+	} = useAppSelector(recurringPaymentSlice.selectors.getState);
 	const [drawerState, dispatchDrawerAction] = React.useReducer(
 		entityDrawerReducer,
 		getInitialEntityDrawerState<EntityFormFields>(),
@@ -103,11 +103,6 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				...payload,
 				transferAmount: Number(payload.transferAmount),
 			});
-		console.log("parsedPayload", parsedPayload);
-		console.log({
-			...payload,
-			transferAmount: Number(payload.transferAmount),
-		});
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
 				.map((issue) => issue.message)
@@ -144,7 +139,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				});
 			if (!createdRecurringPayment || error) {
 				return showSnackbar({
-					message: `Failed to create subscription: ${error.message}`,
+					message: `Failed to create recurring payment: ${error.message}`,
 					action: (
 						<Button onClick={() => handleFormSubmission(payload, onSuccess)}>
 							Retry
@@ -155,7 +150,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 			showSnackbar({
 				message:
 					createdRecurringPayment.message ??
-					"Subscription created successfully",
+					"Recurring payment created successfully",
 			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
@@ -164,7 +159,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 			const entityId = drawerState.defaultValues?.id;
 			if (!entityId) {
 				return showSnackbar({
-					message: `Failed to update subscription: Missing entity ID`,
+					message: `Failed to update recurring payment: Missing entity ID`,
 					action: (
 						<Button onClick={() => handleFormSubmission(payload, onSuccess)}>
 							Retry
@@ -192,7 +187,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				});
 			if (!updatedRecurringPayment || error) {
 				return showSnackbar({
-					message: `Failed to update subscription: ${error.message}`,
+					message: `Failed to update recurring payment: ${error.message}`,
 					action: (
 						<Button onClick={() => handleFormSubmission(payload, onSuccess)}>
 							Retry
@@ -203,7 +198,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 			showSnackbar({
 				message:
 					updatedRecurringPayment.message ??
-					"Subscription updated successfully",
+					"Recurring payment updated successfully",
 			});
 			dispatchDrawerAction({ type: "CLOSE" });
 			onSuccess?.();
@@ -265,7 +260,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 			});
 		if (!updatedRecurringPayment || error) {
 			return showSnackbar({
-				message: `Failed to update subscription: ${error.message}`,
+				message: `Failed to update recurring payment: ${error.message}`,
 				action: (
 					<Button onClick={() => handleTogglePauseOnEntity(entity)}>
 						Retry
@@ -275,7 +270,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 		}
 		showSnackbar({
 			message:
-				updatedRecurringPayment.message ?? "Subscription updated successfully",
+				updatedRecurringPayment.message ?? "Recurring payment updated successfully",
 		});
 		dispatchDrawerAction({ type: "CLOSE" });
 		dispatch(refresh());
@@ -295,7 +290,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 
 		showSnackbar({
 			message:
-				deletedRecurringPayment.message ?? "Subscription deleted successfully",
+				deletedRecurringPayment.message ?? "Recurring payment deleted successfully",
 		});
 		dispatch(refresh());
 	};
@@ -481,26 +476,26 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 	return (
 		<React.Fragment>
 			<EntityTable<TExpandedRecurringPayment>
-				title="Subscriptions"
+				title="Recurring Payments"
 				subtitle="Manage your recurring payments"
 				error={error}
 				slots={{
 					title: { showCount: true },
 					noResults: {
 						text: filters.keyword
-							? `No subscriptions found for "${filters.keyword}"`
-							: "No subscriptions found",
+							? `No recurring payments found for "${filters.keyword}"`
+							: "No recurring payments found",
 					},
 					search: {
 						enabled: true,
-						placeholder: "Search subscriptions…",
+						placeholder: "Search…",
 						onSearch: handleTextSearch,
 					},
 					create: { enabled: true, onClick: handleCreateEntity },
 				}}
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
-				data={subscriptions ?? []}
+				data={recurringPayments ?? []}
 				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
@@ -583,8 +578,8 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				title={"Subscription"}
 				subtitle={
 					drawerState.action === "CREATE"
-						? "Create new subscription"
-						: "Edit subscription"
+						? "Create recurring payment"
+						: "Edit recurring payment"
 				}
 				open={drawerState.isOpen}
 				onSubmit={handleFormSubmission}

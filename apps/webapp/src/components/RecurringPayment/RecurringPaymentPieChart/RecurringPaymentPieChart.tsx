@@ -18,20 +18,20 @@ import { Backend } from "@/services/Backend";
 import type { TCategory, TExpandedRecurringPayment } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
-export type SubscriptionType = "INCOME" | "EXPENSE";
+export type RecurringPaymentType = "INCOME" | "EXPENSE";
 
-type CategoryStats = {
+type RecurringPaymentStats = {
 	category: Pick<TCategory, "id" | "name">;
 	value: number;
 };
 
-const SUBSCRIPTION_TYPES: readonly SubscriptionType[] = [
+const RECURRING_PAYMENT_TYPES: readonly RecurringPaymentType[] = [
 	"INCOME",
 	"EXPENSE",
 ] as const;
 
-const SUBSCRIPTION_TYPE_META: Record<
-	SubscriptionType,
+const RECURRING_PAYMENT_TYPE_META: Record<
+	RecurringPaymentType,
 	{ label: string; emptyText: string }
 > = {
 	INCOME: {
@@ -45,30 +45,30 @@ const SUBSCRIPTION_TYPE_META: Record<
 } as const;
 
 type State<Key extends string | number | symbol> = {
-	data: Partial<Record<Key, CategoryStats[]>>;
+	data: Partial<Record<Key, RecurringPaymentStats[]>>;
 	isLoading: boolean;
 	error: Error | null;
 };
 
 type Action =
-	| { type: "start"; subscriptionType: SubscriptionType }
+	| { type: "start"; paymentType: RecurringPaymentType }
 	| {
 			type: "success";
-			subscriptionType: SubscriptionType;
-			payload: CategoryStats[];
+			paymentType: RecurringPaymentType;
+			payload: RecurringPaymentStats[];
 	  }
 	| { type: "error"; error: Error };
 
-const initialState: State<SubscriptionType> = {
+const initialState: State<RecurringPaymentType> = {
 	data: {},
 	isLoading: true,
 	error: null,
 };
 
 function reducer(
-	state: State<SubscriptionType>,
+	state: State<RecurringPaymentType>,
 	action: Action,
-): State<SubscriptionType> {
+): State<RecurringPaymentType> {
 	switch (action.type) {
 		case "start":
 			return {
@@ -78,7 +78,7 @@ function reducer(
 			};
 		case "success":
 			return {
-				data: { ...state.data, [action.subscriptionType]: action.payload },
+				data: { ...state.data, [action.paymentType]: action.payload },
 				isLoading: false,
 				error: null,
 			};
@@ -93,41 +93,41 @@ function reducer(
 	}
 }
 
-export type SubscriptionPieChartProps = {
+export type RecurringPaymentPieChartProps = {
 	withViewMore?: boolean;
 };
 
-export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
+export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> = ({
 	withViewMore = false,
 }) => {
 	const [state, dispatch] = React.useReducer(reducer, initialState);
-	const [subscriptionType, setSubscriptionType] =
-		React.useState<SubscriptionType>("INCOME");
+	const [recurringPaymentType, setRecurringPaymentType] =
+		React.useState<RecurringPaymentType>("INCOME");
 
 	const fetchData = React.useCallback(
-		async (type: SubscriptionType) => {
+		async (type: RecurringPaymentType) => {
 			// Use cached data if available
 			if (state.data[type]) return;
 
-			dispatch({ type: "start", subscriptionType: type });
+			dispatch({ type: "start", paymentType: type });
 
 			try {
-				const [subscriptionResponse, err] =
+				const [recurringPaymentResponse, err] =
 					await Backend.recurringPayment.getAll(undefined, {
 						credentials: "include",
 					});
 				if (err) throw err;
-				if (!subscriptionResponse) {
-					throw new Error("No subscription data received");
+				if (!recurringPaymentResponse) {
+					throw new Error("No recurring payments received");
 				}
-				const subscriptions = (subscriptionResponse.data ?? []).filter(
-					(subscription) =>
-						subscription.transferAmount >= 0 === (type === "INCOME"),
+				const recurringPayments = (recurringPaymentResponse.data ?? []).filter(
+					(payment) =>
+						payment.transferAmount >= 0 === (type === "INCOME"),
 				);
-				const categoryStats = groupSubscriptionsByCategory(subscriptions);
+				const categoryStats = groupRecurringPaymentsByCategory(recurringPayments);
 				dispatch({
 					type: "success",
-					subscriptionType: type,
+					paymentType: type,
 					payload: categoryStats,
 				});
 			} catch (err) {
@@ -142,10 +142,10 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 
 	// Initial load + when default timeframe changes
 	React.useEffect(() => {
-		void fetchData(subscriptionType);
-	}, [subscriptionType, fetchData]);
+		void fetchData(recurringPaymentType);
+	}, [recurringPaymentType, fetchData]);
 
-	const stats = state.data[subscriptionType];
+	const stats = state.data[recurringPaymentType];
 
 	const chartData: PieChartData[] = React.useMemo(() => {
 		return stats ? toPieData(stats) : [];
@@ -160,14 +160,14 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 		if (state.error) return <ErrorComp error={state.error} />;
 		if (chartData.length === 0)
 			return (
-				<NoResults text={SUBSCRIPTION_TYPE_META[subscriptionType].emptyText} />
+				<NoResults text={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].emptyText} />
 			);
 
 		return (
 			<PieChart
 				fullWidth
 				primaryText={Formatter.currency.formatBalance(totalValue)}
-				secondaryText={SUBSCRIPTION_TYPE_META[subscriptionType].label}
+				secondaryText={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].label}
 				series={[
 					{
 						data: chartData,
@@ -190,14 +190,14 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 					<ToggleButtonGroup
 						size="small"
 						color="primary"
-						value={subscriptionType}
-						onChange={(_, value: SubscriptionType) =>
-							setSubscriptionType(value)
+						value={recurringPaymentType}
+						onChange={(_, value: RecurringPaymentType) =>
+							setRecurringPaymentType(value)
 						}
 						exclusive
 					>
-						{SUBSCRIPTION_TYPES.map((type) => {
-							const meta = SUBSCRIPTION_TYPE_META[type];
+						{RECURRING_PAYMENT_TYPES.map((type) => {
+							const meta = RECURRING_PAYMENT_TYPE_META[type];
 							return (
 								<ToggleButton key={type} value={type}>
 									{meta.label}
@@ -225,19 +225,19 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 	);
 };
 
-function groupSubscriptionsByCategory(
-	subscriptions: TExpandedRecurringPayment[],
-): CategoryStats[] {
-	const grouped = new Map<string, CategoryStats>();
+function groupRecurringPaymentsByCategory(
+	recurringPayments: TExpandedRecurringPayment[],
+): RecurringPaymentStats[] {
+	const grouped = new Map<string, RecurringPaymentStats>();
 
-	for (const subscription of subscriptions) {
-		if (subscription.paused) continue;
+	for (const payment of recurringPayments) {
+		if (payment.paused) continue;
 
-		const absTransferAmount = Math.abs(subscription.transferAmount);
-		const { id, name } = subscription.category;
+		const absTransferAmount = Math.abs(payment.transferAmount);
+		const { id, name } = payment.category;
 
 		if (grouped.has(id)) {
-			const existing = grouped.get(id) as CategoryStats;
+			const existing = grouped.get(id) as RecurringPaymentStats;
 			grouped.set(id, {
 				category: existing.category,
 				value: existing.value + absTransferAmount,
@@ -253,7 +253,7 @@ function groupSubscriptionsByCategory(
 	return Array.from(grouped.values());
 }
 
-function toPieData(stats: CategoryStats[]): PieChartData[] {
+function toPieData(stats: RecurringPaymentStats[]): PieChartData[] {
 	return stats.map((stat) => ({
 		label: stat.category.name,
 		value: Math.abs(stat.value),

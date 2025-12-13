@@ -20,7 +20,7 @@ import { PaymentMethodChip } from "@/components/PaymentMethod/PaymentMethodChip"
 import type { EntityListProps } from "@/components/Transaction/TransactionList";
 import { Formatter } from "@/utils/Formatter";
 
-export type SubscriptionListProps = EntityListProps<{
+export type RecurringPaymentListProps = EntityListProps<{
 	ID: string;
 	receiver: string;
 	nextExecution: Date;
@@ -35,14 +35,14 @@ export type SubscriptionListProps = EntityListProps<{
 	};
 }>;
 
-export const SubscriptionList: React.FC<SubscriptionListProps> = ({
+export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
 	isLoading = false,
 	title,
 	subtitle,
 	data,
 	onAddEntity,
 	cardProps,
-	noResultsMessage = "There are no subscriptions",
+	noResultsMessage = "There are no recurring payments",
 }) => {
 	const chipProps: ChipProps = {
 		variant: "outlined",
@@ -69,33 +69,33 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
 				{isLoading ? (
 					<CircularProgress />
 				) : data.length > 0 ? (
-					data.map((subscription) => {
+					data.map((recurringPayment) => {
 						return (
 							<ListWithIcon
-								key={subscription.ID}
+								key={recurringPayment.ID}
 								icon={<ReceiptIcon />}
-								title={subscription.receiver}
+								title={recurringPayment.receiver}
 								subtitle={
 									<Box>
 										<Chip
 											label={
 												"Next " +
-												Formatter.date.format(subscription.nextExecution, true)
+												Formatter.date.format(recurringPayment.nextExecution, true)
 											}
 											sx={{ mr: 1 }}
 											{...chipProps}
 										/>
 										<CategoryChip
-											categoryName={subscription.category.name}
+											categoryName={recurringPayment.category.name}
 											{...chipProps}
 										/>
 										<PaymentMethodChip
-											paymentMethodName={subscription.paymentMethod.name}
+											paymentMethodName={recurringPayment.paymentMethod.name}
 											{...chipProps}
 										/>
 									</Box>
 								}
-								amount={subscription.transferAmount}
+								amount={recurringPayment.transferAmount}
 							/>
 						);
 					})

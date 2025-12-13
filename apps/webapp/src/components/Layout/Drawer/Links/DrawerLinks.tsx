@@ -18,8 +18,8 @@ export const DrawerLinks = [
 		icon: <ReceiptRounded />,
 	},
 	{
-		text: "Subscriptions",
-		path: "/subscriptions",
+		text: "Recurring Payments",
+		path: "/recurringPayments",
 		icon: <ScheduleSendIcon />,
 	},
 	{

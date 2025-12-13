@@ -5,7 +5,7 @@ import {
 	CategoryExpenseChart,
 	CategoryIncomeChart,
 } from "@/components/Category/CategoryPieChart";
-import { SubscriptionPieChart } from "@/components/Subscription/SubscriptionPieChart";
+import { RecurringPaymentPieChart } from "@/components/RecurringPayment/RecurringPaymentPieChart";
 import { DashboardStatsWrapper } from "../DashboardStatsWrapper";
 
 export default function AnalyticsDashboard() {
@@ -22,7 +22,7 @@ export default function AnalyticsDashboard() {
 			{[
 				{
 					key: "monthly-balance-pie-chart",
-					children: <SubscriptionPieChart withViewMore />,
+					children: <RecurringPaymentPieChart withViewMore />,
 				},
 				{
 					key: "category-income-pie-chart",

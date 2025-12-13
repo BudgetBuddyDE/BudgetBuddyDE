@@ -3,7 +3,7 @@ import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { budgetSlice } from "./features/budgets/budgetSlice";
 import { categorySlice } from "./features/categories/categorySlice";
 import { paymentMethodSlice } from "./features/paymentMethods/paymentMethodSlice";
-import { subscriptionSlice } from "./features/subscriptions/subscriptionSlice";
+import { recurringPaymentSlice } from "./features/recurringPayments/recurringPaymentSlice";
 import { transactionSlice } from "./features/transactions/transactionSlice";
 
 // `combineSlices` automatically combines the reducers using
@@ -12,7 +12,7 @@ const rootReducer = combineSlices(
 	categorySlice,
 	paymentMethodSlice,
 	transactionSlice,
-	subscriptionSlice,
+	recurringPaymentSlice,
 	budgetSlice,
 );
 // Infer the `RootState` type from the root reducer

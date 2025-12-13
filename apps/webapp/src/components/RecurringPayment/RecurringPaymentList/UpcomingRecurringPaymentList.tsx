@@ -2,19 +2,19 @@ import type React from "react";
 import { headers } from "@/lib/headers";
 import { Backend } from "@/services/Backend";
 import {
-	SubscriptionList,
-	type SubscriptionListProps,
-} from "./SubscriptionList";
+	RecurringPaymentList,
+	type RecurringPaymentListProps,
+} from "./RecurringPaymentList";
 
-export type UpcomingSubscriptionsList = Pick<
-	SubscriptionListProps,
+export type UpcomingRecurringPaymentList = Pick<
+	RecurringPaymentListProps,
 	"onAddEntity"
 >;
 
-export const UpcomingSubscriptionsList: React.FC<
-	UpcomingSubscriptionsList
+export const UpcomingRecurringPaymentList: React.FC<
+	UpcomingRecurringPaymentList
 > = async ({ onAddEntity }) => {
-	const [subscriptions, error] = await Backend.recurringPayment.getAll(
+	const [recurringPayments, error] = await Backend.recurringPayment.getAll(
 		{
 			to: 6,
 			$executeFrom: new Date().getDate(),
@@ -25,10 +25,10 @@ export const UpcomingSubscriptionsList: React.FC<
 
 	const now = new Date();
 	return (
-		<SubscriptionList
-			title="Upcoming Subscriptions"
-			subtitle="Your upcoming subscriptions"
-			data={(subscriptions.data ?? []).map((t) => ({
+		<RecurringPaymentList
+			title="Upcoming recurring payments"
+			subtitle="Your upcoming recurring payments"
+			data={(recurringPayments.data ?? []).map((t) => ({
 				ID: t.id,
 				receiver: t.receiver,
 				nextExecution: new Date(now.getFullYear(), now.getMonth(), t.executeAt),
@@ -43,7 +43,7 @@ export const UpcomingSubscriptionsList: React.FC<
 				},
 			}))}
 			onAddEntity={onAddEntity}
-			noResultsMessage="You don't have any upcoming subscriptions for this month"
+			noResultsMessage="You don't have any upcoming recurring payments for this month"
 		/>
 	);
 };
