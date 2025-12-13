@@ -31,9 +31,9 @@ export type BudgetPieChartProps = {};
  */
 export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
 	const fetchDataFunc = React.useCallback(async () => {
-		const [estimations, err] = await new _BudgetService().getEstimatedBudget()
+		const [estimations, err] = await new _BudgetService().getEstimatedBudget();
 		if (err) {
-			throw err
+			throw err;
 		}
 		return {
 			expenses: estimations.expenses.paid,
@@ -44,7 +44,7 @@ export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
 	const { isLoading, data, error } = useFetch<BudgetStats>(fetchDataFunc);
 
 	const chartData = React.useMemo(() => {
-		console.log('Budget data:', data);
+		console.log("Budget data:", data);
 		if (!data) return [];
 		return [
 			{

@@ -4,17 +4,17 @@ import { LayoutWrapper } from "./layout-wrapper";
 import { StoreProvider } from "./StoreProvider";
 
 export const metadata: Metadata = {
-  title: "Budget Buddy",
-  description: "Manage your budgets effortlessly with Budget Buddy.",
-  manifest: "/manifest.json"
+	title: "Budget Buddy",
+	description: "Manage your budgets effortlessly with Budget Buddy.",
+	manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#151936' },
-    { media: '(prefers-color-scheme: dark)', color: '#151936' },
-  ],
-}
+	themeColor: [
+		{ media: "(prefers-color-scheme: light)", color: "#151936" },
+		{ media: "(prefers-color-scheme: dark)", color: "#151936" },
+	],
+};
 export default function RootLayout({
 	children,
 }: {

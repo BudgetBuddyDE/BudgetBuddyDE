@@ -34,7 +34,7 @@ export const CreateOrUpdateTransaction = Transaction.pick({
 	receiver: true,
 	transferAmount: true,
 	information: true,
-});
+}).extend({ information: Transaction.shape.information.optional() });
 export type TCreateOrUpdateTransaction = z.infer<
 	typeof CreateOrUpdateTransaction
 >;

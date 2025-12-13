@@ -66,7 +66,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		});
 	};
 
-	const handleEditEntity = ({ID, type, name, budget, categories }: Budget) => {
+	const handleEditEntity = ({ ID, type, name, budget, categories }: Budget) => {
 		const _now = new Date();
 		dispatchDrawerAction({
 			type: "OPEN",
@@ -114,7 +114,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 			description: true,
 			categories: true,
 		}).safeParse({
-			...payload, 
+			...payload,
 			budget: Number(payload.budget),
 			categories: payload.toCategories?.map((category) => category.id),
 		});
@@ -134,7 +134,9 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		}
 
 		if (action === "CREATE") {
-			const [createdBudgets, error] = await new _BudgetService().create(parsedPayload.data);
+			const [createdBudgets, error] = await new _BudgetService().create(
+				parsedPayload.data,
+			);
 			if (!createdBudgets || error) {
 				return showSnackbar({
 					message: `Failed to create budget: ${error.message}`,
@@ -168,7 +170,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 				entityId,
 				parsedPayload.data,
 			);
-			if (!updatedBudgets ||error) {
+			if (!updatedBudgets || error) {
 				return showSnackbar({
 					message: `Failed to create budget: ${error.message}`,
 					action: (
@@ -320,12 +322,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 												budget,
 												balance,
 												categories: categories.map(
-													({ category: {id, name, description} }) => ({
+													({ category: { id, name, description } }) => ({
 														id,
 														name,
 														description,
 													}),
-												)
+												),
 											}}
 											onEditBudget={handleEditEntity}
 											onDeleteBudget={handleDeleteEntity}

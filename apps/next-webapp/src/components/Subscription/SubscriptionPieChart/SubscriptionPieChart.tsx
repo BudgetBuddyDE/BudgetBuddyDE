@@ -112,18 +112,18 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 			dispatch({ type: "start", subscriptionType: type });
 
 			try {
-				const [subscriptionResponse, err] = await new RecurringPaymentService().getAll(
-					undefined, {
-						credentials: "include"
-					}
-				);
+				const [subscriptionResponse, err] =
+					await new RecurringPaymentService().getAll(undefined, {
+						credentials: "include",
+					});
 				if (err) throw err;
 				if (!subscriptionResponse) {
 					throw new Error("No subscription data received");
 				}
 				const subscriptions = (subscriptionResponse.data ?? []).filter(
-					subscription => subscription.transferAmount >= 0 === (type === "INCOME")
-				)
+					(subscription) =>
+						subscription.transferAmount >= 0 === (type === "INCOME"),
+				);
 				const categoryStats = groupSubscriptionsByCategory(subscriptions);
 				dispatch({
 					type: "success",

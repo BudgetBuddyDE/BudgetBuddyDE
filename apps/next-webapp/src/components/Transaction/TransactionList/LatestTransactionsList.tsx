@@ -15,7 +15,7 @@ export const LatestTransactionsList: React.FC<
 	const [transactions, error] = await new _TransactionService().getAll(
 		{
 			to: 6,
-			$dateTo: new Date()
+			$dateTo: new Date(),
 		},
 		{ headers: clientHeaders },
 	);
@@ -24,7 +24,7 @@ export const LatestTransactionsList: React.FC<
 		<TransactionList
 			title="Transactions"
 			subtitle="Your latest transactions"
-			data={(transactions.data??[]).map((t) => ({
+			data={(transactions.data ?? []).map((t) => ({
 				ID: t.id,
 				receiver: t.receiver,
 				processedAt: t.processedAt as Date,

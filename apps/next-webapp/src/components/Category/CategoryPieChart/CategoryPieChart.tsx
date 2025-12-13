@@ -143,14 +143,18 @@ export function CategoryPieChart({
 
 			try {
 				const [start, end] = TIMEFRAME_META[timeframe].range();
-				const [categoryStats, err] = await new NewCategoryService().getCategoryStats({
-					from: start,
-					to: end,
-				});
+				const [categoryStats, err] =
+					await new NewCategoryService().getCategoryStats({
+						from: start,
+						to: end,
+					});
 				if (err) throw err;
 
-
-				dispatch({ type: "success", tf: timeframe, payload: categoryStats.stats });
+				dispatch({
+					type: "success",
+					tf: timeframe,
+					payload: categoryStats.stats,
+				});
 			} catch (e) {
 				const message = e instanceof Error ? e.message : String(e);
 				dispatch({ type: "error", tf: timeframe, message });

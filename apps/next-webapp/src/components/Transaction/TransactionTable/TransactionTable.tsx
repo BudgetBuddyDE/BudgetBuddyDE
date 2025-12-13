@@ -109,11 +109,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				...payload,
 				transferAmount: Number(payload.transferAmount),
 			});
-			console.log("Parsed Payload:", parsedPayload);
-			console.log({
-				...payload,
-				transferAmount: Number(payload.transferAmount),
-			})
+		console.log("Parsed Payload:", parsedPayload);
+		console.log({
+			...payload,
+			transferAmount: Number(payload.transferAmount),
+		});
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
 				.map((issue) => issue.message)
@@ -229,7 +229,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 			action: "EDIT",
 			defaultValues: {
 				id,
-				processedAt: processedAt instanceof Date ? processedAt : new Date(processedAt),
+				processedAt:
+					processedAt instanceof Date ? processedAt : new Date(processedAt),
 				receiver: { receiver: receiver },
 				category: {
 					id: category.id,
@@ -535,7 +536,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 								</Typography>
 							</TableCell>
 							<TableCell>
-								<Typography variant="body1">{item.information?? "No information"}</Typography>
+								<Typography variant="body1">
+									{item.information ?? "No information"}
+								</Typography>
 							</TableCell>
 							<TableCell align="right">
 								<EntityMenu<TExpandedTransaction>

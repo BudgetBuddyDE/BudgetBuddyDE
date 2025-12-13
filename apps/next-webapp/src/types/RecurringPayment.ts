@@ -28,6 +28,8 @@ export const CreateOrUpdateRecurringPayment = RecurringPayment.pick({
 	receiver: true,
 	transferAmount: true,
 	information: true,
+}).extend({
+	information: RecurringPayment.shape.information.optional(),
 });
 export type TCreateOrUpdateRecurringPayment = Partial<
 	z.infer<typeof CreateOrUpdateRecurringPayment>

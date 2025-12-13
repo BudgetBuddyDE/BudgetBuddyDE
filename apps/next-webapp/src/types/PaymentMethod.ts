@@ -19,7 +19,7 @@ export const CreateOrUpdatePaymentMethod = PaymentMethod.pick({
 	provider: true,
 	address: true,
 	description: true,
-});
+}).extend({ description: PaymentMethod.shape.description.optional() });
 export type TCreateOrUpdatePaymentMethod = z.infer<
 	typeof CreateOrUpdatePaymentMethod
 >;

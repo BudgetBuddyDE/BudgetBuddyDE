@@ -23,7 +23,7 @@ export const UpcomingSubscriptionsList: React.FC<
 	);
 	if (error) throw error;
 
-	const now = new Date()
+	const now = new Date();
 	return (
 		<SubscriptionList
 			title="Upcoming Subscriptions"

@@ -90,8 +90,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 	> = async (payload, onSuccess) => {
 		const action = drawerState.action;
 
-		const parsedPayload = CreateOrUpdateRecurringPayment
-		.omit({
+		const parsedPayload = CreateOrUpdateRecurringPayment.omit({
 			paused: true,
 			executeAt: true,
 			categoryId: true,
@@ -107,11 +106,11 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				...payload,
 				transferAmount: Number(payload.transferAmount),
 			});
-			console.log("parsedPayload", parsedPayload);
-			console.log({
-				...payload,
-				transferAmount: Number(payload.transferAmount),
-			})
+		console.log("parsedPayload", parsedPayload);
+		console.log({
+			...payload,
+			transferAmount: Number(payload.transferAmount),
+		});
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
 				.map((issue) => issue.message)
@@ -505,7 +504,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				}}
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
-				data={subscriptions??[]}
+				data={subscriptions ?? []}
 				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
@@ -561,7 +560,9 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 								</Typography>
 							</TableCell>
 							<TableCell>
-								<Typography variant="body1">{item.information ?? "No information"}</Typography>
+								<Typography variant="body1">
+									{item.information ?? "No information"}
+								</Typography>
 							</TableCell>
 							<TableCell align="right">
 								<EntityMenu<TExpandedRecurringPayment>

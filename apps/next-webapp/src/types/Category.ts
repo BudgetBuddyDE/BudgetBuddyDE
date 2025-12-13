@@ -23,7 +23,7 @@ export type TCategory = z.infer<typeof Category>;
 export const CreateOrUpdateCategory = Category.pick({
 	name: true,
 	description: true,
-});
+}).extend({ description: Category.shape.description.optional() });
 /**
  * Create or Update Category
  */

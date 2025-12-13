@@ -55,6 +55,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 		EntityFormFields
 	> = async (payload, onSuccess) => {
 		const action = drawerState.action;
+		console.error("Payload:", payload);
 		const parsedPayload = CreateOrUpdateCategory.safeParse(payload);
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
@@ -214,7 +215,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 				}}
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
-				data={categories??[]}
+				data={categories ?? []}
 				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,

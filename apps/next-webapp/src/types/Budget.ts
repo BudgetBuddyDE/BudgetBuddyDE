@@ -33,6 +33,7 @@ export const CreateOrUpdateBudget = Budget.pick({
 	budget: true,
 }).extend({
 	categories: z.array(Category.shape.id),
+	description: Budget.shape.description.optional(),
 });
 export type TCreateOrUpdateBudget = z.infer<typeof CreateOrUpdateBudget>;
 

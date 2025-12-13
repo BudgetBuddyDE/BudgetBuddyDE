@@ -9,13 +9,16 @@ import { _BudgetService } from "@/services/Budget.service";
 import { Formatter } from "@/utils/Formatter";
 
 export const DashboardStatsWrapper = async () => {
-	const [estimated, error]  = await new _BudgetService().getEstimatedBudget({
+	const [estimated, error] = await new _BudgetService().getEstimatedBudget({
 		headers: await headers(),
 	});
 	if (error) throw error;
 
 	const currentBalance = estimated.income.received - estimated.expenses.paid;
-	const estimatedBalance = estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);
+	const estimatedBalance =
+		estimated.income.received +
+		estimated.income.upcoming -
+		(estimated.expenses.paid + estimated.expenses.upcoming);
 	const stats: TStatsCardProps[] = [
 		{
 			icon: <AddRounded />,

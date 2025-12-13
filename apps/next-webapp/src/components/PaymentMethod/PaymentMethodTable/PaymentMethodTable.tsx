@@ -224,7 +224,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 				}}
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
-				data={paymentMethods??[]}
+				data={paymentMethods ?? []}
 				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
