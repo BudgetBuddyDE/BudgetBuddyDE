@@ -1,6 +1,6 @@
-import { NewCategoryService } from "@/services/Category.service";
+import { Backend } from "@/services/Backend";
 import { createEntitySlice } from "../createEntitySlice";
 
 export const categorySlice = createEntitySlice("category", (query) =>
-	new NewCategoryService().getAll(query),
+	Backend.category.getAll(query),
 );

@@ -5,11 +5,11 @@ import {
 	type TStatsCardProps,
 } from "@/components/Analytics/StatsCard";
 import { headers } from "@/lib/headers";
-import { _BudgetService } from "@/services/Budget.service";
+import { Backend } from "@/services/Backend";
 import { Formatter } from "@/utils/Formatter";
 
 export const DashboardStatsWrapper = async () => {
-	const [estimated, error] = await new _BudgetService().getEstimatedBudget({
+	const [estimated, error] = await Backend.budget.getEstimatedBudget({
 		headers: await headers(),
 	});
 	if (error) throw error;

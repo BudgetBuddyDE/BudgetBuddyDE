@@ -22,7 +22,7 @@ const PostBudget = ApiResponse.extend({
 const PutBudget = PostBudget;
 const DeleteBudget = ApiResponse.extend({ data: z.null() });
 
-export class _BudgetService extends NewEntityService<
+export class BudgetService extends NewEntityService<
 	TCreateOrUpdateBudget,
 	TCreateOrUpdateBudget,
 	typeof GetAllBudget,

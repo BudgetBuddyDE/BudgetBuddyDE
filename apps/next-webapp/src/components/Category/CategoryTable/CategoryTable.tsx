@@ -14,7 +14,7 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { categorySlice } from "@/lib/features/categories/categorySlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { NewCategoryService } from "@/services/Category.service";
+import { Backend } from "@/services/Backend";
 import { CreateOrUpdateCategory, type TCategory } from "@/types";
 
 type EntityFormFields = FirstLevelNullable<
@@ -72,7 +72,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 		}
 
 		if (action === "CREATE") {
-			const [createdCategory, error] = await new NewCategoryService().create(
+			const [createdCategory, error] = await Backend.category.create(
 				parsedPayload.data,
 			);
 			if (!createdCategory || error) {
@@ -101,8 +101,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 					),
 				});
 			}
-			const [updatedCategory, error] =
-				await new NewCategoryService().updateById(entityId, parsedPayload.data);
+			const [updatedCategory, error] = await Backend.category.updateById(
+				entityId,
+				parsedPayload.data,
+			);
 			if (error) {
 				return showSnackbar({
 					message: `Failed to update category: ${error.message}`,
@@ -133,7 +135,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 	};
 
 	const handleDeleteEntity = async (entity: TCategory) => {
-		const [deletedCategory, error] = await new NewCategoryService().deleteById(
+		const [deletedCategory, error] = await Backend.category.deleteById(
 			entity.id,
 		);
 		if (error || !deletedCategory) {

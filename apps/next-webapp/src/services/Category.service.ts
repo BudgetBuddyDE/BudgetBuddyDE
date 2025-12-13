@@ -23,7 +23,7 @@ const PostCategory = GetAllCategories;
 const PutCategory = GetAllCategories;
 const DeleteCategory = GetAllCategories;
 
-export class NewCategoryService extends NewEntityService<
+export class CategoryService extends NewEntityService<
 	TCreateOrUpdateCategory,
 	TCreateOrUpdateCategory,
 	typeof GetAllCategories,

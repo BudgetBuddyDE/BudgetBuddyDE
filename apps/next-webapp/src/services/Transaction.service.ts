@@ -24,7 +24,7 @@ const PostTransaction = ApiResponse.extend({
 const PutTransaction = PostTransaction;
 const DeleteTransaction = PostTransaction;
 
-export class _TransactionService extends NewEntityService<
+export class TransactionService extends NewEntityService<
 	TCreateOrUpdateTransaction,
 	TCreateOrUpdateTransaction,
 	typeof GetAllTransaction,

@@ -20,7 +20,7 @@ const PostPaymentMethod = GetAllPaymentMethods;
 const PutPaymentMethod = GetAllPaymentMethods;
 const DeletePaymentMethod = GetAllPaymentMethods;
 
-export class NewPaymentMethodService extends NewEntityService<
+export class PaymentMethodService extends NewEntityService<
 	TCreateOrUpdatePaymentMethod,
 	TCreateOrUpdatePaymentMethod,
 	typeof GetAllPaymentMethods,

@@ -1,6 +1,6 @@
-import { _TransactionService } from "@/services/Transaction.service";
+import { Backend } from "@/services/Backend";
 import { createEntitySlice } from "../createEntitySlice";
 
 export const transactionSlice = createEntitySlice("transaction", (query) =>
-	new _TransactionService().getAll(query),
+	Backend.transaction.getAll(query),
 );

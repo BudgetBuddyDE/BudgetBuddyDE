@@ -8,7 +8,7 @@ import { ErrorAlert } from "@/components/ErrorAlert";
 import { CircularProgress } from "@/components/Loading";
 import { NoResults } from "@/components/NoResults";
 import { useFetch } from "@/hooks/useFetch";
-import { _BudgetService } from "@/services/Budget.service";
+import { Backend } from "@/services/Backend";
 import { Formatter } from "@/utils/Formatter";
 
 export type BudgetStats = {
@@ -31,7 +31,7 @@ export type BudgetPieChartProps = {};
  */
 export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
 	const fetchDataFunc = React.useCallback(async () => {
-		const [estimations, err] = await new _BudgetService().getEstimatedBudget();
+		const [estimations, err] = await Backend.budget.getEstimatedBudget();
 		if (err) {
 			throw err;
 		}

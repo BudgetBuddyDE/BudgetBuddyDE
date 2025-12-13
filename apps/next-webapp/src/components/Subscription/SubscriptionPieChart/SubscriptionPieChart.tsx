@@ -14,7 +14,7 @@ import { PieChart, type PieChartData } from "@/components/Charts";
 import { ErrorAlert as ErrorComp } from "@/components/ErrorAlert";
 import { CircularProgress } from "@/components/Loading";
 import { NoResults } from "@/components/NoResults";
-import { RecurringPaymentService } from "@/services/RecurringPayment.service";
+import { Backend } from "@/services/Backend";
 import type { TCategory, TExpandedRecurringPayment } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
@@ -113,7 +113,7 @@ export const SubscriptionPieChart: React.FC<SubscriptionPieChartProps> = ({
 
 			try {
 				const [subscriptionResponse, err] =
-					await new RecurringPaymentService().getAll(undefined, {
+					await Backend.recurringPayment.getAll(undefined, {
 						credentials: "include",
 					});
 				if (err) throw err;

@@ -1,6 +1,6 @@
 import type React from "react";
 import { headers } from "@/lib/headers";
-import { RecurringPaymentService } from "@/services/RecurringPayment.service";
+import { Backend } from "@/services/Backend";
 import {
 	SubscriptionList,
 	type SubscriptionListProps,
@@ -14,7 +14,7 @@ export type UpcomingSubscriptionsList = Pick<
 export const UpcomingSubscriptionsList: React.FC<
 	UpcomingSubscriptionsList
 > = async ({ onAddEntity }) => {
-	const [subscriptions, error] = await new RecurringPaymentService().getAll(
+	const [subscriptions, error] = await Backend.recurringPayment.getAll(
 		{
 			to: 6,
 			$executeFrom: new Date().getDate(),

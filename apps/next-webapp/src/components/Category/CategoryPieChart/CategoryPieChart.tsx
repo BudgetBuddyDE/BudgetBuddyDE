@@ -14,7 +14,7 @@ import { PieChart, type PieChartData } from "@/components/Charts";
 import { ErrorAlert as ErrorComp } from "@/components/ErrorAlert";
 import { CircularProgress } from "@/components/Loading";
 import { NoResults } from "@/components/NoResults";
-import { NewCategoryService } from "@/services/Category.service";
+import { Backend } from "@/services/Backend";
 import type { TCategoryStats } from "@/types";
 import { Formatter } from "@/utils/Formatter";
 
@@ -143,11 +143,10 @@ export function CategoryPieChart({
 
 			try {
 				const [start, end] = TIMEFRAME_META[timeframe].range();
-				const [categoryStats, err] =
-					await new NewCategoryService().getCategoryStats({
-						from: start,
-						to: end,
-					});
+				const [categoryStats, err] = await Backend.category.getCategoryStats({
+					from: start,
+					to: end,
+				});
 				if (err) throw err;
 
 				dispatch({

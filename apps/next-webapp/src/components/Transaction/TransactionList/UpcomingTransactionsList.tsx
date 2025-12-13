@@ -1,7 +1,7 @@
 import { addDays } from "date-fns";
 import type React from "react";
 import { headers } from "@/lib/headers";
-import { _TransactionService } from "@/services/Transaction.service";
+import { Backend } from "@/services/Backend";
 import { TransactionList, type TransactionListProps } from "./TransactionList";
 
 export type UpcomingTransactionsList = Pick<
@@ -12,7 +12,7 @@ export type UpcomingTransactionsList = Pick<
 export const UpcomingTransactionsList: React.FC<
 	UpcomingTransactionsList
 > = async ({ onAddEntity }) => {
-	const [transactions, error] = await new _TransactionService().getAll(
+	const [transactions, error] = await Backend.transaction.getAll(
 		{
 			to: 6,
 			$dateFrom: addDays(new Date(), 1),

@@ -21,8 +21,7 @@ import { Pagination } from "@/components/Table/EntityTable/Pagination";
 import { budgetSlice } from "@/lib/features/budgets/budgetSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { _BudgetService } from "@/services/Budget.service";
-import { NewCategoryService } from "@/services/Category.service";
+import { Backend } from "@/services/Backend";
 import { CreateOrUpdateBudget, type TBudget, type TCategoryVH } from "@/types";
 import { type Budget, BudgetItem, type BudgetItemProps } from "./BudgetItem";
 
@@ -82,7 +81,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 	};
 
 	const handleDeleteEntity = async (entity: Budget) => {
-		const [success, error] = await new _BudgetService().deleteById(entity.ID);
+		const [success, error] = await Backend.budget.deleteById(entity.ID);
 		if (error || !success) {
 			return showSnackbar({
 				message: error.message,
@@ -136,7 +135,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		}
 
 		if (action === "CREATE") {
-			const [createdBudgets, error] = await new _BudgetService().create(
+			const [createdBudgets, error] = await Backend.budget.create(
 				parsedPayload.data,
 			);
 			if (!createdBudgets || error) {
@@ -168,7 +167,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 				});
 			}
 
-			const [updatedBudgets, error] = await new _BudgetService().updateById(
+			const [updatedBudgets, error] = await Backend.budget.updateById(
 				entityId,
 				parsedPayload.data,
 			);
@@ -257,8 +256,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 					placeholder: "Select categories",
 					required: true,
 					retrieveOptionsFunc: async () => {
-						const [categories, error] =
-							await new NewCategoryService().getValueHelp();
+						const [categories, error] = await Backend.category.getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch category options:", error);
 							return [];

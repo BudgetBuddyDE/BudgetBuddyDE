@@ -28,9 +28,7 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { transactionSlice } from "@/lib/features/transactions/transactionSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { NewCategoryService } from "@/services/Category.service";
-import { NewPaymentMethodService } from "@/services/PaymentMethod.service";
-import { _TransactionService } from "@/services/Transaction.service";
+import { Backend } from "@/services/Backend";
 import {
 	CategoryVH,
 	CdsDate,
@@ -138,7 +136,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				information,
 				transferAmount,
 			} = parsedPayload.data;
-			const [_, error] = await new _TransactionService().create({
+			const [_, error] = await Backend.transaction.create({
 				processedAt: processedAt,
 				categoryId: category.id,
 				paymentMethodId: paymentMethod.id,
@@ -180,7 +178,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				information,
 				transferAmount,
 			} = parsedPayload.data;
-			const [_, error] = await new _TransactionService().updateById(entityId, {
+			const [_, error] = await Backend.transaction.updateById(entityId, {
 				processedAt: processedAt,
 				categoryId: category.id,
 				paymentMethodId: paymentMethod.id,
@@ -251,8 +249,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 	};
 
 	const handleDeleteEntity = async (entity: TExpandedTransaction) => {
-		const [deletedTransaction, error] =
-			await new _TransactionService().deleteById(entity.id);
+		const [deletedTransaction, error] = await Backend.transaction.deleteById(
+			entity.id,
+		);
 		if (error || !deletedTransaction) {
 			return showSnackbar({
 				message: error.message,
@@ -319,8 +318,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 					placeholder: "Category",
 					required: true,
 					retrieveOptionsFunc: async () => {
-						const [categories, error] =
-							await new NewCategoryService().getValueHelp();
+						const [categories, error] = await Backend.category.getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];
@@ -344,7 +342,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [paymentMethods, error] =
-							await new NewPaymentMethodService().getValueHelp();
+							await Backend.paymentMethod.getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch payment method options:", error);
 							return [];
@@ -370,7 +368,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [categories, error] =
-							await new _TransactionService().getReceiverVH();
+							await Backend.transaction.getReceiverVH();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];

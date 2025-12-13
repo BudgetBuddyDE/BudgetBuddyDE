@@ -1,6 +1,6 @@
-import { _BudgetService } from "@/services/Budget.service";
+import { Backend } from "@/services/Backend";
 import { createEntitySlice } from "../createEntitySlice";
 
 export const budgetSlice = createEntitySlice("budget", (query) =>
-	new _BudgetService().getAll(query),
+	Backend.budget.getAll(query),
 );

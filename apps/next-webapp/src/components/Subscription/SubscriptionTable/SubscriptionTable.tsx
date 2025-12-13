@@ -26,10 +26,7 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { subscriptionSlice } from "@/lib/features/subscriptions/subscriptionSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { NewCategoryService } from "@/services/Category.service";
-import { NewPaymentMethodService } from "@/services/PaymentMethod.service";
-import { RecurringPaymentService } from "@/services/RecurringPayment.service";
-import { _TransactionService } from "@/services/Transaction.service";
+import { Backend } from "@/services/Backend";
 import {
 	CategoryVH,
 	CdsDate,
@@ -136,7 +133,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				transferAmount,
 			} = parsedPayload.data;
 			const [createdRecurringPayment, error] =
-				await new RecurringPaymentService().create({
+				await Backend.recurringPayment.create({
 					executeAt: executeAt.getDate(),
 					categoryId: category.id,
 					paymentMethodId: paymentMethod.id,
@@ -184,7 +181,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				transferAmount,
 			} = parsedPayload.data;
 			const [updatedRecurringPayment, error] =
-				await new RecurringPaymentService().updateById(entityId, {
+				await Backend.recurringPayment.updateById(entityId, {
 					executeAt: executeAt.getDate(),
 					categoryId: category.id,
 					paymentMethodId: paymentMethod.id,
@@ -263,7 +260,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 		entity: TExpandedRecurringPayment,
 	) => {
 		const [updatedRecurringPayment, error] =
-			await new RecurringPaymentService().updateById(entity.id, {
+			await Backend.recurringPayment.updateById(entity.id, {
 				paused: !entity.paused,
 			});
 		if (!updatedRecurringPayment || error) {
@@ -286,7 +283,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 
 	const handleDeleteEntity = async (entity: TExpandedRecurringPayment) => {
 		const [deletedRecurringPayment, error] =
-			await new RecurringPaymentService().deleteById(entity.id);
+			await Backend.recurringPayment.deleteById(entity.id);
 		if (!deletedRecurringPayment || error) {
 			return showSnackbar({
 				message: error.message,
@@ -353,8 +350,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					placeholder: "Category",
 					required: true,
 					retrieveOptionsFunc: async () => {
-						const [categories, error] =
-							await new NewCategoryService().getValueHelp();
+						const [categories, error] = await Backend.category.getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];
@@ -378,7 +374,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [paymentMethods, error] =
-							await new NewPaymentMethodService().getValueHelp();
+							await Backend.paymentMethod.getValueHelp();
 						if (error) {
 							logger.error("Failed to fetch payment method options:", error);
 							return [];
@@ -404,7 +400,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 					required: true,
 					retrieveOptionsFunc: async () => {
 						const [categories, error] =
-							await new _TransactionService().getReceiverVH();
+							await Backend.transaction.getReceiverVH();
 						if (error) {
 							logger.error("Failed to fetch receiver options:", error);
 							return [];

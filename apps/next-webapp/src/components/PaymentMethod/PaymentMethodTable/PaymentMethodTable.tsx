@@ -14,7 +14,7 @@ import { EntityMenu, EntityTable } from "@/components/Table/EntityTable";
 import { paymentMethodSlice } from "@/lib/features/paymentMethods/paymentMethodSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { NewPaymentMethodService } from "@/services/PaymentMethod.service";
+import { Backend } from "@/services/Backend";
 import { CreateOrUpdatePaymentMethod, type TPaymentMethod } from "@/types";
 
 type EntityFormFields = FirstLevelNullable<
@@ -73,8 +73,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 		}
 
 		if (action === "CREATE") {
-			const [createdPaymentMethod, error] =
-				await new NewPaymentMethodService().create(parsedPayload.data);
+			const [createdPaymentMethod, error] = await Backend.paymentMethod.create(
+				parsedPayload.data,
+			);
 			if (!createdPaymentMethod || error) {
 				return showSnackbar({
 					message: `Failed to create payment method: ${error.message}`,
@@ -104,10 +105,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 				});
 			}
 			const [updatedPaymentMethod, error] =
-				await new NewPaymentMethodService().updateById(
-					entityId,
-					parsedPayload.data,
-				);
+				await Backend.paymentMethod.updateById(entityId, parsedPayload.data);
 			if (error) {
 				return showSnackbar({
 					message: `Failed to update payment method: ${error.message}`,
@@ -143,7 +141,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 
 	const handleDeleteEntity = async (entity: TPaymentMethod) => {
 		const [deletedPaymentMethod, error] =
-			await new NewPaymentMethodService().deleteById(entity.id);
+			await Backend.paymentMethod.deleteById(entity.id);
 		if (error || !deletedPaymentMethod) {
 			return showSnackbar({
 				message: error.message,
