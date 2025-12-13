@@ -29,7 +29,7 @@ const options: BetterAuthOptions = {
         },
         get(key) {
           const client = getRedisClient();
-          client.get(key);
+          return client.get(key);
         },
         delete(key) {
           const client = getRedisClient();
