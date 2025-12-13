@@ -25,7 +25,7 @@ const options: BetterAuthOptions = {
     ? {
         set(key, value, ttl) {
           const client = getRedisClient();
-          client.set(key, value, 'EX', ttl || 0);
+          client.set(key, value, 'EX', ttl || 10);
         },
         get(key) {
           const client = getRedisClient();
