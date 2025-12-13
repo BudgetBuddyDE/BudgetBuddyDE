@@ -27,7 +27,7 @@
     "@mui/x-date-pickers": "^8.11.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@tklein1801/o.js": "^0.1.1",
-    "better-auth": "^1.2.9",
+    "better-auth": "1.2.9",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
     "lodash.debounce": "^4.0.8",
