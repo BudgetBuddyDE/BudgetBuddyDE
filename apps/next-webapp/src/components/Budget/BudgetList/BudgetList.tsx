@@ -106,7 +106,9 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		EntityFormFields
 	> = async (payload, onSuccess) => {
 		const action = drawerState.action;
-
+		const categories = payload.toCategories
+			? payload.toCategories.map((category) => category.id)
+			: [];
 		const parsedPayload = CreateOrUpdateBudget.pick({
 			type: true,
 			name: true,
@@ -116,14 +118,14 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		}).safeParse({
 			...payload,
 			budget: Number(payload.budget),
-			categories: payload.toCategories?.map((category) => category.id),
+			categories,
 		});
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
 				.map((issue) => issue.message)
 				.join(", ");
 			showSnackbar({
-				message: `Failed to ${action === "CREATE" ? "create" : "update"} budget: ${issues}`,
+				message: `Failed to validate payload for ${action === "CREATE" ? "creation" : "update"} of budget: ${issues}`,
 				action: (
 					<Button onClick={() => handleFormSubmission(payload, onSuccess)}>
 						Retry

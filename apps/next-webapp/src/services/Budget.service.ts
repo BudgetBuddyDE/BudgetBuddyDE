@@ -17,18 +17,10 @@ const GetBudget = ApiResponse.extend({
 	data: Budget.nullable(),
 });
 const PostBudget = ApiResponse.extend({
-	data: z.array(
-		Budget.pick({
-			type: true,
-			name: true,
-			ownerId: true,
-			budget: true,
-			description: true,
-		}),
-	),
+	data: Budget,
 });
 const PutBudget = PostBudget;
-const DeleteBudget = PostBudget;
+const DeleteBudget = ApiResponse.extend({ data: z.null() });
 
 export class _BudgetService extends NewEntityService<
 	TCreateOrUpdateBudget,
