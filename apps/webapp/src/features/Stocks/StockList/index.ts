@@ -1,1 +1,0 @@
-export * from './StockList.component';
