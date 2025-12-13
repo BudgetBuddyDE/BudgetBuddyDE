@@ -80,7 +80,10 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
 										<Chip
 											label={
 												"Next " +
-												Formatter.date.format(recurringPayment.nextExecution, true)
+												Formatter.date.format(
+													recurringPayment.nextExecution,
+													true,
+												)
 											}
 											sx={{ mr: 1 }}
 											{...chipProps}

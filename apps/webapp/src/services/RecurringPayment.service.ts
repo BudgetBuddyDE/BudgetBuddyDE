@@ -5,6 +5,7 @@ import {
 	ExpandedRecurringPayment,
 	RecurringPayment,
 	type TCreateOrUpdateRecurringPayment,
+	type TExpandedRecurringPayment,
 } from "@/types";
 import { type BaseGetAllQuery, NewEntityService } from "./Entity.service";
 
@@ -48,5 +49,14 @@ export class RecurringPaymentService extends NewEntityService<
 		requestConfig?: RequestInit,
 	) {
 		return super.getAll(query, requestConfig);
+	}
+
+	determineNextExecutionDate(
+		executeAt: TExpandedRecurringPayment["executeAt"],
+	): Date {
+		const today = new Date();
+		return today.getDate() < executeAt
+			? new Date(today.getFullYear(), today.getMonth(), executeAt)
+			: new Date(today.getFullYear(), today.getMonth() + 1, executeAt);
 	}
 }

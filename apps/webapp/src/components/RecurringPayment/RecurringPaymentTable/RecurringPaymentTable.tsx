@@ -59,7 +59,9 @@ type EntityFormFields = FirstLevelNullable<
 // biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
 export type RecurringPaymentTableProps = {};
 
-export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () => {
+export const RecurringPaymentTable: React.FC<
+	RecurringPaymentTableProps
+> = () => {
 	const { showSnackbar } = useSnackbarContext();
 	const { refresh, getPage, setPage, setRowsPerPage, applyFilters } =
 		recurringPaymentSlice.actions;
@@ -270,7 +272,8 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
 		}
 		showSnackbar({
 			message:
-				updatedRecurringPayment.message ?? "Recurring payment updated successfully",
+				updatedRecurringPayment.message ??
+				"Recurring payment updated successfully",
 		});
 		dispatchDrawerAction({ type: "CLOSE" });
 		dispatch(refresh());
@@ -290,7 +293,8 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
 
 		showSnackbar({
 			message:
-				deletedRecurringPayment.message ?? "Recurring payment deleted successfully",
+				deletedRecurringPayment.message ??
+				"Recurring payment deleted successfully",
 		});
 		dispatch(refresh());
 	};
@@ -527,8 +531,11 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
 										textDecoration: item.paused ? "line-through" : "unset",
 									}}
 								>
-									{/* {Formatter.date.format()} */}
-									{item.executeAt}
+									{Formatter.date.format(
+										Backend.recurringPayment.determineNextExecutionDate(
+											item.executeAt,
+										),
+									)}
 								</Typography>
 							</TableCell>
 							<TableCell>

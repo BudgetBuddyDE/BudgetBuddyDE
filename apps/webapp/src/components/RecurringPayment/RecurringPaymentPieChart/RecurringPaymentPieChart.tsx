@@ -97,9 +97,9 @@ export type RecurringPaymentPieChartProps = {
 	withViewMore?: boolean;
 };
 
-export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> = ({
-	withViewMore = false,
-}) => {
+export const RecurringPaymentPieChart: React.FC<
+	RecurringPaymentPieChartProps
+> = ({ withViewMore = false }) => {
 	const [state, dispatch] = React.useReducer(reducer, initialState);
 	const [recurringPaymentType, setRecurringPaymentType] =
 		React.useState<RecurringPaymentType>("INCOME");
@@ -121,10 +121,10 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
 					throw new Error("No recurring payments received");
 				}
 				const recurringPayments = (recurringPaymentResponse.data ?? []).filter(
-					(payment) =>
-						payment.transferAmount >= 0 === (type === "INCOME"),
+					(payment) => payment.transferAmount >= 0 === (type === "INCOME"),
 				);
-				const categoryStats = groupRecurringPaymentsByCategory(recurringPayments);
+				const categoryStats =
+					groupRecurringPaymentsByCategory(recurringPayments);
 				dispatch({
 					type: "success",
 					paymentType: type,
@@ -160,7 +160,9 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
 		if (state.error) return <ErrorComp error={state.error} />;
 		if (chartData.length === 0)
 			return (
-				<NoResults text={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].emptyText} />
+				<NoResults
+					text={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].emptyText}
+				/>
 			);
 
 		return (

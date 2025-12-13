@@ -23,7 +23,6 @@ export const UpcomingRecurringPaymentList: React.FC<
 	);
 	if (error) throw error;
 
-	const now = new Date();
 	return (
 		<RecurringPaymentList
 			title="Upcoming recurring payments"
@@ -31,7 +30,9 @@ export const UpcomingRecurringPaymentList: React.FC<
 			data={(recurringPayments.data ?? []).map((t) => ({
 				ID: t.id,
 				receiver: t.receiver,
-				nextExecution: new Date(now.getFullYear(), now.getMonth(), t.executeAt),
+				nextExecution: Backend.recurringPayment.determineNextExecutionDate(
+					t.executeAt,
+				),
 				transferAmount: t.transferAmount,
 				category: {
 					ID: t.category.id,
