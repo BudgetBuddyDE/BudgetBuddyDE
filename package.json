@@ -5,8 +5,8 @@
   "workspaces": [
     "packages/*",
     "services/*",
-    "apps/@budgetbuddyde/webapp"
-  ],
+    "apps/webapp"  
+],
   "scripts": {
     "prepare": "node .husky/install.mjs",
     "format": "turbo run format",
