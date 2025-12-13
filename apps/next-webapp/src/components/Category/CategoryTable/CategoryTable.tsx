@@ -214,7 +214,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 				}}
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
-				data={categories}
+				data={categories??[]}
 				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,

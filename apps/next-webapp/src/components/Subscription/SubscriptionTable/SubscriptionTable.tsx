@@ -90,10 +90,10 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 	> = async (payload, onSuccess) => {
 		const action = drawerState.action;
 
-		const parsedPayload = CreateOrUpdateRecurringPayment.omit({
-			ID: true,
+		const parsedPayload = CreateOrUpdateRecurringPayment
+		.omit({
+			paused: true,
 			executeAt: true,
-			receiver: true,
 			categoryId: true,
 			paymentMethodId: true,
 		})
@@ -107,12 +107,17 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				...payload,
 				transferAmount: Number(payload.transferAmount),
 			});
+			console.log("parsedPayload", parsedPayload);
+			console.log({
+				...payload,
+				transferAmount: Number(payload.transferAmount),
+			})
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
 				.map((issue) => issue.message)
 				.join(", ");
 			showSnackbar({
-				message: `Failed to ${action === "CREATE" ? "create" : "update"} subscription: ${issues}`,
+				message: `Failed to ${action === "CREATE" ? "create" : "update"} recurring payment: ${issues}`,
 				action: (
 					<Button onClick={() => handleFormSubmission(payload, onSuccess)}>
 						Retry
@@ -344,7 +349,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				{
 					size: { xs: 12, md: 6 },
 					type: "autocomplete",
-					name: "toCategory",
+					name: "category",
 					label: "Category",
 					placeholder: "Category",
 					required: true,
@@ -368,7 +373,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				{
 					size: { xs: 12, md: 6 },
 					type: "autocomplete",
-					name: "toPaymentMethod",
+					name: "paymentMethod",
 					label: "Payment Method",
 					placeholder: "Payment Method",
 					required: true,
@@ -500,7 +505,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 				}}
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
-				data={subscriptions}
+				data={subscriptions??[]}
 				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
@@ -556,7 +561,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = () => {
 								</Typography>
 							</TableCell>
 							<TableCell>
-								<Typography variant="body1">{item.information}</Typography>
+								<Typography variant="body1">{item.information ?? "No information"}</Typography>
 							</TableCell>
 							<TableCell align="right">
 								<EntityMenu<TExpandedRecurringPayment>

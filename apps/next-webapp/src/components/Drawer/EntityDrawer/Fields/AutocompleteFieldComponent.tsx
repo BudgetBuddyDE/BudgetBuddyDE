@@ -59,7 +59,7 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
 						required={field.required}
 						label={field.label}
 						placeholder={field.placeholder}
-						value={controllerField.value || null}
+						value={controllerField.value || undefined}
 						onChange={(_, value) => controllerField.onChange(value)}
 						searchAsYouType={!!field.searchAsYouType}
 						retrieveOptionsFunc={field.retrieveOptionsFunc}

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ODataContextAspect, ODataCountAspect } from "./_Base";
 import { ExpandedTransaction, Transaction } from "./Transaction";
 
 // Base model
@@ -32,19 +31,4 @@ export const CreateOrUpdateRecurringPayment = RecurringPayment.pick({
 });
 export type TCreateOrUpdateRecurringPayment = Partial<
 	z.infer<typeof CreateOrUpdateRecurringPayment>
->;
-
-/**
- * Subscription with Count
- */
-export const ExpandedRecurringPaymentsWithCount = z.object({
-	...ODataContextAspect.shape,
-	...ODataCountAspect.shape,
-	value: z.array(ExpandedRecurringPayment),
-});
-/**
- * Subscriptions with Count
- */
-export type TExpandedRecurringPaymentsWithCount = z.infer<
-	typeof ExpandedRecurringPaymentsWithCount
 >;

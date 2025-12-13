@@ -15,23 +15,3 @@ export const ApiResponse = z.object({
 export type TApiResponse<T> = z.infer<typeof ApiResponse> & {
 	data: T;
 };
-
-// export const UserID = z.string().nonempty();
-
-export const DescriptionType = z
-	.string()
-	.nullable()
-	.default(null)
-	.transform((val) => (val === "" ? null : val));
-
-export const ODataContextAspect = z.object({
-	"@odata.context": z.string().optional(),
-});
-
-export const ODataCountAspect = z.object({
-	"@odata.count": z.number().min(0),
-});
-
-export const OwnerAspect = z.object({
-	owner: UserID,
-});

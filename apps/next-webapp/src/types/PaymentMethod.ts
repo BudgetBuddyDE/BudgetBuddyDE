@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ODataContextAspect, ODataCountAspect, UserID } from "./_Base";
+import { UserID } from "./_Base";
 
 // Base model
 export const PaymentMethod = z.object({
@@ -23,19 +23,6 @@ export const CreateOrUpdatePaymentMethod = PaymentMethod.pick({
 export type TCreateOrUpdatePaymentMethod = z.infer<
 	typeof CreateOrUpdatePaymentMethod
 >;
-
-/**
- * PaymentMethods with Count
- */
-export const PaymentMethodsWithCount = z.object({
-	...ODataContextAspect.shape,
-	...ODataCountAspect.shape,
-	value: z.array(PaymentMethod),
-});
-/**
- * PaymentMethods with Count
- */
-export type TPaymentMethodsWithCount = z.infer<typeof PaymentMethodsWithCount>;
 
 // Value-Help
 export const PaymentMethodVH = PaymentMethod.pick({

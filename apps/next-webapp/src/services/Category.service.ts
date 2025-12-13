@@ -1,20 +1,17 @@
 /** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
 import type { ServiceResponse } from "@budgetbuddyde/types";
-import type { OdataConfig, OdataQuery } from "@tklein1801/o.js";
 import { z } from "zod";
 import {
 	ApiResponse,
-	CategoriesWithCount,
 	Category,
 	CategoryStats,
 	CategoryVH,
-	type TCategoriesWithCount,
 	type TCategoryStats,
 	type TCategoryVH,
 	type TCreateOrUpdateCategory,
 } from "@/types";
 import { Formatter } from "@/utils/Formatter";
-import { EntityService, NewEntityService } from "./Entity.service";
+import { NewEntityService } from "./Entity.service";
 
 const GetAllCategories = ApiResponse.extend({
 	data: z.array(Category).nullable(),
@@ -114,40 +111,6 @@ export class NewCategoryService extends NewEntityService<
 			return [parsingResult.data.data ?? [], null];
 		} catch (error) {
 			return this.handleError(error);
-		}
-	}
-}
-
-export class CategoryService extends EntityService {
-	static {
-		this.entity = "Category";
-	}
-
-	/**
-	 * Retrieves the list of categories from the database with a count of total categories.
-	 * @param query - The OData query parameters.
-	 * @param config - The OData configuration options.
-	 * @returns A promise that resolves to a ServiceResponse containing the categories and their count.
-	 */
-	static async getCategoriesWithCount(
-		query?: Omit<OdataQuery, "$count">,
-		config?: Partial<Omit<OdataConfig, "fragment">>,
-	): Promise<ServiceResponse<TCategoriesWithCount>> {
-		try {
-			const records = await this.newOdataHandler({
-				...config,
-				fragment: undefined,
-			})
-				.get(this.$entityPath)
-				.query({ ...query, $count: true });
-			this.logger.debug("Fetched categories:", records);
-			const parsingResult = CategoriesWithCount.safeParse(records);
-			if (!parsingResult.success) {
-				return this.handleZodError(parsingResult.error);
-			}
-			return [parsingResult.data, null];
-		} catch (e) {
-			return this.handleError(e);
 		}
 	}
 }

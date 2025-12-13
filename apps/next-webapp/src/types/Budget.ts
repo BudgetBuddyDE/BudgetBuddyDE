@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ODataContextAspect, ODataCountAspect, UserID } from "./_Base";
+import { UserID } from "./_Base";
 import { Category } from "./Category";
 
 export const BudgetType = z.enum(["i", "e"]);
@@ -10,7 +10,7 @@ export const Budget = z.object({
 	ownerId: UserID,
 	type: BudgetType,
 	budget: z.number().min(0, "The budget must be a positive number"),
-	balance: z.number().optional(),
+	balance: z.number(),
 	name: z.string().min(1).max(40),
 	description: z.string().max(200).nullable().default(null),
 	createdAt: z.iso.datetime(),
@@ -25,18 +25,6 @@ export const Budget = z.object({
 });
 export type TBudget = z.infer<typeof Budget>;
 
-/**
- * Budgets with Count
- */
-export const ExpandedBudgetsWithCount = z.object({
-	...ODataContextAspect.shape,
-	...ODataCountAspect.shape,
-	value: z.array(Budget),
-});
-export type TExpandedBudgetsWithCount = z.infer<
-	typeof ExpandedBudgetsWithCount
->;
-
 // Create or Update model
 export const CreateOrUpdateBudget = Budget.pick({
 	type: true,
@@ -47,10 +35,6 @@ export const CreateOrUpdateBudget = Budget.pick({
 	categories: z.array(Category.shape.id),
 });
 export type TCreateOrUpdateBudget = z.infer<typeof CreateOrUpdateBudget>;
-
-// Response from OData
-export const BudgetResponse = Budget.extend(ODataContextAspect.shape);
-export type TBudgetResponse = z.infer<typeof BudgetResponse>;
 
 export const EstimatedBudget = z.object({
 	expenses: z.object({

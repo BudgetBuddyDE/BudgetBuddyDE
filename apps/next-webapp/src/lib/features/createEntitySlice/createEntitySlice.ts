@@ -13,7 +13,7 @@ export type EntityFilters = {
 
 export type EntitySliceState<T> = {
 	count: number;
-	data: T[];
+	data: T | null;
 	filter: EntityFilters;
 	currentPage: number;
 	rowsPerPage: number;
@@ -21,10 +21,10 @@ export type EntitySliceState<T> = {
 	error: Error | null;
 };
 
-export function createInitialState<T>(initalData?: T[]): EntitySliceState<T> {
+export function createInitialState<T>(initalData?: T): EntitySliceState<T> {
 	return {
 		count: 0,
-		data: initalData || [],
+		data: initalData || null,
 		filter: { keyword: null },
 		currentPage: 0,
 		rowsPerPage: ITEMS_IN_VIEW,

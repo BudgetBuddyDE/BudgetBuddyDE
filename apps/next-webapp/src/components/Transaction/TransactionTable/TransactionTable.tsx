@@ -54,8 +54,8 @@ type EntityFormFields = FirstLevelNullable<
 		| "information"
 	> & {
 		// Because we're gonna use Autocompletes for relations, we need to override those types
-		toCategory: TCategoryVH;
-		toPaymentMethod: TPaymentMethodVH;
+		category: TCategoryVH;
+		paymentMethod: TPaymentMethodVH;
 		receiver: TReceiverVH | ({ new: true; label: string } & TReceiverVH);
 	}
 >;
@@ -94,22 +94,26 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 		const action = drawerState.action;
 
 		const parsedPayload = CreateOrUpdateTransaction.omit({
-			ID: true,
 			processedAt: true,
 			receiver: true,
-			toCategory_ID: true,
-			toPaymentMethod_ID: true,
+			categoryId: true,
+			paymentMethodId: true,
 		})
 			.extend({
 				processedAt: CdsDate,
-				toCategory: CategoryVH,
-				toPaymentMethod: PaymentMethodVH,
+				category: CategoryVH,
+				paymentMethod: PaymentMethodVH,
 				receiver: ReceiverVH,
 			})
 			.safeParse({
 				...payload,
 				transferAmount: Number(payload.transferAmount),
 			});
+			console.log("Parsed Payload:", parsedPayload);
+			console.log({
+				...payload,
+				transferAmount: Number(payload.transferAmount),
+			})
 		if (!parsedPayload.success) {
 			const issues: string = parsedPayload.error.issues
 				.map((issue) => issue.message)
@@ -128,16 +132,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 		if (action === "CREATE") {
 			const {
 				processedAt,
-				toCategory,
-				toPaymentMethod,
+				category,
+				paymentMethod,
 				receiver,
 				information,
 				transferAmount,
 			} = parsedPayload.data;
 			const [_, error] = await new _TransactionService().create({
 				processedAt: processedAt,
-				categoryId: toCategory.id,
-				paymentMethodId: toPaymentMethod.id,
+				categoryId: category.id,
+				paymentMethodId: paymentMethod.id,
 				receiver: receiver.receiver,
 				information: information && information.length > 0 ? information : null,
 				transferAmount: transferAmount,
@@ -170,16 +174,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 			}
 			const {
 				processedAt,
-				toCategory,
-				toPaymentMethod,
+				category,
+				paymentMethod,
 				receiver,
 				information,
 				transferAmount,
 			} = parsedPayload.data;
 			const [_, error] = await new _TransactionService().updateById(entityId, {
 				processedAt: processedAt,
-				categoryId: toCategory.id,
-				paymentMethodId: toPaymentMethod.id,
+				categoryId: category.id,
+				paymentMethodId: paymentMethod.id,
 				receiver: receiver.receiver,
 				information: information && information.length > 0 ? information : null,
 				transferAmount: transferAmount,
@@ -225,14 +229,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 			action: "EDIT",
 			defaultValues: {
 				id,
-				processedAt,
+				processedAt: processedAt instanceof Date ? processedAt : new Date(processedAt),
 				receiver: { receiver: receiver },
-				toCategory: {
+				category: {
 					id: category.id,
 					name: category.name,
 					description: category.description,
 				},
-				toPaymentMethod: {
+				paymentMethod: {
 					id: paymentMethod.id,
 					name: paymentMethod.name,
 					address: paymentMethod.address,
@@ -309,7 +313,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				{
 					size: { xs: 12, md: 6 },
 					type: "autocomplete",
-					name: "toCategory",
+					name: "category",
 					label: "Category",
 					placeholder: "Category",
 					required: true,
@@ -333,7 +337,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				{
 					size: { xs: 12, md: 6 },
 					type: "autocomplete",
-					name: "toPaymentMethod",
+					name: "paymentMethod",
 					label: "Payment Method",
 					placeholder: "Payment Method",
 					required: true,
@@ -481,7 +485,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				}}
 				totalEntityCount={totalEntityCount}
 				isLoading={status === "loading"}
-				data={transactions}
+				data={transactions ?? []}
 				dataKey={"id"}
 				pagination={{
 					count: totalEntityCount,
@@ -531,7 +535,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 								</Typography>
 							</TableCell>
 							<TableCell>
-								<Typography variant="body1">{item.information}</Typography>
+								<Typography variant="body1">{item.information?? "No information"}</Typography>
 							</TableCell>
 							<TableCell align="right">
 								<EntityMenu<TExpandedTransaction>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ODataContextAspect, ODataCountAspect, UserID } from "./_Base";
+import { UserID } from "./_Base";
 import { Category } from "./Category";
 import { PaymentMethod } from "./PaymentMethod";
 
@@ -37,21 +37,6 @@ export const CreateOrUpdateTransaction = Transaction.pick({
 });
 export type TCreateOrUpdateTransaction = z.infer<
 	typeof CreateOrUpdateTransaction
->;
-
-/**
- * Transactions with Count
- */
-export const ExpandedTransactionsWithCount = z.object({
-	...ODataContextAspect.shape,
-	...ODataCountAspect.shape,
-	value: z.array(ExpandedTransaction),
-});
-/**
- * Transactions with Count
- */
-export type TExpandedTransactionsWithCount = z.infer<
-	typeof ExpandedTransactionsWithCount
 >;
 
 /**

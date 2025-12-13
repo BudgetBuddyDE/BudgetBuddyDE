@@ -21,7 +21,7 @@ import { Pagination } from "@/components/Table/EntityTable/Pagination";
 import { budgetSlice } from "@/lib/features/budgets/budgetSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/logger";
-import { _BudgetService, BudgetService } from "@/services/Budget.service";
+import { _BudgetService } from "@/services/Budget.service";
 import { NewCategoryService } from "@/services/Category.service";
 import { CreateOrUpdateBudget, type TBudget, type TCategoryVH } from "@/types";
 import { type Budget, BudgetItem, type BudgetItemProps } from "./BudgetItem";
@@ -82,7 +82,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 	};
 
 	const handleDeleteEntity = async (entity: Budget) => {
-		const [success, error] = await BudgetService.delete(entity.ID);
+		const [success, error] = await new _BudgetService().deleteById(entity.ID);
 		if (error || !success) {
 			return showSnackbar({
 				message: error.message,
@@ -306,10 +306,10 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 					/>
 					{status === "loading" ? (
 						<CircularProgress />
-					) : budgets && budgets.length > 0 ? (
+					) : budgets !== null && budgets.length > 0 ? (
 						<Stack rowGap={1}>
 							{budgets.map(
-								({ id, name, budget, type, categories }) => {
+								({ id, name, budget, balance, type, categories }) => {
 									return (
 										<BudgetItem
 											key={id}
@@ -318,7 +318,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 												name,
 												type,
 												budget,
-												balance: 0, // FIXME: Get actuall current balance
+												balance,
 												categories: categories.map(
 													({ category: {id, name, description} }) => ({
 														id,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ODataContextAspect, ODataCountAspect, UserID } from "./_Base";
+import { UserID } from "./_Base";
 
 /**
  * Category
@@ -28,19 +28,6 @@ export const CreateOrUpdateCategory = Category.pick({
  * Create or Update Category
  */
 export type TCreateOrUpdateCategory = z.infer<typeof CreateOrUpdateCategory>;
-
-/**
- * Categories with Count
- */
-export const CategoriesWithCount = z.object({
-	...ODataContextAspect.shape,
-	...ODataCountAspect.shape,
-	value: z.array(Category),
-});
-/**
- * Categories with Count
- */
-export type TCategoriesWithCount = z.infer<typeof CategoriesWithCount>;
 
 /**
  * Value Help for Category
