@@ -1,4 +1,4 @@
-import {and, eq, gte, inArray, lte, sql} from 'drizzle-orm';
+import {and, eq, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -129,6 +129,7 @@ budgetRouter.get('/estimated', async (req, res) => {
     .buildAndSend(res);
 });
 
+// REVISIT: Optimize the queries below for performance and cache the results where possible
 budgetRouter.get(
   '/',
   validateRequest({
@@ -184,44 +185,17 @@ budgetRouter.get(
     // Calculate balances for each budget
     const updatedBudgets = [] as ((typeof records)[number] & {balance: number})[];
     for await (const budget of records) {
+      const budgetBalance = await calculateBudgetBalance(
+        budget.ownerId,
+        budget.type,
+        budget.categories.map(c => c.categoryId),
+      );
+
       updatedBudgets.push({
         ...budget,
-        balance: 0,
+        balance: budgetBalance,
       });
     }
-
-    // for (const budget of records) {
-    //   const categoryIds = budget.categories.map(c => c.categoryId);
-
-    //   const incomeResult = await db
-    //     .select({
-    //       total: sql<number>`SUM(${transactions.transferAmount})`.as('total'),
-    //     })
-    //     .from(transactions)
-    //     .where(
-    //       and(
-    //         eq(transactions.ownerId, userId),
-    //         gte(transactions.transferAmount, 0),
-    //         inArray(transactions.categoryId, categoryIds),
-    //       ),
-    //     );
-    //   const expenseResult = await db
-    //     .select({
-    //       total: sql<number>`SUM(ABS(${transactions.transferAmount}))`.as('total'),
-    //     })
-    //     .from(transactions)
-    //     .where(
-    //       and(
-    //         eq(transactions.ownerId, userId),
-    //         lte(transactions.transferAmount, 0),
-    //         inArray(transactions.categoryId, categoryIds),
-    //       ),
-    //     );
-
-    //   const totalIncome = incomeResult[0].total || 0;
-    //   const totalExpenses = expenseResult[0].total || 0;
-    //   budget.balance = totalIncome - totalExpenses;
-    // }
 
     ApiResponse.builder<typeof updatedBudgets>()
       .withStatus(HTTPStatusCode.OK)
@@ -269,10 +243,19 @@ budgetRouter.get(
       return;
     }
 
-    ApiResponse.builder<typeof record>()
+    const budgetWithBalance: (typeof record)[number] & {balance: number} = {
+      ...record[0],
+      balance: await calculateBudgetBalance(
+        record[0].id,
+        record[0].type,
+        record[0].categories.map(c => c.categoryId),
+      ),
+    };
+
+    ApiResponse.builder<typeof budgetWithBalance>()
       .withStatus(HTTPStatusCode.OK)
+      .withData(budgetWithBalance)
       .withMessage("Fetched user's budget successfully")
-      .withData(record)
       .withFrom('db')
       .buildAndSend(res);
   },
@@ -452,3 +435,24 @@ budgetRouter.delete(
     }
   },
 );
+
+async function calculateBudgetBalance(ownerId: string, budgetType: 'i' | 'e', categories: string[]): Promise<number> {
+  if (categories.length === 0) {
+    return 0;
+  }
+  const total = await db
+    .select({
+      total: sql<number>`SUM(COALESCE(${transactions.transferAmount}, 0)) * -1`.as('total'),
+    })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.ownerId, ownerId),
+        budgetType === 'i'
+          ? inArray(transactions.categoryId, categories)
+          : notInArray(transactions.categoryId, categories),
+      ),
+    );
+
+  return total[0].total || 0;
+}
