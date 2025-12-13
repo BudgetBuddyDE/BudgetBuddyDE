@@ -1,5 +1,5 @@
 {
-  "name": "next-webapp",
+  "name": "@budgetbuddyde/webapp",
   "version": "3.0.0",
   "private": true,
   "scripts": {
