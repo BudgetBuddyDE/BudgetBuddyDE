@@ -1,7 +1,0 @@
-.vscode/
-@cds-models
-docs/
-gen/
-node_modules/
-test/
-db.sqlite

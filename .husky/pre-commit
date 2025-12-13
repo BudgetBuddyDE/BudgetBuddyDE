@@ -45,10 +45,5 @@ if has_changes "services/new-backend"; then
   cd services/new-backend && npm test && npm run build && go_back || exit 1
 fi 
 
-if has_changes "services/backend"; then
-  echo "Running checks for services/backend..."
-  cd services/backend && npm test && npm run build && go_back || exit 1
-fi 
-
 echo "✅ Pre-commit checks passed!"
 echo ""
