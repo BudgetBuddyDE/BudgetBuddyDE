@@ -1,5 +1,5 @@
 {
-  "name": "@budgetbuddyde/new-backend",
+  "name": "@budgetbuddyde/backend",
   "version": "1.0.0",
   "main": "build/src/server.js",
   "scripts": {
