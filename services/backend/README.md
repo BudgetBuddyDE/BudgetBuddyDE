@@ -46,6 +46,10 @@ The connection string for the PostgreSQL database.
 
 The connection string for the Redis cache.
 
+##### `REDIS_DB`
+
+The index of the Redis database to use. If not set, it defaults to `1`.
+
 #### `AUTH_SERVICE_HOST`
 
 The base URL of the authentication service. If not set, it defaults to `http://localhost:8080`.

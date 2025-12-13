@@ -14,7 +14,7 @@ export function getRedisClient(): Redis {
       throw new EnvironmentVariableNotSetError('REDIS_URL');
     }
     redis = new Redis(redisUrl, {
-      db: 0,
+      db: Number(process.env.REDIS_DB) || 1,
     });
 
     redis.on('connect', () => {
