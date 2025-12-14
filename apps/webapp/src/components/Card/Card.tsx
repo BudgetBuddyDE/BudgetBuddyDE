@@ -11,7 +11,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
 		<Paper
 			ref={ref}
 			elevation={3}
-			sx={{ p: 2, borderRadius: 2, ...sx }}
+			sx={{ p: 2, borderRadius: 2, boxShadow: "unset", ...sx }}
 			{...props}
 		>
 			{children}
