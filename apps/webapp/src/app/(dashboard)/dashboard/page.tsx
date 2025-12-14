@@ -18,11 +18,9 @@ export default function DashboardPage() {
 			</React.Suspense>
 
 			<Grid size={{ xs: 12, md: 6, lg: 4 }} order={{ xs: 3, md: 1 }}>
-				<Stack spacing={2}>
-					<React.Suspense fallback={<CircularProgress />}>
-						<UpcomingRecurringPaymentList />
-					</React.Suspense>
-				</Stack>
+				<React.Suspense fallback={<CircularProgress />}>
+					<UpcomingRecurringPaymentList />
+				</React.Suspense>
 			</Grid>
 
 			<Grid size={{ xs: 12, md: 6, lg: 4 }} order={{ xs: 1, md: 2 }}>
