@@ -8,7 +8,7 @@ import { Card } from "@/components/Card";
 import { useSnackbarContext } from "@/components/Snackbar";
 import { useKeyPress } from "@/hooks/useKeyPress";
 import { logger } from "@/logger";
-import { DeleteDialog } from "./DeleteDialog";
+import { DeleteUserDialog } from "./DeleteUserDialog";
 
 // TODO: Re-implement account deletion functionality
 export const EditUser = () => {
@@ -276,7 +276,7 @@ export const EditUser = () => {
 				</Card.Body>
 			</Card>
 
-			<DeleteDialog
+			<DeleteUserDialog
 				open={showAccountDeletionDialog}
 				onCancel={accountDeletionHandler.onCancelDeletion}
 				onClose={accountDeletionHandler.onCancelDeletion}

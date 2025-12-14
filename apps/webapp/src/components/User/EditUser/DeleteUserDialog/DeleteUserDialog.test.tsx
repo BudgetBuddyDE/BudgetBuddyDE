@@ -1,12 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { DeleteDialog } from "./DeleteDialog";
+import { DeleteUserDialog } from "./DeleteUserDialog";
 
 describe("DeleteDialog", () => {
 	it("renders the dialog when open is true", () => {
 		render(
-			<DeleteDialog
+			<DeleteUserDialog
 				open={true}
 				onCancel={vi.fn()}
 				onConfirm={vi.fn()}
@@ -21,7 +21,7 @@ describe("DeleteDialog", () => {
 
 	it("does not render the dialog when open is false", () => {
 		render(
-			<DeleteDialog
+			<DeleteUserDialog
 				open={false}
 				onCancel={vi.fn()}
 				onConfirm={vi.fn()}
@@ -34,7 +34,7 @@ describe("DeleteDialog", () => {
 	it("calls onCancel when the cancel button is clicked", () => {
 		const onCancel = vi.fn();
 		render(
-			<DeleteDialog
+			<DeleteUserDialog
 				open={true}
 				onCancel={onCancel}
 				onConfirm={vi.fn()}
@@ -48,7 +48,7 @@ describe("DeleteDialog", () => {
 	it("calls onConfirm when the confirm button is clicked", () => {
 		const onConfirm = vi.fn();
 		render(
-			<DeleteDialog
+			<DeleteUserDialog
 				open={true}
 				onCancel={vi.fn()}
 				onConfirm={onConfirm}
@@ -61,7 +61,7 @@ describe("DeleteDialog", () => {
 
 	it("renders with transition when withTransition is true", () => {
 		render(
-			<DeleteDialog
+			<DeleteUserDialog
 				open={true}
 				onCancel={vi.fn()}
 				onConfirm={vi.fn()}

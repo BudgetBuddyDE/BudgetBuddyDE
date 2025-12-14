@@ -29,7 +29,7 @@ export type DeleteDialogProps = Pick<
 	withTransition?: boolean;
 };
 
-export const DeleteDialog: React.FC<DeleteDialogProps> = ({
+export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
 	open,
 	onClose,
 	maxWidth = "xs",
