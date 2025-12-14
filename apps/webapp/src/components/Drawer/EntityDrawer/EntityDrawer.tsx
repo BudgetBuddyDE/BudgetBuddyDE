@@ -57,7 +57,8 @@ export const EntityDrawer = <T extends FieldValues>({
 	const saveBtnRef = React.useRef<HTMLButtonElement | null>(null);
 	const form = useForm<T>({
 		defaultValues: defaultValues,
-		mode: "onBlur", // Validation on blur only for better UX
+		// Validation on submit only for better UX and preventing excessive re-renders and validations
+		mode: "onSubmit",
 	});
 
 	// Shortcut for saving/submitting (Strg/Cmd + S)
