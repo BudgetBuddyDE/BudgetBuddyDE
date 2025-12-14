@@ -66,7 +66,7 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
 			>
 				<Icon
 					icon={isOverBudget ? <WarningRounded /> : <ThumbUpAltRounded />}
-					iconColor={isOverBudget ? "error" : "primary"}
+					iconcolor={isOverBudget ? "error" : "primary"}
 					sx={{ mr: 1 }}
 				/>
 				<Box sx={{ mr: 1 }}>

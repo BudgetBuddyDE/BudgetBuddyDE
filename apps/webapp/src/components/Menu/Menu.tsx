@@ -68,9 +68,10 @@ export const Menu: React.FC<MenuProps> = ({
 				{...menuProps}
 				open={open}
 			>
-				{actions.map((action) => (
+				{actions.map((action, idx) => (
 					<MenuItem
-						key={id}
+						// biome-ignore lint/suspicious/noArrayIndexKey: It's fine here
+						key={`${id}-action-${idx}`}
 						{...action}
 						onClick={(event) => {
 							action.onClick?.(event);

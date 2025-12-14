@@ -12,8 +12,8 @@ export type TColorKeys =
 	| "success";
 
 export const IconBackground = styled(Box)<{
-	iconColor?: TColorKeys;
-}>(({ theme, iconColor }) => ({
+	iconcolor?: TColorKeys;
+}>(({ theme, iconcolor: iconColor }) => ({
 	display: "flex",
 	justifyContent: "center",
 	alignItems: "center",
@@ -31,7 +31,7 @@ export const IconBackground = styled(Box)<{
 
 export type TIconProps = BoxProps & {
 	icon: React.ReactNode;
-	iconColor?: TColorKeys;
+	iconcolor?: TColorKeys;
 };
 
 export const Icon: React.FC<TIconProps> = React.forwardRef((props, ref) => {

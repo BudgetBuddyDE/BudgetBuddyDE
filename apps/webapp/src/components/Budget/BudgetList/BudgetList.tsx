@@ -75,7 +75,6 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 	};
 
 	const handleEditEntity = ({ ID, type, name, budget, categories }: Budget) => {
-		const _now = new Date();
 		dispatchDrawerAction({
 			type: "OPEN",
 			action: "EDIT",
@@ -340,7 +339,10 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 											}}
 											onEditBudget={handleEditEntity}
 											onDeleteBudget={({ ID }) => {
-												dispatchDeleteDialogAction({ action: "OPEN", target: ID });
+												dispatchDeleteDialogAction({
+													action: "OPEN",
+													target: ID,
+												});
 											}}
 											onClickBudget={handleClickEntity}
 										/>
