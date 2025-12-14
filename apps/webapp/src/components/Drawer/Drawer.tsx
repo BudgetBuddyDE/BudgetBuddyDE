@@ -53,6 +53,11 @@ export const Drawer: React.FC<DrawerProps> = ({
 	if (drawerAnchor === "bottom") {
 		return (
 			<SwipeableDrawer
+				// IMPORTANT: Keep this value set to false in order to prevent issues with the Autocomplete components of the EntityDrawer
+				// When the value is not set, "value" and "defaultValue" props are not properly applied due to
+				// the component being kept mounted but unrendered when closed and loosing its "controlled" state
+				// I don't relly understand why this is happening, but setting keepMounted to false solves the issue
+				ModalProps={{ keepMounted: false }}
 				anchor={drawerAnchor}
 				disableBackdropTransition={!isIOS}
 				disableDiscovery={isIOS}
