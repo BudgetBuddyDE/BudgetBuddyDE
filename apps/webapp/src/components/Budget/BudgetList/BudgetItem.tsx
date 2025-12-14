@@ -16,7 +16,7 @@ export type Budget = {
 	name: string;
 	categories: TCategoryVH[];
 	budget: number;
-	balance?: number;
+	balance: number;
 };
 
 export type BudgetItemProps = {
@@ -72,7 +72,7 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
 				<Box sx={{ mr: 1 }}>
 					<Stack flexDirection={"row"} gap={1}>
 						<Typography variant="body1" fontWeight="bolder">
-							{budget.name}{" "}
+							{budget.name}
 						</Typography>
 						<Chip
 							label={budget.type === "i" ? "Include" : "Exclude"}
@@ -95,7 +95,7 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
 					}}
 				>
 					<Typography fontWeight="bold">
-						{Formatter.currency.formatBalance(budget.balance ?? 0)} /{" "}
+						{Formatter.currency.formatBalance(budget.balance <= 0 ? 0 : budget.balance)} /{" "}
 						{Formatter.currency.formatBalance(budget.budget)}
 					</Typography>
 				</Box>
