@@ -455,6 +455,7 @@ async function calculateBudgetBalance(ownerId: string, budgetType: 'i' | 'e', ca
   if (categories.length === 0) {
     return 0;
   }
+  const today = new Date();
   const total = await db
     .select({
       total: sql<number>`SUM(COALESCE(${transactions.transferAmount}, 0)) * -1`.as('total'),
@@ -466,6 +467,9 @@ async function calculateBudgetBalance(ownerId: string, budgetType: 'i' | 'e', ca
         budgetType === 'i'
           ? inArray(transactions.categoryId, categories)
           : notInArray(transactions.categoryId, categories),
+        // Only consider transactions in the current month and as of today
+        gte(transactions.processedAt, new Date(today.getFullYear(), today.getMonth(), 1)),
+        lte(transactions.processedAt, today),
       ),
     );
 
