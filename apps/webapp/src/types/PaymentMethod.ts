@@ -3,7 +3,7 @@ import { UserID } from "./_Base";
 
 // Base model
 export const PaymentMethod = z.object({
-	id: z.uuid().brand("CategoryID"),
+	id: z.uuid().brand("PaymentMethodID"),
 	ownerId: UserID,
 	name: z.string(),
 	provider: z.string().nonempty().min(1).max(100),

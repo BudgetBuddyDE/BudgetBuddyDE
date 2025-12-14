@@ -3,6 +3,11 @@
 import { Button, TableCell, TableRow, Typography } from "@mui/material";
 import React from "react";
 import {
+	DeleteDialog,
+	deleteDialogReducer,
+	getInitialDeleteDialogState,
+} from "@/components/Dialog";
+import {
 	EntityDrawer,
 	type EntityDrawerFormHandler,
 	entityDrawerReducer,
@@ -41,6 +46,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 	const [drawerState, dispatchDrawerAction] = React.useReducer(
 		entityDrawerReducer,
 		getInitialEntityDrawerState<EntityFormFields>(),
+	);
+	const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
+		deleteDialogReducer,
+		getInitialDeleteDialogState<TCategory["id"]>(),
 	);
 
 	const closeEntityDrawer = () => {
@@ -134,15 +143,14 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 		});
 	};
 
-	const handleDeleteEntity = async (entity: TCategory) => {
-		const [deletedCategory, error] = await Backend.category.deleteById(
-			entity.id,
-		);
+	const handleDeleteEntity = async (entityId: TCategory["id"]) => {
+		const [deletedCategory, error] =
+			await Backend.category.deleteById(entityId);
 		if (error || !deletedCategory) {
 			return showSnackbar({
 				message: error.message,
 				action: (
-					<Button onClick={() => handleDeleteEntity(entity)}>Retry</Button>
+					<Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>
 				),
 			});
 		}
@@ -251,7 +259,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 								<EntityMenu
 									entity={item}
 									handleEditEntity={handleEditEntity}
-									handleDeleteEntity={handleDeleteEntity}
+									handleDeleteEntity={({ id }) => {
+										dispatchDeleteDialogAction({ action: "OPEN", target: id });
+									}}
 								/>
 							</TableCell>
 						</TableRow>
@@ -295,6 +305,27 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 						rows: 2,
 					},
 				]}
+			/>
+			<DeleteDialog
+				open={deleteDialogState.isOpen}
+				text={{
+					content:
+						"Are you sure you want to delete this category?\nThis will delete all associated transactions and recurring payments as well.",
+				}}
+				onCancel={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onClose={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onConfirm={() => {
+					dispatchDeleteDialogAction({
+						action: "CONFIRM",
+						callback: (id) => {
+							return handleDeleteEntity(id);
+						},
+					});
+				}}
 			/>
 		</React.Fragment>
 	);

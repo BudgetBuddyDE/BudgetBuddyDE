@@ -13,6 +13,11 @@ import {
 import React from "react";
 import { CategoryChip } from "@/components/Category/CategoryChip";
 import {
+	DeleteDialog,
+	deleteDialogReducer,
+	getInitialDeleteDialogState,
+} from "@/components/Dialog";
+import {
 	EntityDrawer,
 	type EntityDrawerField,
 	type EntityDrawerFormHandler,
@@ -78,6 +83,10 @@ export const RecurringPaymentTable: React.FC<
 	const [drawerState, dispatchDrawerAction] = React.useReducer(
 		entityDrawerReducer,
 		getInitialEntityDrawerState<EntityFormFields>(),
+	);
+	const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
+		deleteDialogReducer,
+		getInitialDeleteDialogState<TRecurringPayment["id"]>(),
 	);
 
 	const closeEntityDrawer = () => {
@@ -279,14 +288,16 @@ export const RecurringPaymentTable: React.FC<
 		dispatch(refresh());
 	};
 
-	const handleDeleteEntity = async (entity: TExpandedRecurringPayment) => {
+	const handleDeleteEntity = async (
+		entityId: TExpandedRecurringPayment["id"],
+	) => {
 		const [deletedRecurringPayment, error] =
-			await Backend.recurringPayment.deleteById(entity.id);
+			await Backend.recurringPayment.deleteById(entityId);
 		if (!deletedRecurringPayment || error) {
 			return showSnackbar({
 				message: error.message,
 				action: (
-					<Button onClick={() => handleDeleteEntity(entity)}>Retry</Button>
+					<Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>
 				),
 			});
 		}
@@ -566,7 +577,9 @@ export const RecurringPaymentTable: React.FC<
 								<EntityMenu<TExpandedRecurringPayment>
 									entity={item}
 									handleEditEntity={handleEditEntity}
-									handleDeleteEntity={handleDeleteEntity}
+									handleDeleteEntity={({ id }) => {
+										dispatchDeleteDialogAction({ action: "OPEN", target: id });
+									}}
 									actions={[
 										{
 											children: item.paused ? "Resume" : "Pause",
@@ -605,6 +618,26 @@ export const RecurringPaymentTable: React.FC<
 				}}
 				defaultValues={drawerState.defaultValues ?? undefined}
 				fields={EntityFormFields}
+			/>
+			<DeleteDialog
+				open={deleteDialogState.isOpen}
+				text={{
+					content: "Are you sure you want to delete this recurring payment?",
+				}}
+				onCancel={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onClose={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onConfirm={() => {
+					dispatchDeleteDialogAction({
+						action: "CONFIRM",
+						callback: (id) => {
+							return handleDeleteEntity(id);
+						},
+					});
+				}}
 			/>
 		</React.Fragment>
 	);

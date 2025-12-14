@@ -15,6 +15,11 @@ import React from "react";
 import { CategoryChip } from "@/components/Category/CategoryChip";
 import { type Command, useCommandPalette } from "@/components/CommandPalette";
 import {
+	DeleteDialog,
+	deleteDialogReducer,
+	getInitialDeleteDialogState,
+} from "@/components/Dialog";
+import {
 	EntityDrawer,
 	type EntityDrawerField,
 	type EntityDrawerFormHandler,
@@ -80,6 +85,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 	const [drawerState, dispatchDrawerAction] = React.useReducer(
 		entityDrawerReducer,
 		getInitialEntityDrawerState<EntityFormFields>(),
+	);
+	const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
+		deleteDialogReducer,
+		getInitialDeleteDialogState<TTransaction["id"]>(),
 	);
 
 	const closeEntityDrawer = () => {
@@ -248,15 +257,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 		});
 	};
 
-	const handleDeleteEntity = async (entity: TExpandedTransaction) => {
-		const [deletedTransaction, error] = await Backend.transaction.deleteById(
-			entity.id,
-		);
+	const handleDeleteEntity = async (entityId: TExpandedTransaction["id"]) => {
+		const [deletedTransaction, error] =
+			await Backend.transaction.deleteById(entityId);
 		if (error || !deletedTransaction) {
 			return showSnackbar({
 				message: error.message,
 				action: (
-					<Button onClick={() => handleDeleteEntity(entity)}>Retry</Button>
+					<Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>
 				),
 			});
 		}
@@ -542,7 +550,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 								<EntityMenu<TExpandedTransaction>
 									entity={item}
 									handleEditEntity={handleEditEntity}
-									handleDeleteEntity={handleDeleteEntity}
+									handleDeleteEntity={({ id }) => {
+										dispatchDeleteDialogAction({ action: "OPEN", target: id });
+									}}
 								/>
 							</TableCell>
 						</TableRow>
@@ -575,6 +585,26 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 				}}
 				defaultValues={drawerState.defaultValues ?? undefined}
 				fields={EntityFormFields}
+			/>
+			<DeleteDialog
+				open={deleteDialogState.isOpen}
+				text={{
+					content: "Are you sure you want to delete this transaction?",
+				}}
+				onCancel={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onClose={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onConfirm={() => {
+					dispatchDeleteDialogAction({
+						action: "CONFIRM",
+						callback: (id) => {
+							return handleDeleteEntity(id);
+						},
+					});
+				}}
 			/>
 		</React.Fragment>
 	);

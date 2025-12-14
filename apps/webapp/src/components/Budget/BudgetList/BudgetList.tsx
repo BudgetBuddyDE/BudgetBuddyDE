@@ -6,6 +6,11 @@ import React from "react";
 import { ActionPaper } from "@/components/ActionPaper";
 import { Card } from "@/components/Card";
 import {
+	DeleteDialog,
+	deleteDialogReducer,
+	getInitialDeleteDialogState,
+} from "@/components/Dialog";
+import {
 	EntityDrawer,
 	type EntityDrawerField,
 	type EntityDrawerFormHandler,
@@ -50,6 +55,10 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		entityDrawerReducer,
 		getInitialEntityDrawerState<EntityFormFields>(),
 	);
+	const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
+		deleteDialogReducer,
+		getInitialDeleteDialogState<TBudget["id"]>(),
+	);
 
 	const handleCreateEntity = () => {
 		dispatchDrawerAction({
@@ -80,18 +89,18 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 		});
 	};
 
-	const handleDeleteEntity = async (entity: Budget) => {
-		const [success, error] = await Backend.budget.deleteById(entity.ID);
+	const handleDeleteEntity = async (entityId: Budget["ID"]) => {
+		const [success, error] = await Backend.budget.deleteById(entityId);
 		if (error || !success) {
 			return showSnackbar({
 				message: error.message,
 				action: (
-					<Button onClick={() => handleDeleteEntity(entity)}>Retry</Button>
+					<Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>
 				),
 			});
 		}
 
-		showSnackbar({ message: `Budget '${entity.name}' deleted successfully` });
+		showSnackbar({ message: success.message || "Budget deleted successfully" });
 		dispatch(refresh());
 	};
 
@@ -330,7 +339,9 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 												),
 											}}
 											onEditBudget={handleEditEntity}
-											onDeleteBudget={handleDeleteEntity}
+											onDeleteBudget={({ ID }) => {
+												dispatchDeleteDialogAction({ action: "OPEN", target: ID });
+											}}
 											onClickBudget={handleClickEntity}
 										/>
 									);
@@ -378,6 +389,26 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 				}}
 				defaultValues={drawerState.defaultValues ?? undefined}
 				fields={EntityFormFields}
+			/>
+			<DeleteDialog
+				open={deleteDialogState.isOpen}
+				text={{
+					content: "Are you sure you want to delete this budget?",
+				}}
+				onCancel={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onClose={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onConfirm={() => {
+					dispatchDeleteDialogAction({
+						action: "CONFIRM",
+						callback: (id) => {
+							return handleDeleteEntity(id);
+						},
+					});
+				}}
 			/>
 		</React.Fragment>
 	);

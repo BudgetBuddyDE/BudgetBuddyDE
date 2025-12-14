@@ -3,6 +3,11 @@
 import { Button, TableCell, TableRow, Typography } from "@mui/material";
 import React from "react";
 import {
+	DeleteDialog,
+	deleteDialogReducer,
+	getInitialDeleteDialogState,
+} from "@/components/Dialog";
+import {
 	EntityDrawer,
 	type EntityDrawerFormHandler,
 	entityDrawerReducer,
@@ -41,6 +46,10 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 	const [drawerState, dispatchDrawerAction] = React.useReducer(
 		entityDrawerReducer,
 		getInitialEntityDrawerState<EntityFormFields>(),
+	);
+	const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
+		deleteDialogReducer,
+		getInitialDeleteDialogState<TPaymentMethod["id"]>(),
 	);
 
 	const closeEntityDrawer = () => {
@@ -139,14 +148,14 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 		});
 	};
 
-	const handleDeleteEntity = async (entity: TPaymentMethod) => {
+	const handleDeleteEntity = async (entityId: TPaymentMethod["id"]) => {
 		const [deletedPaymentMethod, error] =
-			await Backend.paymentMethod.deleteById(entity.id);
+			await Backend.paymentMethod.deleteById(entityId);
 		if (error || !deletedPaymentMethod) {
 			return showSnackbar({
 				message: error.message,
 				action: (
-					<Button onClick={() => handleDeleteEntity(entity)}>Retry</Button>
+					<Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>
 				),
 			});
 		}
@@ -265,7 +274,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 								<EntityMenu
 									entity={item}
 									handleEditEntity={handleEditEntity}
-									handleDeleteEntity={handleDeleteEntity}
+									handleDeleteEntity={({ id }) => {
+										dispatchDeleteDialogAction({ action: "OPEN", target: id });
+									}}
 								/>
 							</TableCell>
 						</TableRow>
@@ -325,6 +336,27 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 						rows: 2,
 					},
 				]}
+			/>
+			<DeleteDialog
+				open={deleteDialogState.isOpen}
+				text={{
+					content:
+						"Are you sure you want to delete this payment method?\nThis will delete all associated transactions and recurring payments as well.",
+				}}
+				onCancel={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onClose={() => {
+					dispatchDeleteDialogAction({ action: "CLOSE" });
+				}}
+				onConfirm={() => {
+					dispatchDeleteDialogAction({
+						action: "CONFIRM",
+						callback: (id) => {
+							return handleDeleteEntity(id);
+						},
+					});
+				}}
 			/>
 		</React.Fragment>
 	);
