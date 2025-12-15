@@ -51,10 +51,14 @@ transactionRouter.get(
     const query = req.query;
     const additionalFilters: TAdditionalFilter<(typeof transactions)['_']['config']>[] = [];
     if (query.$dateFrom) {
-      additionalFilters.push({columnName: 'processedAt', operator: 'gte', value: query.$dateFrom});
+      const dateFrom = new Date(query.$dateFrom);
+      dateFrom.setHours(0, 0, 0, 0);
+      additionalFilters.push({columnName: 'processedAt', operator: 'gte', value: dateFrom});
     }
     if (query.$dateTo) {
-      additionalFilters.push({columnName: 'processedAt', operator: 'lte', value: query.$dateTo});
+      const dateTo = new Date(query.$dateTo);
+      dateTo.setHours(23, 59, 59, 999);
+      additionalFilters.push({columnName: 'processedAt', operator: 'lte', value: dateTo});
     }
 
     const filter = assembleFilter(
