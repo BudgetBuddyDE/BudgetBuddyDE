@@ -95,8 +95,10 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({
 					}}
 				>
 					<Typography fontWeight="bold">
-						{Formatter.currency.formatBalance(budget.balance <= 0 ? 0 : budget.balance)} /{" "}
-						{Formatter.currency.formatBalance(budget.budget)}
+						{Formatter.currency.formatBalance(
+							budget.balance <= 0 ? 0 : budget.balance,
+						)}{" "}
+						/ {Formatter.currency.formatBalance(budget.budget)}
 					</Typography>
 				</Box>
 			</Stack>
