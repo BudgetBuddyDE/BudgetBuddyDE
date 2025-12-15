@@ -14,6 +14,7 @@ import {
   type FirstLevelNullable,
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
+import {AddFab, FabContainer} from '@/components/FAB';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
@@ -520,6 +521,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
           });
         }}
       />
+
+      <FabContainer>
+        <AddFab onClick={handleCreateEntity} label="Add transaction" />
+      </FabContainer>
     </React.Fragment>
   );
 };

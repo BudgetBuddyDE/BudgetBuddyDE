@@ -12,6 +12,7 @@ import {
   type FirstLevelNullable,
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
+import {AddFab, FabContainer} from '@/components/FAB';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
@@ -534,6 +535,10 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
           });
         }}
       />
+
+      <FabContainer>
+        <AddFab onClick={handleCreateEntity} label="Add recurring payment" />
+      </FabContainer>
     </React.Fragment>
   );
 };

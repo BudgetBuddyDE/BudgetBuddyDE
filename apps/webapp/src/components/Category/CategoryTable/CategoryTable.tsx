@@ -10,6 +10,7 @@ import {
   type FirstLevelNullable,
   getInitialEntityDrawerState,
 } from '@/components/Drawer/EntityDrawer';
+import {AddFab, FabContainer} from '@/components/FAB';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
@@ -280,6 +281,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
           });
         }}
       />
+
+      <FabContainer>
+        <AddFab onClick={handleCreateEntity} label="Add category" />
+      </FabContainer>
     </React.Fragment>
   );
 };
