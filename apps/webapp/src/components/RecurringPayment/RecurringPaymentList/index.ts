@@ -1,2 +1,2 @@
-export * from "./RecurringPaymentList";
-export * from "./UpcomingRecurringPaymentList";
+export * from './RecurringPaymentList';
+export * from './UpcomingRecurringPaymentList';

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
-import { determineOS } from "@/utils/determineOS";
+import {determineOS} from '@/utils/determineOS';
 
 /**
  * Hook to listen for key presses.
@@ -14,43 +14,40 @@ import { determineOS } from "@/utils/determineOS";
  * @param requireCtrl Whether to require the ctrl key to be pressed
  */
 export const useKeyPress = (
-	keys: string[],
-	callback: (event: KeyboardEvent) => void,
-	node: HTMLElement | Document | null = null,
-	requireCtrl = false,
+  keys: string[],
+  callback: (event: KeyboardEvent) => void,
+  node: HTMLElement | Document | null = null,
+  requireCtrl = false,
 ) => {
-	const callbackRef = React.useRef(callback);
+  const callbackRef = React.useRef(callback);
 
-	React.useLayoutEffect(() => {
-		callbackRef.current = callback;
-	}, [callback]);
+  React.useLayoutEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
-	const handleKeyPress = React.useCallback(
-		(event: KeyboardEvent) => {
-			if (
-				keys.some(
-					(key) =>
-						event.key === key &&
-						(requireCtrl
-							? event.ctrlKey || (determineOS() === "MacOS" && event.metaKey)
-							: true),
-				)
-			) {
-				callbackRef.current(event);
-			}
-		},
-		[keys, requireCtrl],
-	);
+  const handleKeyPress = React.useCallback(
+    (event: KeyboardEvent) => {
+      if (
+        keys.some(
+          key =>
+            event.key === key && (requireCtrl ? event.ctrlKey || (determineOS() === 'MacOS' && event.metaKey) : true),
+        )
+      ) {
+        callbackRef.current(event);
+      }
+    },
+    [keys, requireCtrl],
+  );
 
-	React.useEffect(() => {
-		const targetNode: Document | (EventTarget & HTMLElement) = node ?? document;
+  React.useEffect(() => {
+    const targetNode: Document | (EventTarget & HTMLElement) = node ?? document;
 
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-expect-error
-		targetNode.addEventListener("keydown", handleKeyPress);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    targetNode.addEventListener('keydown', handleKeyPress);
 
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-expect-error
-		return () => targetNode.removeEventListener("keydown", handleKeyPress);
-	}, [handleKeyPress, node]);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    return () => targetNode.removeEventListener('keydown', handleKeyPress);
+  }, [handleKeyPress, node]);
 };

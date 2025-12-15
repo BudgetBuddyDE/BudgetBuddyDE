@@ -1,1 +1,1 @@
-export * from "./Formatter";
+export * from './Formatter';

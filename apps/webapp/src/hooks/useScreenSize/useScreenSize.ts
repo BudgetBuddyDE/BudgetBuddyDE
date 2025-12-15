@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useWindowDimensions } from "../useWindowDimensions";
+import {useWindowDimensions} from '../useWindowDimensions';
 
-export type ScreenSize = "small" | "medium" | "large";
+export type ScreenSize = 'small' | 'medium' | 'large';
 
 export function useScreenSize(): ScreenSize {
-	const { breakpoint } = useWindowDimensions();
+  const {breakpoint} = useWindowDimensions();
 
-	if (breakpoint === "xs" || breakpoint === "sm") {
-		return "small";
-	} else if (breakpoint === "md" || breakpoint === "lg") {
-		return "medium";
-	} else return "large";
+  if (breakpoint === 'xs' || breakpoint === 'sm') {
+    return 'small';
+  } else if (breakpoint === 'md' || breakpoint === 'lg') {
+    return 'medium';
+  } else return 'large';
 }

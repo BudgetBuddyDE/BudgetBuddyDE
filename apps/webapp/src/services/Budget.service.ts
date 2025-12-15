@@ -1,83 +1,71 @@
 /** biome-ignore-all lint/complexity/noThisInStatic: It will break the implementation */
-import type { ServiceResponse } from "@budgetbuddyde/types";
-import { z } from "zod";
-import {
-	ApiResponse,
-	Budget,
-	EstimatedBudget,
-	type TCreateOrUpdateBudget,
-	type TEstimatedBudget,
-} from "@/types";
-import { NewEntityService } from "./Entity.service";
+import type {ServiceResponse} from '@budgetbuddyde/types';
+import {z} from 'zod';
+import {ApiResponse, Budget, EstimatedBudget, type TCreateOrUpdateBudget, type TEstimatedBudget} from '@/types';
+import {NewEntityService} from './Entity.service';
 
 const GetAllBudget = ApiResponse.extend({
-	data: z.array(Budget),
+  data: z.array(Budget),
 });
 const GetBudget = ApiResponse.extend({
-	data: Budget.nullable(),
+  data: Budget.nullable(),
 });
 const PostBudget = ApiResponse.extend({
-	data: Budget,
+  data: Budget,
 });
 const PutBudget = PostBudget;
-const DeleteBudget = ApiResponse.extend({ data: z.null() });
+const DeleteBudget = ApiResponse.extend({data: z.null()});
 
 export class BudgetService extends NewEntityService<
-	TCreateOrUpdateBudget,
-	TCreateOrUpdateBudget,
-	typeof GetAllBudget,
-	typeof GetBudget,
-	typeof PostBudget,
-	typeof PutBudget,
-	typeof DeleteBudget
+  TCreateOrUpdateBudget,
+  TCreateOrUpdateBudget,
+  typeof GetAllBudget,
+  typeof GetBudget,
+  typeof PostBudget,
+  typeof PutBudget,
+  typeof DeleteBudget
 > {
-	constructor() {
-		super("/api/budget", {
-			getAll: GetAllBudget,
-			get: GetBudget,
-			create: PostBudget,
-			update: PutBudget,
-			delete: DeleteBudget,
-		});
-	}
+  constructor() {
+    super('/api/budget', {
+      getAll: GetAllBudget,
+      get: GetBudget,
+      create: PostBudget,
+      update: PutBudget,
+      delete: DeleteBudget,
+    });
+  }
 
-	async getEstimatedBudget(
-		requestConfig?: RequestInit,
-	): Promise<ServiceResponse<TEstimatedBudget>> {
-		try {
-			const response = await fetch(
-				`${this.getBaseRequestPath()}/estimated`,
-				this.mergeRequestConfig(
-					{
-						method: "GET",
-						credentials: "include",
-						headers: this.enhanceHeadersWithRequestId(
-							new Headers(requestConfig?.headers || {}),
-						),
-					},
-					requestConfig,
-				),
-			);
-			if (!response.ok) {
-				throw new Error(
-					`Failed to fetch budget estimations: ${response.statusText}`,
-				);
-			}
-			if (!this.isJsonResponse(response)) {
-				throw new Error("Response is not JSON");
-			}
-			const data = await response.json();
+  async getEstimatedBudget(requestConfig?: RequestInit): Promise<ServiceResponse<TEstimatedBudget>> {
+    try {
+      const response = await fetch(
+        `${this.getBaseRequestPath()}/estimated`,
+        this.mergeRequestConfig(
+          {
+            method: 'GET',
+            credentials: 'include',
+            headers: this.enhanceHeadersWithRequestId(new Headers(requestConfig?.headers || {})),
+          },
+          requestConfig,
+        ),
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch budget estimations: ${response.statusText}`);
+      }
+      if (!this.isJsonResponse(response)) {
+        throw new Error('Response is not JSON');
+      }
+      const data = await response.json();
 
-			const parsingResult = ApiResponse.extend({
-				data: EstimatedBudget,
-			}).safeParse(data);
-			if (!parsingResult.success) {
-				return this.handleZodError(parsingResult.error);
-			}
+      const parsingResult = ApiResponse.extend({
+        data: EstimatedBudget,
+      }).safeParse(data);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
 
-			return [parsingResult.data.data ?? [], null];
-		} catch (error) {
-			return this.handleError(error);
-		}
-	}
+      return [parsingResult.data.data ?? [], null];
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
 }

@@ -1,1 +1,1 @@
-export * from "./DrawerProfile";
+export * from './DrawerProfile';

@@ -1,1 +1,1 @@
-export * from "./RecurringPaymentTable";
+export * from './RecurringPaymentTable';

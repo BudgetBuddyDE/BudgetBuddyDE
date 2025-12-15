@@ -1,1 +1,1 @@
-export * from "./determineOS";
+export * from './determineOS';

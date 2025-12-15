@@ -1,3 +1,3 @@
-import type { ThemeOptions } from "@mui/material/styles";
+import type {ThemeOptions} from '@mui/material/styles';
 
-export const spacing: ThemeOptions["spacing"] = 8;
+export const spacing: ThemeOptions['spacing'] = 8;

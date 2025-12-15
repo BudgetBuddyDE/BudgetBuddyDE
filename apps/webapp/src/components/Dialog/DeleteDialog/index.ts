@@ -1,2 +1,2 @@
-export * from "./DeleteDialog";
-export * from "./DeleteDialogHandler";
+export * from './DeleteDialog';
+export * from './DeleteDialogHandler';

@@ -1,1 +1,1 @@
-export * from "./useUpdateSearchParams";
+export * from './useUpdateSearchParams';

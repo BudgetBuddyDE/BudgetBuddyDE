@@ -1,8 +1,8 @@
-export * from "./SelectAll";
+export * from './SelectAll';
 
 export interface ISelectionHandler<T> {
-	onSelectAll: (shouldSelectAll: boolean) => void;
-	onSelect: (entity: T) => void;
-	isSelected: (entity: T) => boolean;
-	onDeleteMultiple?: () => void;
+  onSelectAll: (shouldSelectAll: boolean) => void;
+  onSelect: (entity: T) => void;
+  isSelected: (entity: T) => boolean;
+  onDeleteMultiple?: () => void;
 }

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { styled } from "@mui/material";
+import {styled} from '@mui/material';
 
-export const StyledDrawerHeader = styled("div")(({ theme }) => ({
-	display: "flex",
-	alignItems: "center",
-	justifyContent: "flex-end",
-	padding: theme.spacing(0, 1),
-	// necessary for content to be below app bar
-	...theme.mixins.toolbar,
-	height: "67.5px",
-	[theme.breakpoints.only("xs")]: {
-		height: "unset",
-	},
+export const StyledDrawerHeader = styled('div')(({theme}) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  padding: theme.spacing(0, 1),
+  // necessary for content to be below app bar
+  ...theme.mixins.toolbar,
+  height: '67.5px',
+  [theme.breakpoints.only('xs')]: {
+    height: 'unset',
+  },
 }));

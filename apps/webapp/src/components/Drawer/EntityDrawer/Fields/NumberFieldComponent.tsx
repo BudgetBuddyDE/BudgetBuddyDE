@@ -1,62 +1,53 @@
-import { Grid, type GridProps, TextField } from "@mui/material";
-import { type Control, Controller, type FieldValues } from "react-hook-form";
-import { logger } from "@/logger";
-import { isRunningOnIOs } from "@/utils/determineOS";
-import type { BaseAttributes } from "../types";
+import {Grid, type GridProps, TextField} from '@mui/material';
+import {type Control, Controller, type FieldValues} from 'react-hook-form';
+import {logger} from '@/logger';
+import {isRunningOnIOs} from '@/utils/determineOS';
+import type {BaseAttributes} from '../types';
 
-export type NumberField<T extends FieldValues> = BaseAttributes<
-	{ type: "number" },
-	T
->;
+export type NumberField<T extends FieldValues> = BaseAttributes<{type: 'number'}, T>;
 
 export type NumberFieldComponentProps<T extends FieldValues> = {
-	field: NumberField<T>;
-	control: Control<T>;
-	wrapperSize: GridProps["size"];
+  field: NumberField<T>;
+  control: Control<T>;
+  wrapperSize: GridProps['size'];
 };
 
 export const NumberFieldComponent = <T extends FieldValues>({
-	field,
-	control,
-	wrapperSize,
+  field,
+  control,
+  wrapperSize,
 }: NumberFieldComponentProps<T>) => {
-	const inputRequiredMessage = field.required
-		? `${field.label ?? field.name} is required`
-		: undefined;
+  const inputRequiredMessage = field.required ? `${field.label ?? field.name} is required` : undefined;
 
-	const htmlInputMode = isRunningOnIOs() ? "text" : "numeric";
-	logger.debug(
-		"NumberFieldComponent: Using htmlInputMode '%s' for field '%s'",
-		htmlInputMode,
-		field.name,
-	);
+  const htmlInputMode = isRunningOnIOs() ? 'text' : 'numeric';
+  logger.debug("NumberFieldComponent: Using htmlInputMode '%s' for field '%s'", htmlInputMode, field.name);
 
-	return (
-		<Grid key={field.name} size={wrapperSize}>
-			<Controller
-				name={field.name}
-				control={control}
-				rules={{ required: inputRequiredMessage }}
-				render={({ field: controllerField, fieldState: { error } }) => (
-					<TextField
-						{...controllerField}
-						value={controllerField.value || ""}
-						label={field.label}
-						placeholder={field.placeholder}
-						error={!!error}
-						helperText={error?.message}
-						fullWidth
-						required={field.required}
-						slotProps={{
-							...field.slotProps,
-							htmlInput: {
-								inputMode: htmlInputMode,
-								...field.slotProps?.htmlInput,
-							},
-						}}
-					/>
-				)}
-			/>
-		</Grid>
-	);
+  return (
+    <Grid key={field.name} size={wrapperSize}>
+      <Controller
+        name={field.name}
+        control={control}
+        rules={{required: inputRequiredMessage}}
+        render={({field: controllerField, fieldState: {error}}) => (
+          <TextField
+            {...controllerField}
+            value={controllerField.value || ''}
+            label={field.label}
+            placeholder={field.placeholder}
+            error={!!error}
+            helperText={error?.message}
+            fullWidth
+            required={field.required}
+            slotProps={{
+              ...field.slotProps,
+              htmlInput: {
+                inputMode: htmlInputMode,
+                ...field.slotProps?.htmlInput,
+              },
+            }}
+          />
+        )}
+      />
+    </Grid>
+  );
 };

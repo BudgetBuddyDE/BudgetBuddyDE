@@ -1,1 +1,1 @@
-export * from "./DeleteUserDialog";
+export * from './DeleteUserDialog';

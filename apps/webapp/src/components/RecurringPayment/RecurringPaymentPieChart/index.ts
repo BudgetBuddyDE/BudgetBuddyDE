@@ -1,1 +1,1 @@
-export * from "./RecurringPaymentPieChart";
+export * from './RecurringPaymentPieChart';

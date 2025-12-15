@@ -1,11 +1,8 @@
-import { Chip, type ChipProps } from "@mui/material";
-import type React from "react";
+import {Chip, type ChipProps} from '@mui/material';
+import type React from 'react';
 
-export type PaymentMethodChipProps = ChipProps & { paymentMethodName: string };
+export type PaymentMethodChipProps = ChipProps & {paymentMethodName: string};
 
-export const PaymentMethodChip: React.FC<PaymentMethodChipProps> = ({
-	paymentMethodName,
-	...otherProps
-}) => {
-	return <Chip label={paymentMethodName} variant="outlined" {...otherProps} />;
+export const PaymentMethodChip: React.FC<PaymentMethodChipProps> = ({paymentMethodName, ...otherProps}) => {
+  return <Chip label={paymentMethodName} variant="outlined" {...otherProps} />;
 };
