@@ -8,7 +8,7 @@ export const transactionReceiverView = backendSchema.view('transaction_receiver_
       ownerId: transactions.ownerId,
     })
     .from(transactions)
-    .unionAll(
+    .union(
       qb
         .selectDistinct({
           receiver: recurringPayments.receiver,
