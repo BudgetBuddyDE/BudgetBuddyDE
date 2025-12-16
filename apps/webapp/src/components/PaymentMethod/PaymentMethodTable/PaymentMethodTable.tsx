@@ -1,6 +1,6 @@
 'use client';
 
-import {Button, TableCell, TableRow, Typography} from '@mui/material';
+import {Button, TableCell, Typography} from '@mui/material';
 import React from 'react';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -179,7 +179,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
 
   return (
     <React.Fragment>
-      <EntityTable<TPaymentMethod>
+      <EntityTable<TPaymentMethod, 'id'>
         title="Payment Methods"
         subtitle="Manage your payment methods"
         error={error}
@@ -199,6 +199,10 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
         isLoading={status === 'loading'}
         data={paymentMethods ?? []}
         dataKey={'id'}
+        withSelection
+        onDeleteSelectedEntities={entites => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        }}
         pagination={{
           count: totalEntityCount,
           page: currentPage,
@@ -219,9 +223,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
         ]}
         renderRow={(cell, item, _data) => {
           const key = cell;
-          const rowKey = String(item[key]);
+          const _rowKey = String(item[key]);
           return (
-            <TableRow key={rowKey}>
+            <>
               <TableCell>
                 <Typography variant="body1">{item.name}</Typography>
               </TableCell>
@@ -243,7 +247,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
                   }}
                 />
               </TableCell>
-            </TableRow>
+            </>
           );
         }}
       />
@@ -300,8 +304,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content:
-            'Are you sure you want to delete this payment method?\nThis will delete all associated transactions and recurring payments as well.',
+          content: `${!Array.isArray(deleteDialogState.target) ? 'Are you sure you want to delete this payment method?' : `Are you sure you want to delete these ${deleteDialogState.target.length} payment methods?`}\nThis will delete all associated transactions and recurring payments as well.`,
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});
@@ -313,7 +316,13 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
           dispatchDeleteDialogAction({
             action: 'CONFIRM',
             callback: id => {
-              return handleDeleteEntity(id);
+              if (Array.isArray(id)) {
+                id.forEach(singleId => {
+                  handleDeleteEntity(singleId);
+                });
+              } else {
+                handleDeleteEntity(id);
+              }
             },
           });
         }}

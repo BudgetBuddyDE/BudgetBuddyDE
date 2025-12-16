@@ -2,14 +2,14 @@ import assert from 'assert';
 
 type State<TargetIdentifier = string> = {
   isOpen: boolean;
-  target: TargetIdentifier | null;
+  target: TargetIdentifier | TargetIdentifier[] | null;
 };
 
 type Action<TargetIdentifier = string> =
-  | {action: 'OPEN'; target: TargetIdentifier}
+  | {action: 'OPEN'; target: TargetIdentifier | TargetIdentifier[]}
   | {
       action: 'CONFIRM';
-      callback: (entityId: TargetIdentifier) => Promise<void> | void;
+      callback: (entityId: TargetIdentifier | TargetIdentifier[]) => Promise<void> | void;
       autoClose?: boolean;
     }
   | {action: 'CLOSE'}

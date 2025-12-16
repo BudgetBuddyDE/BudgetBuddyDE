@@ -1,6 +1,6 @@
 'use client';
 
-import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, TableRow, Typography} from '@mui/material';
+import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, Typography} from '@mui/material';
 import React from 'react';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -405,7 +405,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
 
   return (
     <React.Fragment>
-      <EntityTable<TExpandedRecurringPayment>
+      <EntityTable<TExpandedRecurringPayment, 'id'>
         title="Recurring Payments"
         subtitle="Manage your recurring payments"
         error={error}
@@ -427,6 +427,10 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
         isLoading={status === 'loading'}
         data={recurringPayments ?? []}
         dataKey={'id'}
+        withSelection
+        onDeleteSelectedEntities={entites => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        }}
         pagination={{
           count: totalEntityCount,
           page: currentPage,
@@ -447,9 +451,9 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
         ]}
         renderRow={(cell, item, _data) => {
           const key = cell;
-          const rowKey = String(item[key]);
+          const _rowKey = String(item[key]);
           return (
-            <TableRow key={rowKey}>
+            <>
               <TableCell>
                 <Typography
                   variant="body1"
@@ -488,7 +492,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
                   ]}
                 />
               </TableCell>
-            </TableRow>
+            </>
           );
         }}
         rowHeight={83.5}
@@ -518,7 +522,9 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content: 'Are you sure you want to delete this recurring payment?',
+          content: !Array.isArray(deleteDialogState.target)
+            ? 'Are you sure you want to delete this recurring payment?'
+            : `Are you sure you want to delete these ${deleteDialogState.target.length} recurring payments?`,
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});
@@ -530,7 +536,13 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
           dispatchDeleteDialogAction({
             action: 'CONFIRM',
             callback: id => {
-              return handleDeleteEntity(id);
+              if (Array.isArray(id)) {
+                id.forEach(singleId => {
+                  handleDeleteEntity(singleId);
+                });
+              } else {
+                handleDeleteEntity(id);
+              }
             },
           });
         }}

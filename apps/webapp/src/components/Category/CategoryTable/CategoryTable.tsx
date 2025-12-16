@@ -1,6 +1,6 @@
 'use client';
 
-import {Button, TableCell, TableRow, Typography} from '@mui/material';
+import {Button, TableCell, Typography} from '@mui/material';
 import React from 'react';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -170,7 +170,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 
   return (
     <React.Fragment>
-      <EntityTable<TCategory>
+      <EntityTable<TCategory, 'id'>
         title="Categories"
         subtitle={'Manage your categories'}
         error={error}
@@ -190,6 +190,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
         isLoading={status === 'loading'}
         data={categories ?? []}
         dataKey={'id'}
+        withSelection
+        onDeleteSelectedEntities={entites => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        }}
         pagination={{
           count: totalEntityCount,
           page: currentPage,
@@ -204,9 +208,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
         headerCells={[{key: 'name', label: 'Name'}, {key: 'description', label: 'Description'}, {placeholder: true}]}
         renderRow={(cell, item, _data) => {
           const key = cell;
-          const rowKey = String(item[key]);
+          const _rowKey = String(item[key]);
           return (
-            <TableRow key={rowKey}>
+            <>
               <TableCell>
                 <Typography variant="body1">{item.name}</Typography>
               </TableCell>
@@ -222,7 +226,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
                   }}
                 />
               </TableCell>
-            </TableRow>
+            </>
           );
         }}
       />
@@ -263,8 +267,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content:
-            'Are you sure you want to delete this category?\nThis will delete all associated transactions and recurring payments as well.',
+          content: `${!Array.isArray(deleteDialogState.target) ? 'Are you sure you want to delete this category?' : `Are you sure you want to delete these ${deleteDialogState.target.length} categories?`}\nThis will delete all associated transactions and recurring payments as well.`,
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});
@@ -276,7 +279,13 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
           dispatchDeleteDialogAction({
             action: 'CONFIRM',
             callback: id => {
-              return handleDeleteEntity(id);
+              if (Array.isArray(id)) {
+                id.forEach(singleId => {
+                  handleDeleteEntity(singleId);
+                });
+              } else {
+                handleDeleteEntity(id);
+              }
             },
           });
         }}

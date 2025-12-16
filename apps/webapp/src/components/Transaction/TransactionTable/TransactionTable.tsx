@@ -1,7 +1,7 @@
 'use client';
 
 import {ReceiptRounded} from '@mui/icons-material';
-import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, TableRow, Typography} from '@mui/material';
+import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, Typography} from '@mui/material';
 import React from 'react';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {type Command, useCommandPalette} from '@/components/CommandPalette';
@@ -406,7 +406,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 
   return (
     <React.Fragment>
-      <EntityTable<TExpandedTransaction>
+      <EntityTable<TExpandedTransaction, 'id'>
         title="Transactions"
         subtitle="Manage your transactions"
         error={error}
@@ -426,6 +426,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         isLoading={status === 'loading'}
         data={transactions ?? []}
         dataKey={'id'}
+        withSelection
+        onDeleteSelectedEntities={entites => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        }}
         pagination={{
           count: totalEntityCount,
           page: currentPage,
@@ -446,9 +450,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         ]}
         renderRow={(cell, item, _data) => {
           const key = cell;
-          const rowKey = String(item[key]);
+          const _rowKey = String(item[key]);
           return (
-            <TableRow key={rowKey}>
+            <>
               <TableCell>
                 <Typography variant="body1">{Formatter.date.format(item.processedAt)}</Typography>
               </TableCell>
@@ -474,7 +478,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
                   }}
                 />
               </TableCell>
-            </TableRow>
+            </>
           );
         }}
         rowHeight={83.5}
@@ -504,7 +508,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content: 'Are you sure you want to delete this transaction?',
+          content: !Array.isArray(deleteDialogState.target)
+            ? 'Are you sure you want to delete this transaction?'
+            : `Are you sure you want to delete these ${deleteDialogState.target.length} transactions?`,
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});
@@ -516,7 +522,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
           dispatchDeleteDialogAction({
             action: 'CONFIRM',
             callback: id => {
-              return handleDeleteEntity(id);
+              if (Array.isArray(id)) {
+                id.forEach(singleId => {
+                  handleDeleteEntity(singleId);
+                });
+              } else {
+                handleDeleteEntity(id);
+              }
             },
           });
         }}

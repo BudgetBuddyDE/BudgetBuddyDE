@@ -358,7 +358,11 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
           dispatchDeleteDialogAction({
             action: 'CONFIRM',
             callback: id => {
-              return handleDeleteEntity(id);
+              if (Array.isArray(id)) {
+                id.forEach(singleId => {
+                  handleDeleteEntity(singleId);
+                });
+              } else handleDeleteEntity(id);
             },
           });
         }}
