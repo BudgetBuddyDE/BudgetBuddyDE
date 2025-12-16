@@ -27,7 +27,7 @@ import {CreateOrUpdateBudget, type TBudget, type TCategoryVH} from '@/types';
 import {type Budget, BudgetItem, type BudgetItemProps} from './BudgetItem';
 
 type EntityFormFields = FirstLevelNullable<
-  Pick<TBudget, 'id' | 'type' | 'name' | 'budget'> & {
+  Pick<TBudget, 'id' | 'type' | 'name' | 'budget' | 'description'> & {
     toCategories: TCategoryVH[];
   }
 >;
@@ -65,12 +65,13 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         type: 'i',
         name: null,
         budget: null,
+        description: null,
         toCategories: [],
       },
     });
   };
 
-  const handleEditEntity = ({ID, type, name, budget, categories}: Budget) => {
+  const handleEditEntity = ({ID, type, name, budget, description, categories}: Budget) => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'EDIT',
@@ -79,6 +80,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         type,
         name,
         budget,
+        description,
         toCategories: categories,
       },
     });
@@ -149,7 +151,10 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         });
       }
 
-      const [updatedBudgets, error] = await Backend.budget.updateById(entityId, parsedPayload.data);
+      const [updatedBudgets, error] = await Backend.budget.updateById(entityId, {
+        ...parsedPayload.data,
+        description: Boolean(parsedPayload.data.description) ? parsedPayload.data.description : null,
+      });
       if (!updatedBudgets || error) {
         return showSnackbar({
           message: `Failed to create budget: ${error.message}`,
@@ -245,6 +250,14 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         disableCloseOnSelect: true,
         noOptionsText: 'No categories found',
       },
+      {
+        type: 'text',
+        name: 'description',
+        label: 'Description',
+        placeholder: 'e.g. Monthly grocery budget, ...',
+        area: true,
+        rows: 2,
+      },
     ] as EntityDrawerField<EntityFormFields>[];
   }, []);
 
@@ -279,7 +292,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
             <CircularProgress />
           ) : budgets !== null && budgets.length > 0 ? (
             <Stack rowGap={1}>
-              {budgets.map(({id, name, budget, balance, type, categories}) => {
+              {budgets.map(({id, name, budget, balance, type, description, categories}) => {
                 return (
                   <BudgetItem
                     key={id}
@@ -289,6 +302,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
                       type,
                       budget,
                       balance,
+                      description: description || undefined,
                       categories: categories.map(({category: {id, name, description}}) => ({
                         id,
                         name,

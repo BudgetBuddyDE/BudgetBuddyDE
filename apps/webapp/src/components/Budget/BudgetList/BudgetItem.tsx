@@ -17,6 +17,7 @@ export type Budget = {
   categories: TCategoryVH[];
   budget: number;
   balance: number;
+  description?: string;
 };
 
 export type BudgetItemProps = {
