@@ -1,11 +1,13 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import {eq} from 'drizzle-orm';
 import express from 'express';
 import {setGlobalErrorHandler} from 'express-zod-safe';
 import cron from 'node-cron';
 import {config} from './config';
-import {checkConnection} from './db';
+import {checkConnection, db} from './db';
 import {getRedisClient} from './db/redis';
+import {budgets, categories, paymentMethods, recurringPayments, transactions} from './db/schema';
 import {processRecurringPayments} from './jobs/processRecurringPayments';
 import {logger} from './lib/logger';
 import {handleError, logRequest, servedBy, setRequestContext} from './middleware';
@@ -58,6 +60,31 @@ setGlobalErrorHandler((errors, _req, res) => {
 app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.get('/api/me', async (req, res) => {
   ApiResponse.builder<typeof req.context>().withData(req.context).buildAndSend(res);
+});
+app.delete('/api/me', async (req, res) => {
+  const userId = req.context.user?.id;
+  if (!userId) {
+    ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+    return;
+  }
+  await db.transaction(async tx => {
+    const deletedCategories = await tx.delete(categories).where(eq(categories.ownerId, userId));
+    logger.info(`Deleted ${deletedCategories.rowCount} categories for user ${userId}`);
+
+    const deletedPaymentMethods = await tx.delete(paymentMethods).where(eq(paymentMethods.ownerId, userId));
+    logger.info(`Deleted ${deletedPaymentMethods.rowCount} payment methods for user ${userId}`);
+
+    const deletedBudgets = await tx.delete(budgets).where(eq(budgets.ownerId, userId));
+    logger.info(`Deleted ${deletedBudgets.rowCount} budgets for user ${userId}`);
+
+    const deletedTransactions = await tx.delete(transactions).where(eq(transactions.ownerId, userId));
+    logger.info(`Deleted ${deletedTransactions.rowCount} transactions for user ${userId}`);
+
+    const deletedRecurringPayments = await tx.delete(recurringPayments).where(eq(recurringPayments.ownerId, userId));
+    logger.info(`Deleted ${deletedRecurringPayments.rowCount} recurring payments for user ${userId}`);
+  });
+
+  ApiResponse.builder().withMessage('User data deleted successfully').buildAndSend(res);
 });
 app.use('/api/category', CategoryRouter);
 app.use('/api/paymentMethod', PaymentMethodRouter);
