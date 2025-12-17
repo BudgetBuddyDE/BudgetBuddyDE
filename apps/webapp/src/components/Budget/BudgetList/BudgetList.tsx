@@ -153,7 +153,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 
       const [updatedBudgets, error] = await Backend.budget.updateById(entityId, {
         ...parsedPayload.data,
-        description: Boolean(parsedPayload.data.description) ? parsedPayload.data.description : null,
+        description: parsedPayload.data.description ? parsedPayload.data.description : null,
       });
       if (!updatedBudgets || error) {
         return showSnackbar({

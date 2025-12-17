@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Downloads the given data as a JSON file with the specified file name.
  *

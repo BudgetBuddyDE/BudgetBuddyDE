@@ -1,6 +1,6 @@
 'use client';
 
-import {AddRounded, CloudDownloadRounded, DeleteRounded} from '@mui/icons-material';
+import {AddRounded, CloudDownload, CloudDownloadRounded, DeleteRounded} from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -31,6 +31,8 @@ import {CircularProgress} from '@/components/Loading';
 import {NoResults, type NoResultsProps} from '@/components/NoResults';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {DrawerWidth} from '@/theme/style';
+import {downloadAsJson} from '@/utils/downloadAsJson';
+import {Formatter} from '@/utils/Formatter';
 import {Pagination, type PaginationProps} from './Pagination';
 
 export type EntityTableProps<Entity, EntityKey extends keyof Entity> = {
@@ -302,6 +304,20 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
             Delete
           </Button>
         )}
+        <Button
+          size="small"
+          variant="outlined"
+          color="info"
+          startIcon={<CloudDownload />}
+          sx={{ml: 1}}
+          onClick={() => {
+            const targetEntities = data.filter(item => isSelected(item, selectedEntites))
+            downloadAsJson(targetEntities, `bb_${title}_${Formatter.date.formatWithPattern(new Date(), 'yyyy_mm_dd')}`);
+            clearSelectedEntities();
+          }}
+        >
+          Export
+        </Button>
         <Button size="small" variant="outlined" color="secondary" sx={{ml: 1}} onClick={clearSelectedEntities}>
           Clear
         </Button>
