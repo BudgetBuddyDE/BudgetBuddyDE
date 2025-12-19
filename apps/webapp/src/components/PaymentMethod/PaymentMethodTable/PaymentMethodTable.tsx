@@ -281,14 +281,14 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
             type: 'text',
             name: 'address',
             label: 'Address',
-            placeholder: 'Address',
+            placeholder: 'IBAN, E-Mail, Wallet Address, etc.',
             required: true,
           },
           {
             type: 'text',
             name: 'provider',
             label: 'Provider',
-            placeholder: 'Provider',
+            placeholder: 'Visa, Mastercard, PayPal, etc.',
             required: true,
           },
           {
