@@ -212,7 +212,7 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
                         sx={{
                           width: '1%',
                           whiteSpace: 'nowrap',
-                          backgroundColor: theme => lighten(theme.palette.background.paper, 3.35 * 0.025),
+                          backgroundColor: theme => lighten(theme.palette.background.paper, .0825)
                         }}
                       >
                         <Checkbox
@@ -237,7 +237,7 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
                         <TableCell
                           key={typeof key === 'string' ? key : key.toString()}
                           sx={{
-                            backgroundColor: theme => lighten(theme.palette.background.paper, 3.35 * 0.025),
+                            backgroundColor: theme => lighten(theme.palette.background.paper, .0825)
                           }}
                           align={textAlignment}
                         >
