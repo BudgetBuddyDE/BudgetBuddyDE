@@ -5,7 +5,7 @@ import {PaymentMethodTable} from '@/components/PaymentMethod/PaymentMethodTable'
 export default async function PaymentMethodsPage() {
   return (
     <ContentGrid title="Payment Methods">
-      <Grid size={{xs: 12, md: 9}}>
+      <Grid size={{xs: 12, md: 12}}>
         <PaymentMethodTable />
       </Grid>
     </ContentGrid>

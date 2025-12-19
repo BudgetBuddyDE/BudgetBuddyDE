@@ -5,7 +5,7 @@ import {ContentGrid} from '@/components/Layout/ContentGrid';
 export default async function CategoriesPage() {
   return (
     <ContentGrid title="Categories">
-      <Grid size={{xs: 12, md: 5}}>
+      <Grid size={{xs: 12, md: 12}}>
         <CategoryTable />
       </Grid>
     </ContentGrid>
