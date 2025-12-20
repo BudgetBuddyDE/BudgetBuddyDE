@@ -38,7 +38,7 @@ export function toCSV<T extends object>(
 				: field.field
 			: field,
 	);
-	const header = headerFields.join(separator) + "\n";
+	const header = `${headerFields.join(separator)}\n`;
 	const rows = arr
 		.map((item, index) =>
 			fields

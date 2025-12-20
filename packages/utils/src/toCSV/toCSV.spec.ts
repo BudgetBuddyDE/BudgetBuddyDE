@@ -61,7 +61,7 @@ describe("toCSV", () => {
 			{
 				field: "age",
 				as: "originalAge",
-				transform: (val, item, arr, idx) => {
+				transform: (val, _item, arr, idx) => {
 					indices.push(idx);
 					arrayRefs.push(arr);
 					return val;
