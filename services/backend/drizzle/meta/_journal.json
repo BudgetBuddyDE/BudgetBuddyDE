@@ -15,6 +15,13 @@
       "when": 1765842352436,
       "tag": "0001_perpetual_tyrannus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766264415823,
+      "tag": "0002_daffy_boomerang",
+      "breakpoints": true
     }
   ]
 }
