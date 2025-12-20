@@ -24,6 +24,11 @@ const PostTransaction = ApiResponse.extend({
 const PutTransaction = PostTransaction;
 const DeleteTransaction = PostTransaction;
 
+export type GetAllTransactionsQuery = BaseGetAllQuery & {
+  $dateFrom?: Date;
+  $dateTo?: Date;
+};
+
 export class TransactionService extends NewEntityService<
   TCreateOrUpdateTransaction,
   TCreateOrUpdateTransaction,
@@ -43,13 +48,7 @@ export class TransactionService extends NewEntityService<
     });
   }
 
-  async getAll(
-    query?: BaseGetAllQuery & {
-      $dateFrom?: Date;
-      $dateTo?: Date;
-    },
-    requestConfig?: RequestInit,
-  ) {
+  async getAll(query?: GetAllTransactionsQuery, requestConfig?: RequestInit) {
     return super.getAll(query, requestConfig);
   }
 

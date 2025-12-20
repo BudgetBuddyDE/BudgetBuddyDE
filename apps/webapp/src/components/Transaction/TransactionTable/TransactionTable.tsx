@@ -97,11 +97,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         ...payload,
         transferAmount: Number(payload.transferAmount),
       });
-    console.log('Parsed Payload:', parsedPayload);
-    console.log({
-      ...payload,
-      transferAmount: Number(payload.transferAmount),
-    });
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
       showSnackbar({

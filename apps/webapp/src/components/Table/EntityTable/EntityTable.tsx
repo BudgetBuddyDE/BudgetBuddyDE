@@ -212,7 +212,7 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
                         sx={{
                           width: '1%',
                           whiteSpace: 'nowrap',
-                          backgroundColor: theme => lighten(theme.palette.background.paper, .0825)
+                          backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825),
                         }}
                       >
                         <Checkbox
@@ -237,7 +237,7 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
                         <TableCell
                           key={typeof key === 'string' ? key : key.toString()}
                           sx={{
-                            backgroundColor: theme => lighten(theme.palette.background.paper, .0825)
+                            backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825),
                           }}
                           align={textAlignment}
                         >
@@ -311,7 +311,7 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
           startIcon={<CloudDownload />}
           sx={{ml: 1}}
           onClick={() => {
-            const targetEntities = data.filter(item => isSelected(item, selectedEntites))
+            const targetEntities = data.filter(item => isSelected(item, selectedEntites));
             downloadAsJson(targetEntities, `bb_${title}_${Formatter.date.formatWithPattern(new Date(), 'yyyy_mm_dd')}`);
             clearSelectedEntities();
           }}
