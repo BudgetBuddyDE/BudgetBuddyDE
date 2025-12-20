@@ -21,6 +21,13 @@
   </p>
 </p>
 
+<p align="center">
+  <strong>Deploy BudgetBuddy on Railway with just one click!<br/></strong>
+  <a href="https://railway.com/deploy/ezasWl?referralCode=SD-6Xm&utm_medium=integration&utm_source=template&utm_campaign=generic">
+    <img src="https://railway.com/button.svg" alt="Deploy on Railway" />
+  </a>
+</p>
+
 BudgetBuddy is a modern ReactJS-based web application designed to help you manage your finances and optimize your monthly budget.
 
 ## Project Structure
