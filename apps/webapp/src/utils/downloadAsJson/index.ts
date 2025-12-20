@@ -1,1 +1,1 @@
-export * from './downloadAsJson.util';
+export * from './downloadAsJson';

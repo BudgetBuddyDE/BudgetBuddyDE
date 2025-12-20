@@ -1,75 +1,47 @@
-import {
-  type LogLevel,
-  Logger,
-  type Runtime,
-  getCurrentRuntime,
-  getLogLevel,
-  getPort,
-  isRunningInProd,
-} from '@budgetbuddyde/utils';
+import {getLogLevel, type LogClientOptions} from '@budgetbuddyde/logger';
+import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
 import 'dotenv/config';
-import {type PoolConfig} from 'pg';
-import {type RedisClientOptions} from 'redis';
 
 import {name, version} from '../package.json';
-import {initWinstonLogger} from './core/winstonLogger';
 
 export type Config = {
   service: typeof name;
   version: typeof version;
-  port: number | string;
-  environment: Runtime;
-  log: {
-    level: LogLevel;
-    log?: Logger['log'];
-  };
-  db: {
-    pool: PoolConfig;
-    redis?: RedisClientOptions;
-  };
+  baseUrl: string;
+  port: ReturnType<typeof getPort>;
+  requestIdHeaderName: string;
+  runtime: Runtime;
+  log: Pick<LogClientOptions, 'label' | 'level'>;
   cors: CorsOptions;
+  jobs: {
+    timezone: string;
+  };
 };
 
-const serviceName = name;
-const serviceVersion = version;
-const serviceEnvironment = getCurrentRuntime();
-const logLevel = getLogLevel();
-
-const winstonLogger = initWinstonLogger(
-  {
-    level: logLevel,
-    environment: serviceEnvironment,
-  },
-  {service: serviceName, version: serviceVersion, environment: serviceEnvironment, project: 'budgetbuddyde'},
-);
+const SERVICE_NAME = name;
+const SERVICE_VERSION = version;
+const SERVICE_RUNTIME = getCurrentRuntime();
+const SERVICE_REQUEST_ID_HEADER_NAME = 'x-request-id';
 
 export const config: Config = {
-  service: name,
-  version: version,
-  port: getPort(),
-  environment: serviceEnvironment,
+  service: SERVICE_NAME,
+  version: SERVICE_VERSION,
+  baseUrl: process.env.BASE_URL || 'http://localhost',
+  port: getPort(8080),
+  requestIdHeaderName: SERVICE_REQUEST_ID_HEADER_NAME,
+  runtime: SERVICE_RUNTIME,
   log: {
-    level: logLevel,
-    log(level, msg, ...args) {
-      winstonLogger[level]({ message: msg, labels: { ...args } });
-    },
-  },
-  db: {
-    pool: {
-      connectionString: process.env.DATABASE_URL,
-    },
-    redis: {
-      url: process.env.REDIS_URL,
-      database: process.env.REDIS_DATABASE ? parseInt(process.env.REDIS_DATABASE, 10) : 1,
-    },
+    label: `${SERVICE_NAME}:${SERVICE_VERSION}`,
+    level: getLogLevel(process.env.LOG_LEVEL || 'INFO'),
   },
   cors: {
-    origin: isRunningInProd()
-      ? [/\.budget-buddy\.de$/, /^(http|https):\/\/localhost(:\d+)?$/]
-      : [/^(http|https):\/\/localhost(:\d+)?$/],
+    origin: isRunningInProd() ? getTrustedOrigins() : [/^(http|https):\/\/localhost(:\d+)?$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', SERVICE_REQUEST_ID_HEADER_NAME],
     credentials: true,
+  },
+  jobs: {
+    timezone: process.env.TIMEZONE || 'Europe/Berlin',
   },
 };

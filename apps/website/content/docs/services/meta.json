@@ -1,11 +1,3 @@
 {
-  "pages": [
-    "pocketbase",
-    "capire-backend",
-    "auth-service",
-    "stock-service",
-    "mail-service",
-    "subscription-service",
-    "..."
-  ]
+  "pages": ["auth-service", "backend"]
 }

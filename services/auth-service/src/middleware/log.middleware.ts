@@ -1,14 +1,17 @@
-import {type LogLevel} from '@budgetbuddyde/utils';
-import {type NextFunction, type Request, type Response} from 'express';
-
-import {logger} from '../core/logger';
+import {LogLevel} from '@budgetbuddyde/logger';
+import type {NextFunction, Request, Response} from 'express';
+import {config} from '../config';
+import {logger} from '../lib/logger';
 
 export const requestLogger = logger.child({label: 'request'});
 
 export function log(req: Request, res: Response, next: NextFunction): void {
-  const requestId = crypto.randomUUID();
+  const requestId =
+    req.headers[config.requestIdHeaderName] !== undefined
+      ? (String(req.headers[config.requestIdHeaderName]) as ReturnType<typeof crypto.randomUUID>)
+      : crypto.randomUUID();
   req.requestId = requestId;
-  res.setHeader('X-Request-Id', requestId);
+  res.setHeader(config.requestIdHeaderName, requestId);
 
   const start = process.hrtime();
   res.on('finish', () => {
@@ -17,20 +20,34 @@ export function log(req: Request, res: Response, next: NextFunction): void {
 
     const statusCode = res.statusCode;
     const targetLogLevel: LogLevel =
-      statusCode >= 200 && statusCode < 400 ? 'info' : statusCode >= 400 && statusCode < 500 ? 'warn' : 'error';
+      statusCode >= 200 && statusCode < 400
+        ? LogLevel.INFO
+        : statusCode >= 400 && statusCode < 500
+          ? LogLevel.WARN
+          : LogLevel.ERROR;
     const requestMetaInformation = {
       requestId: requestId,
       method: req.method,
       ip: req.ip,
-      baseUrl: req.baseUrl,
-      url: req.originalUrl,
+      originalUrl: req.originalUrl,
+      url: `http://localhost:${config.port}${req.originalUrl}`,
       responseTime: `${durationMs} ms`,
       responseTimeInMillis: durationMs,
       responseCode: statusCode,
+      origin: req.headers['X-Served-By'] || req.headers.origin || 'unknown',
     };
 
     const msg = `[${requestMetaInformation.ip}] ${req.method} ${req.originalUrl} ${statusCode} - ${requestMetaInformation.responseTimeInMillis}`;
-    requestLogger[targetLogLevel](msg, requestMetaInformation);
+    switch (targetLogLevel) {
+      case LogLevel.ERROR:
+        requestLogger.error(msg, requestMetaInformation);
+        break;
+      case LogLevel.WARN:
+        requestLogger.warn(msg, requestMetaInformation);
+        break;
+      default:
+        requestLogger.info(msg, requestMetaInformation);
+    }
   });
 
   next();

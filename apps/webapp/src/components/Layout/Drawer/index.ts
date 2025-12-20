@@ -1,2 +1,2 @@
-export * from './Drawer.store';
-export * from './Drawer.component';
+export * from './Drawer';
+export * from './DrawerContext';

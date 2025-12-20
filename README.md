@@ -21,17 +21,39 @@
   </p>
 </p>
 
-> [!WARNING]
-> The project is currently undergoing restructuring. Therefore, not all services are currently available in this repository, and the documentation has not yet been fully updated. The goal is to increase development speed, making it easier to ship features and improvements with better quality. Ultimately, this aims to enhance several aspects of the user experience (UX).
-
 BudgetBuddy is a modern ReactJS-based web application designed to help you manage your finances and optimize your monthly budget.
+
+## Project Structure
+
+This project is organized as a monorepo using [Turbo](https://turbo.build/).
+
+### Apps
+
+- **[Webapp](apps/webapp):** The main application for managing your budget.
+- **[Website](apps/website):** The landing page and documentation.
+
+### Services
+
+- **[Auth Service](services/auth-service):** Handles user authentication and authorization.
+- **[Backend](services/backend):** The main backend service providing the API.
+
+### Packages
+
+- **[Logger](packages/logger):** Shared logging utility.
+- **[Types](packages/types):** Shared TypeScript types and schemas.
+- **[Utils](packages/utils):** Shared utility functions.
 
 ## Features
 
-- **Stock Portfolio Tracking:** Keep track of your investments and monitor the performance of your portfolio.
-- **Stock Newsletter:** Subscribe to personalized updates to stay informed about the latest changes in your portfolio.
-- **Financial Reports:** Generate weekly and monthly reports to visualize your spending and identify trends.
-- **Income and Expense Analysis:** Gain insights into your financial situation and discover opportunities to save.
+> [!TIP]
+> BudgetBuddy is continuously evolving, and new features are regularly added. Stay tuned for updates!
+
+- **Dashboard:** Get a comprehensive overview of your financial health with real-time statistics, upcoming recurring payments, and recent transactions.
+- **Transaction Management:** Easily record and categorize your income and expenses to keep your records up to date.
+- **Recurring Payments:** Never miss a bill again by tracking your subscriptions and regular payments.
+- **Budgeting & Analytics:** Visualize your spending habits with interactive charts and monitor your budget adherence.
+- **Category & Payment Method Management:** Customize your financial tracking by managing your own categories and payment methods.
+- **Dark Mode:** Fully supported dark mode for a comfortable user experience in any environment.
 
 ## Getting started
 
@@ -44,8 +66,14 @@ BudgetBuddy is a modern ReactJS-based web application designed to help you manag
    git clone git@github.com:BudgetBuddyDE/BudgetBuddyDE.git
    ```
 
-2. Setup GIT hooks
+2. Install dependencies
 
    ```bash
-   npm i # will install husky
+   npm install
+   ```
+
+3. Build packages
+
+   ```bash
+   npm run build-packages
    ```

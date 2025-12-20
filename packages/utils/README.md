@@ -1,43 +1,6 @@
 # `@budgetbuddyde/utils`
 
-This package provides some utility functions that are frequently used in this project.
-
-## Install
-
-```bash
-npm i @budgetbuddyde/utils
-```
-
-## Getting started
-
-1. Clone repository
-
-   ```bash
-   git clone git@github.com:budgetbuddyde/budgetbuddyde.git
-   ```
-
-2. Change directory
-
-   ```bash
-   cd budgetbuddyde/packages/utils
-   ```
-
-3. Install dependencies
-
-   ```bash
-   npm i
-   ```
-
-- Execute tests
-
-  ```bash
-  npm test
-  # or with coverage
-  npm run test -- --coverage
-  ```
-
-- Build package
-
-  ```bash
-  npm run build
-  ```
+![CI](https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/utils/jobs/build-utils/badge)
+![NPM Version](https://img.shields.io/npm/v/%40budgetbuddyde%2Futils)
+![NPM License](https://img.shields.io/npm/l/%40budgetbuddyde%2Futils)
+![NPM Last Update](https://img.shields.io/npm/last-update/%40budgetbuddyde%2Futils)

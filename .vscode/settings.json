@@ -1,0 +1,5 @@
+{
+  "vitest.maximumConfigs": 8,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome"
+}

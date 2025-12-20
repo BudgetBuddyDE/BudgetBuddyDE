@@ -1,7 +1,7 @@
 import {fireEvent, render} from '@testing-library/react';
-import React from 'react';
+import type React from 'react';
 
-import {useKeyPress} from './useKeyPress.hook';
+import {useKeyPress} from './useKeyPress';
 
 const TestComponent: React.FC<{
   keys: string[];
@@ -10,7 +10,7 @@ const TestComponent: React.FC<{
   requireCtrl?: boolean;
 }> = ({keys, callback, node = null, requireCtrl = false}) => {
   useKeyPress(keys, callback, node, requireCtrl);
-  return <div tabIndex={0}>Test Component</div>;
+  return <div>Test Component</div>;
 };
 
 describe('useKeyPress', () => {

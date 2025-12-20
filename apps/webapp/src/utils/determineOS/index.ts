@@ -1,1 +1,1 @@
-export * from './determineOS.util';
+export * from './determineOS';

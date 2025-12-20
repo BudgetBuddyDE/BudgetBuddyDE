@@ -1,1 +1,0 @@
-export * from './DeleteDialog.component';

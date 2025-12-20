@@ -1,1 +1,1 @@
-export * from './AppLogo.component';
+export * from './AppLogo';

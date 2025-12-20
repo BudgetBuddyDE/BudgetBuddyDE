@@ -1,5 +1,7 @@
 # Auth-Service
 
+![CI](https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/auth-service/jobs/build-auth-service/badge)
+
 ## Getting started
 
 1. Clone the repository
@@ -13,40 +15,34 @@
 3. Install all required dependencies
 
    ```shell
-   bun i
+   npm install
    ```
 
 4. Start the application
 
    ```shell
-   bun dev
+   npm run watch
+   # or run the build using
+   npm start
    ```
 
-### Commands
-
-**Run the tests**
-
-```bash
-bun test:run
-```
-
-#### Database migration
+## Database migration
 
 > [!TIP]
 > For more information about the schema generation and migration have a look into [the documentation](https://www.better-auth.com/docs/basic-usage#migrate-database).
 
-**Generate the database schema**
+The database schema required for the Better-Auth auth service can be generated using the @better-auth/cli:
 
 ```bash
-npx @better-auth/cli generate
-# or use
-npm run generate
+npm run ba:schema-generate
 ```
 
-**Migrate the schema**
+The previously generated schema can be applied using Drizzle Kit. This can be done with the following commands:
+
+> [!WARNUNG]
+> Make sure that the `DATABASE_URL` environment variable is set and points to the target database where the schema should be applied. If the environment variable is not set, the process will fail with an error.
 
 ```bash
-npx @better-auth/cli migrate
-# or use
-npm run migrate
+npm run db:generate # will generate all required schemas
+npm run db:migrate
 ```

@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import "dotenv/config";
 
 /**
  * Retrieves the port number from the environment variables or returns a fallback port.
@@ -22,6 +22,7 @@ import 'dotenv/config';
  * ```
  */
 export function getPort(fallbackPort = 3000): number {
-  const envPort = process.env.PORT;
-  return envPort && !isNaN(parseInt(envPort)) ? parseInt(envPort) : fallbackPort;
+	const envPort = process.env.PORT;
+	const parsedPort = parseInt(envPort || "", 10);
+	return !Number.isNaN(parsedPort) ? parsedPort : fallbackPort;
 }

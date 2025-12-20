@@ -1,13 +1,16 @@
 groups:
-  - name: release
-    jobs:
-      - 'release-*'
-  - name: build
-    jobs:
-      - build
   - name: all
     jobs:
-      - build
+      - '*'
+  - name: build
+    jobs:
+      - build*
+      - update-dependencies
+  - name: database
+    jobs:
+      - update-database-schema
+  - name: release
+    jobs:
       - 'release-*'
 
 resource_types:
@@ -16,23 +19,37 @@ resource_types:
     source:
       repository: ghcr.io/tklein1801/concourse-discord-alert-resource
 
+  - name: cogito
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: pix4d/cogito
+
 resources:
-  - name: notify
+  - name: notification
     type: discord-alert
+    icon: bell-ring
     source:
       url: ((discord_webhook))
 
+  - name: weekly
+    type: time
+    icon: clock-outline
+    source:
+      interval: 168h
+
   - name: node-image
     type: registry-image
+    icon: nodejs
     source:
       repository: node
       tag: 20
 
-  - name: repo
+  - name: repository
     type: git
-    icon: github
+    icon: git
     source:
-      uri: ((repo_uri))
+      uri: git@github.com:((repo_owner))/((repo_name)).git
       private_key: ((repo_private_key))
       branch: main
       paths: [((repo_path))/**]
@@ -45,6 +62,15 @@ resources:
       repository: ((docker_image))
       username: ((docker_username))
       password: ((docker_password))
+
+  - name: status
+    type: cogito
+    icon: github
+    check_every: never
+    source:
+      owner: ((repo_owner))
+      repo: ((repo_name))
+      access_token: ((github_pat))
 
   - name: version
     type: semver
@@ -70,80 +96,194 @@ resources:
       access_key_id: ((version_bucket_access_key))
       secret_access_key: ((version_bucket_secret))
 
+meta:
+  gh-status-handlers: &gh-status-handlers
+    on_success:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: success}
+    on_failure:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: failure}
+    on_error:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: error}
+    on_abort:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: abort}
+
 task-config: &task-release
   platform: linux
+  params:
+    CI: 'true'
+    FORCE_COLOR: 1
+    TURBO_TELEMETRY_DISABLED: 1
   inputs:
-    - name: repo
+    - name: repository
     - name: version
   outputs:
-    - name: repo
+    - name: repository
   run:
     path: sh
     args:
       - -evc
       - |
         NEW_VERSION=$(cat version/version)
-        cd repo/((repo_path))
+        cd repository/((repo_path))
         git config --global user.name "Thorben Klein"
         git config --global user.email "thorben@tklein.it"
         npm version "$NEW_VERSION" --no-git-tag-version
+        git add package*.json
+        git add ../../package*.json
+        git commit -m "chore(release): Release ((service_name))-v$NEW_VERSION"
         git tag | xargs git tag -d > /dev/null
         git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
 
 jobs:
-  - name: build
+  - name: build-((service_name))
     public: true
-    on_failure:
-      put: notify
-      params:
-        alert_type: failed
-        message: 'Build of ((service_name)) failed'
-        role: '1342563020215291936'
+    <<: *gh-status-handlers
     plan:
       - in_parallel:
           - get: node-image
-          - get: repo
+          - get: repository
             trigger: true
           - get: version
             params: { pre: rc }
           - get: container-version
             resource: version
             params: { bump: final }
+      - put: status
+        inputs: [repository]
+        params: {state: pending}
+        no_get: true
       - task: build
         image: node-image
         config:
           platform: linux
           inputs:
-            - name: repo
+            - name: repository
             - name: version
           params:
             CI: 'true'
             FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
           run:
             path: sh
             args:
               - -exc
               - |
                 NEW_VERSION=$(cat version/version)
-                cd repo/((repo_path))
+                cd repository
                 npm install
-                npm test
-                npm run build
+                npm test -- -F=@budgetbuddyde/((service_name))
+                npm run build -- -F=@budgetbuddyde/((service_name))
+                cd ((repo_path))
                 npm version "$NEW_VERSION" --no-git-tag-version
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repo/((repo_path))
-          dockerfile: repo/((repo_path))/Dockerfile
+          build: repository/((repo_path))
+          dockerfile: repository/((repo_path))/Dockerfile
           tag_file: version/version
           additional_tags: container-version/version
           tag_as_latest: true
       - put: version
         params: { file: version/version }
 
+  - name: update-database-schema
+    public: false
+    on_failure:
+      put: notification
+      params:
+        alert_type: failed
+        message: 'Failed to update database schema for ((service_name))'
+        role: '1342563020215291936'
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            passed: [build-((service_name))]
+      - task: apply-migrations
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
+            DATABASE_URL: ((database_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository
+                npm install
+                cd ((repo_path))
+                npx drizzle-kit check
+                npm run db:migrate
+
+  - name: update-dependencies
+    public: true
+    on_failure:
+      put: notification
+      params:
+        alert_type: failed
+        message: 'Failed to update dependencies for ((service_name))'
+        role: '1342563020215291936'
+    on_success:
+      put: repository
+      params:
+        repository: repository
+        rebase: true
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+          - get: weekly
+            trigger: true
+      - task: npm-update
+        image: node-image
+        config:
+          inputs:
+            - name: repository
+          outputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
+          platform: linux
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository/((repo_path))
+                npm install --no-package-lock --workspaces=false
+                npm update
+                npm audit fix --force
+                npm test
+                npm run build
+                git config --global user.name 'Thorben Klein'
+                git config --global user.email thorben@tklein.it
+                git add package*.json
+                git add ../../package*.json
+                git commit -m 'build(dependencies): Automated update of dependencies'
+
   - name: release-patch
     on_failure:
-      put: notify
+      put: notification
       params:
         alert_type: failed
         message: 'Release of patch for ((service_name)) failed'
@@ -151,9 +291,9 @@ jobs:
     plan:
       - in_parallel:
           - get: node-image
-          - get: repo
+          - get: repository
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: patch }
       - task: build
         image: node-image
@@ -162,14 +302,14 @@ jobs:
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repo/((repo_path))
-          dockerfile: repo/((repo_path))/Dockerfile
+          build: repository/((repo_path))
+          dockerfile: repository/((repo_path))/Dockerfile
           tag_file: version/version
           tag_as_latest: true
-      - put: repo
+      - put: repository
         params:
-          repository: repo
-          only_tag: true
+          repository: repository
+          rebase: true
       - put: version
         params: { file: version/version }
       - put: version-prod
@@ -177,7 +317,7 @@ jobs:
 
   - name: release-minor
     on_failure:
-      put: notify
+      put: notification
       params:
         alert_type: failed
         message: 'Release of minor for ((service_name)) failed'
@@ -185,9 +325,9 @@ jobs:
     plan:
       - in_parallel:
           - get: node-image
-          - get: repo
+          - get: repository
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: minor }
       - task: build
         image: node-image
@@ -196,14 +336,14 @@ jobs:
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repo/((repo_path))
-          dockerfile: repo/((repo_path))/Dockerfile
+          build: repository/((repo_path))
+          dockerfile: repository/((repo_path))/Dockerfile
           tag_file: version/version
           tag_as_latest: true
-      - put: repo
+      - put: repository
         params:
-          repository: repo
-          only_tag: true
+          repository: repository
+          rebase: true
       - put: version
         params: { file: version/version }
       - put: version-prod
@@ -211,7 +351,7 @@ jobs:
 
   - name: release-major
     on_failure:
-      put: notify
+      put: notification
       params:
         alert_type: failed
         message: 'Release of major for ((service_name)) failed'
@@ -219,9 +359,9 @@ jobs:
     plan:
       - in_parallel:
           - get: node-image
-          - get: repo
+          - get: repository
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: major }
       - task: build
         image: node-image
@@ -230,14 +370,14 @@ jobs:
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repo/((repo_path))
-          dockerfile: repo/((repo_path))/Dockerfile
+          build: repository/((repo_path))
+          dockerfile: repository/((repo_path))/Dockerfile
           tag_file: version/version
           tag_as_latest: true
-      - put: repo
+      - put: repository
         params:
-          repository: repo
-          only_tag: true
+          repository: repository
+          rebase: true
       - put: version
         params: { file: version/version }
       - put: version-prod

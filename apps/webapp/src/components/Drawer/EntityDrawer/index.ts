@@ -1,3 +1,4 @@
-export * from './EntityDrawer.component';
-export * from './EntityDrawer.reducer';
-export * from './useEntityDrawer.reducer';
+export * from './EntityDrawer';
+export * from './EntityDrawerReducer';
+export * from './Fields';
+export * from './types';

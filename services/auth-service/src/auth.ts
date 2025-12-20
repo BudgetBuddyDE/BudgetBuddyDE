@@ -1,147 +1,214 @@
-import {getTrustedOrigins} from '@budgetbuddyde/utils';
-import {betterAuth} from 'better-auth';
+import {LogLevel} from '@budgetbuddyde/logger';
+import {APIError, type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
-import {createAuthMiddleware} from 'better-auth/api';
-import {admin, bearer, multiSession, openAPI} from 'better-auth/plugins';
-import {type BetterAuthOptions} from 'better-auth/types';
-import 'dotenv/config';
-import fetch from 'node-fetch';
-
+import {openAPI} from 'better-auth/plugins';
 import {config} from './config';
-import {logger} from './core/logger';
-import {db} from './db/drizzleClient';
-import {redisClient} from './db/redis';
-import * as authSchema from './db/schema/auth';
-import {isCSRFCheckDisabled} from './utils/isCSRFCheckDisabled';
+import {db} from './db';
+import {getRedisClient} from './db/redis';
+import * as authSchema from './db/schema/auth.schema';
+import {logger} from './lib/logger';
+import {resendManager} from './lib/resend';
+import {EnvironmentVariableNotSetError} from './models/EnvironmentVariableNotSet';
+import {isCSRFCheckDisabled} from './utils';
 
-export enum AuthRole {
-  USER = 'user',
-  SERVICE_ACCOUNT = 'service-account',
-  ADMIN = 'admin',
-}
-
-export function isUserRole(role: string | null): asserts role is AuthRole {
-  const isUserRole = Object.values(AuthRole).includes(role as AuthRole);
-  if (!isUserRole) {
-    throw new Error(`Role ${role} is not a valid user role`);
-  }
-}
+const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET} = process.env;
 
 const authLogger = logger.child({label: 'auth'});
 
 const options: BetterAuthOptions = {
+  baseURL: config.runtime === 'production' ? config.baseUrl : `${config.baseUrl}:${config.port}`,
   appName: config.service,
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: authSchema,
   }),
-  secondaryStorage:
-    process.env.REDIS_URL !== undefined
-      ? {
-          get: async key => await redisClient.get(key),
-          set: async (key, value, ttl) => {
-            if (ttl) await redisClient.set(key, value, {EX: ttl});
-            else await redisClient.set(key, value);
-          },
-          delete: async key => {
-            await redisClient.del(key);
-          },
-        }
-      : undefined,
+  secondaryStorage: process.env.REDIS_URL
+    ? {
+        set(key, value, ttl) {
+          const client = getRedisClient();
+          client.set(key, value, 'EX', ttl || 10);
+        },
+        get(key) {
+          const client = getRedisClient();
+          return client.get(key);
+        },
+        delete(key) {
+          const client = getRedisClient();
+          client.del(key);
+        },
+      }
+    : undefined,
   logger: {
     disabled: false,
-    level: config.log.level,
-    log: config.log.log,
+    level: mapLogLevelForBetterAuth(config.log.level),
+    log: (level, message, args) => {
+      switch (level) {
+        case 'debug':
+          return authLogger.debug(message, args);
+        case 'warn':
+          return authLogger.warn(message, args);
+        case 'error':
+          return authLogger.error(message, args);
+        default:
+          return authLogger.info(message, args);
+      }
+    },
+  },
+  trustedOrigins: process.env.TRUSTED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 30 * 60, // Cache duration in seconds
+    },
+  },
+  advanced: {
+    disableCSRFCheck: isCSRFCheckDisabled(),
+    useSecureCookies: config.runtime === 'production',
+    cookiePrefix: 'budget-buddy',
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: config.runtime === 'production' ? '.budget-buddy.de' : 'localhost',
+    },
+    defaultCookieAttributes: {
+      sameSite: 'none',
+      secure: true,
+    },
   },
   emailAndPassword: {
     enabled: true,
+    autoSignIn: true,
+    requireEmailVerification: false,
+    revokeSessionsOnPasswordReset: true,
+    disableSignUp: process.env.DISABLE_SIGNUP === 'true',
+    async sendResetPassword({user: {id, email, name}, url}) {
+      authLogger.info(`Password reset requested for user: ${email}`, {userId: id});
+
+      const [result, error] = await resendManager.sendPasswordReset(email, name, url);
+      if (error) {
+        authLogger.error('Error while sending password reset email to %s: %o', email, error);
+        return;
+      }
+
+      authLogger.info('Password reset email (%s) sent to %s: %o', result.id, email);
+    },
+  },
+  user: {
+    changeEmail: {
+      enabled: true,
+      async sendChangeEmailVerification({user: {id, email}, url, newEmail}, _request) {
+        authLogger.info(`Change email verification requested for user: ${email}`, {userId: id});
+        const [result, error] = await resendManager.sendChangeEmailRequest(email, newEmail, url);
+        if (error) {
+          authLogger.error('Error while sending verification email to %s: %o', email, error);
+          return;
+        }
+
+        authLogger.info('Verification email (%s) sent to %s: %o', result.id, email);
+      },
+    },
+    deleteUser: {
+      enabled: true,
+      async beforeDelete(user, request) {
+        authLogger.info(`User deletion requested for user: ${user.email}`);
+        const BACKEND_HOST_URL = process.env.BACKEND_HOST_URL;
+        if (!BACKEND_HOST_URL) {
+          const err = new EnvironmentVariableNotSetError('BACKEND_HOST_URL');
+          throw new APIError('INTERNAL_SERVER_ERROR', {
+            message: err.message,
+            cause: err.cause,
+          });
+        }
+
+        const response = await fetch(`${process.env.BACKEND_HOST_URL}/api/me`, {
+          method: 'DELETE',
+          credentials: request?.credentials,
+          headers: request?.headers,
+        });
+        if (!response.ok) {
+          authLogger.error(`Failed to delete backend user data for user: ${user.email}, status: ${response.status}`);
+          throw new APIError('INTERNAL_SERVER_ERROR', {
+            message: 'Failed to delete backend user data',
+            cause: await response.text(),
+          });
+        }
+        authLogger.info(`Successfully deleted backend user data for user: ${user.email}`);
+      },
+      async sendDeleteAccountVerification({user: {id, email}, url}) {
+        authLogger.info(`Delete account requested for user: ${email}`, {userId: id});
+
+        const [result, error] = await resendManager.sendAccountDeletionVerification(email, url);
+        if (error) {
+          authLogger.error('Error while sending account deletion verification email to %s: %o', email, error);
+          return;
+        }
+
+        authLogger.info('Account deletion verification email (%s) sent to %s: %o', result.id, email);
+      },
+      async afterDelete(user) {
+        authLogger.info(`User deleted: ${user.email}`);
+        // TODO: Delete all user data from other services
+      },
+    },
+  },
+  emailVerification: {
+    autoSignInAfterVerification: true,
+    sendOnSignUp: true,
+    async onEmailVerification({email, emailVerified}) {
+      // REVISIT: Will always be false emailVerified is always false here
+      // TODO: Send mail after email verification
+      emailVerified
+        ? authLogger.info(`Email verified for user: ${email}`)
+        : authLogger.error(`Email verification failed for user: ${email}`);
+    },
+    async sendVerificationEmail({user: {email}, url}, _request) {
+      authLogger.info(`Email verification requested for user: ${email}`);
+      const [result, error] = await resendManager.sendVerificationEmail(email, url);
+      if (error) {
+        authLogger.error('Error while sending verification email to %s: %o', email, error);
+        return;
+      }
+
+      authLogger.info('Verification email (%s) sent to %s: %o', result.id, email);
+    },
   },
   account: {
+    updateAccountOnSignIn: true,
     accountLinking: {
       enabled: true,
+      allowUnlinkingAll: false,
+      allowDifferentEmails: false,
       trustedProviders: ['email-password', 'github', 'google'],
     },
   },
   socialProviders: {
     github: {
-      enabled: true,
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      enabled: Boolean(GITHUB_CLIENT_ID) && Boolean(GITHUB_CLIENT_SECRET),
+      clientId: GITHUB_CLIENT_ID as string,
+      clientSecret: GITHUB_CLIENT_SECRET as string,
     },
     google: {
-      enabled: true,
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      enabled: Boolean(GOOGLE_CLIENT_ID) && Boolean(GOOGLE_CLIENT_SECRET),
+      clientId: GOOGLE_CLIENT_ID as string,
+      clientSecret: GOOGLE_CLIENT_SECRET as string,
     },
   },
-  trustedOrigins: getTrustedOrigins(),
-  advanced: {
-    crossSubDomainCookies:
-      process.env.CROSS_SUB_DOMAIN_COOKIES_DOMAIN !== undefined
-        ? {
-            enabled: true,
-            domain: process.env.CROSS_SUB_DOMAIN_COOKIES_DOMAIN,
-          }
-        : undefined,
-    disableCSRFCheck: isCSRFCheckDisabled(),
-    useSecureCookies: config.environment === 'production',
-  },
-  rateLimit: {
-    window: 60,
-    max: 30,
-  },
-  plugins: [
-    bearer(),
-    admin({defaultRole: AuthRole.USER, adminRoles: [AuthRole.ADMIN, AuthRole.SERVICE_ACCOUNT]}),
-    openAPI(),
-    multiSession(),
-  ].filter(v => typeof v !== 'boolean'),
-  hooks: {
-    after: createAuthMiddleware(async ctx => {
-      const path = ctx.path;
-      if (path.startsWith('/sign-up')) {
-        const newSession = ctx.context.newSession;
-        if (newSession) {
-          authLogger.info('New user signed up', newSession);
-
-          const CAPIRE_BACKEND_HOST = process.env.CAPIRE_BACKEND_HOST;
-          if (!CAPIRE_BACKEND_HOST) {
-            authLogger.error('CAPIRE_BACKEND_HOST is not set! Cannot create user in CAP backend.', {
-              CAPIRE_BACKEND_HOST,
-              userId: newSession.user.id,
-            });
-            return;
-          }
-
-          const payload = JSON.stringify({userId: newSession.user.id});
-          const headers = {
-            'Content-Type': 'application/json',
-          };
-          authLogger.debug('Creating user in CAP backend', {
-            payload,
-            headers,
-            CAPIRE_BACKEND_HOST,
-          });
-          const response = await fetch(CAPIRE_BACKEND_HOST + '/service/user/User', {
-            method: 'POST',
-            headers,
-            body: payload,
-          });
-          if (!response.ok) {
-            authLogger.error('Failed to create user in CAP backend', {
-              status: response.status,
-              statusText: response.statusText,
-              userId: newSession.user.id,
-              CAPIRE_BACKEND_HOST,
-              responseBody: await response.text(),
-            });
-            return;
-          }
-          authLogger.info('User created in CAP backend', {userId: newSession.user.id, CAPIRE_BACKEND_HOST});
-        }
-      }
-    }),
-  },
+  plugins: [config.runtime === 'development' ? openAPI() : null].filter(p => p !== null),
 };
 
 export const auth = betterAuth(options);
+
+export function mapLogLevelForBetterAuth(level: typeof config.log.level): Logger['level'] {
+  switch (level) {
+    case LogLevel.DEBUG:
+      return 'debug';
+    case LogLevel.INFO:
+      return 'info';
+    case LogLevel.WARN:
+      return 'warn';
+    case LogLevel.ERROR:
+    case LogLevel.FATAL:
+      return 'error';
+    default:
+      return undefined;
+  }
+}

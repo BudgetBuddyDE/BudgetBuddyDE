@@ -1,1 +1,1 @@
-export * from './Transition.component';
+export * from './Transition';

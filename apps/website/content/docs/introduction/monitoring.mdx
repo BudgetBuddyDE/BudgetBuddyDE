@@ -1,0 +1,86 @@
+---
+title: Monitoring
+---
+
+<Callout>
+  The monitoring stack used here is a combination of various tools provided by
+  [MykalMachon](https://github.com/MykalMachon) in the
+  [repository](https://github.com/MykalMachon/railway-grafana-stack).
+</Callout>
+
+<Callout type="warn">
+  Note that the services in this setup are not additionally secured, as they are
+  not exposed and only operate within your own network. If you plan to expose
+  these services, it is important to secure them (e.g., using a reverse proxy)
+  to prevent unauthorized access or file manipulation by third parties.
+</Callout>
+
+## Grafana
+
+A powerful open-source analytics and visualization tool used to monitor and display metrics from various data sources (like Prometheus). It's commonly used for creating real-time dashboards and alerts.
+
+```txt title="Environment Variables"
+GF_DEFAULT_INSTANCE_NAME="Grafana on Railway"
+GF_INSTALL_PLUGINS="grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel"
+GF_SECURITY_ADMIN_PASSWORD="ADMIN_PASSWORD"
+GF_SECURITY_ADMIN_USER="ADMIN_USERNAME>"
+LOKI_INTERNAL_URL="http://${{Loki.RAILWAY_PRIVATE_DOMAIN}}:${{Loki.PORT}}"
+PORT="3000"
+PROMETHEUS_INTERNAL_URL="http://${{Prometheus.RAILWAY_PRIVATE_DOMAIN}}:${{Prometheus.PORT}}"
+RAILWAY_DOCKERFILE_PATH="/devOps/grafana/dockerfile"
+RAILWAY_RUN_UID="0"
+TEMPO_INTERNAL_URL="http://${{Tempo.RAILWAY_PRIVATE_DOMAIN}}:${{Tempo.PORT}}"
+VERSION="latest"
+```
+
+## Prometheus
+
+A monitoring and alerting toolkit that collects and stores time-series data. It’s widely used for scraping metrics from applications and systems, and triggering alerts based on customizable rules.
+
+### Environment Variables
+
+```txt title=".env.example"
+PORT="9090"
+RAILWAY_DOCKERFILE_PATH="/devOps/prometheus/dockerfile"
+RAILWAY_RUN_UID="0"
+VERSION="latest"
+```
+
+## Loki
+
+A log aggregation system developed by Grafana Labs, designed to collect, store, and query logs. Unlike traditional log systems, Loki indexes only metadata, making it efficient and cost-effective.
+
+### General
+
+The following custom attributes are always sent with each log entry to ensure proper structure and filtering.
+
+| Attribute     | Description                                                    |
+| ------------- | -------------------------------------------------------------- |
+| `project`     | The name of the project or application (e.g., `my-app`)        |
+| `environment` | The environment context (e.g., `dev`, `staging`, `production`) |
+| `service`     | The specific microservice or component (e.g., `auth-service`)  |
+| `version`     | The deployed version of the service (e.g., `v1.2.3`)           |
+
+### Environment Variables
+
+```txt title=".env.example"
+PORT="3100"
+RAILWAY_DOCKERFILE_PATH="/devOps/loki/dockerfile"
+RAILWAY_RUN_UID="0"
+VERSION="latest"
+```
+
+## Tempo
+
+A distributed tracing backend that allows developers to trace requests through complex systems. Tempo helps in understanding application behavior, identifying bottlenecks, and debugging microservices.
+
+### Environment Variables
+
+```txt title=".env.example"
+INTERNAL_GRPC_INGEST="grpc://${{Tempo.RAILWAY_PRIVATE_DOMAIN}}:4317"
+INTERNAL_HTTP_INGEST="http://${{Tempo.RAILWAY_PRIVATE_DOMAIN}}:4318"
+PORT="3200"
+RAILWAY_DOCKERFILE_PATH="/devOps/tempo/dockerfile"
+RAILWAY_RUN_UID="0"
+VERSION="latest"
+```

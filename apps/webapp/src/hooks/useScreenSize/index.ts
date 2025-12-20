@@ -1,1 +1,1 @@
-export * from './useScreenSize.hook';
+export * from './useScreenSize';

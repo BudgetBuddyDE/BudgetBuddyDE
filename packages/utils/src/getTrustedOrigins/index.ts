@@ -1,1 +1,1 @@
-export * from './getTrustedOrigins';
+export * from "./getTrustedOrigins";

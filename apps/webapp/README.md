@@ -1,46 +1,47 @@
-# Webapp
+# Material UI - Next.js App Router example in TypeScript
 
-## Getting started
+This is a [Next.js](https://nextjs.org/) project bootstrapped using [`create-next-app`](https://github.com/vercel/next.js/tree/HEAD/packages/create-next-app) with Material UI installed.
 
-1. Clone the repository
+## How to use
 
-   ```bash
-   git clone git@github.com:BudgetBuddyDE/Webapp.git
-   ```
+Download the example [or clone the repo](https://github.com/mui/material-ui):
 
-2. Set all required environment-variables as defined in the `.env.example` and them under `.env`
-3. Install dependencies
+<!-- #target-branch-reference -->
 
-   ```bash
-   npm i
-   ```
-
-4. Run the application
-
-   > [!WARNING]
-   > In order for the application to be fully functional, the services and the database must be accessible. For more information on how to start the services, please refer to the [BudgetBuddyDE/Webapp](https://github.com/BudgetBuddyDE/Webapp.git) repository.
-
-   ```bash
-   npm run dev
-   npm run dev --host # if you want to expose it to your network
-   ```
-
-### Docker-Compose
-
-> [!NOTE]  
-> You can find an pre-defined `compose.yml` in the [Setup-Repository](https://github.com/BudgetBuddyDE/setup.git) which also contains the instructions for the setup-process
-
-## Structure
-
-```txt
-src/
-   __tests__/
-   components/ # contains atomic general use components
-   features/ # contains feature specific files like components, hooks, services, tests...
-   routes/ # contains routes
-   services/ # contains general use components
-   hooks/ # contains general use hooks
-   theme/
-      style/
-   types/ # contains general use types
+```bash
+curl https://codeload.github.com/mui/material-ui/tar.gz/master | tar -xz --strip=2  material-ui-master/examples/material-ui-nextjs-ts
+cd material-ui-nextjs-ts
 ```
+
+Install it and run:
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+or:
+
+<!-- #target-branch-reference -->
+
+[![Edit on StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/mui/material-ui/tree/master/examples/material-ui-nextjs-ts)
+
+[![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/github/mui/material-ui/tree/master/examples/material-ui-nextjs-ts)
+
+## Learn more
+
+To learn more about this example:
+
+<!-- #host-reference -->
+
+- [Next.js documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Customizing Material UI](https://mui.com/material-ui/customization/how-to-customize/) - approaches to customizing Material UI.
+
+## What's next?
+
+<!-- #host-reference -->
+
+You now have a working example project.
+You can head back to the documentation and continue by browsing the [templates](https://mui.com/material-ui/getting-started/templates/) section.

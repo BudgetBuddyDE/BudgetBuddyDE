@@ -1,13 +1,13 @@
 groups:
-  - name: release
-    jobs:
-      - 'release-*'
-  - name: build
-    jobs:
-      - build
   - name: all
     jobs:
-      - build
+      - '*'
+  - name: build
+    jobs:
+      - build*
+      - update-dependencies
+  - name: release
+    jobs:
       - 'release-*'
 
 resource_types:
@@ -15,28 +15,50 @@ resource_types:
     type: registry-image
     source:
       repository: ghcr.io/tklein1801/concourse-discord-alert-resource
+  
+  - name: cogito
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: pix4d/cogito
 
 resources:
-  - name: notify
+  - name: notification
     type: discord-alert
+    icon: bell-ring
     source:
       url: ((discord_webhook))
 
+  - name: timer
+    type: time
+    icon: clock-outline
+    source:
+      interval: 168h
+
   - name: node-image
     type: registry-image
+    icon: nodejs
     source:
       repository: node
       tag: 20
 
-  - name: repo
+  - name: repository
     type: git
-    icon: github
+    icon: git
     source:
-      uri: ((repo_uri))
+      uri: git@github.com:((repo_owner))/((repo_name)).git
       private_key: ((repo_private_key))
       branch: main
       paths: [((repo_path))/**]
       depth: 1
+
+  - name: status
+    type: cogito
+    icon: github
+    source:
+      owner: ((repo_owner))
+      repo: ((repo_name))
+      access_token: ((github_pat))
 
   - name: version
     type: semver
@@ -50,16 +72,40 @@ resources:
       access_key_id: ((version_bucket_access_key))
       secret_access_key: ((version_bucket_secret))
 
+meta:
+  gh-status-handlers: &gh-status-handlers
+    on_success:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: success}
+    on_failure:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: failure}
+    on_error:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: error}
+    on_abort:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: abort}
+
 task-config: &task-release
   platform: linux
   inputs:
-    - name: repo
+    - name: repository
     - name: version
   outputs:
-    - name: repo
+    - name: repository
   params:
     CI: 'true'
     FORCE_COLOR: 1
+    TURBO_TELEMETRY_DISABLED: 1
   run:
     path: sh
     args:
@@ -68,40 +114,43 @@ task-config: &task-release
         git config --global user.name 'Thorben Klein'
         git config --global user.email thorben@tklein.it
         NEW_VERSION="$(cat version/version)"
-        cd repo/((repo_path))
-        npm ci
-        npm run build
+        cd repository/((repo_path))
+        npm install
+        npm run build -- -F=@budgetbuddyde/((service_name))
         npm version "$NEW_VERSION" --no-git-tag-version
+        git add package*.json
+        git add ../../package*.json
+        git commit -m "chore(release): Release ((service_name))-v$NEW_VERSION"
         git tag | xargs git tag -d > /dev/null
         git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
-        echo "//registry.npmjs.org/:_authToken=((npm_token))" > .npmrc
+        echo "//registry.npmjs.org/:_authToken=((npm_token))" > ~/.npmrc
         npm publish --access public
 
 jobs:
-  - name: build
+  - name: build-((service_name))
     public: true
-    on_failure:
-      put: notify
-      params:
-        alert_type: failed
-        message: 'Build of ((service_name)) failed'
-        role: '1342563020215291936'
+    <<: *gh-status-handlers
     plan:
       - in_parallel:
           - get: node-image
-          - get: repo
+          - get: repository
             trigger: true
           - get: version
             params: { pre: rc }
+      - put: status
+        inputs: [repository]
+        params: {state: pending}
+        no_get: true
       - task: build
         image: node-image
         config:
           inputs:
-            - name: repo
+            - name: repository
             - name: version
           params:
             CI: 'true'
             FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
           platform: linux
           run:
             path: sh
@@ -109,18 +158,67 @@ jobs:
               - -exc
               - |
                 NEW_VERSION=$(cat version/version)
-                cd repo/((repo_path))
-                npm ci
-                npm test
-                npm run build
+                cd repository
+                npm install
+                npm test -- -F=@budgetbuddyde/((service_name))
+                npm run build -- -F=@budgetbuddyde/((service_name))
+                cd ((repo_path))
                 npm version "$NEW_VERSION" --no-git-tag-version
                 npm publish --access public --dry-run
       - put: version
         params: { file: version/version }
 
+  - name: update-dependencies
+    public: true
+    on_failure:
+      put: notification
+      params:
+        alert_type: failed
+        message: 'Failed to update dependencies for ((service_name))'
+        role: '1342563020215291936'
+    on_success:
+      put: repository
+      params:
+        repository: repository
+        rebase: tue
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+          - get: timer
+            trigger: true
+      - task: npm-update
+        image: node-image
+        config:
+          inputs:
+            - name: repository
+          outputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
+          platform: linux
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository/((repo_path))
+                npm install --no-package-lock --workspaces=false
+                npm update
+                npm audit fix --force
+                npm test
+                npm run build
+                git config --global user.name 'Thorben Klein'
+                git config --global user.email thorben@tklein.it
+                git add package*.json
+                git add ../../package*.json
+                git commit -m 'build(dependencies): Automated update of dependencies'
+
   - name: release-patch
     on_failure:
-      put: notify
+      put: notification
       params:
         alert_type: failed
         message: 'Release of patch for ((service_name)) failed'
@@ -128,9 +226,9 @@ jobs:
     plan:
       - in_parallel:
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: patch }
-          - get: repo
+          - get: repository
           - get: node-image
       - task: build
         image: node-image
@@ -139,14 +237,14 @@ jobs:
       - in_parallel:
           - put: version
             params: { file: version/version }
-          - put: repo
+          - put: repository
             params:
-              repository: repo
-              only_tag: true
+              repository: repository
+              rebase: true
 
   - name: release-minor
     on_failure:
-      put: notify
+      put: notification
       params:
         alert_type: failed
         message: 'Release of minor for ((service_name)) failed'
@@ -154,9 +252,9 @@ jobs:
     plan:
       - in_parallel:
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: minor }
-          - get: repo
+          - get: repository
           - get: node-image
       - task: build
         image: node-image
@@ -165,14 +263,14 @@ jobs:
       - in_parallel:
           - put: version
             params: { file: version/version }
-          - put: repo
+          - put: repository
             params:
-              repository: repo
-              only_tag: true
+              repository: repository
+              rebase: true
 
   - name: release-major
     on_failure:
-      put: notify
+      put: notification
       params:
         alert_type: failed
         message: 'Release of major for ((service_name)) failed'
@@ -180,9 +278,9 @@ jobs:
     plan:
       - in_parallel:
           - get: version
-            passed: [build]
+            passed: [build-((service_name))]
             params: { bump: major }
-          - get: repo
+          - get: repository
           - get: node-image
       - task: build
         image: node-image
@@ -191,7 +289,7 @@ jobs:
       - in_parallel:
           - put: version
             params: { file: version/version }
-          - put: repo
+          - put: repository
             params:
-              repository: repo
-              only_tag: true
+              repository: repository
+              rebase: true

@@ -1,5 +1,12 @@
-import {createLogger} from '@budgetbuddyde/utils/lib/logger';
+import {ConsoleTransport, createLogger, LogLevel} from '@budgetbuddyde/logger';
 
-import {AppConfig} from './app.config';
-
-export const logger = createLogger({label: AppConfig.appName, level: AppConfig.logLevel});
+export const logger = createLogger({
+  label: 'app',
+  level: LogLevel.DEBUG,
+  transports: [
+    new ConsoleTransport({
+      debounceMs: 0,
+      batchSize: 1,
+    }),
+  ],
+});

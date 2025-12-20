@@ -1,0 +1,61 @@
+{
+  "name": "@budgetbuddyde/backend",
+  "version": "1.0.0",
+  "main": "build/src/server.js",
+  "scripts": {
+    "start": "node build/src/server.js",
+    "watch": "tsx watch src/server.ts",
+    "dev": "npm run watch",
+    "build": "npx rimraf build && npx tsc",
+    "pretest": "npm run check",
+    "test": "vitest run",
+    "check": "biome check --error-on-warnings",
+    "check:write": "npm run check -- --write --unsafe",
+    "lint": "biome lint --write",
+    "format": "biome format --write",
+    "db:generate": "npx drizzle-kit generate",
+    "db:migrate": "npx drizzle-kit migrate",
+    "db:studio": "npx drizzle-kit studio"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/budgetbuddyde/budgetbuddyde.git"
+  },
+  "author": "Thorben Klein",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/budgetbuddyde/budgetbuddyde/issues"
+  },
+  "homepage": "https://github.com/budgetbuddyde/budgetbuddyde#readme",
+  "description": "",
+  "dependencies": {
+    "@budgetbuddyde/logger": "^0.0.2",
+    "@budgetbuddyde/types": "^1.1.0",
+    "@budgetbuddyde/utils": "^1.3.3",
+    "better-auth": "1.2.9",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
+    "drizzle-zod": "^0.8.3",
+    "express": "^5.1.0",
+    "express-zod-safe": "^3.1.0",
+    "ioredis": "^5.8.2",
+    "node-cron": "^4.2.1",
+    "pg": "^8.16.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.3",
+    "@types/pg": "^8.15.4",
+    "drizzle-kit": "^0.31.1",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

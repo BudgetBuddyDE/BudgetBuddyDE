@@ -1,1 +1,1 @@
-export * from './getCurrentRuntime';
+export * from "./getCurrentRuntime";

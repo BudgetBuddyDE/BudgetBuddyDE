@@ -1,1 +1,1 @@
-export * from './useWindowDimensions.hook';
+export * from './useWindowDimensions';

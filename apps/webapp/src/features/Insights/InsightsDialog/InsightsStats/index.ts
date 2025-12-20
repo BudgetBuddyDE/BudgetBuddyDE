@@ -1,1 +1,0 @@
-export * from './InsightsStats.component';

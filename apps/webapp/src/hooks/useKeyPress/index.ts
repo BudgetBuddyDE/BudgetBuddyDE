@@ -1,1 +1,1 @@
-export * from './useKeyPress.hook';
+export * from './useKeyPress';

@@ -1,1 +1,1 @@
-export * from './ContentGrid.component';
+export * from './ContentGrid';
