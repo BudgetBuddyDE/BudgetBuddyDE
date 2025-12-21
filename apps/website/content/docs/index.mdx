@@ -1,42 +1,33 @@
 ---
 title: Quick Start
-icon: Album
+icon: BookMarked
 ---
 
 ![Image](/desktop-mock.png)
 
-<Callout title="Attention" type="warn">
-  This documentation is still a work in progress. Some sections may be incomplete or missing. Please
-  check back later for updates.
-</Callout>
+import {CpuIcon, PanelsTopLeft, Database} from "lucide-react"
 
-## Project structure
+<Cards>
 
-<Files>
-  <Folder name=".github" disabled />
-  <Folder name=".husky" disabled />
-  <Folder name="apps" defaultOpen disabled>
-    <Folder name="webapp" disabled />
-    <Folder name="website" disabled />
-  </Folder>
-  <Folder name="ci" defaultOpen disabled>
-    <Folder name="pipelines" disabled />
-    <Folder name="secrets" disabled />
-    <File name="getting-started.md" />
-  </Folder>
-  <Folder name="packages" defaultOpen disabled>
-    <Folder name="logger" disabled />
-    <Folder name="types" disabled />
-    <Folder name="utils" disabled />
-  </Folder>
-  <Folder name="services" defaultOpen disabled>
-    <Folder name="auth-service" disabled />
-    <Folder name="backend" disabled />
-  </Folder>
-  <File name="LICENSE" />
-  <File name="package.json" />
-  <File name="README.md" />
-</Files>
+<Card icon={<CpuIcon className="text-purple-300" />} title='Starting development'>
+
+Quick dive into setting up a development environment for BudgetBuddyde
+
+</Card>
+
+<Card icon={<PanelsTopLeft className="text-blue-300" />} title='Webapp'>
+
+Information about the web application, its structure and how to extend it.
+
+</Card>
+
+<Card icon={<Database />} title='Databases & Migrations'>
+
+Information about the current database structure and how an database schema migration can be done.
+
+</Card>
+
+</Cards>
 
 ## Contributing
 

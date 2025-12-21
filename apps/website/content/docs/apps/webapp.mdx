@@ -4,33 +4,88 @@ title: Webapp
 
 ## Overview
 
-<Callout>
-  In order for the application to be fully operational, the following services
-  must also be deployed: [Pocketbase](pocketbase.md), [Subscription
-  Service](subscription-service.md).
-</Callout>
+The Webapp is the main application of BudgetBuddyDE, providing users with an intuitive and user-friendly interface to manage their finances. It is based on Next.js with TypeScript and uses the [Auth-Service](../services/auth-service.mdx) as well as the [Backend](../services/backend.mdx) to process and store data.
 
-## Installation
+### Features
 
-1. Clone the repository
+**Authentication**
+- User registration and login
+- Password reset via email
+- Email verification after registration
+- OAuth2 login (Google, Github)
 
-   ```bash
-   git clone https://github.com/BudgetBuddyDE/Webapp.git
-   # or via ssh
-   git clone git@github.com:BudgetBuddyDE/Webapp.git
-   ```
+**Budgeting**
+- Create and manage budgets
+- Categorization of expenses
+- Visualization of expenses and income
+- Monthly reports and analytics (upcoming)
 
-2. Install the dependencies
+## Architecture
 
-   ```bash
-   npm install
-   ```
+### Technologies
 
-3. Set all required environment variables as defined in the `.env.example`
-4. Adjust the configuration file `src/app.config.ts`.
-5. Start the application
-   ```bash
-   npm run start
-   # or in developer mode
-   npm run dev
-   ```
+- **Framework**: [Next.js](https://github.com/nextjs/next.js)
+- **UI Library**: [Material UI](https://mui.com/)
+- **Language**: [TypeScript](https://github.com/microsoft/TypeScript)
+
+### API Documentation
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| GET | `/api/health` | Health Check Endpoint |
+
+## Development
+
+**Start service locally**
+
+```bash
+# Install dependencies
+npm install
+
+# Start in development mode
+npm run dev
+```
+
+**Linting & Formatting**
+
+```bash
+# Check linter
+npm run check
+
+# Automatically fix linter errors
+npm run check:write
+
+# Format code
+npm run format
+```
+
+### Configuration
+
+#### Environment Variables
+
+| Variable | Description | Default Value |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_AUTH_SERVICE_HOST` | Host URL of the Auth-Service | - |
+| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Host URL of the Backend-Service | - |
+
+## Deployment
+
+The service is automatically deployed via a Railway CI/CD pipeline on every push to the `main` branch.
+
+### Railway
+
+import RailwayDeployment from "../../../src/components/RailwayDeployment";
+
+<RailwayDeployment />
+
+## Dependencies
+
+The Webapp uses the following internal packages:
+
+- [`@budgetbuddyde/logger`](/docs/packages/logger)
+- [`@budgetbuddyde/types`](/docs/packages/types)
+
+and requires the following internal services:
+
+- [Auth-Service](../services/auth-service.mdx)
+- [Backend](../services/backend.mdx)

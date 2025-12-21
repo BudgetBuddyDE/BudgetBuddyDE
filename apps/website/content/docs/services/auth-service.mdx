@@ -1,148 +1,171 @@
 ---
 title: Auth Service
+description: The Auth Service is responsible for user authentication and the management of user sessions as well as user information assigned to the user account.
 ---
 
-## About
+## Overview
 
-The Auth Service is a central component of the architecture that is responsible for user authentication and authorization. It enables users to register, log in, and determine their access to data.
-The service was developed using the Better-Auth and ExpressJS frameworks and uses a PostgreSQL database to store user data. Thanks to the Better-Auth client library, it is easy to integrate a client into a frontend and backend.
-Currently, the Auth Service supports authentication via email and password, as well as OAuth providers such as Google and GitHub.
+<img 
+  src="https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/auth-service/jobs/build-auth-service/badge?title=Build" 
+  alt="CI Build Status" 
+  unoptimized="true"
+  style={{marginBottom: '0', marginTop: '0'}}
+/>
 
-<Callout>
-  Other providers such as Apple and Microsoft are not currently planned, but can be configured if
-  required.
-</Callout>
+The Auth Service is based on Express.js and TypeScript. The authentication logic was implemented using the [Better-Auth](https://better-auth.com/) library. This allows the service to be connected to other OAuth2 and OpenID Connect compatible identity providers with little effort. Additionally, there is the possibility to install plugins to use further features such as Two-Factor Authentication.
+Currently, users can log in and authenticate using an Email/Password combination or via a Github or Google account.
 
-## Getting started
+### Features
 
-### Development
+- **Login and Registration** of users using Email/Password combination
+- **Login and Registration** of users via OAuth2 (Google, Github)
+- **Management of user sessions** (as well as creating sessions on multiple devices)
+- **Password reset** via Email
+- **Email verification** after registration
 
-<Steps>
-<Step>
-#### Clone the repository
-    
-```bash
-git clone git@github.com:budgetbuddyde/budgetbuddyde.git
+## Architecture
+
+### Technologies
+
+- **Framework**: [Express.js](https://github.com/expressjs/express)
+- **Language**: [TypeScript](https://github.com/microsoft/TypeScript)
+- **Database**: [PostgreSQL](https://github.com/postgres/postgres)
+- **Cache**: [Redis](https://github.com/redis/redis)
+- **Authentication Library**: [Better-Auth](https://github.com/better-auth/better-auth)
+- **ORM**: [Drizzle Kit](https://orm.drizzle.team/)
+
+### Structure
+
+```txt
+src/
+├── db/        # Contains database models and adapters to access the database
+├── lib/        # Contains library functions and initializations
+├── middleware/        # Contains Express middleware functions
+├── models/        # Providing classes and interfaces
+├── types/        # Providing types and
+├── utils/        # Contains helper functions and utility modules
+├── auth.ts        # Instantiation and configuration of the Better-Auth library
+├── config.ts        # Configuration file for the service
+├── server.ts        # Main entry point of the application
 ```
 
-</Step>
-<Step>
-#### Install dependencies
+### API Documentation
+
+The documentation of [Better-Auth](https://better-auth.com/) can be viewed [here](https://better-auth.com/docs/).
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| GET | `/health` | Health Check Endpoint |
+
+## Development
+
+**Start service locally**
 
 ```bash
+# Install dependencies
 npm install
+
+# Copy environment variables
+cp .env.example .env
+
+# Start in development mode
+npm run dev
 ```
 
-</Step>
-<Step>
-#### Go to the auth-service directory
+**Linting & Formatting**
 
 ```bash
-cd ./services/auth-service
+# Check linter
+npm run check
+
+# Automatically fix linter errors
+npm run check:write
+
+# Format code
+npm run format
 ```
 
-</Step>
-<Step>
-#### Set up environment variables
-    
-Set all required environment variables as defined in the `.env.example` file. You can copy the example file to create your own `.env` file.
-</Step>
-<Step>
-#### Start the application
+### Configuration
 
-```bash
-npm run watch
+#### Environment Variables
+
+| Variable | Description | Default Value |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | Connection string to the database | - |
+| `REDIS_URL` | Connection string for Redis cache | - |
+| `TRUSTED_ORIGINS` | Comma-separated list of trusted origins for CORS | - |
+| `AUTH_SECRET` | Random string to secure authentication | - |
+| `BASE_URL` | Host URL of the service to e.g. generate links in emails correctly | - |
+| `BACKEND_HOST_URL` | Host URL under which the backend is reachable | - |
+| `RESEND_API_KEY` | Resend API to send emails via Resend | - |
+| `LOG_LEVEL` | Log level for the application | `INFO` |
+| `GITHUB_CLIENT_ID` | GitHub OAuth Client ID | - |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret | - |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | - |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | - |
+| `PORT` | Port on which the service runs | `8080` |
+
+#### OAuth
+
+The callback URLs for the OAuth providers must be configured as follows:
+
+**Local**
+
+```
+http://localhost:8080/api/auth/callback/<PROVIDER> # e.g. google, github
 ```
 
-</Step>
-</Steps>
+**Production Environment**
 
-## Build
-
-### Local
-
-To build the service locally, you can use the following command:
-
-```bash
-npm run build
+```
+https://auth.service/api/auth/callback/<PROVIDER> # e.g. google, github
 ```
 
-### For Docker
+### Database Migrations
 
 <Callout type="info">
-  A current Docker image is automatically created when a commit is pushed to the `main` branch. The
-  image is provided in the GitHub Container Registry under
-  `ghcr.io/budgetbuddyde/auth-service:latest`.
+  The environment variable `DATABASE_URL` must be set for migrations to be executed.
 </Callout>
 
-To build the service for Docker, you can use the following command:
+Database migrations are managed using Drizzle Kit. To create a new migration (for the database), the following command can be used:
 
 ```bash
-docker build -t ghcr.io/budgetbuddyde/auth-service:latest .
+npm run db:generate
+```
+
+Using the following command, the migrations can be applied to the database:
+
+```bash
+npm run db:migrate
 ```
 
 ## Deployment
 
-The service is currently provided automatically as soon as a commit is pushed to the `main` branch. The service is run in a Docker container and provided in a Railway environment.
+The service is automatically deployed via a Railway CI/CD pipeline on every push to the `main` branch.
+Additionally, there is a [Concourse Workflow](https://ci.tklein.it/teams/budgetbuddyde/pipelines/auth-service), which tests the service on every push and builds and publishes a Docker image.
 
-### Schema Migration
+### Docker
 
-<Callout type="info">
-  For more information about the schema generation and migration have a look into [the
-  documentation](https://www.better-auth.com/docs/basic-usage#migrate-database).
-</Callout>
-
-The database schema required for the Better-Auth auth service can be generated using the `@better-auth/cli`:
+The service can be containerized and deployed using the Dockerfile in the repository.
+The following command can be used for this:
 
 ```bash
-npm run ba:schema-generate
+docker pull ghcr.io/budgetbuddyde/backend:latest
+docker run -d -p 9000:9000 --env-file ./path/to/env/file ghcr.io/budgetbuddyde/backend:latest
 ```
 
-The previously generated schema can be applied using Drizzle Kit. This can be done with the following commands:
+Additionally, a `docker-compose.yml` file is available in the repository, which can be used to start the service locally together with a PostgreSQL and Redis instance.
 
-<Callout type="warn">
-  Make sure that the `DATABASE_URL` environment variable is set and points to the target database
-  where the schema should be applied. If the environment variable is not set, the process will fail
-  with an error.
-</Callout>
+### Railway
 
-```bash
-npm run db:generate # will generate all required schemas
-npm run db:migrate
-```
+import RailwayDeployment from "../../../src/components/RailwayDeployment";
 
-The previously generated schema can be applied using Drizzle Kit. This can be done with the following commands:
+<RailwayDeployment />
 
-<Callout type="warn">
-  Make sure that the `DATABASE_URL` environment variable is set and points to the target database
-  where the schema should be applied. If the environment variable is not set, the process will fail
-  with an error.
-</Callout>
+## Dependencies
 
-```bash
-npm run db:generate # will generate all required schemas
-npm run db:migrate # will apply the generated schema to the database
-```
+The Auth Service uses the following internal packages:
 
-### Environment Variables
-
-#### `DATABASE_URL`
-The URL of the PostgreSQL database used for storing user data. Example:
-
-```txt
-DATABASE_URL=postgresql://user:password@db-host:5432/auth-database
-```
-
-#### `REDIS_URL`
-
-The URL of the Redis instance used for storing sessions. Example:
-
-```txt
-REDIS_URL=redis://default:password@redis-host:6379
-```
-
-## Credits
-
-- [Better-Auth](https://better-auth.com)
-- [ExpressJS](https://expressjs.com/)
-- [PostgreSQL](https://www.postgresql.org/)
+- [`@budgetbuddyde/logger`](/docs/packages/logger)
+- [`@budgetbuddyde/types`](/docs/packages/types)
+- [`@budgetbuddyde/utils`](/docs/packages/utils)

@@ -1,194 +1,158 @@
 ---
 title: Backend
+description: The Backend is the central component of the web application and provides the API as well as the business logic.
 ---
 
-![CI](https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/backend/jobs/build-backend/badge)
+## Overview
 
-## About
+<img 
+  src="https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/backend/jobs/build-backend/badge?title=Build" 
+  alt="CI Build Status" 
+  unoptimized="true"
+  style={{marginBottom: '0', marginTop: '0'}}
+/>
 
-The backend was developed using ExpressJS and Drizzle ORM for persistence, enabling the frontend application to access and manage data. It provides a RESTful API, which allows data to be created, read, updated, and deleted (CRUD operations). The backend has a modular structure and can be easily expanded to add additional functions.
-Data security was ensured with restriction rules and the Auth service, which is responsible for user authentication and authorization, ensuring that each user can only access their own data.
+The Backend is based on Node.js with the Express.js Framework and is written in TypeScript. It provides a RESTful API that is used by the frontend application and other services.
+Most requests to the endpoints are authenticated and authorized by the [Auth-Service](./auth-service) to ensure that only authorized users have access to protected resources.
+The current user session is also integrated into the request context and the result set is filtered according to the user.
 
-## Getting started
+### Features
 
-### Development
+- **RESTful API** for providing data and business logic
+- **Processing of Recurring Payments** using a job
 
-<Steps>
-<Step>
-#### Clone the repository
+#### Jobs
 
-```bash
-git clone git@github.com:budgetbuddyde/budgetbuddyde.git
+##### `process-recurring-payments`
+
+Scheduled at: `30 1 * * *` (daily at 01:30 AM) in the timezone `Europe/Berlin`.
+
+This job processes due recurring payments and creates corresponding transactions. It also takes into account months with fewer than 31 days by executing payments for non-existent calendar days at the end of the month. Paused payments are skipped and the entire process is logged.
+
+## Architecture
+
+### Technologies
+
+- **Framework**: [Express.js](https://github.com/expressjs/express)
+- **Language**: [TypeScript](https://github.com/microsoft/TypeScript)
+- **Database**: [PostgreSQL](https://github.com/postgres/postgres)
+- **Cache**: [Redis](https://github.com/redis/redis)
+- **ORM**: [Drizzle Kit](https://orm.drizzle.team/)
+
+### Structure
+
+Explain briefly the folder structure or important modules of the service.
+
+```txt
+src/
+├── db/        # Contains database models and adapters to access the database
+├── jobs/        # Contains functions for background jobs
+├── lib/        # Contains library functions and initializations
+├── middleware/        # Contains Express middleware functions
+├── models/        # Providing classes and interfaces
+├── types/        # Providing types and
+├── config.ts        # Configuration file for the service
+├── server.ts        # Main entry point of the application
 ```
 
-</Step>
-<Step>
-#### Install dependencies
+### API Documentation
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| GET | `/health` | Health Check Endpoint |
+
+## Development
+
+**Start service locally**
 
 ```bash
+# Install dependencies
 npm install
-```
 
-</Step>
-<Step>
-#### Change to the backend directory
-
-```bash
-cd ./services/backend
-```
-
-</Step>
-<Step>
-#### Set up environment variables
-
-Set all required environment variables as defined in the `.env.example` file. You can copy the example file to create your own `.env` file.
-
-```bash
+# Copy environment variables
 cp .env.example .env
+
+# Start in development mode
+npm run dev
 ```
-</Step>
-<Step>
-#### Start the application
+
+**Linting & Formatting**
 
 ```bash
-npm run watch
+# Check linter
+npm run check
+
+# Automatically fix linter errors
+npm run check:write
+
+# Format code
+npm run format
 ```
 
-</Step>
-</Steps>
+### Configuration
 
-## Build
+#### Environment Variables
 
-### For Docker
+| Variable | Description | Default Value |
+| :--- | :--- | :--- |
+| `NODE_ENV` | Execution environment (development, production, test) | `development` |
+| `DATABASE_URL` | Connection string to the database | - |
+| `REDIS_URL` | Connection string for Redis cache | - |
+| `REDIS_DB` | Index of the Redis database | `1` |
+| `TRUSTED_ORIGINS` | Comma-separated list of trusted origins for CORS | - |
+| `AUTH_SERVICE_HOST` | Host URL under which the Auth Service is reachable | - |
+| `LOG_LEVEL` | Log level for the application | `INFO` |
+| `TIMEZONE` | Timezone for the application (for scheduling jobs) | `Europe/Berlin` |
+| `PORT` | Port on which the service runs | `9000` |
+
+### Database Migrations
 
 <Callout type="info">
-  A current Docker image is automatically created when a commit is pushed to the `main` branch. The
-  image is provided in the GitHub Container Registry under `ghcr.io/budgetbuddyde/backend:latest`.
+  The environment variable `DATABASE_URL` must be set for migrations to be executed.
 </Callout>
 
-To build the service for Docker, you can use the following command:
+Database migrations are managed using Drizzle Kit. To create a new migration (for the database), the following command can be used:
 
 ```bash
-docker build \
-  --build-arg DB_HOST=mein-db-host \
-  --build-arg DB_PORT=5432 \
-  --build-arg DB_USER=meinuser \
-  --build-arg DB_PASSWORD=geheim \
-  --build-arg DB_DATABASE=meinedb \
-  -t ghcr.io/budgetbuddyde/backend:latest .
+npm run db:generate
+```
+
+Using the following command, the migrations can be applied to the database:
+
+```bash
+npm run db:migrate
 ```
 
 ## Deployment
 
-The service is currently provided automatically as soon as a commit is pushed to the `main` branch. The service is run in a Docker container and provided in a Railway environment.
+Information about the deployment process (e.g. Docker, CI/CD Pipelines).
 
-### Schema Migration
+### Docker
 
-<Callout type="info">
-  The backend uses Drizzle ORM for database migrations. More information on schema migration can be found in [the documentation](https://orm.drizzle.team/docs/kit-overview) of Drizzle ORM.
-</Callout>
+The service can be containerized and deployed using the Dockerfile in the repository.
+The following command can be used for this:
 
-1. Generate migration SQL files using Drizzle ORM.
-
-   ```bash
-   npm run db:generate
-   ```
-
-2. Apply the generated migration files to your PostgreSQL database.
-
-   ```bash
-   npm run db:migrate
-   ```
-
-Now your database schema should be up-to-date with the application's requirements.
-
-## Jobs
-
-### `process-recurring-payments`
-
-This job processes all due recurring payments and creates corresponding transactions. It is scheduled to run daily at 01:30 AM in the configured timezone.
-
-## Environment Variables
-
-### `NODE_ENV`
-
-The `NODE_ENV` environment variable defines the execution environment of the backend. Possible values are `development`, `production`, and `test`. By default, the value is set to `development`. To ensure correct behavior in production environments, this variable should be set to `production`.
-
-### `DATABASE_URL`
-
-The connection string for the PostgreSQL database.
-
-### `REDIS_URL`
-
-The connection string for the Redis cache.
-
-#### `REDIS_DB`
-
-The index of the Redis database to use. If not set, it defaults to `1`.
-
-### `AUTH_SERVICE_HOST`
-
-The base URL of the authentication service. If not set, it defaults to `http://localhost:8080`.
-
-### `TRUSTED_ORIGINS`
-
-A comma-separated list of trusted origins that are allowed to make CORS requests to the backend.
-
-### `PORT`
-
-The `PORT` environment variable defines the port on which the backend server listens. If the variable is not explicitly set, port `9000` is used by default.
-
-### `LOG_LEVEL`
-
-The `LOG_LEVEL` environment variable determines the level of detail for logging in the backend. Possible values are: `DEBUG`, `INFO`, `WARN`, `ERROR`, and `FATAL`. By default, the value is set to `INFO`.
-
-### `TIMEZONE`
-
-The `TIMEZONE` environment variable defines the time zone used for time-related operations in the backend (e.g., for scheduling jobs). By default, the time zone is set to `Europe/Berlin`.
-
-#### `REDIS_URL`
-
-The URL of the Redis instance used for caching and session management. Example:
-
-```txt
-REDIS_URL=redis://default:password@redis-host:6379
+```bash
+docker pull ghcr.io/budgetbuddyde/backend:latest
+docker run -d -p 9000:9000 --env-file ./path/to/env/file ghcr.io/budgetbuddyde/backend:latest
 ```
 
-#### `AUTH_SERVICE_HOST`
+Additionally, a `docker-compose.yml` file is available in the repository, which can be used to start the service locally together with a PostgreSQL and Redis instance.
 
-The host URL of the authentication service. Example:
+### Railway
 
-```txt
-AUTH_SERVICE_HOST=https://auth.example.com
-```
+import RailwayDeployment from "../../../src/components/RailwayDeployment";
 
-#### `ORIGINS`
+<RailwayDeployment />
 
-A comma-separated list of allowed origins for CORS and trusted origins for authentication. Example:
+## Dependencies
 
-```txt
-ORIGINS=https://next.app.budget-buddy.de,https://next.backend.budget-buddy.de
-```
+The Auth Service uses the following internal packages:
 
-#### `METAL_API_KEY`
+- [`@budgetbuddyde/logger`](/docs/packages/logger)
+- [`@budgetbuddyde/types`](/docs/packages/types)
+- [`@budgetbuddyde/utils`](/docs/packages/utils)
 
-API key for [metalpriceapi.com](https://metalpriceapi.com/), used for retrieving metal prices. Example:
+and requires the following external services:
 
-```txt
-METAL_API_KEY=your_api_key_here
-```
-
-## Security
-
-<Callout>
-  The backend is secured by the Auth Service, which ensures that only authenticated users can access
-  the data (by using `@(restrict: [])`; [SAP Capire
-  documentation](https://cap.cloud.sap/docs/guides/security/authorization#restrictions)).
-</Callout>
-
-The middleware for authentication was implemented in `srv/auth.ts`. For testing purposes, authentication is mocked and a user is set in `srv/mocked-test.ts`.
-
-## Credits
-
-- [SAP Capire Framework](https://cap.cloud.sap)
-- [PostgreSQL](https://www.postgresql.org)
+- [Resend](https://resend.com/) for sending emails

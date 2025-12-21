@@ -18,7 +18,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         },
         {
           text: "CI/CD",
-          url: "https://ci.tools.tklein.it",
+          url: "https://ci.tklein.it",
         },
       ]}
     >
