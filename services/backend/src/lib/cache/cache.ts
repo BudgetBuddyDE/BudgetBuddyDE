@@ -1,10 +1,10 @@
-import type {LogClient} from '@budgetbuddyde/logger';
 import type Redis from 'ioredis';
+import type {Logger} from 'winston';
 import {getRedisClient} from '../../db/redis';
 import {logger} from '../logger';
 
 export class Cache {
-  protected readonly logger: LogClient;
+  protected readonly logger: Logger;
   protected redisClient: Redis;
   protected namespace: string;
 

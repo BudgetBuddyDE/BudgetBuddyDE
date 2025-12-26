@@ -39,7 +39,7 @@ pool.on('error', (err, _) => {
 export async function checkConnection(): Promise<boolean> {
   try {
     const client = await pool.connect();
-    dbLogger.info('Connection to database established');
+    dbLogger.debug('Connection to database established');
     client.release();
     return true;
   } catch (err) {
