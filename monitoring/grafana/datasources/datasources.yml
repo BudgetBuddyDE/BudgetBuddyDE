@@ -8,6 +8,9 @@ prune: false
 
 # List of data sources to insert/update depending on what's available.
 datasources:
+  # -----------------------------
+  # Loki (Logs)
+  # -----------------------------
   - name: Loki
     type: loki
     access: direct
@@ -20,6 +23,17 @@ datasources:
     basicAuthUser:
     withCredentials:
     isDefault: true
+    jsonData:
+      # Ermöglicht: Log -> Trace (Tempo)
+      derivedFields:
+        - name: trace_id
+          matcherRegex: '"trace_id":"([a-f0-9]+)"'
+          datasourceUid: grafana_tempo
+          url: '$${__value.raw}'
+
+  # -----------------------------
+  # Prometheus (Metrics)
+  # -----------------------------
   - name: Prometheus
     type: prometheus
     access: proxy
@@ -32,6 +46,10 @@ datasources:
     basicAuthUser:
     withCredentials:
     isDefault: false
+
+  # -----------------------------
+  # Tempo (Traces)
+  # -----------------------------
   - name: Tempo
     type: tempo
     access: proxy
@@ -49,6 +67,9 @@ datasources:
         datasourceUid: grafana_prometheus
       nodeGraph:
         enabled: true
+      streaming:
+        search: true
+        metrics: true
       tracesToLogs:
         datasourceUid: grafana_lokiq
       tracesToMetrics:
