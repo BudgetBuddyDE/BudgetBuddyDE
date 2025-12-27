@@ -25,6 +25,6 @@
     "outDir": "./build",
     "types": ["node", "vitest/globals", "express", "./index.d.ts"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "instrumentation.ts"],
   "exclude": ["**/node_modules/**", "**/build/**", "./vitest.config.ts"]
 }
