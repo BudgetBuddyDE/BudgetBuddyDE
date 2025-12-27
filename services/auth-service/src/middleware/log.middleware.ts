@@ -6,13 +6,6 @@ import {logger} from '../lib/logger';
 export const requestLogger = logger.child({label: 'request'});
 
 export function log(req: Request, res: Response, next: NextFunction): void {
-  const requestId =
-    req.headers[config.requestIdHeaderName] !== undefined
-      ? (String(req.headers[config.requestIdHeaderName]) as ReturnType<typeof crypto.randomUUID>)
-      : crypto.randomUUID();
-  req.requestId = requestId;
-  res.setHeader(config.requestIdHeaderName, requestId);
-
   const start = process.hrtime();
   res.on('finish', () => {
     const [seconds, nanoseconds] = process.hrtime(start);
@@ -26,7 +19,6 @@ export function log(req: Request, res: Response, next: NextFunction): void {
           ? LogLevel.WARN
           : LogLevel.ERROR;
     const requestMetaInformation = {
-      requestId: requestId,
       method: req.method,
       ip: req.ip,
       originalUrl: req.originalUrl,

@@ -6,12 +6,10 @@ import {logger} from '../lib/logger';
 export const requestLogger = logger.child({label: 'request'});
 
 export function logRequest(req: Request, res: Response, next: NextFunction): void {
-  const requestId = req.context.requestId;
   const start = process.hrtime();
   res.on('finish', () => {
     const [seconds, nanoseconds] = process.hrtime(start);
     const durationMs = Number((seconds * 1000 + nanoseconds / 1e6).toFixed(2)); // Convert to milliseconds and format
-
     const statusCode = res.statusCode;
     const targetLogLevel: LogLevel =
       statusCode >= 200 && statusCode < 400
@@ -20,7 +18,6 @@ export function logRequest(req: Request, res: Response, next: NextFunction): voi
           ? LogLevel.WARN
           : LogLevel.ERROR;
     const requestMetaInformation = {
-      requestId: requestId,
       method: req.method,
       ip: req.ip,
       originalUrl: req.originalUrl,

@@ -82,7 +82,7 @@ export class CategoryService extends NewEntityService<
           {
             method: 'GET',
             credentials: 'include',
-            headers: this.enhanceHeadersWithRequestId(new Headers(requestConfig?.headers || {})),
+            headers: new Headers(requestConfig?.headers || {}),
           },
           requestConfig,
         ),

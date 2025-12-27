@@ -59,7 +59,7 @@ export class TransactionService extends NewEntityService<
         this.mergeRequestConfig(
           {
             method: 'GET',
-            headers: this.enhanceHeadersWithRequestId(new Headers(requestConfig?.headers || {})),
+            headers: new Headers(requestConfig?.headers || {}),
             credentials: 'include',
           },
           requestConfig,

@@ -9,7 +9,6 @@ export type Config = {
   service: typeof name;
   version: typeof version;
   port: ReturnType<typeof getPort>;
-  requestIdHeaderName: string;
   runtime: Runtime;
   log: Pick<Logger, 'level'> & {defaultMeta?: Record<string, string | number | boolean>};
   cors: CorsOptions;
@@ -21,13 +20,11 @@ export type Config = {
 const SERVICE_NAME = name;
 const SERVICE_VERSION = version;
 const SERVICE_RUNTIME = getCurrentRuntime();
-const SERVICE_REQUEST_ID_HEADER_NAME = 'x-request-id';
 
 export const config: Config = {
   service: SERVICE_NAME,
   version: SERVICE_VERSION,
   port: getPort(9000),
-  requestIdHeaderName: SERVICE_REQUEST_ID_HEADER_NAME,
   runtime: SERVICE_RUNTIME,
   log: {
     level: LogLevel[getLogLevel(process.env.LOG_LEVEL || 'INFO')].toLowerCase(),
@@ -40,7 +37,7 @@ export const config: Config = {
   cors: {
     origin: isRunningInProd() ? getTrustedOrigins() : [/^(http|https):\/\/localhost(:\d+)?$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', SERVICE_REQUEST_ID_HEADER_NAME],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
   },
   jobs: {

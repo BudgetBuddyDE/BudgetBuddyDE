@@ -52,11 +52,6 @@ export class NewEntityService<
     return `${this.host}${this.basePath}`;
   }
 
-  protected enhanceHeadersWithRequestId(headers: Headers, requestId: string = this.createRequestId()): Headers {
-    headers.append('X-Request-ID'.toLowerCase(), requestId);
-    return headers;
-  }
-
   protected createRequestId(): string {
     return crypto.randomUUID();
   }
@@ -106,7 +101,7 @@ export class NewEntityService<
         this.mergeRequestConfig(
           {
             method: 'GET',
-            headers: this.enhanceHeadersWithRequestId(new Headers(requestConfig?.headers || {}), requestId),
+            headers: new Headers(requestConfig?.headers || {}),
             credentials: 'include',
           },
           requestConfig,
@@ -148,7 +143,7 @@ export class NewEntityService<
         this.mergeRequestConfig(
           {
             method: 'GET',
-            headers: this.enhanceHeadersWithRequestId(new Headers(requestConfig?.headers || {})),
+            headers: new Headers(requestConfig?.headers || {}),
             credentials: 'include',
           },
           requestConfig,
@@ -180,12 +175,10 @@ export class NewEntityService<
         this.mergeRequestConfig(
           {
             method: 'POST',
-            headers: this.enhanceHeadersWithRequestId(
-              new Headers(
-                requestConfig?.headers || {
-                  'Content-Type': 'application/json',
-                },
-              ),
+            headers: new Headers(
+              requestConfig?.headers || {
+                'Content-Type': 'application/json',
+              },
             ),
             credentials: 'include',
             body: JSON.stringify(payload),
@@ -223,12 +216,10 @@ export class NewEntityService<
         this.mergeRequestConfig(
           {
             method: 'PUT',
-            headers: this.enhanceHeadersWithRequestId(
-              new Headers(
-                requestConfig?.headers || {
-                  'Content-Type': 'application/json',
-                },
-              ),
+            headers: new Headers(
+              requestConfig?.headers || {
+                'Content-Type': 'application/json',
+              },
             ),
             credentials: 'include',
             body: JSON.stringify(payload),
@@ -262,7 +253,7 @@ export class NewEntityService<
         this.mergeRequestConfig(
           {
             method: 'DELETE',
-            headers: this.enhanceHeadersWithRequestId(new Headers(requestConfig?.headers || {})),
+            headers: new Headers(requestConfig?.headers || {}),
             credentials: 'include',
           },
           requestConfig,

@@ -1,6 +1,4 @@
-import {randomUUID} from 'node:crypto';
 import type {NextFunction, Request, Response} from 'express';
-import {config} from '../config';
 import {authClient, logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import type {RequestContext} from '../types';
@@ -19,11 +17,6 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
       {} as Record<string, string>,
     ),
   );
-  const requestId = headers.has(config.requestIdHeaderName)
-    ? (headers.get(config.requestIdHeaderName) ?? randomUUID())
-    : randomUUID();
-  res.setHeader(config.requestIdHeaderName, requestId); // set request ID in response
-  headers.set(config.requestIdHeaderName, requestId); // ensure request ID is included in headers sent to auth service
   const {data: sessionData, error} = await authClient.getSession({
     fetchOptions: {
       headers: headers,
@@ -31,7 +24,7 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   });
 
   if (error) {
-    logger.error('Error retrieving session', {requestId, ...error});
+    logger.error('Error retrieving session', error);
     return ApiResponse.builder()
       .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
       .withMessage(error.message || 'Failed to authenticate request')
@@ -39,7 +32,7 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   }
 
   if (!sessionData) {
-    logger.warn('No session data found', {requestId});
+    logger.warn('No session data found');
     return ApiResponse.builder()
       .withStatus(HTTPStatusCode.UNAUTHORIZED)
       .withMessage('No session data found')
@@ -47,13 +40,11 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   }
 
   const context: RequestContext = {
-    requestId: requestId,
     user: sessionData.user,
     session: sessionData.session,
   };
 
   req.context = context;
-  req.requestId = context.requestId;
   res.locals.context = context;
 
   logger.debug('Request context set', {requestId: req.requestId, userId: req.context.user?.id});
