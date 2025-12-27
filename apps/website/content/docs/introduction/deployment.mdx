@@ -37,3 +37,27 @@ Use the `docker-compose.yml` from the repository.
 import RailwayDeployment from "../../../src/components/RailwayDeployment";
 
 <RailwayDeployment />
+
+### Instance configuration
+
+It is possible to configure the runtime of a service in the Railway cloud using `railway.json` files. These are located in the directory of a service or an app.
+The Railway documentation offers some help regarding the possible configuration options...
+- [Railway Docs: Using Config as Code](https://docs.railway.com/guides/config-as-code)
+- [Railway Docs: Using Config as Code -> Configurable settings](https://docs.railway.com/reference/config-as-code#configurable-settings)
+
+```json title="Template"
+{
+   "$schema": "https://railway.com/railway.schema.json",
+   "build": {
+      "builder": "NIXPACKS",
+      "buildCommand": "echo building!"
+   },
+   "deploy": {
+      "preDeployCommand": ["npm run db:migrate"],
+      "startCommand": "echo starting!",
+      "healthcheckPath": "/",
+      "healthcheckTimeout": 100,
+      "restartPolicyType": "never"
+   }
+}
+```
