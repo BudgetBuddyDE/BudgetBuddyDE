@@ -32,7 +32,7 @@ export const config: Config = {
   requestIdHeaderName: SERVICE_REQUEST_ID_HEADER_NAME,
   runtime: SERVICE_RUNTIME,
   log: {
-    level: LogLevel[getLogLevel(process.env.LOG_LEVEL || 'INFO')],
+    level: LogLevel[getLogLevel(process.env.LOG_LEVEL || 'INFO')].toLowerCase(),
     defaultMeta: {
       service: SERVICE_NAME,
       version: SERVICE_VERSION,
