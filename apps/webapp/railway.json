@@ -1,0 +1,22 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "watchPatterns": [
+      "/apps/webapp/**"
+    ]
+  },
+  "deploy": {
+    "runtime": "V2",
+    "numReplicas": 1,
+    "healthcheckPath": "/api/health",
+    "sleepApplication": false,
+    "multiRegionConfig": {
+      "europe-west4-drams3a": {
+        "numReplicas": 1
+      }
+    },
+    "restartPolicyType": "ALWAYS",
+    "healthcheckTimeout": 30
+  }
+}
