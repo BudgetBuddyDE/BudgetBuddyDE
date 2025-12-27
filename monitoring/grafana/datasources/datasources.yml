@@ -49,3 +49,7 @@ datasources:
         datasourceUid: grafana_prometheus
       nodeGraph:
         enabled: true
+      tracesToLogs:
+        datasourceUid: grafana_lokiq
+      tracesToMetrics:
+        datasourceUid: grafana_prometheus
