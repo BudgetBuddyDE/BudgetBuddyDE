@@ -26,7 +26,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       component="div"
       count={count}
       page={page}
-      labelRowsPerPage={"Rows:"}
+      labelRowsPerPage={'Rows:'}
       rowsPerPageOptions={rowsPerPageOptions}
       rowsPerPage={rowsPerPage}
       onPageChange={(_, page) => {

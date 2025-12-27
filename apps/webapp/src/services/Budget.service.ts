@@ -13,7 +13,9 @@ const GetBudget = ApiResponse.extend({
 const PostBudget = ApiResponse.extend({
   data: Budget,
 });
-const PutBudget = PostBudget;
+const PutBudget = ApiResponse.extend({
+  data: Budget,
+});
 const DeleteBudget = ApiResponse.extend({data: z.null()});
 
 export class BudgetService extends NewEntityService<

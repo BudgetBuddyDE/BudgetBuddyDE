@@ -302,10 +302,25 @@ budgetRouter.post(
         });
       });
 
+      if (!result) {
+        return ApiResponse.builder()
+          .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+          .withMessage('Failed to retrieve updated budget')
+          .withFrom('db')
+          .buildAndSend(res);
+      }
+      const budgetBalance = await calculateBudgetBalance(
+        userId,
+        result.type,
+        result.categories.map(c => c.categoryId),
+      );
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Budget created successfully')
-        .withData(result)
+        .withData({
+          ...result,
+          balance: budgetBalance,
+        })
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {
