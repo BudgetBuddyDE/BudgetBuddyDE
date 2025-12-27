@@ -129,7 +129,7 @@ export const server = app.listen(config.port, () => {
   logger.info('%s is available under http://localhost:%d', config.service, config.port, {...options});
 
   const jobName = 'process-recurring-payments';
-  const span = tracer.startSpan('Planning jobs: ' + jobName);
+  const span = tracer.startSpan(`Planning jobs: ${jobName}`);
   cron.schedule('30 1 * * *', processRecurringPayments, {
     name: jobName,
     timezone: config.jobs.timezone,

@@ -3,11 +3,8 @@ import LokiTransport from 'winston-loki';
 import {config} from '../config';
 
 export const logger = createLogger({
-  defaultMeta: {
-    service: config.service,
-    version: config.version,
-    runtime: config.runtime,
-  },
+  level: config.log.level,
+  defaultMeta: config.log.defaultMeta,
   format: format.combine(
     format.colorize(),
     format.timestamp(), // ISO 8601

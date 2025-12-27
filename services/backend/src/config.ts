@@ -1,7 +1,8 @@
-import {getLogLevel, type LogClientOptions} from '@budgetbuddyde/logger';
+import {getLogLevel, LogLevel} from '@budgetbuddyde/logger';
 import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
 import 'dotenv/config';
+import type {Logger} from 'winston';
 import {name, version} from '../package.json';
 
 export type Config = {
@@ -10,7 +11,7 @@ export type Config = {
   port: ReturnType<typeof getPort>;
   requestIdHeaderName: string;
   runtime: Runtime;
-  log: Pick<LogClientOptions, 'label' | 'level'>;
+  log: Pick<Logger, 'level'> & {defaultMeta?: Record<string, string | number | boolean>};
   cors: CorsOptions;
   jobs: {
     timezone: string;
@@ -29,8 +30,12 @@ export const config: Config = {
   requestIdHeaderName: SERVICE_REQUEST_ID_HEADER_NAME,
   runtime: SERVICE_RUNTIME,
   log: {
-    label: `${SERVICE_NAME}:${SERVICE_VERSION}`,
-    level: getLogLevel(process.env.LOG_LEVEL || 'INFO'),
+    level: LogLevel[getLogLevel(process.env.LOG_LEVEL || 'INFO')],
+    defaultMeta: {
+      service: SERVICE_NAME,
+      version: SERVICE_VERSION,
+      runtime: SERVICE_RUNTIME,
+    },
   },
   cors: {
     origin: isRunningInProd() ? getTrustedOrigins() : [/^(http|https):\/\/localhost(:\d+)?$/],
