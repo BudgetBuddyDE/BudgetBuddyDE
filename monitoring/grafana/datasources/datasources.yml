@@ -44,3 +44,8 @@ datasources:
     basicAuthUser:
     withCredentials:
     isDefault: false
+    jsonData:
+      serviceGraph:
+        datasourceUid: grafana_prometheus
+      nodeGraph:
+        enabled: true
