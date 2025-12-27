@@ -23,7 +23,7 @@
 
 <p align="center">
   <strong>Deploy BudgetBuddy on Railway with just one click!<br/></strong>
-  <a href="https://railway.com/deploy/ezasWl?referralCode=SD-6Xm&utm_medium=integration&utm_source=template&utm_campaign=generic">
+  <a href="https://railway.com/deploy/WjE5vD?referralCode=SD-6Xm&utm_medium=integration&utm_source=template&utm_campaign=generic">
     <img src="https://railway.com/button.svg" alt="Deploy on Railway" />
   </a>
 </p>
