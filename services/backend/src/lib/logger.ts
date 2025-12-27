@@ -6,7 +6,7 @@ export const logger = createLogger({
   level: config.log.level,
   defaultMeta: config.log.defaultMeta,
   format: format.combine(
-    format.colorize(),
+    // format.colorize(),
     format.timestamp(), // ISO 8601
     format.errors({stack: true}),
     format.splat(),
