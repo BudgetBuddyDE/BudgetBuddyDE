@@ -1,9 +1,9 @@
-import {NodeSDK} from '@opentelemetry/sdk-node';
 import {getNodeAutoInstrumentations} from '@opentelemetry/auto-instrumentations-node';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-http';
 import {resourceFromAttributes} from '@opentelemetry/resources';
+import {NodeSDK} from '@opentelemetry/sdk-node';
 import {ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION} from '@opentelemetry/semantic-conventions';
-import {version, name} from './package.json';
+import {name, version} from './package.json';
 
 const tempoUrl = process.env.TEMPO_URL || 'http://tempo:4318';
 const tempoIngestAPIUrl = `${tempoUrl}/v1/traces`;
@@ -22,7 +22,7 @@ const sdk = new NodeSDK({
 
 // Initialize the SDK and register with the OpenTelemetry API
 sdk.start();
-console.log('Tracing initialized for ' + name + ' version ' + version + ' exporting to ' + tempoIngestAPIUrl);
+console.log(`Tracing initialized for ${name} version ${version} exporting to ${tempoIngestAPIUrl}`);
 
 // Gracefully shut down the SDK on process exit
 process.on('SIGTERM', () => {

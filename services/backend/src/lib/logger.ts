@@ -21,7 +21,7 @@ export const logger = createLogger({
           new LokiTransport({
             host: process.env.LOKI_URL || 'http://loki:3100',
             // In production, we want to use metadata as labels for better filtering
-            useWinstonMetaAsLabels: true
+            useWinstonMetaAsLabels: true,
           }),
         ]
       : []),

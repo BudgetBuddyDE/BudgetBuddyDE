@@ -13,10 +13,6 @@ import {ApiResponse, HTTPStatusCode} from './models';
 export const app = express();
 
 app.use(cors(config.cors));
-app.use(servedBy);
-app.use(log);
-
-app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const redisStatus = getRedisClient().status;
@@ -43,6 +39,10 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
     })
     .buildAndSend();
 });
+app.use(log);
+app.use(servedBy);
+
+app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all('/api/auth/{*splat}', toNodeHandler(auth));
 app.get('/api/me', async (req, res) => {
   const session = await auth.api.getSession({
@@ -60,17 +60,10 @@ export const server = app.listen(config.port, () => {
     'Application Version': config.version,
     'Runtime Environment': config.runtime,
     'Node Version': process.version,
-    'Log Level': logger.getLogLevelName(),
+    'Log Level': logger.level,
     'Server Port': config.port,
     'Trusted Origins': JSON.stringify(config.cors.origin),
   };
   console.table(options);
   logger.info('%s is available under http://localhost:%d', config.service, config.port, options);
-
-  // Temporary disabled job to replicate registered users
-  // jobPlanner.addJob('replicate-registered-users', '*/5 * * * *', async ctx => {
-  //   ctx.logger.info('Replicating registered users...');
-  //   await new Promise(resolve => setTimeout(resolve, 1000));
-  //   ctx.logger.info('Replication of registered users completed.');
-  // });
 });

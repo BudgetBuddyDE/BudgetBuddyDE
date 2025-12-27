@@ -69,40 +69,40 @@ app.delete('/api/me', async (req, res) => {
     ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
     return;
   }
-  const span = tracer.startSpan("Deleting user data");
-  span.setAttribute("userId", userId);
+  const span = tracer.startSpan('Deleting user data');
+  span.setAttribute('userId', userId);
   await db.transaction(async tx => {
-    let tempSpan = span.addEvent("Deleting categories");
-    tempSpan.setAttribute("userId", userId);
+    let tempSpan = span.addEvent('Deleting categories');
+    tempSpan.setAttribute('userId', userId);
     const deletedCategories = await tx.delete(categories).where(eq(categories.ownerId, userId));
     logger.info(`Deleted ${deletedCategories.rowCount} categories for user ${userId}`);
     tempSpan.end();
 
-    tempSpan = span.addEvent("Deleting payment methods");
-    tempSpan.setAttribute("userId", userId);
+    tempSpan = span.addEvent('Deleting payment methods');
+    tempSpan.setAttribute('userId', userId);
     const deletedPaymentMethods = await tx.delete(paymentMethods).where(eq(paymentMethods.ownerId, userId));
     logger.info(`Deleted ${deletedPaymentMethods.rowCount} payment methods for user ${userId}`);
     tempSpan.end();
 
-    tempSpan = span.addEvent("Deleting budgets");
-    tempSpan.setAttribute("userId", userId);
+    tempSpan = span.addEvent('Deleting budgets');
+    tempSpan.setAttribute('userId', userId);
     const deletedBudgets = await tx.delete(budgets).where(eq(budgets.ownerId, userId));
     logger.info(`Deleted ${deletedBudgets.rowCount} budgets for user ${userId}`);
     tempSpan.end();
 
-    tempSpan = span.addEvent("Deleting transactions");
-    tempSpan.setAttribute("userId", userId);
+    tempSpan = span.addEvent('Deleting transactions');
+    tempSpan.setAttribute('userId', userId);
     const deletedTransactions = await tx.delete(transactions).where(eq(transactions.ownerId, userId));
     logger.info(`Deleted ${deletedTransactions.rowCount} transactions for user ${userId}`);
     tempSpan.end();
 
-    tempSpan = span.addEvent("Deleting recurring payments");
-    tempSpan.setAttribute("userId", userId);
+    tempSpan = span.addEvent('Deleting recurring payments');
+    tempSpan.setAttribute('userId', userId);
     const deletedRecurringPayments = await tx.delete(recurringPayments).where(eq(recurringPayments.ownerId, userId));
     logger.info(`Deleted ${deletedRecurringPayments.rowCount} recurring payments for user ${userId}`);
     tempSpan.end();
   });
-  span.end()
+  span.end();
 
   ApiResponse.builder().withMessage('User data deleted successfully').buildAndSend(res);
 });
@@ -129,7 +129,7 @@ export const server = app.listen(config.port, () => {
   logger.info('%s is available under http://localhost:%d', config.service, config.port, {...options});
 
   const jobName = 'process-recurring-payments';
-  const span = tracer.startSpan("Planning jobs: " + jobName);
+  const span = tracer.startSpan('Planning jobs: ' + jobName);
   cron.schedule('30 1 * * *', processRecurringPayments, {
     name: jobName,
     timezone: config.jobs.timezone,
@@ -139,5 +139,5 @@ export const server = app.listen(config.port, () => {
     schedule: '30 1 * * *',
     timezone: config.jobs.timezone,
   });
-  span.end()
+  span.end();
 });

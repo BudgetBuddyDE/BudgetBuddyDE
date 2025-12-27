@@ -1,4 +1,3 @@
-import {LogLevel} from '@budgetbuddyde/logger';
 import {APIError, type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
@@ -199,14 +198,14 @@ export const auth = betterAuth(options);
 
 export function mapLogLevelForBetterAuth(level: typeof config.log.level): Logger['level'] {
   switch (level) {
-    case LogLevel.DEBUG:
+    case 'debug':
       return 'debug';
-    case LogLevel.INFO:
+    case 'info':
       return 'info';
-    case LogLevel.WARN:
+    case 'warn':
       return 'warn';
-    case LogLevel.ERROR:
-    case LogLevel.FATAL:
+    case 'error':
+    case 'fatal':
       return 'error';
     default:
       return undefined;

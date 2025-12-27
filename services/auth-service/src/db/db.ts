@@ -1,4 +1,3 @@
-import {LogLevel} from '@budgetbuddyde/logger';
 import {drizzle} from 'drizzle-orm/node-postgres';
 
 import {config} from '../config';
@@ -11,7 +10,7 @@ export const db = drizzle({
   client: pool,
   schema: schema,
   logger:
-    config.log.level === LogLevel.DEBUG
+    config.log.level === "debug"
       ? {
           logQuery(query, params) {
             drizzleLogger.debug('Query "%s" with params %s executed', query, params.join(', '));
