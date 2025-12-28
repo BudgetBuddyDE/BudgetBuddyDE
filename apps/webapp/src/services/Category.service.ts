@@ -114,7 +114,7 @@ export class CategoryService extends NewEntityService<
       source,
       target,
     }: {
-      source: Set<TCategory['id']>;
+      source: TCategory['id'][];
       target: TCategory['id'];
     },
     requestConfig?: RequestInit,
@@ -150,7 +150,7 @@ export class CategoryService extends NewEntityService<
 
       const parsingResult = ApiResponse.extend({
         data: z.object({
-          source: z.set(Category.shape.id),
+          source: z.array(Category.shape.id).transform(ids => new Set(ids)),
           target: Category.shape.id,
         }),
       }).safeParse(data);

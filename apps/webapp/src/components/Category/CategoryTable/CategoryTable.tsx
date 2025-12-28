@@ -1,6 +1,7 @@
 'use client';
 
-import {Button, TableCell, Typography} from '@mui/material';
+import {MergeRounded} from '@mui/icons-material';
+import {Button, ListItemIcon, TableCell, Typography} from '@mui/material';
 import React from 'react';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -18,6 +19,7 @@ import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
 import {Backend} from '@/services/Backend';
 import {CreateOrUpdateCategory, type TCategory} from '@/types';
+import {MergeCategoriesDialog, type MergeCategoriesForm} from '../MergeCategoriesDialog';
 
 type EntityFormFields = FirstLevelNullable<Pick<TCategory, 'id' | 'name' | 'description'>>;
 
@@ -40,6 +42,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
+  );
+  const [mergeDrawerState, dispatchMergeDrawerAction] = React.useReducer(
+    entityDrawerReducer,
+    getInitialEntityDrawerState<MergeCategoriesForm, 'MERGE'>(),
   );
   const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
     deleteDialogReducer,
@@ -185,6 +191,29 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
             onSearch: handleTextSearch,
           },
           create: {enabled: true, onClick: handleCreateEntity},
+          selection: {
+            actions: [
+              {
+                children: (
+                  <>
+                    <ListItemIcon>
+                      <MergeRounded fontSize="small" />
+                    </ListItemIcon>
+                    <Typography variant="inherit">Merge</Typography>
+                  </>
+                ),
+                onExecuteAction(_event, categories) {
+                  dispatchMergeDrawerAction({
+                    type: 'OPEN',
+                    action: 'MERGE',
+                    defaultValues: {
+                      sourceCategories: categories,
+                    },
+                  });
+                },
+              },
+            ],
+          },
         }}
         totalEntityCount={totalEntityCount}
         isLoading={status === 'loading'}
@@ -264,6 +293,13 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
           },
         ]}
       />
+      <MergeCategoriesDialog
+        isOpen={mergeDrawerState.isOpen}
+        source={mergeDrawerState.defaultValues?.sourceCategories || []}
+        onClose={() => {
+          dispatchMergeDrawerAction({type: 'CLOSE'});
+        }}
+      />
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
@@ -290,7 +326,6 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
           });
         }}
       />
-
       <FabContainer>
         <AddFab onClick={handleCreateEntity} label="Add category" />
       </FabContainer>

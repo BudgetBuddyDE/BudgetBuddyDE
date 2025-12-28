@@ -1,4 +1,4 @@
-import {Grid} from '@mui/material';
+import {Alert, type AlertProps, Grid} from '@mui/material';
 import React, {type JSX} from 'react';
 import {type DefaultValues, type FieldValues, useForm} from 'react-hook-form';
 import {ErrorAlert} from '@/components/ErrorAlert';
@@ -22,6 +22,9 @@ export type EntityDrawerProps<T extends FieldValues> = Pick<
   DrawerProps,
   'open' | 'closeOnEscape' | 'closeOnBackdropClick'
 > & {
+  slots?: Partial<{
+    alert: AlertProps;
+  }>;
   onClose: () => void;
   onResetForm?: () => T | DefaultValues<T> | undefined;
   title: string;
@@ -49,6 +52,7 @@ export const EntityDrawer = <T extends FieldValues>({
   closeOnEscape,
   isLoading = false,
   fields = [],
+  slots,
 }: EntityDrawerProps<T>) => {
   const drawerRef = React.useRef<HTMLDivElement | null>(null);
   const saveBtnRef = React.useRef<HTMLButtonElement | null>(null);
@@ -172,6 +176,11 @@ export const EntityDrawer = <T extends FieldValues>({
         noValidate
       >
         <Grid container spacing={2} sx={{m: 2}}>
+          {slots && slots.alert !== undefined && (
+            <Grid size={{xs: 12}}>
+              <Alert {...slots.alert} />
+            </Grid>
+          )}
           {renderedFields}
         </Grid>
 

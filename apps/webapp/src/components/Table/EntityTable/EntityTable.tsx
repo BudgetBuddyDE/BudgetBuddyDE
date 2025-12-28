@@ -343,7 +343,8 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
               ...(slots?.selection?.actions?.map(action => ({
                 ...action,
                 onClick(event: React.MouseEvent<HTMLElement>) {
-                  return action.onExecuteAction(event, selectedTargetEntities);
+                  action.onExecuteAction(event, selectedTargetEntities);
+                  clearSelectedEntities();
                 },
               })) || []),
               ...(onDeleteSelectedEntities
