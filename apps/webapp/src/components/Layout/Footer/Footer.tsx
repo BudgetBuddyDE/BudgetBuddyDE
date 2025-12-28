@@ -8,7 +8,7 @@ export const Footer = () => {
         <Link color="inherit" href="https://budget-buddy.de">
           BudgetBuddyDE
         </Link>{' '}
-        v3.0.0
+        {process.env.NEXT_PUBLIC_APP_VERSION}
       </Typography>
     </Box>
   );

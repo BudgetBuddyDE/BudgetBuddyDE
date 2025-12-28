@@ -39,7 +39,7 @@ export const AppInformation = () => {
 
         <Stack spacing={2} direction="row" alignItems="center" sx={{mt: 1}}>
           <AppSettingsAltRounded />
-          <Typography noWrap>Version v3.0.0</Typography>
+          <Typography noWrap>Version {process.env.NEXT_PUBLIC_APP_VERSION}</Typography>
         </Stack>
       </Card.Body>
     </Card>
