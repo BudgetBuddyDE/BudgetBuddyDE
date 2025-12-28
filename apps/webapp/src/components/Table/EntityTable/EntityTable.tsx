@@ -219,6 +219,10 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
                           checked={amountOfSelectedEntities === pagination.rowsPerPage}
                           indeterminate={areEntitiesIndeterminate()}
                           onChange={(_event, _checked) => {
+                            if (amountOfSelectedEntities === pagination.rowsPerPage) {
+                              setSelectedEntities([]);
+                              return;
+                            }
                             setSelectedEntities(areEntitiesIndeterminate() ? [] : data.map(item => item[dataKey]));
                           }}
                         />
