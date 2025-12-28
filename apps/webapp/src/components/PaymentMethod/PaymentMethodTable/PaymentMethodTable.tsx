@@ -1,6 +1,7 @@
 'use client';
 
-import {Button, TableCell, Typography} from '@mui/material';
+import {MergeRounded} from '@mui/icons-material';
+import {Button, ListItemIcon, TableCell, Typography} from '@mui/material';
 import React from 'react';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -18,6 +19,7 @@ import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
 import {Backend} from '@/services/Backend';
 import {CreateOrUpdatePaymentMethod, type TPaymentMethod} from '@/types';
+import {MergePaymentMethodsDialog, type MergePaymentMethodsForm} from '../MergePaymentMethodsDialog';
 
 type EntityFormFields = FirstLevelNullable<
   Pick<TPaymentMethod, 'id' | 'name' | 'address' | 'provider' | 'description'>
@@ -42,6 +44,10 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
+  );
+  const [mergeDrawerState, dispatchMergeDrawerAction] = React.useReducer(
+    entityDrawerReducer,
+    getInitialEntityDrawerState<MergePaymentMethodsForm, 'MERGE'>(),
   );
   const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
     deleteDialogReducer,
@@ -194,6 +200,29 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
             onSearch: handleTextSearch,
           },
           create: {enabled: true, onClick: handleCreateEntity},
+          selection: {
+            actions: [
+              {
+                children: (
+                  <>
+                    <ListItemIcon>
+                      <MergeRounded fontSize="small" />
+                    </ListItemIcon>
+                    <Typography variant="inherit">Merge</Typography>
+                  </>
+                ),
+                onExecuteAction(_event, paymentMethods) {
+                  dispatchMergeDrawerAction({
+                    type: 'OPEN',
+                    action: 'MERGE',
+                    defaultValues: {
+                      sourcePaymentMethods: paymentMethods,
+                    },
+                  });
+                },
+              },
+            ],
+          },
         }}
         totalEntityCount={totalEntityCount}
         isLoading={status === 'loading'}
@@ -300,6 +329,13 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
             rows: 2,
           },
         ]}
+      />
+      <MergePaymentMethodsDialog
+        isOpen={mergeDrawerState.isOpen}
+        source={mergeDrawerState.defaultValues?.sourcePaymentMethods || []}
+        onClose={() => {
+          dispatchMergeDrawerAction({type: 'CLOSE'});
+        }}
       />
       <DeleteDialog
         open={deleteDialogState.isOpen}

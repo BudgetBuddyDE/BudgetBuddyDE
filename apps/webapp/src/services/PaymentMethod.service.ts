@@ -6,6 +6,7 @@ import {
   PaymentMethod,
   PaymentMethodVH,
   type TCreateOrUpdatePaymentMethod,
+  type TPaymentMethod,
   type TPaymentMethodVH,
 } from '@/types';
 import {NewEntityService} from './Entity.service';
@@ -50,5 +51,60 @@ export class PaymentMethodService extends NewEntityService<
       return this.handleZodError(valueHelpValues.error);
     }
     return [valueHelpValues.data, null];
+  }
+
+  async merge(
+    {
+      source,
+      target,
+    }: {
+      source: TPaymentMethod['id'][];
+      target: TPaymentMethod['id'];
+    },
+    requestConfig?: RequestInit,
+  ): Promise<
+    ServiceResponse<{
+      source: Set<TPaymentMethod['id']>;
+      target: TPaymentMethod['id'];
+    }>
+  > {
+    try {
+      const response = await fetch(
+        `${this.getBaseRequestPath()}/merge`,
+        this.mergeRequestConfig(
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: new Headers({
+              'Content-Type': 'application/json',
+              ...(requestConfig?.headers || {}),
+            }),
+            body: JSON.stringify({source, target}),
+          },
+          requestConfig,
+        ),
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to merge payment methods: ${response.statusText}`);
+      }
+      if (!this.isJsonResponse(response)) {
+        throw new Error('Response is not JSON');
+      }
+      const data = await response.json();
+
+      const parsingResult = ApiResponse.extend({
+        data: z.object({
+          source: z.array(PaymentMethod.shape.id).transform(ids => new Set(ids)),
+          target: PaymentMethod.shape.id,
+        }),
+      }).safeParse(data);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+
+      return [parsingResult.data.data, null];
+    } catch (error) {
+      return this.handleError(error);
+    }
   }
 }
