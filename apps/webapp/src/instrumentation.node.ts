@@ -22,7 +22,9 @@ const sdk = new NodeSDK({
 
 // Initialize the SDK and register with the OpenTelemetry API
 sdk.start();
-console.log(`Tracing initialized for ${packageJson.name} version ${packageJson.version} exporting to ${tempoIngestAPIUrl}`);
+console.log(
+  `Tracing initialized for ${packageJson.name} version ${packageJson.version} exporting to ${tempoIngestAPIUrl}`,
+);
 
 // Gracefully shut down the SDK on process exit
 process.on('SIGTERM', () => {
