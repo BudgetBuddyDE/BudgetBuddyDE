@@ -3,7 +3,7 @@ import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-http';
 import {resourceFromAttributes} from '@opentelemetry/resources';
 import {NodeSDK} from '@opentelemetry/sdk-node';
 import {ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION} from '@opentelemetry/semantic-conventions';
-import {name, version} from '../package.json';
+import packageJson from '../package.json';
 
 const tempoUrl = process.env.TEMPO_URL || 'http://tempo:4318';
 const tempoIngestAPIUrl = `${tempoUrl}/v1/traces`;
@@ -13,8 +13,8 @@ const traceExporter = new OTLPTraceExporter({
 
 const sdk = new NodeSDK({
   resource: resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: name,
-    [ATTR_SERVICE_VERSION]: version,
+    [ATTR_SERVICE_NAME]: packageJson.name,
+    [ATTR_SERVICE_VERSION]: packageJson.version,
   }),
   traceExporter: traceExporter,
   instrumentations: [getNodeAutoInstrumentations()],
@@ -22,7 +22,7 @@ const sdk = new NodeSDK({
 
 // Initialize the SDK and register with the OpenTelemetry API
 sdk.start();
-console.log(`Tracing initialized for ${name} version ${version} exporting to ${tempoIngestAPIUrl}`);
+console.log(`Tracing initialized for ${packageJson.name} version ${packageJson.version} exporting to ${tempoIngestAPIUrl}`);
 
 // Gracefully shut down the SDK on process exit
 process.on('SIGTERM', () => {
