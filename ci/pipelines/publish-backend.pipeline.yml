@@ -306,14 +306,14 @@ jobs:
           dockerfile: repository/((repo_path))/Dockerfile
           tag_file: version/version
           tag_as_latest: true
-      - put: repository
-        params:
-          repository: repository
-          rebase: true
       - put: version
         params: { file: version/version }
       - put: version-prod
         params: { file: version/version }
+      - put: repository
+        params:
+          repository: repository
+          rebase: true
 
   - name: release-minor
     on_failure:
@@ -340,14 +340,14 @@ jobs:
           dockerfile: repository/((repo_path))/Dockerfile
           tag_file: version/version
           tag_as_latest: true
-      - put: repository
-        params:
-          repository: repository
-          rebase: true
       - put: version
         params: { file: version/version }
       - put: version-prod
         params: { file: version/version }
+      - put: repository
+        params:
+          repository: repository
+          rebase: true
 
   - name: release-major
     on_failure:
@@ -374,11 +374,11 @@ jobs:
           dockerfile: repository/((repo_path))/Dockerfile
           tag_file: version/version
           tag_as_latest: true
-      - put: repository
-        params:
-          repository: repository
-          rebase: true
       - put: version
         params: { file: version/version }
       - put: version-prod
         params: { file: version/version }
+      - put: repository
+        params:
+          repository: repository
+          rebase: true

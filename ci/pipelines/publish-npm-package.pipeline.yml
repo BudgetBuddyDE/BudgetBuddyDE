@@ -180,7 +180,7 @@ jobs:
       put: repository
       params:
         repository: repository
-        rebase: tue
+        rebase: true
     plan:
       - in_parallel:
           - get: node-image
@@ -234,13 +234,12 @@ jobs:
         image: node-image
         config:
           <<: *task-release
-      - in_parallel:
-          - put: version
-            params: { file: version/version }
-          - put: repository
-            params:
-              repository: repository
-              rebase: true
+      - put: version
+        params: { file: version/version }
+      - put: repository
+        params:
+          repository: repository
+          rebase: true
 
   - name: release-minor
     on_failure:
@@ -260,13 +259,12 @@ jobs:
         image: node-image
         config:
           <<: *task-release
-      - in_parallel:
-          - put: version
-            params: { file: version/version }
-          - put: repository
-            params:
-              repository: repository
-              rebase: true
+      - put: version
+        params: { file: version/version }
+      - put: repository
+        params:
+          repository: repository
+          rebase: true
 
   - name: release-major
     on_failure:
@@ -286,10 +284,9 @@ jobs:
         image: node-image
         config:
           <<: *task-release
-      - in_parallel:
-          - put: version
-            params: { file: version/version }
-          - put: repository
-            params:
-              repository: repository
-              rebase: true
+      - put: version
+        params: { file: version/version }
+      - put: repository
+        params:
+          repository: repository
+          rebase: true
