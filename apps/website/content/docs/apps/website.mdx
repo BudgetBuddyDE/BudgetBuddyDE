@@ -18,10 +18,36 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Learn More
+### Learn More
 
 To learn more about Next.js and Fumadocs, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 - [Fumadocs](https://fumadocs.vercel.app) - learn about Fumadocs
+
+## Development
+
+### Configuration
+
+#### Environment Variables
+
+| Variable | Description | Default Value |
+| :--- | :--- | :--- |
+| `TEMPO_URL` | Ingest URL for the Tempo tracing service | `http://tempo:4318` |
+| `NEXT_OTEL_VERBOSE` | Enable verbose OpenTelemetry tracing | `undefined` |
+
+<Callout type="info" title="Logs & Traces">
+  The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality.
+  Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
+</Callout>
+
+For more information on setting up OpenTelemetry for Next.js, refer to the [official documentation](https://nextjs.org/docs/15/app/guides/open-telemetry).
+
+## Deployment
+
+### Railway
+
+import RailwayDeployment from "../../../src/components/RailwayDeployment";
+
+<RailwayDeployment />
