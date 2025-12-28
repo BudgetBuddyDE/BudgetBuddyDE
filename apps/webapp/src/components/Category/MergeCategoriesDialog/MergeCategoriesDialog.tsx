@@ -142,7 +142,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
       slots={{
         alert: {
           variant: 'standard',
-          color: 'warning',
+          severity: 'warning',
           children:
             'Merging categories is irreversible. All items (e.g. transactions or recurring payments) associated with the source categories will be reassigned to the target category.',
         },

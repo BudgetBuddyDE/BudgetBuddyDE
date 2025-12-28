@@ -141,7 +141,7 @@ export class CategoryService extends NewEntityService<
         ),
       );
       if (!response.ok) {
-        throw new Error(`Failed to fetch stats: ${response.statusText}`);
+        throw new Error(`Failed to merge categories: ${response.statusText}`);
       }
       if (!this.isJsonResponse(response)) {
         throw new Error('Response is not JSON');
