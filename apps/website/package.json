@@ -9,12 +9,6 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.67.3",
-    "@opentelemetry/exporter-prometheus": "^0.208.0",
-    "@opentelemetry/sdk-metrics": "^2.2.0",
-    "@opentelemetry/sdk-node": "^0.208.0",
-    "@opentelemetry/sdk-trace-node": "^2.2.0",
     "@theguild/remark-mermaid": "^0.3.0",
     "date-fns": "^4.1.0",
     "fumadocs-core": "15.1.3",
