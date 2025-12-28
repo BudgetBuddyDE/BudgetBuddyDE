@@ -5,12 +5,25 @@ description: The Auth Service is responsible for user authentication and the man
 
 ## Overview
 
-<img 
-  src="https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/auth-service/jobs/build-auth-service/badge?title=Build" 
-  alt="CI Build Status" 
-  unoptimized="true"
-  style={{marginBottom: '0', marginTop: '0'}}
-/>
+<div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+  {[
+    {
+      url: "https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/auth-service/jobs/build-auth-service/badge?title=Build",
+      alt: "CI Build Status"
+    },
+    {
+      url: "https://img.shields.io/github/v/tag/budgetbuddyde/budgetbuddyde?filter=auth-service*&cacheSeconds=3600",
+      alt: "Version"
+    }
+  ].map(({url, alt}) => (
+    <img 
+      src={url}
+      alt={alt}
+      unoptimized="true"
+      style={{marginBottom: '0', marginTop: '0'}}
+    />
+  ))}
+</div>
 
 The Auth Service is based on Express.js and TypeScript. The authentication logic was implemented using the [Better-Auth](https://better-auth.com/) library. This allows the service to be connected to other OAuth2 and OpenID Connect compatible identity providers with little effort. Additionally, there is the possibility to install plugins to use further features such as Two-Factor Authentication.
 Currently, users can log in and authenticate using an Email/Password combination or via a Github or Google account.

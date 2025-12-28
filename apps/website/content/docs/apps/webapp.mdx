@@ -4,6 +4,23 @@ title: Webapp
 
 ## Overview
 
+<div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+  {[
+    {
+      url: "https://img.shields.io/github/v/tag/budgetbuddyde/budgetbuddyde?filter=webapp*&cacheSeconds=3600",
+      alt: "Version"
+    }
+  ].map(({url, alt}) => (
+    <img 
+      src={url}
+      alt={alt}
+      unoptimized="true"
+      style={{marginBottom: '0', marginTop: '0'}}
+    />
+  ))}
+</div>
+
+
 The Webapp is the main application of BudgetBuddyDE, providing users with an intuitive and user-friendly interface to manage their finances. It is based on Next.js with TypeScript and uses the [Auth-Service](../services/auth-service.mdx) as well as the [Backend](../services/backend.mdx) to process and store data.
 
 ### Features

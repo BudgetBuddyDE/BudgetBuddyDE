@@ -5,12 +5,25 @@ description: The Backend is the central component of the web application and pro
 
 ## Overview
 
-<img 
-  src="https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/backend/jobs/build-backend/badge?title=Build" 
-  alt="CI Build Status" 
-  unoptimized="true"
-  style={{marginBottom: '0', marginTop: '0'}}
-/>
+<div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+  {[
+    {
+      url: "https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/backend/jobs/build-backend/badge?title=Build",
+      alt: "CI Build Status"
+    },
+    {
+      url: "https://img.shields.io/github/v/tag/budgetbuddyde/budgetbuddyde?filter=backend*&cacheSeconds=3600",
+      alt: "Version"
+    }
+  ].map(({url, alt}) => (
+    <img 
+      src={url}
+      alt={alt}
+      unoptimized="true"
+      style={{marginBottom: '0', marginTop: '0'}}
+    />
+  ))}
+</div>
 
 The Backend is based on Node.js with the Express.js Framework and is written in TypeScript. It provides a RESTful API that is used by the frontend application and other services.
 Most requests to the endpoints are authenticated and authorized by the [Auth-Service](./auth-service) to ensure that only authorized users have access to protected resources.
