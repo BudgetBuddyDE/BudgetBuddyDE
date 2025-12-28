@@ -40,7 +40,7 @@ resources:
     icon: nodejs
     source:
       repository: node
-      tag: 20
+      tag: 22
 
   - name: repository
     type: git
