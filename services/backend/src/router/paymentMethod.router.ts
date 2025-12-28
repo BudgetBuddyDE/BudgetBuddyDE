@@ -1,14 +1,112 @@
-import {and, eq, sql} from 'drizzle-orm';
+import {and, eq, inArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
-import {paymentMethods} from '../db/schema';
+import {paymentMethods, recurringPayments, transactions} from '../db/schema';
 import {PaymentMethodSchemas} from '../db/schema/types';
+import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
 
 export const paymentMethodRouter = Router();
+
+paymentMethodRouter.post(
+  '/merge',
+  validateRequest({
+    body: z.object({
+      source: z.array(PaymentMethodSchemas.select.shape.id).transform(ids => new Set(ids)),
+      target: PaymentMethodSchemas.select.shape.id,
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const {source, target} = req.body;
+    logger.info(
+      `Merging payment methods for user ${userId}: source=${Array.from(source).join(', ')} -> target=${target}`,
+    );
+
+    if (source.has(target)) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('Source payment methods cannot include the target payment method')
+        .buildAndSend(res);
+      return;
+    }
+
+    // Verify that sources are owned by the user
+    const verifiedPaymentMethods = await db.query.paymentMethods.findMany({
+      columns: {id: true},
+      where(fields, operators) {
+        return operators.and(
+          operators.eq(fields.ownerId, userId),
+          operators.or(
+            ...[...Array.from(source), target].map(id => operators.eq(fields.id, id)),
+            operators.eq(fields.id, target),
+          ),
+        );
+      },
+    });
+
+    if (verifiedPaymentMethods.length !== source.size + 1) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more payment methods do not belong to the user or do not exist')
+        .buildAndSend(res);
+      return;
+    }
+
+    await db.transaction(async tx => {
+      // Update transactions to point to the target payment method
+      const updatedTransactions = await tx
+        .update(transactions)
+        .set({
+          paymentMethodId: target,
+        })
+        .where(and(eq(transactions.ownerId, userId), inArray(transactions.categoryId, Array.from(source))))
+        .returning();
+
+      logger.info(`Updated ${updatedTransactions.length} transactions to point to payment method ${target}`);
+
+      // Update recurring payments to point to the target payment method
+      const updatedRecurringPayments = await tx
+        .update(recurringPayments)
+        .set({
+          paymentMethodId: target,
+        })
+        .where(
+          and(eq(recurringPayments.ownerId, userId), inArray(recurringPayments.paymentMethodId, Array.from(source))),
+        )
+        .returning();
+      logger.info(`Updated ${updatedRecurringPayments.length} recurring payments to point to payment method ${target}`);
+
+      // Delete source payment methods
+      const deletedPaymentMethods = await tx
+        .delete(paymentMethods)
+        .where(and(eq(paymentMethods.ownerId, userId), inArray(paymentMethods.id, Array.from(source))))
+        .returning();
+      logger.info(`Deleted ${deletedPaymentMethods.length} source payment methods`);
+    });
+
+    ApiResponse.builder<{
+      source: string[];
+      target: string;
+    }>()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage('Payment methods merged successfully')
+      .withData({
+        source: Array.from(source),
+        target,
+      })
+      .withFrom('db')
+      .buildAndSend(res);
+  },
+);
 
 paymentMethodRouter.get(
   '/',
