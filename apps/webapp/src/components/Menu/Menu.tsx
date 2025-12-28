@@ -51,7 +51,7 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
         </IconButton>
       ) : (
         <Button onClick={handleClick} {...(props as {buttonProps?: ButtonProps}).buttonProps}>
-          Menu
+          {(props as {buttonProps?: ButtonProps}).buttonProps?.children || 'Menu'}
         </Button>
       )}
       <MuiMenu anchorEl={anchorEl} onClose={handleClose} {...menuProps} open={open}>

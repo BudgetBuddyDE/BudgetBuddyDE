@@ -1,14 +1,135 @@
-import {and, eq, gte, lte, sql} from 'drizzle-orm';
+import {and, eq, gte, inArray, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
-import {categories, transactions} from '../db/schema';
+import {budgetCategories, categories, recurringPayments, transactions} from '../db/schema';
 import {CategorySchemas} from '../db/schema/types';
+import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
 
 export const categoryRouter = Router();
+
+categoryRouter.post(
+  '/merge',
+  validateRequest({
+    body: z.object({
+      source: z.array(CategorySchemas.select.shape.id).transform(ids => new Set(ids)),
+      target: CategorySchemas.select.shape.id,
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const {source, target} = req.body;
+    logger.info(`Merging categories for user ${userId}: source=${Array.from(source).join(', ')} -> target=${target}`);
+
+    if (source.has(target)) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('Source categories cannot include the target category')
+        .buildAndSend(res);
+      return;
+    }
+
+    // Verify that all categories belong to the user
+    const verifiedCategories = await db.query.categories.findMany({
+      columns: {id: true},
+      where(fields, operators) {
+        return operators.and(
+          operators.eq(fields.ownerId, userId),
+          operators.or(
+            ...[...Array.from(source), target].map(id => operators.eq(fields.id, id)),
+            operators.eq(fields.id, target),
+          ),
+        );
+      },
+    });
+
+    if (verifiedCategories.length !== source.size + 1) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more categories do not belong to the user or do not exist')
+        .buildAndSend(res);
+      return;
+    }
+
+    await db.transaction(async tx => {
+      // Update transactions to point to the target category
+      const updatedTransactions = await tx
+        .update(transactions)
+        .set({
+          categoryId: target,
+        })
+        .where(and(eq(transactions.ownerId, userId), inArray(transactions.categoryId, Array.from(source))))
+        .returning();
+
+      logger.info(`Updated ${updatedTransactions.length} transactions to point to category ${target}`);
+
+      // Update recurring payments to point to the target category
+      const updatedRecurringPayments = await tx
+        .update(recurringPayments)
+        .set({
+          categoryId: target,
+        })
+        .where(and(eq(recurringPayments.ownerId, userId), inArray(recurringPayments.categoryId, Array.from(source))))
+        .returning();
+      logger.info(`Updated ${updatedRecurringPayments.length} recurring payments to point to category ${target}`);
+
+      // How can I prevent duplicate entries here?
+      // Becuase an budget_category could have multiple source categories assigned to it that are now being merged into the target
+
+      // Delete all budget categories associated with source categories and reassign to target
+      const deletedBudgetCategories = await tx
+        .delete(budgetCategories)
+        .where(inArray(budgetCategories.categoryId, Array.from(source)))
+        .returning();
+
+      logger.info(`Deleted ${deletedBudgetCategories.length} budget categories associated with source categories`);
+
+      if (deletedBudgetCategories.length > 0) {
+        const uniqueBudgetIds = Array.from(new Set(deletedBudgetCategories.map(bc => bc.budgetId)));
+
+        const createdBudgetCategories = await tx
+          .insert(budgetCategories)
+          .values(
+            uniqueBudgetIds.map(budgetId => ({
+              budgetId: budgetId,
+              categoryId: target,
+            })),
+          )
+          .returning();
+
+        logger.info(`Created ${createdBudgetCategories.length} budget categories for target category ${target}`);
+      } else logger.info('No budget categories needed to be reassigned to target category');
+
+      // Delete source categories
+      const deletedCategories = await tx
+        .delete(categories)
+        .where(and(eq(categories.ownerId, userId), inArray(categories.id, Array.from(source))))
+        .returning();
+      logger.info(`Deleted ${deletedCategories.length} source categories`);
+    });
+
+    ApiResponse.builder<{
+      source: string[];
+      target: string;
+    }>()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage('Categories merged successfully')
+      .withData({
+        source: Array.from(source),
+        target,
+      })
+      .withFrom('db')
+      .buildAndSend(res);
+  },
+);
 
 categoryRouter.get(
   '/stats',

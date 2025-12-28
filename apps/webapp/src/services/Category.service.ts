@@ -6,6 +6,7 @@ import {
   Category,
   CategoryStats,
   CategoryVH,
+  type TCategory,
   type TCategoryStats,
   type TCategoryVH,
   type TCreateOrUpdateCategory,
@@ -103,6 +104,61 @@ export class CategoryService extends NewEntityService<
       }
 
       return [parsingResult.data.data ?? [], null];
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
+  async merge(
+    {
+      source,
+      target,
+    }: {
+      source: Set<TCategory['id']>;
+      target: TCategory['id'];
+    },
+    requestConfig?: RequestInit,
+  ): Promise<
+    ServiceResponse<{
+      source: Set<TCategory['id']>;
+      target: TCategory['id'];
+    }>
+  > {
+    try {
+      const response = await fetch(
+        `${this.getBaseRequestPath()}/merge`,
+        this.mergeRequestConfig(
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: new Headers({
+              'Content-Type': 'application/json',
+              ...(requestConfig?.headers || {}),
+            }),
+            body: JSON.stringify({source, target}),
+          },
+          requestConfig,
+        ),
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch stats: ${response.statusText}`);
+      }
+      if (!this.isJsonResponse(response)) {
+        throw new Error('Response is not JSON');
+      }
+      const data = await response.json();
+
+      const parsingResult = ApiResponse.extend({
+        data: z.object({
+          source: z.set(Category.shape.id),
+          target: Category.shape.id,
+        }),
+      }).safeParse(data);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+
+      return [parsingResult.data.data, null];
     } catch (error) {
       return this.handleError(error);
     }

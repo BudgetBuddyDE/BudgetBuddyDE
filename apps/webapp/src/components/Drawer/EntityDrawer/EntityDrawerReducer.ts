@@ -1,9 +1,11 @@
-export type EntityAction = 'CREATE' | 'EDIT';
+type DefaultActions = 'CREATE' | 'EDIT';
 
-export type EntityDrawerState<T> =
+export type EntityAction<Actions = DefaultActions> = Actions;
+
+export type EntityDrawerState<T, Actions = DefaultActions> =
   | {
       isOpen: true;
-      action: EntityAction;
+      action: EntityAction<Actions>;
       defaultValues: Partial<T> | null;
     }
   | {
@@ -12,7 +14,7 @@ export type EntityDrawerState<T> =
       defaultValues: null;
     };
 
-export function getInitialEntityDrawerState<T>(): EntityDrawerState<T> {
+export function getInitialEntityDrawerState<T, Actions = DefaultActions>(): EntityDrawerState<T, Actions> {
   return {
     isOpen: false,
     action: null,
@@ -20,26 +22,35 @@ export function getInitialEntityDrawerState<T>(): EntityDrawerState<T> {
   };
 }
 
-export type EntityDrawerAction<A> =
-  | {type: 'OPEN'; action: EntityAction; defaultValues?: Partial<A>}
+export type EntityDrawerAction<A, Actions = DefaultActions> =
+  | {
+      type: 'OPEN';
+      action: EntityAction<Actions>;
+      defaultValues?: Partial<A>;
+    }
   | {type: 'CLOSE'}
   | {type: 'RESET'};
 
-export function entityDrawerReducer<T>(
-  state: EntityDrawerState<T>,
-  action: EntityDrawerAction<T>,
-): EntityDrawerState<T> {
+export function entityDrawerReducer<T, Actions = DefaultActions>(
+  state: EntityDrawerState<T, Actions>,
+  action: EntityDrawerAction<T, Actions>,
+): EntityDrawerState<T, Actions> {
   switch (action.type) {
     case 'OPEN':
       return {
         isOpen: true,
         action: action.action,
-        defaultValues: action.defaultValues || null,
+        defaultValues: action.defaultValues ?? null,
       };
+
     case 'CLOSE':
-      return {isOpen: false, action: null, defaultValues: null};
     case 'RESET':
-      return {isOpen: false, action: null, defaultValues: null};
+      return {
+        isOpen: false,
+        action: null,
+        defaultValues: null,
+      };
+
     default:
       return state;
   }

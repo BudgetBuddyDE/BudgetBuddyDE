@@ -1,6 +1,13 @@
 'use client';
 
-import {AddRounded, CloudDownload, CloudDownloadRounded, DeleteRounded} from '@mui/icons-material';
+import {
+  AddRounded,
+  AutoFixHighRounded,
+  CleaningServicesRounded,
+  CloudDownload,
+  CloudDownloadRounded,
+  DeleteRounded,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -8,9 +15,12 @@ import {
   Fade,
   IconButton,
   type IconButtonProps,
+  ListItemIcon,
   lighten,
+  type MenuItemProps,
   Paper,
   Skeleton,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -28,6 +38,7 @@ import {ErrorAlert, type ErrorAlertProps} from '@/components/ErrorAlert';
 import {SearchInput, type SearchInputProps} from '@/components/Form/SearchInput';
 import {useDrawerContext} from '@/components/Layout/Drawer';
 import {CircularProgress} from '@/components/Loading';
+import {Menu} from '@/components/Menu';
 import {NoResults, type NoResultsProps} from '@/components/NoResults';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {DrawerWidth} from '@/theme/style';
@@ -46,6 +57,11 @@ export type EntityTableProps<Entity, EntityKey extends keyof Entity> = {
     noResults: NoResultsProps;
     error: Omit<ErrorAlertProps, 'error'>;
     search: SearchInputProps & {enabled: boolean};
+    selection?: {
+      actions?: (Omit<MenuItemProps, 'onClick'> & {
+        onExecuteAction: (event: React.MouseEvent<HTMLElement>, entites: Entity[]) => Promise<void> | void;
+      })[];
+    };
   }>;
   isLoading?: boolean;
   data: Entity[];
@@ -156,6 +172,10 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
   const clearSelectedEntities = () => {
     setSelectedEntities([]);
   };
+
+  const selectedTargetEntities: Entity[] = React.useMemo(() => {
+    return data.filter(item => isSelected(item, selectedEntites));
+  }, [data, selectedEntites, isSelected]);
 
   return (
     <>
@@ -293,38 +313,69 @@ export const EntityTable = <Entity, EntityKey extends keyof Entity>({
         amountOfSelectedEntities={amountOfSelectedEntities}
         isAppDrawerCurrentlyOpen={isAppDrawerCurrentlyOpen}
       >
-        {onDeleteSelectedEntities && (
+        <Stack direction={'row'} spacing={1} sx={{ml: 2}}>
+          <Menu
+            buttonProps={{
+              size: 'small',
+              variant: 'outlined',
+              color: 'primary',
+              startIcon: <AutoFixHighRounded fontSize="small" />,
+              children: 'Actions',
+            }}
+            actions={[
+              {
+                children: (
+                  <>
+                    <ListItemIcon>
+                      <CloudDownload fontSize="small" />
+                    </ListItemIcon>
+                    <Typography variant="inherit">Export</Typography>
+                  </>
+                ),
+                onClick: () => {
+                  downloadAsJson(
+                    selectedTargetEntities,
+                    `bb_${title}_${Formatter.date.formatWithPattern(new Date(), 'yyyy_mm_dd')}`,
+                  );
+                  clearSelectedEntities();
+                },
+              },
+              ...(slots?.selection?.actions?.map(action => ({
+                ...action,
+                onClick(event: React.MouseEvent<HTMLElement>) {
+                  return action.onExecuteAction(event, selectedTargetEntities);
+                },
+              })) || []),
+              ...(onDeleteSelectedEntities
+                ? [
+                    {
+                      children: (
+                        <>
+                          <ListItemIcon>
+                            <DeleteRounded fontSize="small" />
+                          </ListItemIcon>
+                          <Typography variant="inherit">Delete</Typography>
+                        </>
+                      ),
+                      onClick: () => {
+                        onDeleteSelectedEntities(selectedEntites);
+                        clearSelectedEntities();
+                      },
+                    },
+                  ]
+                : []),
+            ]}
+          />
           <Button
             size="small"
             variant="outlined"
-            color="error"
-            startIcon={<DeleteRounded />}
-            sx={{ml: 3}}
-            onClick={() => {
-              onDeleteSelectedEntities(selectedEntites);
-              clearSelectedEntities();
-            }}
+            color="secondary"
+            onClick={clearSelectedEntities}
+            startIcon={<CleaningServicesRounded fontSize="small" />}
           >
-            Delete
+            Clear
           </Button>
-        )}
-        <Button
-          size="small"
-          variant="outlined"
-          color="info"
-          startIcon={<CloudDownload />}
-          sx={{ml: 1}}
-          onClick={() => {
-            const targetEntities = data.filter(item => isSelected(item, selectedEntites));
-            downloadAsJson(targetEntities, `bb_${title}_${Formatter.date.formatWithPattern(new Date(), 'yyyy_mm_dd')}`);
-            clearSelectedEntities();
-          }}
-        >
-          Export
-        </Button>
-        <Button size="small" variant="outlined" color="secondary" sx={{ml: 1}} onClick={clearSelectedEntities}>
-          Clear
-        </Button>
+        </Stack>
       </SelectedEntitiesActionPopup>
     </>
   );
