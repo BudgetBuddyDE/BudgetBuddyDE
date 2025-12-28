@@ -1,4 +1,4 @@
-\*\*\*\*# CI
+# CI
 
 This directory contains the Concourse workflows for this project.
 
@@ -54,6 +54,26 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
   ```
 
 ## Set up pipelines
+
+### Test `@budgetbuddyde/webapp`
+
+```bash
+fly -t ci set-pipeline -p webapp -c ./ci/pipelines/test-webapp.pipeline.yml \
+  --team budgetbuddyde \
+  -v github_pat="$(cat ./ci/secrets/github/pat)" \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
+  -v repo_branch="main" \
+  -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" \
+  -v repo_path="apps/webapp" \
+  -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" \
+  -v service="app_webapp" \
+  -v service_name="webapp" \
+  -v version_bucket_region="$(cat ./ci/secrets/aws/bucket.txt | sed -n '4p')" \
+  -v version_bucket_access_key="$(cat ./ci/secrets/aws/bucket.txt | sed -n '1p')" \
+  -v version_bucket_secret="$(cat ./ci/secrets/aws/bucket.txt | sed -n '2p')" \
+  -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
+```
 
 ### Publish `@budetbuddyde/logger`
 
