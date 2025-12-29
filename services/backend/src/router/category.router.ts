@@ -27,7 +27,9 @@ categoryRouter.post(
     }
 
     const {source, target} = req.body;
-    logger.info(`Merging categories for user ${userId}: source=${Array.from(source).join(', ')} -> target=${target}`);
+    const sourceArray = Array.from(source);
+
+    logger.info(`Merging categories for user ${userId}: source=[${sourceArray.join(', ')}] -> target=${target}`);
 
     if (source.has(target)) {
       ApiResponse.builder()
@@ -38,16 +40,11 @@ categoryRouter.post(
     }
 
     // Verify that all categories belong to the user
+    const allCategoryIds = [...sourceArray, target];
     const verifiedCategories = await db.query.categories.findMany({
       columns: {id: true},
       where(fields, operators) {
-        return operators.and(
-          operators.eq(fields.ownerId, userId),
-          operators.or(
-            ...[...Array.from(source), target].map(id => operators.eq(fields.id, id)),
-            operators.eq(fields.id, target),
-          ),
-        );
+        return operators.and(operators.eq(fields.ownerId, userId), operators.inArray(fields.id, allCategoryIds));
       },
     });
 
@@ -60,72 +57,65 @@ categoryRouter.post(
     }
 
     await db.transaction(async tx => {
-      // Update transactions to point to the target category
-      const updatedTransactions = await tx
-        .update(transactions)
-        .set({
-          categoryId: target,
-        })
-        .where(and(eq(transactions.ownerId, userId), inArray(transactions.categoryId, Array.from(source))))
-        .returning();
+      // Parallel updates for transactions and recurring payments
+      const [updatedTransactions, updatedRecurringPayments] = await Promise.all([
+        tx
+          .update(transactions)
+          .set({categoryId: target})
+          .where(and(eq(transactions.ownerId, userId), inArray(transactions.categoryId, sourceArray)))
+          .returning(),
+        tx
+          .update(recurringPayments)
+          .set({categoryId: target})
+          .where(and(eq(recurringPayments.ownerId, userId), inArray(recurringPayments.categoryId, sourceArray)))
+          .returning(),
+      ]);
 
-      logger.info(`Updated ${updatedTransactions.length} transactions to point to category ${target}`);
+      logger.info(
+        `Updated ${updatedTransactions.length} transactions and ${updatedRecurringPayments.length} recurring payments to category ${target}`,
+      );
 
-      // Update recurring payments to point to the target category
-      const updatedRecurringPayments = await tx
-        .update(recurringPayments)
-        .set({
-          categoryId: target,
-        })
-        .where(and(eq(recurringPayments.ownerId, userId), inArray(recurringPayments.categoryId, Array.from(source))))
-        .returning();
-      logger.info(`Updated ${updatedRecurringPayments.length} recurring payments to point to category ${target}`);
-
-      // How can I prevent duplicate entries here?
-      // Becuase an budget_category could have multiple source categories assigned to it that are now being merged into the target
-
-      // Delete all budget categories associated with source categories and reassign to target
+      // Handle budget categories: delete old, create new (avoiding duplicates)
       const deletedBudgetCategories = await tx
         .delete(budgetCategories)
-        .where(inArray(budgetCategories.categoryId, Array.from(source)))
+        .where(inArray(budgetCategories.categoryId, sourceArray))
         .returning();
-
-      logger.info(`Deleted ${deletedBudgetCategories.length} budget categories associated with source categories`);
 
       if (deletedBudgetCategories.length > 0) {
-        const uniqueBudgetIds = Array.from(new Set(deletedBudgetCategories.map(bc => bc.budgetId)));
+        const affectedBudgetIds = [...new Set(deletedBudgetCategories.map(bc => bc.budgetId))];
 
-        const createdBudgetCategories = await tx
-          .insert(budgetCategories)
-          .values(
-            uniqueBudgetIds.map(budgetId => ({
-              budgetId: budgetId,
-              categoryId: target,
-            })),
-          )
-          .returning();
+        // Find which budgets already have the target category
+        const existingTargetBudgets = await tx
+          .select({budgetId: budgetCategories.budgetId})
+          .from(budgetCategories)
+          .where(and(inArray(budgetCategories.budgetId, affectedBudgetIds), eq(budgetCategories.categoryId, target)));
 
-        logger.info(`Created ${createdBudgetCategories.length} budget categories for target category ${target}`);
-      } else logger.info('No budget categories needed to be reassigned to target category');
+        const existingBudgetIds = new Set(existingTargetBudgets.map(b => b.budgetId));
+        const budgetsNeedingTarget = affectedBudgetIds.filter(id => !existingBudgetIds.has(id));
+
+        if (budgetsNeedingTarget.length > 0) {
+          await tx
+            .insert(budgetCategories)
+            .values(budgetsNeedingTarget.map(budgetId => ({budgetId, categoryId: target})));
+
+          logger.info(
+            `Reassigned ${budgetsNeedingTarget.length} budgets to target category (${deletedBudgetCategories.length} entries deleted, ${existingBudgetIds.size} already had target)`,
+          );
+        } else {
+          logger.info(`All ${affectedBudgetIds.length} affected budgets already have target category assigned`);
+        }
+      }
 
       // Delete source categories
-      const deletedCategories = await tx
-        .delete(categories)
-        .where(and(eq(categories.ownerId, userId), inArray(categories.id, Array.from(source))))
-        .returning();
-      logger.info(`Deleted ${deletedCategories.length} source categories`);
+      await tx.delete(categories).where(and(eq(categories.ownerId, userId), inArray(categories.id, sourceArray)));
+
+      logger.info(`Successfully merged ${sourceArray.length} categories into ${target}`);
     });
 
-    ApiResponse.builder<{
-      source: string[];
-      target: string;
-    }>()
+    ApiResponse.builder<{source: string[]; target: string}>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage('Categories merged successfully')
-      .withData({
-        source: Array.from(source),
-        target,
-      })
+      .withData({source: sourceArray, target})
       .withFrom('db')
       .buildAndSend(res);
   },
