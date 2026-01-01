@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@budgetbuddyde/api": "^0.1.0",
-    "@budgetbuddyde/logger": "*",
     "@budgetbuddyde/types": "*",
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
@@ -34,6 +33,7 @@
     "@opentelemetry/sdk-node": "^0.208.0",
     "@opentelemetry/sdk-trace-node": "^2.2.0",
     "@reduxjs/toolkit": "^2.8.2",
+    "@tklein1801/logger.js": "^0.0.1",
     "@tklein1801/o.js": "^0.1.1",
     "assert": "^2.1.0",
     "better-auth": "1.2.9",

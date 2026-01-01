@@ -2,7 +2,7 @@ import {type NextRequest, NextResponse} from 'next/server';
 import {authClient} from './authClient';
 import {logger} from './logger';
 
-const middlewareLogger = logger.child({label: 'middleware'});
+const middlewareLogger = logger.child({scope: 'middleware'});
 
 export async function middleware(request: NextRequest) {
   const SIGN_IN_ROUTE = '/sign-in';

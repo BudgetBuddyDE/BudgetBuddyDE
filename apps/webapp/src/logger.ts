@@ -1,12 +1,6 @@
-import {ConsoleTransport, createLogger, LogLevel} from '@budgetbuddyde/logger';
+import {createLogger, LogLevel} from '@tklein1801/logger.js';
 
 export const logger = createLogger({
-  label: 'app',
-  level: LogLevel.DEBUG,
-  transports: [
-    new ConsoleTransport({
-      debounceMs: 0,
-      batchSize: 1,
-    }),
-  ],
+  scope: 'webapp',
+  level: LogLevel.INFO,
 });
