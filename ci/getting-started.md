@@ -75,6 +75,26 @@ fly -t ci set-pipeline -p webapp -c ./ci/pipelines/test-webapp.pipeline.yml \
   -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
 ```
 
+### Publish `@budetbuddyde/api`
+
+```bash
+fly -t ci set-pipeline -p api -c ./ci/pipelines/publish-npm-package.pipeline.yml \
+  --team budgetbuddyde \
+  -v github_pat="$(cat ./ci/secrets/github/pat)" \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
+  -v repo_private_key="$(cat ./ci/secrets/github/id_rsa)" \
+  -v repo_path="packages/api" \
+  -v version_bucket="$(cat ./ci/secrets/aws/bucket.txt | sed -n '3p')" \
+  -v service="pck_api" \
+  -v service_name="api" \
+  -v version_bucket_region="$(cat ./ci/secrets/aws/bucket.txt | sed -n '4p')" \
+  -v version_bucket_access_key="$(cat ./ci/secrets/aws/bucket.txt | sed -n '1p')" \
+  -v version_bucket_secret="$(cat ./ci/secrets/aws/bucket.txt | sed -n '2p')" \
+  -v npm_token="$(cat ./ci/secrets/npmjs/npm_token)" \
+  -v discord_webhook="$(cat ./ci/secrets/discord-webhook.txt)"
+```
+
 ### Publish `@budetbuddyde/logger`
 
 ```bash
