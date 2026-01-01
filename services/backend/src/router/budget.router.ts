@@ -1,4 +1,4 @@
-import {and, eq, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
+import {and, eq, gt, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -51,7 +51,7 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(transactions.ownerId, userId),
           lte(transactions.transferAmount, 0),
-          gte(transactions.processedAt, today),
+          gt(transactions.processedAt, today),
           lte(transactions.processedAt, endOfMonth),
         ),
       ),
@@ -64,7 +64,7 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(recurringPayments.ownerId, userId),
           lte(recurringPayments.transferAmount, 0),
-          gte(recurringPayments.executeAt, today.getDate()),
+          gt(recurringPayments.executeAt, today.getDate()),
           lte(recurringPayments.executeAt, 31),
         ),
       ),
@@ -90,7 +90,7 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(transactions.ownerId, userId),
           gte(transactions.transferAmount, 0),
-          gte(transactions.processedAt, today),
+          gt(transactions.processedAt, today),
           lte(transactions.processedAt, endOfMonth),
         ),
       ),
@@ -103,7 +103,7 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(recurringPayments.ownerId, userId),
           gte(recurringPayments.transferAmount, 0),
-          gte(recurringPayments.executeAt, today.getDate()),
+          gt(recurringPayments.executeAt, today.getDate()),
           lte(recurringPayments.executeAt, 31),
         ),
       ),
