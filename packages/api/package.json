@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues"
   },
-    "scripts": {
+  "scripts": {
     "build": "rimraf lib && tsc",
     "pretest": "npm run check",
     "test": "vitest run --silent",

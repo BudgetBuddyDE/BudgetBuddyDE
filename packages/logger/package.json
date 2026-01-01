@@ -25,6 +25,7 @@
     "test": "vitest run --silent",
     "test:watch": "vitest",
     "check": "biome check --error-on-warnings",
+    "check:write": "npm run check -- --write --unsafe",
     "lint": "biome lint --write",
     "format": "biome format --write"
   },
