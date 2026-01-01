@@ -1,6 +1,6 @@
 {
   "name": "@budgetbuddyde/auth-service",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "main": "build/src/server.js",
   "scripts": {
     "start": "node build/src/server.js",
