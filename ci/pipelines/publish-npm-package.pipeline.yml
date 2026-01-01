@@ -116,7 +116,8 @@ task-config: &task-release
         NEW_VERSION="$(cat version/version)"
         cd repository/((repo_path))
         npm install
-        npm run build -- -F=@budgetbuddyde/((service_name))
+        npm run test
+        npm run build
         npm version "$NEW_VERSION" --no-git-tag-version
         git add package*.json
         git add ../../package*.json
