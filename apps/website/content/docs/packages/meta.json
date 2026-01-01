@@ -1,3 +1,3 @@
 {
-  "pages": ["logger", "types", "utils"]
+  "pages": ["api", "logger", "utils", "types", "..."]
 }

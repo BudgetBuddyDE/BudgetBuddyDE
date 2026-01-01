@@ -46,9 +46,10 @@ This project is organized as a monorepo using [Turbo](https://turbo.build/).
 
 ### Packages
 
+- **[Api](packages/api):** Type-safe API client for backend communication.
 - **[Logger](packages/logger):** Shared logging utility.
-- **[Types](packages/types):** Shared TypeScript types and schemas.
 - **[Utils](packages/utils):** Shared utility functions.
+- **[Types](packages/types):** Shared TypeScript types and schemas.
 
 ## Features
 

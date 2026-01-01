@@ -1,0 +1,144 @@
+{
+  "name": "@budgetbuddyde/api",
+  "version": "0.1.0",
+  "description": "",
+  "keywords": [],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "author": "Thorben",
+  "license": "MIT",
+  "homepage": "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues"
+  },
+    "scripts": {
+    "build": "rimraf lib && tsc",
+    "pretest": "npm run check",
+    "test": "vitest run --silent",
+    "test:watch": "vitest",
+    "check": "biome check --error-on-warnings",
+    "check:write": "npm run check -- --write --unsafe",
+    "lint": "biome lint --write",
+    "format": "biome format --write"
+  },
+  "peerDependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.0",
+    "@vitest/ui": "^3.2.4",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "dev-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./api": {
+      "dev-source": "./src/api.ts",
+      "types": "./lib/api.d.ts",
+      "default": "./lib/api.js"
+    },
+    "./client": {
+      "dev-source": "./src/api.ts",
+      "types": "./lib/api.d.ts",
+      "default": "./lib/api.js"
+    },
+    "./types": {
+      "dev-source": "./src/types/index.ts",
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/types/index.js"
+    },
+    "./interfaces": {
+      "dev-source": "./src/types/interfaces/index.ts",
+      "types": "./lib/types/interfaces/index.d.ts",
+      "default": "./lib/types/interfaces/index.js"
+    },
+    "./schemas": {
+      "dev-source": "./src/types/schemas/index.ts",
+      "types": "./lib/types/schemas/index.d.ts",
+      "default": "./lib/types/schemas/index.js"
+    },
+    "./error": {
+      "dev-source": "./src/error.ts",
+      "types": "./lib/error.d.ts",
+      "default": "./lib/error.js"
+    },
+    "./category": {
+      "dev-source": "./src/category.ts",
+      "types": "./lib/category.d.ts",
+      "default": "./lib/category.js"
+    },
+    "./paymentMethod": {
+      "dev-source": "./src/paymentMethod.ts",
+      "types": "./lib/paymentMethod.d.ts",
+      "default": "./lib/paymentMethod.js"
+    },
+    "./budget": {
+      "dev-source": "./src/budget.ts",
+      "types": "./lib/budget.d.ts",
+      "default": "./lib/budget.js"
+    },
+    "./transaction": {
+      "dev-source": "./src/transaction.ts",
+      "types": "./lib/transaction.d.ts",
+      "default": "./lib/transaction.js"
+    },
+    "./recurringPayment": {
+      "dev-source": "./src/recurringPayment.ts",
+      "types": "./lib/recurringPayment.d.ts",
+      "default": "./lib/recurringPayment.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/index.d.js"
+      ],
+      "api": [
+        "./lib/api.d.ts"
+      ],
+      "client": [
+        "./lib/api.d.ts"
+      ],
+      "types": [
+        "./lib/types/index.d.ts"
+      ],
+      "interfaces": [
+        "./lib/types/interfaces/index.d.ts"
+      ],
+      "schemas": [
+        "./lib/types/schemas/index.d.ts"
+      ],
+      "error": [
+        "./lib/error.d.ts"
+      ],
+      "category": [ 
+        "./lib/category.d.ts"
+      ],
+      "paymentMethod": [
+        "./lib/paymentMethod.d.ts"
+      ],
+      "budget": [
+        "./lib/budget.d.ts"
+      ],
+      "transaction": [
+        "./lib/transaction.d.ts"
+      ],
+      "recurringPayment": [
+        "./lib/recurringPayment.d.ts"
+      ]
+    }
+  }
+}
