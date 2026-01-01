@@ -1,27 +1,17 @@
-import {createLogger, format, transports} from 'winston';
-import LokiTransport from 'winston-loki';
+import {buildConsoleFormat, LevelConfig, padLevel} from '@budgetbuddyde/logger';
+import {createLogger, format} from 'winston';
 import {config} from '../config';
 
 export const logger = createLogger({
+  levels: LevelConfig.levels,
   level: config.log.level,
   defaultMeta: config.log.defaultMeta,
   format: format.combine(
-    // format.colorize(),
-    format.timestamp(), // ISO 8601
-    format.errors({stack: true}),
-    format.splat(),
-    format.simple(),
+    format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}), // Add timestamp
+    format.splat(), // For string interpolation
+    padLevel(5), // Pad level to 5 characters
+    format.colorize({level: true, colors: LevelConfig.colors}), // Colorize level
+    buildConsoleFormat(config.service, config.log.hideMeta),
   ),
-  transports: [
-    ...(config.runtime === 'production' && Boolean(process.env.LOKI_URL)
-      ? [
-          new LokiTransport({
-            host: process.env.LOKI_URL || 'http://loki:3100',
-            // In production, we want to use metadata as labels for better filtering
-            useWinstonMetaAsLabels: true,
-          }),
-        ]
-      : []),
-    new transports.Console(),
-  ],
+  transports: config.log.transports,
 });

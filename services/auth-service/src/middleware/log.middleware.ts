@@ -1,4 +1,4 @@
-import {LogLevel} from '@budgetbuddyde/logger';
+import type {LogLevel} from '@budgetbuddyde/logger';
 import type {NextFunction, Request, Response} from 'express';
 import {config} from '../config';
 import {logger} from '../lib/logger';
@@ -9,11 +9,7 @@ export function log(req: Request, res: Response, next: NextFunction): void {
   res.on('finish', () => {
     const statusCode = res.statusCode;
     const targetLogLevel: LogLevel =
-      statusCode >= 200 && statusCode < 400
-        ? LogLevel.INFO
-        : statusCode >= 400 && statusCode < 500
-          ? LogLevel.WARN
-          : LogLevel.ERROR;
+      statusCode >= 200 && statusCode < 400 ? 'info' : statusCode >= 400 && statusCode < 500 ? 'warn' : 'error';
     const requestMetaInformation = {
       method: req.method,
       ip: req.ip,
@@ -25,10 +21,10 @@ export function log(req: Request, res: Response, next: NextFunction): void {
 
     const msg = `[${requestMetaInformation.ip}] ${req.method} ${req.originalUrl} ${statusCode}`;
     switch (targetLogLevel) {
-      case LogLevel.ERROR:
+      case 'error':
         requestLogger.error(msg, requestMetaInformation);
         break;
-      case LogLevel.WARN:
+      case 'warn':
         requestLogger.warn(msg, requestMetaInformation);
         break;
       default:

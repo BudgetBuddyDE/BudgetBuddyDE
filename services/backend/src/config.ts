@@ -1,8 +1,9 @@
-import {getLogLevel, LogLevel} from '@budgetbuddyde/logger';
+import {getLogLevel} from '@budgetbuddyde/logger';
 import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
+import LokiTransport from 'winston-loki';
 import 'dotenv/config';
-import type {Logger} from 'winston';
+import {type Logger, transports} from 'winston';
 import {name, version} from '../package.json';
 
 export type Config = {
@@ -10,7 +11,10 @@ export type Config = {
   version: typeof version;
   port: ReturnType<typeof getPort>;
   runtime: Runtime;
-  log: Pick<Logger, 'level'> & {defaultMeta?: Record<string, string | number | boolean>};
+  log: Pick<Logger, 'level' | 'transports'> & {
+    defaultMeta?: Record<string, string | number | boolean>;
+    hideMeta?: boolean;
+  };
   cors: CorsOptions;
   jobs: {
     timezone: string;
@@ -27,12 +31,25 @@ export const config: Config = {
   port: getPort(9000),
   runtime: SERVICE_RUNTIME,
   log: {
-    level: LogLevel[getLogLevel(process.env.LOG_LEVEL || 'INFO')].toLowerCase(),
+    level: getLogLevel(process.env.LOG_LEVEL),
     defaultMeta: {
       service: SERVICE_NAME,
       version: SERVICE_VERSION,
       runtime: SERVICE_RUNTIME,
     },
+    hideMeta: process.env.LOG_HIDE_META === 'true',
+    transports: [
+      ...(SERVICE_RUNTIME === 'production' && Boolean(process.env.LOKI_URL)
+        ? [
+            new LokiTransport({
+              host: process.env.LOKI_URL || 'http://loki:3100',
+              // In production, we want to use metadata as labels for better filtering
+              useWinstonMetaAsLabels: true,
+            }),
+          ]
+        : []),
+      new transports.Console(),
+    ],
   },
   cors: {
     origin: isRunningInProd() ? getTrustedOrigins() : [/^(http|https):\/\/localhost(:\d+)?$/],
