@@ -1,6 +1,6 @@
 {
   "name": "@budgetbuddyde/api",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "",
   "keywords": [],
   "publishConfig": {
@@ -124,7 +124,7 @@
       "error": [
         "./lib/error.d.ts"
       ],
-      "category": [ 
+      "category": [
         "./lib/category.d.ts"
       ],
       "paymentMethod": [
