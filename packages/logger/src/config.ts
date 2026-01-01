@@ -1,42 +1,27 @@
-import type { LogLevel } from "./logger";
-
-export const LOG_COLORS = {
-	reset: "\x1b[0m",
-	bright: "\x1b[1m",
-	dim: "\x1b[2m",
-	underscore: "\x1b[4m",
-	blink: "\x1b[5m",
-	reverse: "\x1b[7m",
-	hidden: "\x1b[8m",
-	fg: {
-		black: "\x1b[30m",
-		red: "\x1b[31m",
-		green: "\x1b[32m",
-		yellow: "\x1b[33m",
-		blue: "\x1b[34m",
-		magenta: "\x1b[35m",
-		cyan: "\x1b[36m",
-		white: "\x1b[37m",
+/**
+ * Possible log levels and their corresponding colors.
+ * Used for configuring the logger.
+ *
+ * Possible options are:
+ *  - Font styles: `bold`, `dim`, `italic`, `underline`, `inverse`, `hidden`, `strikethrough`
+ * 	- Font foreground colors: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `gray`, `grey`
+ *  - Background colors: `blackBG`, `redBG`, `greenBG`, `yellowBG`, `blueBG` `magentaBG`, `cyanBG`, `whiteBG`
+ */
+export const LevelConfig = {
+	levels: {
+		silent: 6,
+		debug: 5,
+		info: 3,
+		warn: 2,
+		error: 1,
+		crit: 0,
 	},
-	bg: {
-		black: "\x1b[40m",
-		red: "\x1b[41m",
-		green: "\x1b[42m",
-		yellow: "\x1b[43m",
-		blue: "\x1b[44m",
-		magenta: "\x1b[45m",
-		cyan: "\x1b[46m",
-		white: "\x1b[47m",
+	colors: {
+		silent: "gray",
+		debug: "blue",
+		info: "green",
+		warn: "yellow",
+		error: "red",
+		crit: "magenta",
 	},
-};
-
-// Colors for each log level
-// Number values correspond to LogLevel enum
-export const LOG_LEVEL_COLORS: Record<LogLevel, string> = {
-	0: LOG_COLORS.fg.red,
-	1: LOG_COLORS.fg.red,
-	2: LOG_COLORS.fg.yellow,
-	3: LOG_COLORS.fg.blue,
-	4: LOG_COLORS.fg.magenta,
-	5: "", // No color for SILENT level
-};
+} as const;

@@ -5,17 +5,16 @@
 ![NPM License](https://img.shields.io/npm/l/%40budgetbuddyde%2Flogger)
 ![NPM Last Update](https://img.shields.io/npm/last-update/%40budgetbuddyde%2Flogger)
 
-A flexible and efficient JavaScript/TypeScript logging library with modular transport system, built-in batching, and debouncing capabilities for high-performance applications.
+A collection of utility functions, configurations, and formatters for Winston loggers used within the BudgetBuddy project.
 
 ## Features
 
-- **Modular Architecture**: Logger, Transport Manager, and pluggable transport system
-- **Multiple Transports**: Send logs to console, files, HTTP endpoints, or custom destinations
-- **Built-in Batching**: Reduce overhead by grouping logs before transmission
-- **Debouncing**: Optimizes performance during high-frequency logging
-- **Child Loggers**: Create scoped loggers that inherit parent configuration
+- **Log Level Utilities**: Helper functions for parsing and validating log levels from environment variables
+- **Console Format Builder**: Pre-configured Winston formatters for consistent console output
+- **Level Padding**: Formatting for uniform level output in logs
+- **Level Configuration**: Standardized log level configuration with colors for the entire project
 - **TypeScript Support**: Fully typed with comprehensive type definitions
-- **Configurable Log Levels**: Filter logs by severity (DEBUG, INFO, WARN, ERROR)
+- **Winston Integration**: Seamless integration with Winston for all services and apps
 
 ## Installation
 
@@ -25,14 +24,31 @@ npm install @budgetbuddyde/logger
 
 ## Quick Start
 
-### Basic Usage
+### Log Level from Environment Variables
 
 ```typescript
-import { LogLevel, createLogger } from '@budgetbuddyde/logger';
+import { getLogLevel } from '@budgetbuddyde/logger';
 
-const logger = createLogger({
-  label: 'MyApp',
-  level: LogLevel.INFO,
+const logLevel = getLogLevel(process.env.LOG_LEVEL); // 'info', 'debug', 'warn', etc.
+```
+
+### Winston Logger with Custom Format
+
+```typescript
+import { createLogger, format } from 'winston';
+import { buildConsoleFormat, padLevel, LevelConfig } from '@budgetbuddyde/logger';
+
+export const logger = createLogger({
+  levels: LevelConfig.levels,
+  level: getLogLevel(process.env.LOG_LEVEL),
+  format: format.combine(
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    format.splat(),
+    padLevel(5), // Pads level to 5 characters
+    format.colorize({ level: true, colors: LevelConfig.colors }),
+    buildConsoleFormat('MyService', false) // Show service name and meta
+  ),
+  transports: [new transports.Console()],
 });
 
 logger.info('Application started');
@@ -40,131 +56,91 @@ logger.warn('This is a warning');
 logger.error('An error occurred');
 ```
 
-### Child Loggers
+## Usage in the Project
 
-Create scoped loggers that inherit parent configuration:
+The logger package is used across all services (Backend, Auth-Service) and apps (WebApp) in the BudgetBuddy project to ensure consistent logging configuration and formatting.
 
-```typescript
-const childLogger = logger.child({
-  label: 'Database',
-  level: LogLevel.DEBUG,
-});
-
-childLogger.debug('Database connection established');
-```
-
-### Multiple Transports
-
-Send logs to multiple destinations with different configurations:
+### In the Backend Service
 
 ```typescript
-import { LogLevel, createLogger, Transport, type LogEntry } from '@budgetbuddyde/logger';
+import { createLogger, format } from 'winston';
+import { buildConsoleFormat, padLevel, LevelConfig } from '@budgetbuddyde/logger';
 
-class FileTransport extends Transport {
-  protected sendBatch(logs: LogEntry[]): void {
-    logs.forEach((log) => console.log(`[FILE] ${log.message}`));
-  }
-}
-
-const logger = createLogger({
-  label: 'MultiTransportApp',
-  level: LogLevel.INFO,
-  transports: [
-    new FileTransport({
-      label: 'file',
-      batchSize: 10,
-      debounceMs: 1000,
-      level: LogLevel.WARN, // Only warnings and errors to file
-    }),
-  ],
+export const logger = createLogger({
+  levels: LevelConfig.levels,
+  level: config.log.level,
+  format: format.combine(
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    format.splat(),
+    padLevel(5),
+    format.colorize({ level: true, colors: LevelConfig.colors }),
+    buildConsoleFormat(config.service, config.log.hideMeta)
+  ),
+  transports: config.log.transports,
 });
 ```
 
-## Transport System
+### In the WebApp
 
-The transport system handles efficient log transmission with built-in optimizations:
-
-- **Batching**: Groups logs to reduce transmission overhead
-- **Debouncing**: Delays transmission to avoid overwhelming receivers
-- **Level Filtering**: Processes only logs meeting minimum severity
-- **Error Recovery**: Automatically re-queues failed logs for retry
-
-## Custom Transports
-
-> [!TIP]
-> Inside the `examples` folder, you can find some custom transport implementations.
-
-Create custom transports by extending the `Transport` base class:
-
-```typescript
-import { Transport, type LogEntry, type TransportOptions } from '@budgetbuddyde/logger';
-
-class DatabaseTransport extends Transport {
-  constructor(options: TransportOptions & { connectionString: string }) {
-    super(options);
-  }
-
-  protected async sendBatch(logs: LogEntry[]): Promise<void> {
-    // Send logs to your database
-    for (const log of logs) {
-      await this.saveLog(log);
-    }
-  }
-
-  private async saveLog(log: LogEntry): Promise<void> {
-    // Your database implementation
-  }
-}
-
-const logger = createLogger({
-  transports: [
-    new DatabaseTransport({
-      label: 'database',
-      connectionString: 'mongodb://localhost:27017/logs',
-      batchSize: 20,
-      debounceMs: 2000,
-    }),
-  ],
-});
-```
-
-### Transport Configuration
-
-Configure transport behavior with these options:
-
-- `batchSize`: Number of logs to group before transmission (default: 10)
-- `debounceMs`: Delay before sending logs in milliseconds (default: 1000)
-- `level`: Minimum log level to process (default: LogLevel.INFO)
-- `enabled`: Whether the transport is active (default: true)
-- `label`: Transport identifier for debugging
+For the WebApp, a simplified version using direct `createLogger` from the package is used (if available), or Winston is configured directly.
 
 ## API Reference
 
 ### Log Levels
 
 ```typescript
-enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
+enum ELogLevel {
+  SILENT = 'silent',
+  DEBUG = 'debug',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error',
+  CRIT = 'crit',
 }
+
+type LogLevel = keyof typeof LevelConfig.levels;
 ```
 
-### Logger Methods
+### Level Configuration
 
-- `logger.debug(message, ...args)` - Debug level logging
-- `logger.info(message, ...args)` - Info level logging
-- `logger.warn(message, ...args)` - Warning level logging
-- `logger.error(message, ...args)` - Error level logging
-- `logger.child(options)` - Create child logger with inherited config
+```typescript
+const LevelConfig = {
+  levels: {
+    silent: 6,
+    debug: 5,
+    info: 3,
+    warn: 2,
+    error: 1,
+    crit: 0,
+  },
+  colors: {
+    silent: 'gray',
+    debug: 'blue',
+    info: 'green',
+    warn: 'yellow',
+    error: 'red',
+    crit: 'magenta',
+  },
+};
+```
 
-### Transport Lifecycle
+### Utility Functions
 
-- `transport.enable()` - Enable the transport
-- `transport.disable()` - Disable and flush remaining logs
-- `transport.flush()` - Immediately send all queued logs
-- `transport.destroy()` - Clean up resources
+#### `getLogLevel(logLevel: string | undefined): LogLevel`
+
+Parses a log level from a string (e.g., environment variable) and returns a valid `LogLevel`.
+
+```typescript
+const level = getLogLevel(process.env.LOG_LEVEL); // 'info' as fallback
+```
+
+#### `buildConsoleFormat(fallbackLabel: string, hideMeta?: boolean)`
+
+Creates a Winston format for console output with timestamp, level, label, and optional metadata.
+
+#### `padLevel(whitespaceCount: number)`
+
+A Winston format transformer that pads log levels to a uniform length and converts them to uppercase.
 
 ## Development
 
@@ -182,6 +158,6 @@ npm run build
 npm run check
 ```
 
-## Credits
+## Dependencies
 
-- `lodash.debounce` - Used for debouncing the transportation of logs in the Transport system to reduce load on receivers and improve batching efficiency. This ensures that during high-frequency logging periods, logs are accumulated and sent in batches rather than individually, optimizing performance and reducing network overhead.
+- **Winston**: The package is designed as a peer dependency for Winston (^3.19.0) and provides utility functions for Winston loggers.

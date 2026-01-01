@@ -17,8 +17,6 @@
   "bugs": {
     "url": "https://github.com/budgetbuddyde/logger/issues"
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "scripts": {
     "build": "rimraf lib && tsc",
     "pretest": "npm run check",
@@ -37,7 +35,31 @@
     "typescript": "^5.7.3",
     "vitest": "^3.0.9"
   },
-  "dependencies": {
-    "util": "^0.12.5"
+  "peerDependencies": {
+    "winston": "^3.19.0"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "dev-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./utils": {
+      "dev-source": "./src/utils.ts",
+      "types": "./lib/utils.d.ts",
+      "default": "./lib/utils.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/index.d.js"
+      ],
+      "utils": [
+        "./lib/utils.d.js"
+      ]
+    }
   }
 }

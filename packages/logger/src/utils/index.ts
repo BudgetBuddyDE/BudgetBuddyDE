@@ -1,3 +1,3 @@
-export * from "./debounce";
+export * from "./consoleFormat";
 export * from "./getLogLevel";
-export * from "./isValidLogLevel";
+export * from "./padLevel";
