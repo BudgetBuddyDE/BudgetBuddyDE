@@ -59,7 +59,7 @@ export const GetRecurringPaymentResponse = ApiResponse.extend({
 	data: ExpandedRecurringPayment.nullable(),
 });
 export const CreateRecurringPaymentResponse = ApiResponse.extend({
-	data: RecurringPayment,
+	data: z.array(RecurringPayment).nullable(),
 });
 export const UpdateRecurringPaymentResponse = CreateRecurringPaymentResponse;
 export const DeleteRecurringPaymentResponse = CreateRecurringPaymentResponse;
