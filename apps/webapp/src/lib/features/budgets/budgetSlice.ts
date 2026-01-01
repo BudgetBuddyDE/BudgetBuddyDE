@@ -1,4 +1,4 @@
-import {Backend} from '@/services/Backend';
+import {apiClient} from '@/apiClient';
 import {createEntitySlice} from '../createEntitySlice';
 
-export const budgetSlice = createEntitySlice('budget', query => Backend.budget.getAll(query));
+export const budgetSlice = createEntitySlice('budget', query => apiClient.backend.budget.getAll(query));

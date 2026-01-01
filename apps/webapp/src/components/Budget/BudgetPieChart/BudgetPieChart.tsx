@@ -2,13 +2,13 @@
 
 import {Box} from '@mui/material';
 import React from 'react';
+import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
 import {PieChart} from '@/components/Charts';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
 import {useFetch} from '@/hooks/useFetch';
-import {Backend} from '@/services/Backend';
 import {Formatter} from '@/utils/Formatter';
 
 export type BudgetStats = {
@@ -31,7 +31,7 @@ export type BudgetPieChartProps = {};
  */
 export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
   const fetchDataFunc = React.useCallback(async () => {
-    const [estimations, err] = await Backend.budget.getEstimatedBudget();
+    const [estimations, err] = await apiClient.backend.budget.getEstimatedBudget();
     if (err) {
       throw err;
     }

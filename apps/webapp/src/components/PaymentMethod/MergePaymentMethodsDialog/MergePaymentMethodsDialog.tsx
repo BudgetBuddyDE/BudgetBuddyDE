@@ -1,8 +1,10 @@
 'use client';
 
+import {PaymentMethod, type PaymentMethodVH, type TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {Button} from '@mui/material';
 import React from 'react';
 import z from 'zod';
+import {apiClient} from '@/apiClient';
 import {
   EntityDrawer,
   type EntityDrawerField,
@@ -14,8 +16,6 @@ import {useSnackbarContext} from '@/components/Snackbar';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch} from '@/lib/hooks';
 import {logger} from '@/logger';
-import {Backend} from '@/services/Backend';
-import {PaymentMethod, type PaymentMethodVH, type TPaymentMethodVH} from '@/types';
 
 export type MergePaymentMethodsForm = FirstLevelNullable<{
   sourcePaymentMethods: TPaymentMethodVH[];
@@ -52,7 +52,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         disableCloseOnSelect: true,
         noOptionsText: 'No payment methods available',
         async retrieveOptionsFunc(_keywords) {
-          const [paymentMethods, error] = await Backend.paymentMethod.getValueHelp();
+          const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
             logger.error('Failed to fetch payment method options:', error);
             return [];
@@ -74,7 +74,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         required: true,
         noOptionsText: 'No payment methods available',
         async retrieveOptionsFunc(_keywords) {
-          const [paymentMethods, error] = await Backend.paymentMethod.getValueHelp();
+          const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
             logger.error('Failed to fetch payment method options:', error);
             return [];
@@ -110,7 +110,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       return;
     }
 
-    const [mergedPaymentMethods, error] = await Backend.paymentMethod.merge(parsedPayload.data);
+    const [mergedPaymentMethods, error] = await apiClient.backend.paymentMethod.merge(parsedPayload.data);
     if (!mergedPaymentMethods || error) {
       return showSnackbar({
         message: `Failed to merge payment methods: ${error.message}`,

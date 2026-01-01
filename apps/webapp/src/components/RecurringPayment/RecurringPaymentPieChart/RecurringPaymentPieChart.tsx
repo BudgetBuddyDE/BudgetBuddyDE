@@ -1,15 +1,16 @@
 'use client';
 
+import type {TCategory} from '@budgetbuddyde/api/category';
+import type {TExpandedRecurringPayment} from '@budgetbuddyde/api/recurringPayment';
 import {Box, Button, Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import NextLink from 'next/link';
 import React from 'react';
+import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
 import {PieChart, type PieChartData} from '@/components/Charts';
 import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
-import {Backend} from '@/services/Backend';
-import type {TCategory, TExpandedRecurringPayment} from '@/types';
 import {Formatter} from '@/utils/Formatter';
 
 export type RecurringPaymentType = 'INCOME' | 'EXPENSE';
@@ -94,7 +95,7 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
       dispatch({type: 'start', paymentType: type});
 
       try {
-        const [recurringPaymentResponse, err] = await Backend.recurringPayment.getAll(undefined, {
+        const [recurringPaymentResponse, err] = await apiClient.backend.recurringPayment.getAll(undefined, {
           credentials: 'include',
         });
         if (err) throw err;

@@ -4,7 +4,7 @@ import {ITEMS_IN_VIEW} from '@/components/Table/EntityTable';
 import {createAppSlice} from '@/lib/createAppSlice';
 import type {RootState} from '@/lib/store';
 import {logger} from '@/logger';
-import type {BaseGetAllQuery} from '@/services/Entity.service';
+import type {IBaseGetAllQuery} from '@budgetbuddyde/api/common';
 import type {TApiResponse} from '@/types';
 
 export type EntityFilters = {
@@ -35,7 +35,7 @@ export function createInitialState<T>(initalData?: T): EntitySliceState<T> {
 
 type ResponseBody<T> = TApiResponse<T>;
 
-export function createEntitySlice<T, Q extends BaseGetAllQuery>(
+export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
   name: string,
   getPageFunc: (query?: Q) => Promise<ServiceResponse<ResponseBody<T>>>,
 ) {

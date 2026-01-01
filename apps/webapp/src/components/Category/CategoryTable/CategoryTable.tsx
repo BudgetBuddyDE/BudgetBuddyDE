@@ -1,8 +1,10 @@
 'use client';
 
+import {CreateOrUpdateCategoryPayload, type TCategory} from '@budgetbuddyde/api/category';
 import {MergeRounded} from '@mui/icons-material';
 import {Button, ListItemIcon, TableCell, Typography} from '@mui/material';
 import React from 'react';
+import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
   EntityDrawer,
@@ -17,8 +19,6 @@ import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
-import {Backend} from '@/services/Backend';
-import {CreateOrUpdateCategory, type TCategory} from '@/types';
 import {MergeCategoriesDialog, type MergeCategoriesForm} from '../MergeCategoriesDialog';
 
 type EntityFormFields = FirstLevelNullable<Pick<TCategory, 'id' | 'name' | 'description'>>;
@@ -62,7 +62,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
-    const parsedPayload = CreateOrUpdateCategory.safeParse(payload);
+    const parsedPayload = CreateOrUpdateCategoryPayload.safeParse(payload);
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
       showSnackbar({
@@ -73,7 +73,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
     }
 
     if (action === 'CREATE') {
-      const [createdCategory, error] = await Backend.category.create(parsedPayload.data);
+      const [createdCategory, error] = await apiClient.backend.category.create(parsedPayload.data);
       if (!createdCategory || error) {
         return showSnackbar({
           message: `Failed to create category: ${error.message}`,
@@ -92,7 +92,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
           action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
         });
       }
-      const [updatedCategory, error] = await Backend.category.updateById(entityId, parsedPayload.data);
+      const [updatedCategory, error] = await apiClient.backend.category.updateById(entityId, parsedPayload.data);
       if (error) {
         return showSnackbar({
           message: `Failed to update category: ${error.message}`,
@@ -119,7 +119,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
   };
 
   const handleDeleteEntity = async (entityId: TCategory['id']) => {
-    const [deletedCategory, error] = await Backend.category.deleteById(entityId);
+    const [deletedCategory, error] = await apiClient.backend.category.deleteById(entityId);
     if (error || !deletedCategory) {
       return showSnackbar({
         message: error.message,

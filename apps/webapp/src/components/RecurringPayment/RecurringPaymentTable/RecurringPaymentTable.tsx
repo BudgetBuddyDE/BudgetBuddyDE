@@ -1,7 +1,17 @@
 'use client';
 
+import {CategoryVH, type TCategoryVH} from '@budgetbuddyde/api/category';
+import {PaymentMethodVH, type TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
+import {
+  CreateOrUpdateRecurringPaymentPayload,
+  type TExpandedRecurringPayment,
+  type TRecurringPayment,
+} from '@budgetbuddyde/api/recurringPayment';
+import {ReceiverVH, type TReceiverVH} from '@budgetbuddyde/api/transaction';
 import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, Typography} from '@mui/material';
 import React from 'react';
+import z from 'zod';
+import {apiClient} from '@/apiClient';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -19,19 +29,6 @@ import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
 import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringPaymentSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
-import {Backend} from '@/services/Backend';
-import {
-  CategoryVH,
-  CdsDate,
-  CreateOrUpdateRecurringPayment,
-  PaymentMethodVH,
-  ReceiverVH,
-  type TCategoryVH,
-  type TExpandedRecurringPayment,
-  type TPaymentMethodVH,
-  type TReceiverVH,
-  type TRecurringPayment,
-} from '@/types';
 import {Formatter} from '@/utils/Formatter';
 
 type EntityFormFields = FirstLevelNullable<
@@ -79,14 +76,14 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
 
-    const parsedPayload = CreateOrUpdateRecurringPayment.omit({
+    const parsedPayload = CreateOrUpdateRecurringPaymentPayload.omit({
       paused: true,
       executeAt: true,
       categoryId: true,
       paymentMethodId: true,
     })
       .extend({
-        executeAt: CdsDate,
+        executeAt: z.date(),
         category: CategoryVH,
         paymentMethod: PaymentMethodVH,
         receiver: ReceiverVH,
@@ -106,7 +103,8 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
 
     if (action === 'CREATE') {
       const {executeAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
-      const [createdRecurringPayment, error] = await Backend.recurringPayment.create({
+      const [createdRecurringPayment, error] = await apiClient.backend.recurringPayment.create({
+        paused: false,
         executeAt: executeAt.getDate(),
         categoryId: category.id,
         paymentMethodId: paymentMethod.id,
@@ -135,7 +133,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
         });
       }
       const {executeAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
-      const [updatedRecurringPayment, error] = await Backend.recurringPayment.updateById(entityId, {
+      const [updatedRecurringPayment, error] = await apiClient.backend.recurringPayment.updateById(entityId, {
         executeAt: executeAt.getDate(),
         categoryId: category.id,
         paymentMethodId: paymentMethod.id,
@@ -204,7 +202,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
   };
 
   const handleTogglePauseOnEntity = async (entity: TExpandedRecurringPayment) => {
-    const [updatedRecurringPayment, error] = await Backend.recurringPayment.updateById(entity.id, {
+    const [updatedRecurringPayment, error] = await apiClient.backend.recurringPayment.updateById(entity.id, {
       paused: !entity.paused,
     });
     if (!updatedRecurringPayment || error) {
@@ -221,7 +219,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
   };
 
   const handleDeleteEntity = async (entityId: TExpandedRecurringPayment['id']) => {
-    const [deletedRecurringPayment, error] = await Backend.recurringPayment.deleteById(entityId);
+    const [deletedRecurringPayment, error] = await apiClient.backend.recurringPayment.deleteById(entityId);
     if (!deletedRecurringPayment || error) {
       return showSnackbar({
         message: error.message,
@@ -285,7 +283,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
           placeholder: 'Category',
           required: true,
           retrieveOptionsFunc: async () => {
-            const [categories, error] = await Backend.category.getValueHelp();
+            const [categories, error] = await apiClient.backend.category.getValueHelp();
             if (error) {
               logger.error('Failed to fetch receiver options:', error);
               return [];
@@ -308,7 +306,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
           placeholder: 'Payment Method',
           required: true,
           retrieveOptionsFunc: async () => {
-            const [paymentMethods, error] = await Backend.paymentMethod.getValueHelp();
+            const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
             if (error) {
               logger.error('Failed to fetch payment method options:', error);
               return [];
@@ -330,7 +328,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
           placeholder: 'Receiver',
           required: true,
           retrieveOptionsFunc: async () => {
-            const [categories, error] = await Backend.transaction.getReceiverVH();
+            const [categories, error] = await apiClient.backend.transaction.getReceiverVH();
             if (error) {
               logger.error('Failed to fetch receiver options:', error);
               return [];
@@ -461,7 +459,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
                     textDecoration: item.paused ? 'line-through' : 'unset',
                   }}
                 >
-                  {Formatter.date.format(Backend.recurringPayment.determineNextExecutionDate(item.executeAt))}
+                  {Formatter.date.format(apiClient.backend.recurringPayment.determineNextExecutionDate(item.executeAt))}
                 </Typography>
               </TableCell>
               <TableCell>

@@ -1,12 +1,12 @@
-import {Backend} from '@/services/Backend';
-import type {GetAllTransactionsQuery} from '@/services/Transaction.service';
+import type {IGetAllTransactionsQuery} from '@budgetbuddyde/api/transaction';
+import {apiClient} from '@/apiClient';
 import {createEntitySlice} from '../createEntitySlice';
 
 export const transactionSlice = createEntitySlice('transaction', query => {
-  const modifiedQuery = {...query} as GetAllTransactionsQuery;
+  const modifiedQuery = {...query} as IGetAllTransactionsQuery;
   if (modifiedQuery.$dateTo === undefined) {
     modifiedQuery.$dateTo = new Date();
   }
 
-  return Backend.transaction.getAll(modifiedQuery);
+  return apiClient.backend.transaction.getAll(modifiedQuery);
 });

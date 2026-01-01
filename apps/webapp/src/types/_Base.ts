@@ -4,8 +4,6 @@ import {z} from 'zod';
 // 	[K in keyof T]?: T[K] | null;
 // };
 
-export const UserID = z.string().brand('UserID');
-
 export const ApiResponse = z.object({
   status: z.number(),
   message: z.string().optional(),

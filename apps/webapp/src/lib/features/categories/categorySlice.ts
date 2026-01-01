@@ -1,4 +1,4 @@
-import {Backend} from '@/services/Backend';
+import {apiClient} from '@/apiClient';
 import {createEntitySlice} from '../createEntitySlice';
 
-export const categorySlice = createEntitySlice('category', query => Backend.category.getAll(query));
+export const categorySlice = createEntitySlice('category', query => apiClient.backend.category.getAll(query));

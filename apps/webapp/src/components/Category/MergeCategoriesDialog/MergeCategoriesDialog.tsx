@@ -1,8 +1,10 @@
 'use client';
 
+import {Category, type CategoryVH, type TCategoryVH} from '@budgetbuddyde/api/category';
 import {Button} from '@mui/material';
 import React from 'react';
 import z from 'zod';
+import {apiClient} from '@/apiClient';
 import {
   EntityDrawer,
   type EntityDrawerField,
@@ -14,8 +16,6 @@ import {useSnackbarContext} from '@/components/Snackbar';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch} from '@/lib/hooks';
 import {logger} from '@/logger';
-import {Backend} from '@/services/Backend';
-import {Category, type CategoryVH, type TCategoryVH} from '@/types';
 
 export type MergeCategoriesForm = FirstLevelNullable<{
   sourceCategories: TCategoryVH[];
@@ -52,7 +52,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
         disableCloseOnSelect: true,
         noOptionsText: 'No categories available',
         async retrieveOptionsFunc(_keywords) {
-          const [categories, error] = await Backend.category.getValueHelp();
+          const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
             logger.error('Failed to fetch category options:', error);
             return [];
@@ -74,7 +74,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
         required: true,
         noOptionsText: 'No categories available',
         async retrieveOptionsFunc(_keywords) {
-          const [categories, error] = await Backend.category.getValueHelp();
+          const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
             logger.error('Failed to fetch category options:', error);
             return [];
@@ -110,7 +110,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
       return;
     }
 
-    const [mergedCategories, error] = await Backend.category.merge(parsedPayload.data);
+    const [mergedCategories, error] = await apiClient.backend.category.merge(parsedPayload.data);
     if (!mergedCategories || error) {
       return showSnackbar({
         message: `Failed to merge categories: ${error.message}`,

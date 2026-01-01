@@ -1,13 +1,12 @@
 'use client';
 
+import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import {ThumbUpAltRounded, WarningRounded} from '@mui/icons-material';
 import {Box, Chip, Stack, Typography} from '@mui/material';
 import type React from 'react';
-
 import {Icon} from '@/components/Icon';
 import {EntityMenu} from '@/components/Table/EntityTable';
 import {HideHorizontalScrollbarStyle} from '@/theme/style';
-import type {TCategoryVH} from '@/types';
 import {Formatter} from '@/utils/Formatter';
 
 export type Budget = {

@@ -1,4 +1,6 @@
-import {Backend} from '@/services/Backend';
+import {apiClient} from '@/apiClient';
 import {createEntitySlice} from '../createEntitySlice';
 
-export const paymentMethodSlice = createEntitySlice('paymentMethod', query => Backend.paymentMethod.getAll(query));
+export const paymentMethodSlice = createEntitySlice('paymentMethod', query =>
+  apiClient.backend.paymentMethod.getAll(query),
+);

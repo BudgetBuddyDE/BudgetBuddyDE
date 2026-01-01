@@ -1,15 +1,15 @@
 'use client';
 
+import type {TCategoryStats} from '@budgetbuddyde/api/category';
 import {Box, Button, Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import NextLink from 'next/link';
 import React from 'react';
+import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
 import {PieChart, type PieChartData} from '@/components/Charts';
 import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
-import {Backend} from '@/services/Backend';
-import type {TCategoryStats} from '@/types';
 import {Formatter} from '@/utils/Formatter';
 
 export type CategoryPieChartTimeframe = 'MONTH' | 'YTD' | 'ALL_TIME';
@@ -131,7 +131,7 @@ export function CategoryPieChart({
 
       try {
         const [start, end] = TIMEFRAME_META[timeframe].range();
-        const [categoryStats, err] = await Backend.category.getCategoryStats({
+        const [categoryStats, err] = await apiClient.backend.category.getCategoryStats({
           from: start,
           to: end,
         });

@@ -1,12 +1,12 @@
 import type React from 'react';
+import {apiClient} from '@/apiClient';
 import {headers} from '@/lib/headers';
-import {Backend} from '@/services/Backend';
 import {RecurringPaymentList, type RecurringPaymentListProps} from './RecurringPaymentList';
 
 export type UpcomingRecurringPaymentList = Pick<RecurringPaymentListProps, 'onAddEntity'>;
 
 export const UpcomingRecurringPaymentList: React.FC<UpcomingRecurringPaymentList> = async ({onAddEntity}) => {
-  const [recurringPayments, error] = await Backend.recurringPayment.getAll(
+  const [recurringPayments, error] = await apiClient.backend.recurringPayment.getAll(
     {
       to: 6,
       $executeFrom: new Date().getDate(),
@@ -22,7 +22,7 @@ export const UpcomingRecurringPaymentList: React.FC<UpcomingRecurringPaymentList
       data={(recurringPayments.data ?? []).map(t => ({
         ID: t.id,
         receiver: t.receiver,
-        nextExecution: Backend.recurringPayment.determineNextExecutionDate(t.executeAt),
+        nextExecution: apiClient.backend.recurringPayment.determineNextExecutionDate(t.executeAt),
         transferAmount: t.transferAmount,
         category: {
           ID: t.category.id,

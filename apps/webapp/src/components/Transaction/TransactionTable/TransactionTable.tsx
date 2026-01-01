@@ -1,8 +1,19 @@
 'use client';
 
+import {CategoryVH, type TCategoryVH} from '@budgetbuddyde/api/category';
+import {PaymentMethodVH, type TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
+import {
+  CreateOrUpdateTransactionPayload,
+  ReceiverVH,
+  type TExpandedTransaction,
+  type TReceiverVH,
+  type TTransaction,
+} from '@budgetbuddyde/api/transaction';
 import {ReceiptRounded} from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, Typography} from '@mui/material';
 import React from 'react';
+import z from 'zod';
+import {apiClient} from '@/apiClient';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {type Command, useCommandPalette} from '@/components/CommandPalette';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -21,19 +32,6 @@ import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
-import {Backend} from '@/services/Backend';
-import {
-  CategoryVH,
-  CdsDate,
-  CreateOrUpdateTransaction,
-  PaymentMethodVH,
-  ReceiverVH,
-  type TCategoryVH,
-  type TExpandedTransaction,
-  type TPaymentMethodVH,
-  type TReceiverVH,
-  type TTransaction,
-} from '@/types';
 import {Formatter} from '@/utils/Formatter';
 
 type EntityFormFields = FirstLevelNullable<
@@ -81,14 +79,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
 
-    const parsedPayload = CreateOrUpdateTransaction.omit({
+    const parsedPayload = CreateOrUpdateTransactionPayload.omit({
       processedAt: true,
       receiver: true,
       categoryId: true,
       paymentMethodId: true,
     })
       .extend({
-        processedAt: CdsDate,
+        processedAt: z.date(),
         category: CategoryVH,
         paymentMethod: PaymentMethodVH,
         receiver: ReceiverVH,
@@ -108,7 +106,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
 
     if (action === 'CREATE') {
       const {processedAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
-      const [_, error] = await Backend.transaction.create({
+      const [_, error] = await apiClient.backend.transaction.create({
         processedAt: processedAt,
         categoryId: category.id,
         paymentMethodId: paymentMethod.id,
@@ -135,7 +133,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
         });
       }
       const {processedAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
-      const [_, error] = await Backend.transaction.updateById(entityId, {
+      const [_, error] = await apiClient.backend.transaction.updateById(entityId, {
         processedAt: processedAt,
         categoryId: category.id,
         paymentMethodId: paymentMethod.id,
@@ -201,7 +199,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
   };
 
   const handleDeleteEntity = async (entityId: TExpandedTransaction['id']) => {
-    const [deletedTransaction, error] = await Backend.transaction.deleteById(entityId);
+    const [deletedTransaction, error] = await apiClient.backend.transaction.deleteById(entityId);
     if (error || !deletedTransaction) {
       return showSnackbar({
         message: error.message,
@@ -265,7 +263,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
           placeholder: 'Category',
           required: true,
           retrieveOptionsFunc: async () => {
-            const [categories, error] = await Backend.category.getValueHelp();
+            const [categories, error] = await apiClient.backend.category.getValueHelp();
             if (error) {
               logger.error('Failed to fetch receiver options:', error);
               return [];
@@ -288,7 +286,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
           placeholder: 'Payment Method',
           required: true,
           retrieveOptionsFunc: async () => {
-            const [paymentMethods, error] = await Backend.paymentMethod.getValueHelp();
+            const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
             if (error) {
               logger.error('Failed to fetch payment method options:', error);
               return [];
@@ -310,7 +308,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
           placeholder: 'Receiver',
           required: true,
           retrieveOptionsFunc: async () => {
-            const [categories, error] = await Backend.transaction.getReceiverVH();
+            const [categories, error] = await apiClient.backend.transaction.getReceiverVH();
             if (error) {
               logger.error('Failed to fetch receiver options:', error);
               return [];

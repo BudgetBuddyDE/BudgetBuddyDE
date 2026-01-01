@@ -1,12 +1,12 @@
 import {AddRounded, BalanceRounded, RemoveRounded} from '@mui/icons-material';
 import {Grid} from '@mui/material';
+import {apiClient} from '@/apiClient';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
 import {headers} from '@/lib/headers';
-import {Backend} from '@/services/Backend';
 import {Formatter} from '@/utils/Formatter';
 
 export const DashboardStatsWrapper = async () => {
-  const [estimated, error] = await Backend.budget.getEstimatedBudget({
+  const [estimated, error] = await apiClient.backend.budget.getEstimatedBudget({
     headers: await headers(),
   });
   if (error) throw error;

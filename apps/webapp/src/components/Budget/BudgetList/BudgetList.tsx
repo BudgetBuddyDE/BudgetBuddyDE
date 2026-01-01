@@ -1,8 +1,11 @@
 'use client';
 
+import {CreateOrUpdateBudgetPayload, type TBudget} from '@budgetbuddyde/api/budget';
+import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import {AddRounded} from '@mui/icons-material';
 import {Box, Button, IconButton, InputAdornment, Stack} from '@mui/material';
 import React from 'react';
+import {apiClient} from '@/apiClient';
 import {ActionPaper} from '@/components/ActionPaper';
 import {Card} from '@/components/Card';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -22,8 +25,6 @@ import {Pagination} from '@/components/Table/EntityTable/Pagination';
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
-import {Backend} from '@/services/Backend';
-import {CreateOrUpdateBudget, type TBudget, type TCategoryVH} from '@/types';
 import {type Budget, BudgetItem, type BudgetItemProps} from './BudgetItem';
 
 type EntityFormFields = FirstLevelNullable<
@@ -87,7 +88,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
   };
 
   const handleDeleteEntity = async (entityId: Budget['ID']) => {
-    const [success, error] = await Backend.budget.deleteById(entityId);
+    const [success, error] = await apiClient.backend.budget.deleteById(entityId);
     if (error || !success) {
       return showSnackbar({
         message: error.message,
@@ -108,7 +109,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
     const categories = payload.toCategories ? payload.toCategories.map(category => category.id) : [];
-    const parsedPayload = CreateOrUpdateBudget.pick({
+    const parsedPayload = CreateOrUpdateBudgetPayload.pick({
       type: true,
       name: true,
       budget: true,
@@ -129,7 +130,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     }
 
     if (action === 'CREATE') {
-      const [createdBudgets, error] = await Backend.budget.create(parsedPayload.data);
+      const [createdBudgets, error] = await apiClient.backend.budget.create(parsedPayload.data);
       if (!createdBudgets || error) {
         return showSnackbar({
           message: `Failed to create budget: ${error.message}`,
@@ -151,7 +152,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         });
       }
 
-      const [updatedBudgets, error] = await Backend.budget.updateById(entityId, {
+      const [updatedBudgets, error] = await apiClient.backend.budget.updateById(entityId, {
         ...parsedPayload.data,
         description: parsedPayload.data.description ? parsedPayload.data.description : null,
       });
@@ -233,7 +234,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         placeholder: 'Select categories',
         required: true,
         retrieveOptionsFunc: async () => {
-          const [categories, error] = await Backend.category.getValueHelp();
+          const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
             logger.error('Failed to fetch category options:', error);
             return [];

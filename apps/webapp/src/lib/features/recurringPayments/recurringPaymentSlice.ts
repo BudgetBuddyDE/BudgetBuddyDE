@@ -1,6 +1,6 @@
-import {Backend} from '@/services/Backend';
+import {apiClient} from '@/apiClient';
 import {createEntitySlice} from '../createEntitySlice';
 
 export const recurringPaymentSlice = createEntitySlice('recurringPayment', query =>
-  Backend.recurringPayment.getAll(query),
+  apiClient.backend.recurringPayment.getAll(query),
 );
