@@ -3,6 +3,8 @@ import type {RequestContext} from '../../types';
 
 /**
  * Creates a mock request context for testing
+ * Note: This always returns non-null user and session for testing authenticated scenarios.
+ * For testing unauthenticated scenarios, tests should bypass the middleware entirely.
  */
 export function createMockContext(userId: string, sessionId?: string): RequestContext {
   return {

@@ -5,7 +5,8 @@ import {budgetCategories, budgets, categories, paymentMethods, recurringPayments
 /**
  * Cleans up test data from the database
  * Use this in afterEach to ensure clean state between tests
- * Relies on cascade deletes for budgetCategories
+ * Deletes in correct order to avoid foreign key violations
+ * (budgetCategories will be cascade-deleted when budgets are deleted)
  */
 export async function cleanupTestData(userId?: string) {
   if (userId) {
