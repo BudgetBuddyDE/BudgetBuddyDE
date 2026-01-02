@@ -32,6 +32,25 @@
    npm start
    ```
 
+## Testing
+
+The backend service includes comprehensive unit and integration tests to ensure code quality and validate business logic. For detailed information about the testing infrastructure, running tests, and writing new tests, see [TEST.md](./TEST.md).
+
+### Quick Start
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test -- --watch
+
+# Run specific test file
+npm run test -- src/__tests__/integration/category.test.ts
+```
+
+For more information, including prerequisites and troubleshooting, see the [Testing Documentation](./TEST.md).
+
 ### Environment Variables
 
 #### `NODE_ENV`
