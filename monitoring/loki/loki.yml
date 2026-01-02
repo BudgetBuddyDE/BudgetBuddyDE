@@ -19,13 +19,10 @@ schema_config:
       period: 24h
       prefix: index_
     store: tsdb
-    object_store: s3
+    object_store: filesystem
     schema: v13
 
 storage_config:
-  aws:
-    s3: ${GRAFANA_LOKI_OBJECT_STORE}
-    s3forcepathstyle: true
   tsdb_shipper:
     active_index_directory: /loki/tsdb-index
     cache_location: /loki/tsdb-cache

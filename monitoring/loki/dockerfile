@@ -6,4 +6,4 @@ FROM grafana/loki:${VERSION}
 COPY loki.yml /etc/loki/loki-confi.yaml
 
 # Command to run Loki
-CMD ["-config.file=/etc/loki/loki-confi.yaml", "-config.expand-env=true"]
+CMD ["-config.file=/etc/loki/loki-confi.yaml"]
