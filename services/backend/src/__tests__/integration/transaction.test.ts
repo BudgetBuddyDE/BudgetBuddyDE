@@ -177,7 +177,11 @@ describe('Transaction Router Integration Tests', () => {
   describe('PUT /api/transaction/:id', () => {
     it('should update an existing transaction', async () => {
       const transactionId = testFixtures.transactions[0].id;
+      const transaction = testFixtures.transactions[0];
       const updates = {
+        categoryId: transaction.categoryId,
+        paymentMethodId: transaction.paymentMethodId,
+        processedAt: transaction.processedAt,
         receiver: 'Updated Receiver',
         transferAmount: -75.0,
       };
@@ -199,8 +203,12 @@ describe('Transaction Router Integration Tests', () => {
     it('should not allow updating transactions from other users', async () => {
       const otherUserFixtures = await createTestFixtures(otherUserId);
       const otherTransactionId = otherUserFixtures.transactions[0].id;
+      const otherTransaction = otherUserFixtures.transactions[0];
 
       const response = await request(app).put(`/api/transaction/${otherTransactionId}`).send({
+        categoryId: otherTransaction.categoryId,
+        paymentMethodId: otherTransaction.paymentMethodId,
+        processedAt: otherTransaction.processedAt,
         receiver: 'Hacked',
       });
 
