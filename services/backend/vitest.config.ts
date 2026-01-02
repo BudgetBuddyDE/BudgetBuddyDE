@@ -3,10 +3,10 @@ import baseConfig from "../../vitest.config"
 
 export default mergeConfig(baseConfig, defineConfig({
   test: {
-    name: "auth-service",
+    name: "backend",
     setupFiles: ['./src/__tests__/setup.ts'],
     exclude: ['**/build/**', '**/node_modules/**'],
-    passWithNoTests: true
+    passWithNoTests: false
   }
 }));
 
