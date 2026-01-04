@@ -1,6 +1,15 @@
 import type z from "zod";
 import type { UserID } from "./schemas/common.schema";
 
+/**
+ * Type helper to extract the inferred type from a Zod schema.
+ * @example
+ * ```typescript
+ * const MySchema = z.object({ name: z.string(), age: z.number() });
+ * type MyType = TypeOfSchema<typeof MySchema>;
+ * // MyType is now { name: string; age: number; }
+ * ```
+ */
 export type TypeOfSchema<Schema extends z.ZodType> = z.infer<Schema>;
 
 /**

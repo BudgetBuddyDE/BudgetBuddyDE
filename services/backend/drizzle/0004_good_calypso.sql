@@ -1,0 +1,1 @@
+ALTER TABLE "budgetbuddy_backend"."attachment" ADD CONSTRAINT "attachment_location_unique" UNIQUE("location");

@@ -33,6 +33,7 @@ The current user session is also integrated into the request context and the res
 
 - **RESTful API** for providing data and business logic
 - **Processing of Recurring Payments** using a job
+- **Attachments**: Upload and manage file attachments for transactions
 
 #### Jobs
 
@@ -125,6 +126,35 @@ npm run format
   The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.
   If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
 </Callout>
+
+#### Object Store
+
+Es wird ein S3-kompatibler Object Store für das Speichern von Dateianhängen verwendet. Jedem Attachment wird eine UUID v7 zugewiesen unter welcher die Datei im Object Store gespeichert wird und in der Datenbank referenziert wird.
+Benutzer sind nur in der Lage Attachments abzurufen und zu löschen, die sie selbst hochgeladen haben.
+
+Mehr Informationen über den gewählten Object Store können in der Dokumentation gefunden werden:
+- [Railway Object Store](https://docs.railway.com/guides/storage-buckets)
+
+> Serving and Uploading Files
+> Buckets are private, but you can still work with their files in a few ways. You can serve files straight from the bucket, proxy them through your backend, or upload files directly from clients or services.
+> Bucket egress is free. Service egress is not. If your service sends data to users or uploads files to a bucket, that traffic counts as service egress. The sections below explain these patterns and how to avoid unnecessary egress.
+
+Die Dateien werden über das Backend als Proxy zwischen Object Store und Client bereitgestellt.
+
+**Struktur der Keys im Bucket:**
+```
+avatars/:userId/<UUID_V7>-<originalFileName>
+attachments/:userId/transactions/:transactionId/<UUID_V7>-<originalFileName>
+```
+
+**API Endpunkte für Attachments:**
+
+| Methode | Pfad | Beschreibung |
+| :--- | :--- | :--- |
+| `GET` | `/api/attachment` | Ruft alle Attachments des authentifizierten Benutzers ab. |
+| `GET` | `/api/attachment/:attachmentId` | Ruft ein spezifisches Attachment ab. Die `attachmentId` ist der Base64-URL-kodierte Key der Datei. |
+| `POST` | `/api/attachment` | Lädt neue Attachments hoch. Erwartet `multipart/form-data` mit `files` (Dateien) und `transactionId` (Body). |
+| `DELETE` | `/api/attachment` | Löscht Attachments. Erwartet ein JSON-Array von `attachmentIds` im Body. |
 
 ### Database Migrations
 

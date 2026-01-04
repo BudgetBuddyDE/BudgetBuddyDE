@@ -6,7 +6,7 @@ type BaseProperties<T> = {
   data: T | null;
   message: string | null;
   error?: string | null;
-  from?: 'db' | 'cache' | 'external';
+  from?: 'db' | 'cache' | 'object_store' | 'external';
 };
 
 /**

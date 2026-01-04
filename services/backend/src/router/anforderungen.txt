@@ -1,0 +1,39 @@
+Anforderungen an den Attachment Router
+
+Hier sind ein paar allgemeine Informationen welche gelten
+
+Struktur:
+```
+/avatars/:userId/<UUID_V7>-<originalFileName>
+/attachments/:userId/transactions/:transactionId/<UUID_V7>-<originalFileName>
+```
+Es gibt folgende file_types auf denen basierend die Pfade generiert werden:
+- Avatar
+- TransactionAttachment
+
+
+"""Dokumentation von Railway
+Serving and Uploading Files
+Buckets are private, but you can still work with their files in a few ways. You can serve files straight from the bucket, proxy them through your backend, or upload files directly from clients or services.
+
+Bucket egress is free. Service egress is not. If your service sends data to users or uploads files to a bucket, that traffic counts as service egress. The sections below explain these patterns and how to avoid unnecessary egress.
+"""
+
+Die Dateien sollen in einem privaten S3 Bucket gespeichert werden und über vor-signierte URLs abgerufen werden können, damit nur der authentifizierte Benutzer Zugriff auf seine Dateien hat.
+Der Benutzer dem der req.context.userId gehört soll nur Zugriff auf seine eigenen Dateien haben.
+
+Es werden folgende Endpunkte (aktuell nur für TransactionAttachment) benötigt:
+
+Information: Aktuell brauchen nur die Dateien hochgeladen werden und keine Metadaten in irgendeiner Datenbank gespeichert werden.
+
+1. GET /
+    - Abrufen aller Attachments eines Benutzers für Transaktionen
+
+2. GET /:attachmentId
+  - Abrufen eines spezifischen Attachments für eine Transaktion
+
+3. POST /
+  - Hochladen eines (oder mehreren) neuen Attachments für eine Transaktion
+
+4. Delete
+  - Löschen eines (oder mehrerer) Attachments
