@@ -1,3 +1,4 @@
+import type {TSignedAttachmentUrl} from '@budgetbuddyde/api/attachment';
 import {Cache} from './cache';
 
 export class AttachmentCache extends Cache {
@@ -10,6 +11,10 @@ export class AttachmentCache extends Cache {
   }
 
   retrieveSignedAttachmentUrl(attachmentId: string) {
-    return this.getValue(attachmentId);
+    return this.getValue<TSignedAttachmentUrl>(attachmentId);
+  }
+
+  deleteSignedAttachmentUrl(attachmentId: string) {
+    return this.deleteValue(attachmentId);
   }
 }
