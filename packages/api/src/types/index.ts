@@ -1,3 +1,4 @@
+export * from "./attachment.type";
 export * from "./budget.type";
 export * from "./category.type";
 export * from "./common";

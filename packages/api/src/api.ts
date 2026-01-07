@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: This class is used as as a wrapper */
 
+import { AttachmentService } from "./attachment";
 import { BudgetService } from "./services/budget.service";
 import { CategoryService } from "./services/category.service";
 import { PaymentMethodService } from "./services/paymentMethod.service";
@@ -14,6 +15,7 @@ export class Api {
 		transaction: TransactionService;
 		recurringPayment: RecurringPaymentService;
 		budget: BudgetService;
+		attachment: AttachmentService;
 	};
 
 	constructor(backendHost: string) {
@@ -24,6 +26,7 @@ export class Api {
 			transaction: new TransactionService(backendHost),
 			recurringPayment: new RecurringPaymentService(backendHost),
 			budget: new BudgetService(backendHost),
+			attachment: new AttachmentService(backendHost),
 		};
 	}
 }

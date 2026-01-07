@@ -70,6 +70,11 @@
       "types": "./lib/types/schemas/index.d.ts",
       "default": "./lib/types/schemas/index.js"
     },
+    "./common": {
+      "dev-source": "./src/common.ts",
+      "types": "./lib/common.d.ts",
+      "default": "./lib/common.js"
+    },
     "./error": {
       "dev-source": "./src/error.ts",
       "types": "./lib/error.d.ts",
@@ -99,6 +104,11 @@
       "dev-source": "./src/recurringPayment.ts",
       "types": "./lib/recurringPayment.d.ts",
       "default": "./lib/recurringPayment.js"
+    },
+    "./attachment": {
+      "dev-source": "./src/attachment.ts",
+      "types": "./lib/attachment.d.ts",
+      "default": "./lib/attachment.js"
     }
   },
   "typesVersions": {
@@ -121,6 +131,9 @@
       "schemas": [
         "./lib/types/schemas/index.d.ts"
       ],
+      "common": [
+        "./lib/common.d.ts"
+      ],
       "error": [
         "./lib/error.d.ts"
       ],
@@ -138,6 +151,9 @@
       ],
       "recurringPayment": [
         "./lib/recurringPayment.d.ts"
+      ],
+      "attachment": [
+        "./lib/attachment.d.ts"
       ]
     }
   }
