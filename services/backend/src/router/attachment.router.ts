@@ -436,6 +436,10 @@ attachmentRouter.delete(
       });
 
       await s3Client.send(command);
+      attachmentLogger.debug('Deleted %d attachments from S3', objectsToDelete.length);
+
+      await db.delete(attachments).where(and(eq(attachments.ownerId, userId), inArray(attachments.id, attachmentIds)));
+      attachmentLogger.info('Deleted %d attachment entries from database for user %s', attachmentIds.length, userId);
 
       ApiResponse.builder().withMessage(`${objectsToDelete.length} attachments deleted successfully`).buildAndSend(res);
     } catch (error) {
