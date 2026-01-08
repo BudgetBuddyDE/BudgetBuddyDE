@@ -55,14 +55,18 @@ export class AttachmentService extends BackendService {
 
 	async getAvatars<Query extends Pick<IGetAllAttachmentsQuery, "ttl">>(
 		query: Query,
+		requestConfig?: RequestInit,
 	) {
-		return this.getAllByUsage({ usage: "avatar", ...query });
+		return this.getAllByUsage({ usage: "avatar", ...query }, requestConfig);
 	}
 
 	async getTransactionAttachments<
 		Query extends Pick<IGetAllAttachmentsQuery, "ttl">,
-	>(query: Query) {
-		return this.getAllByUsage({ usage: "transaction", ...query });
+	>(query: Query, requestConfig?: RequestInit) {
+		return this.getAllByUsage(
+			{ usage: "transaction", ...query },
+			requestConfig,
+		);
 	}
 
 	async getById(

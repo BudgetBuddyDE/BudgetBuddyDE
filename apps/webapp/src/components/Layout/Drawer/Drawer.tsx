@@ -1,6 +1,7 @@
 'use client';
 
-import {Divider, List, Drawer as MuiDrawer} from '@mui/material';
+import {FolderRounded} from '@mui/icons-material';
+import {Divider, List, ListSubheader, Drawer as MuiDrawer} from '@mui/material';
 import React from 'react';
 import {useDrawerContext} from './DrawerContext';
 import {DrawerHeader} from './Header';
@@ -22,6 +23,24 @@ export const Drawer = () => {
           {DrawerLinks.map(link => (
             <DrawerItem key={link.path} open={open} {...link} closeOnClick={closeOnClick} />
           ))}
+        </List>
+        <List
+          component="nav"
+          aria-labelledby="other-subheader"
+          subheader={
+            <ListSubheader component="div" id="other-subheader">
+              {/* Show placeholder text (invisible char) when drawer is open to avoid layout shift */}
+              {open ? 'Other' : '\u2006'}
+            </ListSubheader>
+          }
+        >
+          <DrawerItem
+            open={open}
+            icon={<FolderRounded />}
+            text="Attachments"
+            path="/attachments"
+            closeOnClick={closeOnClick}
+          />
         </List>
       </React.Fragment>
     );
