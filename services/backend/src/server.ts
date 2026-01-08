@@ -59,7 +59,8 @@ setGlobalErrorHandler((errors, _req, res) => {
     .buildAndSend(res);
 });
 
-app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
+// Returns a 404
+// app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.get('/api/me', async (req, res) => {
   ApiResponse.builder<typeof req.context>().withData(req.context).buildAndSend(res);
 });

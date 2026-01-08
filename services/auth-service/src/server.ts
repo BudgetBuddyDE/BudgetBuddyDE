@@ -42,7 +42,8 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
 app.use(log);
 app.use(servedBy);
 
-app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
+// Returns a 404
+// app.get('/', (_, res) => res.redirect('https://budget-buddy.de'));
 app.all('/api/auth/{*splat}', toNodeHandler(auth));
 app.get('/api/me', async (req, res) => {
   const session = await auth.api.getSession({
