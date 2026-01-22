@@ -22,6 +22,20 @@
       "when": 1766264415823,
       "tag": "0002_daffy_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769036006499,
+      "tag": "0003_lush_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1769039793234,
+      "tag": "0004_oval_red_hulk",
+      "breakpoints": true
     }
   ]
 }

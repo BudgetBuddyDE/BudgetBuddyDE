@@ -1,0 +1,592 @@
+---
+title: Views
+description: Documentation of aggregated database views
+---
+
+## Overview
+
+BudgetBuddyDE uses PostgreSQL views for data aggregation and analysis. These views provide pre-calculated, optimized queries for frequently used data evaluations.
+
+All views are located in the `backend` schema and are defined with Drizzle ORM.
+
+---
+
+## transaction_receiver_view
+
+Provides a deduplicated list of all receivers/senders from transactions and recurring payments.
+
+### Purpose
+
+This view is used for autocomplete functions to suggest receiver names to users when entering data.
+
+### Fields
+
+| Field | Type | Description |
+|------|-----|--------------|
+| `receiver` | STRING | Trimmed receiver name (without leading/trailing spaces) |
+| `owner_id` | VARCHAR | Owner's ID |
+
+### SQL Logic
+
+```sql
+SELECT DISTINCT TRIM(receiver) AS receiver, owner_id
+FROM backend.transaction
+
+UNION
+
+SELECT DISTINCT TRIM(receiver) AS receiver, owner_id
+FROM backend.recurring_payment
+```
+
+### Specifics
+
+- **DISTINCT**: Removes duplicates
+- **TRIM()**: Removes spaces at the beginning and end
+- **UNION**: Combines receivers from both tables
+- **User Filter**: Data is filtered by `owner_id`
+
+### Usage
+
+```typescript
+// Drizzle ORM Query
+const receivers = await db
+  .select()
+  .from(transactionReceiverView)
+  .where(eq(transactionReceiverView.ownerId, userId))
+  .orderBy(asc(transactionReceiverView.receiver));
+```
+
+---
+
+## transaction_history_view
+
+Aggregates transaction data by month, year, and category with calculated values for income, expenses, and balance.
+
+### Purpose
+
+This view is used for:
+- **Dashboard Overviews**: Display monthly income/expenses
+- **Category Analysis**: Compare expenses per category
+- **Trend Analysis**: Track development over multiple months
+- **Reports**: Generate financial reports
+
+### Fields
+
+| Field | Type | Description | Calculation |
+|------|-----|--------------|------------|
+| `month` | NUMBER | Month (1-12) | `EXTRACT(MONTH FROM processed_at)` |
+| `year` | NUMBER | Year (e.g., 2024) | `EXTRACT(YEAR FROM processed_at)` |
+| `owner_id` | VARCHAR | Owner's ID | From `transaction.owner_id` |
+| `category_id` | UUID | Category ID | From `transaction.category_id` |
+| `income` | NUMBER | Total income | Sum of all positive `transfer_amount` values |
+| `expenses` | NUMBER | Total expenses (positive) | Sum of all negative `transfer_amount` values (absolute) |
+| `balance` | NUMBER | Balance (income - expenses) | Sum of all `transfer_amount` values |
+
+### SQL Logic
+
+```sql
+SELECT
+  EXTRACT(MONTH FROM processed_at) AS month,
+  EXTRACT(YEAR FROM processed_at) AS year,
+  owner_id,
+  category_id,
+  SUM(CASE WHEN transfer_amount > 0 THEN transfer_amount ELSE 0 END) AS income,
+  SUM(CASE WHEN transfer_amount < 0 THEN ABS(transfer_amount) ELSE 0 END) AS expenses,
+  SUM(transfer_amount) AS balance
+FROM backend.transaction
+GROUP BY
+  EXTRACT(MONTH FROM processed_at),
+  EXTRACT(YEAR FROM processed_at),
+  owner_id,
+  category_id
+```
+
+### Calculations
+
+#### income (Income)
+```sql
+SUM(CASE WHEN transfer_amount > 0 THEN transfer_amount ELSE 0 END)
+```
+- Sums only positive amounts
+- Negative amounts are treated as 0
+
+#### expenses (Expenses)
+```sql
+SUM(CASE WHEN transfer_amount < 0 THEN ABS(transfer_amount) ELSE 0 END)
+```
+- Sums only negative amounts
+- Uses `ABS()` to obtain positive values
+- Positive amounts are treated as 0
+
+#### balance (Balance)
+```sql
+SUM(transfer_amount)
+```
+- Simple sum of all amounts
+- Equals: `income - expenses`
+
+### Usage
+
+```typescript
+// Drizzle ORM Query - Monthly overview
+const monthlyHistory = await db
+  .select()
+  .from(transactionHistoryView)
+  .where(
+    and(
+      eq(transactionHistoryView.ownerId, userId),
+      eq(transactionHistoryView.year, 2024),
+      eq(transactionHistoryView.month, 1)
+    )
+  );
+
+// With category join
+const historyWithCategory = await db
+  .select({
+    month: transactionHistoryView.month,
+    year: transactionHistoryView.year,
+    categoryName: categories.name,
+    income: transactionHistoryView.income,
+    expenses: transactionHistoryView.expenses,
+    balance: transactionHistoryView.balance,
+  })
+  .from(transactionHistoryView)
+  .leftJoin(
+    categories,
+    eq(transactionHistoryView.categoryId, categories.id)
+  )
+  .where(eq(transactionHistoryView.ownerId, userId));
+```
+
+### Example Data
+
+```typescript
+[
+  {
+    month: 1,
+    year: 2024,
+    owner_id: "user_123",
+    category_id: "660e8400-e29b-41d4-a716-446655440001",
+    income: 0,
+    expenses: 450.67,
+    balance: -450.67
+  },
+  {
+    month: 1,
+    year: 2024,
+    owner_id: "user_123",
+    category_id: "770e8400-e29b-41d4-a716-446655440002",
+    income: 3500.00,
+    expenses: 0,
+    balance: 3500.00
+  }
+]
+```
+
+---
+
+## transaction_history_summary_view
+
+Aggregates transaction data by month and year with calculated values for income, expenses, and balance - without category grouping.
+
+### Purpose
+
+This view is used for:
+- **Overall Financial Overview**: Display total monthly income/expenses across all categories
+- **High-level Dashboards**: Show aggregated financial data without category breakdown
+- **Trend Analysis**: Track overall financial development over time
+- **Summary Reports**: Generate simplified financial reports
+
+### Fields
+
+| Field | Type | Description | Calculation |
+|------|-----|--------------|------------|
+| `month` | NUMBER | Month (1-12) | `EXTRACT(MONTH FROM processed_at)` |
+| `year` | NUMBER | Year (e.g., 2024) | `EXTRACT(YEAR FROM processed_at)` |
+| `owner_id` | VARCHAR | Owner's ID | From `transaction.owner_id` |
+| `income` | NUMBER | Total income | Sum of all positive `transfer_amount` values |
+| `expenses` | NUMBER | Total expenses (positive) | Sum of all negative `transfer_amount` values (absolute) |
+| `balance` | NUMBER | Balance (income - expenses) | Sum of all `transfer_amount` values |
+
+### SQL Logic
+
+```sql
+SELECT
+  EXTRACT(MONTH FROM processed_at) AS month,
+  EXTRACT(YEAR FROM processed_at) AS year,
+  owner_id,
+  SUM(CASE WHEN transfer_amount > 0 THEN transfer_amount ELSE 0 END) AS income,
+  SUM(CASE WHEN transfer_amount < 0 THEN ABS(transfer_amount) ELSE 0 END) AS expenses,
+  SUM(transfer_amount) AS balance
+FROM backend.transaction
+GROUP BY
+  EXTRACT(MONTH FROM processed_at),
+  EXTRACT(YEAR FROM processed_at),
+  owner_id
+```
+
+### Difference from transaction_history_view
+
+Unlike `transaction_history_view`, this view:
+- **Does NOT group by category** - provides totals across all categories
+- Has **no category_id field** - only month, year, and owner
+- Returns **one row per month/year** instead of one row per month/year/category
+- Ideal for **summary dashboards** and **overall financial tracking**
+
+### Calculations
+
+The calculations are identical to `transaction_history_view`:
+
+#### income (Income)
+```sql
+SUM(CASE WHEN transfer_amount > 0 THEN transfer_amount ELSE 0 END)
+```
+- Sums only positive amounts across all categories
+
+#### expenses (Expenses)
+```sql
+SUM(CASE WHEN transfer_amount < 0 THEN ABS(transfer_amount) ELSE 0 END)
+```
+- Sums only negative amounts across all categories
+- Uses `ABS()` to obtain positive values
+
+#### balance (Balance)
+```sql
+SUM(transfer_amount)
+```
+- Simple sum of all amounts
+- Equals: `income - expenses`
+
+### Usage
+
+```typescript
+// Drizzle ORM Query - Monthly summary
+const monthlySummary = await db
+  .select()
+  .from(transactionHistorySummaryView)
+  .where(
+    and(
+      eq(transactionHistorySummaryView.ownerId, userId),
+      eq(transactionHistorySummaryView.year, 2024)
+    )
+  )
+  .orderBy(asc(transactionHistorySummaryView.month));
+
+// Get current month's totals
+const currentMonth = await db
+  .select()
+  .from(transactionHistorySummaryView)
+  .where(
+    and(
+      eq(transactionHistorySummaryView.ownerId, userId),
+      eq(transactionHistorySummaryView.year, new Date().getFullYear()),
+      eq(transactionHistorySummaryView.month, new Date().getMonth() + 1)
+    )
+  )
+  .limit(1);
+
+// Year-to-date summary
+const ytdSummary = await db
+  .select({
+    totalIncome: sql`SUM(${transactionHistorySummaryView.income})`,
+    totalExpenses: sql`SUM(${transactionHistorySummaryView.expenses})`,
+    totalBalance: sql`SUM(${transactionHistorySummaryView.balance})`,
+  })
+  .from(transactionHistorySummaryView)
+  .where(
+    and(
+      eq(transactionHistorySummaryView.ownerId, userId),
+      eq(transactionHistorySummaryView.year, new Date().getFullYear())
+    )
+  );
+```
+
+### Example Data
+
+```typescript
+[
+  {
+    month: 1,
+    year: 2024,
+    owner_id: "user_123",
+    income: 3500.00,
+    expenses: 1850.67,
+    balance: 1649.33
+  },
+  {
+    month: 2,
+    year: 2024,
+    owner_id: "user_123",
+    income: 3500.00,
+    expenses: 2100.45,
+    balance: 1399.55
+  }
+]
+```
+
+### Comparison with transaction_history_view
+
+```typescript
+// transaction_history_view returns multiple rows per month (one per category)
+[
+  { month: 1, year: 2024, category_id: "cat1", income: 3500, expenses: 450, balance: 3050 },
+  { month: 1, year: 2024, category_id: "cat2", income: 0, expenses: 800, balance: -800 },
+  { month: 1, year: 2024, category_id: "cat3", income: 0, expenses: 600, balance: -600 }
+]
+
+// transaction_history_summary_view returns one row per month (aggregated)
+[
+  { month: 1, year: 2024, income: 3500, expenses: 1850, balance: 1650 }
+]
+```
+
+---
+
+## spending_goal_view
+
+Compares defined budget goals with actual expenses per budget, month, and year.
+
+### Purpose
+
+This view is used for:
+- **Budget Tracking**: Display progress against budget goals
+- **Overspending Warnings**: Notifications when budgets are exceeded
+- **Budget Dashboards**: Visual representation of expenses vs. goals
+- **Financial Planning**: Analysis of budget compliance
+
+### Fields
+
+| Field | Type | Description | Calculation |
+|------|-----|--------------|------------|
+| `month` | NUMBER | Month (1-12) | `EXTRACT(MONTH FROM transaction.processed_at)` |
+| `year` | NUMBER | Year (e.g., 2024) | `EXTRACT(YEAR FROM transaction.processed_at)` |
+| `budget_id` | UUID | Budget ID | From `budget.id` |
+| `owner_id` | VARCHAR | Owner's ID | From `budget.owner_id` |
+| `spending_goal` | NUMBER | Defined budget goal | From `budget.budget` |
+| `spending_so_far` | NUMBER | Expenses so far (positive) | Sum of all negative `transfer_amount` values (absolute) |
+
+### SQL Logic
+
+```sql
+SELECT
+  EXTRACT(MONTH FROM t.processed_at) AS month,
+  EXTRACT(YEAR FROM t.processed_at) AS year,
+  bc.budget_id,
+  b.owner_id,
+  b.budget AS spending_goal,
+  COALESCE(
+    SUM(CASE WHEN t.transfer_amount < 0 THEN ABS(t.transfer_amount) ELSE 0 END),
+    0
+  ) AS spending_so_far
+FROM backend.budget b
+INNER JOIN backend.budget_category bc ON bc.budget_id = b.id
+LEFT JOIN backend.transaction t
+  ON t.category_id = bc.category_id
+  AND t.owner_id = b.owner_id
+GROUP BY
+  EXTRACT(MONTH FROM t.processed_at),
+  EXTRACT(YEAR FROM t.processed_at),
+  bc.budget_id,
+  b.owner_id,
+  b.budget
+```
+
+### Joins
+
+1. **INNER JOIN budget_category**: Links budget with associated categories
+2. **LEFT JOIN transaction**: Links transactions (LEFT JOIN to also show budgets without transactions)
+
+### Calculations
+
+#### spending_so_far (Expenses So Far)
+```sql
+COALESCE(
+  SUM(CASE WHEN transfer_amount < 0 THEN ABS(transfer_amount) ELSE 0 END),
+  0
+)
+```
+- Sums only expenses (negative amounts)
+- `ABS()` makes the values positive
+- `COALESCE(..., 0)` returns 0 when no transactions exist
+
+### Usage
+
+```typescript
+// Drizzle ORM Query - Current budget overview
+const currentBudgetStatus = await db
+  .select()
+  .from(spendingGoalView)
+  .where(
+    and(
+      eq(spendingGoalView.ownerId, userId),
+      eq(spendingGoalView.year, new Date().getFullYear()),
+      eq(spendingGoalView.month, new Date().getMonth() + 1)
+    )
+  );
+
+// Find budget overruns
+const exceededBudgets = await db
+  .select({
+    budgetId: spendingGoalView.budgetId,
+    goal: spendingGoalView.spendingGoal,
+    actual: spendingGoalView.spendingSoFar,
+    overspent: sql`${spendingGoalView.spendingSoFar} - ${spendingGoalView.spendingGoal}`,
+  })
+  .from(spendingGoalView)
+  .where(
+    and(
+      eq(spendingGoalView.ownerId, userId),
+      gt(spendingGoalView.spendingSoFar, spendingGoalView.spendingGoal)
+    )
+  );
+
+// With budget details
+const budgetWithDetails = await db
+  .select({
+    budgetName: budgets.name,
+    budgetType: budgets.type,
+    goal: spendingGoalView.spendingGoal,
+    spent: spendingGoalView.spendingSoFar,
+    remaining: sql`${spendingGoalView.spendingGoal} - ${spendingGoalView.spendingSoFar}`,
+    percentageUsed: sql`(${spendingGoalView.spendingSoFar} / ${spendingGoalView.spendingGoal} * 100)`,
+  })
+  .from(spendingGoalView)
+  .leftJoin(budgets, eq(spendingGoalView.budgetId, budgets.id))
+  .where(eq(spendingGoalView.ownerId, userId));
+```
+
+### Example Data
+
+```typescript
+[
+  {
+    month: 1,
+    year: 2024,
+    budget_id: "990e8400-e29b-41d4-a716-446655440004",
+    owner_id: "user_123",
+    spending_goal: 400.00,
+    spending_so_far: 287.50
+  },
+  {
+    month: 1,
+    year: 2024,
+    budget_id: "aa0e8400-e29b-41d4-a716-446655440005",
+    owner_id: "user_123",
+    spending_goal: 100.00,
+    spending_so_far: 125.30  // Exceeded!
+  }
+]
+```
+
+### Metrics
+
+The following metrics can be calculated with this view:
+
+```typescript
+// Remaining amount
+const remaining = spendingGoal - spendingSoFar;
+
+// Percentage used
+const percentageUsed = (spendingSoFar / spendingGoal) * 100;
+
+// Overspending
+const overspent = Math.max(0, spendingSoFar - spendingGoal);
+
+// Budget status
+const status = spendingSoFar > spendingGoal
+  ? 'exceeded'
+  : spendingSoFar > spendingGoal * 0.8
+    ? 'warning'
+    : 'ok';
+```
+
+---
+
+## Performance Considerations
+
+### Indexes
+
+For optimal performance, the following indexes should be created:
+
+```sql
+-- transaction_history_view
+CREATE INDEX idx_transaction_processed_at ON backend.transaction(processed_at);
+CREATE INDEX idx_transaction_owner_category ON backend.transaction(owner_id, category_id);
+
+-- spending_goal_view
+CREATE INDEX idx_budget_owner ON backend.budget(owner_id);
+CREATE INDEX idx_budget_category_budget ON backend.budget_category(budget_id);
+CREATE INDEX idx_transaction_category_owner ON backend.transaction(category_id, owner_id);
+```
+
+### Materialized Views
+
+For very large datasets, views can be implemented as **materialized views**:
+
+```sql
+-- Example for materialized view (not in Drizzle)
+CREATE MATERIALIZED VIEW backend.transaction_history_materialized AS
+SELECT ...
+FROM backend.transaction
+GROUP BY ...;
+
+-- Refresh regularly
+REFRESH MATERIALIZED VIEW backend.transaction_history_materialized;
+```
+
+### Caching
+
+Views should be cached at the application layer:
+
+```typescript
+// Redis caching example
+const cacheKey = `transaction_history:${userId}:${year}:${month}`;
+let data = await redis.get(cacheKey);
+
+if (!data) {
+  data = await db.select().from(transactionHistoryView)...;
+  await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600); // 1 hour
+}
+```
+
+---
+
+## View Updates
+
+Views are **automatically updated** since they are implemented as regular (non-materialized) views. Each query accesses the most current data.
+
+### Drizzle Migration
+
+Views must be created manually in migrations, as Drizzle Kit does not generate them automatically:
+
+```typescript
+// drizzle/[timestamp]_create_views.sql
+CREATE OR REPLACE VIEW backend.transaction_history_view AS
+SELECT ...;
+
+CREATE OR REPLACE VIEW backend.spending_goal_view AS
+SELECT ...;
+```
+
+## Testing
+
+Views can be tested with Drizzle ORM:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { db } from '../db';
+import { transactionHistoryView } from '../db/schema/views';
+
+describe('transaction_history_view', () => {
+  it('should aggregate transactions correctly', async () => {
+    const result = await db
+      .select()
+      .from(transactionHistoryView)
+      .where(eq(transactionHistoryView.ownerId, 'test_user'));
+
+    expect(result[0].income).toBeGreaterThanOrEqual(0);
+    expect(result[0].expenses).toBeGreaterThanOrEqual(0);
+    expect(result[0].balance).toBe(result[0].income - result[0].expenses);
+  });
+});
+```
