@@ -1,20 +1,34 @@
 import {Grid} from '@mui/material';
 import React from 'react';
+import {apiClient} from '@/apiClient';
 import {BudgetList} from '@/components/Budget/BudgetList';
+import {SpendingGoalsRadarChart} from '@/components/Budget/SpendingGoals';
 import {CategoryExpenseChart, CategoryIncomeChart} from '@/components/Category/CategoryPieChart';
 import {RecurringPaymentPieChart} from '@/components/RecurringPayment/RecurringPaymentPieChart';
+import {headers} from '@/lib/headers';
 import {DashboardStatsWrapper} from '../DashboardStatsWrapper';
 
-export default function AnalyticsDashboard() {
+export default async function AnalyticsDashboard() {
+  const [budgets, error] = await apiClient.backend.budget.getAll(
+    {
+      from: 0,
+      to: 10,
+    },
+    {
+      headers: await headers(),
+    },
+  );
   return (
     <React.Fragment>
       <DashboardStatsWrapper />
 
-      <Grid size={{xs: 12, md: 6}}>
+      <Grid size={{xs: 12, md: 8}}>
         <BudgetList />
       </Grid>
 
-      <Grid size={{xs: 12, md: 6}} display={{xs: 'none', md: 'block'}} />
+      <Grid size={{xs: 12, md: 4}}>
+        <SpendingGoalsRadarChart budgets={budgets?.data ?? []} error={error} />
+      </Grid>
 
       {[
         {

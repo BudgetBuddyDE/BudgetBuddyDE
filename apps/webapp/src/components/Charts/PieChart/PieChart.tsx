@@ -3,9 +3,7 @@
 import {useTheme} from '@mui/material';
 import {PieChart as MuiPieChart, type PieChartProps as MuiPieChartProps, type PieSeries} from '@mui/x-charts';
 import React from 'react';
-
 import {useScreenSize} from '@/hooks/useScreenSize';
-
 import {ParentSize} from '../ParentSize';
 import {PieCenterLabel} from './PieCenterLabel';
 
