@@ -30,7 +30,7 @@ export const SpendingGoalsRadarChart: React.FC<TSpendingGoalsRadarChartProps> = 
       series,
       metrics: budgets.map(budget => ({
         name: budget.name,
-        max: budget.budget * 1.1,
+        // max: budget.budget * 1.1,
       })),
     };
   }, [budgets]);
