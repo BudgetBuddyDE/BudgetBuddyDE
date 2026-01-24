@@ -5,6 +5,7 @@ import z from 'zod';
 import {db} from '../db';
 import {budgetCategories, budgets, recurringPayments, transactions} from '../db/schema/tables';
 import {BudgetWithCategoriesSchema} from '../db/schema/types';
+import {transactionHistoryView} from '../db/schema/views';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
 
@@ -158,7 +159,7 @@ budgetRouter.get(
     const [[{count: totalCount}], records] = await Promise.all([
       db
         .select({
-          count: sql<number>`count(*)`.as('count'),
+          count: sql<number>`count(${budgets.id})`.as('count'),
         })
         .from(budgets)
         .where(filter)
@@ -466,27 +467,35 @@ budgetRouter.delete(
   },
 );
 
-async function calculateBudgetBalance(ownerId: string, budgetType: 'i' | 'e', categories: string[]): Promise<number> {
+async function calculateBudgetBalance(
+  ownerId: string,
+  budgetType: 'i' | 'e',
+  categories: string[],
+  time: Date = new Date(),
+): Promise<number> {
   if (categories.length === 0) {
     return 0;
   }
-  const today = new Date();
-  const total = await db
+
+  const currentMonth = time.getMonth() + 1;
+  const currentYear = time.getFullYear();
+
+  // Use transactionHistoryView for aggregated data by category
+  const result = await db
     .select({
-      total: sql<number>`SUM(COALESCE(${transactions.transferAmount}, 0)) * -1`.as('total'),
+      total: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('total'),
     })
-    .from(transactions)
+    .from(transactionHistoryView)
     .where(
       and(
-        eq(transactions.ownerId, ownerId),
+        eq(transactionHistoryView.ownerId, ownerId),
+        eq(transactionHistoryView.month, currentMonth),
+        eq(transactionHistoryView.year, currentYear),
         budgetType === 'i'
-          ? inArray(transactions.categoryId, categories)
-          : notInArray(transactions.categoryId, categories),
-        // Only consider transactions in the current month and as of today
-        gte(transactions.processedAt, new Date(today.getFullYear(), today.getMonth(), 1)),
-        lte(transactions.processedAt, today),
+          ? inArray(transactionHistoryView.categoryId, categories)
+          : notInArray(transactionHistoryView.categoryId, categories),
       ),
     );
 
-  return total[0].total || 0;
+  return result[0]?.total || 0;
 }
