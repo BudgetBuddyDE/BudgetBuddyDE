@@ -240,15 +240,18 @@ jobs:
           - get: version
             passed: [build-((service_name))]
             params: { bump: patch }
-      - task: build
+          - get: built-image
+            resource: container-registry
+            passed: [build-((service_name))]
+            params: { skip_download: true }
+      - task: prepare-release
         image: node-image
         config:
           <<: *task-release
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repository/((repo_path))
-          dockerfile: repository/((repo_path))/Dockerfile
+          load_base: built-image
           tag_file: version/version
           tag_as_latest: true
       - put: version
@@ -274,15 +277,18 @@ jobs:
           - get: version
             passed: [build-((service_name))]
             params: { bump: minor }
-      - task: build
+          - get: built-image
+            resource: container-registry
+            passed: [build-((service_name))]
+            params: { skip_download: true }
+      - task: prepare-release
         image: node-image
         config:
           <<: *task-release
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repository/((repo_path))
-          dockerfile: repository/((repo_path))/Dockerfile
+          load_base: built-image
           tag_file: version/version
           tag_as_latest: true
       - put: version
@@ -308,15 +314,18 @@ jobs:
           - get: version
             passed: [build-((service_name))]
             params: { bump: major }
-      - task: build
+          - get: built-image
+            resource: container-registry
+            passed: [build-((service_name))]
+            params: { skip_download: true }
+      - task: prepare-release
         image: node-image
         config:
           <<: *task-release
       - put: container-registry
         get_params: { skip_download: true }
         params:
-          build: repository/((repo_path))
-          dockerfile: repository/((repo_path))/Dockerfile
+          load_base: built-image
           tag_file: version/version
           tag_as_latest: true
       - put: version
