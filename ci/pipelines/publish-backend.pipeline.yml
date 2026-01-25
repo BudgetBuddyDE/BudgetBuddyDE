@@ -5,7 +5,6 @@ groups:
   - name: build
     jobs:
       - build*
-      - update-dependencies
   - name: database
     jobs:
       - update-database-schema
@@ -31,12 +30,6 @@ resources:
     icon: bell-ring
     source:
       url: ((discord_webhook))
-
-  - name: weekly
-    type: time
-    icon: clock-outline
-    source:
-      interval: 168h
 
   - name: node-image
     type: registry-image
@@ -232,54 +225,6 @@ jobs:
                 cd ((repo_path))
                 npx drizzle-kit check
                 npm run db:migrate
-
-  - name: update-dependencies
-    public: true
-    on_failure:
-      put: notification
-      params:
-        alert_type: failed
-        message: 'Failed to update dependencies for ((service_name))'
-        role: '1342563020215291936'
-    on_success:
-      put: repository
-      params:
-        repository: repository
-        rebase: true
-    plan:
-      - in_parallel:
-          - get: node-image
-          - get: repository
-          - get: weekly
-            trigger: true
-      - task: npm-update
-        image: node-image
-        config:
-          inputs:
-            - name: repository
-          outputs:
-            - name: repository
-          params:
-            CI: 'true'
-            FORCE_COLOR: 1
-            TURBO_TELEMETRY_DISABLED: 1
-          platform: linux
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                cd repository/((repo_path))
-                npm install --no-package-lock --workspaces=false
-                npm update
-                npm audit fix --force
-                npm test
-                npm run build
-                git config --global user.name 'Thorben Klein'
-                git config --global user.email thorben@tklein.it
-                git add package*.json
-                git add ../../package*.json
-                git commit -m 'build(dependencies): Automated update of dependencies'
 
   - name: release-patch
     on_failure:
