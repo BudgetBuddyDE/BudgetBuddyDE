@@ -1,6 +1,6 @@
 'use client';
 
-import {DashboardRounded, TrendingUpRounded} from '@mui/icons-material';
+import {DashboardRounded, InsightsRounded, TrendingUpRounded} from '@mui/icons-material';
 import {ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import type React from 'react';
@@ -11,15 +11,20 @@ export const DashboardViewMapping = {
     label: 'Dashboard',
     description: 'Overview of your dashboard',
   },
-  '/dashboard/analytics': {
-    label: 'Analytics',
-    description: 'View analytics data',
+  '/dashboard/budget': {
+    label: 'Budget',
+    description: 'All about your monthly budget',
+  },
+  '/dashboard/insights': {
+    label: 'Insights',
+    description: 'Insights into your data',
   },
 } as const;
 
 export const DashboardViewIconMapping: Record<keyof typeof DashboardViewMapping, React.ReactNode | undefined> = {
   '/dashboard': <DashboardRounded />,
-  '/dashboard/analytics': <TrendingUpRounded />,
+  '/dashboard/budget': <TrendingUpRounded />,
+  '/dashboard/insights': <InsightsRounded />,
 };
 
 // biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)

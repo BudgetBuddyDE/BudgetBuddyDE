@@ -8,7 +8,7 @@ import {RecurringPaymentPieChart} from '@/components/RecurringPayment/RecurringP
 import {headers} from '@/lib/headers';
 import {DashboardStatsWrapper} from '../DashboardStatsWrapper';
 
-export default async function AnalyticsDashboard() {
+export default async function BudgetView() {
   const [budgets, error] = await apiClient.backend.budget.getAll(
     {
       from: 0,
