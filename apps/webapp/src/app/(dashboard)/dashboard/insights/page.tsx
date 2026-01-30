@@ -1,76 +1,17 @@
 import {Grid} from '@mui/material';
 import React from 'react';
 import {Formatter} from '@/utils/Formatter';
+import {HistoricalBalanceTable} from '@/components/Insights';
 
 export default async function InsightsView() {
   return (
     <React.Fragment>
-
       <Grid size={{xs: 12, md: 7}}>
-        <strong>General overview of your current months income, expenses and balance grouped by category. (table view)</strong>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Period</th>
-              <th>Category</th>
-              <th>Income</th>
-              <th>Expenses</th>
-              <th>Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Jan. 2026</td>
-              <td>Groceries</td>
-              <td>{Formatter.currency.formatBalance(34.53)}</td>
-              <td>{Formatter.currency.formatBalance(0)}</td>
-              <td>{Formatter.currency.formatBalance(-34.53)}</td>
-            </tr>
-            <tr>
-              <td>Jan. 2026</td>
-              <td>Rent</td>
-              <td>{Formatter.currency.formatBalance(34.53)}</td>
-              <td>{Formatter.currency.formatBalance(0)}</td>
-              <td>{Formatter.currency.formatBalance(-34.53)}</td>
-            </tr>
-          </tbody>
-        </table>
+        <HistoricalBalanceTable type={'GROUPED_BY_CATEGORY'} dense={false} />
       </Grid>
 
       <Grid size={{xs: 12, md: 5}}>
-        <strong>Historical overview of monthly endings</strong>
-
-        <table>
-          <thead>
-          <tr>
-            <th>Period</th>
-            <th>Income</th>
-            <th>Expenses</th>
-            <th>Balance</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td>Jan. 2026</td>
-            <td>{Formatter.currency.formatBalance(5433.4)}</td>
-            <td>{Formatter.currency.formatBalance(4324)}</td>
-            <td>{Formatter.currency.formatBalance(432)}</td>
-          </tr>
-          <tr>
-            <td>Dec. 2025</td>
-            <td>{Formatter.currency.formatBalance(34.53)}</td>
-            <td>{Formatter.currency.formatBalance(0)}</td>
-            <td>{Formatter.currency.formatBalance(-34.53)}</td>
-          </tr>
-          <tr>
-            <td>Nov. 2025</td>
-            <td>{Formatter.currency.formatBalance(34.53)}</td>
-            <td>{Formatter.currency.formatBalance(0)}</td>
-            <td>{Formatter.currency.formatBalance(-34.53)}</td>
-          </tr>
-          </tbody>
-        </table>
+        <HistoricalBalanceTable type={'BASIC'} dense={false} />
       </Grid>
 
       <Grid size={{xs: 12, md: 6}}>
@@ -87,7 +28,9 @@ export default async function InsightsView() {
 
       <Grid size={{xs: 12, md: 12}} container>
         <Grid size={{xs: 12, md: 4}}>
-          <strong>Overview of expenses/income by (category and receiver receiver will not be case sensitive) (chart view)</strong>
+          <strong>
+            Overview of expenses/income by (category and receiver receiver will not be case sensitive) (chart view)
+          </strong>
         </Grid>
 
         <Grid size={{xs: 12, md: 4}} container>

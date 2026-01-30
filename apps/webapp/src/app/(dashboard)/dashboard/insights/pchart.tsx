@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
 import * as React from 'react';
-import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
+import {PieChart, pieArcLabelClasses} from '@mui/x-charts/PieChart';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { useDrawingArea } from '@mui/x-charts/hooks';
-import { styled } from '@mui/material/styles';
-import type { Theme } from '@mui/material/styles';
+import {useDrawingArea} from '@mui/x-charts/hooks';
+import {styled} from '@mui/material/styles';
+import type {Theme} from '@mui/material/styles';
 
 interface TitanicDatum {
   Class: '1st' | '2nd' | '3rd' | 'Crew';
@@ -36,22 +36,19 @@ const hexToRgba = (hex: string, alpha: number): string => {
 
 // https://en.wikipedia.org/wiki/Passengers_of_the_Titanic#/media/File:Titanic_casualties.svg
 const titanicData: TitanicDatum[] = [
-  { Class: '1st', Survived: 'No', Count: 123 },
-  { Class: '1st', Survived: 'Yes', Count: 202 },
-  { Class: '2nd', Survived: 'No', Count: 167 },
-  { Class: '2nd', Survived: 'Yes', Count: 118 },
-  { Class: '3rd', Survived: 'No', Count: 528 },
-  { Class: '3rd', Survived: 'Yes', Count: 178 },
-  { Class: 'Crew', Survived: 'No', Count: 696 },
-  { Class: 'Crew', Survived: 'Yes', Count: 212 },
+  {Class: '1st', Survived: 'No', Count: 123},
+  {Class: '1st', Survived: 'Yes', Count: 202},
+  {Class: '2nd', Survived: 'No', Count: 167},
+  {Class: '2nd', Survived: 'Yes', Count: 118},
+  {Class: '3rd', Survived: 'No', Count: 528},
+  {Class: '3rd', Survived: 'Yes', Count: 178},
+  {Class: 'Crew', Survived: 'No', Count: 696},
+  {Class: 'Crew', Survived: 'Yes', Count: 212},
 ];
 
 const classes: ClassType[] = ['1st', '2nd', '3rd', 'Crew'];
 
-const totalCount = titanicData.reduce(
-  (acc: number, item: TitanicDatum) => acc + item.Count,
-  0,
-);
+const totalCount = titanicData.reduce((acc: number, item: TitanicDatum) => acc + item.Count, 0);
 
 // Define colors for each class
 const classColors: Record<ClassType, string> = {
@@ -107,8 +104,8 @@ const survivalData: ChartDatum[] = [
       .reduce((sum: number, item: TitanicDatum) => sum + item.Count, 0),
     percentage:
       (titanicData
-          .filter((item: TitanicDatum) => item.Survived === 'Yes')
-          .reduce((sum: number, item: TitanicDatum) => sum + item.Count, 0) /
+        .filter((item: TitanicDatum) => item.Survived === 'Yes')
+        .reduce((sum: number, item: TitanicDatum) => sum + item.Count, 0) /
         totalCount) *
       100,
     color: classColors['3rd'],
@@ -121,8 +118,8 @@ const survivalData: ChartDatum[] = [
       .reduce((sum: number, item: TitanicDatum) => sum + item.Count, 0),
     percentage:
       (titanicData
-          .filter((item: TitanicDatum) => item.Survived === 'No')
-          .reduce((sum: number, item: TitanicDatum) => sum + item.Count, 0) /
+        .filter((item: TitanicDatum) => item.Survived === 'No')
+        .reduce((sum: number, item: TitanicDatum) => sum + item.Count, 0) /
         totalCount) *
       100,
     color: classColors['1st'],
@@ -133,24 +130,17 @@ const survivalData: ChartDatum[] = [
 const survivalClassData: ChartDatum[] = [...titanicData]
   .sort((a: TitanicDatum) => (a.Survived === 'Yes' ? -1 : 1))
   .map((item: TitanicDatum) => {
-    const baseColor = survivalData.find(
-      (d: ChartDatum) => d.id === item.Survived,
-    )!.color;
+    const baseColor = survivalData.find((d: ChartDatum) => d.id === item.Survived)!.color;
     return {
       id: `${item.Class}-${item.Survived}`,
       label: `${item.Class} class:`,
       value: item.Count,
-      percentage:
-        (item.Count /
-          (item.Survived === 'Yes'
-            ? survivalData[0]!.value
-            : survivalData[1]!.value)) *
-        100,
+      percentage: (item.Count / (item.Survived === 'Yes' ? survivalData[0]!.value : survivalData[1]!.value)) * 100,
       color: hexToRgba(baseColor, opacityMap[item.Class] || 1),
     };
   });
 
-const StyledText = styled('text')(({ theme }: { theme: Theme }) => ({
+const StyledText = styled('text')(({theme}: {theme: Theme}) => ({
   fill: theme.palette.text.primary,
   textAnchor: 'middle',
   dominantBaseline: 'central',
@@ -161,8 +151,8 @@ interface PieCenterLabelProps {
   children: React.ReactNode;
 }
 
-function PieCenterLabel({ children }: PieCenterLabelProps): React.ReactElement {
-  const { width, height, left, top } = useDrawingArea();
+function PieCenterLabel({children}: PieCenterLabelProps): React.ReactElement {
+  const {width, height, left, top} = useDrawingArea();
   return (
     <StyledText x={left + width / 2} y={top + height / 2}>
       {children}
@@ -174,10 +164,7 @@ type ViewType = 'class' | 'survival';
 
 export default function TitanicPie(): React.ReactElement {
   const [view, setView] = React.useState<ViewType>('class');
-  const handleViewChange = (
-    event: React.MouseEvent<HTMLElement>,
-    newView: ViewType | null,
-  ) => {
+  const handleViewChange = (event: React.MouseEvent<HTMLElement>, newView: ViewType | null) => {
     if (newView !== null) {
       setView(newView);
     }
@@ -187,21 +174,15 @@ export default function TitanicPie(): React.ReactElement {
   const middleRadius = 120;
 
   return (
-    <Box sx={{ width: '100%', textAlign: 'center' }}>
+    <Box sx={{width: '100%', textAlign: 'center'}}>
       <Typography variant="h5" gutterBottom>
         Titanic survival statistics
       </Typography>
-      <ToggleButtonGroup
-        color="primary"
-        size="small"
-        value={view}
-        exclusive
-        onChange={handleViewChange}
-      >
+      <ToggleButtonGroup color="primary" size="small" value={view} exclusive onChange={handleViewChange}>
         <ToggleButton value="class">View by Class</ToggleButton>
         <ToggleButton value="survival">View by Survival</ToggleButton>
       </ToggleButtonGroup>
-      <Box sx={{ display: 'flex', justifyContent: 'center', height: 400 }}>
+      <Box sx={{display: 'flex', justifyContent: 'center', height: 400}}>
         {view === 'class' ? (
           <PieChart
             series={[
@@ -209,25 +190,23 @@ export default function TitanicPie(): React.ReactElement {
                 innerRadius,
                 outerRadius: middleRadius,
                 data: classData,
-                arcLabel: (item) =>
-                  `${item.id} (${(item as any).percentage.toFixed(0)}%)`,
-                valueFormatter: ({ value }) =>
+                arcLabel: item => `${item.id} (${(item as any).percentage.toFixed(0)}%)`,
+                valueFormatter: ({value}) =>
                   `${value} out of ${totalCount} (${((value / totalCount) * 100).toFixed(0)}%)`,
-                highlightScope: { fade: 'global', highlight: 'item' },
-                highlighted: { additionalRadius: 2 },
+                highlightScope: {fade: 'global', highlight: 'item'},
+                highlighted: {additionalRadius: 2},
                 cornerRadius: 3,
               },
               {
                 innerRadius: middleRadius,
                 outerRadius: middleRadius + 20,
                 data: classSurvivalData,
-                arcLabel: (item) =>
-                  `${item.label} (${(item as any).percentage.toFixed(0)}%)`,
-                valueFormatter: ({ value }) =>
+                arcLabel: item => `${item.label} (${(item as any).percentage.toFixed(0)}%)`,
+                valueFormatter: ({value}) =>
                   `${value} out of ${totalCount} (${((value / totalCount) * 100).toFixed(0)}%)`,
                 arcLabelRadius: 160,
-                highlightScope: { fade: 'global', highlight: 'item' },
-                highlighted: { additionalRadius: 2 },
+                highlightScope: {fade: 'global', highlight: 'item'},
+                highlighted: {additionalRadius: 2},
                 cornerRadius: 3,
               },
             ]}
@@ -247,28 +226,27 @@ export default function TitanicPie(): React.ReactElement {
                 innerRadius,
                 outerRadius: middleRadius,
                 data: survivalData,
-                arcLabel: (item) =>
-                  `${item.id} (${(item as any).percentage.toFixed(0)}%)`,
-                valueFormatter: ({ value }) =>
+                arcLabel: item => `${item.id} (${(item as any).percentage.toFixed(0)}%)`,
+                valueFormatter: ({value}) =>
                   `${value} out of ${totalCount} (${((value / totalCount) * 100).toFixed(0)}%)`,
-                highlightScope: { fade: 'global', highlight: 'item' },
-                highlighted: { additionalRadius: 2 },
+                highlightScope: {fade: 'global', highlight: 'item'},
+                highlighted: {additionalRadius: 2},
                 cornerRadius: 3,
               },
               {
                 innerRadius: middleRadius,
                 outerRadius: middleRadius + 20,
                 data: survivalClassData,
-                arcLabel: (item) => {
+                arcLabel: item => {
                   const id = (item as any).id || '';
                   const percentage = (item as any).percentage || 0;
                   return `${id.split('-')[0]} (${percentage.toFixed(0)}%)`;
                 },
                 arcLabelRadius: 160,
-                valueFormatter: ({ value }) =>
+                valueFormatter: ({value}) =>
                   `${value} out of ${totalCount} (${((value / totalCount) * 100).toFixed(0)}%)`,
-                highlightScope: { fade: 'global', highlight: 'item' },
-                highlighted: { additionalRadius: 2 },
+                highlightScope: {fade: 'global', highlight: 'item'},
+                highlighted: {additionalRadius: 2},
                 cornerRadius: 3,
               },
             ]}
