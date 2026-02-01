@@ -1,4 +1,6 @@
-import {and, desc, eq, gte, lte} from 'drizzle-orm';
+import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
+import type {TCategory} from '@budgetbuddyde/api/types';
+import {and, asc, eq, gte, lte} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
@@ -28,10 +30,10 @@ insightsRouter.get(
     const {$dateFrom, $dateTo} = req.query;
     const conditions = [eq(transactionHistorySummaryView.ownerId, userId)];
     if ($dateFrom !== undefined) {
-      conditions.push(gte(transactionHistoryView.date, $dateFrom));
+      conditions.push(gte(transactionHistorySummaryView.date, $dateFrom));
     }
     if ($dateTo !== undefined) {
-      conditions.push(lte(transactionHistoryView.date, $dateTo));
+      conditions.push(lte(transactionHistorySummaryView.date, $dateTo));
     }
 
     const records = await db
@@ -43,12 +45,19 @@ insightsRouter.get(
       })
       .from(transactionHistorySummaryView)
       .where(and(...conditions))
-      .orderBy(desc(transactionHistorySummaryView.year), desc(transactionHistorySummaryView.month));
+      .orderBy(asc(transactionHistorySummaryView.date));
 
-    ApiResponse.builder<typeof records>()
+    const result: THistoricalBalance[] = records.map(record => ({
+      date: record.date instanceof Date ? record.date : new Date(record.date),
+      income: record.income,
+      expenses: record.expenses,
+      balance: record.balance,
+    }));
+
+    ApiResponse.builder<typeof result>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's balance history successfully")
-      .withData(records)
+      .withData(result)
       .withFrom('db')
       .buildAndSend(res);
   },
@@ -67,7 +76,7 @@ insightsRouter.get(
     }
 
     const {$dateFrom, $dateTo} = req.query;
-    const conditions = [eq(transactionHistorySummaryView.ownerId, userId)];
+    const conditions = [eq(transactionHistoryView.ownerId, userId)];
     if ($dateFrom !== undefined) {
       conditions.push(gte(transactionHistoryView.date, $dateFrom));
     }
@@ -88,23 +97,24 @@ insightsRouter.get(
       .from(transactionHistoryView)
       .leftJoin(categories, eq(transactionHistoryView.categoryId, categories.id))
       .where(and(...conditions))
-      .orderBy(desc(transactionHistoryView.year), desc(transactionHistoryView.month));
+      .orderBy(asc(transactionHistoryView.date));
 
-    ApiResponse.builder()
+    const result: THistoricalCategoryBalance[] = records.map(record => ({
+      date: record.date instanceof Date ? record.date : new Date(record.date),
+      income: record.income,
+      expenses: record.expenses,
+      balance: record.balance,
+      category: {
+        id: record.categoryId,
+        name: record.categoryName,
+        description: record.categoryDescription,
+      } as Pick<TCategory, 'id' | 'name' | 'description'>,
+    }));
+
+    ApiResponse.builder<typeof result>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's category balance history successfully")
-      .withData(
-        records.map(({income, expenses, balance, categoryId, categoryName, categoryDescription}) => ({
-          income,
-          expenses,
-          balance,
-          category: {
-            id: categoryId,
-            name: categoryName,
-            description: categoryDescription,
-          },
-        })),
-      )
+      .withData(result)
       .withFrom('db')
       .buildAndSend(res);
   },

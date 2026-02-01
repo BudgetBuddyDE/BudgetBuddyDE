@@ -2,6 +2,7 @@
 
 import { BudgetService } from "./services/budget.service";
 import { CategoryService } from "./services/category.service";
+import { InsightsService } from "./services/insights.service";
 import { PaymentMethodService } from "./services/paymentMethod.service";
 import { RecurringPaymentService } from "./services/recurringPayment.service";
 import { TransactionService } from "./services/transaction.service";
@@ -14,6 +15,7 @@ export class Api {
 		transaction: TransactionService;
 		recurringPayment: RecurringPaymentService;
 		budget: BudgetService;
+		insights: InsightsService;
 	};
 
 	constructor(backendHost: string) {
@@ -24,6 +26,7 @@ export class Api {
 			transaction: new TransactionService(backendHost),
 			recurringPayment: new RecurringPaymentService(backendHost),
 			budget: new BudgetService(backendHost),
+			insights: new InsightsService(backendHost),
 		};
 	}
 }

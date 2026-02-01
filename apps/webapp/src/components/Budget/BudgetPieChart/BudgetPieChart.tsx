@@ -44,7 +44,6 @@ export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
   const {isLoading, data, error} = useFetch<BudgetStats>(fetchDataFunc);
 
   const chartData = React.useMemo(() => {
-    console.log('Budget data:', data);
     if (!data) return [];
     return [
       {

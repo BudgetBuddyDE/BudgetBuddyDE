@@ -99,6 +99,11 @@
       "dev-source": "./src/recurringPayment.ts",
       "types": "./lib/recurringPayment.d.ts",
       "default": "./lib/recurringPayment.js"
+    },
+    "./insights": {
+      "dev-source": "./src/insights.ts",
+      "types": "./lib/insights.d.ts",
+      "default": "./lib/insights.js"
     }
   },
   "typesVersions": {
@@ -138,6 +143,9 @@
       ],
       "recurringPayment": [
         "./lib/recurringPayment.d.ts"
+      ],
+      "insights": [
+        "./lib/insights.d.ts"
       ]
     }
   }

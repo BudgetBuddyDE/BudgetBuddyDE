@@ -50,17 +50,6 @@ const ChartOptions: ChartsComponents<Theme> = {
       mark: ({theme}) => ({
         width: theme.spacing(1.5),
         height: theme.spacing(1.5),
-        borderRadius: 3,
-        boxShadow: 'none',
-        border: `1px solid ${theme.palette.divider}`,
-      }),
-      table: ({theme}) => ({
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: theme.shape.borderRadius,
-        background: 'hsl(0, 0%, 100%)',
-        ...theme.applyStyles('dark', {
-          background: colors.grey?.[900],
-        }),
       }),
     },
   },
