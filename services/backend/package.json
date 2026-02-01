@@ -30,6 +30,7 @@
   "homepage": "https://github.com/budgetbuddyde/budgetbuddyde#readme",
   "description": "",
   "dependencies": {
+    "@budgetbuddyde/api": "^1.0.0",
     "@budgetbuddyde/logger": "^0.1.1",
     "@budgetbuddyde/types": "^1.1.0",
     "@budgetbuddyde/utils": "^1.3.3",

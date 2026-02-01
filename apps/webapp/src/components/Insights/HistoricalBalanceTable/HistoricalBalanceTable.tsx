@@ -1,74 +1,120 @@
 'use client';
 
+import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
+import {Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from '@mui/material';
+import {subMonths} from 'date-fns';
 import React from 'react';
-import {Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from '@mui/material';
+import {apiClient} from '@/apiClient';
 import {ActionPaper} from '@/components/ActionPaper';
+import {Card} from '@/components/Card';
+import {ErrorAlert} from '@/components/ErrorAlert';
+import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangePicker';
+import {useFetch} from '@/hooks/useFetch';
 import {Formatter} from '@/utils/Formatter';
-import {Card} from "@/components/Card";
 
-type HistoricalTableType = 'BASIC' | 'GROUPED_BY_CATEGORY';
+export type HistoricalDataType = 'BASIC' | 'GROUPED_BY_CATEGORY';
 
 export type HistoricalBalanceTableProps = {
-  type: HistoricalTableType;
+  type: HistoricalDataType;
   dense?: boolean;
 };
 
-type HistoricalBalanceRow = {
-  date: Date;
-  category?: string;
-  income: number;
-  expenses: number;
-  balance: number;
-};
-
-const rows: HistoricalBalanceRow[] = [
-  {date: new Date(2026, 0, 1), category: 'Investment', income: 3500, expenses: 2800, balance: 700},
-  {date: new Date(2026, 1, 1), category: 'Investment', income: 3500, expenses: 3200, balance: 300},
-  {date: new Date(2026, 2, 1), category: 'Investment', income: 4000, expenses: 2900, balance: 1100},
-];
-
-const formatPeriod = (date: Date): string => {
-  return date.toLocaleDateString('de-DE', {year: 'numeric', month: 'short'});
-};
-
 export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({type, dense = false}) => {
+  const DEFAULT_DATE_RANGE = {
+    startDate: subMonths(new Date(), type === 'BASIC' ? 12 : 1),
+    endDate: new Date(),
+  } satisfies DateRangeState;
   const showCategory = type === 'GROUPED_BY_CATEGORY';
+  const [dateRange, setDateRange] = React.useState(DEFAULT_DATE_RANGE);
+  const fetchDataFunc = React.useCallback(async () => {
+    const [results, error] = showCategory
+      ? await apiClient.backend.insights.getHistoricalCategoryBalance({
+          $dateFrom: dateRange.startDate,
+          $dateTo: dateRange.endDate,
+        })
+      : await apiClient.backend.insights.getHistoricalBalance({
+          $dateFrom: dateRange.startDate,
+          $dateTo: dateRange.endDate,
+        });
+    if (error) throw error;
+    return results.data.toReversed();
+  }, [dateRange, showCategory]);
+  const {isLoading, data, error} = useFetch<THistoricalBalance[] | THistoricalCategoryBalance[]>(fetchDataFunc);
+  const handleDateRangeChange = (start: Date | null, end: Date | null) => {
+    if (!start || !end) {
+      console.warn(
+        'HistoricalBalanceLineChart: Both start and end dates must be provided. Reverting to default date range.',
+      );
+      setDateRange(DEFAULT_DATE_RANGE);
+      return;
+    }
+
+    setDateRange({startDate: start, endDate: end});
+  };
 
   return (
     <Card sx={{p: 0}}>
       <Card.Header sx={{px: 2, pt: 2}}>
         <Stack>
-          <Card.Title>Historical balance</Card.Title>
-          <Card.Subtitle>{showCategory ? "Grouped by date and category" : "Grouped by date"}</Card.Subtitle>
+          <Card.Title>Historical balance ({data?.length})</Card.Title>
+          <Card.Subtitle>{showCategory ? 'Grouped by date and category' : 'Grouped by date'}</Card.Subtitle>
         </Stack>
+
+        <Card.HeaderActions actionPaperProps={{sx: {p: 1}}}>
+          {isLoading ? (
+            <Skeleton variant={'rounded'} width={300} height={36} />
+          ) : (
+            <DateRangePicker
+              size={'small'}
+              defaultValue={DEFAULT_DATE_RANGE}
+              slotProps={{
+                startDateTicker: {
+                  openTo: 'month',
+                  view: 'month',
+                },
+                endDateTicker: {
+                  openTo: 'month',
+                  view: 'month',
+                },
+              }}
+              onDateRangeChange={handleDateRangeChange}
+            />
+          )}
+        </Card.HeaderActions>
       </Card.Header>
       <Card.Body>
-        <TableContainer component={ActionPaper}>
-          <Table size={dense ? 'small' : 'medium'} aria-label="historical balance table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Period</TableCell>
-                {showCategory && <TableCell>Category</TableCell>}
-                <TableCell align="right">Income</TableCell>
-                <TableCell align="right">Expenses</TableCell>
-                <TableCell align="right">Balance</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row, index) => (
-                <TableRow key={`${row.date.getTime()}-${index}`} sx={{'&:last-child td, &:last-child th': {border: 0}}}>
-                  <TableCell component="th" scope="row">
-                    {formatPeriod(row.date)}
-                  </TableCell>
-                  {showCategory && <TableCell>{row.category || '-'}</TableCell>}
-                  <TableCell align="right">{Formatter.currency.formatBalance(row.income)}</TableCell>
-                  <TableCell align="right">{Formatter.currency.formatBalance(row.expenses)}</TableCell>
-                  <TableCell align="right">{Formatter.currency.formatBalance(row.balance)}</TableCell>
+        {error !== null && <ErrorAlert error={error} sx={{m: 2}} />}
+        {!isLoading && data && data.length > 0 && (
+          <TableContainer component={ActionPaper}>
+            <Table size={dense ? 'small' : 'medium'} aria-label="historical balance table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Period</TableCell>
+                  {showCategory && <TableCell>Category</TableCell>}
+                  <TableCell align="right">Income</TableCell>
+                  <TableCell align="right">Expenses</TableCell>
+                  <TableCell align="right">Balance</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {data.map((row, index) => {
+                  const date = new Date(row.date);
+                  return (
+                    <TableRow key={`${date.getTime()}-${index}`} sx={{'&:last-child td, &:last-child th': {border: 0}}}>
+                      <TableCell component="th" scope="row">
+                        {Formatter.date.formatWithPattern(date, 'MMMM yyyy')}
+                      </TableCell>
+                      {showCategory && 'category' in row && <TableCell>{row.category.name || '-'}</TableCell>}
+                      <TableCell align="right">{Formatter.currency.formatBalance(row.income)}</TableCell>
+                      <TableCell align="right">{Formatter.currency.formatBalance(row.expenses)}</TableCell>
+                      <TableCell align="right">{Formatter.currency.formatBalance(row.balance)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Card.Body>
     </Card>
   );
