@@ -13,7 +13,14 @@ import {processRecurringPayments} from './jobs/processRecurringPayments';
 import {logger} from './lib/logger';
 import {handleError, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
-import {BudgetRouter, CategoryRouter, PaymentMethodRouter, RecurringPaymentRouter, TransactionRouter} from './router';
+import {
+  BudgetRouter,
+  CategoryRouter,
+  InsightsRouter,
+  PaymentMethodRouter,
+  RecurringPaymentRouter,
+  TransactionRouter,
+} from './router';
 
 export const app = express();
 const tracer = trace.getTracer(config.service, config.version);
@@ -112,6 +119,7 @@ app.use('/api/paymentMethod', PaymentMethodRouter);
 app.use('/api/transaction', TransactionRouter);
 app.use('/api/recurringPayment', RecurringPaymentRouter);
 app.use('/api/budget', BudgetRouter);
+app.use('/api/insights', InsightsRouter);
 
 // Mount an global error handler
 app.use(handleError);
