@@ -28,6 +28,7 @@ export const transactionHistoryView = backendSchema.view('transaction_history_vi
     .select({
       month: sql<number>`EXTRACT(MONTH FROM ${transactions.processedAt})`.as('month'),
       year: sql<number>`EXTRACT(YEAR FROM ${transactions.processedAt})`.as('year'),
+      date: sql<Date>`(DATE_TRUNC('month', ${transactions.processedAt}) + INTERVAL '1 month - 1 day')::DATE`.as('date'),
       ownerId: transactions.ownerId,
       categoryId: transactions.categoryId,
       income:
@@ -44,6 +45,7 @@ export const transactionHistoryView = backendSchema.view('transaction_history_vi
     .groupBy(
       sql`EXTRACT(MONTH FROM ${transactions.processedAt})`,
       sql`EXTRACT(YEAR FROM ${transactions.processedAt})`,
+      sql<Date>`(DATE_TRUNC('month', ${transactions.processedAt}) + INTERVAL '1 month - 1 day')::DATE`,
       transactions.ownerId,
       transactions.categoryId,
     ),
@@ -58,6 +60,7 @@ export const transactionHistorySummaryView = backendSchema.view('transaction_his
     .select({
       month: sql<number>`EXTRACT(MONTH FROM ${transactions.processedAt})`.as('month'),
       year: sql<number>`EXTRACT(YEAR FROM ${transactions.processedAt})`.as('year'),
+      date: sql<Date>`(DATE_TRUNC('month', ${transactions.processedAt}) + INTERVAL '1 month - 1 day')::DATE`.as('date'),
       ownerId: transactions.ownerId,
       income:
         sql<number>`SUM(CASE WHEN ${transactions.transferAmount} > 0 THEN ${transactions.transferAmount} ELSE 0 END)`.as(
@@ -73,6 +76,7 @@ export const transactionHistorySummaryView = backendSchema.view('transaction_his
     .groupBy(
       sql`EXTRACT(MONTH FROM ${transactions.processedAt})`,
       sql`EXTRACT(YEAR FROM ${transactions.processedAt})`,
+      sql<Date>`(DATE_TRUNC('month', ${transactions.processedAt}) + INTERVAL '1 month - 1 day')::DATE`,
       transactions.ownerId,
     ),
 );
@@ -86,6 +90,7 @@ export const spendingGoalView = backendSchema.view('spending_goal_view').as(qb =
     .select({
       month: sql<number>`EXTRACT(MONTH FROM ${transactions.processedAt})`.as('month'),
       year: sql<number>`EXTRACT(YEAR FROM ${transactions.processedAt})`.as('year'),
+      date: sql<Date>`(DATE_TRUNC('month', ${transactions.processedAt}) + INTERVAL '1 month - 1 day')::DATE`.as('date'),
       budgetId: budgetCategories.budgetId,
       ownerId: budgets.ownerId,
       spendingGoal: budgets.budget,
@@ -103,6 +108,7 @@ export const spendingGoalView = backendSchema.view('spending_goal_view').as(qb =
     .groupBy(
       sql`EXTRACT(MONTH FROM ${transactions.processedAt})`,
       sql`EXTRACT(YEAR FROM ${transactions.processedAt})`,
+      sql<Date>`(DATE_TRUNC('month', ${transactions.processedAt}) + INTERVAL '1 month - 1 day')::DATE`,
       budgetCategories.budgetId,
       budgets.ownerId,
       budgets.budget,
