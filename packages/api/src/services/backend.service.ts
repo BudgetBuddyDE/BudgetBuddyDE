@@ -98,15 +98,21 @@ export class BackendService {
 		if (query === undefined) return queryParams;
 
 		Object.entries(query).forEach(([key, value]) => {
-			const isDate = value instanceof Date;
-			queryParams.append(
-				key,
-				isDate
+			const datesToString = (v: typeof value) => {
+				const isDate = v instanceof Date;
+				return isDate
 					? // en-CA format yields YYYY-MM-DD which is ISO 8601 compliant
 						// new Intl.DateTimeFormat("en-CA").format(value)
 						value.toLocaleDateString("en-CA")
-					: String(value),
-			);
+					: String(value);
+			};
+			if (Array.isArray(value)) {
+				value.forEach((v) => {
+					queryParams.append(key, datesToString(v));
+				});
+			} else {
+				queryParams.append(key, datesToString(value));
+			}
 		});
 		return queryParams;
 	}
