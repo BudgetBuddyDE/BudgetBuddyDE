@@ -1,3 +1,5 @@
+import {Category} from '@budgetbuddyde/api/category';
+import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
@@ -39,6 +41,16 @@ transactionRouter.get(
       to: z.coerce.number().optional(),
       $dateFrom: z.coerce.date().optional(),
       $dateTo: z.coerce.date().optional(),
+      $categories: z
+        .array(Category.shape.id)
+        .or(Category.shape.id)
+        .transform(value => (Array.isArray(value) ? value : [value]))
+        .optional(),
+      $paymentMethods: z
+        .array(PaymentMethod.shape.id)
+        .or(PaymentMethod.shape.id)
+        .transform(value => (Array.isArray(value) ? value : [value]))
+        .optional(),
     }),
   }),
   async (req, res) => {
@@ -60,7 +72,12 @@ transactionRouter.get(
       dateTo.setHours(23, 59, 59, 999);
       additionalFilters.push({columnName: 'processedAt', operator: 'lte', value: dateTo});
     }
-
+    if (query.$categories) {
+      additionalFilters.push({columnName: 'categoryId', operator: 'in', value: query.$categories});
+    }
+    if (query.$paymentMethods) {
+      additionalFilters.push({columnName: 'paymentMethodId', operator: 'in', value: query.$paymentMethods});
+    }
     const filter = assembleFilter(
       transactions,
       {ownerColumnName: 'ownerId', ownerValue: userId},

@@ -1,3 +1,5 @@
+import {Category} from '@budgetbuddyde/api/category';
+import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
@@ -19,6 +21,16 @@ recurringPaymentRouter.get(
       to: z.coerce.number().optional(),
       $executeFrom: z.coerce.number().min(1).max(31).optional(),
       $executeTo: z.coerce.number().min(1).max(31).optional(),
+      $categories: z
+        .array(Category.shape.id)
+        .or(Category.shape.id)
+        .transform(value => (Array.isArray(value) ? value : [value]))
+        .optional(),
+      $paymentMethods: z
+        .array(PaymentMethod.shape.id)
+        .or(PaymentMethod.shape.id)
+        .transform(value => (Array.isArray(value) ? value : [value]))
+        .optional(),
     }),
   }),
 
@@ -36,6 +48,12 @@ recurringPaymentRouter.get(
     }
     if (query.$executeTo) {
       additionalFilters.push({columnName: 'executeAt', operator: 'lte', value: query.$executeTo});
+    }
+    if (query.$categories) {
+      additionalFilters.push({columnName: 'categoryId', operator: 'in', value: query.$categories});
+    }
+    if (query.$paymentMethods) {
+      additionalFilters.push({columnName: 'paymentMethodId', operator: 'in', value: query.$paymentMethods});
     }
     const filter = assembleFilter(
       recurringPayments,
