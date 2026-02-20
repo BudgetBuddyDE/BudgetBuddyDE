@@ -1,0 +1,80 @@
+{
+  "name": "@budgetbuddyde/db",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "author": "Thorben",
+  "license": "MIT",
+  "homepage": "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues"
+  },
+  "scripts": {
+    "build": "rimraf lib && tsc",
+    "pretest": "npm run check",
+    "test": "vitest run --silent",
+    "test:watch": "vitest",
+    "check": "biome check --error-on-warnings",
+    "check:write": "npm run check -- --write --unsafe",
+    "lint": "biome lint --write",
+    "format": "biome format --write",
+    "ba:schema-generate": "npx @better-auth/cli generate --output src/auth/tables.ts -y",
+    "db:full-generate": "npm run ba:schema-generate && npx drizzle-kit generate",
+    "db:generate": "npx drizzle-kit generate",
+    "db:migrate": "npx drizzle-kit migrate",
+    "db:studio": "npx drizzle-kit studio"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.0",
+    "@vitest/ui": "^3.2.4",
+    "drizzle-kit": "^0.31.9",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "dev-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./backend": {
+      "dev-source": "./src/backend.ts",
+      "types": "./lib/backend.d.ts",
+      "default": "./lib/backend.js"
+    },
+    "./auth": {
+      "dev-source": "./src/auth.ts",
+      "types": "./lib/auth.d.ts",
+      "default": "./lib/auth.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/index.d.js"
+      ],
+      "backend": [
+        "./lib/backend.d.js"
+      ],
+      "auth": [
+        "./lib/auth.d.js"
+      ]
+    }
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.7",
+    "drizzle-zod": "^0.8.3",
+    "zod": "^4.3.6"
+  }
+}

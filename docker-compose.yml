@@ -6,16 +6,14 @@ services:
       PORT: 4983
       MASTERPASS: your_master_password
       STORE_PATH: /app
-      AUTH_DB_URL: postgres://myuser:mypassword@auth_db:5432/mydatabase
-      BACKEND_DB_URL: postgres://myuser:mypassword@backend_db:5432/mydatabase
+      DB: postgres://myuser:mypassword@db:5432/mydatabase
     depends_on:
-      - auth_db
-      - backend_db
+      - db
     ports: 
       - '4983:4983'
     volumes:
       - drizzle_db_gateway:/app
-  auth_db:
+  db:
     image: postgres:16
     container_name: auth_db
     environment:
@@ -25,18 +23,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - auth_db_data:/var/lib/postgresql/data
-  backend_db:
-    image: postgres:16
-    container_name: backend_db
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
-    ports:
-      - '5433:5432'
-    volumes:
-      - backend_db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
   cache:
     image: redis:7-alpine
     container_name: cache
@@ -48,6 +35,5 @@ services:
 
 volumes:
   drizzle_db_gateway:
-  auth_db_data:
-  backend_db_data:
+  db_data:
   cache_data:
