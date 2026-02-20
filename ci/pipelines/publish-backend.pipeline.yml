@@ -5,9 +5,6 @@ groups:
   - name: build
     jobs:
       - build*
-  - name: database
-    jobs:
-      - update-database-schema
   - name: release
     jobs:
       - 'release-*'
@@ -190,41 +187,6 @@ jobs:
           tag_as_latest: true
       - put: version
         params: { file: version/version }
-
-  - name: update-database-schema
-    public: false
-    on_failure:
-      put: notification
-      params:
-        alert_type: failed
-        message: 'Failed to update database schema for ((service_name))'
-        role: '1342563020215291936'
-    plan:
-      - in_parallel:
-          - get: node-image
-          - get: repository
-            passed: [build-((service_name))]
-      - task: apply-migrations
-        image: node-image
-        config:
-          platform: linux
-          inputs:
-            - name: repository
-          params:
-            CI: 'true'
-            FORCE_COLOR: 1
-            TURBO_TELEMETRY_DISABLED: 1
-            DATABASE_URL: ((database_url))
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                cd repository
-                npm install
-                cd ((repo_path))
-                npx drizzle-kit check
-                npm run db:migrate
 
   - name: release-patch
     on_failure:

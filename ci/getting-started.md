@@ -78,6 +78,29 @@ fly -t ci set-pipeline -p webapp -c ./pipelines/test-webapp.pipeline.yml \
   -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```
 
+### Publish `@budgetbuddyde/db`
+
+```bash
+fly -t ci set-pipeline -p db -c ./pipelines/database.pipeline.yml \
+  --team budgetbuddyde \
+  -v github_pat="$(cat ./secrets/github/pat)" \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
+  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
+  -v repo_path="packages/db" \
+  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
+  -v service="pck_db" \
+  -v service_name="db" \
+  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
+  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
+  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
+  -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
+  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)" \
+  -v db_backup_bucket="bb-railway-database-backups" \
+  -v test_database_url="$(cat ./secrets/database/credentials.txt | sed -n '2p')" \
+  -v database_url="$(cat ./secrets/database/credentials.txt | sed -n '4p')"
+```
+
 ### Publish `@budetbuddyde/api`
 
 ```bash
@@ -177,8 +200,7 @@ fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-auth-service.pipel
   -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
   -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
   -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)" \
-  -v database_url="$(cat ./secrets/services/auth_service_db)"
+  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```
 
 ### Publish `backend`
@@ -200,6 +222,5 @@ fly -t ci set-pipeline -p backend -c ./pipelines/publish-backend.pipeline.yml \
   -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
   -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
   -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)" \
-  -v database_url="$(cat ./secrets/services/backend_db)"
+  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```

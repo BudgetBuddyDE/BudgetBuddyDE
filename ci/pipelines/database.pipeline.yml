@@ -5,6 +5,9 @@ groups:
   - name: build
     jobs:
       - build*
+  - name: database
+    jobs:
+      - update-*-database
   - name: release
     jobs:
       - 'release-*'
@@ -14,7 +17,7 @@ resource_types:
     type: registry-image
     source:
       repository: ghcr.io/tklein1801/concourse-discord-alert-resource
-
+  
   - name: cogito
     type: registry-image
     check_every: 24h
@@ -43,20 +46,22 @@ resources:
       private_key: ((repo_private_key))
       branch: main
       paths: [((repo_path))/**]
+      ignore_paths: [((repo_path))/drizzle/**]
       depth: 1
 
-  - name: container-registry
-    type: docker-image
-    icon: docker
+  - name: repository-migrations
+    type: git
+    icon: git
     source:
-      repository: ((docker_image))
-      username: ((docker_username))
-      password: ((docker_password))
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((repo_private_key))
+      branch: main
+      paths: [((repo_path))/drizzle/**]
+      depth: 1
 
   - name: status
     type: cogito
     icon: github
-    check_every: never
     source:
       owner: ((repo_owner))
       repo: ((repo_name))
@@ -74,17 +79,21 @@ resources:
       access_key_id: ((version_bucket_access_key))
       secret_access_key: ((version_bucket_secret))
 
-  - name: version-prod
-    type: semver
-    icon: tag-outline
+  - name: db-bucket
+    type: s3
+    icon: database-import
     source:
-      driver: s3
-      initial_version: 0.0.0-rc.0
-      bucket: ((version_bucket))
-      key: ((service))/prod
+      bucket: ((db_backup_bucket))
       region_name: ((version_bucket_region))
       access_key_id: ((version_bucket_access_key))
       secret_access_key: ((version_bucket_secret))
+      regexp: backup_(.*).dump
+
+  - name: daily-timer
+    type: time
+    icon: clock
+    source:
+      interval: 24h
 
 meta:
   gh-status-handlers: &gh-status-handlers
@@ -111,30 +120,35 @@ meta:
 
 task-config: &task-release
   platform: linux
-  params:
-    CI: 'true'
-    FORCE_COLOR: 1
-    TURBO_TELEMETRY_DISABLED: 1
   inputs:
     - name: repository
     - name: version
   outputs:
     - name: repository
+  params:
+    CI: 'true'
+    FORCE_COLOR: 1
+    TURBO_TELEMETRY_DISABLED: 1
   run:
     path: sh
     args:
       - -evc
       - |
-        NEW_VERSION=$(cat version/version)
+        git config --global user.name 'Thorben Klein'
+        git config --global user.email thorben@tklein.it
+        NEW_VERSION="$(cat version/version)"
         cd repository/((repo_path))
-        git config --global user.name "Thorben Klein"
-        git config --global user.email "thorben@tklein.it"
+        npm install
+        npm run test
+        npm run build
         npm version "$NEW_VERSION" --no-git-tag-version
         git add package*.json
         git add ../../package*.json
         git commit -m "chore(release): Release ((service_name))-v$NEW_VERSION"
         git tag | xargs git tag -d > /dev/null
         git tag -a "((service_name))-v$NEW_VERSION" -m "Release ((service_name))-v$NEW_VERSION" > /dev/null
+        echo "//registry.npmjs.org/:_authToken=((npm_token))" > ~/.npmrc
+        npm publish --access public
 
 jobs:
   - name: build-((service_name))
@@ -147,9 +161,6 @@ jobs:
             trigger: true
           - get: version
             params: { pre: rc }
-          - get: container-version
-            resource: version
-            params: { bump: final }
       - put: status
         inputs: [repository]
         params: {state: pending}
@@ -157,7 +168,6 @@ jobs:
       - task: build
         image: node-image
         config:
-          platform: linux
           inputs:
             - name: repository
             - name: version
@@ -165,6 +175,7 @@ jobs:
             CI: 'true'
             FORCE_COLOR: 1
             TURBO_TELEMETRY_DISABLED: 1
+          platform: linux
           run:
             path: sh
             args:
@@ -177,16 +188,114 @@ jobs:
                 npm run build -- -F=@budgetbuddyde/((service_name))
                 cd ((repo_path))
                 npm version "$NEW_VERSION" --no-git-tag-version
-      - put: container-registry
-        get_params: { skip_download: true }
-        params:
-          build: repository/((repo_path))
-          dockerfile: repository/((repo_path))/Dockerfile
-          tag_file: version/version
-          additional_tags: container-version/version
-          tag_as_latest: true
+                npm publish --access public --dry-run
       - put: version
         params: { file: version/version }
+
+  - name: database-backup
+    public: false
+    on_failure:
+      put: notification
+      params:
+        alert_type: failed
+        message: 'Failed to backup database'
+        role: '1342563020215291936'
+    plan:
+      - get: daily-timer
+        trigger: true
+      - task: dump-database
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: postgres
+              tag: 17
+          outputs:
+            - name: backup
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((database_url))
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+                FILE="backup_${TIMESTAMP}.dump"
+                echo "Creating PostgreSQL dump..."
+                pg_dump "$DATABASE_URL" -Fc -f backup/$FILE >> /dev/null
+                echo "Backup created!"
+      - put: db-bucket
+        params:
+          file: backup/*.dump
+
+  - name: update-test-database
+    public: false
+    on_failure:
+      put: notification
+      params:
+        alert_type: failed
+        message: 'Failed to update test database'
+        role: '1342563020215291936'
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repository-migrations
+            trigger: true
+      - task: apply-migrations
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((test_database_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository/((repo_path))
+                npx drizzle-kit check
+                npm run db:migrate
+
+  - name: update-prod-database
+    public: false
+    on_failure:
+      put: notification
+      params:
+        alert_type: failed
+        message: 'Failed to update prod database'
+        role: '1342563020215291936'
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repository-migrations
+            passed: [update-test-database]
+      - task: apply-migrations
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((database_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository/((repo_path))
+                npx drizzle-kit check
+                npm run db:migrate
 
   - name: release-patch
     on_failure:
@@ -197,28 +306,16 @@ jobs:
         role: '1342563020215291936'
     plan:
       - in_parallel:
-          - get: node-image
-          - get: repository
           - get: version
             passed: [build-((service_name))]
             params: { bump: patch }
-          - get: built-image
-            resource: container-registry
-            passed: [build-((service_name))]
-            params: { skip_download: true }
-      - task: prepare-release
+          - get: repository
+          - get: node-image
+      - task: build
         image: node-image
         config:
           <<: *task-release
-      - put: container-registry
-        get_params: { skip_download: true }
-        params:
-          load_base: built-image
-          tag_file: version/version
-          tag_as_latest: true
       - put: version
-        params: { file: version/version }
-      - put: version-prod
         params: { file: version/version }
       - put: repository
         params:
@@ -234,28 +331,16 @@ jobs:
         role: '1342563020215291936'
     plan:
       - in_parallel:
-          - get: node-image
-          - get: repository
           - get: version
             passed: [build-((service_name))]
             params: { bump: minor }
-          - get: built-image
-            resource: container-registry
-            passed: [build-((service_name))]
-            params: { skip_download: true }
-      - task: prepare-release
+          - get: repository
+          - get: node-image
+      - task: build
         image: node-image
         config:
           <<: *task-release
-      - put: container-registry
-        get_params: { skip_download: true }
-        params:
-          load_base: built-image
-          tag_file: version/version
-          tag_as_latest: true
       - put: version
-        params: { file: version/version }
-      - put: version-prod
         params: { file: version/version }
       - put: repository
         params:
@@ -271,28 +356,16 @@ jobs:
         role: '1342563020215291936'
     plan:
       - in_parallel:
-          - get: node-image
-          - get: repository
           - get: version
             passed: [build-((service_name))]
             params: { bump: major }
-          - get: built-image
-            resource: container-registry
-            passed: [build-((service_name))]
-            params: { skip_download: true }
-      - task: prepare-release
+          - get: repository
+          - get: node-image
+      - task: build
         image: node-image
         config:
           <<: *task-release
-      - put: container-registry
-        get_params: { skip_download: true }
-        params:
-          load_base: built-image
-          tag_file: version/version
-          tag_as_latest: true
       - put: version
-        params: { file: version/version }
-      - put: version-prod
         params: { file: version/version }
       - put: repository
         params:
