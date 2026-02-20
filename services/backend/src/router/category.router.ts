@@ -1,10 +1,15 @@
+import {
+  budgetCategories,
+  CategorySchemas,
+  categories,
+  recurringPayments,
+  transactions,
+} from '@budgetbuddyde/db/backend';
 import {and, eq, gte, inArray, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
-import {budgetCategories, categories, recurringPayments, transactions} from '../db/schema';
-import {CategorySchemas} from '../db/schema/types';
 import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';

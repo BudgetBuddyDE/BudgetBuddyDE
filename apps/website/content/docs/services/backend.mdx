@@ -50,7 +50,6 @@ This job processes due recurring payments and creates corresponding transactions
 - **Language**: [TypeScript](https://github.com/microsoft/TypeScript)
 - **Database**: [PostgreSQL](https://github.com/postgres/postgres)
 - **Cache**: [Redis](https://github.com/redis/redis)
-- **ORM**: [Drizzle Kit](https://orm.drizzle.team/)
 
 ### Structure
 
@@ -126,24 +125,6 @@ npm run format
   If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
 </Callout>
 
-### Database Migrations
-
-<Callout type="info">
-  The environment variable `DATABASE_URL` must be set for migrations to be executed.
-</Callout>
-
-Database migrations are managed using Drizzle Kit. To create a new migration (for the database), the following command can be used:
-
-```bash
-npm run db:generate
-```
-
-Using the following command, the migrations can be applied to the database:
-
-```bash
-npm run db:migrate
-```
-
 ## Deployment
 
 Information about the deployment process (e.g. Docker, CI/CD Pipelines).
@@ -168,8 +149,9 @@ import RailwayDeployment from "../../../src/components/RailwayDeployment";
 
 ## Dependencies
 
-The Auth Service uses the following internal packages:
+The Backend Service uses the following internal packages:
 
+- [`@budgetbuddyde/db`](/docs/packages/db)
 - [`@budgetbuddyde/logger`](/docs/packages/logger)
 - [`@budgetbuddyde/types`](/docs/packages/types)
 - [`@budgetbuddyde/utils`](/docs/packages/utils)

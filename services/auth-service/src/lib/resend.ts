@@ -1,5 +1,4 @@
 import {type CreateEmailResponseSuccess, Resend} from 'resend';
-
 import {config} from '../config';
 import type {ServiceResponse} from '../types';
 

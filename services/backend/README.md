@@ -1,4 +1,4 @@
-# Backend
+# `@budgetbuddyde/backend`
 
 ## Getting started
 
@@ -72,26 +72,10 @@ The `TIMEZONE` environment variable defines the time zone used for time-related 
 
 ## Deployment
 
-### Service
-
 ### Database
 
-> [!TIP]
-> The backend uses Drizzle ORM for database migrations. More information on schema migration can be found in [the documentation](https://orm.drizzle.team/docs/kit-overview) of Drizzle ORM.
-
-1. Generate migration SQL files using Drizzle ORM.
-
-   ```bash
-   npm run db:generate
-   ```
-
-2. Apply the generated migration files to your PostgreSQL database.
-
-   ```bash
-   npm run db:migrate
-   ```
-
-Now your database schema should be up-to-date with the application's requirements.
+> [!IMPORTANT]
+> The database schema is provided by the `@budgetbuddyde/db` package. For information on migrations and the initial database setup, see the package documentation.
 
 ## Jobs
 

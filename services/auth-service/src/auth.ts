@@ -1,13 +1,12 @@
-import {APIError, type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
+import * as authSchema from '@budgetbuddyde/db/auth';
+import {type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
 import {config} from './config';
 import {db} from './db';
 import {getRedisClient} from './db/redis';
-import * as authSchema from './db/schema/auth.schema';
 import {logger} from './lib/logger';
 import {resendManager} from './lib/resend';
-import {EnvironmentVariableNotSetError} from './models/EnvironmentVariableNotSet';
 import {isCSRFCheckDisabled} from './utils';
 
 const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET} = process.env;
@@ -107,30 +106,31 @@ const options: BetterAuthOptions = {
     },
     deleteUser: {
       enabled: true,
-      async beforeDelete(user, request) {
-        authLogger.info(`User deletion requested for user: ${user.email}`);
-        const BACKEND_HOST_URL = process.env.BACKEND_HOST_URL;
-        if (!BACKEND_HOST_URL) {
-          const err = new EnvironmentVariableNotSetError('BACKEND_HOST_URL');
-          throw new APIError('INTERNAL_SERVER_ERROR', {
-            message: err.message,
-            cause: err.cause,
-          });
-        }
-
-        const response = await fetch(`${process.env.BACKEND_HOST_URL}/api/me`, {
-          method: 'DELETE',
-          credentials: request?.credentials,
-          headers: request?.headers,
-        });
-        if (!response.ok) {
-          authLogger.error(`Failed to delete backend user data for user: ${user.email}, status: ${response.status}`);
-          throw new APIError('INTERNAL_SERVER_ERROR', {
-            message: 'Failed to delete backend user data',
-            cause: await response.text(),
-          });
-        }
-        authLogger.info(`Successfully deleted backend user data for user: ${user.email}`);
+      async beforeDelete(_user, _request) {
+        // Temporarily disabled because there is no need to manually delete user data
+        // authLogger.info(`User deletion requested for user: ${user.email}`);
+        // const BACKEND_HOST_URL = process.env.BACKEND_HOST_URL;
+        // if (!BACKEND_HOST_URL) {
+        //   const err = new EnvironmentVariableNotSetError('BACKEND_HOST_URL');
+        //   throw new APIError('INTERNAL_SERVER_ERROR', {
+        //     message: err.message,
+        //     cause: err.cause,
+        //   });
+        // }
+        //
+        // const response = await fetch(`${process.env.BACKEND_HOST_URL}/api/me`, {
+        //   method: 'DELETE',
+        //   credentials: request?.credentials,
+        //   headers: request?.headers,
+        // });
+        // if (!response.ok) {
+        //   authLogger.error(`Failed to delete backend user data for user: ${user.email}, status: ${response.status}`);
+        //   throw new APIError('INTERNAL_SERVER_ERROR', {
+        //     message: 'Failed to delete backend user data',
+        //     cause: await response.text(),
+        //   });
+        // }
+        // authLogger.info(`Successfully deleted backend user data for user: ${user.email}`);
       },
       async sendDeleteAccountVerification({user: {id, email}, url}) {
         authLogger.info(`Delete account requested for user: ${email}`, {userId: id});

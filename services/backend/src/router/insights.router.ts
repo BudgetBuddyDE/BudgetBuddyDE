@@ -1,11 +1,11 @@
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
 import type {TCategory} from '@budgetbuddyde/api/types';
+import {categories, transactionHistorySummaryView, transactionHistoryView} from '@budgetbuddyde/db/backend';
 import {and, asc, eq, gte, lte} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
-import {categories, transactionHistorySummaryView, transactionHistoryView} from '../db/schema';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const insightsRouter = Router();

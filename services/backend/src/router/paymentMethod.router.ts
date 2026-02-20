@@ -1,10 +1,9 @@
+import {PaymentMethodSchemas, paymentMethods, recurringPayments, transactions} from '@budgetbuddyde/db/backend';
 import {and, eq, inArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
-import {paymentMethods, recurringPayments, transactions} from '../db/schema';
-import {PaymentMethodSchemas} from '../db/schema/types';
 import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';

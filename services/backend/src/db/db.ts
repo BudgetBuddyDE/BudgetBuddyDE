@@ -1,7 +1,7 @@
+import * as schema from '@budgetbuddyde/db/backend';
 import {drizzle} from 'drizzle-orm/node-postgres';
 import {config} from '../config';
 import {dbLogger, pool} from './pool';
-import * as schema from './schema';
 
 const drizzleLogger = dbLogger.child({label: 'drizzle'});
 

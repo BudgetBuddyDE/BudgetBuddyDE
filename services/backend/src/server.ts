@@ -1,14 +1,12 @@
 import {trace} from '@opentelemetry/api';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import {eq} from 'drizzle-orm';
 import express from 'express';
 import {setGlobalErrorHandler} from 'express-zod-safe';
 import cron from 'node-cron';
 import {config} from './config';
-import {checkConnection, db} from './db';
+import {checkConnection} from './db';
 import {getRedisClient} from './db/redis';
-import {budgets, categories, paymentMethods, recurringPayments, transactions} from './db/schema';
 import {processRecurringPayments} from './jobs/processRecurringPayments';
 import {logger} from './lib/logger';
 import {handleError, logRequest, servedBy, setRequestContext} from './middleware';
@@ -77,42 +75,7 @@ app.delete('/api/me', async (req, res) => {
     ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
     return;
   }
-  const span = tracer.startSpan('Deleting user data');
-  span.setAttribute('userId', userId);
-  await db.transaction(async tx => {
-    let tempSpan = span.addEvent('Deleting categories');
-    tempSpan.setAttribute('userId', userId);
-    const deletedCategories = await tx.delete(categories).where(eq(categories.ownerId, userId));
-    logger.info(`Deleted ${deletedCategories.rowCount} categories for user ${userId}`);
-    tempSpan.end();
-
-    tempSpan = span.addEvent('Deleting payment methods');
-    tempSpan.setAttribute('userId', userId);
-    const deletedPaymentMethods = await tx.delete(paymentMethods).where(eq(paymentMethods.ownerId, userId));
-    logger.info(`Deleted ${deletedPaymentMethods.rowCount} payment methods for user ${userId}`);
-    tempSpan.end();
-
-    tempSpan = span.addEvent('Deleting budgets');
-    tempSpan.setAttribute('userId', userId);
-    const deletedBudgets = await tx.delete(budgets).where(eq(budgets.ownerId, userId));
-    logger.info(`Deleted ${deletedBudgets.rowCount} budgets for user ${userId}`);
-    tempSpan.end();
-
-    tempSpan = span.addEvent('Deleting transactions');
-    tempSpan.setAttribute('userId', userId);
-    const deletedTransactions = await tx.delete(transactions).where(eq(transactions.ownerId, userId));
-    logger.info(`Deleted ${deletedTransactions.rowCount} transactions for user ${userId}`);
-    tempSpan.end();
-
-    tempSpan = span.addEvent('Deleting recurring payments');
-    tempSpan.setAttribute('userId', userId);
-    const deletedRecurringPayments = await tx.delete(recurringPayments).where(eq(recurringPayments.ownerId, userId));
-    logger.info(`Deleted ${deletedRecurringPayments.rowCount} recurring payments for user ${userId}`);
-    tempSpan.end();
-  });
-  span.end();
-
-  ApiResponse.builder().withMessage('User data deleted successfully').buildAndSend(res);
+  ApiResponse.builder().withStatus(HTTPStatusCode.NOT_IMPLEMENTED).withMessage('Not implemented').buildAndSend(res);
 });
 app.use('/api/category', CategoryRouter);
 app.use('/api/paymentMethod', PaymentMethodRouter);

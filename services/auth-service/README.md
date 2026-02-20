@@ -28,21 +28,5 @@
 
 ## Database migration
 
-> [!TIP]
-> For more information about the schema generation and migration have a look into [the documentation](https://www.better-auth.com/docs/basic-usage#migrate-database).
-
-The database schema required for the Better-Auth auth service can be generated using the @better-auth/cli:
-
-```bash
-npm run ba:schema-generate
-```
-
-The previously generated schema can be applied using Drizzle Kit. This can be done with the following commands:
-
-> [!WARNUNG]
-> Make sure that the `DATABASE_URL` environment variable is set and points to the target database where the schema should be applied. If the environment variable is not set, the process will fail with an error.
-
-```bash
-npm run db:generate # will generate all required schemas
-npm run db:migrate
-```
+> [!IMPORTANT]
+> The database schema is provided and handled by the @budgetbuddyde/db package. This package is a shared library that is used across all services to ensure a consistent database schema and to avoid code duplication. The schema is defined using Drizzle ORM and can be generated and applied using the @better-auth/cli and Drizzle Kit.

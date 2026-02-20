@@ -1,12 +1,11 @@
 import {Category} from '@budgetbuddyde/api/category';
 import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
+import {TransactionSchemas, transactionReceiverView, transactions} from '@budgetbuddyde/db/backend';
 import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
-import {transactionReceiverView, transactions} from '../db/schema';
-import {TransactionSchemas} from '../db/schema/types';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 

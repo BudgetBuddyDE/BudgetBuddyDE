@@ -45,7 +45,6 @@ Currently, users can log in and authenticate using an Email/Password combination
 - **Database**: [PostgreSQL](https://github.com/postgres/postgres)
 - **Cache**: [Redis](https://github.com/redis/redis)
 - **Authentication Library**: [Better-Auth](https://github.com/better-auth/better-auth)
-- **ORM**: [Drizzle Kit](https://orm.drizzle.team/)
 
 ### Structure
 
@@ -142,24 +141,6 @@ http://localhost:8080/api/auth/callback/<PROVIDER> # e.g. google, github
 https://auth.service/api/auth/callback/<PROVIDER> # e.g. google, github
 ```
 
-### Database Migrations
-
-<Callout type="info">
-  The environment variable `DATABASE_URL` must be set for migrations to be executed.
-</Callout>
-
-Database migrations are managed using Drizzle Kit. To create a new migration (for the database), the following command can be used:
-
-```bash
-npm run db:generate
-```
-
-Using the following command, the migrations can be applied to the database:
-
-```bash
-npm run db:migrate
-```
-
 ## Deployment
 
 The service is automatically deployed via a Railway CI/CD pipeline on every push to the `main` branch.
@@ -187,6 +168,7 @@ import RailwayDeployment from "../../../src/components/RailwayDeployment";
 
 The Auth Service uses the following internal packages:
 
+- [`@budgetbuddyde/db`](/docs/packages/db)
 - [`@budgetbuddyde/logger`](/docs/packages/logger)
 - [`@budgetbuddyde/types`](/docs/packages/types)
 - [`@budgetbuddyde/utils`](/docs/packages/utils)

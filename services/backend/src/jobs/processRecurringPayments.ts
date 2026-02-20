@@ -1,5 +1,5 @@
+import {transactions} from '@budgetbuddyde/db/backend';
 import {db} from '../db';
-import {transactions} from '../db/schema';
 import {logger} from '../lib';
 
 /**

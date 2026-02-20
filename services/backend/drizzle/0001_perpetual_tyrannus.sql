@@ -1,2 +1,0 @@
-DROP VIEW "budgetbuddy_backend"."transaction_receiver_view";--> statement-breakpoint
-CREATE VIEW "budgetbuddy_backend"."transaction_receiver_view" AS ((select distinct "receiver", "owner_id" from "budgetbuddy_backend"."transaction") union (select distinct "receiver", "owner_id" from "budgetbuddy_backend"."recurring_payment"));
