@@ -1,6 +1,7 @@
 'use client';
 
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
+import {TableChartRounded} from '@mui/icons-material';
 import {Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from '@mui/material';
 import {subMonths} from 'date-fns';
 import React from 'react';
@@ -9,6 +10,7 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {Card} from '@/components/Card';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangePicker';
+import {NoResults} from '@/components/NoResults';
 import {useFetch} from '@/hooks/useFetch';
 import {Formatter} from '@/utils/Formatter';
 
@@ -60,30 +62,40 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
           <Card.Subtitle>{showCategory ? 'Grouped by date and category' : 'Grouped by date'}</Card.Subtitle>
         </Stack>
 
-        <Card.HeaderActions actionPaperProps={{sx: {p: 1}}}>
-          {isLoading ? (
-            <Skeleton variant={'rounded'} width={300} height={36} />
-          ) : (
-            <DateRangePicker
-              size={'small'}
-              defaultValue={DEFAULT_DATE_RANGE}
-              slotProps={{
-                startDateTicker: {
-                  openTo: 'month',
-                  view: 'month',
-                },
-                endDateTicker: {
-                  openTo: 'month',
-                  view: 'month',
-                },
-              }}
-              onDateRangeChange={handleDateRangeChange}
-            />
-          )}
-        </Card.HeaderActions>
+        {isLoading ||
+          (!isLoading && data && data.length > 0 && (
+            <Card.HeaderActions actionPaperProps={{sx: {p: 1}}}>
+              {isLoading ? (
+                <Skeleton variant={'rounded'} width={300} height={36} />
+              ) : (
+                <DateRangePicker
+                  size={'small'}
+                  defaultValue={DEFAULT_DATE_RANGE}
+                  slotProps={{
+                    startDateTicker: {
+                      openTo: 'month',
+                      view: 'month',
+                    },
+                    endDateTicker: {
+                      openTo: 'month',
+                      view: 'month',
+                    },
+                  }}
+                  onDateRangeChange={handleDateRangeChange}
+                />
+              )}
+            </Card.HeaderActions>
+          ))}
       </Card.Header>
       <Card.Body>
         {error !== null && <ErrorAlert error={error} sx={{m: 2}} />}
+        {!isLoading && data && data.length === 0 && (
+          <NoResults
+            icon={<TableChartRounded />}
+            text={'Create a transaction to begin tracking your activity.'}
+            sx={{m: 2}}
+          />
+        )}
         {!isLoading && data && data.length > 0 && (
           <TableContainer component={ActionPaper}>
             <Table size={dense ? 'small' : 'medium'} aria-label="historical balance table">

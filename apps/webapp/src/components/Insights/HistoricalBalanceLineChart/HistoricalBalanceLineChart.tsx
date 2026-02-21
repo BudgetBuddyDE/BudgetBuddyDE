@@ -1,6 +1,7 @@
 'use client';
 
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
+import {SsidChartRounded} from '@mui/icons-material';
 import {Skeleton, Stack, useTheme} from '@mui/material';
 import {subMonths} from 'date-fns';
 import React from 'react';
@@ -10,6 +11,7 @@ import {Card} from '@/components/Card';
 import {BarLineChart} from '@/components/Charts';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangePicker';
+import {NoResults} from '@/components/NoResults';
 import {useFetch} from '@/hooks/useFetch';
 import {Formatter} from '@/utils/Formatter';
 
@@ -105,7 +107,14 @@ export const HistoricalBalanceLineChart: React.FC<HistoricalBalanceLineChartProp
         <ActionPaper>
           {error !== null && <ErrorAlert error={error} sx={{m: 2}} />}
           {isLoading && <Skeleton variant={'rounded'} height={300} />}
-          {!isLoading && (
+          {!isLoading && chartData.balances.length === 0 && (
+            <NoResults
+              icon={<SsidChartRounded />}
+              text={'Create your first transaction to see your data here.'}
+              sx={{m: 2}}
+            />
+          )}
+          {!isLoading && chartData.balances.length > 0 && (
             <BarLineChart
               height={300}
               xAxis={[
