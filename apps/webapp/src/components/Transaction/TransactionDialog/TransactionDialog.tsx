@@ -32,7 +32,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
 }) => {
   const theme = useTheme();
   const isFullscreen = useMediaQuery(theme.breakpoints.down('md'));
-  const dialogMaxWidth: DialogProps['maxWidth'] = isFullscreen ? undefined : 'sm';
+  const dialogMaxWidth: DialogProps['maxWidth'] = isFullscreen ? undefined : 'md';
 
   const handleDialogClose: DialogProps['onClose'] = (event, reason) => {
     if (onClose !== undefined) onClose(event, reason);
