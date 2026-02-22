@@ -118,7 +118,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     const [relatedTransactions, error] = await apiClient.backend.transaction.getAll({
       $dateFrom: firstDayOfMonth,
       $dateTo: today,
-      $categories: relatedCategories,
+      [budget.type === 'i' ? '$categories' : '$excl_categories']: relatedCategories,
     });
     if (error) {
       dispatchTransactionDialogAction({action: 'FETCH_ERROR', error});
