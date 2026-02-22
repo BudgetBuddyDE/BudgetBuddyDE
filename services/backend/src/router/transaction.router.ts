@@ -45,7 +45,17 @@ transactionRouter.get(
         .or(Category.shape.id)
         .transform(value => (Array.isArray(value) ? value : [value]))
         .optional(),
+      $excl_categories: z
+        .array(Category.shape.id)
+        .or(Category.shape.id)
+        .transform(value => (Array.isArray(value) ? value : [value]))
+        .optional(),
       $paymentMethods: z
+        .array(PaymentMethod.shape.id)
+        .or(PaymentMethod.shape.id)
+        .transform(value => (Array.isArray(value) ? value : [value]))
+        .optional(),
+      $excl_paymentMethods: z
         .array(PaymentMethod.shape.id)
         .or(PaymentMethod.shape.id)
         .transform(value => (Array.isArray(value) ? value : [value]))
@@ -74,8 +84,14 @@ transactionRouter.get(
     if (query.$categories) {
       additionalFilters.push({columnName: 'categoryId', operator: 'in', value: query.$categories});
     }
+    if (query.$excl_categories) {
+      additionalFilters.push({columnName: 'categoryId', operator: 'notIn', value: query.$excl_categories});
+    }
     if (query.$paymentMethods) {
       additionalFilters.push({columnName: 'paymentMethodId', operator: 'in', value: query.$paymentMethods});
+    }
+    if (query.$excl_paymentMethods) {
+      additionalFilters.push({columnName: 'paymentMethodId', operator: 'notIn', value: query.$excl_paymentMethods});
     }
     const filter = assembleFilter(
       transactions,
