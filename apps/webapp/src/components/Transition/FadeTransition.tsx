@@ -1,10 +1,13 @@
 'use client';
 
-import Slide from '@mui/material/Slide';
+import {Fade} from '@mui/material';
 import type {TransitionProps} from '@mui/material/transitions';
 import React from 'react';
 
-export const Transition = React.forwardRef(
+/**
+ * @documentation https://mui.com/material-ui/transitions/#fade
+ */
+export const FadeTransition = React.forwardRef(
   (
     props: TransitionProps & {
       // biome-ignore lint/suspicious/noExplicitAny: Could not find a better type
@@ -12,6 +15,6 @@ export const Transition = React.forwardRef(
     },
     ref: React.Ref<unknown>,
   ) => {
-    return <Slide direction="up" ref={ref} {...props} />;
+    return <Fade in={true} ref={ref} {...props} />;
   },
 );

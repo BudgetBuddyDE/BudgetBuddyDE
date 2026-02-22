@@ -30,21 +30,7 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
   const isOverBudget: boolean = (budget.balance ?? 0) > budget.budget;
 
   return (
-    <Stack
-      flexDirection={'row'}
-      alignItems={'center'}
-      justifyContent={'space-between'}
-      {...(onClickBudget && {
-        sx: {
-          ':hover': {
-            borderRadius: theme => `${theme.shape.borderRadius}px`,
-            backgroundColor: theme => theme.palette.action.hover,
-            cursor: 'pointer',
-          },
-        },
-        onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => onClickBudget(e, budget),
-      })}
-    >
+    <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'}>
       <Stack
         sx={{
           flex: 1,
@@ -52,8 +38,18 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
           alignItems: 'center',
           mr: 2,
           overflowX: 'scroll',
+          ':hover': onClickBudget
+            ? {
+                borderRadius: theme => `${theme.shape.borderRadius}px`,
+                backgroundColor: theme => theme.palette.action.hover,
+                cursor: 'pointer',
+              }
+            : undefined,
           ...HideHorizontalScrollbarStyle,
         }}
+        {...(onClickBudget && {
+          onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => onClickBudget(e, budget),
+        })}
       >
         <Icon
           icon={isOverBudget ? <WarningRounded /> : <ThumbUpAltRounded />}

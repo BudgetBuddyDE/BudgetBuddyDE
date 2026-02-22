@@ -10,7 +10,7 @@ import {
   type DialogProps as MuiDialogProps,
 } from '@mui/material';
 import type React from 'react';
-import {Transition} from '@/components/Transition';
+import {SlideTransition} from '@/components/Transition';
 
 export type DeleteDialogProps = Pick<
   MuiDialogProps,
@@ -49,7 +49,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
       TransitionComponent={
         withTransition
           ? !transitionProps.TransitionComponent
-            ? Transition
+            ? SlideTransition
             : transitionProps.TransitionComponent
           : undefined
       }

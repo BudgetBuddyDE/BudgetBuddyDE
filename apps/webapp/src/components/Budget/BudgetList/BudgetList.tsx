@@ -22,6 +22,11 @@ import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {Pagination} from '@/components/Table/EntityTable/Pagination';
+import {
+  generateDefaultState as generateDefaultTransactionDialogState,
+  TransactionDialog,
+  reducer as TransactionDialogReducer,
+} from '@/components/Transaction/TransactionDialog';
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -55,6 +60,10 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
   const [deleteDialogState, dispatchDeleteDialogAction] = React.useReducer(
     deleteDialogReducer,
     getInitialDeleteDialogState<TBudget['id']>(),
+  );
+  const [transactionDialogState, dispatchTransactionDialogAction] = React.useReducer(
+    TransactionDialogReducer,
+    generateDefaultTransactionDialogState(),
   );
 
   const handleCreateEntity = () => {
@@ -100,7 +109,27 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     dispatch(refresh());
   };
 
-  const handleClickEntity: BudgetItemProps['onClickBudget'] = () => {};
+  const handleClickEntity: BudgetItemProps['onClickBudget'] = async (_event, budget) => {
+    dispatchTransactionDialogAction({action: 'OPEN_AND_FETCH_DATA'});
+
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const relatedCategories = budget.categories.map(category => category.id);
+    const [relatedTransactions, error] = await apiClient.backend.transaction.getAll({
+      $dateFrom: firstDayOfMonth,
+      $dateTo: today,
+      $categories: relatedCategories,
+    });
+    if (error) {
+      dispatchTransactionDialogAction({action: 'FETCH_ERROR', error});
+      return;
+    }
+
+    dispatchTransactionDialogAction({
+      action: 'FETCH_SUCCESS',
+      transactions: relatedTransactions?.data ? relatedTransactions.data : [],
+    });
+  };
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -380,6 +409,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
               } else handleDeleteEntity(id);
             },
           });
+        }}
+      />
+      <TransactionDialog
+        {...transactionDialogState}
+        onClose={() => {
+          dispatchTransactionDialogAction({action: 'CLOSE'});
         }}
       />
     </React.Fragment>

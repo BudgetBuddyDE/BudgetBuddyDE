@@ -13,7 +13,7 @@ import {
 import type React from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {PasswordInput} from '@/components/Form/PasswordInput';
-import {Transition} from '@/components/Transition';
+import {ZoomTransition} from '@/components/Transition';
 
 export type DeleteDialogProps = Pick<
   MuiDialogProps,
@@ -53,7 +53,7 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
       TransitionComponent={
         withTransition
           ? !transitionProps.TransitionComponent
-            ? Transition
+            ? ZoomTransition
             : transitionProps.TransitionComponent
           : undefined
       }
