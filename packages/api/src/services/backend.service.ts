@@ -97,15 +97,17 @@ export class BackendService {
 		const queryParams = new URLSearchParams();
 		if (query === undefined) return queryParams;
 
+		// biome-ignore lint/suspicious/noExplicitAny: This function is used to convert any query object to URLSearchParams, so we need to accept any type of value
+		const datesToString = (v: any) => {
+			const isDate = v instanceof Date;
+			return isDate
+				? // en-CA format yields YYYY-MM-DD which is ISO 8601 compliant
+					// new Intl.DateTimeFormat("en-CA").format(value)
+					v.toLocaleDateString("en-CA")
+				: String(v);
+		};
+
 		Object.entries(query).forEach(([key, value]) => {
-			const datesToString = (v: typeof value) => {
-				const isDate = v instanceof Date;
-				return isDate
-					? // en-CA format yields YYYY-MM-DD which is ISO 8601 compliant
-						// new Intl.DateTimeFormat("en-CA").format(value)
-						value.toLocaleDateString("en-CA")
-					: String(value);
-			};
 			if (Array.isArray(value)) {
 				value.forEach((v) => {
 					queryParams.append(key, datesToString(v));
