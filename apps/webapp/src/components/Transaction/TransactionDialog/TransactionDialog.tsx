@@ -42,6 +42,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
     <Dialog
       fullScreen={isFullscreen}
       maxWidth={dialogMaxWidth}
+      fullWidth
       open={isOpen}
       onClose={handleDialogClose}
       scroll={'paper'}
