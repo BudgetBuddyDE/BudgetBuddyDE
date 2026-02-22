@@ -6,5 +6,7 @@ export interface IGetAllTransactionsQuery extends IBaseGetAllQuery {
 	$dateFrom?: Date;
 	$dateTo?: Date;
 	$categories?: TCategory["id"][];
+	$excl_categories?: TCategory["id"][];
 	$paymentMethods?: TPaymentMethod["id"][];
+	$excl_paymentMethods?: TPaymentMethod["id"][];
 }

@@ -6,5 +6,7 @@ export interface IGetAllRecurringPaymentsQuery extends IBaseGetAllQuery {
 	$executeFrom?: number;
 	$executeTo?: number;
 	$categories?: TCategory["id"][];
+	$excl_categories?: TCategory["id"][];
 	$paymentMethods?: TPaymentMethod["id"][];
+	$excl_paymentMethods?: TPaymentMethod["id"][];
 }
