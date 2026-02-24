@@ -1,0 +1,112 @@
+# Project information
+site_name: Documentation
+site_url: https://docs.budgetbuddy.de
+site_author: Thorben Klein
+site_description: >-
+  Write your documentation in Markdown and create a professional static site in
+  minutes – searchable, customizable, in 60+ languages, for all devices
+
+# Repository
+repo_name: BudgetBuddyDE
+repo_url: https://github.com/BudgetBuddyDE/BudgetBuddyDE
+
+# Copyright
+copyright: Copyright &copy; 2021 - 2026 Thorben Klein
+
+# Configuration
+theme:
+  name: material
+  features:
+    - navigation.footer
+    - content.code.copy
+    - content.code.select
+#    - content.action.edit
+#    - content.action.view
+    - navigation.footer
+    - navigation.indexes
+    - # - navigation.instant
+    - # - navigation.instant.prefetch
+    - # - navigation.instant.progress
+    - # - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+#      primary: #151936
+#      accent: #151936
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+#      primary: #151936
+#      accent: indigo
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to system preference
+  font:
+    text: Roboto
+    code: Roboto Mono
+  favicon: assets/favicon.ico
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - git-revision-date-localized:
+      enabled: !ENV [ CI, false ]
+      enable_creation_date: true
+  - git-committers:
+      enabled: !ENV [ CI, false ]
+      repository: BudgetBuddyDE/BudgetBuddyDE
+      branch: main
+  - git-authors
+
+# Additional configuration
+extra:
+  status:
+    new: Recently added
+    deprecated: Deprecated
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/BudgetBuddyDE
+
+# Extensions
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - gfm_admonition
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details

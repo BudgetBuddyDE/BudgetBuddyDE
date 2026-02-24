@@ -41,16 +41,16 @@ This project is organized as a monorepo using [Turbo](https://turbo.build/).
 
 ### Services
 
-- **[Auth Service](services/auth-service):** Handles user authentication and authorization.
-- **[Backend](services/backend):** The main backend service providing the API.
+- **[Auth Service](./apps/documentation/docs/services/auth-service.md):** Handles user authentication and authorization.
+- **[Backend](./apps/documentation/docs/services/backend.md):** The main backend service providing the API.
 
 ### Packages
 
-- **[Database](packages/db):** DrizzleORM database schema definitions.
-- **[Api](packages/api):** Type-safe API client for backend communication.`
-- **[Logger](packages/logger):** Shared logging utility.
-- **[Utils](packages/utils):** Shared utility functions.
-- **[Types](packages/types):** Shared TypeScript types and schemas.
+- **[Database](./apps/documentation/docs/packages/db.md):** DrizzleORM database schema definitions.
+- **[Api](./apps/documentation/docs/packages/api.md):** Type-safe API client for backend communication.`
+- **[Logger](./apps/documentation/docs/packages/logger.md):** Shared logging utility.
+- **[Utils](./apps/documentation/docs/packages/utils.md):** Shared utility functions.
+- **[Types](./apps/documentation/docs/packages/types.md):** Shared TypeScript types and schemas.
 
 ## Features
 
@@ -67,7 +67,7 @@ This project is organized as a monorepo using [Turbo](https://turbo.build/).
 ## Getting started
 
 > [!TIP]
-> For a complete guide on how to set up the project locally or in production, it's recommended to check [the documentation](apps/website/content/docs/index.mdx).
+> For a complete guide on how to set up the project locally or in production, it's recommended to check [the documentation](https://docs.budget-buddy.de).
 
 1. Clone this repository
 
