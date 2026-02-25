@@ -25,7 +25,7 @@ import {Pagination} from '@/components/Table/EntityTable/Pagination';
 import {
   generateDefaultState as generateDefaultTransactionDialogState,
   TransactionDialog,
-  reducer as TransactionDialogReducer,
+  reducer as TransactionDialogReducer, TransactionDialogProps,
 } from '@/components/Transaction/TransactionDialog';
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
@@ -131,9 +131,9 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     });
   };
 
-  const handleCloseTransactionDialog: BudgetItemProps['onClose'] = () => {
+  const handleCloseTransactionDialog: TransactionDialogProps['onClose'] = () => {
     dispatchTransactionDialogAction({action: 'CLEAR'});
-  }
+  };
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -415,10 +415,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
           });
         }}
       />
-      <TransactionDialog
-        {...transactionDialogState}
-        onClose={handleCloseTransactionDialog}
-      />
+      <TransactionDialog {...transactionDialogState} onClose={handleCloseTransactionDialog} />
     </React.Fragment>
   );
 };
