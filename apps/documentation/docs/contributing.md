@@ -1,15 +1,20 @@
-# Contributing
+---
+title: Contributing
+icon: lucide/git-graph
+tags: [contributing]
+---
 
-## Conventional Commits
+!!! tip 
+    We follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification for commit messages. This helps us maintain a clear and consistent commit history, making it easier to understand the changes made to the codebase.
 
-### Quick examples
+## Quick examples
 
 - `feat: new feature`
 - `fix(scope): bug in scope`
 - `feat!: breaking change` / `feat(scope)!: rework API`
 - `chore(deps): update dependencies`
 
-### Commit types
+## Commit types
 
 - `build`: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
 - `ci`: Changes to CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
@@ -22,8 +27,3 @@
 - `revert`: Revert something
 - `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
 - `test`: Adding missing tests or correcting existing tests
-
-### Reminders
-
-- Put newline before extended commit body
-- More details at **[conventionalcommits.org](https://www.conventionalcommits.org/)**

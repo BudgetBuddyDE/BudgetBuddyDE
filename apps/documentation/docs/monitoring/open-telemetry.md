@@ -1,4 +1,9 @@
-# OpenTelemetry
+---
+title: OpenTelemetry
+icon: lucide/telescope
+tags: 
+    - monitoring
+---
 
 ## What is OpenTelemetry?
 
@@ -8,6 +13,7 @@
 OpenTelemetry is an open-source framework that enables a unified method for transmitting telemetry data such as metrics, logs, and traces.
 
 **Articles**
+
 - [What is OpenTelemetry?](https://opentelemetry.io/docs/what-is-opentelemetry/)
 - [OpenTelemetry Glossary](https://opentelemetry.io/docs/specs/otel/glossary)
 - [OpenTelemetry Concepts: Signals](https://opentelemetry.io/docs/concepts/signals/)

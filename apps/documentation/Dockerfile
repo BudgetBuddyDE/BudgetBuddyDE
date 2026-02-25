@@ -10,11 +10,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy documentation files
-COPY mkdocs.yml .
+COPY zensical.toml .
 COPY docs/ ./docs/
 
 # Build the documentation
-RUN mkdocs build
+RUN zensical build
 
 # Production stage
 FROM nginx:alpine

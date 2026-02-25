@@ -1,10 +1,18 @@
+---
+title: Webapp
+icon: lucide/app-window
+tags:
+    - app
+---
+
 # Webapp 
 
 ## Overview
 
 ![version](https://img.shields.io/github/v/tag/budgetbuddyde/budgetbuddyde?filter=webapp*&cacheSeconds=3600)
 
-The Webapp is the main application of BudgetBuddyDE, providing users with an intuitive and user-friendly interface to manage their finances. It is based on Next.js with TypeScript and uses the [auth-service](../services/auth-service.md) as well as the [backend](../services/backend.md) to process and store data.
+The Webapp is the main application of BudgetBuddyDE, providing users with an intuitive and user-friendly interface to manage their finances. 
+It is based on Next.js with TypeScript and uses the [auth-service](../services/auth-service.md#overview) as well as the [backend](../services/backend.md) to process and store data.
 
 ## Features
 
@@ -72,8 +80,8 @@ npm run format
 | `TEMPO_URL`                        | Ingest URL for the Tempo tracing service | `http://tempo:4318` |
 | `NEXT_OTEL_VERBOSE`                | Enable verbose OpenTelemetry tracing     | `undefined`         |
 
-> [!NOTE]
-> The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality. Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
+!!! note
+    The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality. Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
 
 For more information on setting up OpenTelemetry for Next.js, refer to the [official documentation](https://nextjs.org/docs/15/app/guides/open-telemetry).
 

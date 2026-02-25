@@ -1,4 +1,7 @@
-# Website
+---
+title: Website
+icon: lucide/globe
+---
 
 ## Overview
 
@@ -33,11 +36,10 @@ npm run dev
 | `TEMPO_URL`                        | Ingest URL for the Tempo tracing service | `http://tempo:4318` |
 | `NEXT_OTEL_VERBOSE`                | Enable verbose OpenTelemetry tracing     | `undefined`         |
 
-> [!IMPORTANT]
-> Tracing is currently disabled for the website due to high resource consumption and no real benefit of tracing the website.
-
-> [!NOTE]
-> The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality. Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
+!!! note
+    The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality. Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
+    !!! important
+        Tracing is currently disabled for the website due to high resource consumption and no real benefit of tracing the website.
 
 For more information on setting up OpenTelemetry for Next.js, refer to the [official documentation](https://nextjs.org/docs/15/app/guides/open-telemetry).
 

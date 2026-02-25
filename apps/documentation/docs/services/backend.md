@@ -1,4 +1,10 @@
-# Backend
+---
+title: Backend
+icon: lucide/container
+tags: 
+    - service
+    - backend
+---
 
 ## Overview 
 
@@ -102,9 +108,9 @@ npm run format
 
 
 
-> [!IMPORTANT]
->   The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.
-> If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
+!!! important
+    The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.
+    If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
 
 ## Deployment
 

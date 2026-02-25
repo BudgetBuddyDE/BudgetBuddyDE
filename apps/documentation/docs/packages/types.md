@@ -1,4 +1,9 @@
-# @budgetbuddyde/types
+---
+title: "@budgetbuddyde/types"
+icon: lucide/package
+tags:
+    - package
+---
 
 ## About
 

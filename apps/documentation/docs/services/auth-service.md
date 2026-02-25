@@ -1,4 +1,10 @@
-# Auth Service
+---
+title: Auth Service
+icon: lucide/container
+tags: 
+    - service
+    - auth
+---
 
 ## Overview
 
@@ -100,25 +106,25 @@ npm run format
 | `LOKI_URL`             | URL for the Loki logging service                                   | `http://loki:3100`  |
 | `TEMPO_URL`            | Ingest URL for the Tempo tracing service                           | `http://tempo:4318` |
 
-> [!NOTE]
-> The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.
-> If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
+!!! note
+    The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.
+    If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
 
 #### OAuth
 
 The callback URLs for the OAuth providers must be configured as follows:
 
-**Local**
+=== "Local"
 
-```
-http://localhost:8080/api/auth/callback/<PROVIDER> # e.g. google, github
-```
+    ```
+    http://localhost:8080/api/auth/callback/<PROVIDER> # e.g. google, github
+    ```
 
-**Production Environment**
+=== "Production"
 
-```
-https://auth.service/api/auth/callback/<PROVIDER> # e.g. google, github
-```
+    ```
+    https://auth.service/api/auth/callback/<PROVIDER> # e.g. google, github
+    ```
 
 ## Deployment
 
@@ -147,7 +153,7 @@ BudgetBuddyDE is designed to be easily deployable on [Railway](https://railway.a
 
 The Auth Service uses the following internal packages:
 
-- [`@budgetbuddyde/db`](../packages/db.md)
-- [`@budgetbuddyde/logger`](../packages/logger.md)
-- [`@budgetbuddyde/types`](../packages/types.md)
-- [`@budgetbuddyde/utils`](../packages/utils.md)
+- [@budgetbuddyde/db](../packages/db.md)
+- [@budgetbuddyde/logger](../packages/logger.md)
+- [@budgetbuddyde/types](../packages/types.md)
+- [@budgetbuddyde/utils](../packages/utils.md)

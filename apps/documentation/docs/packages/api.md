@@ -1,4 +1,9 @@
-# @budgetbuddyde/api
+---
+title: "@budgetbuddyde/api"
+icon: lucide/package
+tags:
+    - package
+---
 
 ## About
 
@@ -10,7 +15,7 @@
 A type-safe, Zod-validated API client for BudgetBuddy backend services. This package provides a unified interface for communicating with all backend endpoints and offers runtime validation as well as full TypeScript support.
 
 ## Features 
-- 
+
 - Automatic Zod validation of all responses
 - Type-safe request/response handling
 - Query parameter serialization

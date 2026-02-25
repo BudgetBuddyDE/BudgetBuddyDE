@@ -1,72 +1,24 @@
-# Getting started
+---
+title: Getting started
+description: Get started with Zensical, the static site generator for documentation.
+icon: lucide/rocket
+status: new # deprecated
+---
 
-## Components
+## About
 
-<div class="grid" markdown>
-
-[:material-monitor-multiple: Apps](apps/webapp.md)
-{ .card }
-
-[:octicons-container-24: Servies](services/backend.md)
-{ .card }
-
-[:fontawesome-brands-npm: Packages](packages/api.md)
-{ .card }
-
-</div>
-
-## Technical
-
-<div class="grid" markdown>
-
-[:material-monitor-multiple: Apps](apps/webapp.md)
-{ .card }
-
-[:octicons-container-24: Servies](services/backend.md)
-{ .card }
-
-[:fontawesome-brands-npm: Packages](packages/api.md)
-{ .card }
-
-</div>
+Worum handelt es sich (fachlich) in diesem Projekt?
+Mit welchen Technologien wurde es umgesetzt?
 
 ## Features
 
-> [!TIP]
-> Hilfreiche Tipps für bessere Ergebnisse.
+- Welche Funktionalitäten bietet das Projekt?
 
----
+- Welche Funktionalitäten sind geplant?
 
-# Welcome to MkDocs
+## Guides
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
-
-## Commands
-
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
-
-
-> [!NOTE]
-> Nützliche Informationen für Benutzer.
-
-> [!TIP]
-> Hilfreiche Tipps für bessere Ergebnisse.
-
-> [!IMPORTANT]
-> Wichtige Informationen, die Benutzer beachten sollten.
-
-> [!WARNING]
-> Dringende Informationen, die sofortige Aufmerksamkeit erfordern.
-
-> [!CAUTION]
-> Warnungen vor negativen Konsequenzen bestimmter Aktionen.
+- Start developing
+- Deployment
+- CI/CD
+- How to document (umgang mit der Dokumentation)

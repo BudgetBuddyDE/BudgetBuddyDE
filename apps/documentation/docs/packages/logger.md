@@ -1,4 +1,9 @@
-# @budgetbuddyde/logger
+---
+title: "@budgetbuddyde/logger"
+icon: lucide/package
+tags:
+    - package
+---
 
 ## About
 

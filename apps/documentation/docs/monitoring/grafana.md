@@ -1,4 +1,10 @@
-# Grafana
+---
+title: Grafana
+icon: lucide/combine
+tags: 
+    - service
+    - monitoring
+---
 
 ## Overview
 
@@ -6,16 +12,16 @@ A self-hosted Grafana instance is used to provide metrics and dashboards for the
 
 For the basic configuration of the services, the [railway-grafana-stack](https://github.com/MykalMachon/railway-grafana-stack) template was used and subsequently adapted for our services and deployment in the Railway Cloud.
 
-> [!NOTE]
-> The configuration stored in the repository under `/monitoring` is adapted to our services and operation in the Railway Cloud runtime environment. If the services are deployed on a VPS or locally, adjustments to the configuration may be necessary for a smooth experience.
+!!! note
+    The configuration stored in the repository under `/monitoring` is adapted to our services and operation in the Railway Cloud runtime environment. If the services are deployed on a VPS or locally, adjustments to the configuration may be necessary for a smooth experience.
 
 ## Services 
 
-> [!NOTE]
-> The services described here (Grafana, Loki, Prometheus, Tempo) and associated configurations refer to the necessary configurations of the "monitoring services" in the Railway Cloud.
+!!! note
+    The services described here (Grafana, Loki, Prometheus, Tempo) and associated configurations refer to the necessary configurations of the "monitoring services" in the Railway Cloud.
 
-> [!WARNING]
-> In the current configuration, authentication mechanisms are disabled (e.g., `auth_enabled: false` in Loki). This is acceptable for operation in a protected environment (e.g., Railway Cloud without public networking), but should be reconsidered and adapted in production environments with public access to prevent unauthorized access.
+!!! warning
+    In the current configuration, authentication mechanisms are disabled (e.g., `auth_enabled: false` in Loki). This is acceptable for operation in a protected environment (e.g., Railway Cloud without public networking), but should be reconsidered and adapted in production environments with public access to prevent unauthorized access.
 
 ### Grafana
 

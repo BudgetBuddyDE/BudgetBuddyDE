@@ -1,8 +1,12 @@
-# Deployment
+---
+title: Deployment
+icon: lucide/server-cog
+tags: [deployment, ci/cd]
+---
 
 ## Self-Hosted (Docker Compose)
 
-You can easily host the backend services (Auth Service, Backend, Database, Cache) yourself using Docker Compose.
+You can easily host the backend services ([auth-services](./services/auth-service.md#overview){data-preview}, [backend](./services/backend.md#overview){data-preview}, database and cache) yourself using `docker-compose`.
 
 ### Prerequisites
 
@@ -25,8 +29,8 @@ Use the `docker-compose.yml` from the repository.
     - **Auth Service**: `http://localhost:8080`
     - **Backend**: `http://localhost:9000`
 
-> [!WARNING]
-> The Webapp is currently not included in this Docker Compose setup. You can deploy it separately (e.g., on Vercel) or build a Docker image for it manually.
+!!! warning
+    The Webapp is currently not included in this Docker Compose setup. You can deploy it separately (e.g., on Vercel) or build a Docker image for it manually.
 
 ## Railway
 
@@ -38,10 +42,11 @@ BudgetBuddyDE is designed to be easily deployable on [Railway](https://railway.a
 
 It is possible to configure the runtime of a service in the Railway cloud using `railway.json` files. These are located in the directory of a service or an app.
 The Railway documentation offers some help regarding the possible configuration options...
+
 - [Railway Docs: Using Config as Code](https://docs.railway.com/guides/config-as-code)
 - [Railway Docs: Using Config as Code -> Configurable settings](https://docs.railway.com/reference/config-as-code#configurable-settings)
 
-```json title="Template"
+```json title="railway.json"
 {
    "$schema": "https://railway.com/railway.schema.json",
    "build": {
