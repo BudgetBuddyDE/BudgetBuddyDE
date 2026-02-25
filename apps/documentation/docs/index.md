@@ -13,12 +13,16 @@ A concise guide to this documentation project and how to use Zensical as the sta
 
 ### Core App Features
 
-- **Comprehensive Dashboard** — Get a real-time overview of your financial health with interactive statistics, upcoming recurring payments, and latest transactions.
-- **Detailed Transaction Management** — Easily record, categorize, and track every income and expense to maintain a clear financial history.
-- **Automated Recurring Payments** — Manage subscriptions and scheduled bills effortlessly with automatic tracking and upcoming payment reminders.
-- **Smart Budgeting** — Set monthly financial goals for different categories and monitor your progress with visual budget indicators.
-- **Financial Analytics & Insights** — Visualize your spending habits through interactive charts, including category-based expense breakdowns and budget distribution.
-- **Customizable Infrastructure** — Define your own categories and payment methods (e.g., bank accounts, cash, credit cards) to fit your personal workflow.
+- [x] **Comprehensive Dashboard** — Get a real-time overview of your financial health with interactive statistics, upcoming recurring payments, and latest transactions.
+- [x] **Detailed Transaction Management** — Easily record, categorize, and track every income and expense to maintain a clear financial history.
+- [x] **Automated Recurring Payments** — Manage subscriptions and scheduled bills effortlessly with automatic tracking and upcoming payment reminders.
+- [x] **Smart Budgeting** — Set monthly financial goals for different categories and monitor your progress with visual budget indicators.
+- [x] **Financial Analytics & Insights** — Visualize your spending habits through interactive charts, including category-based expense breakdowns and budget distribution.
+- [x] **Customizable Infrastructure** — Define your own categories and payment methods (e.g., bank accounts, cash, credit cards) to fit your personal workflow.
+- [ ] **Automated Reports** - Generate monthly financial summaries and insights to help you understand your spending patterns and make informed decisions.
+- [ ] **Attachments** — Upload and manage receipts, invoices, and other financial documents directly within the app for easy reference and organization.
+- [ ] **Model Context Protocol (MCP)** — Allow LLMs to interact with the app's data and functionality through a standardized interface, enabling advanced features like natural language queries and AI-driven insights.
+- [] **Insights** - Provide users with actionable insights based on their financial data, such as spending trends, budget recommendations, and personalized financial tips.
 
 ## Guides
 
