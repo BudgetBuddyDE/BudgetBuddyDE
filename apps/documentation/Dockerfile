@@ -3,6 +3,8 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /docs
 
+ENV GIT_PYTHON_REFRESH=none
+
 # Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
