@@ -14,7 +14,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         },
         {
           text: "Documentation",
-          url: "/docs",
+          url: "https://docs.budget-buddy.de",
         },
         {
           text: "CI/CD",

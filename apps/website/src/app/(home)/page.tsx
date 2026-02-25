@@ -175,7 +175,7 @@ const Hero = () => {
           Getting Started
         </a>
         <Link
-          href="/docs"
+          href="https://docs.budget-buddy.de"
           rel="noreferrer noopener"
           className={cn(
             buttonVariants({
