@@ -30,6 +30,11 @@
 
 </div>
 
+## Features
+
+> [!TIP]
+> Hilfreiche Tipps für bessere Ergebnisse.
+
 ---
 
 # Welcome to MkDocs

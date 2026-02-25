@@ -1,0 +1,71 @@
+# Start development
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (Latest LTS version recommended)
+- [npm](https://www.npmjs.com/) (Comes with Node.js)
+- [Git](https://git-scm.com/)
+
+## Getting Started
+
+Follow these steps to set up the project locally:
+
+1. **Clone the repository**
+
+   ```bash
+   git clone git@github.com:BudgetBuddyDE/BudgetBuddyDE.git
+   cd BudgetBuddyDE
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Build packages**
+
+   This project uses a monorepo structure. You need to build the shared packages first.
+
+   ```bash
+   npm run build-packages
+   ```
+
+## Running the Project
+
+Since this is a monorepo, you typically run the services and applications you are working on individually.
+
+### 1. Setup Services
+
+Both the **Auth Service** and **Backend** require environment variables and database setups.
+
+- **Auth Service**: Follow the [setup instructions](./../services/auth-service) to configure the environment and run database migrations.
+- **Backend**: Follow the [setup instructions](./../services/backend) to configure the environment and run database migrations.
+
+### 2. Start Services
+
+Navigate to the service directories and start them:
+
+**Auth Service:**
+```bash
+cd services/auth-service
+npm run watch
+```
+
+**Backend:**
+```bash
+cd services/backend
+npm run dev
+```
+
+### 3. Start the Webapp
+
+Once the services are running, you can start the web application:
+
+```bash
+cd apps/webapp
+npm run dev
+```
+
+The webapp should now be accessible at [http://localhost:3000](http://localhost:3000).
