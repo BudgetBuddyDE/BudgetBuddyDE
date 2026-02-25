@@ -43,7 +43,12 @@ Follow these steps to set up the project locally:
     # Both the Auth Service and the Backend require a database. You can use Docker to start the databases locally.
     docker compose up -d
    ```
-5. Start the apps and services
+5. Environment Variables
+   ```bash
+   # Most services require an .env file. You can find examples in the respective service directories.
+   cp .env.example .env
+   ```
+6. Start the apps and services
    ```bash
    # This will start all apps and services in development mode. You can also start individual apps and services if you only want to work on a specific part of the project.
    npm run dev
@@ -57,3 +62,9 @@ npm run format # Formats the code using biome.js
 npm run check # Checks the code for formatting issues, linting errors and type errors.
 npm run check:write # Checks the code and automatically fixes formatting issues and linting errors.
 ```
+
+### Troubleshooting
+
+- **Node Version**: Ensure you're using Node.js v20+ for compatibility with all features.
+- **Turbo Cache**: If you encounter unexpected build issues, try clearing the cache: `rm -rf .turbo`.
+- **Database Connection**: Verify that Docker is running and the database ports are not occupied.
