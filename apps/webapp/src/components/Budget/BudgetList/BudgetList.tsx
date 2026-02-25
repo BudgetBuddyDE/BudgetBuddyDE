@@ -131,6 +131,10 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     });
   };
 
+  const handleCloseTransactionDialog: BudgetItemProps['onClose'] = () => {
+    dispatchTransactionDialogAction({action: 'CLEAR'});
+  }
+
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
   };
@@ -413,9 +417,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       />
       <TransactionDialog
         {...transactionDialogState}
-        onClose={() => {
-          dispatchTransactionDialogAction({action: 'CLOSE'});
-        }}
+        onClose={handleCloseTransactionDialog}
       />
     </React.Fragment>
   );
