@@ -7,6 +7,7 @@ export default mergeConfig(baseConfig, defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     name: "webapp",
-    environment: "jsdom"
+    environment: "jsdom",
+    setupFiles: ["./src/vitest.setup.ts"],
   }
 }));

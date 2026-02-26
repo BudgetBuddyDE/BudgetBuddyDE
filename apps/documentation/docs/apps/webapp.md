@@ -85,6 +85,63 @@ npm run format
 
 For more information on setting up OpenTelemetry for Next.js, refer to the [official documentation](https://nextjs.org/docs/15/app/guides/open-telemetry).
 
+## Testing
+
+The Webapp uses [Vitest](https://vitest.dev/) with [Testing Library](https://testing-library.com/) for unit and component tests.
+
+### Setup
+
+The test configuration lives in `vitest.config.mts` at the app root and extends the workspace base config (`vitest.config.ts`). Key settings:
+
+- **Environment:** `jsdom` (simulates a browser DOM)
+- **Setup file:** `src/vitest.setup.ts` — extends Vitest with `@testing-library/jest-dom` matchers and globally mocks `next/navigation`
+- **Globals:** enabled (no explicit `import { describe, it, expect }` needed in test files)
+
+```ts title="vitest.config.mts"
+export default mergeConfig(baseConfig, defineConfig({
+  plugins: [tsconfigPaths(), react()],
+  test: {
+    name: "webapp",
+    environment: "jsdom",
+    setupFiles: ["./src/vitest.setup.ts"],
+  }
+}));
+```
+
+### Running Tests
+
+```bash
+# Run all tests once
+npm run test
+
+# Run in watch mode
+npm run test:watch
+```
+
+### Coverage
+
+| Category | Files |
+|---|---|
+| **UI Components** | `ErrorAlert`, `NoResults`, `CircularProgress`, `Card` (incl. Header/Title/Subtitle/Body/Footer/HeaderActions), `ActionPaper`, `CloseIconButton`, `AddFab`, `Brand`, `Icon`, `ReadMoreText`, `ErrorBoundary`, `SnackbarProvider` / `useSnackbarContext`, `DeleteDialog`, `PasswordInput` |
+| **Utilities** | `parseNumber`, `determineOS` / `isRunningOnIOs`, `CurrencyFormatter`, `DateFormatter`, `PercentageFormatter` |
+| **Hooks** | `useKeyPress`, `useWindowDimensions` / `getBreakpoint`, `useScreenSize` |
+
+### Conventions
+
+- Test files sit **next to the source file** they test (e.g. `ErrorAlert.tsx` → `ErrorAlert.test.tsx`).
+- Utility tests use `.spec.ts`, component tests use `.test.tsx`.
+- MUI components that have environment issues (e.g. `Snackbar`) are isolated by testing **context/hook behaviour** rather than full rendering.
+- `next/navigation` (`usePathname`, `useRouter`, `useSearchParams`) is globally mocked in `src/vitest.setup.ts` so components that use routing can be rendered without a Next.js runtime.
+- Error Boundary tests suppress `console.error` via `vi.spyOn` to keep test output clean.
+
+### Important Notes
+
+!!! warning "Snackbar rendering"
+    MUI's `Snackbar` component cannot be fully rendered in the jsdom environment (React 19 + MUI v7 compatibility). The `SnackbarProvider` tests therefore use `renderHook` to verify context behaviour instead of rendering the full provider tree.
+
+!!! note "next/navigation mock"
+    The global mock for `next/navigation` is applied in `src/vitest.setup.ts`. If a component requires specific router state (e.g. a particular pathname), override the mock locally with `vi.mocked(usePathname).mockReturnValue('/my-path')`.
+
 ## Deployment
 
 The service is automatically deployed via a Railway CI/CD pipeline on every push to the `main` branch.

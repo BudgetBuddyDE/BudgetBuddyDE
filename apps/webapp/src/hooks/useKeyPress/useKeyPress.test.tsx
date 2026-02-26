@@ -1,85 +1,55 @@
 import {fireEvent, render} from '@testing-library/react';
 import type React from 'react';
+import {describe, expect, it, vi} from 'vitest';
 
 import {useKeyPress} from './useKeyPress';
 
-const TestComponent: React.FC<{
+const KeyPressHelper: React.FC<{
   keys: string[];
   callback: (event: KeyboardEvent) => void;
   node?: HTMLElement | Document | null;
   requireCtrl?: boolean;
 }> = ({keys, callback, node = null, requireCtrl = false}) => {
   useKeyPress(keys, callback, node, requireCtrl);
-  return <div>Test Component</div>;
+  return <div>helper</div>;
 };
 
 describe('useKeyPress', () => {
   it('calls the callback when the specified key is pressed', () => {
     const callback = vi.fn();
-    const {getByText} = render(<TestComponent keys={['a']} callback={callback} />);
-    const div = getByText('Test Component');
-
-    div.focus();
-    fireEvent.keyDown(div, {key: 'a'});
-
-    expect(callback).toHaveBeenCalled();
+    render(<KeyPressHelper keys={['a']} callback={callback} />);
+    fireEvent.keyDown(document, {key: 'a'});
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call the callback when an unspecified key is pressed', () => {
+  it('does not call the callback for an unspecified key', () => {
     const callback = vi.fn();
-    const {getByText} = render(<TestComponent keys={['a']} callback={callback} />);
-    const div = getByText('Test Component');
-
-    div.focus();
-    fireEvent.keyDown(div, {key: 'b'});
-
-    expect(callback).not.toHaveBeenCalled();
-  });
-
-  it('calls the callback when the specified key and ctrl are pressed if requireCtrl is true', () => {
-    const callback = vi.fn();
-    const {getByText} = render(<TestComponent keys={['a']} callback={callback} requireCtrl />);
-    const div = getByText('Test Component');
-
-    div.focus();
-    fireEvent.keyDown(div, {key: 'a', ctrlKey: true});
-
-    expect(callback).toHaveBeenCalled();
-  });
-
-  it('does not call the callback when the specified key is pressed without ctrl if requireCtrl is true', () => {
-    const callback = vi.fn();
-    const {getByText} = render(<TestComponent keys={['a']} callback={callback} requireCtrl />);
-    const div = getByText('Test Component');
-
-    div.focus();
-    fireEvent.keyDown(div, {key: 'a', ctrlKey: false});
-
+    render(<KeyPressHelper keys={['a']} callback={callback} />);
+    fireEvent.keyDown(document, {key: 'z'});
     expect(callback).not.toHaveBeenCalled();
   });
 
   it('calls the callback for multiple specified keys', () => {
     const callback = vi.fn();
-    const {getByText} = render(<TestComponent keys={['a', 'b']} callback={callback} />);
-    const div = getByText('Test Component');
-
-    div.focus();
-    fireEvent.keyDown(div, {key: 'a'});
-    fireEvent.keyDown(div, {key: 'b'});
-
+    render(<KeyPressHelper keys={['a', 'b']} callback={callback} />);
+    fireEvent.keyDown(document, {key: 'a'});
+    fireEvent.keyDown(document, {key: 'b'});
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
-  it('works with a specified node other than document', () => {
+  it('requires ctrl key when requireCtrl is true', () => {
     const callback = vi.fn();
-    render(
-      <div>
-        <TestComponent keys={['a']} callback={callback} node={document.body} />
-      </div>,
-    );
+    render(<KeyPressHelper keys={['s']} callback={callback} requireCtrl />);
+    fireEvent.keyDown(document, {key: 's', ctrlKey: false});
+    expect(callback).not.toHaveBeenCalled();
+    fireEvent.keyDown(document, {key: 's', ctrlKey: true});
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
 
-    fireEvent.keyDown(document.body, {key: 'a'});
-
-    expect(callback).toHaveBeenCalled();
+  it('attaches listener to a custom node', () => {
+    const callback = vi.fn();
+    render(<KeyPressHelper keys={['x']} callback={callback} node={document.body} />);
+    fireEvent.keyDown(document.body, {key: 'x'});
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 });

@@ -3,23 +3,27 @@ import {describe, expect, test} from 'vitest';
 import {parseNumber} from './parseNumber';
 
 describe('parseNumber', () => {
-  test('should convert a positive number with comma to a decimal number', () => {
+  test('converts a positive number with comma to a decimal', () => {
     expect(parseNumber('123,32')).toBeCloseTo(123.32);
   });
 
-  test('should convert a negative number with comma to a decimal number', () => {
+  test('converts a negative number with comma to a decimal', () => {
     expect(parseNumber('-123,32')).toBeCloseTo(-123.32);
   });
 
-  test('should convert a whole number string without delimiters correctly', () => {
+  test('converts a whole number string without delimiters', () => {
     expect(parseNumber('123')).toEqual(123);
   });
 
-  test('should handle a string with period as decimal separator', () => {
+  test('handles a period as the decimal separator', () => {
     expect(parseNumber('123.45')).toEqual(123.45);
   });
 
-  test('should return NaN for non-numeric input', () => {
+  test('returns NaN for non-numeric input', () => {
     expect(parseNumber('abc')).toBeNaN();
+  });
+
+  test('returns 0 for "0"', () => {
+    expect(parseNumber('0')).toEqual(0);
   });
 });
