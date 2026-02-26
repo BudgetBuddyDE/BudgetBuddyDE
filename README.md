@@ -37,7 +37,8 @@ This project is organized as a monorepo using [Turbo](https://turbo.build/).
 ### Apps
 
 - **[Webapp](apps/webapp):** The main application for managing your budget.
-- **[Website](apps/website):** The landing page and documentation.
+- **[Website](apps/website):** The landing page.`
+- **[Documentation](apps/documentation):** The documentation.`
 
 ### Services
 

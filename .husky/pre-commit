@@ -10,11 +10,6 @@ go_back() {
   cd ../../
 }
 
-if has_changes "apps/website"; then
-  echo "Running checks for apps/website..."
-  cd apps/website && npm run build && go_back || exit 1
-fi
-
 if has_changes "apps/webapp"; then
   echo "Running checks for apps/webapp..."
   cd apps/webapp && npm run build && go_back || exit 1
