@@ -31,6 +31,7 @@ if (config.runtime === 'production') {
     rateLimit({
       ...config.rateLimit,
       store: new RedisStore({
+        prefix: `rate-limit:${config.service}:`,
         // biome-ignore lint/suspicious/noExplicitAny: ioredis returns unknown, rate-limit-redis expects RedisReply
         sendCommand: (...args: string[]) => getRedisClient().call(...(args as [string, ...string[]])) as any,
       }),
