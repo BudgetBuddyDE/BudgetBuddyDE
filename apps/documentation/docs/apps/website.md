@@ -7,41 +7,47 @@ icon: lucide/globe
 
 ![version](https://img.shields.io/github/v/tag/budgetbuddyde/budgetbuddyde?filter=website*&cacheSeconds=3600)
 
-## Architecture
+A simple, static marketing/landing page for [BudgetBuddy](https://budget-buddy.de), served via NGINX in a Docker container.
 
-### Technologies
+## Stack
 
-- Framework: [Next.js](https://github.com/nextjs/next.js)
-- Library: [Fumadocs](https://github.com/fuma-nama/fumadocs)
-- Language: [TypeScript](https://github.com/microsoft/TypeScript)
+- Plain HTML + CSS (no framework, no build step)
+- [NGINX 1.27 Alpine](https://hub.docker.com/_/nginx) as the web server
 
 ## Development
 
-### Start locally
+Open `public/index.html` directly in a browser, or spin up the container:
 
 ```bash
-# Install dependencies
-npm install
- 
-# Start in development mode
-npm run dev
+docker build -t ghcr.io/budgetbuddyde/website .
+docker run -p 8080:80 ghcr.io/budgetbuddyde/website
 ```
 
-### Configuration
+Then visit <http://localhost:8080>.
 
-#### Environment Variables
+## Structure
 
-| Variable                           | Description                              | Default value       |
-|------------------------------------|------------------------------------------|---------------------|
-| `TEMPO_URL`                        | Ingest URL for the Tempo tracing service | `http://tempo:4318` |
-| `NEXT_OTEL_VERBOSE`                | Enable verbose OpenTelemetry tracing     | `undefined`         |
+```
+website-static/
+├── public/
+│   ├── index.html   # Single-page website
+│   ├── styles.css   # All styles
+│   └── logo.png     # App logo
+├── nginx.conf       # NGINX server config
+├── Dockerfile
+└── README.md
+```
 
-!!! note
-    The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality. Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
-    !!! important
-        Tracing is currently disabled for the website due to high resource consumption and no real benefit of tracing the website.
+## Deployment
 
-For more information on setting up OpenTelemetry for Next.js, refer to the [official documentation](https://nextjs.org/docs/15/app/guides/open-telemetry).
+Build and push the Docker image, then run it on any container host:
+
+```bash
+docker build -t ghcr.io/budgetbuddyde/website:latest .
+docker push ghcr.io/budgetbuddyde/website:latest
+```
+
+The container listens on port **80**. Map it to whatever host port you need.
 
 ## Deployment
 
