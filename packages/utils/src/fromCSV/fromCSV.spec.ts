@@ -61,4 +61,31 @@ describe("fromCSV", () => {
 			{ city: "Paris", temp: "28" },
 		]);
 	});
+
+	test("it should return an empty array when only a header row is present", () => {
+		const csv = "name,age,active";
+		const result = fromCSV(csv);
+		expect(result).toEqual([]);
+	});
+
+	test("it should support a custom separator", () => {
+		const csv = "name;age\nAlice;30\nBob;25";
+		const result = fromCSV(csv, { separator: ";" });
+		expect(result).toEqual([
+			{ name: "Alice", age: "30" },
+			{ name: "Bob", age: "25" },
+		]);
+	});
+
+	test("it should support a custom separator with parseValues", () => {
+		const csv = "name;age\nAlice;30";
+		const result = fromCSV(csv, { separator: ";", parseValues: true });
+		expect(result).toEqual([{ name: "Alice", age: 30 }]);
+	});
+
+	test("it should keep float values as strings with defaultTransform (only integers are converted)", () => {
+		const csv = "value\n3.14\n2.71";
+		const result = fromCSV(csv, { parseValues: true });
+		expect(result).toEqual([{ value: "3.14" }, { value: "2.71" }]);
+	});
 });

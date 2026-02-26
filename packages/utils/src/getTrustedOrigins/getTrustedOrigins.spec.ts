@@ -35,4 +35,18 @@ describe("getTrustedOrigins", () => {
 		const origins = getTrustedOrigins();
 		expect(origins).toEqual([]);
 	});
+
+	it("should return origins with whitespace unmodified (no trimming)", () => {
+		process.env.TRUSTED_ORIGINS = " https://example.com , https://another.com ";
+		const origins = getTrustedOrigins();
+		expect(origins).toEqual([" https://example.com ", " https://another.com "]);
+	});
+
+	it("should handle three or more origins", () => {
+		process.env.TRUSTED_ORIGINS =
+			"https://a.com,https://b.com,https://c.com,https://d.com";
+		const origins = getTrustedOrigins();
+		expect(origins).toHaveLength(4);
+		expect(origins).toContain("https://c.com");
+	});
 });

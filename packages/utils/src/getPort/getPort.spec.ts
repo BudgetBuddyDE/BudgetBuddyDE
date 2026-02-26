@@ -24,4 +24,16 @@ describe("getPort", () => {
 		const port = getPort();
 		expect(port).toBe(3000);
 	});
+
+	it("should parse a float string as an integer port", () => {
+		process.env.PORT = "8080.9";
+		const port = getPort();
+		expect(port).toBe(8080);
+	});
+
+	it("should accept port 0 as a valid port number", () => {
+		process.env.PORT = "0";
+		const port = getPort(3000);
+		expect(port).toBe(0);
+	});
 });

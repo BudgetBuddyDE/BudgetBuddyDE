@@ -82,4 +82,24 @@ describe("toCSV", () => {
 	test("it should return empty string for empty array", () => {
 		expect(toCSV([], ["name"])).toBe("");
 	});
+
+	test("it should use the field name as header when no alias is provided in field object", () => {
+		const csv = toCSV(input, [{ field: "name" }, { field: "age" }]);
+		expect(csv).toBe("name,age\nJohn,55\nHubert,12");
+	});
+
+	test("it should handle a single-item array", () => {
+		const csv = toCSV([input[0]], ["name", "age"]);
+		expect(csv).toBe("name,age\nJohn,55");
+	});
+
+	test("it should handle all fields in a single row", () => {
+		const csv = toCSV(input, ["name", "surname", "age", "sex"]);
+		expect(csv).toBe("name,surname,age,sex\nJohn,Doe,55,m\nHubert,Doe,12,m");
+	});
+
+	test("it should mix plain field names and field objects correctly", () => {
+		const csv = toCSV(input, ["name", { field: "age", as: "years" }]);
+		expect(csv).toBe("name,years\nJohn,55\nHubert,12");
+	});
 });
