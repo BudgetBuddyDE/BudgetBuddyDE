@@ -25,7 +25,8 @@ import {Pagination} from '@/components/Table/EntityTable/Pagination';
 import {
   generateDefaultState as generateDefaultTransactionDialogState,
   TransactionDialog,
-  reducer as TransactionDialogReducer, TransactionDialogProps,
+  type TransactionDialogProps,
+  reducer as TransactionDialogReducer,
 } from '@/components/Transaction/TransactionDialog';
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
