@@ -7,6 +7,7 @@ import {getLogLevel} from '@budgetbuddyde/logger';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
 
 import {name, version} from '../package.json';
+import {HTTPStatusCode} from './models';
 
 export type Config = {
   service: typeof name;
@@ -67,6 +68,8 @@ export const config: Config = {
     limit: 500, // 300 requests per window per IP
     standardHeaders: 'draft-7',
     legacyHeaders: false,
+    passOnStoreError: true,
+    statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
   },
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',

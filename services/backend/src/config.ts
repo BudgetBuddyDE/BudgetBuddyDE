@@ -6,6 +6,7 @@ import 'dotenv/config';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
 import {type Logger, transports} from 'winston';
 import {name, version} from '../package.json';
+import {HTTPStatusCode} from './models';
 
 export type Config = {
   service: typeof name;
@@ -64,6 +65,8 @@ export const config: Config = {
     limit: 300, // 300 requests per window per IP
     standardHeaders: 'draft-7',
     legacyHeaders: false,
+    passOnStoreError: true,
+    statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
   },
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',
