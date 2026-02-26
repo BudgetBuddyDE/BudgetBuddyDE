@@ -4,6 +4,8 @@ import {type Logger, transports} from 'winston';
 import LokiTransport from 'winston-loki';
 import 'dotenv/config';
 import {getLogLevel} from '@budgetbuddyde/logger';
+import type {Options as RateLimitOptions} from 'express-rate-limit';
+
 import {name, version} from '../package.json';
 
 export type Config = {
@@ -17,6 +19,7 @@ export type Config = {
     hideMeta?: boolean;
   };
   cors: CorsOptions;
+  rateLimit: Partial<RateLimitOptions>;
   jobs: {
     timezone: string;
   };
@@ -58,6 +61,12 @@ export const config: Config = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
     credentials: true,
+  },
+  rateLimit: {
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    limit: 500, // 300 requests per window per IP
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
   },
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',

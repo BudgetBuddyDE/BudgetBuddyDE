@@ -110,6 +110,22 @@ npm run format
     The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.
     If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
 
+#### Rate Limiting
+
+Rate limiting is active **in production only** (`runtime === "production"`) and is backed by Redis.
+
+The limits are configured in `config.ts`:
+
+| Parameter   | Value      | Description                           |
+|:------------|:-----------|:--------------------------------------|
+| `windowMs`  | 5 minutes  | Time window for rate limit tracking   |
+| `limit`     | 500        | Maximum requests per IP per window    |
+
+!!! info
+    The rate limit for the auth service is higher than the defined limit for the [backend](./backend.md#rate-limiting){data-preview} due to the increased traffic caused by the webapp.
+
+When the limit is exceeded, the service responds with HTTP `429 Too Many Requests`. Standard `RateLimit-*` headers (draft-7) are included in every response.
+
 #### OAuth
 
 The callback URLs for the OAuth providers must be configured as follows:
