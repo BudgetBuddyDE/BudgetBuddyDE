@@ -22,7 +22,6 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
       headers: headers,
     },
   });
-  console.log(sessionData, error, headers, process.env.AUTH_SERVICE_HOST);
 
   if (error) {
     logger.error('Error retrieving session', error);
