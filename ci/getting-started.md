@@ -104,81 +104,90 @@ fly -t ci set-pipeline -p db -c ./pipelines/database.pipeline.yml \
 ### Publish `@budetbuddyde/api`
 
 ```bash
-fly -t ci set-pipeline -p api -c ./pipelines/publish-npm-package.pipeline.yml \
-  --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
-  -v repo_owner="budgetbuddyde" \
-  -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-  -v repo_path="packages/api" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
-  -v service="pck_api" \
-  -v service_name="api" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+fly -t ci set-pipeline \
+    --pipeline packages \
+    --config ./pipelines/publish-npm-package.pipeline.yml \
+    --team budgetbuddyde \
+    -v repo_owner="budgetbuddyde" \
+    -v repo_name="budgetbuddyde" \
+    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
+    -v github_pat="$(cat ./secrets/github/pat)" \
+    -i repo_path="packages/api" \
+    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
+    -i service="pck_api" \
+    -i service_name="api" \
+    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
+    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
+    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
+    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
+    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```
 
 ### Publish `@budetbuddyde/logger`
 
 ```bash
-fly -t ci set-pipeline -p logger -c ./pipelines/publish-npm-package.pipeline.yml \
-  --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
-  -v repo_owner="budgetbuddyde" \
-  -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-  -v repo_path="packages/logger" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
-  -v service="pck_logger" \
-  -v service_name="logger" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+fly -t ci set-pipeline \
+    --pipeline packages \
+    --config ./pipelines/publish-npm-package.pipeline.yml \
+    --team budgetbuddyde \
+    -v repo_owner="budgetbuddyde" \
+    -v repo_name="budgetbuddyde" \
+    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
+    -v github_pat="$(cat ./secrets/github/pat)" \
+    -i repo_path="packages/logger" \
+    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
+    -i service="pck_logger" \
+    -i service_name="logger" \
+    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
+    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
+    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
+    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
+    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```
 
 ### Publish `@budetbuddyde/types`
 
 ```bash
-fly -t ci set-pipeline -p types -c ./pipelines/publish-npm-package.pipeline.yml \
-  --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
-  -v repo_owner="budgetbuddyde" \
-  -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-  -v repo_path="packages/types" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
-  -v service="pck_types" \
-  -v service_name="types" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat .//secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+fly -t ci set-pipeline \
+    --pipeline packages \
+    --config ./pipelines/publish-npm-package.pipeline.yml \
+    --team budgetbuddyde \
+    -v repo_owner="budgetbuddyde" \
+    -v repo_name="budgetbuddyde" \
+    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
+    -v github_pat="$(cat ./secrets/github/pat)" \
+    -i repo_path="packages/types" \
+    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
+    -i service="pck_types" \
+    -i service_name="types" \
+    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
+    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
+    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
+    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
+    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```
 
 ### Publish `@budetbuddyde/utils`
 
 ```bash
-fly -t ci set-pipeline -p utils -c ./pipelines/publish-npm-package.pipeline.yml \
-  --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
-  -v repo_owner="budgetbuddyde" \
-  -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-  -v repo_path="packages/utils" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
-  -v service="pck_utils" \
-  -v service_name="utils" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+fly -t ci set-pipeline \
+    --pipeline packages \
+    --config ./pipelines/publish-npm-package.pipeline.yml \
+    --team budgetbuddyde \
+    -v repo_owner="budgetbuddyde" \
+    -v repo_name="budgetbuddyde" \
+    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
+    -v github_pat="$(cat ./secrets/github/pat)" \
+    -i repo_path="packages/utils" \
+    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
+    -i service="pck_utils" \
+    -i service_name="utils" \
+    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
+    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
+    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
+    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
+    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+
 ```
 
 ### Publish `auth-service`
