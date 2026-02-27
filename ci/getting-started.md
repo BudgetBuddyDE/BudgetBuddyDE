@@ -81,24 +81,23 @@ fly -t ci set-pipeline -p webapp -c ./pipelines/test-webapp.pipeline.yml \
 ### Publish `@budgetbuddyde/db`
 
 ```bash
-fly -t ci set-pipeline -p db -c ./pipelines/database.pipeline.yml \
-  --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
-  -v repo_owner="budgetbuddyde" \
-  -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-  -v repo_path="packages/db" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
-  -v service="pck_db" \
-  -v service_name="db" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)" \
-  -v db_backup_bucket="bb-railway-database-backups" \
-  -v test_database_url="$(cat ./secrets/database/credentials.txt | sed -n '2p')" \
-  -v database_url="$(cat ./secrets/database/credentials.txt | sed -n '4p')"
+fly -t ci set-pipeline \
+    --pipeline packages \
+    --config ./pipelines/publish-npm-package.pipeline.yml \
+    --team budgetbuddyde \
+    -v repo_owner="budgetbuddyde" \
+    -v repo_name="budgetbuddyde" \
+    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
+    -v github_pat="$(cat ./secrets/github/pat)" \
+    -i repo_path="packages/db" \
+    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
+    -i service="pck_db" \
+    -i service_name="db" \
+    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
+    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
+    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
+    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
+    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```
 
 ### Publish `@budetbuddyde/api`
