@@ -2,8 +2,10 @@ import {trace} from '@opentelemetry/api';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import {setGlobalErrorHandler} from 'express-zod-safe';
 import cron from 'node-cron';
+import RedisStore from 'rate-limit-redis';
 import {config} from './config';
 import {checkConnection} from './db';
 import {getRedisClient} from './db/redis';
@@ -24,22 +26,22 @@ export const app = express();
 const tracer = trace.getTracer(config.service, config.version);
 
 app.use(cors(config.cors));
-// if (config.runtime === 'production') {
-//   app.use(
-//     rateLimit({
-//       ...config.rateLimit,
-//       store: new RedisStore({
-//         prefix: `rate-limit:${config.service}:`,
-//         // biome-ignore lint/suspicious/noExplicitAny: ioredis returns unknown, rate-limit-redis expects RedisReply
-//         sendCommand: (...args: string[]) => getRedisClient().call(...(args as [string, ...string[]])) as any,
-//       }),
-//     }),
-//   );
-//   logger.info('Rate limiting is enabled in production environment.');
-// } else
-//   logger.warn(
-//     'Rate limiting is disabled in non-production environments. Make sure to enable it in production to prevent abuse.',
-//   );
+if (config.runtime === 'production') {
+  app.use(
+    rateLimit({
+      ...config.rateLimit,
+      store: new RedisStore({
+        prefix: `rate-limit:${config.service}:`,
+        // biome-ignore lint/suspicious/noExplicitAny: ioredis returns unknown, rate-limit-redis expects RedisReply
+        sendCommand: (...args: string[]) => getRedisClient().call(...(args as [string, ...string[]])) as any,
+      }),
+    }),
+  );
+  logger.info('Rate limiting is enabled in production environment.');
+} else
+  logger.warn(
+    'Rate limiting is disabled in non-production environments. Make sure to enable it in production to prevent abuse.',
+  );
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const redisStatus = getRedisClient().status;
