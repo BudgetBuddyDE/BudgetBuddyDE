@@ -43,7 +43,6 @@ resources:
       private_key: ((repo_private_key))
       branch: ((repo_branch))
       paths: [((repo_path))/**]
-      depth: 1
 
   - name: status
     type: cogito
