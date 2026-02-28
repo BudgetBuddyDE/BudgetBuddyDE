@@ -9,8 +9,8 @@ import {
   type TReceiverVH,
   type TTransaction,
 } from '@budgetbuddyde/api/transaction';
-import {ReceiptRounded} from '@mui/icons-material';
-import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, Typography} from '@mui/material';
+import {AddRounded, ReceiptRounded} from '@mui/icons-material';
+import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -28,7 +28,7 @@ import {
 import {AddFab, FabContainer} from '@/components/FAB';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
+import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -371,6 +371,67 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
       ];
     }, []);
 
+  const columns: ColumnDefinition<TExpandedTransaction>[] = React.useMemo(
+    () => [
+      {
+        key: 'processedAt',
+        label: 'Processed at',
+        renderCell: value => <Typography variant="body1">{Formatter.date.format(value as Date)}</Typography>,
+      },
+      {
+        key: 'receiver',
+        label: 'Details',
+        renderCell: (_value, row) => (
+          <>
+            <Typography variant="body1">{row.receiver}</Typography>
+            <Stack flexDirection={'row'}>
+              <CategoryChip categoryName={row.category.name} size="small" sx={{mr: 1}} />
+              <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />
+            </Stack>
+          </>
+        ),
+      },
+      {
+        key: 'transferAmount',
+        label: 'Transfer Amount',
+        renderCell: value => (
+          <Typography variant="body1">{Formatter.currency.formatBalance(value as number)}</Typography>
+        ),
+      },
+      {
+        key: 'information',
+        label: 'Information',
+        renderCell: value => <Typography variant="body1">{(value as string | null) ?? 'No information'}</Typography>,
+      },
+      {
+        key: 'id' as keyof TExpandedTransaction,
+        label: '',
+        align: 'right',
+        renderCell: (_value, row) => (
+          <EntityMenu<TExpandedTransaction>
+            entity={row}
+            handleEditEntity={handleEditEntity}
+            handleDeleteEntity={({id}) => {
+              dispatchDeleteDialogAction({action: 'OPEN', target: id});
+            }}
+          />
+        ),
+      },
+    ],
+    // biome-ignore lint/correctness/useExhaustiveDependencies: handleEditEntity is stable within render context
+    [handleEditEntity],
+  );
+
+  const slice: EntitySlice<TExpandedTransaction> = React.useMemo(
+    () => ({
+      data: transactions ?? [],
+      isLoading: status === 'loading',
+      error,
+      totalCount: totalEntityCount,
+    }),
+    [transactions, status, error, totalEntityCount],
+  );
+
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -400,79 +461,34 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
   return (
     <React.Fragment>
       <EntityTable<TExpandedTransaction, 'id'>
-        title="Transactions"
-        subtitle="Manage your transactions"
-        error={error}
-        slots={{
-          title: {showCount: true},
-          noResults: {
-            text: filters.keyword ? `No transactions found for "${filters.keyword}"` : 'No transactions found',
-          },
-          search: {
-            enabled: true,
-            placeholder: 'Search transactions…',
-            onSearch: handleTextSearch,
-          },
-          create: {enabled: true, onClick: handleCreateEntity},
+        slice={slice}
+        dataKey="id"
+        columns={columns}
+        toolbar={{
+          title: 'Transactions',
+          subtitle: 'Manage your transactions',
+          showCount: true,
+          searchPlaceholder: 'Search transactions…',
+          onSearch: handleTextSearch,
+          actions: [
+            {
+              id: 'create-transaction',
+              icon: <AddRounded />,
+              label: 'Create',
+              onClick: handleCreateEntity,
+            },
+          ],
         }}
-        totalEntityCount={totalEntityCount}
-        isLoading={status === 'loading'}
-        data={transactions ?? []}
-        dataKey={'id'}
+        emptyMessage={filters.keyword ? `No transactions found for "${filters.keyword}"` : 'No transactions found'}
         withSelection
-        onDeleteSelectedEntities={entites => {
-          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        onDeleteSelectedEntities={entities => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entities});
         }}
         pagination={{
-          count: totalEntityCount,
           page: currentPage,
           rowsPerPage: rowsPerPage,
-          onChangePage(newPage) {
-            return dispatchNewPage(newPage);
-          },
-          onChangeRowsPerPage(newRowsPerPage) {
-            return dispatchNewRowsPerPage(newRowsPerPage);
-          },
-        }}
-        headerCells={[
-          {key: 'processedAt', label: 'Processed at'},
-          {key: 'receiver', label: 'Details'},
-          {key: 'transferAmount', label: 'Transfer Amount'},
-          {key: 'information', label: 'Information'},
-          {placeholder: true},
-        ]}
-        renderRow={(cell, item, _data) => {
-          const key = cell;
-          const _rowKey = String(item[key]);
-          return (
-            <>
-              <TableCell>
-                <Typography variant="body1">{Formatter.date.format(item.processedAt)}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.receiver}</Typography>
-                <Stack flexDirection={'row'}>
-                  <CategoryChip categoryName={item.category.name} size="small" sx={{mr: 1}} />
-                  <PaymentMethodChip paymentMethodName={item.paymentMethod.name} size="small" />
-                </Stack>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{Formatter.currency.formatBalance(item.transferAmount)}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.information ?? 'No information'}</Typography>
-              </TableCell>
-              <TableCell align="right">
-                <EntityMenu<TExpandedTransaction>
-                  entity={item}
-                  handleEditEntity={handleEditEntity}
-                  handleDeleteEntity={({id}) => {
-                    dispatchDeleteDialogAction({action: 'OPEN', target: id});
-                  }}
-                />
-              </TableCell>
-            </>
-          );
+          onPageChange: dispatchNewPage,
+          onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
         rowHeight={83.5}
       />

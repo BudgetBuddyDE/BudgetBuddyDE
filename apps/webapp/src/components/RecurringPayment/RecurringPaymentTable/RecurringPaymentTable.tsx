@@ -8,7 +8,8 @@ import {
   type TRecurringPayment,
 } from '@budgetbuddyde/api/recurringPayment';
 import {ReceiverVH, type TReceiverVH} from '@budgetbuddyde/api/transaction';
-import {Button, Chip, createFilterOptions, InputAdornment, Stack, TableCell, Typography} from '@mui/material';
+import {AddRounded} from '@mui/icons-material';
+import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -25,7 +26,7 @@ import {
 import {AddFab, FabContainer} from '@/components/FAB';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
+import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
 import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringPaymentSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -391,6 +392,82 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
       ];
     }, []);
 
+  const columns: ColumnDefinition<TExpandedRecurringPayment>[] = React.useMemo(
+    () => [
+      {
+        key: 'executeAt',
+        label: 'Execute at',
+        renderCell: (_value, row) => (
+          <Typography
+            variant="body1"
+            sx={{
+              textDecoration: row.paused ? 'line-through' : 'unset',
+            }}
+          >
+            {Formatter.date.format(apiClient.backend.recurringPayment.determineNextExecutionDate(row.executeAt))}
+          </Typography>
+        ),
+      },
+      {
+        key: 'receiver',
+        label: 'Details',
+        renderCell: (_value, row) => (
+          <>
+            <Typography variant="body1">{row.receiver}</Typography>
+            <Stack flexDirection={'row'}>
+              <CategoryChip categoryName={row.category.name} size="small" sx={{mr: 1}} />
+              <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />
+            </Stack>
+          </>
+        ),
+      },
+      {
+        key: 'transferAmount',
+        label: 'Transfer Amount',
+        renderCell: value => (
+          <Typography variant="body1">{Formatter.currency.formatBalance(value as number)}</Typography>
+        ),
+      },
+      {
+        key: 'information',
+        label: 'Information',
+        renderCell: value => <Typography variant="body1">{(value as string | null) ?? 'No information'}</Typography>,
+      },
+      {
+        key: 'id' as keyof TExpandedRecurringPayment,
+        label: '',
+        align: 'right',
+        renderCell: (_value, row) => (
+          <EntityMenu<TExpandedRecurringPayment>
+            entity={row}
+            handleEditEntity={handleEditEntity}
+            handleDeleteEntity={({id}) => {
+              dispatchDeleteDialogAction({action: 'OPEN', target: id});
+            }}
+            actions={[
+              {
+                children: row.paused ? 'Resume' : 'Pause',
+                onClick: () => handleTogglePauseOnEntity(row),
+              },
+            ]}
+          />
+        ),
+      },
+    ],
+    // biome-ignore lint/correctness/useExhaustiveDependencies: handlers are stable within render context
+    [handleEditEntity, handleTogglePauseOnEntity],
+  );
+
+  const slice: EntitySlice<TExpandedRecurringPayment> = React.useMemo(
+    () => ({
+      data: recurringPayments ?? [],
+      isLoading: status === 'loading',
+      error,
+      totalCount: totalEntityCount,
+    }),
+    [recurringPayments, status, error, totalEntityCount],
+  );
+
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -404,94 +481,36 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
   return (
     <React.Fragment>
       <EntityTable<TExpandedRecurringPayment, 'id'>
-        title="Recurring Payments"
-        subtitle="Manage your recurring payments"
-        error={error}
-        slots={{
-          title: {showCount: true},
-          noResults: {
-            text: filters.keyword
-              ? `No recurring payments found for "${filters.keyword}"`
-              : 'No recurring payments found',
-          },
-          search: {
-            enabled: true,
-            placeholder: 'Search…',
-            onSearch: handleTextSearch,
-          },
-          create: {enabled: true, onClick: handleCreateEntity},
+        slice={slice}
+        dataKey="id"
+        columns={columns}
+        toolbar={{
+          title: 'Recurring Payments',
+          subtitle: 'Manage your recurring payments',
+          showCount: true,
+          searchPlaceholder: 'Search…',
+          onSearch: handleTextSearch,
+          actions: [
+            {
+              id: 'create-recurring-payment',
+              icon: <AddRounded />,
+              label: 'Create',
+              onClick: handleCreateEntity,
+            },
+          ],
         }}
-        totalEntityCount={totalEntityCount}
-        isLoading={status === 'loading'}
-        data={recurringPayments ?? []}
-        dataKey={'id'}
+        emptyMessage={
+          filters.keyword ? `No recurring payments found for "${filters.keyword}"` : 'No recurring payments found'
+        }
         withSelection
-        onDeleteSelectedEntities={entites => {
-          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        onDeleteSelectedEntities={entities => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entities});
         }}
         pagination={{
-          count: totalEntityCount,
           page: currentPage,
           rowsPerPage: rowsPerPage,
-          onChangePage(newPage) {
-            return dispatchNewPage(newPage);
-          },
-          onChangeRowsPerPage(newRowsPerPage) {
-            return dispatchNewRowsPerPage(newRowsPerPage);
-          },
-        }}
-        headerCells={[
-          {key: 'executeAt', label: 'Execute at'},
-          {key: 'receiver', label: 'Details'},
-          {key: 'transferAmount', label: 'Transfer Amount'},
-          {key: 'information', label: 'Information'},
-          {placeholder: true},
-        ]}
-        renderRow={(cell, item, _data) => {
-          const key = cell;
-          const _rowKey = String(item[key]);
-          return (
-            <>
-              <TableCell>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    textDecoration: item.paused ? 'line-through' : 'unset',
-                  }}
-                >
-                  {Formatter.date.format(apiClient.backend.recurringPayment.determineNextExecutionDate(item.executeAt))}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.receiver}</Typography>
-                <Stack flexDirection={'row'}>
-                  <CategoryChip categoryName={item.category.name} size="small" sx={{mr: 1}} />
-                  <PaymentMethodChip paymentMethodName={item.paymentMethod.name} size="small" />
-                </Stack>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{Formatter.currency.formatBalance(item.transferAmount)}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.information ?? 'No information'}</Typography>
-              </TableCell>
-              <TableCell align="right">
-                <EntityMenu<TExpandedRecurringPayment>
-                  entity={item}
-                  handleEditEntity={handleEditEntity}
-                  handleDeleteEntity={({id}) => {
-                    dispatchDeleteDialogAction({action: 'OPEN', target: id});
-                  }}
-                  actions={[
-                    {
-                      children: item.paused ? 'Resume' : 'Pause',
-                      onClick: () => handleTogglePauseOnEntity(item),
-                    },
-                  ]}
-                />
-              </TableCell>
-            </>
-          );
+          onPageChange: dispatchNewPage,
+          onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
         rowHeight={83.5}
       />

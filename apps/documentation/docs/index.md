@@ -22,10 +22,10 @@ A concise guide to this documentation project and how to use Zensical as the sta
 - [ ] **Automated Reports** - Generate monthly financial summaries and insights to help you understand your spending patterns and make informed decisions.
 - [ ] **Attachments** — Upload and manage receipts, invoices, and other financial documents directly within the app for easy reference and organization.
 - [ ] **Model Context Protocol (MCP)** — Allow LLMs to interact with the app's data and functionality through a standardized interface, enabling advanced features like natural language queries and AI-driven insights.
-- [] **Insights** - Provide users with actionable insights based on their financial data, such as spending trends, budget recommendations, and personalized financial tips.
+- [ ] **Insights** - Provide users with actionable insights based on their financial data, such as spending trends, budget recommendations, and personalized financial tips.
 
 ## Guides
 
-- [Start developing](start-development.md) — Set up the local environment and run the dev server
+- [Start developing](development/start-development.md) — Set up the local environment and run the dev server
 - [Deployment](deployment.md) — How to build and publish the static site
 - [CI/CD](ci-cd.md) — Pipeline overview and release process

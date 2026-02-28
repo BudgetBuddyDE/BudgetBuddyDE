@@ -1,16 +1,11 @@
 'use client';
 
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
-import {TableChartRounded} from '@mui/icons-material';
-import {Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from '@mui/material';
 import {subMonths} from 'date-fns';
 import React from 'react';
 import {apiClient} from '@/apiClient';
-import {ActionPaper} from '@/components/ActionPaper';
-import {Card} from '@/components/Card';
-import {ErrorAlert} from '@/components/ErrorAlert';
 import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangePicker';
-import {NoResults} from '@/components/NoResults';
+import {DataTable, type DataTableColumn} from '@/components/Table';
 import {useFetch} from '@/hooks/useFetch';
 import {Formatter} from '@/utils/Formatter';
 
@@ -21,6 +16,8 @@ export type HistoricalBalanceTableProps = {
   dense?: boolean;
 };
 
+type RowData = (THistoricalBalance | THistoricalCategoryBalance) & {id: string};
+
 export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({type, dense = false}) => {
   const DEFAULT_DATE_RANGE = {
     startDate: subMonths(new Date(), type === 'BASIC' ? 12 : 1),
@@ -28,6 +25,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
   } satisfies DateRangeState;
   const showCategory = type === 'GROUPED_BY_CATEGORY';
   const [dateRange, setDateRange] = React.useState(DEFAULT_DATE_RANGE);
+
   const fetchDataFunc = React.useCallback(async () => {
     const [results, error] = showCategory
       ? await apiClient.backend.insights.getHistoricalCategoryBalance({
@@ -39,9 +37,14 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
           $dateTo: dateRange.endDate,
         });
     if (error) throw error;
-    return results.data.toReversed();
+    return results.data.toReversed().map((row, index) => ({
+      ...row,
+      id: `${new Date(row.date).getTime()}-${index}`,
+    }));
   }, [dateRange, showCategory]);
-  const {isLoading, data, error} = useFetch<THistoricalBalance[] | THistoricalCategoryBalance[]>(fetchDataFunc);
+
+  const {isLoading, data, error} = useFetch<RowData[]>(fetchDataFunc);
+
   const handleDateRangeChange = (start: Date | null, end: Date | null) => {
     if (!start || !end) {
       console.warn(
@@ -50,84 +53,98 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       setDateRange(DEFAULT_DATE_RANGE);
       return;
     }
-
     setDateRange({startDate: start, endDate: end});
   };
 
-  return (
-    <Card sx={{p: 0}}>
-      <Card.Header sx={{px: 2, pt: 2}}>
-        <Stack>
-          <Card.Title>Historical balance ({data?.length})</Card.Title>
-          <Card.Subtitle>{showCategory ? 'Grouped by date and category' : 'Grouped by date'}</Card.Subtitle>
-        </Stack>
+  const columns: DataTableColumn<RowData>[] = React.useMemo(() => {
+    const baseColumns: DataTableColumn<RowData>[] = [
+      {
+        field: 'date',
+        headerName: 'Period',
+        flex: 1,
+        minWidth: 120,
+        valueFormatter: value => Formatter.date.formatWithPattern(new Date(value as string), 'MMMM yyyy'),
+      },
+      {
+        field: 'income',
+        headerName: 'Income',
+        flex: 1,
+        minWidth: 100,
+        align: 'right',
+        headerAlign: 'right',
+        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+      },
+      {
+        field: 'expenses',
+        headerName: 'Expenses',
+        flex: 1,
+        minWidth: 100,
+        align: 'right',
+        headerAlign: 'right',
+        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+      },
+      {
+        field: 'balance',
+        headerName: 'Balance',
+        flex: 1,
+        minWidth: 100,
+        align: 'right',
+        headerAlign: 'right',
+        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+      },
+    ];
 
-        {isLoading ||
-          (!isLoading && data && data.length > 0 && (
-            <Card.HeaderActions actionPaperProps={{sx: {p: 1}}}>
-              {isLoading ? (
-                <Skeleton variant={'rounded'} width={300} height={36} />
-              ) : (
-                <DateRangePicker
-                  size={'small'}
-                  defaultValue={DEFAULT_DATE_RANGE}
-                  slotProps={{
-                    startDateTicker: {
-                      openTo: 'month',
-                      view: 'month',
-                    },
-                    endDateTicker: {
-                      openTo: 'month',
-                      view: 'month',
-                    },
-                  }}
-                  onDateRangeChange={handleDateRangeChange}
-                />
-              )}
-            </Card.HeaderActions>
-          ))}
-      </Card.Header>
-      <Card.Body>
-        {error !== null && <ErrorAlert error={error} sx={{m: 2}} />}
-        {!isLoading && data && data.length === 0 && (
-          <NoResults
-            icon={<TableChartRounded />}
-            text={'Create a transaction to begin tracking your activity.'}
-            sx={{m: 2}}
-          />
-        )}
-        {!isLoading && data && data.length > 0 && (
-          <TableContainer component={ActionPaper}>
-            <Table size={dense ? 'small' : 'medium'} aria-label="historical balance table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Period</TableCell>
-                  {showCategory && <TableCell>Category</TableCell>}
-                  <TableCell align="right">Income</TableCell>
-                  <TableCell align="right">Expenses</TableCell>
-                  <TableCell align="right">Balance</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.map((row, index) => {
-                  const date = new Date(row.date);
-                  return (
-                    <TableRow key={`${date.getTime()}-${index}`} sx={{'&:last-child td, &:last-child th': {border: 0}}}>
-                      <TableCell component="th" scope="row">
-                        {Formatter.date.formatWithPattern(date, 'MMMM yyyy')}
-                      </TableCell>
-                      {showCategory && 'category' in row && <TableCell>{row.category.name || '-'}</TableCell>}
-                      <TableCell align="right">{Formatter.currency.formatBalance(row.income)}</TableCell>
-                      <TableCell align="right">{Formatter.currency.formatBalance(row.expenses)}</TableCell>
-                      <TableCell align="right">{Formatter.currency.formatBalance(row.balance)}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Card.Body>
-    </Card>
+    if (showCategory) {
+      baseColumns.splice(1, 0, {
+        field: 'category',
+        headerName: 'Category',
+        flex: 1,
+        minWidth: 120,
+        valueGetter: (_value, row) => ('category' in row ? row.category?.name : '-'),
+      });
+    }
+
+    return baseColumns;
+  }, [showCategory]);
+
+  return (
+    <DataTable
+      data={data ?? []}
+      columns={columns}
+      isLoading={isLoading}
+      error={error}
+      emptyMessage="Create a transaction to begin tracking your activity."
+      density={dense ? 'compact' : 'standard'}
+      autoHeight
+      pagination
+      pageSizeOptions={[10, 25, 50]}
+      dataGridProps={{
+        initialState: {
+          pagination: {paginationModel: {pageSize: 10, page: 0}},
+        },
+      }}
+      sx={{border: 'none'}}
+      toolbar={{
+        title: `Historical balances (${data?.length ?? 0})`,
+        subtitle: showCategory ? 'Grouped by date and category' : 'Grouped by date',
+        actions: [
+          {
+            id: 'date-range-picker',
+            type: 'custom',
+            component: (
+              <DateRangePicker
+                size="small"
+                defaultValue={DEFAULT_DATE_RANGE}
+                slotProps={{
+                  startDateTicker: {openTo: 'month', view: 'month'},
+                  endDateTicker: {openTo: 'month', view: 'month'},
+                }}
+                onDateRangeChange={handleDateRangeChange}
+              />
+            ),
+          },
+        ],
+      }}
+    />
   );
 };

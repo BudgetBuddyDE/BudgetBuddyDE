@@ -53,7 +53,8 @@ copyright = """
 nav = [
     {"Home" = [
         "index.md",
-        "start-development.md",
+        "development/start-development.md",
+        "documentation.md",
         "deployment.md",
         "ci-cd.md",
         "contributing.md",
@@ -75,6 +76,15 @@ nav = [
             "packages/types.md",
             "packages/utils.md",
             "packages/logger.md"
+        ]}
+    ]},
+    {"Development" = [
+        "development/index.md",
+        "development/start-development.md",
+        "development/database.md",
+        {"Components" = [
+            "development/components/index.md",
+            "development/components/tables.md",
         ]}
     ]},
     {"Monitoring" = [

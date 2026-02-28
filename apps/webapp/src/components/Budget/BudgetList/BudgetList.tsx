@@ -21,7 +21,7 @@ import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {Pagination} from '@/components/Table/EntityTable/Pagination';
+import {Pagination} from '@/components/Table/Pagination';
 import {
   generateDefaultState as generateDefaultTransactionDialogState,
   TransactionDialog,
@@ -366,8 +366,8 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
               count={totalEntityCount}
               page={currentPage}
               rowsPerPage={rowsPerPage}
-              onChangePage={dispatchNewPage}
-              onChangeRowsPerPage={dispatchNewRowsPerPage}
+              onPageChange={dispatchNewPage}
+              onRowsPerPageChange={dispatchNewRowsPerPage}
             />
           </ActionPaper>
         </Card.Footer>

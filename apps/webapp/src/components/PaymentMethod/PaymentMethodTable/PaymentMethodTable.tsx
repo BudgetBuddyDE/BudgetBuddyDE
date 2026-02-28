@@ -1,8 +1,8 @@
 'use client';
 
 import {CreateOrUpdatePaymentMethodPayload, type TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
-import {MergeRounded} from '@mui/icons-material';
-import {Button, ListItemIcon, TableCell, Typography} from '@mui/material';
+import {AddRounded, MergeRounded} from '@mui/icons-material';
+import {Button, Typography} from '@mui/material';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -15,7 +15,13 @@ import {
 } from '@/components/Drawer';
 import {AddFab, FabContainer} from '@/components/FAB';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
+import {
+  type ColumnDefinition,
+  EntityMenu,
+  type EntitySlice,
+  EntityTable,
+  type SelectionAction,
+} from '@/components/Table';
 import {paymentMethodSlice} from '@/lib/features/paymentMethods/paymentMethodSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -176,6 +182,75 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
     [dispatch, setRowsPerPage],
   );
 
+  const columns: ColumnDefinition<TPaymentMethod>[] = React.useMemo(
+    () => [
+      {
+        key: 'name',
+        label: 'Name',
+        renderCell: value => <Typography variant="body1">{value as string}</Typography>,
+      },
+      {
+        key: 'address',
+        label: 'Address',
+        renderCell: value => <Typography variant="body1">{value as string}</Typography>,
+      },
+      {
+        key: 'provider',
+        label: 'Provider',
+        renderCell: value => <Typography variant="body1">{value as string}</Typography>,
+      },
+      {
+        key: 'description',
+        label: 'Description',
+        renderCell: value => <Typography variant="body1">{(value as string | null) || 'No description'}</Typography>,
+      },
+      {
+        key: 'id' as keyof TPaymentMethod,
+        label: '',
+        align: 'right',
+        renderCell: (_value, row) => (
+          <EntityMenu
+            entity={row}
+            handleEditEntity={handleEditEntity}
+            handleDeleteEntity={({id}) => {
+              dispatchDeleteDialogAction({action: 'OPEN', target: id});
+            }}
+          />
+        ),
+      },
+    ],
+    // biome-ignore lint/correctness/useExhaustiveDependencies: handleEditEntity is stable within render context
+    [handleEditEntity],
+  );
+
+  const slice: EntitySlice<TPaymentMethod> = React.useMemo(
+    () => ({
+      data: paymentMethods ?? [],
+      isLoading: status === 'loading',
+      error,
+      totalCount: totalEntityCount,
+    }),
+    [paymentMethods, status, error, totalEntityCount],
+  );
+
+  const selectionActions: SelectionAction<TPaymentMethod>[] = React.useMemo(() => {
+    return [
+      {
+        icon: <MergeRounded fontSize="small" />,
+        label: 'Merge',
+        onClick(paymentMethods) {
+          dispatchMergeDrawerAction({
+            type: 'OPEN',
+            action: 'MERGE',
+            defaultValues: {
+              sourcePaymentMethods: paymentMethods,
+            },
+          });
+        },
+      },
+    ];
+  }, []);
+
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -189,98 +264,37 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = () => {
   return (
     <React.Fragment>
       <EntityTable<TPaymentMethod, 'id'>
-        title="Payment Methods"
-        subtitle="Manage your payment methods"
-        error={error}
-        slots={{
-          title: {showCount: true},
-          noResults: {
-            text: filters.keyword ? `No payment methods found for "${filters.keyword}"` : 'No payment methods found',
-          },
-          search: {
-            enabled: true,
-            placeholder: 'Search payment methods…',
-            onSearch: handleTextSearch,
-          },
-          create: {enabled: true, onClick: handleCreateEntity},
-          selection: {
-            actions: [
-              {
-                children: (
-                  <>
-                    <ListItemIcon>
-                      <MergeRounded fontSize="small" />
-                    </ListItemIcon>
-                    <Typography variant="inherit">Merge</Typography>
-                  </>
-                ),
-                onExecuteAction(_event, paymentMethods) {
-                  dispatchMergeDrawerAction({
-                    type: 'OPEN',
-                    action: 'MERGE',
-                    defaultValues: {
-                      sourcePaymentMethods: paymentMethods,
-                    },
-                  });
-                },
-              },
-            ],
-          },
+        slice={slice}
+        dataKey="id"
+        columns={columns}
+        toolbar={{
+          title: 'Payment Methods',
+          subtitle: 'Manage your payment methods',
+          showCount: true,
+          searchPlaceholder: 'Search payment methods…',
+          onSearch: handleTextSearch,
+          actions: [
+            {
+              id: 'create-payment-method',
+              icon: <AddRounded />,
+              label: 'Create',
+              onClick: handleCreateEntity,
+            },
+          ],
         }}
-        totalEntityCount={totalEntityCount}
-        isLoading={status === 'loading'}
-        data={paymentMethods ?? []}
-        dataKey={'id'}
+        emptyMessage={
+          filters.keyword ? `No payment methods found for "${filters.keyword}"` : 'No payment methods found'
+        }
         withSelection
-        onDeleteSelectedEntities={entites => {
-          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        onDeleteSelectedEntities={entities => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entities});
         }}
+        selectionActions={selectionActions}
         pagination={{
-          count: totalEntityCount,
           page: currentPage,
           rowsPerPage: rowsPerPage,
-          onChangePage(newPage) {
-            return dispatchNewPage(newPage);
-          },
-          onChangeRowsPerPage(newRowsPerPage) {
-            return dispatchNewRowsPerPage(newRowsPerPage);
-          },
-        }}
-        headerCells={[
-          {key: 'name', label: 'Name'},
-          {key: 'address', label: 'Address'},
-          {key: 'provider', label: 'Provider'},
-          {key: 'description', label: 'Description'},
-          {placeholder: true},
-        ]}
-        renderRow={(cell, item, _data) => {
-          const key = cell;
-          const _rowKey = String(item[key]);
-          return (
-            <>
-              <TableCell>
-                <Typography variant="body1">{item.name}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.address}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.provider}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.description || 'No description'}</Typography>
-              </TableCell>
-              <TableCell align="right">
-                <EntityMenu
-                  entity={item}
-                  handleEditEntity={handleEditEntity}
-                  handleDeleteEntity={({id}) => {
-                    dispatchDeleteDialogAction({action: 'OPEN', target: id});
-                  }}
-                />
-              </TableCell>
-            </>
-          );
+          onPageChange: dispatchNewPage,
+          onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
       />
 

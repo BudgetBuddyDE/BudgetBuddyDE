@@ -1,8 +1,8 @@
 'use client';
 
 import {CreateOrUpdateCategoryPayload, type TCategory} from '@budgetbuddyde/api/category';
-import {MergeRounded} from '@mui/icons-material';
-import {Button, ListItemIcon, TableCell, Typography} from '@mui/material';
+import {AddRounded, MergeRounded} from '@mui/icons-material';
+import {Button, Typography} from '@mui/material';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -15,7 +15,13 @@ import {
 } from '@/components/Drawer/EntityDrawer';
 import {AddFab, FabContainer} from '@/components/FAB';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {EntityMenu, EntityTable} from '@/components/Table/EntityTable';
+import {
+  type ColumnDefinition,
+  EntityMenu,
+  type EntitySlice,
+  EntityTable,
+  type SelectionAction,
+} from '@/components/Table';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -164,6 +170,65 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
     [dispatch, setRowsPerPage],
   );
 
+  const columns: ColumnDefinition<TCategory>[] = React.useMemo(
+    () => [
+      {
+        key: 'name',
+        label: 'Name',
+        renderCell: value => <Typography variant="body1">{value as string}</Typography>,
+      },
+      {
+        key: 'description',
+        label: 'Description',
+        renderCell: value => <Typography variant="body1">{(value as string | null) || 'No description'}</Typography>,
+      },
+      {
+        key: 'id' as keyof TCategory,
+        label: '',
+        align: 'right',
+        renderCell: (_value, row) => (
+          <EntityMenu
+            entity={row}
+            handleEditEntity={handleEditEntity}
+            handleDeleteEntity={({id}) => {
+              dispatchDeleteDialogAction({action: 'OPEN', target: id});
+            }}
+          />
+        ),
+      },
+    ],
+    // biome-ignore lint/correctness/useExhaustiveDependencies: handleEditEntity is stable within render context
+    [handleEditEntity],
+  );
+
+  const slice: EntitySlice<TCategory> = React.useMemo(
+    () => ({
+      data: categories ?? [],
+      isLoading: status === 'loading',
+      error,
+      totalCount: totalEntityCount,
+    }),
+    [categories, status, error, totalEntityCount],
+  );
+
+  const selectionActions: SelectionAction<TCategory>[] = React.useMemo(() => {
+    return [
+      {
+        icon: <MergeRounded fontSize={'small'} />,
+        label: 'Merge',
+        onClick(categories) {
+          dispatchMergeDrawerAction({
+            type: 'OPEN',
+            action: 'MERGE',
+            defaultValues: {
+              sourceCategories: categories,
+            },
+          });
+        },
+      },
+    ];
+  }, []);
+
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -177,86 +242,35 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
   return (
     <React.Fragment>
       <EntityTable<TCategory, 'id'>
-        title="Categories"
-        subtitle={'Manage your categories'}
-        error={error}
-        slots={{
-          title: {showCount: true},
-          noResults: {
-            text: filters.keyword ? `No categories found for "${filters.keyword}"` : 'No categories found',
-          },
-          search: {
-            enabled: true,
-            placeholder: 'Search categories…',
-            onSearch: handleTextSearch,
-          },
-          create: {enabled: true, onClick: handleCreateEntity},
-          selection: {
-            actions: [
-              {
-                children: (
-                  <>
-                    <ListItemIcon>
-                      <MergeRounded fontSize="small" />
-                    </ListItemIcon>
-                    <Typography variant="inherit">Merge</Typography>
-                  </>
-                ),
-                onExecuteAction(_event, categories) {
-                  dispatchMergeDrawerAction({
-                    type: 'OPEN',
-                    action: 'MERGE',
-                    defaultValues: {
-                      sourceCategories: categories,
-                    },
-                  });
-                },
-              },
-            ],
-          },
+        slice={slice}
+        dataKey="id"
+        columns={columns}
+        toolbar={{
+          title: 'Categories',
+          subtitle: 'Manage your categories',
+          showCount: true,
+          searchPlaceholder: 'Search categories…',
+          onSearch: handleTextSearch,
+          actions: [
+            {
+              id: 'create-category',
+              icon: <AddRounded />,
+              label: 'Create',
+              onClick: handleCreateEntity,
+            },
+          ],
         }}
-        totalEntityCount={totalEntityCount}
-        isLoading={status === 'loading'}
-        data={categories ?? []}
-        dataKey={'id'}
+        emptyMessage={filters.keyword ? `No categories found for "${filters.keyword}"` : 'No categories found'}
         withSelection
-        onDeleteSelectedEntities={entites => {
-          dispatchDeleteDialogAction({action: 'OPEN', target: entites});
+        onDeleteSelectedEntities={entities => {
+          dispatchDeleteDialogAction({action: 'OPEN', target: entities});
         }}
+        selectionActions={selectionActions}
         pagination={{
-          count: totalEntityCount,
           page: currentPage,
           rowsPerPage: rowsPerPage,
-          onChangePage(newPage) {
-            return dispatchNewPage(newPage);
-          },
-          onChangeRowsPerPage(newRowsPerPage) {
-            return dispatchNewRowsPerPage(newRowsPerPage);
-          },
-        }}
-        headerCells={[{key: 'name', label: 'Name'}, {key: 'description', label: 'Description'}, {placeholder: true}]}
-        renderRow={(cell, item, _data) => {
-          const key = cell;
-          const _rowKey = String(item[key]);
-          return (
-            <>
-              <TableCell>
-                <Typography variant="body1">{item.name}</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body1">{item.description || 'No description'}</Typography>
-              </TableCell>
-              <TableCell align="right">
-                <EntityMenu
-                  entity={item}
-                  handleEditEntity={handleEditEntity}
-                  handleDeleteEntity={({id}) => {
-                    dispatchDeleteDialogAction({action: 'OPEN', target: id});
-                  }}
-                />
-              </TableCell>
-            </>
-          );
+          onPageChange: dispatchNewPage,
+          onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
       />
 

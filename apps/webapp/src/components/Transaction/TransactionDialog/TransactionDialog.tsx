@@ -8,15 +8,14 @@ import {
   DialogContent,
   type DialogProps,
   DialogTitle,
-  TableCell,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import React from 'react';
+import type React from 'react';
 import {CloseIconButton} from '@/components/Button';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
-import {BasicTable} from '@/components/Table/BasicTable';
+import {BasicTable, type ColumnDefinition} from '@/components/Table';
 import {ZoomTransition} from '@/components/Transition';
 import {Formatter} from '@/utils/Formatter';
 import type {TransactionDialogState} from './TransactionDialogState';
@@ -70,35 +69,38 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
           error={error}
           data={transactions}
           dataKey={'id'}
-          slots={{
-            table: {
-              size: 'medium',
-            },
+          sx={{borderRadius: 0}}
+          tableProps={{
+            sx: {background: theme.palette.background.paper},
           }}
-          headerCells={[
-            {key: 'processedAt', label: 'Date'},
-            {key: 'category', label: 'Category'},
-            {key: 'paymentMethod', label: 'Payment Method'},
-            {key: 'receiver', label: 'Receiver'},
-            {key: 'transferAmount', label: 'Amount'},
-          ]}
-          renderRow={(cell, item, _list) => {
-            const key = cell;
-            const _rowKey = String(item[key]);
-            return (
-              <React.Fragment key={cell}>
-                <TableCell>{Formatter.date.format(item.processedAt)}</TableCell>
-                <TableCell>
-                  <CategoryChip categoryName={item.category.name} size="small" sx={{mr: 1}} />
-                </TableCell>
-                <TableCell>
-                  <PaymentMethodChip paymentMethodName={item.paymentMethod.name} size="small" />
-                </TableCell>
-                <TableCell>{item.receiver}</TableCell>
-                <TableCell>{Formatter.currency.formatBalance(item.transferAmount)}</TableCell>
-              </React.Fragment>
-            );
-          }}
+          columns={
+            [
+              {
+                key: 'processedAt',
+                label: 'Date',
+                renderCell: (_, row) => Formatter.date.format(row.processedAt),
+              },
+              {
+                key: 'category',
+                label: 'Category',
+                renderCell: (_, row) => <CategoryChip categoryName={row.category.name} size="small" sx={{mr: 1}} />,
+              },
+              {
+                key: 'paymentMethod',
+                label: 'Payment Method',
+                renderCell: (_, row) => <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />,
+              },
+              {
+                key: 'receiver',
+                label: 'Receiver',
+              },
+              {
+                key: 'transferAmount',
+                label: 'Amount',
+                renderCell: (_, row) => Formatter.currency.formatBalance(row.transferAmount),
+              },
+            ] satisfies ColumnDefinition<TExpandedTransaction>[]
+          }
         />
       </DialogContent>
       <DialogActions>

@@ -1,7 +1,7 @@
 import type {IBaseGetAllQuery} from '@budgetbuddyde/api/common';
 import type {ServiceResponse} from '@budgetbuddyde/types/';
 import type {PayloadAction} from '@reduxjs/toolkit';
-import {ITEMS_IN_VIEW} from '@/components/Table/EntityTable';
+import {config} from '@/config';
 import {createAppSlice} from '@/lib/createAppSlice';
 import type {RootState} from '@/lib/store';
 import {logger} from '@/logger';
@@ -27,7 +27,7 @@ export function createInitialState<T>(initalData?: T): EntitySliceState<T> {
     data: initalData || null,
     filter: {keyword: null},
     currentPage: 0,
-    rowsPerPage: ITEMS_IN_VIEW,
+    rowsPerPage: config.tables.itemPerPage,
     status: 'idle',
     error: null,
   };

@@ -1,383 +1,272 @@
 'use client';
 
-import {
-  AddRounded,
-  AutoFixHighRounded,
-  CleaningServicesRounded,
-  CloudDownload,
-  CloudDownloadRounded,
-  DeleteRounded,
-} from '@mui/icons-material';
+import {ClearRounded, DeleteRounded} from '@mui/icons-material';
 import {
   Box,
   Button,
   Checkbox,
-  Fade,
-  IconButton,
-  type IconButtonProps,
-  ListItemIcon,
   lighten,
-  type MenuItemProps,
   Paper,
-  Skeleton,
   Stack,
+  type SxProps,
   Table,
   TableBody,
   TableCell,
-  type TableCellProps,
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
+  type Theme,
   Typography,
 } from '@mui/material';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
-import {Card, type HeaderActionsProps} from '@/components/Card';
-import {ErrorAlert, type ErrorAlertProps} from '@/components/ErrorAlert';
-import {SearchInput, type SearchInputProps} from '@/components/Form/SearchInput';
-import {useDrawerContext} from '@/components/Layout/Drawer';
+import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
-import {Menu} from '@/components/Menu';
-import {NoResults, type NoResultsProps} from '@/components/NoResults';
-import {useScreenSize} from '@/hooks/useScreenSize';
-import {DrawerWidth} from '@/theme/style';
-import {downloadAsJson} from '@/utils/downloadAsJson';
-import {Formatter} from '@/utils/Formatter';
-import {Pagination, type PaginationProps} from './Pagination';
+import {NoResults} from '@/components/NoResults';
+import type {BasicTableProps, ColumnDefinition} from '@/components/Table';
+import {Pagination, type PaginationProps} from '../Pagination';
+import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
+import {getNestedValue} from '../utils';
 
-export type EntityTableProps<Entity, EntityKey extends keyof Entity> = {
-  title: string;
-  subtitle?: string;
-  slots?: Partial<{
-    title: {showCount?: boolean};
-    actions: HeaderActionsProps;
-    create: IconButtonProps & {enabled: boolean};
-    export: IconButtonProps & {enabled: boolean};
-    noResults: NoResultsProps;
-    error: Omit<ErrorAlertProps, 'error'>;
-    search: SearchInputProps & {enabled: boolean};
-    selection?: {
-      actions?: (Omit<MenuItemProps, 'onClick'> & {
-        onExecuteAction: (event: React.MouseEvent<HTMLElement>, entites: Entity[]) => Promise<void> | void;
-      })[];
-    };
-  }>;
-  isLoading?: boolean;
-  data: Entity[];
-  withSelection?: boolean;
-  isSelected?: (item: Entity, selectedEntites: Entity[EntityKey][]) => boolean;
-  onDeleteSelectedEntities?: (selectedEntities: Entity[EntityKey][]) => void;
-  totalEntityCount?: number;
-  dataKey: EntityKey;
-  headerCells: (
-    | keyof Entity
-    | {key: keyof Entity; label: string; align?: TableCellProps['align']}
-    | {placeholder: true}
-  )[];
-  renderHeaderCell?: (cell: keyof Entity, data: Entity[]) => React.ReactNode;
-  renderRow: (cell: keyof Entity, item: Entity, data: Entity[]) => React.ReactNode;
-  error?: ErrorAlertProps['error'];
-  pagination: PaginationProps;
+export type EntitySlice<T> = {
+  data: T[];
+  isLoading: boolean;
+  error: string | Error | null;
+  totalCount?: number;
+};
+
+export type SelectionAction<T> = {
+  icon: React.ReactNode;
+  label: React.ReactNode;
+  onClick: (selectedEntities: T[]) => void;
+};
+
+export type EntityTableProps<T, K extends keyof T = keyof T> = {
+  slice: EntitySlice<T>;
+  dataKey: K;
+  columns: ColumnDefinition<T>[];
+  toolbar?: TableToolbarProps & {
+    showCount?: boolean;
+  };
+  pagination?: Omit<PaginationProps, 'count'>;
+  emptyMessage?: string;
+  stickyHeader?: boolean;
+  maxHeight?: number | string;
   rowHeight?: number;
+  sx?: SxProps<Theme>;
+  onRowClick?: BasicTableProps<T, K>['onRowClick'];
+  renderRow?: BasicTableProps<T, K>['renderRow'];
+  // Selection
+  withSelection?: boolean;
+  onDeleteSelectedEntities?: (selectedIds: T[K][]) => void;
+  selectionActions?: SelectionAction<T>[];
 };
 
-export const ITEMS_IN_VIEW = 8; // Number of items to display in the table view
-
-const SelectedEntitiesActionPopup: React.FC<
-  React.PropsWithChildren<{
-    isShown: boolean;
-    amountOfSelectedEntities: number;
-    isAppDrawerCurrentlyOpen: boolean;
-  }>
-> = ({isShown, amountOfSelectedEntities, isAppDrawerCurrentlyOpen, children}) => {
-  if (!children) return null;
-  return (
-    <Fade in={isShown}>
-      <Box
-        sx={{
-          zIndex: 1,
-          position: 'fixed',
-          left: theme => ({
-            xs: '50%',
-            /**
-             * In order to be centered inside the ContentGrid (app-content) we need to include the Drawer/Sidebar width in the calculation.
-             * This is because the Drawer/Sidebar is not part of the ContentGrid.
-             */
-            md: `calc(50% + ${isAppDrawerCurrentlyOpen ? `${DrawerWidth / 2}px` : theme.spacing(3.5)})`,
-          }),
-          transform: 'translateX(-50%)',
-          bottom: '1rem',
-        }}
-      >
-        <Paper
-          elevation={1}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            px: 4,
-            py: 1.5,
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: '30px',
-          }}
-        >
-          <Typography noWrap>
-            {amountOfSelectedEntities} {amountOfSelectedEntities === 1 ? 'Record' : 'Records'}
-          </Typography>
-
-          {children}
-        </Paper>
-      </Box>
-    </Fade>
-  );
-};
-
-export const EntityTable = <Entity, EntityKey extends keyof Entity>({
-  title,
-  subtitle,
-  isLoading = false,
-  data,
-  withSelection = false,
-  isSelected = (item: Entity, selectedEntites: Entity[EntityKey][]) => {
-    return selectedEntites.includes(item[dataKey]);
-  },
-  onDeleteSelectedEntities,
-  totalEntityCount,
+export const EntityTable = <T, K extends keyof T = keyof T>({
+  slice,
   dataKey,
-  headerCells,
-  renderHeaderCell,
-  renderRow,
-  slots,
-  error,
+  columns,
+  toolbar,
   pagination,
-  rowHeight = 73.5,
-}: EntityTableProps<Entity, EntityKey>) => {
-  const {isOpen: isAppDrawerOpen} = useDrawerContext();
-  const screenSize = useScreenSize();
-  const MAX_HEIGHT = 56 + rowHeight * ITEMS_IN_VIEW;
-  const NO_RESULTS_TEXT = 'No items found';
+  emptyMessage = 'No items found',
+  stickyHeader = true,
+  maxHeight,
+  rowHeight,
+  sx,
+  onRowClick,
+  renderRow,
+  withSelection = false,
+  onDeleteSelectedEntities,
+  selectionActions = [],
+}: EntityTableProps<T, K>) => {
+  const {data, isLoading, error, totalCount} = slice;
   const hasError = !!(error && (typeof error === 'object' || (typeof error === 'string' && error.length > 0)));
-  const [selectedEntites, setSelectedEntities] = React.useState<Entity[EntityKey][]>([]);
-  const amountOfSelectedEntities = selectedEntites.length;
+  const errorMessage = error instanceof Error ? error.message : error;
+  const displayCount = totalCount ?? data.length;
 
-  const areEntitiesIndeterminate = React.useCallback(() => {
-    return amountOfSelectedEntities > 0 && amountOfSelectedEntities < pagination.rowsPerPage;
-  }, [amountOfSelectedEntities, pagination.rowsPerPage]);
+  const [selectedIds, setSelectedIds] = React.useState<Set<T[K]>>(new Set());
 
-  const isAppDrawerCurrentlyOpen = React.useMemo(() => {
-    return isAppDrawerOpen(screenSize);
-  }, [screenSize, isAppDrawerOpen]);
+  const toolbarTitle = toolbar?.showCount && toolbar.title ? `${toolbar.title} (${displayCount})` : toolbar?.title;
 
-  const clearSelectedEntities = () => {
-    setSelectedEntities([]);
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(new Set(data.map(row => row[dataKey])));
+    } else {
+      setSelectedIds(new Set());
+    }
   };
 
-  const selectedTargetEntities: Entity[] = React.useMemo(() => {
-    return data.filter(item => isSelected(item, selectedEntites));
-  }, [data, selectedEntites, isSelected]);
+  const handleSelectRow = (id: T[K]) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
-  return (
-    <>
-      <Card sx={{px: 0}}>
-        <Card.Header sx={{px: 2}}>
-          <Box>
-            <Card.Title>
-              {title} {slots?.title?.showCount && `(${totalEntityCount || data.length})`}
-            </Card.Title>
-            {subtitle && subtitle.length > 0 && <Card.Subtitle>{subtitle}</Card.Subtitle>}
-          </Box>
-          <Card.HeaderActions {...slots?.actions}>
-            <ActionPaper sx={{display: 'flex', flexDirection: 'row'}}>
-              {isLoading && data.length === 0 ? (
-                <Skeleton variant="rounded" sx={{width: {xs: '5rem', md: '10rem'}, height: '2.3rem'}} />
-              ) : (
-                <React.Fragment>
-                  {slots?.search?.enabled && <SearchInput {...slots.search} />}
-                  {slots?.create?.enabled && (
-                    <Tooltip title="Create entity" placement="bottom">
-                      <IconButton color="primary" {...slots.create}>
-                        <AddRounded fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                  {slots?.export?.enabled && (
-                    <Tooltip title="Export entities" placement="bottom">
-                      <IconButton color="primary" {...slots.export}>
-                        <CloudDownloadRounded fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </React.Fragment>
-              )}
-            </ActionPaper>
-          </Card.HeaderActions>
-        </Card.Header>
-        <Card.Body>
-          {!isLoading && !hasError && data.length === 0 && (
-            <NoResults text={NO_RESULTS_TEXT} {...slots?.noResults} sx={{m: 2, ...slots?.noResults?.sx}} />
-          )}
+  const isAllSelected = data.length > 0 && selectedIds.size === data.length;
+  const isPartiallySelected = selectedIds.size > 0 && selectedIds.size < data.length;
+  const selectedEntities = data.filter(row => selectedIds.has(row[dataKey]));
 
-          {hasError && <ErrorAlert error={error} {...slots?.error} sx={{m: 2, ...slots?.error?.sx}} />}
+  // Clear selection when data changes - data length change is a proxy for data changing
+  const dataLength = data.length;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: We want to clear selection when data changes
+  React.useEffect(() => {
+    setSelectedIds(new Set());
+  }, [dataLength]);
 
-          {isLoading && data.length === 0 && <CircularProgress />}
-
-          {data.length > 0 && (
-            <TableContainer sx={{maxHeight: MAX_HEIGHT}}>
-              <Table stickyHeader sx={{tableLayout: 'auto'}}>
-                <TableHead>
-                  <TableRow>
-                    {withSelection && (
-                      <TableCell
-                        sx={{
-                          width: '1%',
-                          whiteSpace: 'nowrap',
-                          backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825),
-                        }}
-                      >
-                        <Checkbox
-                          checked={amountOfSelectedEntities === pagination.rowsPerPage}
-                          indeterminate={areEntitiesIndeterminate()}
-                          onChange={(_event, _checked) => {
-                            if (amountOfSelectedEntities === pagination.rowsPerPage) {
-                              setSelectedEntities([]);
-                              return;
-                            }
-                            setSelectedEntities(areEntitiesIndeterminate() ? [] : data.map(item => item[dataKey]));
-                          }}
-                        />
-                      </TableCell>
-                    )}
-                    {headerCells.map(cell => {
-                      const isBasicKey = typeof cell !== 'object';
-                      const key = isBasicKey ? cell : 'key' in cell ? cell.key : ''; // it's a placegolder cell
-                      if (renderHeaderCell) {
-                        return renderHeaderCell(key as EntityKey, data);
-                      }
-                      const label = isBasicKey ? String(cell) : 'label' in cell ? cell.label : '';
-                      const textAlignment: TableCellProps['align'] =
-                        !isBasicKey && 'align' in cell ? cell.align : 'left';
-                      return (
-                        <TableCell
-                          key={typeof key === 'string' ? key : key.toString()}
-                          sx={{
-                            backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825),
-                          }}
-                          align={textAlignment}
-                        >
-                          <Typography variant="body1" fontWeight="bolder">
-                            {label}
-                          </Typography>
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data.map((item, _idx, dataList) => {
-                    const key = dataKey;
-                    const isRowSelected = isSelected(item, selectedEntites);
-                    const primaryKey = item[key];
-                    return (
-                      <TableRow key={item[key] as React.Key}>
-                        {withSelection && (
-                          <TableCell sx={{width: '1%', whiteSpace: 'nowrap'}}>
-                            <Checkbox
-                              checked={isRowSelected}
-                              onChange={() => {
-                                setSelectedEntities(prev => {
-                                  return isRowSelected ? prev.filter(pk => pk !== primaryKey) : [...prev, primaryKey];
-                                });
-                              }}
-                            />
-                          </TableCell>
-                        )}
-                        {renderRow(key, item, dataList)}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Card.Body>
-        <Card.Footer sx={{px: 2}}>
-          <ActionPaper sx={{width: 'fit-content', ml: 'auto', mt: 2}}>
-            <Pagination {...pagination} />
-          </ActionPaper>
-        </Card.Footer>
-      </Card>
-
-      <SelectedEntitiesActionPopup
-        isShown={amountOfSelectedEntities > 0 && onDeleteSelectedEntities !== undefined}
-        amountOfSelectedEntities={amountOfSelectedEntities}
-        isAppDrawerCurrentlyOpen={isAppDrawerCurrentlyOpen}
-      >
-        <Stack direction={'row'} spacing={1} sx={{ml: 2}}>
-          <Menu
-            buttonProps={{
-              size: 'small',
-              variant: 'outlined',
-              color: 'primary',
-              startIcon: <AutoFixHighRounded fontSize="small" />,
-              children: 'Actions',
-            }}
-            actions={[
-              {
-                children: (
-                  <>
-                    <ListItemIcon>
-                      <CloudDownload fontSize="small" />
-                    </ListItemIcon>
-                    <Typography variant="inherit">Export</Typography>
-                  </>
-                ),
-                onClick: () => {
-                  downloadAsJson(
-                    selectedTargetEntities,
-                    `bb_${title}_${Formatter.date.formatWithPattern(new Date(), 'yyyy_mm_dd')}`,
-                  );
-                  clearSelectedEntities();
-                },
-              },
-              ...(slots?.selection?.actions?.map(action => ({
-                ...action,
-                onClick(event: React.MouseEvent<HTMLElement>) {
-                  action.onExecuteAction(event, selectedTargetEntities);
-                  clearSelectedEntities();
-                },
-              })) || []),
-              ...(onDeleteSelectedEntities
-                ? [
-                    {
-                      children: (
-                        <>
-                          <ListItemIcon>
-                            <DeleteRounded fontSize="small" />
-                          </ListItemIcon>
-                          <Typography variant="inherit">Delete</Typography>
-                        </>
-                      ),
-                      onClick: () => {
-                        onDeleteSelectedEntities(selectedEntites);
-                        clearSelectedEntities();
-                      },
-                    },
-                  ]
-                : []),
-            ]}
+  const defaultRenderRow = (row: T, index: number) => (
+    <TableRow
+      key={String(row[dataKey])}
+      hover={!!onRowClick}
+      onClick={() => onRowClick?.(row, index)}
+      sx={{cursor: onRowClick ? 'pointer' : 'default', height: rowHeight}}
+      selected={withSelection && selectedIds.has(row[dataKey])}
+    >
+      {withSelection && (
+        <TableCell padding="checkbox">
+          <Checkbox
+            checked={selectedIds.has(row[dataKey])}
+            onChange={() => handleSelectRow(row[dataKey])}
+            onClick={e => e.stopPropagation()}
           />
-          <Button
-            size="small"
-            variant="outlined"
-            color="secondary"
-            onClick={clearSelectedEntities}
-            startIcon={<CleaningServicesRounded fontSize="small" />}
-          >
-            Clear
-          </Button>
-        </Stack>
-      </SelectedEntitiesActionPopup>
-    </>
+        </TableCell>
+      )}
+      {columns.map(col => {
+        const value = getNestedValue(row, String(col.key));
+        return (
+          <TableCell key={String(col.key)} align={col.align ?? 'left'} sx={{width: col.width}}>
+            {col.renderCell ? col.renderCell(value as T[keyof T], row, index) : String(value ?? '')}
+          </TableCell>
+        );
+      })}
+    </TableRow>
+  );
+  return (
+    <Paper elevation={3} sx={{borderRadius: 2, boxShadow: 'unset', overflow: 'hidden', ...sx}}>
+      {toolbar && <TableToolbar {...toolbar} title={toolbarTitle} isLoading={isLoading && data.length === 0} />}
+
+      {withSelection && selectedIds.size > 0 && (
+        <Box
+          sx={theme => ({
+            px: 2,
+            py: 1,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          })}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="body2" fontWeight={'bolder'}>
+              {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
+            </Typography>
+            <Stack direction="row" gap={1}>
+              <Button
+                size="small"
+                onClick={() => setSelectedIds(new Set())}
+                startIcon={<ClearRounded fontSize={'small'} />}
+              >
+                Clear selection
+              </Button>
+              {selectionActions.map((action, idx) => (
+                <Button
+                  key={`${action.label?.toString().toLowerCase().replaceAll(' ', '_')}-${idx}`}
+                  size={'small'}
+                  startIcon={action.icon}
+                  onClick={() => {
+                    action.onClick(selectedEntities);
+                  }}
+                >
+                  {action.label}
+                </Button>
+              ))}
+              {onDeleteSelectedEntities && (
+                <Button
+                  size={'small'}
+                  variant={'contained'}
+                  color={'error'}
+                  startIcon={<DeleteRounded fontSize={'small'} />}
+                  onClick={() => {
+                    onDeleteSelectedEntities(Array.from(selectedIds));
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </Box>
+      )}
+
+      <Box sx={{px: 0}}>
+        {!isLoading && !hasError && data.length === 0 && <NoResults text={emptyMessage} sx={{m: 2}} />}
+
+        {hasError && <ErrorAlert error={errorMessage} sx={{m: 2}} />}
+
+        {isLoading && data.length === 0 && <CircularProgress />}
+
+        {data.length > 0 && (
+          <TableContainer sx={{maxHeight}}>
+            <Table stickyHeader={stickyHeader} sx={{tableLayout: 'auto'}}>
+              <TableHead>
+                <TableRow>
+                  {withSelection && (
+                    <TableCell
+                      padding="checkbox"
+                      sx={{backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825)}}
+                    >
+                      <Checkbox
+                        checked={isAllSelected}
+                        indeterminate={isPartiallySelected}
+                        onChange={handleSelectAll}
+                      />
+                    </TableCell>
+                  )}
+                  {columns.map(col => (
+                    <TableCell
+                      key={String(col.key)}
+                      align={col.align ?? 'left'}
+                      sx={{
+                        backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825),
+                        width: col.width,
+                      }}
+                    >
+                      {col.renderHeader ? (
+                        col.renderHeader()
+                      ) : (
+                        <Typography variant="body1" fontWeight="bolder">
+                          {col.label}
+                        </Typography>
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.map((row, index) => (renderRow ? renderRow(row, index, columns) : defaultRenderRow(row, index)))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
+
+      {pagination && (
+        <Box sx={{px: 2, pb: 2}}>
+          <ActionPaper sx={{width: 'fit-content', ml: 'auto', mt: 2}}>
+            <Pagination
+              count={displayCount}
+              page={pagination.page}
+              rowsPerPage={pagination.rowsPerPage}
+              rowsPerPageOptions={pagination.rowsPerPageOptions}
+              onPageChange={pagination.onPageChange}
+              onRowsPerPageChange={pagination.onRowsPerPageChange}
+            />
+          </ActionPaper>
+        </Box>
+      )}
+    </Paper>
   );
 };

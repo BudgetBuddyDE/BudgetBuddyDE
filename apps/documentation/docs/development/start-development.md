@@ -1,7 +1,7 @@
 ---
 title: Start Development
 icon: lucide/terminal
-tags: [development]
+tags: [development, guide]
 ---
 
 ## Prerequisites

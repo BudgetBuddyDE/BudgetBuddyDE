@@ -5,7 +5,7 @@ import {ThumbUpAltRounded, WarningRounded} from '@mui/icons-material';
 import {Box, Chip, Stack, Typography} from '@mui/material';
 import type React from 'react';
 import {Icon} from '@/components/Icon';
-import {EntityMenu} from '@/components/Table/EntityTable';
+import {EntityMenu} from '@/components/Table/EntityMenu';
 import {HideHorizontalScrollbarStyle} from '@/theme/style';
 import {Formatter} from '@/utils/Formatter';
 
