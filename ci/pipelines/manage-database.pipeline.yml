@@ -1,0 +1,126 @@
+groups:
+  - name: all
+    jobs:
+      - '*'
+  - name: backups
+    jobs:
+      - '*backup*'
+  - name: database
+    jobs:
+      - update-*-database
+
+resources:
+  - name: node-image
+    type: registry-image
+    icon: nodejs
+    source:
+      repository: node
+      tag: 22
+  - name: repository
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((repo_private_key))
+      branch: main
+      paths: [((repo_path))/drizzle/**]
+  - name: db-bucket
+    type: s3
+    icon: database-import
+    source:
+      bucket: ((db_backup_bucket))
+      region_name: ((db_bucket_region))
+      access_key_id: ((db_bucket_access_key))
+      secret_access_key: ((db_bucket_secret))
+      regexp: backup_(.*).dump
+  - name: daily-timer
+    type: time
+    icon: clock
+    source:
+      interval: 24h
+
+jobs:
+  - name: database-backup
+    public: false
+    plan:
+      - get: daily-timer
+        trigger: true
+      - task: dump-database
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: postgres
+              tag: 17
+          outputs:
+            - name: backup
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((database_url))
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+                FILE="backup_${TIMESTAMP}.dump"
+                echo "Creating PostgreSQL dump..."
+                pg_dump "$DATABASE_URL" -Fc -f backup/$FILE >> /dev/null
+                echo "Backup created!"
+      - put: db-bucket
+        params:
+          file: backup/*.dump
+  - name: update-test-database
+    public: false
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repository
+            trigger: true
+      - task: apply-migrations
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((test_database_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository/((repo_path))
+                npx drizzle-kit check
+                npm run db:migrate
+  - name: update-prod-database
+    public: false
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repository
+            passed: [update-test-database]
+      - task: apply-migrations
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((database_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository/((repo_path))
+                npx drizzle-kit check
+                npm run db:migrate

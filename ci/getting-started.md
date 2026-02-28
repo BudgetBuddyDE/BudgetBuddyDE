@@ -78,6 +78,26 @@ fly -t ci set-pipeline -p webapp -c ./pipelines/test-webapp.pipeline.yml \
   -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
 ```
 
+### Manage database migrations & backups
+
+```bash
+fly -t ci set-pipeline -p database -c ./pipelines/manage-database.pipeline.yml \
+  --team budgetbuddyde \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
+  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
+  -v github_pat="$(cat ./secrets/github/pat)" \
+  -v repo_path="packages/db" \
+  -v service="pck_db" \
+  -v service_name="db" \
+  -v db_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
+  -v db_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
+  -v db_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
+  -v db_backup_bucket="bb-railway-database-backups" \
+  -v test_database_url="$(cat ./secrets/database/credentials.txt | sed -n '2p')" \
+  -v database_url="$(cat ./secrets/database/credentials.txt | sed -n '4p')"
+```
+
 ### Publish `@budgetbuddyde/db`
 
 ```bash
