@@ -12,7 +12,7 @@ go_back() {
 
 if has_changes "apps/webapp"; then
   echo "Running checks for apps/webapp..."
-  cd apps/webapp && npm run check && npm run test && npm run build && go_back || exit 1
+  cd apps/webapp && npm run check && npm run test && npm run typecheck && go_back || exit 1
 fi
 
 if has_changes "packages/api"; then
