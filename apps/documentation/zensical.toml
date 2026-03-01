@@ -341,8 +341,20 @@ accent = "#151936"
 # The "extra" section contains miscellaneous settings.
 # ----------------------------------------------------------------------------
 [[project.extra.social]]
+icon = "fontawesome/solid/globe"
+link = "https://budget-buddy.de"
+
+[[project.extra.social]]
+icon = "fontawesome/solid/mobile"
+link = "https://app.budget-buddy.de"
+
+[[project.extra.social]]
 icon = "fontawesome/brands/github"
 link = "https://github.com/BudgetBuddyDE/BudgetBuddyDE"
+
+[[project.extra.social]]
+icon = "fontawesome/solid/gem"
+link = "https://tklein.it"
 
 [project.extra.consent]
 title = "Cookie consent"
