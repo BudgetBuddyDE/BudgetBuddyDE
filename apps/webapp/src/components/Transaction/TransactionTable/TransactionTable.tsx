@@ -11,6 +11,7 @@ import {
 } from '@budgetbuddyde/api/transaction';
 import {AddRounded, ReceiptRounded} from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
+import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -26,9 +27,11 @@ import {
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
 import {AddFab, FabContainer} from '@/components/FAB';
+import {FilterWrapper, serializeTransactionFilters} from '@/components/Filter';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
+import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -46,13 +49,14 @@ type EntityFormFields = FirstLevelNullable<
   }
 >;
 
-// biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
-export type TransactionTableProps = {};
+export type TransactionTableProps = {
+  initialFilters?: Partial<EntityFilters>;
+};
 
-export const TransactionTable: React.FC<TransactionTableProps> = () => {
+export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilters}) => {
   const {register: registerCommand, unregister: unregisterCommand} = useCommandPalette();
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage, applyFilters} = transactionSlice.actions;
+  const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = transactionSlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -63,6 +67,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
     data: transactions,
     filter: filters,
   } = useAppSelector(transactionSlice.selectors.getState);
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
@@ -213,15 +220,29 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
     dispatch(refresh());
   };
 
+  const updateUrl = React.useCallback(
+    (newFilters: EntityFilters) => {
+      const params = serializeTransactionFilters(newFilters);
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+    },
+    [router, pathname],
+  );
+
   const handleTextSearch = React.useCallback(
     (text: string) => {
-      dispatch(
-        applyFilters({
-          keyword: text,
-        }),
-      );
+      updateUrl({...filters, keyword: text || null});
+      dispatch(applyFilters({keyword: text || null}));
     },
-    [applyFilters, dispatch],
+    [applyFilters, dispatch, filters, updateUrl],
+  );
+
+  const handleFilterApply = React.useCallback(
+    (filterValues: Partial<EntityFilters>) => {
+      updateUrl({...filters, ...filterValues});
+      dispatch(applyFilters(filterValues));
+    },
+    [applyFilters, dispatch, filters, updateUrl],
   );
 
   const dispatchNewPage = React.useCallback(
@@ -432,6 +453,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
     [transactions, status, error, totalEntityCount],
   );
 
+  // Initialize filters from URL params on mount — always dispatch to clear any stale Redux state
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
+  React.useLayoutEffect(() => {
+    dispatch(setFilters(initialFilters ?? {}));
+  }, []);
+
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -468,7 +495,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
           title: 'Transactions',
           subtitle: 'Manage your transactions',
           showCount: true,
+          showSearch: true,
           searchPlaceholder: 'Search transactions…',
+          searchDefaultValue: initialFilters?.keyword ?? undefined,
           onSearch: handleTextSearch,
           actions: [
             {
@@ -478,6 +507,15 @@ export const TransactionTable: React.FC<TransactionTableProps> = () => {
               onClick: handleCreateEntity,
             },
           ],
+          children: (
+            <FilterWrapper
+              currentFilters={filters}
+              onApply={handleFilterApply}
+              withDateRange
+              withCategories
+              withPaymentMethods
+            />
+          ),
         }}
         emptyMessage={filters.keyword ? `No transactions found for "${filters.keyword}"` : 'No transactions found'}
         withSelection

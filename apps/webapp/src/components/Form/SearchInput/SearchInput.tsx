@@ -1,9 +1,9 @@
 'use client';
 
-import {SearchRounded as SearchIcon} from '@mui/icons-material';
-import {alpha, InputBase, type InputBaseProps, styled} from '@mui/material';
+import {ClearRounded, SearchRounded as SearchIcon} from '@mui/icons-material';
+import {alpha, IconButton, InputAdornment, InputBase, type InputBaseProps, styled} from '@mui/material';
 import debounce from 'lodash.debounce';
-import type React from 'react';
+import React from 'react';
 
 const Search = styled('div')(({theme}) => ({
   position: 'relative',
@@ -45,9 +45,10 @@ const StyledInputBase = styled(InputBase)(({theme}) => ({
   },
 }));
 
-export type SearchInputProps = Omit<InputBaseProps, 'onChange'> & {
+export type SearchInputProps = Omit<InputBaseProps, 'onChange' | 'value' | 'defaultValue'> & {
   onSearch: (text: string) => void;
   debounceWaitInMilliseconds?: number;
+  defaultValue?: string;
   // Used in slots but must not be passed to the DOM
   enabled?: boolean;
 };
@@ -57,10 +58,35 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   onSearch,
   sx,
   debounceWaitInMilliseconds = 500,
-  // get enbaled prop; if explicitly false, disable the field (without overriding props.disabled)
+  defaultValue = '',
+  // get enabled prop; if explicitly false, disable the field (without overriding props.disabled)
   enabled,
   ...props
 }) => {
+  const [value, setValue] = React.useState(defaultValue);
+
+  // Sync with external defaultValue changes (e.g. URL cleared after navigation)
+  React.useEffect(() => {
+    setValue(defaultValue ?? '');
+  }, [defaultValue]);
+
+  const debouncedSearch = React.useMemo(
+    () => debounce((text: string) => onSearch(text), debounceWaitInMilliseconds),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [debounceWaitInMilliseconds, onSearch],
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+    debouncedSearch(e.target.value);
+  };
+
+  const handleClear = () => {
+    setValue('');
+    debouncedSearch.cancel();
+    onSearch('');
+  };
+
   // If enabled is explicitly false, disable the field (without overriding props.disabled)
   const disabled = props.disabled ?? enabled === false;
 
@@ -72,9 +98,25 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       <StyledInputBase
         placeholder={placeholder}
         inputProps={{'aria-label': 'search'}}
-        onChange={debounce(e => onSearch(e.target.value), debounceWaitInMilliseconds)}
-        disabled={disabled}
         {...props}
+        value={value}
+        onChange={handleChange}
+        disabled={disabled}
+        endAdornment={
+          value ? (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={handleClear}
+                aria-label="clear search"
+                edge="end"
+                sx={{mr: 0.5, color: 'inherit', opacity: 0.7, '&:hover': {opacity: 1}}}
+              >
+                <ClearRounded fontSize="small" />
+              </IconButton>
+            </InputAdornment>
+          ) : undefined
+        }
       />
     </Search>
   );

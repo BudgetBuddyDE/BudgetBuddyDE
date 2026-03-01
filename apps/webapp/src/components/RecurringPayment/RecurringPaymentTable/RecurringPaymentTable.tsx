@@ -10,6 +10,7 @@ import {
 import {ReceiverVH, type TReceiverVH} from '@budgetbuddyde/api/transaction';
 import {AddRounded} from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
+import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -24,9 +25,11 @@ import {
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
 import {AddFab, FabContainer} from '@/components/FAB';
+import {FilterWrapper, serializeRecurringPaymentFilters} from '@/components/Filter';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
+import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringPaymentSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -45,12 +48,13 @@ type EntityFormFields = FirstLevelNullable<
   }
 >;
 
-// biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
-export type RecurringPaymentTableProps = {};
+export type RecurringPaymentTableProps = {
+  initialFilters?: Partial<EntityFilters>;
+};
 
-export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () => {
+export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({initialFilters}) => {
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage, applyFilters} = recurringPaymentSlice.actions;
+  const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = recurringPaymentSlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -61,6 +65,9 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
     data: recurringPayments,
     filter: filters,
   } = useAppSelector(recurringPaymentSlice.selectors.getState);
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
@@ -234,15 +241,29 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
     dispatch(refresh());
   };
 
+  const updateUrl = React.useCallback(
+    (newFilters: EntityFilters) => {
+      const params = serializeRecurringPaymentFilters(newFilters);
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+    },
+    [router, pathname],
+  );
+
   const handleTextSearch = React.useCallback(
     (text: string) => {
-      dispatch(
-        applyFilters({
-          keyword: text,
-        }),
-      );
+      updateUrl({...filters, keyword: text || null});
+      dispatch(applyFilters({keyword: text || null}));
     },
-    [applyFilters, dispatch],
+    [applyFilters, dispatch, filters, updateUrl],
+  );
+
+  const handleFilterApply = React.useCallback(
+    (filterValues: Partial<EntityFilters>) => {
+      updateUrl({...filters, ...filterValues});
+      dispatch(applyFilters(filterValues));
+    },
+    [applyFilters, dispatch, filters, updateUrl],
   );
 
   const dispatchNewPage = React.useCallback(
@@ -468,6 +489,12 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
     [recurringPayments, status, error, totalEntityCount],
   );
 
+  // Initialize filters from URL params on mount — always dispatch to clear any stale Redux state
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
+  React.useLayoutEffect(() => {
+    dispatch(setFilters(initialFilters ?? {}));
+  }, []);
+
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -488,7 +515,9 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
           title: 'Recurring Payments',
           subtitle: 'Manage your recurring payments',
           showCount: true,
+          showSearch: true,
           searchPlaceholder: 'Search…',
+          searchDefaultValue: initialFilters?.keyword ?? undefined,
           onSearch: handleTextSearch,
           actions: [
             {
@@ -498,6 +527,15 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = () =>
               onClick: handleCreateEntity,
             },
           ],
+          children: (
+            <FilterWrapper
+              currentFilters={filters}
+              onApply={handleFilterApply}
+              withExecuteDay
+              withCategories
+              withPaymentMethods
+            />
+          ),
         }}
         emptyMessage={
           filters.keyword ? `No recurring payments found for "${filters.keyword}"` : 'No recurring payments found'

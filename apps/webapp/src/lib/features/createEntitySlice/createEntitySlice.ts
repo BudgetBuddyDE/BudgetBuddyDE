@@ -9,6 +9,22 @@ import type {TApiResponse} from '@/types';
 
 export type EntityFilters = {
   keyword: string | null;
+  /** Transaction-specific: filter from this date */
+  dateFrom?: Date | null;
+  /** Transaction-specific: filter up to this date */
+  dateTo?: Date | null;
+  /** Shared: include only these category IDs */
+  categories?: string[];
+  /** Shared: exclude these category IDs */
+  excl_categories?: string[];
+  /** Shared: include only these payment method IDs */
+  paymentMethods?: string[];
+  /** Shared: exclude these payment method IDs */
+  excl_paymentMethods?: string[];
+  /** RecurringPayment-specific: execute day >= this value (1–31) */
+  executeFrom?: number | null;
+  /** RecurringPayment-specific: execute day <= this value (1–31) */
+  executeTo?: number | null;
 };
 
 export type EntitySliceState<T> = {
@@ -38,6 +54,7 @@ type ResponseBody<T> = TApiResponse<T>;
 export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
   name: string,
   getPageFunc: (query?: Q) => Promise<ServiceResponse<ResponseBody<T>>>,
+  filterMapper?: (filters: EntityFilters) => Partial<Q>,
 ) {
   const initialState = createInitialState<T>();
   const entitySlice = createAppSlice({
@@ -60,6 +77,9 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           } as Q;
           if (currentFilters.keyword && currentFilters.keyword.length > 0) {
             query.search = currentFilters.keyword;
+          }
+          if (filterMapper) {
+            Object.assign(query, filterMapper(currentFilters));
           }
           const [data, err] = await Promise.resolve(getPageFunc(query));
           if (err) throw err;
@@ -114,6 +134,9 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           if (currentFilters.keyword && currentFilters.keyword.length > 0) {
             query.search = currentFilters.keyword;
           }
+          if (filterMapper) {
+            Object.assign(query, filterMapper(currentFilters));
+          }
           const [data, err] = await Promise.resolve(getPageFunc(query));
           if (err) throw err;
           // The value we return becomes the `fulfilled` action payload
@@ -142,12 +165,16 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
         async (filters: Partial<EntityFilters>, api) => {
           const state = api.getState() as RootState;
           const currentSliceState = state[name] as EntitySliceState<T>;
+          const mergedFilters: EntityFilters = {...currentSliceState.filter, ...filters};
           const query = {
             from: 0,
             to: currentSliceState.rowsPerPage,
           } as Q;
-          if (filters.keyword && filters.keyword.length > 0) {
-            query.search = filters.keyword;
+          if (mergedFilters.keyword && mergedFilters.keyword.length > 0) {
+            query.search = mergedFilters.keyword;
+          }
+          if (filterMapper) {
+            Object.assign(query, filterMapper(mergedFilters));
           }
           const [data, err] = await Promise.resolve(getPageFunc(query));
           if (err) throw err;
@@ -174,6 +201,9 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           },
         },
       ),
+      setFilters: create.reducer((state, action: PayloadAction<Partial<EntityFilters>>) => {
+        state.filter = {keyword: null, ...action.payload};
+      }),
       setPage: create.reducer((state, action: PayloadAction<number>) => {
         state.currentPage = action.payload;
       }),

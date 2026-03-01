@@ -3,6 +3,7 @@
 import {CreateOrUpdateCategoryPayload, type TCategory} from '@budgetbuddyde/api/category';
 import {AddRounded, MergeRounded} from '@mui/icons-material';
 import {Button, Typography} from '@mui/material';
+import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -14,6 +15,7 @@ import {
   getInitialEntityDrawerState,
 } from '@/components/Drawer/EntityDrawer';
 import {AddFab, FabContainer} from '@/components/FAB';
+import {serializeKeywordFilter} from '@/components/Filter';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {
   type ColumnDefinition,
@@ -29,12 +31,13 @@ import {MergeCategoriesDialog, type MergeCategoriesForm} from '../MergeCategorie
 
 type EntityFormFields = FirstLevelNullable<Pick<TCategory, 'id' | 'name' | 'description'>>;
 
-// biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
-export type CategoryTableProps = {};
+export type CategoryTableProps = {
+  initialKeyword?: string;
+};
 
-export const CategoryTable: React.FC<CategoryTableProps> = () => {
+export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) => {
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage, applyFilters} = categorySlice.actions;
+  const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = categorySlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -45,6 +48,8 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
     data: categories,
     filter: filters,
   } = useAppSelector(categorySlice.selectors.getState);
+  const router = useRouter();
+  const pathname = usePathname();
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
@@ -141,13 +146,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
 
   const handleTextSearch = React.useCallback(
     (text: string) => {
-      dispatch(
-        applyFilters({
-          keyword: text,
-        }),
-      );
+      const params = serializeKeywordFilter({...filters, keyword: text || null});
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+      dispatch(applyFilters({keyword: text || null}));
     },
-    [applyFilters, dispatch],
+    [applyFilters, dispatch, filters, pathname, router],
   );
 
   const dispatchNewPage = React.useCallback(
@@ -229,6 +233,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
     ];
   }, []);
 
+  // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
+  React.useLayoutEffect(() => {
+    dispatch(setFilters({keyword: initialKeyword ?? null}));
+  }, []);
+
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -249,7 +259,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = () => {
           title: 'Categories',
           subtitle: 'Manage your categories',
           showCount: true,
+          showSearch: true,
           searchPlaceholder: 'Search categories…',
+          searchDefaultValue: initialKeyword,
           onSearch: handleTextSearch,
           actions: [
             {

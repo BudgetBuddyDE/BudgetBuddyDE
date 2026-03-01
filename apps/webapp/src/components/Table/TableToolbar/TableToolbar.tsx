@@ -33,6 +33,7 @@ export type TableToolbarProps = {
   subtitle?: string;
   showSearch?: boolean;
   searchPlaceholder?: string;
+  searchDefaultValue?: string;
   onSearch?: (value: string) => void;
   searchDebounceMs?: number;
   actions?: ToolbarAction[];
@@ -45,6 +46,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
   subtitle,
   showSearch = false,
   searchPlaceholder = 'Search…',
+  searchDefaultValue,
   onSearch,
   searchDebounceMs = 500,
   actions = [],
@@ -97,6 +99,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
             {showSearch && onSearch && (
               <SearchInput
                 placeholder={searchPlaceholder}
+                defaultValue={searchDefaultValue}
                 onSearch={onSearch}
                 debounceWaitInMilliseconds={searchDebounceMs}
               />
