@@ -1,6 +1,6 @@
 {
   "name": "@budgetbuddyde/backend",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "main": "build/src/server.js",
   "scripts": {
     "start": "node build/src/server.js",
