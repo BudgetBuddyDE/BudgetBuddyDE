@@ -11,7 +11,7 @@ import {checkConnection} from './db';
 import {getRedisClient} from './db/redis';
 import {processRecurringPayments} from './jobs/processRecurringPayments';
 import {logger} from './lib/logger';
-import {handleError, logRequest, servedBy, setRequestContext} from './middleware';
+import {cacheResponse, handleError, invalidateCache, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 import {
   BudgetRouter,
@@ -72,6 +72,8 @@ app.use(setRequestContext);
 app.use(logRequest);
 app.use(bodyParser.json());
 app.use(servedBy);
+app.use(cacheResponse);
+app.use(invalidateCache);
 
 // Set a global error handler for validation errors
 setGlobalErrorHandler((errors, _req, res) => {

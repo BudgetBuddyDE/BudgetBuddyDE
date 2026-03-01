@@ -19,6 +19,7 @@ The current user session is also integrated into the request context and the res
 
 - **RESTful API** for providing data and business logic
 - **Processing of Recurring Payments** using a job
+- **Redis-based response caching** for GET requests
 
 ### Jobs
 
@@ -72,6 +73,12 @@ cp .env.example .env
 
 # Start in development mode
 npm run dev
+
+# Build for production
+npm run build
+
+# Start in production mode
+npm start
 ```
 
 **Linting & Formatting**
@@ -125,9 +132,65 @@ The limits are configured in `config.ts`:
 
 When the limit is exceeded, the service responds with HTTP `429 Too Many Requests`. Standard `RateLimit-*` headers (draft-7) are included in every response.
 
+#### Caching
+
+The backend supports optional Redis-based response caching for GET requests. Caching is only active when a Redis instance is configured (`REDIS_URL` is set) and `config.cache.enabled` is `true` in `config.ts`.
+
+Two middlewares handle caching:
+
+- **`cacheResponse`** – Intercepts GET requests. If the response is already in Redis it is returned immediately with `X-Cache: HIT`. Otherwise the request proceeds and the successful response is stored in Redis (`X-Cache: MISS`).
+- **`invalidateCache`** – Intercepts mutating requests (POST, PUT, DELETE). After the response finishes, all cached keys for the matched route and current user are deleted from Redis via SCAN + DEL.
+
+**Cache key format**
+
+```
+cache:<cacheKeyPrefix>:<userId>:<originalUrl>
+```
+
+- `cacheKeyPrefix` – defaults to the route `path`; can be customised per route.
+- `userId` – isolates caches per user.
+- `originalUrl` – includes query parameters, so requests with different query strings are cached separately.
+
+**Route configuration** (`src/config.ts`, `cache.routes`):
+
+| Route | TTL |
+|:---|:---|
+| `/api/category` | 300 s |
+| `/api/paymentMethod` | 300 s |
+| `/api/transaction` | 60 s |
+| `/api/recurringPayment` | 300 s |
+| `/api/budget` | 300 s |
+| `/api/insights` | 120 s |
+
+```ts
+type CacheRouteConfig = {
+  path: string;            // request path prefix to match
+  ttl: number;             // time-to-live in seconds
+  cacheKeyPrefix?: string; // optional custom prefix for the cache key (defaults to path)
+};
+```
+
+**Disabling caching**
+
+- **No Redis**: Leave `REDIS_URL` unset. All cache middleware calls are skipped silently.
+- **Globally**: Set `config.cache.enabled = false` in `config.ts`.
+- **Per route**: Remove the route entry from `config.cache.routes`.
+
+**Response headers**
+
+| Header | Value | Meaning |
+|:---|:---|:---|
+| `X-Cache` | `HIT` | Response served from Redis cache |
+| `X-Cache` | `MISS` | Response fetched from the database and stored in cache |
+
 ## Deployment
 
 Information about the deployment process (e.g. Docker, CI/CD Pipelines).
+
+### Database
+
+!!! important
+    The database schema is provided by the [`@budgetbuddyde/db`](../packages/db.md) package. For information on migrations and the initial database setup, see the package documentation.
 
 ### Docker
 

@@ -8,6 +8,15 @@ import {type Logger, transports} from 'winston';
 import {name, version} from '../package.json';
 import {HTTPStatusCode} from './models';
 
+export type CacheRouteConfig = {
+  /** Express path prefix to match, e.g. '/api/category' */
+  path: string;
+  /** Time-to-live in seconds */
+  ttl: number;
+  /** Optional custom prefix for the cache key. Defaults to `path`. */
+  cacheKeyPrefix?: string;
+};
+
 export type Config = {
   service: typeof name;
   version: typeof version;
@@ -21,6 +30,12 @@ export type Config = {
   rateLimit: Partial<RateLimitOptions>;
   jobs: {
     timezone: string;
+  };
+  cache: {
+    /** Globally enable or disable caching. When false, no caching occurs regardless of Redis availability. */
+    enabled: boolean;
+    /** Per-route cache configuration. Only listed routes are cached. */
+    routes: CacheRouteConfig[];
   };
 };
 
@@ -70,5 +85,16 @@ export const config: Config = {
   },
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',
+  },
+  cache: {
+    enabled: Boolean(process.env.REDIS_URL),
+    routes: [
+      {path: '/api/category', ttl: 300},
+      {path: '/api/paymentMethod', ttl: 300},
+      {path: '/api/transaction', ttl: 60},
+      {path: '/api/recurringPayment', ttl: 300},
+      {path: '/api/budget', ttl: 300},
+      {path: '/api/insights', ttl: 120},
+    ],
   },
 };
