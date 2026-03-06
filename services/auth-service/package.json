@@ -42,7 +42,7 @@
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
     "express": "^5.1.0",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.2.2",
     "ioredis": "^5.8.2",
     "node-cron": "^4.2.0",
     "pg": "^8.16.1",
