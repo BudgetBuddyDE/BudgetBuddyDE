@@ -89,11 +89,11 @@ export const HistoricalBalanceLineChart: React.FC<HistoricalBalanceLineChartProp
               size={'small'}
               defaultValue={DEFAULT_DATE_RANGE}
               slotProps={{
-                startDateTicker: {
+                startDatePicker: {
                   openTo: 'month',
                   view: 'month',
                 },
-                endDateTicker: {
+                endDatePicker: {
                   openTo: 'month',
                   view: 'month',
                 },

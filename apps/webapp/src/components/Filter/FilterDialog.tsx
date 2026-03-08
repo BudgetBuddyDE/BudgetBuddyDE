@@ -89,6 +89,26 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
                 defaultValue={{startDate: state.dateRange.startDate, endDate: state.dateRange.endDate}}
                 onDateRangeChange={(start, end) => dispatch({action: 'SET_DATE_RANGE', startDate: start, endDate: end})}
                 dateFormat="dd.MM.yyyy"
+                slotProps={{
+                  startDatePicker: {
+                    slotProps: {
+                      textField: {
+                        sx: {
+                          width: '50%',
+                        },
+                      },
+                    },
+                  },
+                  endDatePicker: {
+                    slotProps: {
+                      textField: {
+                        sx: {
+                          width: '50%',
+                        },
+                      },
+                    },
+                  },
+                }}
               />
             </Stack>
           )}

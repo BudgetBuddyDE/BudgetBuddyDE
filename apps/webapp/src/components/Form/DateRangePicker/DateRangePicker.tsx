@@ -12,8 +12,8 @@ export type DateRangeState = {
 export type DateRangePickerProps = {
   slotProps?: {
     stack?: StackProps;
-    startDateTicker?: DateTickerProps;
-    endDateTicker?: DateTickerProps;
+    startDatePicker?: DateTickerProps;
+    endDatePicker?: DateTickerProps;
   };
   onDateRangeChange?: (startDate: Date | null, endDate: Date | null) => void;
   defaultValue?: Partial<DateRangeState>;
@@ -71,7 +71,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           setOpenField('END');
         }}
         format={dateFormat}
-        slotProps={mergeSlotProps(slotProps?.startDateTicker, {
+        slotProps={mergeSlotProps(slotProps?.startDatePicker, {
           field: {
             clearable: true,
             onClick() {
@@ -102,7 +102,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         open={openField === 'END'}
         onClose={handleEndDatePickerClose}
         format={dateFormat}
-        slotProps={mergeSlotProps(slotProps?.endDateTicker, {
+        slotProps={mergeSlotProps(slotProps?.endDatePicker, {
           field: {
             clearable: true,
             onClick() {

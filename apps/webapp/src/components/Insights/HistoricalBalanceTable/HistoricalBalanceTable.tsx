@@ -136,8 +136,8 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
                 size="small"
                 defaultValue={DEFAULT_DATE_RANGE}
                 slotProps={{
-                  startDateTicker: {openTo: 'month', view: 'month'},
-                  endDateTicker: {openTo: 'month', view: 'month'},
+                  startDatePicker: {openTo: 'month', view: 'month'},
+                  endDatePicker: {openTo: 'month', view: 'month'},
                 }}
                 onDateRangeChange={handleDateRangeChange}
               />
