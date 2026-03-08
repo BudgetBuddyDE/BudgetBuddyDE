@@ -1,5 +1,8 @@
 User-agent: Amazonbot
 Disallow: /
 
+User-agend: Amzn-SearchBot
+Disallow: /
+
 User-agent: UptimeRobot
 Disallow: /
