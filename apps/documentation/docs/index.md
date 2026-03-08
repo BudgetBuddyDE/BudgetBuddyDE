@@ -19,6 +19,7 @@ A concise guide to this documentation project and how to use Zensical as the sta
 - [x] **Smart Budgeting** — Set monthly financial goals for different categories and monitor your progress with visual budget indicators.
 - [x] **Financial Analytics & Insights** — Visualize your spending habits through interactive charts, including category-based expense breakdowns and budget distribution.
 - [x] **Customizable Infrastructure** — Define your own categories and payment methods (e.g., bank accounts, cash, credit cards) to fit your personal workflow.
+- [x] **Table Filtering** — Filter transactions and recurring payments by date range, execute day, categories, and payment methods directly from the table toolbar. Active filters are persisted in the URL so they survive page reloads and can be shared via link.
 - [ ] **Automated Reports** - Generate monthly financial summaries and insights to help you understand your spending patterns and make informed decisions.
 - [ ] **Attachments** — Upload and manage receipts, invoices, and other financial documents directly within the app for easy reference and organization.
 - [ ] **Model Context Protocol (MCP)** — Allow LLMs to interact with the app's data and functionality through a standardized interface, enabling advanced features like natural language queries and AI-driven insights.

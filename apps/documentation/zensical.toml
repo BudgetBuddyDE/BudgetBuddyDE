@@ -85,6 +85,7 @@ nav = [
         {"Components" = [
             "development/components/index.md",
             "development/components/tables.md",
+            "development/components/filter.md",
         ]}
     ]},
     {"Monitoring" = [

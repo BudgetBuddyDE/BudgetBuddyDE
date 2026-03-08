@@ -30,6 +30,14 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 - Visualization of expenses and income
 - Monthly reports and analytics (upcoming)
 
+### Table Filtering
+
+- Filter transactions and recurring payments from the table toolbar
+- Available filter sections: date range, execute day (1–31), categories, payment methods
+- Active filters are persisted in the URL in order to survive page reloads and is shareable via link
+- Filter button highlights in the primary colour when filters are active
+- See [Filter component documentation](../development/components/filter.md) for implementation details
+
 ## Architecture
 
 ### Technologies
