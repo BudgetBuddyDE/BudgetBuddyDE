@@ -15,24 +15,32 @@
     ·
     <a href="https://app.budget-buddy.de">App</a>
     ·
-    <a href="https://docs.budget-buddy.de">Documentation</a>
+    <a href="https://docs.budget-buddy.de">Docs</a>
     ·
     <a href="https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues">Issues</a>
   </p>
 </p>
 
+A modern, open-source personal finance manager built with React. Track transactions, manage recurring payments, and visualize your budget all in one place.
+
 <p align="center">
-  <strong>Deploy BudgetBuddy on Railway with just one click!<br/></strong>
+  <strong>One-click deploy on Railway:</strong><br/>
   <a href="https://railway.com/deploy/WjE5vD?referralCode=SD-6Xm&utm_medium=integration&utm_source=template&utm_campaign=generic">
     <img src="https://railway.com/button.svg" alt="Deploy on Railway" />
   </a>
 </p>
 
-BudgetBuddy is a modern ReactJS-based web application designed to help you manage your finances and optimize your monthly budget.
+## Features
+
+- **Dashboard** — Real-time overview of your financial health, upcoming payments, and recent transactions
+- **Transactions** — Record and categorize income & expenses
+- **Recurring Payments** — Track subscriptions and regular bills so you never miss one
+- **Analytics** — Interactive charts and budget monitoring
+- **Customization** — Manage your own categories and payment methods
 
 ## Project Structure
 
-This project is organized as a monorepo using [Turbo](https://turbo.build/).
+Monorepo powered by [Turbo](https://turbo.build/).
 
 ### Apps
 
@@ -49,41 +57,18 @@ This project is organized as a monorepo using [Turbo](https://turbo.build/).
 
 - **[Database](./apps/documentation/docs/packages/db.md):** DrizzleORM database schema definitions.
 - **[Api](./apps/documentation/docs/packages/api.md):** Type-safe API client for backend communication.`
-- **[Logger](./apps/documentation/docs/packages/logger.md):** Shared logging utility.
+- **[Logger](./apps/documentation/docs/packages/logger.md):** (Deprecated) Shared logging utility.
 - **[Utils](./apps/documentation/docs/packages/utils.md):** Shared utility functions.
 - **[Types](./apps/documentation/docs/packages/types.md):** Shared TypeScript types and schemas.
 
-## Features
+## Getting Started
 
 > [!TIP]
-> BudgetBuddy is continuously evolving, and new features are regularly added. Stay tuned for updates!
+> For a full setup guide (local & production), see the [documentation](https://docs.budget-buddy.de).
 
-- **Dashboard:** Get a comprehensive overview of your financial health with real-time statistics, upcoming recurring payments, and recent transactions.
-- **Transaction Management:** Easily record and categorize your income and expenses to keep your records up to date.
-- **Recurring Payments:** Never miss a bill again by tracking your subscriptions and regular payments.
-- **Budgeting & Analytics:** Visualize your spending habits with interactive charts and monitor your budget adherence.
-- **Category & Payment Method Management:** Customize your financial tracking by managing your own categories and payment methods.
-- **Dark Mode:** Fully supported dark mode for a comfortable user experience in any environment.
-
-## Getting started
-
-> [!TIP]
-> For a complete guide on how to set up the project locally or in production, it's recommended to check [the documentation](https://docs.budget-buddy.de).
-
-1. Clone this repository
-
-   ```bash
-   git clone git@github.com:BudgetBuddyDE/BudgetBuddyDE.git
-   ```
-
-2. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-3. Build packages
-
-   ```bash
-   npm run build-packages
-   ```
+```bash
+git clone git@github.com:BudgetBuddyDE/BudgetBuddyDE.git
+cd BudgetBuddyDE
+npm install
+npm run build-packages
+```
