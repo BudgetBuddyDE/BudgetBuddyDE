@@ -54,7 +54,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
         },
       }}
     >
-      <DialogTitle id="scroll-dialog-title">Transactions</DialogTitle>
+      <DialogTitle id="scroll-dialog-title">Transactions ({transactions.length})</DialogTitle>
       <CloseIconButton
         onClick={event => handleDialogClose(event, 'escapeKeyDown')}
         sx={theme => ({

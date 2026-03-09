@@ -22,8 +22,15 @@ import {
   EntityMenu,
   type EntitySlice,
   EntityTable,
+  type EntityTableProps,
   type SelectionAction,
 } from '@/components/Table';
+import {
+  generateDefaultState as generateDefaultTransactionDialogState,
+  TransactionDialog,
+  type TransactionDialogProps,
+  reducer as TransactionDialogReducer,
+} from '@/components/Transaction/TransactionDialog';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {logger} from '@/logger';
@@ -53,6 +60,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
+  );
+  const [transactionDialogState, dispatchTransactionDialogAction] = React.useReducer(
+    TransactionDialogReducer,
+    generateDefaultTransactionDialogState(),
   );
   const [mergeDrawerState, dispatchMergeDrawerAction] = React.useReducer(
     entityDrawerReducer,
@@ -115,6 +126,27 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       onSuccess?.();
       dispatch(refresh());
     }
+  };
+
+  const handleClickEntity: EntityTableProps<TCategory, 'id'>['onRowClick'] = async (row, _index) => {
+    dispatchTransactionDialogAction({action: 'OPEN_AND_FETCH_DATA'});
+
+    const [relatedTransactions, error] = await apiClient.backend.transaction.getAll({
+      $categories: [row.id],
+    });
+    if (error) {
+      dispatchTransactionDialogAction({action: 'FETCH_ERROR', error});
+      return;
+    }
+
+    dispatchTransactionDialogAction({
+      action: 'FETCH_SUCCESS',
+      transactions: relatedTransactions?.data ? relatedTransactions.data : [],
+    });
+  };
+
+  const handleCloseTransactionDialog: TransactionDialogProps['onClose'] = () => {
+    dispatchTransactionDialogAction({action: 'CLEAR'});
   };
 
   const handleEditEntity = (entity: TCategory) => {
@@ -272,6 +304,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
             },
           ],
         }}
+        onRowClick={handleClickEntity}
         emptyMessage={filters.keyword ? `No categories found for "${filters.keyword}"` : 'No categories found'}
         withSelection
         onDeleteSelectedEntities={entities => {
@@ -352,6 +385,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           });
         }}
       />
+      <TransactionDialog {...transactionDialogState} onClose={handleCloseTransactionDialog} />
       <FabContainer>
         <AddFab onClick={handleCreateEntity} label="Add category" />
       </FabContainer>
