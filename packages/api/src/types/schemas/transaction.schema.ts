@@ -1,4 +1,9 @@
 import z from "zod";
+import {
+	AttachmentWithUrl,
+	DeleteAttachmentsPayload,
+	GetAttachmentsQuery,
+} from "./attachment.schema";
 import { Category } from "./category.schema";
 import { ApiResponse, UserID } from "./common.schema";
 import { PaymentMethod } from "./paymentMethod.schema";
@@ -22,6 +27,21 @@ export const ExpandedTransaction = Transaction.omit({
 }).extend({
 	category: Category,
 	paymentMethod: PaymentMethod,
+});
+
+export const TransactionAttachment = z.object({
+	transactionId: Transaction.shape.id,
+	attachmentId: z.uuid({ version: "v7" }).brand("AttachmentID"),
+});
+
+export const GetTransactionAttachmentsQuery = GetAttachmentsQuery;
+export const DeleteTransactionAttachmentsPayload = DeleteAttachmentsPayload;
+export const GetTransactionAttachmentsResponse = ApiResponse.extend({
+	data: z.array(AttachmentWithUrl).nullable(),
+	totalCount: z.number().optional(),
+});
+export const UploadTransactionAttachmentsResponse = ApiResponse.extend({
+	data: z.array(AttachmentWithUrl).nullable(),
 });
 
 // export const CreateTransactionPayload = Transaction.pick({

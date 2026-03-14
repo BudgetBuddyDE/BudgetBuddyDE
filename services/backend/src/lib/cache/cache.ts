@@ -32,15 +32,27 @@ export class Cache {
     }
   }
 
-  async getValue(key: string) {
+  async getValue<Result extends string = string>(key: string) {
     try {
       key = this.getKey(key);
       const result = await this.redisClient.get(key);
       this.logger.debug(result ? `Retrieved value for '${key}'` : `No value found for '${key}'`);
-      return result;
+      return result as Result | null;
     } catch (error) {
       this.logger.error('GetCacheError', error);
       return null;
+    }
+  }
+
+  async deleteValue(key: string) {
+    try {
+      key = this.getKey(key);
+      const result = await this.redisClient.del(key);
+      this.logger.debug(`Deleted value for '${key}'`);
+      return result;
+    } catch (error) {
+      this.logger.error('DeleteCacheError', error);
+      return 0;
     }
   }
 }

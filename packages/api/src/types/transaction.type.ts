@@ -15,3 +15,12 @@ export type TCreateOrUpdateTransactionPayload = TypeOfSchema<
 	typeof schema.CreateOrUpdateTransactionPayload
 >;
 export type TReceiverVH = TypeOfSchema<typeof schema.ReceiverVH>;
+export type TTransactionAttachment = TypeOfSchema<
+	typeof schema.TransactionAttachment
+>;
+export type TGetTransactionAttachmentsQuery = TypeOfSchema<
+	typeof schema.GetTransactionAttachmentsQuery
+>;
+export type TDeleteTransactionAttachmentsPayload = TypeOfSchema<
+	typeof schema.DeleteTransactionAttachmentsPayload
+>;

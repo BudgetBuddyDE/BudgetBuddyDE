@@ -1,28 +1,34 @@
 import { relations } from "drizzle-orm";
 import { user } from "../auth/tables";
 import {
+	attachments,
 	budgetCategories,
 	budgets,
 	categories,
 	paymentMethods,
 	recurringPayments,
+	transactionAttachments,
 	transactions,
 } from "./tables";
 
-export const transactionRelations = relations(transactions, ({ one }) => ({
-	owner: one(user, {
-		fields: [transactions.ownerId],
-		references: [user.id],
+export const transactionRelations = relations(
+	transactions,
+	({ one, many }) => ({
+		owner: one(user, {
+			fields: [transactions.ownerId],
+			references: [user.id],
+		}),
+		category: one(categories, {
+			fields: [transactions.categoryId],
+			references: [categories.id],
+		}),
+		paymentMethod: one(paymentMethods, {
+			fields: [transactions.paymentMethodId],
+			references: [paymentMethods.id],
+		}),
+		attachments: many(transactionAttachments),
 	}),
-	category: one(categories, {
-		fields: [transactions.categoryId],
-		references: [categories.id],
-	}),
-	paymentMethod: one(paymentMethods, {
-		fields: [transactions.paymentMethodId],
-		references: [paymentMethods.id],
-	}),
-}));
+);
 
 export const recurringPaymentRelations = relations(
 	recurringPayments,
@@ -77,3 +83,21 @@ export const budgetCategoryRelations = relations(
 		}),
 	}),
 );
+
+export const transactionAttachmentRelations = relations(
+	transactionAttachments,
+	({ one }) => ({
+		transaction: one(transactions, {
+			fields: [transactionAttachments.transactionId],
+			references: [transactions.id],
+		}),
+		attachment: one(attachments, {
+			fields: [transactionAttachments.attachmentId],
+			references: [attachments.id],
+		}),
+	}),
+);
+
+export const attachmentRelations = relations(attachments, ({ many }) => ({
+	transactions: many(transactionAttachments),
+}));

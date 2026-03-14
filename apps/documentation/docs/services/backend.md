@@ -20,6 +20,7 @@ The current user session is also integrated into the request context and the res
 - **RESTful API** for providing data and business logic
 - **Processing of Recurring Payments** using a job
 - **Redis-based response caching** for GET requests
+- **File Attachments** via S3-compatible object storage with signed URL generation and Redis-based URL caching
 
 ### Jobs
 
@@ -59,6 +60,26 @@ src/
 | Method | Path      | Description           |
 |:-------|:----------|:----------------------|
 | GET    | `/health` | Health Check Endpoint |
+
+#### Attachments (`/api/attachment`)
+
+| Method | Path                   | Description                                                 |
+|:-------|:-----------------------|:------------------------------------------------------------|
+| GET    | `/:attachmentId`       | Get a single attachment by ID (returns a fresh signed URL)  |
+| DELETE | `/:attachmentId`       | Delete a single attachment (S3 + DB)                        |
+
+#### Transactions (`/api/transaction`) — Attachment sub-resource
+
+| Method | Path                    | Description                                                            |
+|:-------|:------------------------|:-----------------------------------------------------------------------|
+| GET    | `/attachments`          | List all attachments for the authenticated user (paginated)            |
+| GET    | `/:id/attachments`      | List attachments for a specific transaction (paginated)                |
+| POST   | `/:id/attachments`      | Upload one or more files as attachments for a transaction (multipart)  |
+| DELETE | `/:id/attachments`      | Delete attachments for a transaction (optionally filter by IDs)        |
+
+#### Pagination
+
+Attachment list endpoints accept `from` and `to` query parameters (default: `from=0`, `to=25`).
 
 ## Development
 
@@ -112,8 +133,13 @@ npm run format
 | `PORT`              | Port on which the service runs                        | `9000`              |
 | `LOKI_URL`          | URL for the Loki logging service                      | `http://loki:3100`  |
 | `TEMPO_URL`         | Ingest URL for the Tempo tracing service              | `http://tempo:4318` |
+| `AWS_S3_BUCKET_NAME`    | Name of the S3 bucket used for storing attachments    | -                   |
+| `AWS_S3_ENDPOINT`       | Endpoint URL of the S3-compatible object store        | -                   |
+| `AWS_ACCESS_KEY_ID`     | Access key for the S3 object store                    | -                   |
+| `AWS_SECRET_ACCESS_KEY` | Secret key for the S3 object store                    | -                   |
 
-
+!!! note
+    The `AWS_*` variables are required for the Attachments feature. Signed URLs are cached in Redis with a TTL of **900 s (15 min)**; the cache namespace is `attachments:<attachmentId>`.
 
 !!! important
     The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.

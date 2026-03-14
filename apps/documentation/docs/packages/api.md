@@ -190,6 +190,36 @@ class EntityService<CreatePayload, UpdatePayload, ...> {
 | `api.backend.recurringPayment` | Recurring payments  | `/api/recurringPayment` |
 | `api.backend.budget`           | Budget management   | `/api/budget`           |
 
+#### Transaction attachment methods
+
+The `TransactionService` (`api.backend.transaction`) provides additional methods for managing file attachments:
+
+| Method                                                                  | Description                                                               |
+|:------------------------------------------------------------------------|:--------------------------------------------------------------------------|
+| `getTransactionAttachments(transactionId, query?, config?)`             | Fetch all attachments for a specific transaction (paginated)              |
+| `uploadTransactionAttachments(transactionId, files, config?)`           | Upload one or more `File` objects as attachments for a transaction        |
+| `deleteTransactionAttachments(transactionId, payload?, config?)`        | Delete attachments for a transaction; optionally filter by attachment IDs |
+
+```typescript
+// Upload attachments
+const [result, err] = await api.backend.transaction.uploadTransactionAttachments(
+  'transaction-id',
+  fileList, // File[]
+);
+
+// Fetch attachments (paginated)
+const [attachments, err] = await api.backend.transaction.getTransactionAttachments(
+  'transaction-id',
+  { from: 0, to: 25 },
+);
+
+// Delete specific attachments
+const [deleted, err] = await api.backend.transaction.deleteTransactionAttachments(
+  'transaction-id',
+  { attachmentIds: ['attachment-id-1', 'attachment-id-2'] },
+);
+```
+
 ### Type Safety
 
 The package leverages Zod for runtime validation combined with TypeScript for compile-time safety:

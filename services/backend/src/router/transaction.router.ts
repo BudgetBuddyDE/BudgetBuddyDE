@@ -1,15 +1,23 @@
+import type {TUserID} from '@budgetbuddyde/api';
+import {SignedAttachmentUrlTTL, type TAttachment, type TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {Category} from '@budgetbuddyde/api/category';
 import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import {TransactionSchemas, transactionReceiverView, transactions} from '@budgetbuddyde/db/backend';
 import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
+import multer from 'multer';
 import z from 'zod';
 import {db} from '../db';
+import {logger} from '../lib';
+import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 
 export const transactionRouter = Router();
+const upload = multer({storage: multer.memoryStorage()});
+const attachmentLogger = logger.child({label: 'transactions.attachments'});
+const attachmentService = new TransactionAttachmentHandler(process.env.AWS_S3_BUCKET_NAME as string);
 
 transactionRouter.get('/receiver', async (req, res) => {
   const userId = req.context.user?.id;
@@ -143,6 +151,54 @@ transactionRouter.get(
 );
 
 transactionRouter.get(
+  '/attachments',
+  validateRequest({
+    query: z.object({
+      from: z.coerce.number().optional(),
+      to: z.coerce.number().optional(),
+      ttl: SignedAttachmentUrlTTL.optional(),
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    try {
+      const {attachments: foundAttachments, totalCount} = await attachmentService.findTransactionAttachmentsByOwner(
+        userId,
+        {from: req.query.from, to: req.query.to, ttl: req.query.ttl},
+      );
+
+      ApiResponse.builder<TAttachmentWithUrl[]>()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage("Fetched user's transaction attachments successfully")
+        .withTotalCount(totalCount)
+        .withData(
+          foundAttachments.map(a => ({
+            id: a.id,
+            ownerId: a.ownerId as TUserID,
+            fileName: a.fileName,
+            fileExtension: a.fileExtension,
+            contentType: a.contentType,
+            location: a.location,
+            signedUrl: a.signedUrl,
+            createdAt: a.createdAt.toISOString(),
+          })),
+        )
+        .buildAndSend(res);
+    } catch (err) {
+      attachmentLogger.error("Couldn't fetch transaction attachments: %o", err);
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+transactionRouter.get(
   '/:id',
   validateRequest({
     params: z.object({
@@ -184,6 +240,59 @@ transactionRouter.get(
   },
 );
 
+transactionRouter.get(
+  '/:id/attachments',
+  validateRequest({
+    params: z.object({
+      id: TransactionSchemas.select.shape.id,
+    }),
+    query: z.object({
+      from: z.coerce.number().optional(),
+      to: z.coerce.number().optional(),
+      ttl: SignedAttachmentUrlTTL.optional(),
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    try {
+      const transactionId = req.params.id;
+      const {attachments: foundAttachments, totalCount} = await attachmentService.findAttachmentsByTransactionId(
+        userId,
+        transactionId,
+        {from: req.query.from, to: req.query.to, ttl: req.query.ttl},
+      );
+
+      ApiResponse.builder<TAttachmentWithUrl[]>()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Fetched transaction attachments successfully')
+        .withTotalCount(totalCount)
+        .withData(
+          foundAttachments.map(a => ({
+            id: a.id,
+            ownerId: a.ownerId as TUserID,
+            fileName: a.fileName,
+            fileExtension: a.fileExtension,
+            contentType: a.contentType,
+            location: a.location,
+            signedUrl: a.signedUrl,
+            createdAt: a.createdAt.toISOString(),
+          })),
+        )
+        .buildAndSend(res);
+    } catch (err) {
+      attachmentLogger.error("Couldn't fetch attachments for transaction %s: %o", req.params.id, err);
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
 transactionRouter.post(
   '/',
   validateRequest({
@@ -217,6 +326,62 @@ transactionRouter.post(
     } catch (err) {
       ApiResponse.builder()
         .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+transactionRouter.post(
+  '/:id/attachments',
+  upload.array('files'),
+  validateRequest({
+    params: z.object({
+      id: TransactionSchemas.select.shape.id,
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      return ApiResponse.builder()
+        .withStatus(HTTPStatusCode.UNAUTHORIZED)
+        .withMessage('Unauthorized')
+        .buildAndSend(res);
+    }
+
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) {
+      return ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('No files uploaded')
+        .buildAndSend(res);
+    }
+
+    try {
+      const transactionId = req.params.id;
+      const uploadedAttachments = await attachmentService.uploadTransactionAttachments(userId, transactionId, files);
+
+      ApiResponse.builder<TAttachmentWithUrl[]>()
+        .withStatus(HTTPStatusCode.CREATED)
+        .withMessage(`${uploadedAttachments.length} attachment(s) uploaded successfully`)
+        .withData(
+          uploadedAttachments.map(a => ({
+            id: a.id,
+            ownerId: a.ownerId as TAttachment['ownerId'],
+            fileName: a.fileName,
+            fileExtension: a.fileExtension,
+            contentType: a.contentType,
+            location: a.location,
+            signedUrl: a.signedUrl,
+            createdAt: a.createdAt.toISOString(),
+          })),
+        )
+        .buildAndSend(res);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      attachmentLogger.error("Couldn't process attachments for transaction %s: %o", req.params.id, error);
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+        .withMessage('Failed to upload files')
         .buildAndSend(res);
     }
   },
@@ -294,6 +459,50 @@ transactionRouter.delete(
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+transactionRouter.delete(
+  '/:id/attachments',
+  validateRequest({
+    params: z.object({
+      id: TransactionSchemas.select.shape.id,
+    }),
+    body: z
+      .object({
+        attachmentIds: z.array(z.string().uuid()).optional(),
+      })
+      .optional(),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    try {
+      const transactionId = req.params.id;
+      const attachmentIds = req.body?.attachmentIds;
+      const deletedCount = await attachmentService.deleteTransactionAttachments(userId, transactionId, attachmentIds);
+
+      if (deletedCount === 0) {
+        return ApiResponse.builder()
+          .withStatus(HTTPStatusCode.NOT_FOUND)
+          .withMessage('No attachments found to delete')
+          .buildAndSend(res);
+      }
+
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage(`${deletedCount} attachment(s) deleted successfully`)
+        .buildAndSend(res);
+    } catch (err) {
+      attachmentLogger.error("Couldn't delete attachments for transaction %s: %o", req.params.id, err);
       ApiResponse.builder()
         .fromError(err instanceof Error ? err : new Error(String(err)))
         .buildAndSend(res);

@@ -6,6 +6,7 @@ import {
 import { z } from "zod";
 import { createTableSchemas } from "../utils/createTableSchemas";
 import {
+	attachments,
 	budgetCategories,
 	budgets,
 	categories,
@@ -14,6 +15,8 @@ import {
 	transactions,
 } from "./tables";
 
+export { budgetType } from "./enums";
+
 export const CategorySchemas = createTableSchemas(categories);
 
 export const PaymentMethodSchemas = createTableSchemas(paymentMethods);
@@ -21,6 +24,8 @@ export const PaymentMethodSchemas = createTableSchemas(paymentMethods);
 export const TransactionSchemas = createTableSchemas(transactions);
 
 export const RecurringPaymentSchemas = createTableSchemas(recurringPayments);
+
+export const AttachmentSchemas = createTableSchemas(attachments);
 
 /**
  * @deprecated

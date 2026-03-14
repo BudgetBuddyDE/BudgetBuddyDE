@@ -14,6 +14,7 @@ import {logger} from './lib/logger';
 import {cacheResponse, handleError, invalidateCache, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 import {
+  AttachmentRouter,
   BudgetRouter,
   CategoryRouter,
   InsightsRouter,
@@ -103,6 +104,7 @@ app.use('/api/transaction', TransactionRouter);
 app.use('/api/recurringPayment', RecurringPaymentRouter);
 app.use('/api/budget', BudgetRouter);
 app.use('/api/insights', InsightsRouter);
+app.use('/api/attachment', AttachmentRouter);
 
 // Mount an global error handler
 app.use(handleError);
