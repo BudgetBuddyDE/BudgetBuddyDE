@@ -27,6 +27,7 @@
   "homepage": "https://github.com/budgetbuddyde/budgetbuddyde#readme",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1009.0",
     "@budgetbuddyde/api": "^1.1.0",
     "@budgetbuddyde/db": "^0.1.0",
     "@budgetbuddyde/logger": "^0.1.1",
