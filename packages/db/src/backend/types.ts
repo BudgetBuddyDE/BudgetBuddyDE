@@ -6,6 +6,7 @@ import {
 import { z } from "zod";
 import { createTableSchemas } from "../utils/createTableSchemas";
 import {
+	attachments,
 	budgetCategories,
 	budgets,
 	categories,
@@ -13,6 +14,12 @@ import {
 	recurringPayments,
 	transactions,
 } from "./tables";
+import { backendSchema } from "./schema";
+
+export const budgetType = backendSchema.enum("budget_type", ["i", "e"]);
+export const attachmentUsage = backendSchema.enum("attachment_usage", [
+	"transaction",
+]);
 
 export const CategorySchemas = createTableSchemas(categories);
 
@@ -21,6 +28,8 @@ export const PaymentMethodSchemas = createTableSchemas(paymentMethods);
 export const TransactionSchemas = createTableSchemas(transactions);
 
 export const RecurringPaymentSchemas = createTableSchemas(recurringPayments);
+
+export const AttachmentSchemas = createTableSchemas(attachments);
 
 /**
  * @deprecated

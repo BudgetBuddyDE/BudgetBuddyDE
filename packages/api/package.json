@@ -104,6 +104,11 @@
       "dev-source": "./src/insights.ts",
       "types": "./lib/insights.d.ts",
       "default": "./lib/insights.js"
+    },
+    "./attachment": {
+      "dev-source": "./src/attachment.ts",
+      "types": "./lib/attachment.d.ts",
+      "default": "./lib/attachment.js"
     }
   },
   "typesVersions": {
@@ -146,6 +151,9 @@
       ],
       "insights": [
         "./lib/insights.d.ts"
+      ],
+      "attachment": [
+        "./lib/attachment.d.ts"
       ]
     }
   }

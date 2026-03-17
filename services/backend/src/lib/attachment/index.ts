@@ -1,1 +1,1 @@
-export * from "./attachment.handler"
+export * from './attachment.handler';

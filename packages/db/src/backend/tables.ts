@@ -8,8 +8,10 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { user } from "../auth/tables";
+import { user } from "../auth";
 import { backendSchema } from "./schema";
+import { attachmentUsage, budgetType } from "./types";
+import { uuidv7 } from "uuidv7";
 
 export const paymentMethods = backendSchema.table("payment_method", {
 	id: uuid("payment_method_id").primaryKey().defaultRandom(),
@@ -94,8 +96,6 @@ export const recurringPayments = backendSchema.table("recurring_payment", {
 		.notNull(),
 });
 
-export const budgetType = backendSchema.enum("budget_type", ["i", "e"]);
-
 export const budgets = backendSchema.table("budget", {
 	id: uuid("budget_id").primaryKey().defaultRandom(),
 	ownerId: varchar("owner_id")
@@ -131,3 +131,20 @@ export const budgetCategories = backendSchema.table(
 		}),
 	],
 );
+
+export const attachments = backendSchema.table("attachment", {
+	// UUID V7 is used for attachment IDs to embed timestamp information
+	// Therefore we set `defaultRandom()` to false and generate the ID manually upon insertion
+	id: uuid("attachment_id")
+		.primaryKey()
+		.$defaultFn(() => uuidv7()),
+	ownerId: varchar("owner_id").notNull(),
+	usage: attachmentUsage("usage").notNull(), // will be used to abbreviate file path
+	fileName: varchar({ length: 255 }).notNull(), // Original file name with extension
+	fileExtension: varchar({ length: 16 }).notNull(), // File extension only
+	contentType: varchar({ length: 128 }).notNull(), // MIME type
+	location: text().notNull().unique(), // Storage location path
+	createdAt: timestamp("created_at", { withTimezone: true })
+		.defaultNow()
+		.notNull(),
+});

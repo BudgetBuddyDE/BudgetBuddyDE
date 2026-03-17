@@ -184,6 +184,13 @@ transactionRouter.get(
   },
 );
 
+transactionRouter.get('/:id/attachments', async (_req, res) => {
+  ApiResponse.expressBuilder(res)
+    .withStatus(HTTPStatusCode.NOT_IMPLEMENTED)
+    .withMessage('Retrieving attachments for an specific transaction is not implemented yet')
+    .buildAndSend();
+});
+
 transactionRouter.post(
   '/',
   validateRequest({
@@ -221,6 +228,13 @@ transactionRouter.post(
     }
   },
 );
+
+transactionRouter.post('/:id/attachments', async (_req, res) => {
+  ApiResponse.expressBuilder(res)
+    .withStatus(HTTPStatusCode.NOT_IMPLEMENTED)
+    .withMessage('Uploading attachments for an specific transaction is not implemented yet')
+    .buildAndSend();
+});
 
 transactionRouter.put(
   '/:id',
@@ -300,3 +314,10 @@ transactionRouter.delete(
     }
   },
 );
+
+transactionRouter.delete('/:id/attachments', async (_req, res) => {
+  ApiResponse.expressBuilder(res)
+    .withStatus(HTTPStatusCode.NOT_IMPLEMENTED)
+    .withMessage('Deleting attachments for an specific transaction is not implemented yet')
+    .buildAndSend();
+});
