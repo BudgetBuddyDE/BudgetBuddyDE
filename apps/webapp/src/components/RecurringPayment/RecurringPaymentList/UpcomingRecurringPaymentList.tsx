@@ -1,6 +1,7 @@
 import type React from 'react';
 import {apiClient} from '@/apiClient';
 import {headers} from '@/lib/headers';
+import {logger} from '@/logger';
 import {RecurringPaymentList, type RecurringPaymentListProps} from './RecurringPaymentList';
 
 export type UpcomingRecurringPaymentList = Pick<RecurringPaymentListProps, 'onAddEntity'>;
@@ -13,8 +14,10 @@ export const UpcomingRecurringPaymentList: React.FC<UpcomingRecurringPaymentList
     },
     {headers: await headers()},
   );
-  if (error) throw error;
-
+  if (error) {
+    logger.error(error.message);
+    throw error;
+  }
   return (
     <RecurringPaymentList
       title="Upcoming recurring payments"

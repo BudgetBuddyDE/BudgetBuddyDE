@@ -4,6 +4,8 @@ import {apiClient} from '@/apiClient';
 import {BudgetList} from '@/components/Budget/BudgetList';
 import {SpendingGoalsRadarChart} from '@/components/Budget/SpendingGoals';
 import {CategoryExpenseChart, CategoryIncomeChart} from '@/components/Category/CategoryPieChart';
+import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
+import {CircularProgress} from '@/components/Loading';
 import {RecurringPaymentPieChart} from '@/components/RecurringPayment/RecurringPaymentPieChart';
 import {headers} from '@/lib/headers';
 import {DashboardStatsWrapper} from '../DashboardStatsWrapper';
@@ -20,7 +22,11 @@ export default async function BudgetView() {
   );
   return (
     <React.Fragment>
-      <DashboardStatsWrapper />
+      <PathnameErrorBoundary>
+        <React.Suspense fallback={<CircularProgress />}>
+          <DashboardStatsWrapper />
+        </React.Suspense>
+      </PathnameErrorBoundary>
 
       <Grid size={{xs: 12, md: 8}}>
         <BudgetList />

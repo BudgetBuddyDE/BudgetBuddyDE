@@ -2,6 +2,7 @@ import {addDays} from 'date-fns';
 import type React from 'react';
 import {apiClient} from '@/apiClient';
 import {headers} from '@/lib/headers';
+import {logger} from '@/logger';
 import {TransactionList, type TransactionListProps} from './TransactionList';
 
 export type UpcomingTransactionsList = Pick<TransactionListProps, 'onAddEntity'>;
@@ -14,8 +15,10 @@ export const UpcomingTransactionsList: React.FC<UpcomingTransactionsList> = asyn
     },
     {headers: await headers()},
   );
-  if (error) throw error;
-
+  if (error) {
+    logger.error(error.message);
+    throw error;
+  }
   return (
     <TransactionList
       title="Transactions"

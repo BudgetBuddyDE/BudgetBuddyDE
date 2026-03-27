@@ -2,6 +2,7 @@ import {Grid, Stack} from '@mui/material';
 import React from 'react';
 import {BudgetPieChart} from '@/components/Budget/BudgetPieChart';
 import {CategoryExpenseChart} from '@/components/Category/CategoryPieChart';
+import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
 import {UpcomingRecurringPaymentList} from '@/components/RecurringPayment/RecurringPaymentList';
 import {LatestTransactionsList, UpcomingTransactionsList} from '@/components/Transaction/TransactionList';
@@ -10,9 +11,11 @@ import {DashboardStatsWrapper} from './DashboardStatsWrapper';
 export default function DashboardPage() {
   return (
     <React.Fragment>
-      <React.Suspense fallback={<CircularProgress />}>
-        <DashboardStatsWrapper />
-      </React.Suspense>
+      <PathnameErrorBoundary>
+        <React.Suspense fallback={<CircularProgress />}>
+          <DashboardStatsWrapper />
+        </React.Suspense>
+      </PathnameErrorBoundary>
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
         <React.Suspense fallback={<CircularProgress />}>
