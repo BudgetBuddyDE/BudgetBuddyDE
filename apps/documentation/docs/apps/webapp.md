@@ -91,7 +91,11 @@ npm run format
 !!! note
     The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality. Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
 
-For more information on setting up OpenTelemetry for Next.js, refer to the [official documentation](https://nextjs.org/docs/15/app/guides/open-telemetry).
+For more information, see the Next.js references below:
+
+- [How to set up instrumentation with OpenTelemetry](https://nextjs.org/docs/15/app/guides/open-telemetry)
+- [Client-Side Instrumentation examples](https://nextjs.org/docs/15/app/api-reference/file-conventions/instrumentation-client#examples)
+- [How to self-host your Next.js application](https://nextjs.org/docs/15/app/guides/self-hosting#environment-variables)
 
 ## Testing
 
