@@ -1,0 +1,10 @@
+{
+  "apps/webapp/**/*": ["cd apps/webapp && npm run check && npm run test && npm run typecheck"],
+  "packages/api/**/*": ["cd packages/api && npm test"],
+  "packages/db/**/*": ["cd packages/db && npm test"],
+  "packages/types/**/*": ["cd packages/types && npm test"],
+  "packages/logger/**/*": ["cd packages/logger && npm test"],
+  "packages/utils/**/*": ["cd packages/utils && npm test"],
+  "services/auth-service/**/*": ["cd services/auth-service && npm test && npm run build"],
+  "services/backend/**/*": ["cd services/backend && npm test && npm run build"]
+}

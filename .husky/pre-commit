@@ -1,54 +1,8 @@
 #!/bin/sh
 
-STAGED_FILES=$(git diff --cached --name-only) # --diff-filter=ACMR
-
-has_changes() {
-  echo "$STAGED_FILES" | grep -q "^$1/"
-}
-
-go_back() {
-  cd ../../
-}
-
-if has_changes "apps/webapp"; then
-  echo "Running checks for apps/webapp..."
-  cd apps/webapp && npm run check && npm run test && npm run typecheck && go_back || exit 1
+# Skip hooks in CI environments
+if [ -n "$CI" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+  exit 0
 fi
 
-if has_changes "packages/api"; then
-  echo "Running checks for packages/api..."
-  cd packages/api && npm test && go_back || exit 1
-fi
-
-if has_changes "packages/db"; then
-  echo "Running checks for packages/db..."
-  cd packages/db && npm test && go_back || exit 1
-fi
-
-if has_changes "packages/types"; then
-  echo "Running checks for packages/types..."
-  cd packages/types && npm test && go_back || exit 1
-fi
-
-if has_changes "packages/logger"; then
-  echo "Running checks for packages/logger..."
-  cd packages/logger && npm test && go_back || exit 1
-fi
-
-if has_changes "packages/utils"; then
-  echo "Running checks for packages/utils..."
-  cd packages/utils && npm test && go_back || exit 1
-fi
-
-if has_changes "services/auth-service"; then
-  echo "Running checks for services/auth-service..."
-  cd services/auth-service && npm test && npm run build && go_back || exit 1
-fi 
-
-if has_changes "services/backend"; then
-  echo "Running checks for services/backend..."
-  cd services/backend && npm test && npm run build && go_back || exit 1
-fi 
-
-echo "✅ Pre-commit checks passed!"
-echo ""
+npx lint-staged

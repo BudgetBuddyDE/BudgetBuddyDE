@@ -81,6 +81,7 @@ nav = [
     {"Development" = [
         "development/index.md",
         "development/start-development.md",
+        "development/git-hooks.md",
         "development/database.md",
         {"Components" = [
             "development/components/index.md",
