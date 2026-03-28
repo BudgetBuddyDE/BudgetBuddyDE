@@ -7,13 +7,21 @@ compactor:
 
 storage:
   trace:
-    backend: local
-    local:
-      path: /var/tempo/traces
+    backend: s3
+    wal:
+      path: /var/tempo/wal
+    s3:
+      bucket: ${TEMPO_S3_BUCKET}
+      endpoint: ${S3_ENDPOINT}
+      region: ${S3_REGION}
+      access_key: ${S3_ACCESS_KEY_ID}
+      secret_key: ${S3_SECRET_ACCESS_KEY}
+      forcepathstyle: true
+      insecure: false
 
 distributor:
   log_received_spans:
-        enabled: true
+    enabled: true
   receivers:
     otlp:
       protocols:

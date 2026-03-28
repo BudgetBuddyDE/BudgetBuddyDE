@@ -41,6 +41,21 @@ This template is perfect for teams who need a comprehensive observability soluti
 | `GF_DEFAULT_INSTANCE_NAME` | Name of your Grafana instance | `Grafana on Railway` |
 | `GF_INSTALL_PLUGINS` | Comma-separated list of Grafana plugins to install | `grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel` |
 
+### S3 Object Storage
+
+Loki (log chunks) and Tempo (traces) store their data in an S3-compatible object store. Set these variables on both the **Loki** and **Tempo** services:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `S3_ENDPOINT` | S3-compatible endpoint URL | `https://s3.eu-central-1.amazonaws.com` |
+| `S3_REGION` | Bucket region | `eu-central-1` |
+| `S3_ACCESS_KEY_ID` | S3 access key ID | – |
+| `S3_SECRET_ACCESS_KEY` | S3 secret access key | – |
+| `LOKI_S3_BUCKET` | Bucket name for Loki chunks (Loki service only) | `my-loki-bucket` |
+| `TEMPO_S3_BUCKET` | Bucket name for Tempo traces (Tempo service only) | `my-tempo-bucket` |
+
+> **Note:** Prometheus stores metrics on a local Railway volume. Native S3 support for Prometheus requires an additional Thanos sidecar which is not included in this template.
+
 ### Internal Service URLs
 
 The Grafana service exposes these environment variables that you can reference in your other Railway applications to easily send data to your observability stack:
