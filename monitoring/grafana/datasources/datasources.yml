@@ -13,7 +13,7 @@ datasources:
   # -----------------------------
   - name: Loki
     type: loki
-    access: proxy
+    access: direct
     orgId: 1
     uid: grafana_lokiq
     url: $LOKI_INTERNAL_URL

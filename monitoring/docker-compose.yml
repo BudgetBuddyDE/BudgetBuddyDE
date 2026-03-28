@@ -21,12 +21,6 @@ services:
       - "3100:3100"
     volumes:
       - loki_data:/loki
-    environment:
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_REGION=${S3_REGION}
-      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-      - LOKI_S3_BUCKET=${LOKI_S3_BUCKET}
 
   tempo: 
     build:
@@ -39,12 +33,6 @@ services:
       - "4318:4318" # http server for ingest
     volumes:
       - tempo_data:/var/tempo
-    environment:
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_REGION=${S3_REGION}
-      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-      - TEMPO_S3_BUCKET=${TEMPO_S3_BUCKET}
 
   grafana:
     build:

@@ -3,7 +3,7 @@ ARG VERSION=3.4
 FROM grafana/loki:${VERSION}
 
 # Copy the loki.yml configuration file to the container
-COPY loki.yml /etc/loki/loki-config.yaml
+COPY loki.yml /etc/loki/loki-confi.yaml
 
-# config.expand-env=true enables ${VAR} substitution from environment variables
-CMD ["-config.file=/etc/loki/loki-config.yaml", "-config.expand-env=true"]
+# Command to run Loki
+CMD ["-config.file=/etc/loki/loki-confi.yaml"]
