@@ -1,4 +1,3 @@
-import type React from 'react';
 import {apiClient} from '@/apiClient';
 import {headers} from '@/lib/headers';
 import {logger} from '@/logger';
@@ -6,7 +5,7 @@ import {TransactionList, type TransactionListProps} from './TransactionList';
 
 export type LatestTransactionsListProps = Pick<TransactionListProps, 'onAddEntity'>;
 
-export const LatestTransactionsList: React.FC<LatestTransactionsListProps> = async ({onAddEntity}) => {
+export const LatestTransactionsList = async ({onAddEntity}: LatestTransactionsListProps) => {
   const clientHeaders = await headers();
   const [transactions, error] = await apiClient.backend.transaction.getAll(
     {

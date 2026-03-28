@@ -18,9 +18,11 @@ export default function DashboardPage() {
       </PathnameErrorBoundary>
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
-        <React.Suspense fallback={<CircularProgress />}>
-          <UpcomingRecurringPaymentList />
-        </React.Suspense>
+        <PathnameErrorBoundary>
+          <React.Suspense fallback={<CircularProgress />}>
+            <UpcomingRecurringPaymentList />
+          </React.Suspense>
+        </PathnameErrorBoundary>
       </Grid>
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 1, md: 2}}>
@@ -33,13 +35,17 @@ export default function DashboardPage() {
 
       <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 2, md: 3}}>
         <Stack spacing={2}>
-          <React.Suspense fallback={<CircularProgress />}>
-            <LatestTransactionsList />
-          </React.Suspense>
+          <PathnameErrorBoundary>
+            <React.Suspense fallback={<CircularProgress />}>
+              <LatestTransactionsList />
+            </React.Suspense>
+          </PathnameErrorBoundary>
 
-          <React.Suspense fallback={<CircularProgress />}>
-            <UpcomingTransactionsList />
-          </React.Suspense>
+          <PathnameErrorBoundary>
+            <React.Suspense fallback={<CircularProgress />}>
+              <UpcomingTransactionsList />
+            </React.Suspense>
+          </PathnameErrorBoundary>
         </Stack>
       </Grid>
     </React.Fragment>

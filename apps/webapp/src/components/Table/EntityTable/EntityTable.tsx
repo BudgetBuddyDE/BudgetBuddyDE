@@ -171,9 +171,9 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
               >
                 Clear selection
               </Button>
-              {selectionActions.map((action, idx) => (
+              {selectionActions.map(action => (
                 <Button
-                  key={`${action.label?.toString().toLowerCase().replaceAll(' ', '_')}-${idx}`}
+                  key={`${action.label?.toString().toLowerCase().replaceAll(' ', '_')}`}
                   size={'small'}
                   startIcon={action.icon}
                   onClick={() => {

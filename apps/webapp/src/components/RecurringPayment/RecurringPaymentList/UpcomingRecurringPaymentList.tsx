@@ -1,4 +1,3 @@
-import type React from 'react';
 import {apiClient} from '@/apiClient';
 import {headers} from '@/lib/headers';
 import {logger} from '@/logger';
@@ -6,7 +5,7 @@ import {RecurringPaymentList, type RecurringPaymentListProps} from './RecurringP
 
 export type UpcomingRecurringPaymentList = Pick<RecurringPaymentListProps, 'onAddEntity'>;
 
-export const UpcomingRecurringPaymentList: React.FC<UpcomingRecurringPaymentList> = async ({onAddEntity}) => {
+export const UpcomingRecurringPaymentList = async ({onAddEntity}: UpcomingRecurringPaymentList) => {
   const [recurringPayments, error] = await apiClient.backend.recurringPayment.getAll(
     {
       to: 6,
