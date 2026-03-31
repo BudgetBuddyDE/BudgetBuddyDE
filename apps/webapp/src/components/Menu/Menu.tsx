@@ -33,9 +33,13 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
   };
-  const handleClose = () => {
+  const handleClose = (event?: object, reason?: string) => {
+    if (reason === 'backdropClick' && event != null && typeof (event as {stopPropagation?: unknown}).stopPropagation === 'function') {
+      (event as {stopPropagation: () => void}).stopPropagation();
+    }
     setAnchorEl(null);
   };
 
