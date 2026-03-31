@@ -10,7 +10,9 @@ describe('FabContainer', () => {
         <button type="button">Action</button>
       </FabContainer>,
     );
-    expect(screen.getByRole('button', {name: 'Action'})).toBeInTheDocument();
+    // FabContainer is hidden on desktop via CSS media query (display: none at md+),
+    // so we query with hidden: true or use text query
+    expect(screen.getByText('Action')).toBeInTheDocument();
   });
 
   it('renders without crashing when no children are provided', () => {

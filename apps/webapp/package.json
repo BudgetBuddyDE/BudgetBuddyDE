@@ -60,6 +60,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "eslint": "latest",
     "eslint-config-next": "^15.0.0",
+    "happy-dom": "^20.8.9",
     "jsdom": "^26.1.0",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^5.1.4",
