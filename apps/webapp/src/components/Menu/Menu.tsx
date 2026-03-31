@@ -37,7 +37,11 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
     setAnchorEl(event.currentTarget);
   };
   const handleClose = (event?: object, reason?: string) => {
-    if (reason === 'backdropClick' && event != null && typeof (event as {stopPropagation?: unknown}).stopPropagation === 'function') {
+    if (
+      reason === 'backdropClick' &&
+      event != null &&
+      typeof (event as {stopPropagation?: unknown}).stopPropagation === 'function'
+    ) {
       (event as {stopPropagation: () => void}).stopPropagation();
     }
     setAnchorEl(null);
