@@ -61,6 +61,7 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
             key={`${id}-action-${idx}`}
             {...action}
             onClick={event => {
+              event.stopPropagation();
               action.onClick?.(event);
               handleClose();
             }}
