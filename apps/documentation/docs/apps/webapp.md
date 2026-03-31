@@ -105,7 +105,9 @@ The Webapp uses [Vitest](https://vitest.dev/) with [Testing Library](https://tes
 
 The test configuration lives in `vitest.config.mts` at the app root and extends the workspace base config (`vitest.config.ts`). Key settings:
 
-- **Environment:** `jsdom` (simulates a browser DOM)
+- **Environment:** `happy-dom` (simulates a browser DOM; significantly faster than jsdom)
+- **Pool:** `vmThreads` (uses Node.js Worker Threads instead of child processes)
+- **Dependency optimiser:** enabled for web — pre-bundles heavy `node_modules` (MUI, React, …) into cached ESM chunks
 - **Setup file:** `src/vitest.setup.ts` — extends Vitest with `@testing-library/jest-dom` matchers and globally mocks `next/navigation`
 - **Globals:** enabled (no explicit `import { describe, it, expect }` needed in test files)
 
@@ -114,9 +116,15 @@ export default mergeConfig(baseConfig, defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     name: "webapp",
-    environment: "jsdom",
+    environment: "happy-dom",
     setupFiles: ["./src/vitest.setup.ts"],
-  }
+    pool: "vmThreads",
+    deps: {
+      optimizer: {
+        web: { enabled: true },
+      },
+    },
+  },
 }));
 ```
 
@@ -134,9 +142,31 @@ npm run test:watch
 
 | Category | Files |
 |---|---|
-| **UI Components** | `ErrorAlert`, `NoResults`, `CircularProgress`, `Card` (incl. Header/Title/Subtitle/Body/Footer/HeaderActions), `ActionPaper`, `CloseIconButton`, `AddFab`, `Brand`, `Icon`, `ReadMoreText`, `ErrorBoundary`, `SnackbarProvider` / `useSnackbarContext`, `DeleteDialog`, `PasswordInput` |
+| **UI Components** | `ErrorAlert`, `NoResults`, `CircularProgress`, `Card` (incl. Header/Title/Subtitle/Body/Footer/HeaderActions), `ActionPaper`, `CloseIconButton`, `AddFab`, `FabContainer`, `Brand`, `Icon`, `Image`, `AppLogo`, `ReadMoreText`, `ErrorBoundary`, `ModeSwitch`, `Menu`, `ListWithIcon`, `SnackbarProvider` / `useSnackbarContext`, `DeleteDialog`, `PasswordInput`, `SearchInput` |
+| **Category** | `CategoryChip` |
+| **PaymentMethod** | `PaymentMethodChip` |
+| **Analytics** | `StatsCard` |
+| **Layout** | `Footer`, `PageHeader`, `ContentGrid` |
+| **Filter** | `FilterButton`, URL utilities |
+| **Table** | `BasicTable`, `DataTable`, `EntityDataTable`, `EntityTable`, `EntityMenu`, `Pagination`, `TableToolbar` |
+| **Transition** | `FadeTransition`, `GrowTransition`, `SlideTransition`, `ZoomTransition` |
 | **Utilities** | `parseNumber`, `determineOS` / `isRunningOnIOs`, `CurrencyFormatter`, `DateFormatter`, `PercentageFormatter` |
 | **Hooks** | `useKeyPress`, `useWindowDimensions` / `getBreakpoint`, `useScreenSize` |
+
+### Performance
+
+The following measures were taken to keep the test suite fast:
+
+| Measure | Before | After | Effect |
+|---|---|---|---|
+| **`happy-dom` instead of `jsdom`** | ~20 s env. setup (aggregated) | ~2 s | DOM environments are created ~10× faster; happy-dom is a lighter, spec-compliant implementation |
+| **`pool: 'vmThreads'`** | child-process forks | Worker Threads | Lower per-worker startup overhead; threads share the same process memory |
+| **`deps.optimizer.web.enabled: true`** | every file re-transforms all `node_modules` | first run builds ESM cache; subsequent runs skip re-transformation | Heavy dependencies (MUI, React, Emotion, …) are pre-bundled once and reused |
+
+**Overall result:** wall-clock duration went from **~16.5 s → ~6.9 s** (≈ 2.4× faster).
+
+!!! note "happy-dom evaluates CSS media queries"
+    Unlike jsdom, happy-dom applies CSS media queries when computing element visibility. Components that are intentionally hidden at certain breakpoints (e.g. `FabContainer`, which uses `display: none` at `md+`) will be reported as inaccessible by `getByRole`. Use `getByText` or pass `{ hidden: true }` in those tests.
 
 ### Conventions
 
@@ -149,7 +179,7 @@ npm run test:watch
 ### Important Notes
 
 !!! warning "Snackbar rendering"
-    MUI's `Snackbar` component cannot be fully rendered in the jsdom environment (React 19 + MUI v7 compatibility). The `SnackbarProvider` tests therefore use `renderHook` to verify context behaviour instead of rendering the full provider tree.
+    MUI's `Snackbar` component cannot be fully rendered in the happy-dom environment (React 19 + MUI v7 compatibility). The `SnackbarProvider` tests therefore use `renderHook` to verify context behaviour instead of rendering the full provider tree.
 
 !!! note "next/navigation mock"
     The global mock for `next/navigation` is applied in `src/vitest.setup.ts`. If a component requires specific router state (e.g. a particular pathname), override the mock locally with `vi.mocked(usePathname).mockReturnValue('/my-path')`.
