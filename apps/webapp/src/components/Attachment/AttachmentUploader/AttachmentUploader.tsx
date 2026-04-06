@@ -1,8 +1,9 @@
 'use client';
 
-import {CloudUploadRounded} from '@mui/icons-material';
+import {CloudUploadRounded, DocumentScannerRounded} from '@mui/icons-material';
 import {Box, Button, type ButtonProps, CircularProgress, Stack, Typography, useTheme} from '@mui/material';
 import React from 'react';
+import {DocumentScannerDialog} from '../DocumentScanner';
 
 const ACCEPTED_TYPES = 'image/png,image/jpg,image/jpeg,image/webp';
 
@@ -24,6 +25,7 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   const theme = useTheme();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = React.useState(false);
+  const [scannerOpen, setScannerOpen] = React.useState(false);
 
   const processFiles = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -54,55 +56,76 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
     if (inputRef.current) inputRef.current.value = '';
   };
 
+  const handleScanCapture = (file: File) => {
+    setScannerOpen(false);
+    onUpload([file]);
+  };
+
   return (
-    <Box
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      data-testid="attachment-uploader"
-      sx={{
-        border: `2px dashed ${isDragging ? theme.palette.primary.main : theme.palette.divider}`,
-        borderRadius: `${theme.shape.borderRadius}px`,
-        p: 2,
-        textAlign: 'center',
-        transition: 'border-color 0.2s',
-        backgroundColor: isDragging ? theme.palette.action.hover : 'transparent',
-      }}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPTED_TYPES}
-        multiple={!maxFiles || maxFiles > 1}
-        style={{display: 'none'}}
-        onChange={handleChange}
-        data-testid="attachment-file-input"
-        aria-label="Upload attachment files"
-      />
-      <Stack alignItems="center" gap={1}>
-        {isUploading ? (
-          <CircularProgress size={32} />
-        ) : (
-          <CloudUploadRounded sx={{fontSize: 32, color: theme.palette.text.secondary}} />
-        )}
-        <Typography variant="body2" color="text.secondary">
-          {isUploading ? 'Uploading…' : 'Drag & drop images here or'}
-        </Typography>
-        {!isUploading && (
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => inputRef.current?.click()}
-            disabled={disabled || isUploading}
-            {...buttonProps}
-          >
-            Browse files
-          </Button>
-        )}
-        <Typography variant="caption" color="text.secondary">
-          Supported: PNG, JPG, JPEG, WebP
-        </Typography>
-      </Stack>
-    </Box>
+    <>
+      <Box
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        data-testid="attachment-uploader"
+        sx={{
+          border: `2px dashed ${isDragging ? theme.palette.primary.main : theme.palette.divider}`,
+          borderRadius: `${theme.shape.borderRadius}px`,
+          p: 2,
+          textAlign: 'center',
+          transition: 'border-color 0.2s',
+          backgroundColor: isDragging ? theme.palette.action.hover : 'transparent',
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPTED_TYPES}
+          multiple={!maxFiles || maxFiles > 1}
+          style={{display: 'none'}}
+          onChange={handleChange}
+          data-testid="attachment-file-input"
+          aria-label="Upload attachment files"
+        />
+        <Stack alignItems="center" gap={1}>
+          {isUploading ? (
+            <CircularProgress size={32} />
+          ) : (
+            <CloudUploadRounded sx={{fontSize: 32, color: theme.palette.text.secondary}} />
+          )}
+          <Typography variant="body2" color="text.secondary">
+            {isUploading ? 'Uploading…' : 'Drag & drop images here or'}
+          </Typography>
+          {!isUploading && (
+            <Stack direction="row" gap={1} flexWrap="wrap" justifyContent="center">
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => inputRef.current?.click()}
+                disabled={disabled || isUploading}
+                {...buttonProps}
+              >
+                Browse files
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<DocumentScannerRounded />}
+                onClick={() => setScannerOpen(true)}
+                disabled={disabled || isUploading}
+                data-testid="scan-document-button"
+              >
+                Scan document
+              </Button>
+            </Stack>
+          )}
+          <Typography variant="caption" color="text.secondary">
+            Supported: PNG, JPG, JPEG, WebP
+          </Typography>
+        </Stack>
+      </Box>
+
+      <DocumentScannerDialog open={scannerOpen} onCapture={handleScanCapture} onClose={() => setScannerOpen(false)} />
+    </>
   );
 };

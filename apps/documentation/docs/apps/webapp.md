@@ -38,6 +38,12 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
   - Preview image attachments inline
   - Download attachments via pre-signed S3 URLs
   - Delete individual attachments
+- **Document scanner** (free, no commercial SDK required):
+  - Opens the device camera with a live preview
+  - User captures a photo and drags four corner handles to precisely define the document boundary
+  - Applies a 4-point **perspective correction** (homography transform) computed entirely in the browser with pure JavaScript – no external library needed for the transform itself
+  - Enhances contrast and brightness for clearer text readability
+  - Powered by [`react-webcam`](https://github.com/mozmorris/react-webcam) (MIT) for camera access and native Canvas API for image processing
 - Summary statistics (total count and total size) shown on the Attachments page
 - Attachment data is served via the `@budgetbuddyde/api` SDK (`apiClient.backend.attachment` and `apiClient.backend.transaction`)
 
@@ -154,7 +160,7 @@ npm run test:watch
 | Category | Files |
 |---|---|
 | **UI Components** | `ErrorAlert`, `NoResults`, `CircularProgress`, `Card` (incl. Header/Title/Subtitle/Body/Footer/HeaderActions), `ActionPaper`, `CloseIconButton`, `AddFab`, `FabContainer`, `Brand`, `Icon`, `Image`, `AppLogo`, `ReadMoreText`, `ErrorBoundary`, `ModeSwitch`, `Menu`, `ListWithIcon`, `SnackbarProvider` / `useSnackbarContext`, `DeleteDialog`, `PasswordInput`, `SearchInput` |
-| **Attachment** | `AttachmentItem`, `AttachmentList`, `AttachmentUploader`, `TransactionAttachmentsDrawer` |
+| **Attachment** | `AttachmentItem`, `AttachmentList`, `AttachmentUploader`, `DocumentScannerDialog`, `TransactionAttachmentsDrawer` |
 | **Category** | `CategoryChip` |
 | **PaymentMethod** | `PaymentMethodChip` |
 | **Analytics** | `StatsCard` |
@@ -162,7 +168,7 @@ npm run test:watch
 | **Filter** | `FilterButton`, URL utilities |
 | **Table** | `BasicTable`, `DataTable`, `EntityDataTable`, `EntityTable`, `EntityMenu`, `Pagination`, `TableToolbar` |
 | **Transition** | `FadeTransition`, `GrowTransition`, `SlideTransition`, `ZoomTransition` |
-| **Utilities** | `parseNumber`, `determineOS` / `isRunningOnIOs`, `CurrencyFormatter`, `DateFormatter`, `PercentageFormatter` |
+| **Utilities** | `parseNumber`, `determineOS` / `isRunningOnIOs`, `CurrencyFormatter`, `DateFormatter`, `PercentageFormatter`, `formatBytes`, `perspectiveTransform` (solveLinearSystem, computeHomography, estimateOutputDimensions, applyPerspectiveTransform) |
 | **Hooks** | `useKeyPress`, `useWindowDimensions` / `getBreakpoint`, `useScreenSize` |
 
 ### Performance
