@@ -27,6 +27,8 @@ export const ExpandedTransaction = Transaction.omit({
 }).extend({
 	category: Category,
 	paymentMethod: PaymentMethod,
+	attachmentCount: z.number().optional(),
+	attachments: z.array(AttachmentWithUrl).nullable().optional(),
 });
 
 export const TransactionAttachment = z.object({

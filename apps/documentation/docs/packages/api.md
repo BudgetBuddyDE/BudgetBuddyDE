@@ -182,17 +182,32 @@ class EntityService<CreatePayload, UpdatePayload, ...> {
 
 ### Available Services
 
-| Service                        | Description         | Endpoint                |
-|--------------------------------|---------------------|-------------------------|
-| `api.backend.category`         | Category management | `/api/category`         |
-| `api.backend.paymentMethod`    | Payment methods     | `/api/paymentMethod`    |
-| `api.backend.transaction`      | Transactions        | `/api/transaction`      |
-| `api.backend.recurringPayment` | Recurring payments  | `/api/recurringPayment` |
-| `api.backend.budget`           | Budget management   | `/api/budget`           |
+| Service                        | Description         | Endpoint                           |
+|--------------------------------|---------------------|------------------------------------|
+| `api.backend.attachment`       | All attachments     | `/api/transaction/attachments`     |
+| `api.backend.category`         | Category management | `/api/category`                    |
+| `api.backend.paymentMethod`    | Payment methods     | `/api/paymentMethod`               |
+| `api.backend.transaction`      | Transactions        | `/api/transaction`                 |
+| `api.backend.recurringPayment` | Recurring payments  | `/api/recurringPayment`            |
+| `api.backend.budget`           | Budget management   | `/api/budget`                      |
+
+#### Attachment service methods
+
+The `AttachmentService` (`api.backend.attachment`) provides methods for listing all user attachments:
+
+| Method                         | Description                                                                     |
+|:-------------------------------|:--------------------------------------------------------------------------------|
+| `getAll(query?, config?)`      | Fetch all transaction attachments for the authenticated user (paginated)        |
+
+```typescript
+// Fetch all attachments (paginated, with optional TTL for signed URLs)
+const [response, err] = await api.backend.attachment.getAll({ from: 0, to: 50, ttl: 600 });
+const attachments = response?.data ?? [];
+```
 
 #### Transaction attachment methods
 
-The `TransactionService` (`api.backend.transaction`) provides additional methods for managing file attachments:
+The `TransactionService` (`api.backend.transaction`) provides additional methods for managing file attachments on a specific transaction:
 
 | Method                                                                  | Description                                                               |
 |:------------------------------------------------------------------------|:--------------------------------------------------------------------------|
@@ -250,6 +265,7 @@ The central entry point that aggregates all service instances:
 ```typescript
 const api = new Api('https://backend-url');
 // Access all services:
+// - api.backend.attachment
 // - api.backend.category
 // - api.backend.paymentMethod
 // - api.backend.transaction

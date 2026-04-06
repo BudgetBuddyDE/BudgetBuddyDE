@@ -1,5 +1,6 @@
 import type {Action, ThunkAction} from '@reduxjs/toolkit';
 import {combineSlices, configureStore} from '@reduxjs/toolkit';
+import {attachmentSlice} from './features/attachments/attachmentSlice';
 import {budgetSlice} from './features/budgets/budgetSlice';
 import {categorySlice} from './features/categories/categorySlice';
 import {paymentMethodSlice} from './features/paymentMethods/paymentMethodSlice';
@@ -9,6 +10,7 @@ import {transactionSlice} from './features/transactions/transactionSlice';
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
 const rootReducer = combineSlices(
+  attachmentSlice,
   categorySlice,
   paymentMethodSlice,
   transactionSlice,
