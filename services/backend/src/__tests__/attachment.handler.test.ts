@@ -335,7 +335,7 @@ suite('TransactionAttachmentHandler.uploadTransactionAttachments', () => {
     const file = makeMulFile({originalname: 'receipt.jpg', mimetype: 'image/jpg'});
     const results = await handler.uploadTransactionAttachments(USER_ID, TX_ID, [file]);
 
-    expect(results[0].location).toMatch(new RegExp(`^transactions/${USER_ID}/${TX_ID}/[0-9a-f-]+\\.jpg$`));
+    expect(results[0].location).toMatch(new RegExp(`^${USER_ID}/transactions/${TX_ID}/[0-9a-f-]+\\.jpg$`));
   });
 });
 

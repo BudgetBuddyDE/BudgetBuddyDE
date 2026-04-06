@@ -30,7 +30,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     attachmentId: string,
     fileExtension: string,
   ): string {
-    return `transactions/${userId}/${transactionId}/${attachmentId}.${fileExtension}`;
+    return `${userId}/transactions/${transactionId}/${attachmentId}.${fileExtension}`;
   }
 
   /**
