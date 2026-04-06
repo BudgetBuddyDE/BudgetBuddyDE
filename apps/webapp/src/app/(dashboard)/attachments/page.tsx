@@ -7,6 +7,7 @@ import {apiClient} from '@/apiClient';
 import {AttachmentList} from '@/components/Attachment/AttachmentList';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {formatBytes} from '@/utils/formatBytes';
 
 export default function AttachmentsPage() {
   const {showSnackbar} = useSnackbarContext();
@@ -83,10 +84,4 @@ export default function AttachmentsPage() {
       </Grid>
     </ContentGrid>
   );
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

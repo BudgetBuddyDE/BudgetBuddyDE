@@ -1,9 +1,10 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import {DeleteRounded, DownloadRounded, ImageRounded, InsertDriveFileRounded} from '@mui/icons-material';
+import {DeleteRounded, DownloadRounded, InsertDriveFileRounded} from '@mui/icons-material';
 import {Box, type BoxProps, CircularProgress, IconButton, Stack, Tooltip, Typography, useTheme} from '@mui/material';
 import type React from 'react';
+import {formatBytes} from '@/utils/formatBytes';
 
 export type AttachmentItemProps = {
   attachment: TAttachmentWithUrl;
@@ -12,13 +13,6 @@ export type AttachmentItemProps = {
 } & Pick<BoxProps, 'sx'>;
 
 const IMAGE_TYPES = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp'];
-
-function formatBytes(bytes: number | null | undefined): string {
-  if (!bytes) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export const AttachmentItem: React.FC<AttachmentItemProps> = ({attachment, onDelete, isDeleting = false, sx}) => {
   const theme = useTheme();
@@ -74,7 +68,7 @@ export const AttachmentItem: React.FC<AttachmentItemProps> = ({attachment, onDel
             flexShrink: 0,
           }}
         >
-          {isImage ? <ImageRounded color="action" /> : <InsertDriveFileRounded color="action" />}
+          <InsertDriveFileRounded color="action" />
         </Box>
       )}
 
