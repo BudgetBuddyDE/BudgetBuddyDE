@@ -1,7 +1,7 @@
 import {PutObjectCommand} from '@aws-sdk/client-s3';
 import type {TAttachment, TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {attachments, transactionAttachments} from '@budgetbuddyde/db/backend';
-import {and, count, eq, inArray} from 'drizzle-orm';
+import {and, count, eq, inArray, sum} from 'drizzle-orm';
 import {uuidv7} from 'uuidv7';
 import {db} from '../../db';
 import {AttachmentHandler} from './attachment.handler';
@@ -13,6 +13,7 @@ type AttachmentWithSignedUrl = {
   fileExtension: string;
   contentType: string;
   location: string;
+  fileSize: number | null;
   createdAt: Date;
   signedUrl: TAttachmentWithUrl['signedUrl'];
 };
@@ -59,6 +60,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
           fileExtension,
           contentType: file.mimetype,
           location,
+          fileSize: file.size ?? null,
         })),
       );
       await tx.insert(transactionAttachments).values(prepared.map(({attachmentId}) => ({transactionId, attachmentId})));
@@ -96,6 +98,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
       fileExtension,
       contentType: file.mimetype,
       location,
+      fileSize: file.size ?? null,
       createdAt: new Date(),
       signedUrl: signedUrls.get(attachmentId) as TAttachmentWithUrl['signedUrl'],
     }));
@@ -107,13 +110,23 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
   async findTransactionAttachmentsByOwner(
     userId: string,
     query: PaginationQuery = {},
-  ): Promise<{attachments: AttachmentWithSignedUrl[]; totalCount: number}> {
+  ): Promise<{
+    attachments: AttachmentWithSignedUrl[];
+    totalCount: number;
+    attachmentCount: number;
+    attachmentsSize: number;
+  }> {
     const {from = 0, to, ttl} = query;
     const limit = to !== undefined ? to - from : 50;
 
-    const [totalCountResult, records] = await Promise.all([
+    const [totalCountResult, sizeResult, records] = await Promise.all([
       db
         .select({count: count()})
+        .from(attachments)
+        .innerJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
+        .where(eq(attachments.ownerId, userId)),
+      db
+        .select({totalSize: sum(attachments.fileSize)})
         .from(attachments)
         .innerJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
         .where(eq(attachments.ownerId, userId)),
@@ -125,6 +138,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
           fileExtension: attachments.fileExtension,
           contentType: attachments.contentType,
           location: attachments.location,
+          fileSize: attachments.fileSize,
           createdAt: attachments.createdAt,
         })
         .from(attachments)
@@ -135,10 +149,11 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     ]);
 
     const totalCount = totalCountResult[0]?.count ?? 0;
+    const attachmentsSize = Number(sizeResult[0]?.totalSize ?? 0);
 
     if (records.length === 0) {
       this.logger.warn('No transaction attachments found for user %s', userId);
-      return {attachments: [], totalCount};
+      return {attachments: [], totalCount, attachmentCount: 0, attachmentsSize: 0};
     }
 
     const {signedUrls} = await this.generateSignedUrls(
@@ -156,7 +171,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     }));
 
     this.logger.info('Retrieved %d/%d transaction attachments for user %s', result.length, totalCount, userId);
-    return {attachments: result, totalCount};
+    return {attachments: result, totalCount, attachmentCount: result.length, attachmentsSize};
   }
 
   /**
@@ -166,7 +181,12 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     userId: string,
     transactionId: string,
     query: PaginationQuery = {},
-  ): Promise<{attachments: AttachmentWithSignedUrl[]; totalCount: number}> {
+  ): Promise<{
+    attachments: AttachmentWithSignedUrl[];
+    totalCount: number;
+    attachmentCount: number;
+    attachmentsSize: number;
+  }> {
     const {from = 0, to, ttl} = query;
     const limit = to !== undefined ? to - from : 50;
 
@@ -175,9 +195,14 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
       eq(transactionAttachments.transactionId, transactionId),
     );
 
-    const [totalCountResult, records] = await Promise.all([
+    const [totalCountResult, sizeResult, records] = await Promise.all([
       db
         .select({count: count()})
+        .from(attachments)
+        .innerJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
+        .where(ownerAndTransaction),
+      db
+        .select({totalSize: sum(attachments.fileSize)})
         .from(attachments)
         .innerJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
         .where(ownerAndTransaction),
@@ -189,6 +214,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
           fileExtension: attachments.fileExtension,
           contentType: attachments.contentType,
           location: attachments.location,
+          fileSize: attachments.fileSize,
           createdAt: attachments.createdAt,
         })
         .from(attachments)
@@ -199,10 +225,11 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     ]);
 
     const totalCount = totalCountResult[0]?.count ?? 0;
+    const attachmentsSize = Number(sizeResult[0]?.totalSize ?? 0);
 
     if (records.length === 0) {
       this.logger.warn('No attachments found for transaction %s (user %s)', transactionId, userId);
-      return {attachments: [], totalCount};
+      return {attachments: [], totalCount, attachmentCount: 0, attachmentsSize: 0};
     }
 
     const {signedUrls} = await this.generateSignedUrls(
@@ -220,7 +247,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     }));
 
     this.logger.info('Retrieved %d/%d attachments for transaction %s', result.length, totalCount, transactionId);
-    return {attachments: result, totalCount};
+    return {attachments: result, totalCount, attachmentCount: result.length, attachmentsSize};
   }
 
   /**

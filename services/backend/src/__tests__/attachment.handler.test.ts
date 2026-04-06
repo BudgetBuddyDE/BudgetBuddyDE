@@ -36,7 +36,16 @@ const {
 
 // Mock @budgetbuddyde/db/backend to prevent drizzle-zod schema generation at import time
 vi.mock('@budgetbuddyde/db/backend', () => ({
-  attachments: {id: {}, ownerId: {}, fileName: {}, fileExtension: {}, contentType: {}, location: {}, createdAt: {}},
+  attachments: {
+    id: {},
+    ownerId: {},
+    fileName: {},
+    fileExtension: {},
+    contentType: {},
+    location: {},
+    fileSize: {},
+    createdAt: {},
+  },
   transactionAttachments: {transactionId: {}, attachmentId: {}},
 }));
 
@@ -358,6 +367,12 @@ suite('TransactionAttachmentHandler.findTransactionAttachmentsByOwner', () => {
       innerJoin: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{count: 0}]),
     };
+    // Mock chained select call for sum (attachmentsSize)
+    const mockSumChain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([{totalSize: '0'}]),
+    };
     // Mock chained select call for records
     const mockRecordsChain = {
       from: vi.fn().mockReturnThis(),
@@ -366,7 +381,10 @@ suite('TransactionAttachmentHandler.findTransactionAttachmentsByOwner', () => {
       offset: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue([]),
     };
-    mockDbSelect.mockReturnValueOnce(mockCountChain).mockReturnValueOnce(mockRecordsChain);
+    mockDbSelect
+      .mockReturnValueOnce(mockCountChain)
+      .mockReturnValueOnce(mockSumChain)
+      .mockReturnValueOnce(mockRecordsChain);
 
     const result = await handler.findTransactionAttachmentsByOwner(USER_ID);
     expect(result.attachments).toHaveLength(0);
@@ -381,6 +399,7 @@ suite('TransactionAttachmentHandler.findTransactionAttachmentsByOwner', () => {
       fileExtension: 'png',
       contentType: 'image/png',
       location: `transactions/${USER_ID}/${TX_ID}/${ATTACHMENT_ID}.png`,
+      fileSize: 12345,
       createdAt: new Date(),
     };
 
@@ -389,6 +408,11 @@ suite('TransactionAttachmentHandler.findTransactionAttachmentsByOwner', () => {
       innerJoin: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([{count: 1}]),
     };
+    const mockSumChain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([{totalSize: '12345'}]),
+    };
     const mockRecordsChain = {
       from: vi.fn().mockReturnThis(),
       innerJoin: vi.fn().mockReturnThis(),
@@ -396,7 +420,10 @@ suite('TransactionAttachmentHandler.findTransactionAttachmentsByOwner', () => {
       offset: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue([record]),
     };
-    mockDbSelect.mockReturnValueOnce(mockCountChain).mockReturnValueOnce(mockRecordsChain);
+    mockDbSelect
+      .mockReturnValueOnce(mockCountChain)
+      .mockReturnValueOnce(mockSumChain)
+      .mockReturnValueOnce(mockRecordsChain);
 
     mockRedisGet.mockResolvedValue(null);
     mockGetSignedUrl.mockResolvedValue('https://signed.example.com/invoice');
@@ -406,6 +433,7 @@ suite('TransactionAttachmentHandler.findTransactionAttachmentsByOwner', () => {
     expect(result.totalCount).toBe(1);
     expect(result.attachments).toHaveLength(1);
     expect(result.attachments[0].signedUrl).toBe('https://signed.example.com/invoice');
+    expect(result.attachmentsSize).toBe(12345);
   });
 });
 

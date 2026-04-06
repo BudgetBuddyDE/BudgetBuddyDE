@@ -58,6 +58,7 @@ attachmentRouter.get(
           fileExtension: targetAttachment.fileExtension,
           contentType: targetAttachment.contentType,
           location: targetAttachment.location,
+          fileSize: targetAttachment.fileSize ?? null,
           signedUrl: signedUrl as TAttachmentWithUrl['signedUrl'],
           createdAt: targetAttachment.createdAt.toISOString(),
         })

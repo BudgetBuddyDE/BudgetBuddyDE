@@ -9,12 +9,13 @@ import {
   type TReceiverVH,
   type TTransaction,
 } from '@budgetbuddyde/api/transaction';
-import {AddRounded, ReceiptRounded} from '@mui/icons-material';
+import {AddRounded, AttachFileRounded, ReceiptRounded} from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
+import {TransactionAttachmentsDrawer} from '@/components/Attachment/TransactionAttachmentsDrawer';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {type Command, useCommandPalette} from '@/components/CommandPalette';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -27,7 +28,6 @@ import {
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
 import {AddFab, FabContainer} from '@/components/FAB';
-import {FilterWrapper, serializeTransactionFilters} from '@/components/Filter';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
@@ -78,6 +78,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     deleteDialogReducer,
     getInitialDeleteDialogState<TTransaction['id']>(),
   );
+  const [attachmentsDrawerTransaction, setAttachmentsDrawerTransaction] = React.useState<Pick<
+    TExpandedTransaction,
+    'id' | 'receiver' | 'processedAt'
+  > | null>(null);
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -435,6 +439,22 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             handleDeleteEntity={({id}) => {
               dispatchDeleteDialogAction({action: 'OPEN', target: id});
             }}
+            actions={[
+              {
+                children: (
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <AttachFileRounded fontSize="small" />
+                    Attachments
+                  </Stack>
+                ),
+                onClick: () =>
+                  setAttachmentsDrawerTransaction({
+                    id: row.id,
+                    receiver: row.receiver,
+                    processedAt: row.processedAt,
+                  }),
+              },
+            ]}
           />
         ),
       },
@@ -584,6 +604,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       <FabContainer>
         <AddFab onClick={handleCreateEntity} label="Add transaction" />
       </FabContainer>
+
+      <TransactionAttachmentsDrawer
+        open={attachmentsDrawerTransaction !== null}
+        transaction={attachmentsDrawerTransaction}
+        onClose={() => setAttachmentsDrawerTransaction(null)}
+      />
     </React.Fragment>
   );
 };

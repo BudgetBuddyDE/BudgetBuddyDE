@@ -18,3 +18,6 @@ export type TGetAttachmentsQuery = TypeOfSchema<
 export type TDeleteAttachmentsPayload = TypeOfSchema<
 	typeof schema.DeleteAttachmentsPayload
 >;
+export type TGetAttachmentsPagedResponse = TypeOfSchema<
+	typeof schema.GetAttachmentsPagedResponse
+>;

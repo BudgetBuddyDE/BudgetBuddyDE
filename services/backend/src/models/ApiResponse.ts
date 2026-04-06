@@ -3,6 +3,8 @@ import {HTTPStatusCode} from './HttpStatusCode';
 
 type BaseProperties<T> = {
   totalCount?: number;
+  attachmentCount?: number;
+  attachmentsSize?: number;
   data: T | null;
   message: string | null;
   error?: string | null;
@@ -52,6 +54,8 @@ export class ApiResponse<T> {
   public status: number | HTTPStatusCode = HTTPStatusCode.OK;
   public message: string | null = null;
   public totalCount: number | undefined = undefined;
+  public attachmentCount: number | undefined = undefined;
+  public attachmentsSize: number | undefined = undefined;
   public data: T | null = null;
   public error: string | null = null;
   public from: 'db' | 'cache' | null = null;
@@ -144,6 +148,26 @@ export class ApiResponseBuilder<T> {
   }
 
   /**
+   * Sets the attachment count
+   * @param attachmentCount - The number of attachments.
+   * @returns The ApiResponseBuilder instance.
+   */
+  public withAttachmentCount(attachmentCount: number): ApiResponseBuilder<T> {
+    this.responseBody.attachmentCount = attachmentCount;
+    return this;
+  }
+
+  /**
+   * Sets the total attachments size in bytes
+   * @param attachmentsSize - The total size in bytes.
+   * @returns The ApiResponseBuilder instance.
+   */
+  public withAttachmentsSize(attachmentsSize: number): ApiResponseBuilder<T> {
+    this.responseBody.attachmentsSize = attachmentsSize;
+    return this;
+  }
+
+  /**
    * Sets the source of the response data.
    * @param from The source of the response data. Must be either "db" or "cache".
    * @returns The ApiResponseBuilder instance.
@@ -195,6 +219,8 @@ export class ApiResponseBuilder<T> {
     if (!this.responseBody.from) delete this.responseBody.from;
     if (!this.responseBody.message) delete this.responseBody.message;
     if (!this.responseBody.error) delete this.responseBody.error;
+    if (this.responseBody.attachmentCount === undefined) delete this.responseBody.attachmentCount;
+    if (this.responseBody.attachmentsSize === undefined) delete this.responseBody.attachmentsSize;
     this.res.status(this.responseBody.status).json(this.build()).end();
   }
 

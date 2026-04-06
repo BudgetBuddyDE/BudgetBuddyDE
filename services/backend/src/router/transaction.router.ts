@@ -167,15 +167,23 @@ transactionRouter.get(
     }
 
     try {
-      const {attachments: foundAttachments, totalCount} = await attachmentService.findTransactionAttachmentsByOwner(
-        userId,
-        {from: req.query.from, to: req.query.to, ttl: req.query.ttl},
-      );
+      const {
+        attachments: foundAttachments,
+        totalCount,
+        attachmentCount,
+        attachmentsSize,
+      } = await attachmentService.findTransactionAttachmentsByOwner(userId, {
+        from: req.query.from,
+        to: req.query.to,
+        ttl: req.query.ttl,
+      });
 
       ApiResponse.builder<TAttachmentWithUrl[]>()
         .withStatus(HTTPStatusCode.OK)
         .withMessage("Fetched user's transaction attachments successfully")
         .withTotalCount(totalCount)
+        .withAttachmentCount(attachmentCount)
+        .withAttachmentsSize(attachmentsSize)
         .withData(
           foundAttachments.map(a => ({
             id: a.id,
@@ -184,6 +192,7 @@ transactionRouter.get(
             fileExtension: a.fileExtension,
             contentType: a.contentType,
             location: a.location,
+            fileSize: a.fileSize ?? null,
             signedUrl: a.signedUrl,
             createdAt: a.createdAt.toISOString(),
           })),
@@ -261,16 +270,23 @@ transactionRouter.get(
 
     try {
       const transactionId = req.params.id;
-      const {attachments: foundAttachments, totalCount} = await attachmentService.findAttachmentsByTransactionId(
-        userId,
-        transactionId,
-        {from: req.query.from, to: req.query.to, ttl: req.query.ttl},
-      );
+      const {
+        attachments: foundAttachments,
+        totalCount,
+        attachmentCount,
+        attachmentsSize,
+      } = await attachmentService.findAttachmentsByTransactionId(userId, transactionId, {
+        from: req.query.from,
+        to: req.query.to,
+        ttl: req.query.ttl,
+      });
 
       ApiResponse.builder<TAttachmentWithUrl[]>()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Fetched transaction attachments successfully')
         .withTotalCount(totalCount)
+        .withAttachmentCount(attachmentCount)
+        .withAttachmentsSize(attachmentsSize)
         .withData(
           foundAttachments.map(a => ({
             id: a.id,
@@ -279,6 +295,7 @@ transactionRouter.get(
             fileExtension: a.fileExtension,
             contentType: a.contentType,
             location: a.location,
+            fileSize: a.fileSize ?? null,
             signedUrl: a.signedUrl,
             createdAt: a.createdAt.toISOString(),
           })),
@@ -371,6 +388,7 @@ transactionRouter.post(
             fileExtension: a.fileExtension,
             contentType: a.contentType,
             location: a.location,
+            fileSize: a.fileSize ?? null,
             signedUrl: a.signedUrl,
             createdAt: a.createdAt.toISOString(),
           })),

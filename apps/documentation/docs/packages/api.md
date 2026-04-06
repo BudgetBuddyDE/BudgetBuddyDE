@@ -184,11 +184,35 @@ class EntityService<CreatePayload, UpdatePayload, ...> {
 
 | Service                        | Description         | Endpoint                |
 |--------------------------------|---------------------|-------------------------|
+| `api.backend.attachment`       | Attachment management | `/api/attachment`     |
 | `api.backend.category`         | Category management | `/api/category`         |
 | `api.backend.paymentMethod`    | Payment methods     | `/api/paymentMethod`    |
 | `api.backend.transaction`      | Transactions        | `/api/transaction`      |
 | `api.backend.recurringPayment` | Recurring payments  | `/api/recurringPayment` |
 | `api.backend.budget`           | Budget management   | `/api/budget`           |
+
+#### Attachment service methods
+
+The `AttachmentService` (`api.backend.attachment`) manages standalone attachment operations:
+
+| Method                                                  | Description                                                    |
+|:--------------------------------------------------------|:---------------------------------------------------------------|
+| `getAllTransactionAttachments(query?, config?)`         | Fetch all transaction attachments for the authenticated user (paginated). Returns `attachmentCount` and `attachmentsSize` summary fields. |
+| `getById(attachmentId, query?, config?)`               | Retrieve a single attachment with a signed download URL        |
+| `deleteById(attachmentId, config?)`                    | Delete a single attachment by ID                               |
+
+```typescript
+// Fetch all user attachments (sorted chronologically by the caller)
+const [result, err] = await api.backend.attachment.getAllTransactionAttachments();
+if (!err) {
+  console.log('Attachments:', result.data);
+  console.log('Count:', result.attachmentCount);
+  console.log('Total size (bytes):', result.attachmentsSize);
+}
+
+// Delete single attachment
+const [_, deleteErr] = await api.backend.attachment.deleteById('attachment-id');
+```
 
 #### Transaction attachment methods
 
