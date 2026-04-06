@@ -103,7 +103,7 @@ export function estimateOutputDimensions(corners: [Point, Point, Point, Point]):
   const rawWidth = Math.round((topWidth + bottomWidth) / 2);
   const rawHeight = Math.round((leftHeight + rightHeight) / 2);
 
-  // Cap longest side at 2 000 px to keep the pixel-loop fast in JS.
+  // Cap longest side at 2,000 px to keep the pixel-loop fast in JS.
   const maxSide = 2000;
   const scale = Math.min(1, maxSide / Math.max(rawWidth, rawHeight, 1));
 

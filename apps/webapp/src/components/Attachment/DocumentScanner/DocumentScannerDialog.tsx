@@ -95,11 +95,15 @@ export const DocumentScannerDialog: React.FC<DocumentScannerDialogProps> = ({ope
     const img = new Image();
     img.onload = () => {
       imageRef.current = img;
+      // Default corners use a 5 % inset from each edge so all handles are
+      // clearly visible and the user can immediately see where to drag them.
+      const insetX = img.width * 0.05;
+      const insetY = img.height * 0.05;
       const defaultCorners: Corners = [
-        [0, 0],
-        [img.width, 0],
-        [img.width, img.height],
-        [0, img.height],
+        [insetX, insetY],
+        [img.width - insetX, insetY],
+        [img.width - insetX, img.height - insetY],
+        [insetX, img.height - insetY],
       ];
       setCorners(defaultCorners);
 
