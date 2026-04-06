@@ -145,6 +145,9 @@ transactionRouter.get(
 
     const enrichedRecords = records.map(({attachments, ...rest}) => ({
       ...rest,
+      // Only the count is included in list responses to avoid generating signed
+      // URLs for every attachment on every transaction (performance-sensitive path).
+      // Full attachment data (with signed URLs) is available on GET /:id.
       attachmentCount: attachments.length,
     }));
 
@@ -246,6 +249,8 @@ transactionRouter.get(
       );
       const attachmentsWithUrl = foundAttachments.map(a => ({
         id: a.id,
+        // a.ownerId is string in the DB schema but TUserID is a branded type
+        // that carries no extra runtime shape, so the cast is safe here.
         ownerId: a.ownerId as TUserID,
         fileName: a.fileName,
         fileExtension: a.fileExtension,

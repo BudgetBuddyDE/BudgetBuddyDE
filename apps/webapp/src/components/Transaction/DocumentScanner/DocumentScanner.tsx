@@ -85,12 +85,12 @@ export const DocumentScanner: React.FC<DocumentScannerProps> = ({onCapture}) => 
     startCamera(facingMode);
   };
 
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     stopStream();
     setCameraState('idle');
     setErrorMessage(null);
     setOpen(false);
-  };
+  }, [stopStream]);
 
   const handleFlip = () => {
     const next = facingMode === 'environment' ? 'user' : 'environment';
@@ -123,10 +123,9 @@ export const DocumentScanner: React.FC<DocumentScannerProps> = ({onCapture}) => 
   }, [onCapture, handleClose]);
 
   // Clean up stream when component unmounts
-  // biome-ignore lint/correctness/useExhaustiveDependencies: stopStream is stable
   React.useEffect(() => {
     return () => stopStream();
-  }, []);
+  }, [stopStream]);
 
   return (
     <>
