@@ -39,6 +39,8 @@ export const DeleteTransactionAttachmentsPayload = DeleteAttachmentsPayload;
 export const GetTransactionAttachmentsResponse = ApiResponse.extend({
 	data: z.array(AttachmentWithUrl).nullable(),
 	totalCount: z.number().optional(),
+	attachmentCount: z.number().optional(),
+	attachmentsSize: z.number().optional(),
 });
 export const UploadTransactionAttachmentsResponse = ApiResponse.extend({
 	data: z.array(AttachmentWithUrl).nullable(),

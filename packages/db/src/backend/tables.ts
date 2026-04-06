@@ -143,6 +143,7 @@ export const attachments = backendSchema.table("attachment", {
 	fileExtension: varchar({ length: 16 }).notNull(), // File extension only
 	contentType: varchar({ length: 128 }).notNull(), // MIME type
 	location: text().notNull().unique(), // Storage location path
+	fileSize: bigint("file_size", { mode: "number" }), // File size in bytes (nullable for backward compat)
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.defaultNow()
 		.notNull(),

@@ -30,6 +30,17 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 - Visualization of expenses and income
 - Monthly reports and analytics (upcoming)
 
+### Attachments
+
+- Dedicated **Attachments page** (`/attachments`) listing all uploaded attachments chronologically
+- **Transaction-level attachment management** via the transaction row menu:
+  - Upload image files (PNG, JPG, JPEG, WebP) directly from the browser or by drag-and-drop
+  - Preview image attachments inline
+  - Download attachments via pre-signed S3 URLs
+  - Delete individual attachments
+- Summary statistics (total count and total size) shown on the Attachments page
+- Attachment data is served via the `@budgetbuddyde/api` SDK (`apiClient.backend.attachment` and `apiClient.backend.transaction`)
+
 ### Table Filtering
 
 - Filter transactions and recurring payments from the table toolbar
@@ -143,6 +154,7 @@ npm run test:watch
 | Category | Files |
 |---|---|
 | **UI Components** | `ErrorAlert`, `NoResults`, `CircularProgress`, `Card` (incl. Header/Title/Subtitle/Body/Footer/HeaderActions), `ActionPaper`, `CloseIconButton`, `AddFab`, `FabContainer`, `Brand`, `Icon`, `Image`, `AppLogo`, `ReadMoreText`, `ErrorBoundary`, `ModeSwitch`, `Menu`, `ListWithIcon`, `SnackbarProvider` / `useSnackbarContext`, `DeleteDialog`, `PasswordInput`, `SearchInput` |
+| **Attachment** | `AttachmentItem`, `AttachmentList`, `AttachmentUploader`, `TransactionAttachmentsDrawer` |
 | **Category** | `CategoryChip` |
 | **PaymentMethod** | `PaymentMethodChip` |
 | **Analytics** | `StatsCard` |

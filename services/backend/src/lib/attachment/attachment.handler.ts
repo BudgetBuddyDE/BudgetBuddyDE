@@ -21,6 +21,7 @@ type UploadFileOptions = Pick<
   'id' | 'ownerId' | 'fileName' | 'fileExtension' | 'contentType' | 'location'
 > & {
   fileBuffer: Buffer;
+  fileSize?: number;
 };
 
 export type AttachmentHandlerOptions = {
@@ -215,6 +216,7 @@ export abstract class AttachmentHandler {
       fileExtension: options.fileExtension,
       contentType: options.contentType as string,
       location: options.location,
+      fileSize: options.fileSize ?? null,
     });
 
     this.logger.debug('Inserted attachment metadata into database', {attachmentId: options.id});

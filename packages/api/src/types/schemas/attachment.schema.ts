@@ -18,6 +18,7 @@ export const Attachment = z.object({
 	fileExtension: z.string().length(16),
 	contentType: z.mime(["image/png", "image/jpg", "image/jpeg", "image/webp"]),
 	location: z.string(),
+	fileSize: z.number().nullable().optional(),
 	createdAt: z.iso.datetime(),
 });
 
@@ -37,10 +38,12 @@ export const CreateAttachmentResponse = ApiResponse.extend({
 export const UpdateAttachmentResponse = undefined;
 export const DeleteAttachmentResponse = CreateAttachmentResponse.extend({});
 
-/** Paginated response for listing attachments */
+/** Paginated response for listing attachments with summary fields */
 export const GetAttachmentsPagedResponse = ApiResponse.extend({
 	data: z.array(AttachmentWithUrl).nullable(),
 	totalCount: z.number().optional(),
+	attachmentCount: z.number().optional(),
+	attachmentsSize: z.number().optional(),
 });
 
 /** Query parameters for fetching attachments */

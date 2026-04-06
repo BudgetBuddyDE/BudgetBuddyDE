@@ -19,5 +19,7 @@ export const ApiResponse = z.object({
 	message: z.string().optional(),
 	data: z.any().optional(),
 	totalCount: z.number().optional(),
+	attachmentCount: z.number().optional(),
+	attachmentsSize: z.number().optional(),
 	from: z.enum(["db", "cache", "external"]).optional(),
 });

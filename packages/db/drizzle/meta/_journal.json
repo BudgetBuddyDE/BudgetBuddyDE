@@ -15,6 +15,13 @@
       "when": 1775489322246,
       "tag": "0001_cynical_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775504200000,
+      "tag": "0002_attachment_file_size",
+      "breakpoints": true
     }
   ]
 }
