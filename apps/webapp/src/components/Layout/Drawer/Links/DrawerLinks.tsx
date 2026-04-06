@@ -1,4 +1,5 @@
 import {
+  AttachFileRounded,
   LabelRounded as LabelIcon,
   PaymentsRounded as PaymentsIcon,
   ReceiptRounded,
@@ -16,6 +17,11 @@ export const DrawerLinks = [
     text: 'Transactions',
     path: '/transactions',
     icon: <ReceiptRounded />,
+  },
+  {
+    text: 'Attachments',
+    path: '/attachments',
+    icon: <AttachFileRounded />,
   },
   {
     text: 'Recurring Payments',

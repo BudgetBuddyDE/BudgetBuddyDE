@@ -184,11 +184,21 @@ class EntityService<CreatePayload, UpdatePayload, ...> {
 
 | Service                        | Description         | Endpoint                |
 |--------------------------------|---------------------|-------------------------|
+| `api.backend.attachment`       | Attachment access   | `/api/attachment`       |
 | `api.backend.category`         | Category management | `/api/category`         |
 | `api.backend.paymentMethod`    | Payment methods     | `/api/paymentMethod`    |
 | `api.backend.transaction`      | Transactions        | `/api/transaction`      |
 | `api.backend.recurringPayment` | Recurring payments  | `/api/recurringPayment` |
 | `api.backend.budget`           | Budget management   | `/api/budget`           |
+
+#### Attachment service methods
+
+The `AttachmentService` (`api.backend.attachment`) provides direct attachment access by ID:
+
+| Method                         | Description                                   |
+|:-------------------------------|:----------------------------------------------|
+| `getById(id, query?, config?)` | Fetch a single attachment with its signed URL |
+| `deleteById(id, config?)`      | Delete a single attachment by ID              |
 
 #### Transaction attachment methods
 
@@ -196,9 +206,19 @@ The `TransactionService` (`api.backend.transaction`) provides additional methods
 
 | Method                                                                  | Description                                                               |
 |:------------------------------------------------------------------------|:--------------------------------------------------------------------------|
+| `getAllTransactionAttachments(query?, config?)`                         | Fetch all transaction attachments across all transactions (paginated)     |
 | `getTransactionAttachments(transactionId, query?, config?)`             | Fetch all attachments for a specific transaction (paginated)              |
 | `uploadTransactionAttachments(transactionId, files, config?)`           | Upload one or more `File` objects as attachments for a transaction        |
 | `deleteTransactionAttachments(transactionId, payload?, config?)`        | Delete attachments for a transaction; optionally filter by attachment IDs |
+
+#### `ExpandedTransaction` attachment fields
+
+The `TExpandedTransaction` type (returned by `GET /api/transaction` and `GET /api/transaction/:id`) now includes two optional attachment fields:
+
+| Field             | Type                    | Description                                                                      |
+|:------------------|:------------------------|:---------------------------------------------------------------------------------|
+| `attachmentCount` | `number \| undefined`   | Number of attachments associated with the transaction                            |
+| `attachments`     | `TAttachmentWithUrl[] \| undefined` | Full list of attachments with signed URLs (populated by `GET /:id` only) |
 
 ```typescript
 // Upload attachments
@@ -207,7 +227,12 @@ const [result, err] = await api.backend.transaction.uploadTransactionAttachments
   fileList, // File[]
 );
 
-// Fetch attachments (paginated)
+// Fetch all user's attachments (chronological page)
+const [allAttachments, err] = await api.backend.transaction.getAllTransactionAttachments(
+  { from: 0, to: 50 },
+);
+
+// Fetch attachments for a specific transaction (paginated)
 const [attachments, err] = await api.backend.transaction.getTransactionAttachments(
   'transaction-id',
   { from: 0, to: 25 },
@@ -218,6 +243,9 @@ const [deleted, err] = await api.backend.transaction.deleteTransactionAttachment
   'transaction-id',
   { attachmentIds: ['attachment-id-1', 'attachment-id-2'] },
 );
+
+// Delete a single attachment directly
+const [, err] = await api.backend.attachment.deleteById('attachment-id');
 ```
 
 ### Type Safety

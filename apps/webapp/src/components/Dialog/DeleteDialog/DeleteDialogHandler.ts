@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 
 type State<TargetIdentifier = string> = {
   isOpen: boolean;

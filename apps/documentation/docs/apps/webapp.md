@@ -38,6 +38,18 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 - Filter button highlights in the primary colour when filters are active
 - See [Filter component documentation](../development/components/filter.md) for implementation details
 
+### Attachments
+
+- A dedicated **Attachments page** (`/attachments`) shows all transaction attachments in a responsive card grid, sorted chronologically (newest first)
+- Each attachment card supports **view** (lightbox), **download**, and **delete** actions
+- Transaction rows in the Transactions table expose an **Attachments** option in the row menu, showing a badge with the attachment count
+- The **Attachments dialog** per transaction provides:
+  - A drag-and-drop / click-to-browse upload zone (PNG, JPG, JPEG, WebP)
+  - A thumbnail grid with view/download/delete actions per file
+  - A **Document Scanner** button that opens a camera dialog and captures a frame as a JPEG, which is then uploaded as an attachment
+- The `TransactionAttachments` component is standalone and reusable, accepting only a `transactionId` prop
+- The `DocumentScanner` component uses the MediaDevices API (`getUserMedia`) without any external dependencies; it supports front/rear camera switching
+
 ## Architecture
 
 ### Technologies

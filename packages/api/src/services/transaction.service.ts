@@ -78,6 +78,45 @@ export class TransactionService extends EntityService<
 	}
 
 	/**
+	 * Fetch all transaction attachments for the authenticated user (across all transactions).
+	 */
+	async getAllTransactionAttachments(
+		query?: TGetTransactionAttachmentsQuery,
+		requestConfig?: RequestInit,
+	): Promise<TResult<z.output<typeof GetTransactionAttachmentsResponse>>> {
+		try {
+			const params = this.reqQueryObjToURLSearchParams(query);
+			const response = await fetch(
+				`${this.getBaseRequestPath()}/attachments?${params.toString()}`,
+				this.mergeRequestConfig(
+					{
+						method: "GET",
+						headers: new Headers(requestConfig?.headers || {}),
+						credentials: "include",
+					},
+					requestConfig,
+				),
+			);
+			if (!response.ok) {
+				throw new BackendError(response.status, response.statusText);
+			}
+			if (!this.isJsonResponse(response)) {
+				throw new ResponseNotJsonError();
+			}
+			const data = await response.json();
+
+			const parsingResult = GetTransactionAttachmentsResponse.safeParse(data);
+			if (!parsingResult.success) {
+				return this.handleZodError(parsingResult.error);
+			}
+
+			return [parsingResult.data, null];
+		} catch (error) {
+			return this.handleError(error);
+		}
+	}
+
+	/**
 	 * Fetch all attachments for a specific transaction.
 	 */
 	async getTransactionAttachments(

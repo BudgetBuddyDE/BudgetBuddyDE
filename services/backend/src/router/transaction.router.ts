@@ -136,15 +136,23 @@ transactionRouter.get(
         with: {
           category: true,
           paymentMethod: true,
+          attachments: {
+            columns: {attachmentId: true},
+          },
         },
       }),
     ]);
 
-    ApiResponse.builder<typeof records>()
+    const enrichedRecords = records.map(({attachments, ...rest}) => ({
+      ...rest,
+      attachmentCount: attachments.length,
+    }));
+
+    ApiResponse.builder<typeof enrichedRecords>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's transactions successfully")
       .withTotalCount(totalCount)
-      .withData(records)
+      .withData(enrichedRecords)
       .withFrom('db')
       .buildAndSend(res);
   },
@@ -212,7 +220,7 @@ transactionRouter.get(
       return;
     }
     const entityId = req.params.id;
-    const records = await db.query.transactions.findFirst({
+    const record = await db.query.transactions.findFirst({
       where(fields, operators) {
         return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
       },
@@ -222,7 +230,7 @@ transactionRouter.get(
       },
     });
 
-    if (!records) {
+    if (!record) {
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.NOT_FOUND)
         .withMessage(`Transaction ${entityId} not found`)
@@ -231,12 +239,45 @@ transactionRouter.get(
       return;
     }
 
-    ApiResponse.builder<typeof records>()
-      .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's transaction successfully")
-      .withData(records)
-      .withFrom('db')
-      .buildAndSend(res);
+    try {
+      const {attachments: foundAttachments} = await attachmentService.findAttachmentsByTransactionId(
+        userId,
+        entityId,
+      );
+      const attachmentsWithUrl = foundAttachments.map(a => ({
+        id: a.id,
+        ownerId: a.ownerId as TUserID,
+        fileName: a.fileName,
+        fileExtension: a.fileExtension,
+        contentType: a.contentType,
+        location: a.location,
+        signedUrl: a.signedUrl,
+        createdAt: a.createdAt.toISOString(),
+      }));
+
+      const enrichedRecord = {
+        ...record,
+        attachments: attachmentsWithUrl,
+        attachmentCount: attachmentsWithUrl.length,
+      };
+
+      ApiResponse.builder<typeof enrichedRecord>()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage("Fetched user's transaction successfully")
+        .withData(enrichedRecord)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      attachmentLogger.error("Couldn't fetch attachments for transaction %s: %o", entityId, err);
+      // Respond with transaction data but without attachments on error
+      const fallback = {...record, attachmentCount: 0, attachments: []};
+      ApiResponse.builder<typeof fallback>()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage("Fetched user's transaction successfully")
+        .withData(fallback)
+        .withFrom('db')
+        .buildAndSend(res);
+    }
   },
 );
 

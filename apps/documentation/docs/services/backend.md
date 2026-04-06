@@ -70,12 +70,23 @@ src/
 
 #### Transactions (`/api/transaction`) — Attachment sub-resource
 
-| Method | Path                    | Description                                                            |
-|:-------|:------------------------|:-----------------------------------------------------------------------|
-| GET    | `/attachments`          | List all attachments for the authenticated user (paginated)            |
-| GET    | `/:id/attachments`      | List attachments for a specific transaction (paginated)                |
-| POST   | `/:id/attachments`      | Upload one or more files as attachments for a transaction (multipart)  |
-| DELETE | `/:id/attachments`      | Delete attachments for a transaction (optionally filter by IDs)        |
+| Method | Path                    | Description                                                                                              |
+|:-------|:------------------------|:---------------------------------------------------------------------------------------------------------|
+| GET    | `/attachments`          | List all attachments for the authenticated user (paginated)                                              |
+| GET    | `/:id/attachments`      | List attachments for a specific transaction (paginated)                                                  |
+| POST   | `/:id/attachments`      | Upload one or more files as attachments for a transaction (multipart)                                    |
+| DELETE | `/:id/attachments`      | Delete attachments for a transaction (optionally filter by IDs)                                          |
+
+#### Expanded transaction response
+
+The `GET /api/transaction` (list) and `GET /api/transaction/:id` (single) responses now include attachment fields on every `ExpandedTransaction` object:
+
+| Field             | Endpoint(s)              | Description                                                          |
+|:------------------|:-------------------------|:---------------------------------------------------------------------|
+| `attachmentCount` | list + single            | Number of attachments associated with the transaction                |
+| `attachments`     | single only              | Full list of `TAttachmentWithUrl` objects with generated signed URLs |
+
+The list endpoint (`GET /api/transaction`) includes only the count (no signed-URL generation) to keep response times predictable. The single-entity endpoint (`GET /api/transaction/:id`) returns the full attachment list with signed URLs for immediate use in the UI.
 
 #### Pagination
 

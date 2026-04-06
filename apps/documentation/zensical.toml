@@ -60,7 +60,8 @@ nav = [
         "contributing.md",
         {"Apps" = [
             "apps/webapp.md",
-            "apps/website.md"
+            "apps/website.md",
+            "apps/attachments.md"
         ]},
         {"Services" = [
             "services/auth-service.md",
