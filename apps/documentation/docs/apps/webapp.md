@@ -30,6 +30,17 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 - Visualization of expenses and income
 - Monthly reports and analytics (upcoming)
 
+### Attachments
+
+- Dedicated **Attachments page** listing all transaction attachments chronologically
+- Per-transaction attachment management via the transaction table action menu:
+  - **Upload** images (PNG, JPEG, WEBP) directly from the browser
+  - **View** image attachments in a full-screen preview dialog
+  - **Download** individual attachments via pre-signed URLs
+  - **Delete** individual attachments
+- Attachment count badge shown per transaction row
+- Attachment data fetched via `@budgetbuddyde/api` SDK (`apiClient.backend.attachment.getAll()`)
+
 ### Table Filtering
 
 - Filter transactions and recurring payments from the table toolbar

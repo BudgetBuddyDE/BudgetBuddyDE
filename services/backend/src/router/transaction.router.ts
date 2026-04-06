@@ -123,11 +123,6 @@ transactionRouter.get(
         where() {
           return filter;
         },
-        // extras(fields, operators) {
-        //   return {
-        //     totalCount: db.$count(transactions,filter).as('total_count'),
-        //   }
-        // },
         orderBy(fields, operators) {
           return [operators.desc(fields.processedAt), operators.desc(fields.updatedAt)];
         },
@@ -136,15 +131,21 @@ transactionRouter.get(
         with: {
           category: true,
           paymentMethod: true,
+          attachments: true,
         },
       }),
     ]);
 
-    ApiResponse.builder<typeof records>()
+    const mappedRecords = records.map(({attachments: attachmentJunctions, ...rest}) => ({
+      ...rest,
+      attachmentCount: attachmentJunctions.length,
+    }));
+
+    ApiResponse.builder<typeof mappedRecords>()
       .withStatus(HTTPStatusCode.OK)
       .withMessage("Fetched user's transactions successfully")
       .withTotalCount(totalCount)
-      .withData(records)
+      .withData(mappedRecords)
       .withFrom('db')
       .buildAndSend(res);
   },
