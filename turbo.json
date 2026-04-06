@@ -28,7 +28,6 @@
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "dependsOn": ["^build"],
-      "cache": false,
       "outputs": [
         "lib/**",
         "build/**",
