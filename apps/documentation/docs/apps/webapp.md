@@ -23,6 +23,78 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 - Email verification after registration
 - OAuth2 login (Google, Github)
 
+#### Session Flow (auth-required pages)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Browser
+    participant Middleware as Next.js Middleware
+    participant AuthService as Auth-Service
+    participant Page as Protected Page
+
+    User->>Browser: Navigate to protected route
+    Browser->>Middleware: HTTP request (with session cookie)
+    Middleware->>AuthService: GET /api/auth/get-session
+    alt No session / invalid session
+        AuthService-->>Middleware: 401 / null
+        Middleware-->>Browser: Redirect → /sign-in
+        Browser-->>User: Sign-in page
+    else Valid session
+        AuthService-->>Middleware: Session + User data
+        Middleware-->>Browser: Allow request (requestId logged)
+        Browser->>Page: Render protected page
+        Page-->>User: Page content
+    end
+```
+
+#### Logout Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Browser
+    participant AuthService as Auth-Service
+
+    User->>Browser: Click "Logout"
+    Browser->>AuthService: POST /api/auth/sign-out
+    AuthService-->>Browser: OK (session cookie cleared)
+    Browser->>Browser: window.location.href = /sign-in
+    Browser-->>User: Sign-in page
+```
+
+#### Session Revocation (Settings)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Browser
+    participant AuthService as Auth-Service
+    participant ServerComponent as UserSessions (Server)
+
+    User->>Browser: Click "Revoke session"
+    Browser->>AuthService: DELETE /api/auth/revoke-session
+
+    alt Own session revoked
+        AuthService-->>Browser: OK
+        Browser->>Browser: window.location.href = /sign-in
+        Browser-->>User: Sign-in page
+    else Other session revoked
+        AuthService-->>Browser: OK
+        Browser->>ServerComponent: router.refresh()
+        ServerComponent->>AuthService: listSessions (fresh)
+        AuthService-->>ServerComponent: Updated session list
+        ServerComponent-->>Browser: Re-rendered list
+        Browser-->>User: Updated sessions shown
+    end
+
+    User->>Browser: Click "Revoke all sessions"
+    Browser->>AuthService: DELETE /api/auth/revoke-sessions (all)
+    AuthService-->>Browser: OK (all sessions cleared)
+    Browser->>Browser: window.location.href = /sign-in
+    Browser-->>User: Sign-in page
+```
+
 ### Budgeting
 
 - Create and manage budgets
