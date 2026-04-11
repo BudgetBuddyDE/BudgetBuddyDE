@@ -55,6 +55,36 @@ src/
 ├── server.ts        # Main entry point of the application
 ```
 
+### Authentication
+
+Every request to `/api/*` routes (except `/health` and `/status`) passes through the `setRequestContext` middleware, which validates the session against the Auth-Service and populates `req.context` with the authenticated user before the route handler runs.
+
+```mermaid
+sequenceDiagram
+    actor Client
+    participant Backend as Backend (Express)
+    participant AuthService as Auth-Service
+    participant DB as PostgreSQL
+
+    Client->>Backend: HTTP request (with session cookie)
+
+    alt Public route (/health, /status)
+        Backend-->>Client: 200 OK
+    else Protected /api/* route
+        Backend->>AuthService: GET /api/auth/get-session<br/>(forwarded headers)
+        alt Session invalid / missing
+            AuthService-->>Backend: null / error
+            Backend-->>Client: 401 Unauthorized
+        else Session valid
+            AuthService-->>Backend: {user, session}
+            Note over Backend: req.context = {user, session}
+            Backend->>DB: Query (filtered by user.id)
+            DB-->>Backend: Result
+            Backend-->>Client: 200 OK + data
+        end
+    end
+```
+
 ### API Documentation
 
 | Method | Path      | Description           |
