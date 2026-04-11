@@ -7,10 +7,11 @@ const middlewareLogger = logger.child({scope: 'middleware'});
 export async function middleware(request: NextRequest) {
   const SIGN_IN_ROUTE = '/sign-in';
   const url = request.nextUrl;
-  const meta: Record<string, string | number> = {
+  const requestId = crypto.randomUUID();
+  const meta: Record<string, unknown> = {
+    requestId,
     method: request.method,
     path: url.pathname,
-    origin: url.origin,
   };
 
   middlewareLogger.debug('Processing incoming request...', meta);
@@ -20,7 +21,7 @@ export async function middleware(request: NextRequest) {
     },
   });
   if (error) {
-    middlewareLogger.error('Error retrieving the session: %o', error);
+    middlewareLogger.error('Error retrieving the session', {requestId, path: url.pathname, error: error.message});
     return NextResponse.redirect(new URL(SIGN_IN_ROUTE, request.url));
   }
 
@@ -29,7 +30,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(SIGN_IN_ROUTE, request.url));
   }
 
-  middlewareLogger.debug('Session %s retrieved for user %s', data?.session.token, data?.user.id, meta);
+  middlewareLogger.info('Session validated', {
+    ...meta,
+    userId: data.user.id,
+    sessionToken: `${data.session.token.substring(0, 8)}...`,
+    sessionExpiresAt: data.session.expiresAt,
+  });
   return NextResponse.next();
 }
 

@@ -1,5 +1,4 @@
 import {createAuthClient} from 'better-auth/react';
-import {redirect} from 'next/navigation';
 import {logger} from './logger';
 
 export const authClient = createAuthClient({
@@ -28,7 +27,7 @@ export const signOut = (onSuccess?: () => void, onError?: () => void) =>
       onSuccess: () => {
         logger.info('User signed out successfully! Redirecting to sign-in page...');
         onSuccess?.();
-        redirect('/sign-in');
+        window.location.href = '/sign-in';
       },
       onError: ctx => {
         logger.error('Error signing out:', ctx.error);
@@ -42,16 +41,17 @@ export const revalidateSession = (onSuccess?: () => void, onError?: () => void) 
     fetchOptions: {
       onSuccess(context) {
         if (context.response.status === 401 || !context.data) {
-          logger.info('Session is invalid, redirecting to sign-in page...');
+          logger.info('Session invalid (status: %d), redirecting to sign-in...', context.response.status);
           onError?.();
-          redirect('/sign-in');
+          window.location.href = '/sign-in';
+          return;
         }
 
-        logger.info('Session revalidated successfully:', context.data);
+        logger.info('Session revalidated successfully:', context.data.user.id);
         onSuccess?.();
       },
-      onError() {
-        logger.error('Error revalidating session');
+      onError(ctx) {
+        logger.error('Error revalidating session:', ctx.error);
         onError?.();
       },
     },

@@ -3,8 +3,9 @@
 import {DeleteRounded} from '@mui/icons-material';
 import {Button, Divider, IconButton, List, ListItem, ListItemText, Stack, Tooltip, Typography} from '@mui/material';
 import type {Session} from 'better-auth';
+import {useRouter} from 'next/navigation';
 import React from 'react';
-import {authClient, revalidateSession} from '@/authClient';
+import {authClient} from '@/authClient';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {logger} from '@/logger';
@@ -15,16 +16,24 @@ export type SessionListProps = {
 };
 
 export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
+  const router = useRouter();
   const {showSnackbar} = useSnackbarContext();
+  const {data: currentSession} = authClient.useSession();
   if (sessions.length === 0) {
     return <NoResults text="No active sessions found." sx={{mx: 2}} />;
   }
   const handleRevokeSession = async (token: string) => {
     try {
-      const {error} = await authClient.revokeSession({token: token});
+      const {error} = await authClient.revokeSession({token});
       if (error) throw error;
 
-      await revalidateSession();
+      if (currentSession?.session.token === token) {
+        logger.info('Current session revoked, redirecting to sign-in...');
+        window.location.href = '/sign-in';
+        return;
+      }
+
+      router.refresh();
       showSnackbar({message: 'The session was revoked!'});
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
