@@ -14,9 +14,9 @@ export const SignedAttachmentUrlTTL = z.coerce
 export const Attachment = z.object({
 	id: z.uuid({ version: "v7" }).brand("AttachmentID"),
 	ownerId: UserID,
-	fileName: z.string().length(255),
-	fileExtension: z.string().length(16),
-	contentType: z.mime(["image/png", "image/jpg", "image/jpeg", "image/webp"]),
+	fileName: z.string().max(255),
+	fileExtension: z.string().max(16),
+	contentType: z.enum(["image/png", "image/jpg", "image/jpeg", "image/webp"]),
 	location: z.string(),
 	createdAt: z.iso.datetime(),
 });
