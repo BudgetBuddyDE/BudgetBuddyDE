@@ -46,9 +46,7 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 - The **Attachments dialog** per transaction provides:
   - A drag-and-drop / click-to-browse upload zone (PNG, JPG, JPEG, WebP)
   - A thumbnail grid with view/download/delete actions per file
-  - A **Document Scanner** button that opens a camera dialog and captures a frame as a JPEG, which is then uploaded as an attachment
 - The `TransactionAttachments` component is standalone and reusable, accepting only a `transactionId` prop
-- The `DocumentScanner` component uses the MediaDevices API (`getUserMedia`) without any external dependencies; it supports front/rear camera switching
 
 ## Architecture
 

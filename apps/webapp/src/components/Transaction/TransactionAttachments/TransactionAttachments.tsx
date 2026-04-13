@@ -31,8 +31,7 @@ import {apiClient} from '@/apiClient';
 import {DeleteDialog} from '@/components/Dialog';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {ZoomTransition} from '@/components/Transition';
-
-import {DocumentScanner} from '../DocumentScanner';
+import {Formatter} from '@/utils/Formatter';
 
 export type TransactionAttachmentsProps = {
   transactionId: TTransaction['id'];
@@ -186,11 +185,6 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
           disabled={isUploading}
           data-testid="attachment-file-input"
         />
-      </Box>
-
-      {/* Scanner button */}
-      <Box sx={{mb: 2, display: 'flex', justifyContent: 'flex-end'}}>
-        <DocumentScanner onCapture={file => handleUpload([file])} />
       </Box>
 
       {/* Attachment grid */}

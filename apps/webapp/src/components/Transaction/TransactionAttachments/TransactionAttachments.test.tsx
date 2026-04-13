@@ -21,11 +21,6 @@ vi.mock('@/components/Snackbar', () => ({
   useSnackbarContext: () => ({showSnackbar: vi.fn()}),
 }));
 
-// DocumentScanner pulls in MediaDevices which is not available in happy-dom
-vi.mock('../DocumentScanner', () => ({
-  DocumentScanner: () => <button type="button">Scan</button>,
-}));
-
 import {apiClient} from '@/apiClient';
 import {TransactionAttachments} from './TransactionAttachments';
 

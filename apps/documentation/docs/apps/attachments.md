@@ -15,7 +15,6 @@ The **Attachments** feature allows users to associate image files with their tra
 ## Features
 
 - Upload images (PNG, JPG, JPEG, WebP) to individual transactions
-- Scan physical documents using the device camera (no external SDK required)
 - View attachments in a lightbox dialog
 - Download attachments directly from signed S3 URLs
 - Delete individual attachments with confirmation
@@ -32,7 +31,6 @@ A full-page view of every attachment associated with the authenticated user's tr
 An **Attachments** option in each transaction row's action menu opens a dialog containing:
 
 - The **`TransactionAttachments`** component, which provides a drag-and-drop upload zone, a thumbnail grid, and per-attachment actions (View / Download / Delete)
-- A **Scan** button that opens the `DocumentScanner` component — a camera dialog that captures a frame and submits it as an upload
 
 ## Components
 
@@ -49,18 +47,6 @@ Internally uses:
 - `apiClient.backend.transaction.getTransactionAttachments` to load existing attachments
 - `apiClient.backend.transaction.uploadTransactionAttachments` for uploads
 - `apiClient.backend.transaction.deleteTransactionAttachments` for deletion
-
-### `DocumentScanner`
-
-`apps/webapp/src/components/Transaction/DocumentScanner/`
-
-Uses the browser **MediaDevices API** (`getUserMedia`) to open a camera feed in a dialog. When the user presses **Capture**, the current video frame is drawn to an off-screen canvas and exported as a JPEG `File`. Supports front/rear camera switching via the flip button.
-
-| Prop        | Type                | Description                                           |
-|:------------|:--------------------|:------------------------------------------------------|
-| `onCapture` | `(file: File) => void` | Called with the captured JPEG file on successful capture |
-
-No external dependencies are required. If camera access is unavailable (permission denied, unsupported browser), a descriptive error is shown with a Retry button.
 
 ## SDK methods
 
