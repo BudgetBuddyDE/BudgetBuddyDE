@@ -1,9 +1,7 @@
 import type { z } from "zod";
 import { BackendError, ResponseNotJsonError } from "../error";
 import type { TResult } from "../types/common";
-import {
-	GetAttachmentResponse,
-} from "../types/schemas/attachment.schema";
+import { GetAttachmentResponse } from "../types/schemas/attachment.schema";
 import type {
 	TAttachment,
 	TGetAttachmentsQuery,
