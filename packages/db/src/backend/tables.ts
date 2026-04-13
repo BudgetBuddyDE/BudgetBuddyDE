@@ -138,7 +138,9 @@ export const attachments = backendSchema.table("attachment", {
 	id: uuid("attachment_id")
 		.primaryKey()
 		.$defaultFn(() => uuidv7()),
-	ownerId: varchar("owner_id").notNull(),
+	ownerId: varchar("owner_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "set null" }),
 	fileName: varchar({ length: 255 }).notNull(), // Original file name with extension
 	fileExtension: varchar({ length: 16 }).notNull(), // File extension only
 	contentType: varchar({ length: 128 }).notNull(), // MIME type

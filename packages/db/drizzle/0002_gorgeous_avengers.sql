@@ -1,0 +1,1 @@
+ALTER TABLE "budgetbuddy_backend"."attachment" ADD CONSTRAINT "attachment_owner_id_user_id_fk" FOREIGN KEY ("owner_id") REFERENCES "budgetbuddy_auth"."user"("id") ON DELETE set null ON UPDATE no action;

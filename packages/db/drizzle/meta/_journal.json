@@ -15,6 +15,13 @@
       "when": 1775489322246,
       "tag": "0001_cynical_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776105191862,
+      "tag": "0002_gorgeous_avengers",
+      "breakpoints": true
     }
   ]
 }

@@ -98,6 +98,10 @@ export const transactionAttachmentRelations = relations(
 	}),
 );
 
-export const attachmentRelations = relations(attachments, ({ many }) => ({
+export const attachmentRelations = relations(attachments, ({ one, many }) => ({
+	owner: one(user, {
+		fields: [attachments.ownerId],
+		references: [user.id],
+	}),
 	transactions: many(transactionAttachments),
 }));
