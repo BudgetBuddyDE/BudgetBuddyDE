@@ -1,7 +1,7 @@
 import type {IBaseGetAllQuery} from '@budgetbuddyde/api/common';
 import type {ServiceResponse} from '@budgetbuddyde/types/';
 import type {PayloadAction} from '@reduxjs/toolkit';
-import {config} from '@/config';
+import {config} from '@/appConfig';
 import {createAppSlice} from '@/lib/createAppSlice';
 import type {RootState} from '@/lib/store';
 import {logger} from '@/logger';
