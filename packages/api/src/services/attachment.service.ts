@@ -1,11 +1,11 @@
 import type { z } from "zod";
 import { BackendError, ResponseNotJsonError } from "../error";
-import type { TResult } from "../types/common";
-import { GetAttachmentResponse } from "../types/schemas/attachment.schema";
 import type {
 	TAttachment,
 	TGetAttachmentsQuery,
 } from "../types/attachment.type";
+import type { TResult } from "../types/common";
+import { GetAttachmentResponse } from "../types/schemas/attachment.schema";
 import { BackendService } from "./backend.service";
 
 export class AttachmentService extends BackendService {
