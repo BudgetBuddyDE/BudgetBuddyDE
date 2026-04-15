@@ -9,8 +9,8 @@ import {
   type TReceiverVH,
   type TTransaction,
 } from '@budgetbuddyde/api/transaction';
-import {AddRounded, AttachFileRounded, ReceiptRounded} from '@mui/icons-material';
-import {Badge, Button, Chip, createFilterOptions, Dialog, DialogContent, DialogTitle, InputAdornment, Stack, Typography} from '@mui/material';
+import {AddRounded, ReceiptRounded} from '@mui/icons-material';
+import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
@@ -31,8 +31,7 @@ import {FilterWrapper, serializeTransactionFilters} from '@/components/Filter';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
-import {TransactionAttachments} from '@/components/Transaction/TransactionAttachments';
-import {ZoomTransition} from '@/components/Transition';
+import {TransactionAttachmentPreviewStrip, TransactionAttachmentsDialog} from '@/components/Transaction/Attachments';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
@@ -409,13 +408,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         key: 'receiver',
         label: 'Details',
         renderCell: (_value, row) => (
-          <>
+          <Stack spacing={1}>
             <Typography variant="body1">{row.receiver}</Typography>
-            <Stack flexDirection={'row'}>
-              <CategoryChip categoryName={row.category.name} size="small" sx={{mr: 1}} />
+            <Stack flexDirection="row" flexWrap="wrap" useFlexGap gap={1}>
+              <CategoryChip categoryName={row.category.name} size="small" />
               <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />
             </Stack>
-          </>
+          </Stack>
         ),
       },
       {
@@ -429,6 +428,19 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         key: 'information',
         label: 'Information',
         renderCell: value => <Typography variant="body1">{(value as string | null) ?? 'No information'}</Typography>,
+      },
+      {
+        key: 'attachments',
+        label: 'Attachments',
+        align: 'left',
+        renderCell: (_value, row) => (
+          <TransactionAttachmentPreviewStrip
+            attachments={row.attachments}
+            attachmentCount={row.attachmentCount}
+            previewLimit={4}
+            onClick={() => setAttachmentsDialog({open: true, transaction: row})}
+          />
+        ),
       },
       {
         key: 'id' as keyof TExpandedTransaction,
@@ -445,11 +457,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
               {
                 children: (
                   <Stack direction="row" alignItems="center" gap={1}>
-                    <AttachFileRounded fontSize="small" />
                     Attachments
-                    {(row.attachmentCount ?? 0) > 0 && (
-                      <Badge badgeContent={row.attachmentCount} color="primary" sx={{ml: 1}} />
-                    )}
                   </Stack>
                 ),
                 onClick: () => setAttachmentsDialog({open: true, transaction: row}),
@@ -548,7 +556,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
-        rowHeight={83.5}
+        rowHeight={110}
       />
 
       <EntityDrawer<EntityFormFields>
@@ -605,29 +613,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         <AddFab onClick={handleCreateEntity} label="Add transaction" />
       </FabContainer>
 
-      {/* Attachments dialog */}
-      <Dialog
+      <TransactionAttachmentsDialog
         open={attachmentsDialog.open}
+        transaction={attachmentsDialog.transaction}
         onClose={() => setAttachmentsDialog({open: false, transaction: null})}
-        maxWidth="sm"
-        fullWidth
-        slots={{transition: ZoomTransition}}
-        slotProps={{paper: {elevation: 0}}}
-      >
-        <DialogTitle>
-          Attachments
-          {attachmentsDialog.transaction && (
-            <Typography variant="body2" color="text.secondary" component="span" sx={{ml: 1}}>
-              — {attachmentsDialog.transaction.receiver}
-            </Typography>
-          )}
-        </DialogTitle>
-        <DialogContent>
-          {attachmentsDialog.transaction && (
-            <TransactionAttachments transactionId={attachmentsDialog.transaction.id} />
-          )}
-        </DialogContent>
-      </Dialog>
+      />
     </React.Fragment>
   );
 };

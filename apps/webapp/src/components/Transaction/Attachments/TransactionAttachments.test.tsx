@@ -1,3 +1,4 @@
+import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
@@ -17,9 +18,12 @@ vi.mock('@/apiClient', () => ({
   },
 }));
 
-vi.mock('@/components/Snackbar', () => ({
-  useSnackbarContext: () => ({showSnackbar: vi.fn()}),
-}));
+vi.mock('@/components/Snackbar', () => {
+  const showSnackbar = vi.fn();
+  return {
+    useSnackbarContext: () => ({showSnackbar}),
+  };
+});
 
 import {apiClient} from '@/apiClient';
 import {TransactionAttachments} from './TransactionAttachments';
@@ -28,17 +32,15 @@ import {TransactionAttachments} from './TransactionAttachments';
 // Helpers
 // ---------------------------------------------------------------------------
 
-const TX_ID = '01900000-0000-7000-8000-000000000001' as Parameters<
-  typeof TransactionAttachments
->[0]['transactionId'];
+const TX_ID = '01900000-0000-7000-8000-000000000001' as Parameters<typeof TransactionAttachments>[0]['transactionId'];
 
-function makeAttachment(id: string) {
+function makeAttachment(id: string): TAttachmentWithUrl {
   return {
-    id,
-    ownerId: 'user-1',
+    id: `01900000-0000-7000-8000-000000000${id}` as TAttachmentWithUrl['id'],
+    ownerId: 'user-1' as TAttachmentWithUrl['ownerId'],
     fileName: `file-${id}.png`,
     fileExtension: 'png',
-    contentType: 'image/png',
+    contentType: 'image/png' as const,
     location: `path/${id}.png`,
     signedUrl: `https://example.com/${id}.png`,
     createdAt: new Date().toISOString(),
@@ -55,7 +57,7 @@ describe('TransactionAttachments', () => {
   });
 
   it('renders the upload zone', async () => {
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValueOnce([
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
       {data: [], message: 'ok', status: 200, from: 'db'},
       null,
     ]);
@@ -68,7 +70,7 @@ describe('TransactionAttachments', () => {
   });
 
   it('shows "No attachments yet" when there are no attachments', async () => {
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValueOnce([
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
       {data: [], message: 'ok', status: 200, from: 'db'},
       null,
     ]);
@@ -84,7 +86,7 @@ describe('TransactionAttachments', () => {
 
   it('renders attachment thumbnails when attachments exist', async () => {
     const attachments = [makeAttachment('att-1'), makeAttachment('att-2')];
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValueOnce([
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
       {data: attachments, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
@@ -101,7 +103,7 @@ describe('TransactionAttachments', () => {
 
   it('opens the lightbox when View is clicked', async () => {
     const attachment = makeAttachment('att-view');
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValueOnce([
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
       {data: [attachment], message: 'ok', status: 200, from: 'db'},
       null,
     ]);
@@ -124,7 +126,7 @@ describe('TransactionAttachments', () => {
 
   it('opens delete confirmation when Delete is clicked', async () => {
     const attachment = makeAttachment('att-del');
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValueOnce([
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
       {data: [attachment], message: 'ok', status: 200, from: 'db'},
       null,
     ]);
@@ -145,7 +147,7 @@ describe('TransactionAttachments', () => {
 
   it('calls deleteTransactionAttachments when delete is confirmed', async () => {
     const attachment = makeAttachment('att-confirm');
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValueOnce([
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
       {data: [attachment], message: 'ok', status: 200, from: 'db'},
       null,
     ]);
@@ -169,14 +171,13 @@ describe('TransactionAttachments', () => {
       fireEvent.click(screen.getByRole('button', {name: /yes, delete/i}));
     });
 
-    expect(apiClient.backend.transaction.deleteTransactionAttachments).toHaveBeenCalledWith(
-      TX_ID,
-      {attachmentIds: [attachment.id]},
-    );
+    expect(apiClient.backend.transaction.deleteTransactionAttachments).toHaveBeenCalledWith(TX_ID, {
+      attachmentIds: [attachment.id],
+    });
   });
 
   it('renders the file input with correct accept attribute', async () => {
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValueOnce([
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
       {data: [], message: 'ok', status: 200, from: 'db'},
       null,
     ]);
@@ -192,8 +193,10 @@ describe('TransactionAttachments', () => {
   });
 
   it('calls uploadTransactionAttachments when a file is selected', async () => {
-    vi.mocked(apiClient.backend.transaction.getTransactionAttachments)
-      .mockResolvedValue([{data: [], message: 'ok', status: 200, from: 'db'}, null]);
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
+      {data: [], message: 'ok', status: 200, from: 'db'},
+      null,
+    ]);
     vi.mocked(apiClient.backend.transaction.uploadTransactionAttachments).mockResolvedValueOnce([
       {data: [], message: 'uploaded', status: 201, from: 'db'},
       null,
@@ -210,9 +213,6 @@ describe('TransactionAttachments', () => {
       fireEvent.change(input, {target: {files: [file]}});
     });
 
-    expect(apiClient.backend.transaction.uploadTransactionAttachments).toHaveBeenCalledWith(
-      TX_ID,
-      [file],
-    );
+    expect(apiClient.backend.transaction.uploadTransactionAttachments).toHaveBeenCalledWith(TX_ID, [file]);
   });
 });

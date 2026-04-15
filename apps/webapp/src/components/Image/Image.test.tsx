@@ -15,13 +15,14 @@ describe('Image', () => {
     expect(img).toHaveAttribute('src', '/logo.png');
   });
 
-  it('renders without crashing when no props are provided', () => {
-    const {container} = render(<Image />);
+  it('renders with only src — alt/width/height use parameter defaults', () => {
+    const {container} = render(<Image src="/test.png" />);
     expect(container).not.toBeEmptyDOMElement();
+    expect(container.querySelector('img')).toHaveAttribute('alt', '');
   });
 
   it('forwards data-testid', () => {
-    render(<Image data-testid="my-image" alt="img" />);
+    render(<Image src="/test.png" data-testid="my-image" />);
     expect(screen.getByTestId('my-image')).toBeInTheDocument();
   });
 });

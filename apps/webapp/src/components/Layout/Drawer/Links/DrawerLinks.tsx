@@ -19,11 +19,6 @@ export const DrawerLinks = [
     icon: <ReceiptRounded />,
   },
   {
-    text: 'Attachments',
-    path: '/attachments',
-    icon: <AttachFileRounded />,
-  },
-  {
     text: 'Recurring Payments',
     path: '/recurringPayments',
     icon: <ScheduleSendIcon />,
@@ -37,5 +32,10 @@ export const DrawerLinks = [
     text: 'Categories',
     path: '/categories',
     icon: <LabelIcon />,
+  },
+  {
+    text: 'Attachments',
+    path: '/attachments',
+    icon: <AttachFileRounded />,
   },
 ].filter(Boolean);

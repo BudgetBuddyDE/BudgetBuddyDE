@@ -2,8 +2,14 @@ import type {TUserID} from '@budgetbuddyde/api';
 import {SignedAttachmentUrlTTL, type TAttachment, type TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {Category} from '@budgetbuddyde/api/category';
 import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
-import {TransactionSchemas, transactionReceiverView, transactions} from '@budgetbuddyde/db/backend';
-import {and, eq, sql} from 'drizzle-orm';
+import {
+  attachments,
+  TransactionSchemas,
+  transactionAttachments,
+  transactionReceiverView,
+  transactions,
+} from '@budgetbuddyde/db/backend';
+import {and, desc, eq, inArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import multer from 'multer';
@@ -18,6 +24,26 @@ export const transactionRouter = Router();
 const upload = multer({storage: multer.memoryStorage()});
 const attachmentLogger = logger.child({label: 'transactions.attachments'});
 const attachmentService = new TransactionAttachmentHandler(process.env.AWS_S3_BUCKET_NAME as string);
+
+const mapAttachmentWithUrl = (attachment: {
+  id: string;
+  ownerId: string;
+  fileName: string;
+  fileExtension: string;
+  contentType: string;
+  location: string;
+  createdAt: Date;
+  signedUrl: TAttachmentWithUrl['signedUrl'];
+}): TAttachmentWithUrl => ({
+  id: attachment.id as TAttachmentWithUrl['id'],
+  ownerId: attachment.ownerId as TUserID,
+  fileName: attachment.fileName,
+  fileExtension: attachment.fileExtension,
+  contentType: attachment.contentType as TAttachmentWithUrl['contentType'],
+  location: attachment.location,
+  signedUrl: attachment.signedUrl,
+  createdAt: attachment.createdAt.toISOString(),
+});
 
 transactionRouter.get('/receiver', async (req, res) => {
   const userId = req.context.user?.id;
@@ -123,11 +149,6 @@ transactionRouter.get(
         where() {
           return filter;
         },
-        // extras(fields, operators) {
-        //   return {
-        //     totalCount: db.$count(transactions,filter).as('total_count'),
-        //   }
-        // },
         orderBy(fields, operators) {
           return [operators.desc(fields.processedAt), operators.desc(fields.updatedAt)];
         },
@@ -136,19 +157,90 @@ transactionRouter.get(
         with: {
           category: true,
           paymentMethod: true,
-          attachments: {
-            columns: {attachmentId: true},
-          },
         },
       }),
     ]);
 
-    const enrichedRecords = records.map(({attachments, ...rest}) => ({
-      ...rest,
-      // Only the count is included in list responses to avoid generating signed
-      // URLs for every attachment on every transaction (performance-sensitive path).
-      // Full attachment data (with signed URLs) is available on GET /:id.
-      attachmentCount: attachments.length,
+    const transactionIds = records.map(record => record.id);
+    const attachmentCountByTransactionId = new Map<string, number>();
+    const previewRowsByTransactionId = new Map<
+      string,
+      {
+        id: string;
+        ownerId: string;
+        fileName: string;
+        fileExtension: string;
+        contentType: string;
+        location: string;
+        createdAt: Date;
+      }[]
+    >();
+
+    if (transactionIds.length > 0) {
+      const attachmentRows = await db
+        .select({
+          transactionId: transactionAttachments.transactionId,
+          id: attachments.id,
+          ownerId: attachments.ownerId,
+          fileName: attachments.fileName,
+          fileExtension: attachments.fileExtension,
+          contentType: attachments.contentType,
+          location: attachments.location,
+          createdAt: attachments.createdAt,
+        })
+        .from(transactionAttachments)
+        .innerJoin(attachments, eq(transactionAttachments.attachmentId, attachments.id))
+        .where(inArray(transactionAttachments.transactionId, transactionIds))
+        .orderBy(desc(attachments.createdAt));
+
+      for (const attachmentRow of attachmentRows) {
+        const transactionId = attachmentRow.transactionId;
+        if (!transactionId) {
+          continue;
+        }
+
+        attachmentCountByTransactionId.set(transactionId, (attachmentCountByTransactionId.get(transactionId) ?? 0) + 1);
+
+        const previewRows = previewRowsByTransactionId.get(transactionId) ?? [];
+        previewRows.push({
+          id: attachmentRow.id,
+          ownerId: attachmentRow.ownerId,
+          fileName: attachmentRow.fileName,
+          fileExtension: attachmentRow.fileExtension,
+          contentType: attachmentRow.contentType,
+          location: attachmentRow.location,
+          createdAt: attachmentRow.createdAt,
+        });
+        previewRowsByTransactionId.set(transactionId, previewRows);
+      }
+    }
+
+    const previewRows = Array.from(previewRowsByTransactionId.values()).flat();
+    const {signedUrls} = await attachmentService.generateSignedUrls(
+      previewRows.map(previewRow => ({
+        attachmentId: previewRow.id as TAttachment['id'],
+        objectStoreLocation: previewRow.location,
+      })),
+    );
+
+    const previewAttachmentsByTransactionId = new Map<string, TAttachmentWithUrl[]>();
+    for (const [transactionId, previewRows] of previewRowsByTransactionId.entries()) {
+      previewAttachmentsByTransactionId.set(
+        transactionId,
+        previewRows.map(previewRow =>
+          mapAttachmentWithUrl({
+            ...previewRow,
+            signedUrl: signedUrls.get(previewRow.id as TAttachment['id']) as TAttachmentWithUrl['signedUrl'],
+          }),
+        ),
+      );
+    }
+
+    const enrichedRecords = records.map(record => ({
+      ...record,
+      // Keep the table payload light: ship only tiny previews plus the total count.
+      attachments: previewAttachmentsByTransactionId.get(record.id) ?? [],
+      attachmentCount: attachmentCountByTransactionId.get(record.id) ?? 0,
     }));
 
     ApiResponse.builder<typeof enrichedRecords>()
@@ -187,18 +279,7 @@ transactionRouter.get(
         .withStatus(HTTPStatusCode.OK)
         .withMessage("Fetched user's transaction attachments successfully")
         .withTotalCount(totalCount)
-        .withData(
-          foundAttachments.map(a => ({
-            id: a.id,
-            ownerId: a.ownerId as TUserID,
-            fileName: a.fileName,
-            fileExtension: a.fileExtension,
-            contentType: a.contentType,
-            location: a.location,
-            signedUrl: a.signedUrl,
-            createdAt: a.createdAt.toISOString(),
-          })),
-        )
+        .withData(foundAttachments.map(a => mapAttachmentWithUrl(a)))
         .buildAndSend(res);
     } catch (err) {
       attachmentLogger.error("Couldn't fetch transaction attachments: %o", err);
@@ -243,22 +324,8 @@ transactionRouter.get(
     }
 
     try {
-      const {attachments: foundAttachments} = await attachmentService.findAttachmentsByTransactionId(
-        userId,
-        entityId,
-      );
-      const attachmentsWithUrl = foundAttachments.map(a => ({
-        id: a.id,
-        // a.ownerId is string in the DB schema but TUserID is a branded type
-        // that carries no extra runtime shape, so the cast is safe here.
-        ownerId: a.ownerId as TUserID,
-        fileName: a.fileName,
-        fileExtension: a.fileExtension,
-        contentType: a.contentType,
-        location: a.location,
-        signedUrl: a.signedUrl,
-        createdAt: a.createdAt.toISOString(),
-      }));
+      const {attachments: foundAttachments} = await attachmentService.findAttachmentsByTransactionId(userId, entityId);
+      const attachmentsWithUrl = foundAttachments.map(a => mapAttachmentWithUrl(a));
 
       const enrichedRecord = {
         ...record,
@@ -317,18 +384,7 @@ transactionRouter.get(
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Fetched transaction attachments successfully')
         .withTotalCount(totalCount)
-        .withData(
-          foundAttachments.map(a => ({
-            id: a.id,
-            ownerId: a.ownerId as TUserID,
-            fileName: a.fileName,
-            fileExtension: a.fileExtension,
-            contentType: a.contentType,
-            location: a.location,
-            signedUrl: a.signedUrl,
-            createdAt: a.createdAt.toISOString(),
-          })),
-        )
+        .withData(foundAttachments.map(a => mapAttachmentWithUrl(a)))
         .buildAndSend(res);
     } catch (err) {
       attachmentLogger.error("Couldn't fetch attachments for transaction %s: %o", req.params.id, err);
@@ -409,18 +465,7 @@ transactionRouter.post(
       ApiResponse.builder<TAttachmentWithUrl[]>()
         .withStatus(HTTPStatusCode.CREATED)
         .withMessage(`${uploadedAttachments.length} attachment(s) uploaded successfully`)
-        .withData(
-          uploadedAttachments.map(a => ({
-            id: a.id,
-            ownerId: a.ownerId as TAttachment['ownerId'],
-            fileName: a.fileName,
-            fileExtension: a.fileExtension,
-            contentType: a.contentType,
-            location: a.location,
-            signedUrl: a.signedUrl,
-            createdAt: a.createdAt.toISOString(),
-          })),
-        )
+        .withData(uploadedAttachments.map(a => mapAttachmentWithUrl(a)))
         .buildAndSend(res);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));

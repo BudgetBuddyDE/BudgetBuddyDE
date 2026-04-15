@@ -1,11 +1,10 @@
 import type {SxProps, Theme} from '@mui/material';
 import type React from 'react';
 
+import type {ImageComponentProps} from '@/components/Image';
 import {Image} from '../Image';
 
-export type TAppLogoProps = React.DetailedHTMLProps<React.ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> & {
-  sx?: SxProps<Theme>;
-};
+export type TAppLogoProps = Omit<ImageComponentProps, 'src'> & {sx?: SxProps<Theme>};
 
 export const AppLogo: React.FC<TAppLogoProps> = ({sx, ...imageProps}) => {
   return (

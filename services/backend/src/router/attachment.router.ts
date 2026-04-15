@@ -56,7 +56,7 @@ attachmentRouter.get(
           ownerId: targetAttachment.ownerId as TUserID,
           fileName: targetAttachment.fileName,
           fileExtension: targetAttachment.fileExtension,
-          contentType: targetAttachment.contentType,
+          contentType: targetAttachment.contentType as TAttachmentWithUrl['contentType'],
           location: targetAttachment.location,
           signedUrl: signedUrl as TAttachmentWithUrl['signedUrl'],
           createdAt: targetAttachment.createdAt.toISOString(),
