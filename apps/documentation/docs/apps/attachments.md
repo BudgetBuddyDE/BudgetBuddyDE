@@ -24,7 +24,7 @@ The **Attachments** feature allows users to associate image files with their tra
 
 ### `/attachments`
 
-A full-page view of every attachment associated with the authenticated user's transactions. Attachments are displayed as responsive image cards sorted chronologically (newest first). Each card provides View, Download, and Delete actions.
+A full-page view of every attachment associated with the authenticated user's transactions. The page is an **async server component** — attachments are fetched server-side (with forwarded auth headers) and passed as `initialAttachments` to the `AllAttachmentsClient` shell. Attachments are displayed as responsive image cards sorted chronologically (newest first). Each card provides View, Download, and Delete actions.
 
 ### Transactions table — Attachments dialog
 
@@ -34,9 +34,21 @@ An **Attachments** option in each transaction row's action menu opens a dialog c
 
 ## Components
 
+### Shared attachment components
+
+`apps/webapp/src/components/Attachments/`
+
+These components are general-purpose and reusable across the app:
+
+| Component             | Description                                                                                                          |
+|:----------------------|:---------------------------------------------------------------------------------------------------------------------|
+| `AttachmentThumbnail` | Displays a single attachment as a thumbnail card with a hover action bar (View / Download / Delete)                  |
+| `AttachmentLightbox`  | Full-screen lightbox dialog that displays a single attachment image                                                  |
+| `FileDropZone`        | Drag-and-drop / click-to-browse upload zone; accepts a configurable `accept` prop (defaults to PNG, JPG, JPEG, WebP) |
+
 ### `TransactionAttachments`
 
-`apps/webapp/src/components/Transaction/TransactionAttachments/`
+`apps/webapp/src/components/Transaction/Attachments/`
 
 | Prop            | Type     | Description                          |
 |:----------------|:---------|:-------------------------------------|
@@ -44,9 +56,19 @@ An **Attachments** option in each transaction row's action menu opens a dialog c
 
 Internally uses:
 
+- `useTransactionAttachments` hook — manages all state and side effects via `useReducer`
+- `FileDropZone` for uploading
+- `AttachmentThumbnail` for the thumbnail grid
+- `AttachmentLightbox` for the full-screen viewer
 - `apiClient.backend.transaction.getTransactionAttachments` to load existing attachments
 - `apiClient.backend.transaction.uploadTransactionAttachments` for uploads
 - `apiClient.backend.transaction.deleteTransactionAttachments` for deletion
+
+### `AllAttachmentsClient`
+
+`apps/webapp/src/app/(dashboard)/attachments/AllAttachmentsClient.tsx`
+
+Client shell for the `/attachments` page. Receives `initialAttachments` from the server component as a prop and handles view/download/delete interactions client-side using `AttachmentThumbnail` and `AttachmentLightbox`.
 
 ## SDK methods
 
