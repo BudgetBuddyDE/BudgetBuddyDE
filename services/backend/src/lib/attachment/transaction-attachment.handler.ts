@@ -45,19 +45,20 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     const prepared = files.map(file => {
       const attachmentId = uuidv7() as TAttachment['id'];
       const fileExtension = AttachmentHandler.getFileExtension(file);
+      const mimeType = AttachmentHandler.resolveMimeType(file);
       const location = this.generateAttachmentStoragePath(userId, transactionId, attachmentId, fileExtension);
-      return {attachmentId, fileExtension, location, file};
+      return {attachmentId, fileExtension, mimeType, location, file};
     });
 
     // Insert all attachment records and junction table entries in a single transaction
     await db.transaction(async tx => {
       await tx.insert(attachments).values(
-        prepared.map(({attachmentId, fileExtension, location, file}) => ({
+        prepared.map(({attachmentId, fileExtension, mimeType, location, file}) => ({
           id: attachmentId,
           ownerId: userId,
           fileName: file.originalname,
           fileExtension,
-          contentType: file.mimetype,
+          contentType: mimeType,
           location,
         })),
       );
@@ -69,14 +70,14 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
 
     // Upload all files to S3 in parallel
     await Promise.all(
-      prepared.map(({attachmentId, location, file}) => {
+      prepared.map(({attachmentId, mimeType, location, file}) => {
         this.logger.debug('Uploading attachment %s to S3 at %s', attachmentId, location, {attachmentId, location});
         return this.s3Client.send(
           new PutObjectCommand({
             Bucket: this.bucketName,
             Key: location,
             Body: file.buffer,
-            ContentType: file.mimetype,
+            ContentType: mimeType,
           }),
         );
       }),
@@ -89,12 +90,12 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
       {ttl: this.defaultTtl},
     );
 
-    return prepared.map(({attachmentId, fileExtension, location, file}) => ({
+    return prepared.map(({attachmentId, fileExtension, mimeType, location, file}) => ({
       id: attachmentId,
       ownerId: userId,
       fileName: file.originalname,
       fileExtension,
-      contentType: file.mimetype,
+      contentType: mimeType,
       location,
       createdAt: new Date(),
       signedUrl: signedUrls.get(attachmentId) as TAttachmentWithUrl['signedUrl'],

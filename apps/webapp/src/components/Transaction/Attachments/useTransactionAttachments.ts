@@ -1,12 +1,27 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
+import {ATTACHMENT_CONTENT_TYPES} from '@budgetbuddyde/api/attachment';
 import type {TTransaction} from '@budgetbuddyde/api/transaction';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {useFetch} from '@/hooks/useFetch';
 import {transactionAttachmentsInitialState, transactionAttachmentsReducer} from './transactionAttachmentsReducer';
+
+const ALLOWED_CONTENT_TYPES = new Set<string>(ATTACHMENT_CONTENT_TYPES);
+
+/** Extensions that browsers may report as `application/octet-stream` but are valid image types. */
+const OCTET_STREAM_ALLOWED_EXTENSIONS = new Set(['heic', 'heif']);
+
+function isAllowedFileType(file: File): boolean {
+  if (ALLOWED_CONTENT_TYPES.has(file.type)) return true;
+  if (file.type === 'application/octet-stream') {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    return OCTET_STREAM_ALLOWED_EXTENSIONS.has(ext);
+  }
+  return false;
+}
 
 /**
  * Manages all state and async operations for a transaction's attachments.
@@ -45,6 +60,14 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
   const handleUpload = React.useCallback(
     async (files: File[]) => {
       if (files.length === 0) return;
+
+      const invalidFiles = files.filter(f => !isAllowedFileType(f));
+      if (invalidFiles.length > 0) {
+        const names = invalidFiles.map(f => f.name).join(', ');
+        showSnackbar({message: `Unsupported file type(s): ${names}. Allowed types: PNG, JPG, WebP, HEIC.`});
+        return;
+      }
+
       dispatch({type: 'UPLOAD_START'});
       const [result, error] = await apiClient.backend.transaction.uploadTransactionAttachments(transactionId, files);
       if (error) {

@@ -1,9 +1,12 @@
 'use client';
 
+import {ATTACHMENT_CONTENT_TYPES} from '@budgetbuddyde/api/attachment';
 import {CloudUploadRounded} from '@mui/icons-material';
 import {alpha, Box, type BoxProps, CircularProgress, Typography, useTheme} from '@mui/material';
 import type React from 'react';
 import {useRef} from 'react';
+
+const DEFAULT_ACCEPT = ATTACHMENT_CONTENT_TYPES.join(',');
 
 /** Props for {@link FileDropZone}. */
 export type FileDropZoneProps = Pick<BoxProps, 'sx'> & {
@@ -32,7 +35,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
   isDragging,
   onUpload,
   onDraggingChange,
-  accept = 'image/png,image/jpg,image/jpeg,image/webp',
+  accept = DEFAULT_ACCEPT,
   sx,
 }) => {
   const theme = useTheme();

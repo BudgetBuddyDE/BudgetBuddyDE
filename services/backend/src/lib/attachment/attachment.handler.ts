@@ -50,6 +50,28 @@ export abstract class AttachmentHandler {
   }
 
   /**
+   * Extension-to-MIME overrides for types that browsers commonly misreport as
+   * `application/octet-stream` (e.g. HEIC on non-Safari browsers).
+   */
+  private static readonly EXTENSION_MIME_OVERRIDES: Record<string, string> = {
+    heic: 'image/heic',
+    heif: 'image/heif',
+  };
+
+  /**
+   * Return the correct MIME type for a multer file.
+   * When the browser reports `application/octet-stream`, the actual type is
+   * derived from the file extension using {@link EXTENSION_MIME_OVERRIDES}.
+   */
+  static resolveMimeType(file: Express.Multer.File): string {
+    if (file.mimetype !== 'application/octet-stream') {
+      return file.mimetype;
+    }
+    const ext = AttachmentHandler.getFileExtension(file);
+    return AttachmentHandler.EXTENSION_MIME_OVERRIDES[ext] ?? file.mimetype;
+  }
+
+  /**
    * Verify if user is authorized to access attachment
    */
   public async verifyOwnership(attachmentId: string, userId: string): Promise<AttachmentRecord | null> {
