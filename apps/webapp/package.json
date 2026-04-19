@@ -37,7 +37,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@tklein1801/logger.js": "^0.0.1",
     "assert": "^2.1.0",
-    "better-auth": "1.2.9",
+    "better-auth": "1.4.9",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
     "lodash.debounce": "^4.0.8",
