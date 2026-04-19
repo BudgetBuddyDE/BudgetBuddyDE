@@ -556,7 +556,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
-        rowHeight={110}
       />
 
       <EntityDrawer<EntityFormFields>
