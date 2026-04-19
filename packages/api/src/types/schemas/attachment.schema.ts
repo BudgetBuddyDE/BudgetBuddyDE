@@ -11,12 +11,21 @@ export const SignedAttachmentUrlTTL = z.coerce
 	.max(3600)
 	.brand("SignedAttachmentUrlTTL");
 
+export const ATTACHMENT_CONTENT_TYPES = [
+	"image/png",
+	"image/jpg",
+	"image/jpeg",
+	"image/webp",
+	"image/heic",
+	"image/heif",
+] as const;
+
 export const Attachment = z.object({
 	id: z.uuid({ version: "v7" }).brand("AttachmentID"),
 	ownerId: UserID,
 	fileName: z.string().max(255),
 	fileExtension: z.string().max(16),
-	contentType: z.enum(["image/png", "image/jpg", "image/jpeg", "image/webp"]),
+	contentType: z.enum(ATTACHMENT_CONTENT_TYPES),
 	location: z.string(),
 	createdAt: z.iso.datetime(),
 });
