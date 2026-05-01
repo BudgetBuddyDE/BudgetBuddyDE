@@ -4,6 +4,7 @@ import {CategoryVH, type TCategoryVH} from '@budgetbuddyde/api/category';
 import {PaymentMethodVH, type TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {
   CreateOrUpdateRecurringPaymentPayload,
+  type TExecutionPlan,
   type TExpandedRecurringPayment,
   type TRecurringPayment,
 } from '@budgetbuddyde/api/recurringPayment';
@@ -41,6 +42,7 @@ type EntityFormFields = FirstLevelNullable<
     'id' | /*'categoryId' | 'paymentMethodId' | 'receiver' |*/ 'transferAmount' | 'information'
   > & {
     // Because we're gonna use a Date Picker and Autocompletes for relations, we need to override those types
+    executionPlan: TExecutionPlan;
     executeAt: Date;
     category: TCategoryVH;
     paymentMethod: TPaymentMethodVH;
@@ -51,6 +53,18 @@ type EntityFormFields = FirstLevelNullable<
 export type RecurringPaymentTableProps = {
   initialFilters?: Partial<EntityFilters>;
 };
+
+/** Extracts the `executeAt` integer from a Date based on the given execution plan. */
+function computeExecuteAt(date: Date, plan: TExecutionPlan): number {
+  if (plan === 'daily') return 1;
+  if (plan === 'weekly' || plan === 'bi-weekly') {
+    // ISO weekday: Monday=1 … Sunday=7
+    const d = date.getDay();
+    return d === 0 ? 7 : d;
+  }
+  // monthly / quarterly / yearly: day of month
+  return date.getDate();
+}
 
 export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({initialFilters}) => {
   const {showSnackbar} = useSnackbarContext();
@@ -110,10 +124,13 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     }
 
     if (action === 'CREATE') {
-      const {executeAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
+      const {executeAt, executionPlan, category, paymentMethod, receiver, information, transferAmount} =
+        parsedPayload.data;
+      const executeAtNumber = computeExecuteAt(executeAt, executionPlan ?? 'monthly');
       const [createdRecurringPayment, error] = await apiClient.backend.recurringPayment.create({
         paused: false,
-        executeAt: executeAt.getDate(),
+        executionPlan: executionPlan ?? 'monthly',
+        executeAt: executeAtNumber,
         categoryId: category.id,
         paymentMethodId: paymentMethod.id,
         receiver: receiver.receiver,
@@ -140,9 +157,12 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
         });
       }
-      const {executeAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
+      const {executeAt, executionPlan, category, paymentMethod, receiver, information, transferAmount} =
+        parsedPayload.data;
+      const executeAtNumber = computeExecuteAt(executeAt, executionPlan ?? 'monthly');
       const [updatedRecurringPayment, error] = await apiClient.backend.recurringPayment.updateById(entityId, {
-        executeAt: executeAt.getDate(),
+        executionPlan: executionPlan ?? 'monthly',
+        executeAt: executeAtNumber,
         categoryId: category.id,
         paymentMethodId: paymentMethod.id,
         receiver: receiver.receiver,
@@ -169,6 +189,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       type: 'OPEN',
       action: 'CREATE',
       defaultValues: {
+        executionPlan: 'monthly',
         executeAt: new Date(),
       },
     });
@@ -177,6 +198,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
   const handleEditEntity = ({
     id,
     executeAt,
+    executionPlan,
     receiver,
     category,
     paymentMethod,
@@ -184,12 +206,24 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     information,
   }: TExpandedRecurringPayment) => {
     const now = new Date();
+    // Reconstruct a Date that encodes the correct executeAt value:
+    // - weekly/bi-weekly: find a date in the current week whose ISO weekday matches executeAt (1=Mon…7=Sun)
+    // - daily/monthly/quarterly/yearly: use executeAt as day-of-month
+    let executeAtDate: Date;
+    if (executionPlan === 'weekly' || executionPlan === 'bi-weekly') {
+      const currentIsoWeekday = now.getDay() === 0 ? 7 : now.getDay();
+      executeAtDate = new Date(now);
+      executeAtDate.setDate(now.getDate() + (executeAt - currentIsoWeekday));
+    } else {
+      executeAtDate = new Date(now.getFullYear(), now.getMonth(), executeAt);
+    }
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'EDIT',
       defaultValues: {
         id,
-        executeAt: new Date(now.getFullYear(), now.getMonth(), executeAt),
+        executionPlan,
+        executeAt: executeAtDate,
         receiver: {receiver: receiver},
         category: {
           id: category.id,
@@ -291,10 +325,23 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     React.useMemo(() => {
       return [
         {
+          type: 'select',
+          name: 'executionPlan',
+          exclusive: true,
+          options: [
+            {value: 'daily', label: 'Daily'},
+            {value: 'weekly', label: 'Weekly'},
+            {value: 'bi-weekly', label: 'Bi-Weekly'},
+            {value: 'monthly', label: 'Monthly'},
+            {value: 'quarterly', label: 'Quarterly'},
+            {value: 'yearly', label: 'Yearly'},
+          ],
+        },
+        {
           type: 'date',
           name: 'executeAt',
-          label: 'Execute at',
-          placeholder: 'Execute at',
+          label: 'Execution day',
+          placeholder: 'Execution day',
           required: true,
         },
         {
@@ -425,7 +472,13 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
               textDecoration: row.paused ? 'line-through' : 'unset',
             }}
           >
-            {Formatter.date.format(apiClient.backend.recurringPayment.determineNextExecutionDate(row.executeAt))}
+            {Formatter.date.format(
+              apiClient.backend.recurringPayment.determineNextExecutionDate(
+                row.executeAt,
+                row.executionPlan,
+                new Date(row.createdAt),
+              ),
+            )}
           </Typography>
         ),
       },
@@ -563,6 +616,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         onResetForm={() => {
           return {
             ID: null,
+            executionPlan: null,
             executeAt: new Date(),
             toCategory: null,
             toPaymentMethod: null,

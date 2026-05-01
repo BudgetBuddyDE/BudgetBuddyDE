@@ -24,7 +24,11 @@ export const UpcomingRecurringPaymentList = async ({onAddEntity}: UpcomingRecurr
       data={(recurringPayments.data ?? []).map(t => ({
         ID: t.id,
         receiver: t.receiver,
-        nextExecution: apiClient.backend.recurringPayment.determineNextExecutionDate(t.executeAt),
+        nextExecution: apiClient.backend.recurringPayment.determineNextExecutionDate(
+          t.executeAt,
+          t.executionPlan,
+          new Date(t.createdAt),
+        ),
         transferAmount: t.transferAmount,
         category: {
           ID: t.category.id,

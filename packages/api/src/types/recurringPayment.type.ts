@@ -14,3 +14,7 @@ export type TExpandedRecurringPayment = TypeOfSchema<
 export type TCreateOrUpdateRecurringPaymentPayload = TypeOfSchema<
 	typeof schema.CreateOrUpdateRecurringPaymentPayload
 >;
+export type TExecutionPlan = TypeOfSchema<typeof schema.ExecutionPlan>;
+export type TRecurringPaymentExecution = TypeOfSchema<
+	typeof schema.RecurringPaymentExecution
+>;

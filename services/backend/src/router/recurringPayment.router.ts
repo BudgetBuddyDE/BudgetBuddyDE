@@ -1,5 +1,6 @@
 import {Category} from '@budgetbuddyde/api/category';
 import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
+import {calculateExecutionsForPeriod} from '@budgetbuddyde/api/recurringPayment';
 import {RecurringPaymentSchemas, recurringPayments} from '@budgetbuddyde/db/backend';
 import {and, eq, sql} from 'drizzle-orm';
 import {Router} from 'express';
@@ -108,6 +109,58 @@ recurringPaymentRouter.get(
       .withMessage("Fetched user's recurring payments successfully")
       .withTotalCount(totalCount)
       .withData(records)
+      .withFrom('db')
+      .buildAndSend(res);
+  },
+);
+
+recurringPaymentRouter.get(
+  '/:id/executions',
+  validateRequest({
+    params: z.object({
+      id: RecurringPaymentSchemas.select.shape.id,
+    }),
+    query: z.object({
+      from: z.coerce.date().optional(),
+      to: z.coerce.date().optional(),
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+    const entityId = req.params.id;
+    const payment = await db.query.recurringPayments.findFirst({
+      where(fields, operators) {
+        return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
+      },
+    });
+    if (!payment) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage(`Recurring payment ${entityId} not found`)
+        .withFrom('db')
+        .buildAndSend(res);
+      return;
+    }
+    const now = new Date();
+    const from: Date = req.query.from ?? new Date(now.getFullYear(), now.getMonth(), 1);
+    const to: Date = req.query.to ?? new Date(now.getFullYear(), 11, 31);
+    const executions = calculateExecutionsForPeriod(
+      {
+        executeAt: payment.executeAt,
+        executionPlan: payment.executionPlan,
+        createdAt: payment.createdAt.toISOString(),
+      },
+      from,
+      to,
+    ).map(executionDate => ({recurringPaymentId: payment.id, executionDate}));
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage('Fetched recurring payment executions successfully')
+      .withData(executions)
       .withFrom('db')
       .buildAndSend(res);
   },

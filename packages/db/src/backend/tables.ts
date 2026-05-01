@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 import { user } from "../auth";
-import { budgetType } from "./enums";
+import { budgetType, executionPlanType } from "./enums";
 import { backendSchema } from "./schema";
 
 export const paymentMethods = backendSchema.table("payment_method", {
@@ -82,7 +82,23 @@ export const recurringPayments = backendSchema.table("recurring_payment", {
 	paymentMethodId: uuid("payment_method_id")
 		.references(() => paymentMethods.id, { onDelete: "cascade" })
 		.notNull(),
+	/**
+	 * Day reference for execution, semantics depend on `executionPlan`:
+	 * - daily:            ignored (stored as 1)
+	 * - weekly/bi-weekly: ISO day of week (1 = Monday … 7 = Sunday)
+	 * - monthly:          day of month (1–31)
+	 * - quarterly:        day of month (1–31); anchor month derived from `createdAt`
+	 * - yearly:           day of month (1–31); anchor month derived from `createdAt`
+	 */
 	executeAt: integer("execute_at").notNull(),
+	/**
+	 * Execution plan for this recurring payment.
+	 * The `createdAt` timestamp serves as the schedule anchor for bi-weekly
+	 * (week-parity), quarterly (reference quarter), and yearly (reference month).
+	 */
+	executionPlan: executionPlanType("execution_plan")
+		.notNull()
+		.default("monthly"),
 	paused: boolean().default(false).notNull(),
 	receiver: varchar({ length: 100 }).notNull(),
 	transferAmount: doublePrecision("transfer_amount").notNull(),
