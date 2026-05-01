@@ -96,6 +96,7 @@ jobs:
               - -exc
               - |
                 cd repository/((repo_path))
+                npm install
                 npx drizzle-kit check
                 npm run db:migrate
   - name: update-prod-database
@@ -122,5 +123,6 @@ jobs:
               - -exc
               - |
                 cd repository/((repo_path))
+                npm install
                 npx drizzle-kit check
                 npm run db:migrate
