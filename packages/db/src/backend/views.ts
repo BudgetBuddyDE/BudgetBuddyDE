@@ -1,4 +1,11 @@
 import { sql } from "drizzle-orm";
+import {
+	date,
+	doublePrecision,
+	text,
+	uuid,
+	varchar,
+} from "drizzle-orm/pg-core";
 import { backendSchema } from "./schema";
 import {
 	budgetCategories,
@@ -150,3 +157,42 @@ export const spendingGoalView = backendSchema
 				budgets.budget,
 			),
 	);
+
+/**
+ * RecurringPaymentExecution
+ *
+ * View that expands each non-paused recurring payment into individual execution
+ * dates for the current calendar year using `generate_series`. The logic for
+ * each plan type:
+ *
+ * - daily:      every day of the year
+ * - weekly:     day where ISODOW = execute_at
+ * - bi-weekly:  day where ISODOW = execute_at AND the ISO-week parity matches
+ *               the week parity of created_at (so the payment keeps its
+ *               every-other-week cadence from the creation date)
+ * - monthly:    day where DAY = execute_at, with end-of-month clamping for
+ *               months that have fewer days than execute_at
+ * - quarterly:  same as monthly, but only in months whose distance from the
+ *               anchor month (MONTH(created_at)) is a multiple of 3
+ * - yearly:     same as monthly, but only in the month that matches
+ *               MONTH(created_at)
+ *
+ * Created via migration 0003_execution_plan.sql; declared here as `.existing()`
+ * so Drizzle has typed access without managing the view definition.
+ */
+export const recurringPaymentExecutionView = backendSchema
+	.view("recurring_payment_execution_view", {
+		id: uuid("id").notNull(),
+		ownerId: varchar("owner_id").notNull(),
+		categoryId: uuid("category_id").notNull(),
+		paymentMethodId: uuid("payment_method_id").notNull(),
+		receiver: varchar({ length: 100 }).notNull(),
+		transferAmount: doublePrecision("transfer_amount").notNull(),
+		information: text(),
+		executeAt: text("execute_at").notNull(),
+		executionPlan: text("execution_plan").notNull(),
+		paused: text("paused").notNull(),
+		createdAt: text("created_at").notNull(),
+		executionDate: date("execution_date").notNull(),
+	})
+	.existing();

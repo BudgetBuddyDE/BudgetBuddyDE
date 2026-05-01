@@ -14,6 +14,7 @@
     "format": "turbo run format",
     "lint": "turbo run lint",
     "check": "turbo run check",
+    "check:write": "turbo run check:write",
     "test": "turbo run test",
     "build": "turbo run build",
     "build-packages": "turbo run build --filter=./packages/*",

@@ -1,51 +1,52 @@
+import {calculateExecutionsForPeriod} from '@budgetbuddyde/api/recurringPayment';
 import {transactions} from '@budgetbuddyde/db/backend';
 import {db} from '../db';
 import {logger} from '../lib';
 
 /**
  * Processes all due recurring payments and creates corresponding transactions.
+ *
+ * Execution logic per plan (using "today" in the configured timezone):
+ * - **daily**:     always due
+ * - **weekly**:    due when ISO weekday matches `execute_at`
+ * - **bi-weekly**: due when ISO weekday matches `execute_at` AND the ISO-week
+ *                  parity matches the creation-date parity
+ * - **monthly**:   due when day-of-month matches `execute_at` (with
+ *                  end-of-month clamping for months shorter than `execute_at`)
+ * - **quarterly**: same as monthly, restricted to months in the same quarter
+ *                  cycle as `created_at`
+ * - **yearly**:    same as monthly, restricted to the anchor month from
+ *                  `created_at`
+ *
+ * Paused payments are always skipped.
  */
 export async function processRecurringPayments() {
   logger.info('Starting recurring payments processing job...');
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  let duePayments = await db.query.recurringPayments.findMany({
+  const allActive = await db.query.recurringPayments.findMany({
     where(fields, operators) {
-      return operators.and(operators.eq(fields.paused, false), operators.eq(fields.executeAt, today.getDate()));
+      return operators.eq(fields.paused, false);
     },
   });
 
-  logger.info(`Found ${duePayments.length} recurring payments to process.`);
+  logger.info(`Found ${allActive.length} non-paused recurring payments to evaluate.`);
 
-  // Determine how many days are in the current month
-  const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  if (daysInCurrentMonth < 31 && today.getDate() === daysInCurrentMonth) {
-    logger.info(
-      'Current month has less than 31 days, checking for payments scheduled on days that do not exist this month.',
-      {daysInCurrentMonth},
-    );
-    const extraPayments = await db.query.recurringPayments.findMany({
-      // Check if today is the last day of the month
-      // If this is the case, we want to process any payments scheduled for days that do not exist in this month
-      where(fields, operators) {
-        return operators.and(operators.eq(fields.paused, false), operators.gt(fields.executeAt, today.getDate()));
+  const duePayments = allActive.filter(payment => {
+    const executions = calculateExecutionsForPeriod(
+      {
+        executeAt: payment.executeAt,
+        executionPlan: payment.executionPlan,
+        createdAt: payment.createdAt.toISOString(),
       },
-    });
-
-    logger.info(
-      `Found ${extraPayments.length} additional recurring payments to process for non-existing days in this month.`,
+      today,
+      today,
     );
-    extraPayments.forEach(payment => {
-      logger.debug(
-        `Including payment ID ${payment.id} scheduled for day ${payment.executeAt} in the current processing batch.`,
-        {
-          recurringPaymentId: payment.id,
-          scheduledDay: payment.executeAt,
-        },
-      );
-    });
-    duePayments = duePayments.concat(extraPayments);
-  }
+    return executions.length > 0;
+  });
+
+  logger.info(`${duePayments.length} recurring payments are due today.`);
 
   try {
     if (duePayments.length === 0) {
