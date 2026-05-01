@@ -226,6 +226,20 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     dispatch(refresh());
   };
 
+  const handleExecutePayment = async (entity: TExpandedRecurringPayment) => {
+    const [result, error] = await apiClient.backend.recurringPayment.executePayment(entity.id);
+    if (!result || error) {
+      return showSnackbar({
+        message: `Failed to execute payment: ${error.message}`,
+        action: <Button onClick={() => handleExecutePayment(entity)}>Retry</Button>,
+      });
+    }
+    showSnackbar({
+      message: result.message ?? 'Transaction created successfully',
+    });
+    dispatch(refresh());
+  };
+
   const handleDeleteEntity = async (entityId: TExpandedRecurringPayment['id']) => {
     const [deletedRecurringPayment, error] = await apiClient.backend.recurringPayment.deleteById(entityId);
     if (!deletedRecurringPayment || error) {
@@ -470,13 +484,17 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
                 children: row.paused ? 'Resume' : 'Pause',
                 onClick: () => handleTogglePauseOnEntity(row),
               },
+              {
+                children: 'Execute payment',
+                onClick: () => handleExecutePayment(row),
+              },
             ]}
           />
         ),
       },
     ],
     // biome-ignore lint/correctness/useExhaustiveDependencies: handlers are stable within render context
-    [handleEditEntity, handleTogglePauseOnEntity],
+    [handleEditEntity, handleTogglePauseOnEntity, handleExecutePayment],
   );
 
   const slice: EntitySlice<TExpandedRecurringPayment> = React.useMemo(
