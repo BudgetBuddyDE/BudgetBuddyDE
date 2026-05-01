@@ -1,6 +1,6 @@
-import {transactions} from '@budgetbuddyde/db/backend';
 import {db} from '../db';
 import {logger} from '../lib';
+import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
 /**
  * Processes all due recurring payments and creates corresponding transactions.
@@ -53,20 +53,9 @@ export async function processRecurringPayments() {
       return;
     }
 
-    const createdTransactions = await db
-      .insert(transactions)
-      .values(
-        duePayments.map(payment => ({
-          ownerId: payment.ownerId,
-          categoryId: payment.categoryId,
-          paymentMethodId: payment.paymentMethodId,
-          processedAt: today,
-          receiver: payment.receiver,
-          transferAmount: payment.transferAmount,
-          information: payment.information,
-        })),
-      )
-      .returning();
+    const createdTransactions = await Promise.all(
+      duePayments.map(payment => createTransactionFromRecurringPayment(payment, today)),
+    );
 
     logger.info(`Successfully processed ${createdTransactions.length} recurring payments into transactions.`);
   } catch (err) {

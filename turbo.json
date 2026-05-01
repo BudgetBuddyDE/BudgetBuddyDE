@@ -21,6 +21,7 @@
     "format": {},
     "lint": {},
     "check": {},
+    "check:write": {},
     "test": {
       "dependsOn": ["^check"],
       "cache": false
@@ -28,13 +29,7 @@
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "dependsOn": ["^build"],
-      "outputs": [
-        "lib/**",
-        "build/**",
-        "gen/**",
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "outputs": ["lib/**", "build/**", "gen/**", ".next/**", "!.next/cache/**"]
     }
   }
 }

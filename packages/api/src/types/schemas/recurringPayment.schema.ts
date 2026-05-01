@@ -63,3 +63,6 @@ export const CreateRecurringPaymentResponse = ApiResponse.extend({
 });
 export const UpdateRecurringPaymentResponse = CreateRecurringPaymentResponse;
 export const DeleteRecurringPaymentResponse = CreateRecurringPaymentResponse;
+export const ExecuteRecurringPaymentResponse = ApiResponse.extend({
+	data: Transaction.nullable(),
+});

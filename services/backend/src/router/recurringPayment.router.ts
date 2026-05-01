@@ -7,6 +7,7 @@ import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
 import {ApiResponse, HTTPStatusCode} from '../models';
+import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 
 export const recurringPaymentRouter = Router();
@@ -223,6 +224,52 @@ recurringPaymentRouter.put(
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Recurring payment updated successfully')
         .withData(updatedRecord)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+recurringPaymentRouter.post(
+  '/:id/execute',
+  validateRequest({
+    params: z.object({
+      id: RecurringPaymentSchemas.select.shape.id,
+    }),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const entityId = req.params.id;
+    const payment = await db.query.recurringPayments.findFirst({
+      where(fields, operators) {
+        return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
+      },
+    });
+
+    if (!payment) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage(`Recurring payment ${entityId} not found`)
+        .withFrom('db')
+        .buildAndSend(res);
+      return;
+    }
+
+    try {
+      const createdTransaction = await createTransactionFromRecurringPayment(payment);
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Transaction created successfully')
+        .withData(createdTransaction)
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {
