@@ -40,14 +40,19 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     startDate: defaultValue?.startDate ?? null,
     endDate: defaultValue?.endDate ?? null,
   });
+  const valueRef = React.useRef<DateRangeState>(value);
   const [openField, setOpenField] = React.useState<'START' | 'END' | null>(null);
 
   const handleStartDateChange = (date: Date | null) => {
-    setValue(prev => ({...prev, startDate: date}));
+    const nextValue = {...valueRef.current, startDate: date};
+    valueRef.current = nextValue;
+    setValue(nextValue);
   };
 
   const handleEndDateChange = (date: Date | null) => {
-    setValue(prev => ({...prev, endDate: date}));
+    const nextValue = {...valueRef.current, endDate: date};
+    valueRef.current = nextValue;
+    setValue(nextValue);
   };
 
   const handleEndDatePickerClose = () => {
@@ -55,7 +60,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
     // Trigger callback only once when date range selection is complete
     if (onDateRangeChange) {
-      onDateRangeChange(value.startDate, value.endDate);
+      onDateRangeChange(valueRef.current.startDate, valueRef.current.endDate);
     }
   };
 
