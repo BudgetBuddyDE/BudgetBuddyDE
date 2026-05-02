@@ -188,7 +188,7 @@ describe('TransactionAttachments', () => {
 
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(input).not.toBeNull();
-    expect(input.accept).toBe('image/png,image/jpg,image/jpeg,image/webp');
+    expect(input.accept).toBe('image/png,image/jpg,image/jpeg,image/webp,image/heic,image/heif');
     expect(input.multiple).toBe(true);
   });
 
