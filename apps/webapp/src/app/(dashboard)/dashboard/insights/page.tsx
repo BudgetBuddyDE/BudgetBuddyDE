@@ -1,4 +1,4 @@
-import {Alert, AlertTitle, Grid} from '@mui/material';
+import {Grid} from '@mui/material';
 import React from 'react';
 import {HistoricalBalanceTable} from '@/components/Insights';
 import {HistoricalBalanceLineChart} from '@/components/Insights/HistoricalBalanceLineChart';
@@ -6,14 +6,6 @@ import {HistoricalBalanceLineChart} from '@/components/Insights/HistoricalBalanc
 export default function InsightsView() {
   return (
     <React.Fragment>
-      <Grid size={{xs: 12, md: 12}}>
-        <Alert severity={'warning'}>
-          <AlertTitle>Attention</AlertTitle>
-          The insights are still in an early development stage. Data accuracy and completeness are not guaranteed.
-          Please use with caution and report any issues you encounter.
-        </Alert>
-      </Grid>
-
       <Grid size={{xs: 12, md: 6}}>
         <HistoricalBalanceLineChart type={'BASIC'} />
       </Grid>
