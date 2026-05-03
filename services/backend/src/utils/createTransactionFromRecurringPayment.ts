@@ -1,6 +1,14 @@
-import type {TRecurringPayment} from '@budgetbuddyde/api/recurringPayment';
 import {transactions} from '@budgetbuddyde/db/backend';
 import {db} from '../db';
+
+type TPaymentMethod = {
+  ownerId: string;
+  categoryId: string;
+  paymentMethodId: string;
+  receiver: string;
+  information: string | null;
+  transferAmount: number;
+};
 
 /**
  * Creates a transaction from a single recurring payment record.
@@ -8,18 +16,7 @@ import {db} from '../db';
  * @param processedAt - The date to use as processedAt (defaults to now)
  * @returns The created transaction record
  */
-export async function createTransactionFromRecurringPayment(
-  payment: Pick<
-    TRecurringPayment,
-    'ownerId',
-    'categoryId',
-    'paymentMethodId',
-    'receiver',
-    'information',
-    'transferAmount'
-  >,
-  processedAt: Date = new Date(),
-) {
+export async function createTransactionFromRecurringPayment(payment: TPaymentMethod, processedAt: Date = new Date()) {
   const [createdTransaction] = await db
     .insert(transactions)
     .values({
