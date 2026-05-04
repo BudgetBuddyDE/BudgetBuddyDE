@@ -15,7 +15,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type React from 'react';
-import {useState} from 'react';
+import {memo, useState} from 'react';
 import {Card} from '@/components/Card';
 import {Image} from '@/components/Image';
 import {Formatter} from '@/utils/Formatter';
@@ -78,87 +78,89 @@ export type AttachmentThumbnailProps = {
  * for viewing, downloading, and deleting the attachment.
  * Falls back to a placeholder when the image cannot be loaded.
  */
-export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = ({attachment, onView, onDownload, onDelete}) => {
-  const theme = useTheme();
-  const [imgError, setImgError] = useState(false);
+export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
+  ({attachment, onView, onDownload, onDelete}) => {
+    const theme = useTheme();
+    const [imgError, setImgError] = useState(false);
 
-  const ImageContainerSx: SxProps<Theme> = {
-    width: '100%',
-    height: 132,
-    borderRadius: 2,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  };
+    const ImageContainerSx: SxProps<Theme> = {
+      width: '100%',
+      height: 132,
+      borderRadius: 2,
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    };
 
-  return (
-    <Card sx={{position: 'relative', p: 0, '&:hover .attachment-actions': {opacity: 1, transform: 'translateY(0)'}}}>
-      <Card.Header>
-        {imgError ? (
-          <Box
-            sx={{
-              ...ImageContainerSx,
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.light, 0.16)})`,
-            }}
-          >
-            <ImageNotSupportedRounded color="disabled" />
-          </Box>
-        ) : (
-          <Box sx={{position: 'relative', ...ImageContainerSx}}>
-            <Image
-              src={attachment.signedUrl}
-              alt={attachment.fileName}
-              fill
-              unoptimized
-              sizes="(max-width: 600px) 50vw, 33vw"
-              loading="lazy"
-              onError={() => setImgError(true)}
-              style={{objectFit: 'cover'}}
-            />
-          </Box>
-        )}
-      </Card.Header>
-      <Card.Body>
-        <Stack>
-          <Tooltip title={attachment.fileName}>
-            <Typography variant="caption" noWrap sx={{px: 1, color: 'text.primary'}}>
-              {attachment.fileName}
+    return (
+      <Card sx={{position: 'relative', p: 0, '&:hover .attachment-actions': {opacity: 1, transform: 'translateY(0)'}}}>
+        <Card.Header>
+          {imgError ? (
+            <Box
+              sx={{
+                ...ImageContainerSx,
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.light, 0.16)})`,
+              }}
+            >
+              <ImageNotSupportedRounded color="disabled" />
+            </Box>
+          ) : (
+            <Box sx={{position: 'relative', ...ImageContainerSx}}>
+              <Image
+                src={attachment.signedUrl}
+                alt={attachment.fileName}
+                fill
+                sizes="(max-width: 600px) 50vw, (max-width: 960px) 33vw, 25vw"
+                loading="lazy"
+                onError={() => setImgError(true)}
+                style={{objectFit: 'cover'}}
+              />
+            </Box>
+          )}
+        </Card.Header>
+        <Card.Body>
+          <Stack>
+            <Tooltip title={attachment.fileName}>
+              <Typography variant="caption" noWrap sx={{px: 1, color: 'text.primary'}}>
+                {attachment.fileName}
+              </Typography>
+            </Tooltip>
+            <Typography variant="caption" color="text.secondary" sx={{px: 1, pb: 1}}>
+              {Formatter.date.format(attachment.createdAt, true)} • {attachment.fileExtension.toUpperCase()}
             </Typography>
-          </Tooltip>
-          <Typography variant="caption" color="text.secondary" sx={{px: 1, pb: 1}}>
-            {Formatter.date.format(attachment.createdAt, true)} • {attachment.fileExtension.toUpperCase()}
-          </Typography>
-        </Stack>
-      </Card.Body>
-      <Card.Footer>
-        {!imgError && (
-          <AttachmentActions
-            sx={{
-              position: 'absolute',
-              top: 10,
-              right: 10,
-              opacity: 0,
-              transform: 'translateY(-4px)',
-              transition: 'opacity 0.2s ease, transform 0.2s ease',
-              backgroundColor: alpha(theme.palette.common.black, 0.56),
-              backdropFilter: 'blur(10px)',
-              borderRadius: 1,
-              px: 0.5,
-              py: 0.25,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-            }}
-            attachment={attachment}
-            onView={onView}
-            onDownload={onDownload}
-            onDelete={onDelete}
-          />
-        )}
-      </Card.Footer>
-    </Card>
-  );
-};
+          </Stack>
+        </Card.Body>
+        <Card.Footer>
+          {!imgError && (
+            <AttachmentActions
+              sx={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                opacity: 0,
+                transform: 'translateY(-4px)',
+                transition: 'opacity 0.2s ease, transform 0.2s ease',
+                // Simple semi-transparent bg instead of backdrop-filter:blur – avoids
+                // creating GPU compositor layers for every card (major lag source at 30+).
+                backgroundColor: alpha(theme.palette.common.black, 0.64),
+                borderRadius: 1,
+                px: 0.5,
+                py: 0.25,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+              attachment={attachment}
+              onView={onView}
+              onDownload={onDownload}
+              onDelete={onDelete}
+            />
+          )}
+        </Card.Footer>
+      </Card>
+    );
+  },
+);
