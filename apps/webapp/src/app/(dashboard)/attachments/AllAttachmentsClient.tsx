@@ -86,13 +86,14 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({initi
   return (
     <>
       <Grid container spacing={2}>
-        {visibleAttachments.map(attachment => (
+        {visibleAttachments.map((attachment, index) => (
           <Grid key={attachment.id} size={{xs: 12, sm: 6, md: 3}}>
             <AttachmentThumbnail
               attachment={attachment}
               onView={handleView}
               onDownload={handleDownload}
               onDelete={handleRequestDelete}
+              priority={index < 4}
             />
           </Grid>
         ))}

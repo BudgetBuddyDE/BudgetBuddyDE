@@ -7,6 +7,7 @@ import {
   Box,
   type BoxProps,
   IconButton,
+  Skeleton,
   Stack,
   type SxProps,
   type Theme,
@@ -71,6 +72,11 @@ export type AttachmentThumbnailProps = {
   onDownload: (attachment: TAttachmentWithUrl) => void;
   /** Called when the user clicks the delete action. */
   onDelete: (attachment: TAttachmentWithUrl) => void;
+  /**
+   * When true the image is fetched with high priority (no lazy loading + preload link).
+   * Pass this for items in the first visible row.
+   */
+  priority?: boolean;
 };
 
 /**
@@ -79,9 +85,10 @@ export type AttachmentThumbnailProps = {
  * Falls back to a placeholder when the image cannot be loaded.
  */
 export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
-  ({attachment, onView, onDownload, onDelete}) => {
+  ({attachment, onView, onDownload, onDelete, priority = false}) => {
     const theme = useTheme();
     const [imgError, setImgError] = useState(false);
+    const [imgLoaded, setImgLoaded] = useState(false);
 
     const ImageContainerSx: SxProps<Theme> = {
       width: '100%',
@@ -109,14 +116,27 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
             </Box>
           ) : (
             <Box sx={{position: 'relative', ...ImageContainerSx}}>
+              {/* Per-card shimmer: disappears individually as each image decodes */}
+              {!imgLoaded && (
+                <Skeleton
+                  variant="rectangular"
+                  sx={{position: 'absolute', inset: 0, width: '100%', height: '100%', borderRadius: 0, zIndex: 1}}
+                />
+              )}
               <Image
                 src={attachment.signedUrl}
                 alt={attachment.fileName}
                 fill
+                priority={priority}
                 sizes="(max-width: 600px) 50vw, (max-width: 960px) 33vw, 25vw"
-                loading="lazy"
+                loading={priority ? 'eager' : 'lazy'}
+                onLoad={() => setImgLoaded(true)}
                 onError={() => setImgError(true)}
-                style={{objectFit: 'cover'}}
+                style={{
+                  objectFit: 'cover',
+                  opacity: imgLoaded ? 1 : 0,
+                  transition: 'opacity 0.25s ease',
+                }}
               />
             </Box>
           )}
