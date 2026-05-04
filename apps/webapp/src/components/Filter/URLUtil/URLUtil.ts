@@ -1,4 +1,5 @@
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
+import {Formatter} from '@/utils/Formatter';
 
 /**
  * URL parameter key names
@@ -124,8 +125,8 @@ export function parseKeywordFilterFromParams(
 export function serializeTransactionFilters(filters: EntityFilters): URLSearchParams {
   const p = new URLSearchParams();
   if (filters.keyword) p.set(PARAM.keyword, filters.keyword);
-  if (filters.dateFrom) p.set(PARAM.dateFrom, filters.dateFrom.toISOString());
-  if (filters.dateTo) p.set(PARAM.dateTo, filters.dateTo.toISOString());
+  if (filters.dateFrom) p.set(PARAM.dateFrom, Formatter.date.formatWithPattern(filters.dateFrom, 'yyyy-MM-dd'));
+  if (filters.dateTo) p.set(PARAM.dateTo, Formatter.date.formatWithPattern(filters.dateTo, 'yyyy-MM-dd'));
   if (filters.categories?.length) p.set(PARAM.categories, filters.categories.join(','));
   if (filters.excl_categories?.length) p.set(PARAM.excl_categories, filters.excl_categories.join(','));
   if (filters.paymentMethods?.length) p.set(PARAM.paymentMethods, filters.paymentMethods.join(','));

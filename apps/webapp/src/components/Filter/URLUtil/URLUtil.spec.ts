@@ -26,14 +26,14 @@ suite('Filter - URL utils', () => {
       expect(parseTransactionFiltersFromParams({q: ['a', 'b']})).toEqual({});
     });
 
-    it('parses valid dateFrom ISO string', () => {
-      const result = parseTransactionFiltersFromParams({dateFrom: '2024-01-15T00:00:00.000Z'});
+    it('parses valid dateFrom date string', () => {
+      const result = parseTransactionFiltersFromParams({dateFrom: '2024-01-15'});
       expect(result.dateFrom).toBeInstanceOf(Date);
       expect(result.dateFrom?.toISOString()).toBe('2024-01-15T00:00:00.000Z');
     });
 
-    it('parses valid dateTo ISO string', () => {
-      const result = parseTransactionFiltersFromParams({dateTo: '2024-12-31T00:00:00.000Z'});
+    it('parses valid dateTo date string', () => {
+      const result = parseTransactionFiltersFromParams({dateTo: '2024-12-31'});
       expect(result.dateTo).toBeInstanceOf(Date);
       expect(result.dateTo?.toISOString()).toBe('2024-12-31T00:00:00.000Z');
     });
@@ -83,8 +83,8 @@ suite('Filter - URL utils', () => {
     it('parses all fields together', () => {
       const result = parseTransactionFiltersFromParams({
         q: 'food',
-        dateFrom: '2024-01-01T00:00:00.000Z',
-        dateTo: '2024-06-30T00:00:00.000Z',
+        dateFrom: '2024-01-01',
+        dateTo: '2024-06-30',
         cat: 'c1,c2',
         excl_cat: 'c3',
         pm: 'p1',
@@ -189,16 +189,16 @@ suite('Filter - URL utils', () => {
       expect(p.get('q')).toBe('test');
     });
 
-    it('serializes dateFrom as ISO string', () => {
+    it('serializes dateFrom as date-only string (yyyy-MM-dd)', () => {
       const date = new Date('2024-03-01T00:00:00.000Z');
       const p = serializeTransactionFilters({...emptyFilters, dateFrom: date});
-      expect(p.get('dateFrom')).toBe(date.toISOString());
+      expect(p.get('dateFrom')).toBe('2024-03-01');
     });
 
-    it('serializes dateTo as ISO string', () => {
-      const date = new Date('2024-03-31T23:59:59.999Z');
+    it('serializes dateTo as date-only string (yyyy-MM-dd)', () => {
+      const date = new Date('2024-03-31T00:00:00.000Z');
       const p = serializeTransactionFilters({...emptyFilters, dateTo: date});
-      expect(p.get('dateTo')).toBe(date.toISOString());
+      expect(p.get('dateTo')).toBe('2024-03-31');
     });
 
     it('serializes categories as comma-separated string', () => {
@@ -321,8 +321,10 @@ suite('Filter - URL utils', () => {
       const parsed = parseTransactionFiltersFromParams(paramsObj);
 
       expect(parsed.keyword).toBe(original.keyword);
-      expect(parsed.dateFrom?.toISOString()).toBe(original.dateFrom.toISOString());
-      expect(parsed.dateTo?.toISOString()).toBe(original.dateTo.toISOString());
+      expect(params.get('dateFrom')).toBe('2024-06-15');
+      expect(params.get('dateTo')).toBe('2024-06-15');
+      expect(parsed.dateFrom).toBeInstanceOf(Date);
+      expect(parsed.dateTo).toBeInstanceOf(Date);
       expect(parsed.categories).toEqual(original.categories);
       expect(parsed.excl_categories).toEqual(original.excl_categories);
       expect(parsed.paymentMethods).toEqual(original.paymentMethods);
