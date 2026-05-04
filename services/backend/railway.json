@@ -10,7 +10,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "npm run start:instrumentation",
+    "startCommand": "npm run start",
     "healthcheckPath": "/api/health",
     "sleepApplication": false,
     "multiRegionConfig": {
