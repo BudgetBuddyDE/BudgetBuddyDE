@@ -4,6 +4,7 @@ export async function register() {
       console.log('Skipping instrumentation registration in non-production environment');
       return;
     }
-    await import('./instrumentation.node');
+    console.log('SKIPPING - TEMP - Instrumentation registration for nodejs runtime');
+    // await import('./instrumentation.node');
   } else console.log('Skipping instrumentation registration for non-nodejs runtime');
 }
