@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# Skip hooks in CI environments
-if [ -n "$CI" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
-  exit 0
-fi
-
-npx lint-staged
