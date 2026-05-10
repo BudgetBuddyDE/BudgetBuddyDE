@@ -23,6 +23,9 @@
 
 A modern, open-source personal finance manager built with React. Track transactions, manage recurring payments, and visualize your budget all in one place.
 
+> [!tip]
+> [Version 4](https://github.com/BudgetBuddyDE/BudgetBuddyDE/tree/v4) is currently in development.
+
 <p align="center">
   <strong>One-click deploy on Railway:</strong><br/>
   <a href="https://railway.com/deploy/WjE5vD?referralCode=SD-6Xm&utm_medium=integration&utm_source=template&utm_campaign=generic">
