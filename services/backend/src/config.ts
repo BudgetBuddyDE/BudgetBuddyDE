@@ -28,6 +28,7 @@ export type Config = {
   };
   cors: CorsOptions;
   rateLimit: Partial<RateLimitOptions>;
+  timezone: string;
   jobs: {
     timezone: string;
   };
@@ -83,6 +84,7 @@ export const config: Config = {
     passOnStoreError: true,
     statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
   },
+  timezone: process.env.TIMEZONE || 'Europe/Berlin',
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',
   },
