@@ -1,3 +1,6 @@
+import {format} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
+import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
@@ -6,8 +9,11 @@ import {createTransactionFromRecurringPayment} from '../utils/createTransactionF
  * Processes all due recurring payments and creates corresponding transactions.
  */
 export async function processRecurringPayments() {
-  logger.info('Starting recurring payments processing job...');
-  const today = new Date();
+  const today = toZonedTime(new Date(), config.jobs.timezone);
+  logger.info('Starting recurring payments processing job...', {
+    date: format(date, 'yyyy-MM-dd'),
+    timezone: config.jobs.timezone,
+  });
 
   let duePayments = await db.query.recurringPayments.findMany({
     where(fields, operators) {

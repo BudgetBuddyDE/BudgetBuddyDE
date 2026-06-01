@@ -9,6 +9,7 @@ import {
   transactionReceiverView,
   transactions,
 } from '@budgetbuddyde/db/backend';
+import {toZonedTime} from 'date-fns-tz';
 import {and, desc, eq, inArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
@@ -106,12 +107,12 @@ transactionRouter.get(
     const query = req.query;
     const additionalFilters: TAdditionalFilter<(typeof transactions)['_']['config']>[] = [];
     if (query.$dateFrom) {
-      const dateFrom = query.$dateFrom;
+      const dateFrom = toZonedTime(query.$dateFrom, config.timezone);
       dateFrom.setHours(0, 0, 0, 0);
       additionalFilters.push({columnName: 'processedAt', operator: 'gte', value: dateFrom});
     }
     if (query.$dateTo) {
-      const dateTo = query.$dateTo;
+      const dateTo = toZonedTime(query.$dateTo, config.timezone);
       dateTo.setHours(23, 59, 59, 999);
       additionalFilters.push({columnName: 'processedAt', operator: 'lte', value: dateTo});
     }

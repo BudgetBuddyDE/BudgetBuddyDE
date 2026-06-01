@@ -1,10 +1,12 @@
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
 import type {TCategory} from '@budgetbuddyde/api/types';
 import {categories, transactionHistorySummaryView, transactionHistoryView} from '@budgetbuddyde/db/backend';
+import {toZonedTime} from 'date-fns-tz';
 import {and, asc, eq, gte, lte} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
+import {config} from '../config';
 import {db} from '../db';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
@@ -30,10 +32,10 @@ insightsRouter.get(
     const {$dateFrom, $dateTo} = req.query;
     const conditions = [eq(transactionHistorySummaryView.ownerId, userId)];
     if ($dateFrom !== undefined) {
-      conditions.push(gte(transactionHistorySummaryView.date, $dateFrom));
+      conditions.push(gte(transactionHistorySummaryView.date, toZonedTimedTime($dateFrom, config.timezone)));
     }
     if ($dateTo !== undefined) {
-      conditions.push(lte(transactionHistorySummaryView.date, $dateTo));
+      conditions.push(lte(transactionHistorySummaryView.date, toZonedTime($dateTo, config.timezone)));
     }
 
     const records = await db
