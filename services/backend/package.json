@@ -40,7 +40,7 @@
     "@opentelemetry/sdk-metrics": "^2.2.0",
     "@opentelemetry/sdk-node": "^0.208.0",
     "@opentelemetry/sdk-trace-node": "^2.2.0",
-    "better-auth": "1.2.9",
+    "better-auth": "1.4.9",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
