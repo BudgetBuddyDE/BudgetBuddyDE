@@ -4,7 +4,7 @@
   "tasks": {
     "test": {
       "outputs": ["coverage/**"],
-      "dependsOn": ["^build", "^test"],
+      "dependsOn": ["^build"],
       "cache": false
     },
     "dev": {
@@ -16,7 +16,6 @@
       "outputs": []
     },
     "lint": {
-      "dependsOn": ["^lint"],
       "outputs": []
     },
     "check": {
