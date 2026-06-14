@@ -1,5 +1,10 @@
 {
   "vitest.maximumConfigs": 8,
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "biomejs.biome"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [{ "mode": "auto" }]
 }

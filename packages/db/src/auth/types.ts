@@ -1,5 +1,5 @@
-import { createTableSchemas } from "../utils/createTableSchemas";
-import { account, session, user, verification } from "./tables";
+import {account, session, user, verification} from './tables';
+import {createTableSchemas} from '../utils/createTableSchemas';
 
 export const UserSchemas = createTableSchemas(user);
 

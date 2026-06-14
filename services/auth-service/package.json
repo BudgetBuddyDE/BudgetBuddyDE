@@ -10,10 +10,12 @@
     "build": "npx rimraf build && npx tsc",
     "pretest": "npm run check",
     "test": "vitest run",
-    "check": "biome check --error-on-warnings",
-    "check:write": "npm run check -- --write --unsafe",
-    "lint": "biome lint --write",
-    "format": "biome format --write"
+    "check": "npm run format:check && npm run lint:check",
+    "check:write": "npm run lint && npm run format",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" instrumentation.ts --fix --max-warnings=0",
+    "lint:check": "eslint \"src/**/*.{js,jsx,ts,tsx}\" instrumentation.ts --max-warnings=0",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" instrumentation.ts",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" instrumentation.ts"
   },
   "repository": {
     "type": "git",
@@ -52,7 +54,6 @@
     "winston-loki": "^6.1.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.3",

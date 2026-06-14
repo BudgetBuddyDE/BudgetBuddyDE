@@ -80,7 +80,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
         }
       },
     );
-  }, [open, currentFilters.categories?.includes, currentFilters.paymentMethods?.includes]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, currentFilters.categories?.includes, currentFilters.paymentMethods?.includes]);
 
   const onApplyFilters = () => {
     const result: Partial<EntityFilters> = {};

@@ -42,11 +42,9 @@ export const useKeyPress = (
   React.useEffect(() => {
     const targetNode: Document | (EventTarget & HTMLElement) = node ?? document;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     targetNode.addEventListener('keydown', handleKeyPress);
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     return () => targetNode.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress, node]);

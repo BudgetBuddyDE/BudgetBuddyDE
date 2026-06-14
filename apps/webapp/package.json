@@ -9,11 +9,13 @@
     "pretest": "npm run check",
     "test": "vitest run --silent",
     "test:watch": "vitest",
-    "check": "biome check --error-on-warnings",
+    "check": "npm run format:check && npm run lint:check",
     "typecheck": "tsc --noEmit",
-    "check:write": "npm run check -- --write --unsafe",
-    "lint": "biome lint --write",
-    "format": "biome format --write",
+    "check:write": "npm run lint && npm run format",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix --max-warnings=0",
+    "lint:check": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
   },
   "dependencies": {

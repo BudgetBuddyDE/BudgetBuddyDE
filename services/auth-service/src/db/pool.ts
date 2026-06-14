@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import pg from 'pg';
-
 import {logger} from '../lib/logger';
 
 const {Pool} = pg;

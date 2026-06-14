@@ -1,0 +1,9 @@
+node_modules/
+.turbo/
+.next/
+build/
+lib/
+coverage/
+gen/
+local-docs/
+ci/secrets/**

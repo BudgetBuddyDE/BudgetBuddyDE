@@ -1,4 +1,4 @@
-import { ELogLevel, type LogLevel } from "../../types";
+import {ELogLevel, type LogLevel} from '../../types';
 
 /**
  *
@@ -8,8 +8,8 @@ import { ELogLevel, type LogLevel } from "../../types";
  * ```
  */
 export function getLogLevel(logLevel: string | undefined): LogLevel {
-	if (!logLevel) return "info";
+  if (!logLevel) return 'info';
 
-	const level = ELogLevel[logLevel.toUpperCase() as keyof typeof ELogLevel];
-	return level ? (level as LogLevel) : "info";
+  const level = ELogLevel[logLevel.toUpperCase() as keyof typeof ELogLevel];
+  return level ? (level as LogLevel) : 'info';
 }

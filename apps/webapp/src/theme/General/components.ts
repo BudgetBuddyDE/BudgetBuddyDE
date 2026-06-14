@@ -1,8 +1,8 @@
 import type {Components, Theme} from '@mui/material/styles';
 import {axisClasses, chartsGridClasses, legendClasses} from '@mui/x-charts';
 import type {ChartsComponents} from '@mui/x-charts/themeAugmentation';
-import {colors} from '../DarkTheme/colors';
 import {shape} from './shape';
+import {colors} from '../DarkTheme/colors';
 
 const ChartOptions: ChartsComponents<Theme> = {
   MuiBarChart: {

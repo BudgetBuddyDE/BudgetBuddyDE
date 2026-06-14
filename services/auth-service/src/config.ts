@@ -1,11 +1,10 @@
+import {getLogLevel} from '@budgetbuddyde/logger';
 import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
+import 'dotenv/config';
+import type {Options as RateLimitOptions} from 'express-rate-limit';
 import {type Logger, transports} from 'winston';
 import LokiTransport from 'winston-loki';
-import 'dotenv/config';
-import {getLogLevel} from '@budgetbuddyde/logger';
-import type {Options as RateLimitOptions} from 'express-rate-limit';
-
 import {name, version} from '../package.json';
 import {HTTPStatusCode} from './models';
 

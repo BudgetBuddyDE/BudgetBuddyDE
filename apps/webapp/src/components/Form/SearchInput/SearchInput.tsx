@@ -72,7 +72,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
 
   const debouncedSearch = React.useMemo(
     () => debounce((text: string) => onSearch(text), debounceWaitInMilliseconds),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [debounceWaitInMilliseconds, onSearch],
   );
 

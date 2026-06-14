@@ -1,3 +1,3 @@
 export interface IGetAllAttachmentsQuery {
-	ttl?: number;
+  ttl?: number;
 }

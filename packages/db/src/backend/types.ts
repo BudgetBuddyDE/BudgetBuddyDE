@@ -1,21 +1,17 @@
+import {createInsertSchema, createSelectSchema, createUpdateSchema} from 'drizzle-zod';
+import {z} from 'zod';
 import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
-import { z } from "zod";
-import { createTableSchemas } from "../utils/createTableSchemas";
-import {
-	attachments,
-	budgetCategories,
-	budgets,
-	categories,
-	paymentMethods,
-	recurringPayments,
-	transactions,
-} from "./tables";
+  attachments,
+  budgetCategories,
+  budgets,
+  categories,
+  paymentMethods,
+  recurringPayments,
+  transactions,
+} from './tables';
+import {createTableSchemas} from '../utils/createTableSchemas';
 
-export { budgetType } from "./enums";
+export {budgetType} from './enums';
 
 export const CategorySchemas = createTableSchemas(categories);
 
@@ -37,11 +33,11 @@ export const BudgetSchemas = createTableSchemas(budgets);
 export const BudgetCategorySchemas = createTableSchemas(budgetCategories);
 // REVISIT:
 export const BudgetWithCategoriesSchema = {
-	select: createSelectSchema(budgets),
-	insert: createInsertSchema(budgets).extend({
-		categories: z.array(z.string()),
-	}),
-	update: createUpdateSchema(budgets).extend({
-		categories: z.array(z.string()),
-	}),
+  select: createSelectSchema(budgets),
+  insert: createInsertSchema(budgets).extend({
+    categories: z.array(z.string()),
+  }),
+  update: createUpdateSchema(budgets).extend({
+    categories: z.array(z.string()),
+  }),
 };

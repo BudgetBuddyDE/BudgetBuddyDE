@@ -1,5 +1,5 @@
-import type z from "zod";
-import type { UserID } from "./schemas/common.schema";
+import type z from 'zod';
+import type {UserID} from './schemas/common.schema';
 
 export type TypeOfSchema<Schema extends z.ZodType> = z.infer<Schema>;
 

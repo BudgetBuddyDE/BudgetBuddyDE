@@ -1,5 +1,4 @@
 import type {Response} from 'express';
-
 import {HTTPStatusCode} from './HttpStatusCode';
 
 type BaseProperties<T> = {

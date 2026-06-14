@@ -1,49 +1,45 @@
-import z from "zod";
-import {
-	AttachmentWithUrl,
-	DeleteAttachmentsPayload,
-	GetAttachmentsQuery,
-} from "./attachment.schema";
-import { Category } from "./category.schema";
-import { ApiResponse, UserID } from "./common.schema";
-import { PaymentMethod } from "./paymentMethod.schema";
+import z from 'zod';
+import {AttachmentWithUrl, DeleteAttachmentsPayload, GetAttachmentsQuery} from './attachment.schema';
+import {Category} from './category.schema';
+import {ApiResponse, UserID} from './common.schema';
+import {PaymentMethod} from './paymentMethod.schema';
 
 export const Transaction = z.object({
-	id: z.uuid().brand("TransactionID"),
-	ownerId: UserID,
-	categoryId: Category.shape.id,
-	paymentMethodId: PaymentMethod.shape.id,
-	processedAt: z.iso.datetime().or(z.date()),
-	receiver: z.string(),
-	transferAmount: z.number(),
-	information: z.string().nullable(),
-	createdAt: z.iso.datetime(),
-	updatedAt: z.iso.datetime(),
+  id: z.uuid().brand('TransactionID'),
+  ownerId: UserID,
+  categoryId: Category.shape.id,
+  paymentMethodId: PaymentMethod.shape.id,
+  processedAt: z.iso.datetime().or(z.date()),
+  receiver: z.string(),
+  transferAmount: z.number(),
+  information: z.string().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 
 export const ExpandedTransaction = Transaction.omit({
-	categoryId: true,
-	paymentMethodId: true,
+  categoryId: true,
+  paymentMethodId: true,
 }).extend({
-	category: Category,
-	paymentMethod: PaymentMethod,
-	attachments: z.array(AttachmentWithUrl).optional(),
-	attachmentCount: z.number().optional(),
+  category: Category,
+  paymentMethod: PaymentMethod,
+  attachments: z.array(AttachmentWithUrl).optional(),
+  attachmentCount: z.number().optional(),
 });
 
 export const TransactionAttachment = z.object({
-	transactionId: Transaction.shape.id,
-	attachmentId: z.uuid({ version: "v7" }).brand("AttachmentID"),
+  transactionId: Transaction.shape.id,
+  attachmentId: z.uuid({version: 'v7'}).brand('AttachmentID'),
 });
 
 export const GetTransactionAttachmentsQuery = GetAttachmentsQuery;
 export const DeleteTransactionAttachmentsPayload = DeleteAttachmentsPayload;
 export const GetTransactionAttachmentsResponse = ApiResponse.extend({
-	data: z.array(AttachmentWithUrl).nullable(),
-	totalCount: z.number().optional(),
+  data: z.array(AttachmentWithUrl).nullable(),
+  totalCount: z.number().optional(),
 });
 export const UploadTransactionAttachmentsResponse = ApiResponse.extend({
-	data: z.array(AttachmentWithUrl).nullable(),
+  data: z.array(AttachmentWithUrl).nullable(),
 });
 
 // export const CreateTransactionPayload = Transaction.pick({
@@ -69,31 +65,31 @@ export const UploadTransactionAttachmentsResponse = ApiResponse.extend({
 // });
 
 export const CreateOrUpdateTransactionPayload = Transaction.pick({
-	categoryId: true,
-	paymentMethodId: true,
-	processedAt: true,
-	receiver: true,
-	transferAmount: true,
-	information: true,
+  categoryId: true,
+  paymentMethodId: true,
+  processedAt: true,
+  receiver: true,
+  transferAmount: true,
+  information: true,
 }).extend({
-	information: Transaction.shape.information.optional(),
+  information: Transaction.shape.information.optional(),
 });
 
 export const ReceiverVH = Transaction.pick({
-	receiver: true,
+  receiver: true,
 });
 
 export const GetAllTransactionsResponse = ApiResponse.extend({
-	data: z.array(ExpandedTransaction).nullable(),
+  data: z.array(ExpandedTransaction).nullable(),
 });
 export const GetTransactionResponse = ApiResponse.extend({
-	data: ExpandedTransaction.nullable(),
+  data: ExpandedTransaction.nullable(),
 });
 export const CreateTransactionResponse = ApiResponse.extend({
-	data: z.array(Transaction).nullable(),
+  data: z.array(Transaction).nullable(),
 });
 export const UpdateTransactionResponse = CreateTransactionResponse;
 export const DeleteTransactionResponse = CreateTransactionResponse;
 export const ReceiverVHResponse = ApiResponse.extend({
-	data: z.array(ReceiverVH).nullable(),
+  data: z.array(ReceiverVH).nullable(),
 });

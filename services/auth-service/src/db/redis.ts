@@ -1,5 +1,4 @@
 import Redis from 'ioredis';
-
 import {logger} from '../lib/logger';
 
 const redisLogger = logger.child({label: 'redis'});

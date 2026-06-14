@@ -1,19 +1,19 @@
-import { z } from "zod";
-import { ApiResponse } from "./common.schema";
-import { ExpandedTransaction, Transaction } from "./transaction.schema";
+import {z} from 'zod';
+import {ApiResponse} from './common.schema';
+import {ExpandedTransaction, Transaction} from './transaction.schema';
 
 export const RecurringPayment = Transaction.omit({
-	processedAt: true,
+  processedAt: true,
 }).extend({
-	paused: z.boolean().default(false),
-	executeAt: z.number().min(1).max(31),
+  paused: z.boolean().default(false),
+  executeAt: z.number().min(1).max(31),
 });
 
 export const ExpandedRecurringPayment = ExpandedTransaction.omit({
-	processedAt: true,
+  processedAt: true,
 }).extend({
-	paused: z.boolean().default(false),
-	executeAt: z.number().min(1).max(31),
+  paused: z.boolean().default(false),
+  executeAt: z.number().min(1).max(31),
 });
 
 // export const CreateRecurringPaymentPayload = RecurringPayment.pick({
@@ -41,28 +41,28 @@ export const ExpandedRecurringPayment = ExpandedTransaction.omit({
 // });
 
 export const CreateOrUpdateRecurringPaymentPayload = RecurringPayment.pick({
-	executeAt: true,
-	paused: true,
-	categoryId: true,
-	paymentMethodId: true,
-	receiver: true,
-	transferAmount: true,
-	information: true,
+  executeAt: true,
+  paused: true,
+  categoryId: true,
+  paymentMethodId: true,
+  receiver: true,
+  transferAmount: true,
+  information: true,
 }).extend({
-	information: RecurringPayment.shape.information.optional(),
+  information: RecurringPayment.shape.information.optional(),
 });
 
 export const GetAllRecurringPaymentsResponse = ApiResponse.extend({
-	data: z.array(ExpandedRecurringPayment).nullable(),
+  data: z.array(ExpandedRecurringPayment).nullable(),
 });
 export const GetRecurringPaymentResponse = ApiResponse.extend({
-	data: ExpandedRecurringPayment.nullable(),
+  data: ExpandedRecurringPayment.nullable(),
 });
 export const CreateRecurringPaymentResponse = ApiResponse.extend({
-	data: z.array(RecurringPayment).nullable(),
+  data: z.array(RecurringPayment).nullable(),
 });
 export const UpdateRecurringPaymentResponse = CreateRecurringPaymentResponse;
 export const DeleteRecurringPaymentResponse = CreateRecurringPaymentResponse;
 export const ExecuteRecurringPaymentResponse = ApiResponse.extend({
-	data: Transaction.nullable(),
+  data: Transaction.nullable(),
 });

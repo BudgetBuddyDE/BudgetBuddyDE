@@ -1,3 +1,3 @@
-import { pgSchema } from "drizzle-orm/pg-core";
+import {pgSchema} from 'drizzle-orm/pg-core';
 
-export const authSchema = pgSchema("budgetbuddy_auth");
+export const authSchema = pgSchema('budgetbuddy_auth');
