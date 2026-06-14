@@ -2,6 +2,7 @@ name: Dependency Update
 
 on:
   schedule:
+    # Every Monday at 04:00 UTC (weekly / alle 7 Tage)
     - cron: "0 4 * * 1"
   workflow_dispatch:
 
