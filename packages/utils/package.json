@@ -1,16 +1,13 @@
 {
   "name": "@budgetbuddyde/utils",
   "version": "1.3.4",
+  "private": true,
   "description": "This package provides some utility functions that are frequently used in this project.",
   "keywords": [
     "utility",
     "helper",
     "functions"
   ],
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
-  },
   "author": "Thorben",
   "license": "MIT",
   "homepage": "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
