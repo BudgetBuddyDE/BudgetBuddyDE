@@ -206,7 +206,6 @@ fly -t ci set-pipeline \
     -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
     -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
     -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
-
 ```
 
 ### Publish `auth-service`

@@ -1,4 +1,4 @@
-import {boolean, text, timestamp} from 'drizzle-orm/pg-core';
+import {boolean, integer, text, timestamp} from 'drizzle-orm/pg-core';
 import {authSchema} from './schema';
 
 export const user = authSchema.table('user', {
@@ -59,4 +59,30 @@ export const verification = authSchema.table('verification', {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+});
+
+export const apikey = authSchema.table('apikey', {
+  id: text('id').primaryKey(),
+  name: text('name'),
+  start: text('start'),
+  prefix: text('prefix'),
+  key: text('key').notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, {onDelete: 'cascade'}),
+  refillInterval: integer('refill_interval'),
+  refillAmount: integer('refill_amount'),
+  lastRefillAt: timestamp('last_refill_at'),
+  enabled: boolean('enabled').default(true),
+  rateLimitEnabled: boolean('rate_limit_enabled').default(true),
+  rateLimitTimeWindow: integer('rate_limit_time_window').default(1000 * 60 * 60 * 24),
+  rateLimitMax: integer('rate_limit_max').default(1000),
+  requestCount: integer('request_count').default(0),
+  remaining: integer('remaining'),
+  lastRequest: timestamp('last_request'),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull(),
+  permissions: text('permissions'),
+  metadata: text('metadata'),
 });

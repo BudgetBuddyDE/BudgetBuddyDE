@@ -36,8 +36,6 @@
   },
   "devDependencies": {
     "@vitest/ui": "^3.2.4",
-    "dotenv": "^16.6.1",
-    "drizzle-kit": "^0.31.9",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
@@ -75,6 +73,8 @@
     }
   },
   "dependencies": {
+    "dotenv": "^16.6.1",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.44.7",
     "drizzle-zod": "^0.8.3",
     "zod": "^4.3.6"

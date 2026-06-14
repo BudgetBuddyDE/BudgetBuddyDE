@@ -14,7 +14,7 @@ resource_types:
     type: registry-image
     source:
       repository: ghcr.io/tklein1801/concourse-discord-alert-resource
-  
+
   - name: cogito
     type: registry-image
     check_every: 24h
@@ -106,10 +106,11 @@ task-config: &task-release
         git config --global user.name 'Thorben Klein'
         git config --global user.email thorben@tklein.it
         NEW_VERSION="$(cat version/version)"
-        cd repository/((repo_path))
+        cd repository
         npm install
-        npm run test
-        npm run build
+        npm test -- -F=@budgetbuddyde/((service_name))
+        npm run build -- -F=@budgetbuddyde/((service_name))
+        cd ((repo_path))
         npm version "$NEW_VERSION" --no-git-tag-version
         git add package*.json
         git add ../../package*.json
@@ -129,7 +130,7 @@ jobs:
           - get: repository
             trigger: true
           - get: version
-            params: { pre: rc }
+            params: {pre: rc}
       - put: status
         inputs: [repository]
         params: {state: pending}
@@ -159,7 +160,7 @@ jobs:
                 npm version "$NEW_VERSION" --no-git-tag-version
                 npm publish --access public --dry-run
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
 
   - name: release-patch
     on_failure:
@@ -172,7 +173,7 @@ jobs:
       - in_parallel:
           - get: version
             passed: [build-((service_name))]
-            params: { bump: patch }
+            params: {bump: patch}
           - get: repository
           - get: node-image
       - task: build
@@ -180,7 +181,7 @@ jobs:
         config:
           <<: *task-release
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository
@@ -197,7 +198,7 @@ jobs:
       - in_parallel:
           - get: version
             passed: [build-((service_name))]
-            params: { bump: minor }
+            params: {bump: minor}
           - get: repository
           - get: node-image
       - task: build
@@ -205,7 +206,7 @@ jobs:
         config:
           <<: *task-release
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository
@@ -222,7 +223,7 @@ jobs:
       - in_parallel:
           - get: version
             passed: [build-((service_name))]
-            params: { bump: major }
+            params: {bump: major}
           - get: repository
           - get: node-image
       - task: build
@@ -230,7 +231,7 @@ jobs:
         config:
           <<: *task-release
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository

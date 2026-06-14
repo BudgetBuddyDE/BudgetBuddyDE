@@ -22,6 +22,13 @@
       "when": 1776105191862,
       "tag": "0002_gorgeous_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781460822530,
+      "tag": "0003_powerful_spitfire",
+      "breakpoints": true
     }
   ]
 }
