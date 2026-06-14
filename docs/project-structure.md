@@ -31,4 +31,4 @@ Alle anderen internen Pakete/Services sind für lokales Workspace-Usage gedacht.
 - `build` hängt auf `^build`, damit Abhängigkeiten zuerst gebaut werden.
 - `test` hängt auf `^build`, damit Consumer immer lokale, aktuelle Builds verwenden.
 - `lint`/`check` laufen entlang der Workspace-Abhängigkeitskette.
-- Interne Consumer verwenden lokale `file:`-Abhängigkeiten statt Registry-Versionen.
+- Interne Consumer verwenden Workspace-Abhängigkeiten mit Version `*` statt festen Registry-Versionen.

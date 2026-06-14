@@ -18,7 +18,7 @@ Das neue Package sollte dieselben Kern-Scripts unterstützen:
 
 ## 3) Lokale Nutzung einbinden
 
-- In konsumierenden Workspaces die Dependency als lokalen `file:`-Verweis eintragen.
+- In konsumierenden Workspaces die Dependency mit Version `*` eintragen.
 - Danach `npm install` oder `npm ci` im Root ausführen.
 
 ## 4) Turbo-Integration prüfen

@@ -24,7 +24,7 @@
 
 ## Lokales Workspace-Verhalten
 
-- Interne Abhängigkeiten werden über lokale `file:`-Verweise innerhalb des Workspaces aufgelöst.
+- Interne Abhängigkeiten werden im Workspace mit Version `*` aufgelöst.
 - Die Services und Apps verwenden dadurch immer die lokalen Workspace-Pakete.
 - Für Tests und Builds werden abhängige Pakete über Turborepo zuerst lokal gebaut.
 
