@@ -13,7 +13,7 @@
 
 ## 3) Interne Abhängigkeiten korrekt referenzieren
 
-- Interne Pakete immer über `workspace:*` einbinden.
+- Interne Pakete immer über lokale `file:`-Verweise einbinden.
 - Keine Registry-Versionen für lokale Monorepo-Abhängigkeiten verwenden.
 
 ## 4) Standardskripte ergänzen

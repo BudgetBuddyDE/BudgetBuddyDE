@@ -19,8 +19,8 @@
     "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
   },
   "dependencies": {
-    "@budgetbuddyde/api": "workspace:*",
-    "@budgetbuddyde/types": "workspace:*",
+    "@budgetbuddyde/api": "file:../../packages/api",
+    "@budgetbuddyde/types": "file:../../packages/types",
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
