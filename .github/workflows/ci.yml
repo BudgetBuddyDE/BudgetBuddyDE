@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint
+  quality-checks:
+    name: Formatting, Linting, Tests and Builds
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,45 +29,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run lint
-        run: npm run lint
+      - name: Check root formatting
+        run: npm run format:check
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Check root linting
+        run: npm run lint:check
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
+      - name: Run workspace checks (Turbo)
+        run: npm run check
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
+      - name: Run workspace tests (Turbo)
         run: npm run test
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Build packages (Turbo)
+        run: npm run build-packages
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
+      - name: Build services (Turbo)
+        run: npm run build-services
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run build
-        run: npm run build
+      - name: Build apps (Turbo)
+        run: npm run build-apps

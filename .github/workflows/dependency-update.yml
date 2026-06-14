@@ -1,0 +1,42 @@
+name: Dependency Update
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-dependencies:
+    name: Update npm dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update dependencies
+        run: npm update --workspaces --include-workspace-root
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/dependency-updates
+          commit-message: "chore(deps): update npm dependencies"
+          title: "chore(deps): update npm dependencies"
+          body: |
+            Automated dependency updates via GitHub Actions.
+            - Trigger: weekly schedule or manual workflow_dispatch
+            - Command: `npm update --workspaces --include-workspace-root`
+          delete-branch: true
