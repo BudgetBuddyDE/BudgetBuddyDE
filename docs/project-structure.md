@@ -29,6 +29,6 @@ Alle anderen internen Pakete/Services sind für lokales Workspace-Usage gedacht.
 ## Turborepo-Strategie
 
 - `build` hängt auf `^build`, damit Abhängigkeiten zuerst gebaut werden.
-- `test` hängt auf `^build` und `^test`, damit Consumer immer lokale, aktuelle Builds verwenden.
+- `test` hängt auf `^build`, damit Consumer immer lokale, aktuelle Builds verwenden.
 - `lint`/`check` laufen entlang der Workspace-Abhängigkeitskette.
 - Interne Consumer verwenden lokale `file:`-Abhängigkeiten statt Registry-Versionen.
