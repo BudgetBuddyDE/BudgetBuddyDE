@@ -31,6 +31,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/node": "^22.10.5",
     "@vitest/ui": "^4.1.9",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.3",
