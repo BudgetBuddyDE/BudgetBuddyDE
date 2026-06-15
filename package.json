@@ -12,16 +12,18 @@
     "dev": "turbo run dev",
     "dev-services": "turbo run dev --filter=./services/*",
     "format": "turbo run format",
-    "format:check": "prettier --check vitest.config.ts turbo.json",
-    "lint": "turbo run lint",
-    "lint:check": "eslint vitest.config.ts --max-warnings=0",
+    "format:check": "turbo run format:check",
+    "lint": "turbo run lint && eslint vitest.config.ts --fix --max-warnings=0",
+    "lint:check": "turbo run lint:check && eslint vitest.config.ts --max-warnings=0",
     "check": "turbo run check",
     "check:write": "turbo run check:write",
     "test": "turbo run test",
     "build": "turbo run build",
     "build-packages": "turbo run build --filter=./packages/*",
     "build-services": "turbo run build --filter=./services/*",
-    "build-apps": "turbo run build --filter=./apps/*"
+    "build-apps": "turbo run build --filter=./apps/*",
+    "typecheck": "turbo run typecheck",
+    "ci": "npm run format:check && npm run lint:check && npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

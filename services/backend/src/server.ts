@@ -1,4 +1,3 @@
-import {trace} from '@opentelemetry/api';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
@@ -24,7 +23,6 @@ import {
 } from './router';
 
 export const app = express();
-const tracer = trace.getTracer(config.service, config.version);
 
 app.use(cors(config.cors));
 if (config.runtime === 'production') {
@@ -123,7 +121,6 @@ export const server = app.listen(config.port, () => {
   logger.info('%s is available under http://localhost:%d', config.service, config.port, {...options});
 
   const jobName = 'process-recurring-payments';
-  const span = tracer.startSpan(`Planning jobs: ${jobName}`);
   cron.schedule('30 1 * * *', processRecurringPayments, {
     name: jobName,
     timezone: config.jobs.timezone,
@@ -133,5 +130,4 @@ export const server = app.listen(config.port, () => {
     schedule: '30 1 * * *',
     timezone: config.jobs.timezone,
   });
-  span.end();
 });

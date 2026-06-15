@@ -5,6 +5,9 @@ tags:
     - monitoring
 ---
 
+!!! warning "Deprecated"
+    OpenTelemetry instrumentation has been removed from all services and apps. This page is kept for reference only.
+
 ## What is OpenTelemetry?
 
 > OpenTelemetry is a collection of APIs, SDKs, and tools. Use it to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) to help you analyze your software’s performance and behavior."<br/ >

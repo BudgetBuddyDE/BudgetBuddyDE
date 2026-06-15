@@ -1,15 +1,12 @@
 {
   "name": "@budgetbuddyde/types",
   "version": "1.1.1",
+  "private": true,
   "description": "Shared types and schemas used across appplications and services",
   "keywords": [
     "types",
     "schemas"
   ],
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
-  },
   "author": "Thorben",
   "license": "MIT",
   "homepage": "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
@@ -32,7 +29,8 @@
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix --max-warnings=0",
     "lint:check": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "zod": "^4.1.12"

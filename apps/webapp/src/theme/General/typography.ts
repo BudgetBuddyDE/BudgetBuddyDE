@@ -1,14 +1,9 @@
 import type {TypographyVariantsOptions} from '@mui/material/styles';
-import {Roboto} from 'next/font/google';
 
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
+const fontFamily = '"Roboto", "Helvetica", "Arial", sans-serif';
 
 export const typography: TypographyVariantsOptions = {
-  fontFamily: roboto.style.fontFamily,
+  fontFamily,
   allVariants: {
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
@@ -19,14 +14,14 @@ export const typography: TypographyVariantsOptions = {
   fontWeightMedium: 500,
   fontWeightBold: 700,
   h1: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontSize: 'clamp(2.625rem, 1.2857rem + 3.5714vw, 4rem)',
     fontWeight: 800,
     lineHeight: 1.1142857142857143,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
   h2: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontSize: 'clamp(1.5rem, 0.9643rem + 1.4286vw, 2.25rem)',
     fontWeight: 800,
     lineHeight: 1.2222222222222223,
@@ -34,7 +29,7 @@ export const typography: TypographyVariantsOptions = {
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
   h3: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontSize: '2.25rem',
     lineHeight: 1.2222222222222223,
     letterSpacing: 0.2,
@@ -42,7 +37,7 @@ export const typography: TypographyVariantsOptions = {
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
   h4: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontSize: '1.75rem',
     lineHeight: 1.5,
     letterSpacing: 0.2,
@@ -50,7 +45,7 @@ export const typography: TypographyVariantsOptions = {
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
   h5: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontSize: '1.5rem',
     lineHeight: 1.5,
     letterSpacing: 0.1,
@@ -60,7 +55,7 @@ export const typography: TypographyVariantsOptions = {
   h6: {
     fontSize: '1.25rem',
     lineHeight: 1.5,
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontWeight: 500,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
@@ -68,7 +63,7 @@ export const typography: TypographyVariantsOptions = {
     textTransform: 'initial',
     fontWeight: 700,
     letterSpacing: 0,
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontSize: '0.875rem',
     lineHeight: 1.75,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
@@ -78,14 +73,14 @@ export const typography: TypographyVariantsOptions = {
     lineHeight: 1.3333333333333333,
     letterSpacing: 0,
     fontWeight: 500,
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
   body1: {
     fontSize: '1rem',
     lineHeight: 1.5,
     letterSpacing: 0,
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontWeight: 400,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
@@ -93,7 +88,7 @@ export const typography: TypographyVariantsOptions = {
     fontSize: '0.875rem',
     lineHeight: 1.5,
     letterSpacing: 0,
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontWeight: 400,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
@@ -103,18 +98,18 @@ export const typography: TypographyVariantsOptions = {
     lineHeight: 1.5,
     letterSpacing: 0,
     fontWeight: 700,
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
   subtitle2: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontWeight: 500,
     fontSize: '0.875rem',
     lineHeight: 1.57,
     scrollMarginTop: 'calc(var(--MuiDocs-header-height) + 32px)',
   },
   overline: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily,
     fontWeight: 400,
     fontSize: '0.75rem',
     lineHeight: 2.66,

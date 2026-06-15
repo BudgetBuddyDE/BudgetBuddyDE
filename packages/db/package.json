@@ -1,12 +1,9 @@
 {
   "name": "@budgetbuddyde/db",
   "version": "0.3.0",
+  "private": true,
   "description": "",
   "keywords": [],
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
-  },
   "author": "Thorben",
   "license": "MIT",
   "homepage": "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
@@ -32,7 +29,8 @@
     "db:full-generate": "npm run ba:schema-generate && npx drizzle-kit generate",
     "db:generate": "npx drizzle-kit generate",
     "db:migrate": "npx drizzle-kit migrate",
-    "db:studio": "npx drizzle-kit studio"
+    "db:studio": "npx drizzle-kit studio",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@vitest/ui": "^3.2.4",
