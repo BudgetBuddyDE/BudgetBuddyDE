@@ -42,7 +42,7 @@
     "node-cron": "^4.2.0",
     "pg": "^8.16.1",
     "rate-limit-redis": "^4.3.1",
-    "resend": "^6.1.2",
+    "resend": "^6.12.4",
     "winston": "^3.19.0",
     "winston-loki": "^6.1.3"
   },
