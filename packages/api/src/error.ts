@@ -9,9 +9,9 @@ export class CustomError extends Error {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
 
-    // Maintains proper stack trace for where our error was thrown (non-standard)
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, CustomError);
+    // Maintains proper stack trace for where our error was thrown (non-standard, V8-only)
+    if ((Error as any).captureStackTrace) {
+      (Error as any).captureStackTrace(this, CustomError);
     }
 
     this.name = this.constructor.name;
