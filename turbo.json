@@ -12,6 +12,7 @@
       "cache": false
     },
     "format:check": {
+      "inputs": ["src/**", "*.{js,jsx,ts,tsx,json,css,md}"],
       "outputs": []
     },
     "lint": {
@@ -20,10 +21,12 @@
     },
     "lint:check": {
       "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "check": {
       "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "check:write": {
@@ -31,11 +34,13 @@
     },
     "typecheck": {
       "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["coverage/**"]
     },
     "build": {
       "dependsOn": ["^build"],
