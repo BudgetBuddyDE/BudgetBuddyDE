@@ -1,12 +1,9 @@
 {
   "name": "@budgetbuddyde/api",
   "version": "1.6.0",
+  "private": true,
   "description": "",
   "keywords": [],
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
-  },
   "author": "Thorben",
   "license": "MIT",
   "homepage": "https://github.com/BudgetBuddyDE/BudgetBuddyDE",
