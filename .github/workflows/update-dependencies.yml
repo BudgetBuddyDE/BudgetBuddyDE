@@ -1,0 +1,84 @@
+name: Update dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_target:
+        description: Dependency update target for npm-check-updates
+        required: true
+        default: minor
+        type: choice
+        options:
+          - patch
+          - minor
+          - latest
+  schedule:
+    - cron: '0 5 * * 1'
+
+concurrency:
+  group: update-dependencies
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update npm dependencies
+    runs-on: ubuntu-latest
+    env:
+      UPDATE_TARGET: ${{ github.event.inputs.update_target || 'minor' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install current dependencies
+        run: npm ci
+
+      - name: Update package manifests
+        run: npx npm-check-updates@latest --workspaces --root --reject @budgetbuddyde/* --target $UPDATE_TARGET --upgrade
+
+      - name: Refresh lockfile
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Install updated dependencies
+        run: npm install --ignore-scripts
+
+      - name: Check workspace formatting with Turborepo
+        run: npx turbo run format:check
+
+      - name: Check root formatting
+        run: npx prettier --check vitest.config.ts turbo.json docs/**/*.md .github/workflows/*.yml
+
+      - name: Check linting with Turborepo
+        run: npx turbo run lint:check
+
+      - name: Typecheck with Turborepo
+        run: npx turbo run typecheck
+
+      - name: Test with Turborepo
+        run: npx turbo run test
+
+      - name: Build with Turborepo
+        run: npx turbo run build
+
+      - name: Create dependency update pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/update-dependencies
+          delete-branch: true
+          title: 'chore: update npm dependencies'
+          commit-message: 'chore: update npm dependencies'
+          body: |
+            Automated dependency update for all npm workspaces.
+
+            - Update target: `${{ env.UPDATE_TARGET }}`
+            - Validation: formatting, linting, typecheck, tests and build via Turborepo
+          labels: dependencies

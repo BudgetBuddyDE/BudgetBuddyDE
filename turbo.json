@@ -1,35 +1,46 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "globalDependencies": ["**/.env.*local"],
   "tasks": {
-    "_test": {
-      "outputs": ["coverage/**"],
-      "dependsOn": []
-    },
-    "_lint": {
-      "dependsOn": ["^build", "^lint"]
-    },
-    "_check-types": {
-      "dependsOn": ["^build", "^check-types"]
-    },
-    "_dev": {
+    "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
-    "dev": {},
-    "format": {},
-    "lint": {},
-    "check": {},
-    "check:write": {},
-    "test": {
-      "dependsOn": ["^check"],
+    "format": {
       "cache": false
     },
-    "build": {
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+    "format:check": {
+      "outputs": []
+    },
+    "lint": {
       "dependsOn": ["^build"],
-      "outputs": ["lib/**", "build/**", "gen/**", ".next/**", "!.next/cache/**"]
+      "cache": false
+    },
+    "lint:check": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "check": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "check:write": {
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["lib/**", "build/**", ".next/**", "!.next/cache/**"]
     }
   }
 }

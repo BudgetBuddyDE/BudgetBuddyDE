@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Formatting, linting, typecheck and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check workspace formatting with Turborepo
+        run: npx turbo run format:check
+
+      - name: Check root formatting
+        run: npx prettier --check vitest.config.ts turbo.json docs/**/*.md .github/workflows/*.yml
+
+      - name: Check linting with Turborepo
+        run: npx turbo run lint:check
+
+      - name: Typecheck with Turborepo
+        run: npx turbo run typecheck
+
+      - name: Test with Turborepo
+        run: npx turbo run test
+
+  build:
+    name: Build apps, services and packages
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages with Turborepo
+        run: npx turbo run build --filter=./packages/*
+
+      - name: Build services with Turborepo
+        run: npx turbo run build --filter=./services/*
+
+      - name: Build apps with Turborepo
+        run: npx turbo run build --filter=./apps/*
