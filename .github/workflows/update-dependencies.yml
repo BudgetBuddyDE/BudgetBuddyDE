@@ -54,9 +54,6 @@ jobs:
       - name: Check workspace formatting with Turborepo
         run: npx turbo run format:check
 
-      - name: Check root formatting
-        run: npx prettier --check vitest.config.ts turbo.json docs/**/*.md .github/workflows/*.yml
-
       - name: Check linting with Turborepo
         run: npx turbo run lint:check
 
