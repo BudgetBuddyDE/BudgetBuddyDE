@@ -1,3 +1,9 @@
+---
+title: Add a Package
+icon: lucide/package-plus
+tags: [development, guide, packages]
+---
+
 # Guide: Add a new package
 
 ## 1. Create the package
@@ -32,7 +38,8 @@ Internal packages are private by default:
 }
 ```
 
-Only remove `private` and add `publishConfig` if the package should be published externally. Currently this only applies to `@budgetbuddyde/api`, `@budgetbuddyde/db`, and `@budgetbuddyde/types`.
+!!! note "Publishable packages"
+    Only remove `private` and add `publishConfig` if the package should be published externally. Currently this only applies to `@budgetbuddyde/api`, `@budgetbuddyde/db`, and `@budgetbuddyde/types`.
 
 ## 3. Use the package
 

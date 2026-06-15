@@ -1,3 +1,9 @@
+---
+title: Project Structure
+icon: lucide/folder-tree
+tags: [development, conventions]
+---
+
 # Project structure and monorepo conventions
 
 ## Root
@@ -42,7 +48,8 @@ Relevant outputs:
 
 ## Lockfile rule
 
-There is only one lockfile in the root. Package-specific lockfiles must not be added because they make workspace resolution and reproducible CI installations harder.
+!!! important
+    There is only one lockfile in the root. Package-specific lockfiles must not be added because they make workspace resolution and reproducible CI installations harder.
 
 ## GitHub Actions
 

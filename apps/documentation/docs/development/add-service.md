@@ -1,3 +1,9 @@
+---
+title: Add a Service
+icon: lucide/container
+tags: [development, guide, services]
+---
+
 # Guide: Add a new service
 
 ## 1. Create the service
