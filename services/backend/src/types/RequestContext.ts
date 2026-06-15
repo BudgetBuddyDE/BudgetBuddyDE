@@ -2,7 +2,7 @@ import type {Session as AuthSession, User as AuthUser} from 'better-auth';
 
 export interface RequestContext<User = AuthUser, Session = AuthSession> {
   /**
-   * @deprecated Not used due to implementation of OpenTelemetry.
+   * @deprecated Not used — request tracing has been removed.
    * Correlation identifier generated per incoming request.
    */
   requestId?: string;

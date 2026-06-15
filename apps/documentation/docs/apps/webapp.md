@@ -95,16 +95,9 @@ npm run format
 |------------------------------------|------------------------------------------|---------------------|
 | `NEXT_PUBLIC_AUTH_SERVICE_HOST`    | Host URL of the Auth-Service             | `undefined`         |
 | `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Host URL of the Backend-Service          | `undefined`         |
-| `TEMPO_URL`                        | Ingest URL for the Tempo tracing service | `http://tempo:4318` |
-| `NEXT_OTEL_VERBOSE`                | Enable verbose OpenTelemetry tracing     | `undefined`         |
-
-!!! note
-    The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality. Next.js traces more spans than are emitted by default. To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
 
 For more information, see the Next.js references below:
 
-- [How to set up instrumentation with OpenTelemetry](https://nextjs.org/docs/15/app/guides/open-telemetry)
-- [Client-Side Instrumentation examples](https://nextjs.org/docs/15/app/api-reference/file-conventions/instrumentation-client#examples)
 - [How to self-host your Next.js application](https://nextjs.org/docs/15/app/guides/self-hosting#environment-variables)
 
 ## Testing

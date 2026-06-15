@@ -104,10 +104,8 @@ npm run format
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret                                         | -                   |
 | `PORT`                 | Port on which the service runs                                     | `8080`              |
 | `LOKI_URL`             | URL for the Loki logging service                                   | `http://loki:3100`  |
-| `TEMPO_URL`            | Ingest URL for the Tempo tracing service                           | `http://tempo:4318` |
 
 !!! note
-    The environment variable `TEMPO_URL` is only required if the server is started with tracing functionality (via instrumentation.js or `npm run start:instrumentation`) and logs are to be transmitted.
     If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
 
 #### Rate Limiting
