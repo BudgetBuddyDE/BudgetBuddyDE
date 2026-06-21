@@ -3,7 +3,7 @@ import {type CacheRouteConfig, config} from '../config';
 import {getRedisClient} from '../db/redis';
 import {logger} from '../lib';
 
-const cacheLogger = logger.child({label: 'cache'});
+const cacheLogger = logger.child({label: 'cache', middleware: 'cache'});
 
 /**
  * Returns true when caching should be attempted (Redis URL is set and caching is globally enabled).

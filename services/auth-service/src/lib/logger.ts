@@ -10,7 +10,7 @@ export const logger = createLogger({
     format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}), // Add timestamp
     format.splat(), // For string interpolation
     // padLevel(5), // Pad level to 5 characters
-    // format.colorize({level: true, colors: LevelConfig.colors}), // Colorize level
+    format.colorize({level: config.runtime === 'development', colors: LevelConfig.colors}), // Colorize level
     buildConsoleFormat(config.service, config.log.hideMeta),
   ),
   transports: config.log.transports,
