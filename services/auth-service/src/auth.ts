@@ -1,3 +1,4 @@
+import {apiKey} from '@better-auth/api-key';
 import * as authSchema from '@budgetbuddyde/db/auth';
 import {type BetterAuthOptions, betterAuth, type Logger} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
@@ -93,7 +94,9 @@ const options: BetterAuthOptions = {
   user: {
     changeEmail: {
       enabled: true,
-      async sendChangeEmailVerification({user: {id, email}, url, newEmail}, _request) {
+      // Do not allow users to update their email without verification to prevent account takeover by changing the email to an email they control
+      updateEmailWithoutVerification: false,
+      async sendChangeEmailConfirmation({user: {id, email}, url, newEmail}, _request) {
         authLogger.info(`Change email verification requested for user: ${email}`, {userId: id});
         const [result, error] = await resendManager.sendChangeEmailRequest(email, newEmail, url);
         if (error) {
@@ -152,12 +155,12 @@ const options: BetterAuthOptions = {
   emailVerification: {
     autoSignInAfterVerification: true,
     sendOnSignUp: true,
-    async onEmailVerification({email, emailVerified}) {
-      // REVISIT: Will always be false emailVerified is always false here
+    sendOnSignIn: true,
+    async afterEmailVerification(user, _request) {
       // TODO: Send mail after email verification
-      emailVerified
-        ? authLogger.info(`Email verified for user: ${email}`)
-        : authLogger.error(`Email verification failed for user: ${email}`);
+      user.emailVerified
+        ? authLogger.info(`Email verified for user: ${user.email}`)
+        : authLogger.error(`Email verification failed for user: ${user.email}`);
     },
     async sendVerificationEmail({user: {email}, url}, _request) {
       authLogger.info(`Email verification requested for user: ${email}`);
@@ -191,7 +194,7 @@ const options: BetterAuthOptions = {
       clientSecret: GOOGLE_CLIENT_SECRET as string,
     },
   },
-  plugins: [config.runtime === 'development' ? openAPI() : null].filter(p => p !== null),
+  plugins: [apiKey({defaultPrefix: 'bb'}), config.runtime === 'development' ? openAPI() : null].filter(p => p !== null),
 };
 
 export const auth = betterAuth(options);
