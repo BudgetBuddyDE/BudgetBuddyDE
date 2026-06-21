@@ -12,11 +12,12 @@ import {Formatter} from '@/utils/Formatter';
 export type AccountListProps = {
   accounts: {
     id: string;
-    provider: string;
+    accountId: string;
+    userId: string;
+    providerId: string;
+    scopes: string[];
     createdAt: Date;
     updatedAt: Date;
-    accountId: string;
-    scopes: string[];
   }[];
 };
 
@@ -57,7 +58,7 @@ export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
     <List disablePadding>
       {accounts.map((account, idx, arr) => {
         const accountId = account.id;
-        const providerId = account.provider;
+        const providerId = account.providerId;
         const createdAt = Formatter.date.format(account.createdAt);
         return (
           <React.Fragment key={account.id}>
