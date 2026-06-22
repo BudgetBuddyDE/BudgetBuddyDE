@@ -65,6 +65,7 @@ nav = [
         ]},
         {"Services" = [
             "services/auth-service.md",
+            "services/api-keys.md",
             "services/backend.md",
             {"Monitoring" = [
                 "monitoring/grafana.md",

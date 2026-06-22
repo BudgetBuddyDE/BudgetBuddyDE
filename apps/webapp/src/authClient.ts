@@ -1,3 +1,4 @@
+import {apiKeyClient} from '@better-auth/api-key/client';
 import {createAuthClient} from 'better-auth/react';
 import {redirect} from 'next/navigation';
 import {logger} from './logger';
@@ -20,6 +21,7 @@ export const authClient = createAuthClient({
       } else logger.error('An error occurred: %o', e.error);
     },
   },
+  plugins: [apiKeyClient()],
 });
 
 export const signOut = (onSuccess?: () => void, onError?: () => void) =>

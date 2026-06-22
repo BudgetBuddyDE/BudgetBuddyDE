@@ -1,10 +1,14 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "tasks": {
     "dev": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "cache": false,
       "persistent": true
     },
@@ -12,40 +16,73 @@
       "cache": false
     },
     "format:check": {
-      "inputs": ["src/**", "*.{js,jsx,ts,tsx,json,css,md}"],
+      "inputs": [
+        "src/**",
+        "*.{js,jsx,ts,tsx,json,css,md}"
+      ],
       "outputs": []
     },
     "lint": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "cache": false
     },
     "lint:check": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
       "outputs": []
     },
     "check": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
       "outputs": []
     },
     "check:write": {
       "cache": false
     },
     "typecheck": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": ["coverage/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
     },
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["lib/**", "build/**", ".next/**", "!.next/cache/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        "lib/**",
+        "build/**",
+        ".next/**",
+        "!.next/cache/**"
+      ]
     }
   }
 }

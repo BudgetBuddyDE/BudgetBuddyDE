@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 
 import {CurrencyFormatter} from './CurrencyFormatter';
 import {DateFormatter} from './DateFormatter';
+import {DurationFormatter} from './DurationFormatter';
 import {PercentageFormatter} from './PercentageFormatte';
 
 describe('CurrencyFormatter', () => {
@@ -75,6 +76,33 @@ describe('DateFormatter', () => {
 
     it('formats a date with a custom pattern', () => {
       expect(DateFormatter.formatWithPattern(new Date(2024, 5, 10), 'yyyy/MM/dd')).toBe('2024/06/10');
+    });
+  });
+
+  describe('formatNullable', () => {
+    it('formats a date when present', () => {
+      expect(DateFormatter.formatNullable(new Date(2024, 0, 15))).toBe('15.01.2024');
+    });
+
+    it('returns the fallback for missing dates', () => {
+      expect(DateFormatter.formatNullable(null)).toBe('Never');
+      expect(DateFormatter.formatNullable(undefined, 'No date')).toBe('No date');
+    });
+  });
+});
+
+describe('DurationFormatter', () => {
+  describe('formatMilliseconds', () => {
+    it('returns null for missing durations', () => {
+      expect(DurationFormatter.formatMilliseconds(null)).toBeNull();
+      expect(DurationFormatter.formatMilliseconds(undefined)).toBeNull();
+    });
+
+    it('formats durations using compact units', () => {
+      expect(DurationFormatter.formatMilliseconds(30 * 1000)).toBe('30s');
+      expect(DurationFormatter.formatMilliseconds(5 * 60 * 1000)).toBe('5m');
+      expect(DurationFormatter.formatMilliseconds(2 * 60 * 60 * 1000)).toBe('2h');
+      expect(DurationFormatter.formatMilliseconds(3 * 24 * 60 * 60 * 1000)).toBe('3d');
     });
   });
 });

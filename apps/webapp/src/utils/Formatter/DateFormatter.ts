@@ -50,4 +50,12 @@ export class DateFormatter {
       beautiful ? (isSameYear(d, new Date()) ? 'dd.MM' : 'dd.MM.yyyy') : undefined,
     );
   }
+
+  static formatNullable(date: Date | string | null | undefined, fallback = 'Never', beautiful = false): string {
+    if (!date) {
+      return fallback;
+    }
+
+    return DateFormatter.format(date, beautiful);
+  }
 }

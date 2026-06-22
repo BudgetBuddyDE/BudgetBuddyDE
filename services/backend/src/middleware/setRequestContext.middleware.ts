@@ -1,7 +1,9 @@
 import type {NextFunction, Request, Response} from 'express';
-import {authClient, logger} from '../lib';
+import {authClient, logger as mainLogger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import type {RequestContext} from '../types';
+
+const logger = mainLogger.child({label: 'auth', middleware: 'setRequestContext'});
 
 export async function setRequestContext(req: Request, res: Response, next: NextFunction) {
   const headers = new Headers(
@@ -17,10 +19,19 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
       {} as Record<string, string>,
     ),
   );
+
+  logger.debug('Retrieving session data for request', {requestId: req.requestId});
   const {data: sessionData, error} = await authClient.getSession({
     fetchOptions: {
       headers: headers,
     },
+  });
+
+  logger.debug('Session data retrieved', {
+    requestId: req.requestId,
+    userId: sessionData?.user?.id,
+    sessionId: sessionData?.session?.id,
+    error,
   });
 
   if (error) {
@@ -42,7 +53,9 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   const context: RequestContext = {
     user: sessionData.user,
     session: sessionData.session,
+    permissions: {},
   };
+  logger.debug('Session data retrieved', {requestId: req.requestId, userId: context.user?.id});
 
   req.context = context;
   res.locals.context = context;
