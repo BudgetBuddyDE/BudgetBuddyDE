@@ -19,13 +19,20 @@ vi.mock('../db/redis', () => ({
   }),
 }));
 
+const {mockLogFunctions} = vi.hoisted(() => ({
+  mockLogFunctions: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
 vi.mock('../lib/logger', () => ({
   logger: {
     child: () => ({
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
+      ...mockLogFunctions,
+      child: () => ({...mockLogFunctions}),
     }),
   },
 }));
