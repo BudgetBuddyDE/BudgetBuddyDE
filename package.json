@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "prepare": "node .husky/install.mjs",
+    "start": "turbo run start",
     "dev": "turbo run dev",
     "dev-services": "turbo run dev --filter=./services/*",
     "format": "turbo run format",

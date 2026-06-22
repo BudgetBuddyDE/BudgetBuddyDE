@@ -4,6 +4,7 @@
   "globalDependencies": [
     "**/.env.*local"
   ],
+  "envMode": "loose",
   "tasks": {
     "dev": {
       "dependsOn": [
@@ -68,6 +69,13 @@
       "outputs": [
         "coverage/**"
       ]
+    },
+    "start": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false,
+      "persistent": true
     },
     "build": {
       "dependsOn": [
