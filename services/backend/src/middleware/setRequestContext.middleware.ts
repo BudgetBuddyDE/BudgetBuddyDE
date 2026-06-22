@@ -53,6 +53,7 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   const context: RequestContext = {
     user: sessionData.user,
     session: sessionData.session,
+    permissions: {},
   };
   logger.debug('Session data retrieved', {requestId: req.requestId, userId: context.user?.id});
 

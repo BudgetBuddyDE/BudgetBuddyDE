@@ -1,40 +1,38 @@
 'use client';
 
-import {Box, Typography} from '@mui/material';
+import {SettingsRounded, VpnKeyRounded} from '@mui/icons-material';
+import {Box, Stack, Tab, Tabs, Typography} from '@mui/material';
+import {usePathname, useRouter} from 'next/navigation';
 import {authClient} from '@/authClient';
-import {Card} from '@/components/Card';
 import {Avatar} from '../Avatar';
 import styles from './ProfileHeader.module.css';
 
+const TABS = [
+  {label: 'Profile', icon: <SettingsRounded />, path: '/settings/profile'},
+  {label: 'API Keys', icon: <VpnKeyRounded />, path: '/settings/api-keys'},
+];
+
 export const ProfileHeader = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentTab = TABS.findIndex(tab => pathname.startsWith(tab.path));
   const {isPending, data, error} = authClient.useSession();
+
   if (error) throw error;
   if (isPending || !data) return null;
   return (
-    <Card sx={{p: 0}} className={styles.profileHeader}>
-      <Card.Header
-        sx={{
-          position: 'relative',
-          p: 0,
-          aspectRatio: {xs: '6/2', md: '9/1'},
-          backgroundSize: '100%',
-          borderRadius: 'inherit',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            m: {xs: 2, md: 4},
-          }}
-        >
+    <Box className={styles.profileHeader} sx={{borderRadius: theme => `${theme.shape.borderRadius}px`}}>
+      <Stack flexDirection={'row'} gap={2}>
+        <Box sx={{ml: 4, my: 4}}>
           <Avatar
             sx={{
               width: {xs: 64, md: 96},
               height: {xs: 64, md: 96},
             }}
           />
-
-          <Box sx={{mt: 'auto', mb: {xs: 0, md: 2}, ml: 2}}>
+        </Box>
+        <Stack sx={{mt: 4}}>
+          <Box sx={{mt: 'auto'}}>
             <Typography variant="h5" fontWeight="bolder">
               {data.user.name}
             </Typography>
@@ -42,8 +40,27 @@ export const ProfileHeader = () => {
               {data.user.email}
             </Typography>
           </Box>
-        </Box>
-      </Card.Header>
-    </Card>
+          <Box sx={{mt: 'auto'}}>
+            <Tabs
+              value={currentTab >= 0 ? currentTab : 0}
+              onChange={(_, newValue) => {
+                router.push(TABS[newValue].path);
+              }}
+              variant="scrollable"
+              scrollButtons="auto"
+            >
+              {TABS.map(tab => (
+                <Tab
+                  key={tab.path}
+                  // icon={tab.icon}
+                  iconPosition="start"
+                  label={tab.label}
+                />
+              ))}
+            </Tabs>
+          </Box>
+        </Stack>
+      </Stack>
+    </Box>
   );
 };

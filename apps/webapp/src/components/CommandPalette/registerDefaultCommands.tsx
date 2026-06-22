@@ -1,6 +1,6 @@
 'use client';
 
-import {DashboardRounded, LogoutRounded, SettingsRounded} from '@mui/icons-material';
+import {DashboardRounded, LogoutRounded, SettingsRounded, VpnKeyRounded} from '@mui/icons-material';
 import {useRouter} from 'next/navigation';
 import React from 'react';
 import {signOut} from '@/authClient';
@@ -24,9 +24,16 @@ export const RegisterDefaultCommands: React.FC = () => {
       {
         id: 'go-settings',
         label: 'Open Settings',
-        section: 'Navigation',
+        section: 'Settings',
         icon: <SettingsRounded />,
         onSelect: () => router.push('/settings/profile'),
+      },
+      {
+        id: 'go-api-keys',
+        label: 'Open API Keys',
+        section: 'Settings',
+        icon: <VpnKeyRounded />,
+        onSelect: () => router.push('/settings/api-keys'),
       },
       {
         id: 'logout',

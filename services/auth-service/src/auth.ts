@@ -194,7 +194,27 @@ const options: BetterAuthOptions = {
       clientSecret: GOOGLE_CLIENT_SECRET as string,
     },
   },
-  plugins: [apiKey({defaultPrefix: 'bb'}), config.runtime === 'development' ? openAPI() : null].filter(p => p !== null),
+  plugins: [
+    apiKey({
+      defaultPrefix: 'bb-',
+      enableSessionForAPIKeys: true,
+      requireName: true,
+      rateLimit: {
+        enabled: true,
+        maxRequests: (config.rateLimit.limit as number) / 2,
+        timeWindow: config.rateLimit.windowMs,
+      },
+      permissions: {
+        // TODO: Implement proper permissions for API keys, e.g. by allowing users to select permissions when creating an API key and storing them in the database
+        defaultPermissions(_referenceId, _ctx) {
+          // referenceId is either userId or orgId depending on config
+          // Fetch user/org role or other data to determine permissions
+          return {};
+        },
+      },
+    }),
+    config.runtime === 'development' ? openAPI() : null,
+  ].filter(p => p !== null),
 };
 
 export const auth = betterAuth(options);

@@ -54,6 +54,11 @@
       "types": "./lib/api.d.ts",
       "default": "./lib/api.js"
     },
+    "./auth": {
+      "dev-source": "./src/auth.ts",
+      "types": "./lib/auth.d.ts",
+      "default": "./lib/auth.js"
+    },
     "./types": {
       "dev-source": "./src/types/index.ts",
       "types": "./lib/types/index.d.ts",
@@ -120,6 +125,9 @@
       ],
       "client": [
         "./lib/api.d.ts"
+      ],
+      "auth": [
+        "./lib/auth.d.ts"
       ],
       "types": [
         "./lib/types/index.d.ts"

@@ -1,3 +1,4 @@
+import type {PermissionConfig} from '@budgetbuddyde/api/auth';
 import type {Session as AuthSession, User as AuthUser} from 'better-auth';
 
 export interface RequestContext<User = AuthUser, Session = AuthSession> {
@@ -14,4 +15,8 @@ export interface RequestContext<User = AuthUser, Session = AuthSession> {
    * Authenticated session context if available, otherwise null.
    */
   session: Session | null;
+  /**
+   * Permissions configuration for the authenticated user.
+   */
+  permissions: PermissionConfig;
 }
