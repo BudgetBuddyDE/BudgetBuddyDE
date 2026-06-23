@@ -29,14 +29,19 @@ export class TransactionService extends EntityService<
   typeof UpdateTransactionResponse,
   typeof DeleteTransactionResponse
 > {
-  constructor(host: string, entityPath = '/api/transaction') {
-    super(host, entityPath, {
-      getAll: GetAllTransactionsResponse,
-      get: GetTransactionResponse,
-      create: CreateTransactionResponse,
-      update: UpdateTransactionResponse,
-      delete: DeleteTransactionResponse,
-    });
+  constructor(host: string, entityPath = '/api/transaction', requestConfig?: RequestInit) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllTransactionsResponse,
+        get: GetTransactionResponse,
+        create: CreateTransactionResponse,
+        update: UpdateTransactionResponse,
+        delete: DeleteTransactionResponse,
+      },
+      requestConfig,
+    );
   }
 
   async getAll(query?: IGetAllTransactionsQuery, requestConfig?: RequestInit) {

@@ -12,10 +12,16 @@ export class BackendService {
    * @example `/attachment/v1`
    */
   protected basePath: string;
+  /**
+   * Default request configuration applied to every request.
+   * Per-request configuration overrides these defaults.
+   */
+  protected requestConfig: RequestInit;
 
-  constructor(host: string, basePath: string) {
+  constructor(host: string, basePath: string, requestConfig: RequestInit = {}) {
     this.host = host;
     this.basePath = basePath;
+    this.requestConfig = requestConfig;
   }
 
   /**
@@ -49,21 +55,33 @@ export class BackendService {
   }
 
   /**
-   * Merges two RequestInit configurations together.
-   * Headers are intelligently merged, with config2 overriding config1.
+   * Merges the default, base and optional request RequestInit configurations together.
+   * Headers are intelligently merged, with later configurations overriding earlier ones.
    * @param config1 - The base configuration
    * @param config2 - The optional override configuration
    * @returns The merged RequestInit configuration
    */
   protected mergeRequestConfig(config1: RequestInit, config2?: RequestInit): RequestInit {
     return {
+      ...this.requestConfig,
       ...config1,
       ...config2,
-      headers: new Headers({
-        ...(config1.headers instanceof Headers ? Object.fromEntries(config1.headers) : config1.headers),
-        ...(config2?.headers instanceof Headers ? Object.fromEntries(config2.headers) : config2?.headers),
-      }),
+      headers: this.mergeHeaders(this.requestConfig.headers, config1.headers, config2?.headers),
     };
+  }
+
+  private mergeHeaders(...headers: (HeadersInit | undefined)[]): Headers {
+    const mergedHeaders = new Headers();
+
+    for (const header of headers) {
+      if (!header) continue;
+
+      new Headers(header).forEach((value, key) => {
+        mergedHeaders.set(key, value);
+      });
+    }
+
+    return mergedHeaders;
   }
 
   /**

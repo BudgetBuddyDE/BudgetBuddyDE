@@ -1,0 +1,26 @@
+{
+  "name": "@budgetbuddyde/example-api-key-fetch",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Small TypeScript demo for fetching BudgetBuddyDE data with an API key.",
+  "scripts": {
+    "build": "tsc",
+    "check": "npm run format:check && npm run lint:check",
+    "check:write": "npm run lint && npm run format",
+    "demo": "tsx src/index.ts",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{json,md}\"",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix --max-warnings=0",
+    "lint:check": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@budgetbuddyde/api": "*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.3"
+  }
+}

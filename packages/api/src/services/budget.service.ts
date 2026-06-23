@@ -20,14 +20,19 @@ export class BudgetService extends EntityService<
   typeof UpdateBudgetResponse,
   typeof DeleteBudgetResponse
 > {
-  constructor(host: string, entityPath = '/api/budget') {
-    super(host, entityPath, {
-      getAll: GetAllBudgetsResponse,
-      get: GetBudgetResponse,
-      create: CreateBudgetResponse,
-      update: UpdateBudgetResponse,
-      delete: DeleteBudgetResponse,
-    });
+  constructor(host: string, entityPath = '/api/budget', requestConfig?: RequestInit) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllBudgetsResponse,
+        get: GetBudgetResponse,
+        create: CreateBudgetResponse,
+        update: UpdateBudgetResponse,
+        delete: DeleteBudgetResponse,
+      },
+      requestConfig,
+    );
   }
 
   async getEstimatedBudget(requestConfig?: RequestInit): Promise<TResult<TEstimatedBudget>> {

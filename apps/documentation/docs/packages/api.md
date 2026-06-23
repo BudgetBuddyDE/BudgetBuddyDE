@@ -64,8 +64,14 @@ npm run test
 ```typescript
 import { Api } from '@budgetbuddyde/api';
 
-// Initialize API client
-const api = new Api('https://backend.budgetbuddy.de');
+// Initialize API client with defaults applied to every request
+const requestConfig: RequestInit = {
+  headers: {
+    Accept: 'application/json',
+  },
+};
+
+const api = new Api('https://backend.budgetbuddy.de', requestConfig);
 
 // Fetch transactions
 const [transactions, error] = await api.backend.transaction.getAll();
@@ -148,17 +154,29 @@ async function loadBudgets() {
 
 ### Custom Request Configuration
 
-For advanced usage, request options can be passed:
+Pass a `RequestInit` object to the `Api` constructor to apply defaults to every request, such as API-key authentication, cache settings or shared headers:
 
 ```typescript
-// With custom headers
+const requestConfig: RequestInit = {
+  headers: {
+    Accept: 'application/json',
+    'x-api-key': apiKey,
+  },
+};
+
+const api = new Api(backendUrl, requestConfig);
+```
+
+Request-specific options can still be passed to service methods. They are merged with the constructor defaults, and request-specific headers override defaults with the same name:
+
+```typescript
 const [data, error] = await api.backend.transaction.getAll(
   undefined,
   {
     headers: {
-      'X-Custom-Header': 'value',
+      'X-Request-ID': requestId,
     },
-    signal: abortController.signal, // AbortController for cancellation
+    signal: abortController.signal,
   }
 );
 ```
@@ -276,7 +294,7 @@ if (!parsingResult.success) {
 The central entry point that aggregates all service instances:
 
 ```typescript
-const api = new Api('https://backend-url');
+const api = new Api('https://backend-url', requestConfig);
 // Access all services:
 // - api.backend.category
 // - api.backend.paymentMethod

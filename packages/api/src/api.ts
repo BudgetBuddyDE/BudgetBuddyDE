@@ -20,16 +20,16 @@ export class Api {
     insights: InsightsService;
   };
 
-  constructor(backendHost: string) {
+  constructor(backendHost: string, requestConfig?: RequestInit) {
     this.backendHost = backendHost;
     this.backend = {
-      attachment: new AttachmentService(backendHost),
-      category: new CategoryService(backendHost),
-      paymentMethod: new PaymentMethodService(backendHost),
-      transaction: new TransactionService(backendHost),
-      recurringPayment: new RecurringPaymentService(backendHost),
-      budget: new BudgetService(backendHost),
-      insights: new InsightsService(backendHost),
+      attachment: new AttachmentService(backendHost, '/api/attachment', requestConfig),
+      category: new CategoryService(backendHost, '/api/category', requestConfig),
+      paymentMethod: new PaymentMethodService(backendHost, '/api/paymentMethod', requestConfig),
+      transaction: new TransactionService(backendHost, '/api/transaction', requestConfig),
+      recurringPayment: new RecurringPaymentService(backendHost, '/api/recurringPayment', requestConfig),
+      budget: new BudgetService(backendHost, '/api/budget', requestConfig),
+      insights: new InsightsService(backendHost, requestConfig),
     };
   }
 }

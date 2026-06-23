@@ -33,8 +33,9 @@ export class EntityService<
     host: string,
     basePath: string,
     schemas: TEntitySchemas<GetAllResult, GetResult, CreateResult, UpdateResult, DeleteResult>,
+    requestConfig?: RequestInit,
   ) {
-    super(host, basePath);
+    super(host, basePath, requestConfig);
     this.schemas = schemas;
   }
 

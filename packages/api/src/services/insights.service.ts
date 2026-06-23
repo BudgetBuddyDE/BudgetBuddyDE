@@ -5,8 +5,8 @@ import type {IGetHistoricalBalanceQuery} from '../types/interfaces';
 import {GetHistoricalBalanceResponse, GetHistoricalCategoryBalanceResponse} from '../types/schemas';
 
 export class InsightsService extends BackendService {
-  constructor(host: string) {
-    super(host, '/api/insights');
+  constructor(host: string, requestConfig?: RequestInit) {
+    super(host, '/api/insights', requestConfig);
   }
 
   async getHistoricalBalance<Query extends IGetHistoricalBalanceQuery>(

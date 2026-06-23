@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/*",
     "services/*",
-    "apps/webapp"
+    "apps/webapp",
+    "examples/*"
   ],
   "scripts": {
     "prepare": "node .husky/install.mjs",

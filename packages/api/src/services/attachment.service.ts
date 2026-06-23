@@ -6,8 +6,8 @@ import type {TResult} from '../types/common';
 import {GetAttachmentResponse} from '../types/schemas/attachment.schema';
 
 export class AttachmentService extends BackendService {
-  constructor(host: string, attachmentPath = '/api/attachment') {
-    super(host, attachmentPath);
+  constructor(host: string, attachmentPath = '/api/attachment', requestConfig?: RequestInit) {
+    super(host, attachmentPath, requestConfig);
   }
 
   /**

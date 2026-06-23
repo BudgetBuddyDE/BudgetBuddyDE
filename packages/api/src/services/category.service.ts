@@ -23,14 +23,19 @@ export class CategoryService extends EntityService<
   typeof UpdateCategoryResponse,
   typeof DeleteCategoryResponse
 > {
-  constructor(host: string, entityPath = '/api/category') {
-    super(host, entityPath, {
-      getAll: GetAllCategoriesResponse,
-      get: GetCategoryResponse,
-      create: CreateCategoryResponse,
-      update: UpdateCategoryResponse,
-      delete: DeleteCategoryResponse,
-    });
+  constructor(host: string, entityPath = '/api/category', requestConfig?: RequestInit) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllCategoriesResponse,
+        get: GetCategoryResponse,
+        create: CreateCategoryResponse,
+        update: UpdateCategoryResponse,
+        delete: DeleteCategoryResponse,
+      },
+      requestConfig,
+    );
   }
 
   async getValueHelp(requestConfig?: RequestInit): Promise<TResult<TCategoryVH[]>> {

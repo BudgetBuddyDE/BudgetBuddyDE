@@ -22,14 +22,19 @@ export class PaymentMethodService extends EntityService<
   typeof UpdatePaymentMethodResponse,
   typeof DeletePaymentMethodResponse
 > {
-  constructor(host: string, entityPath = '/api/paymentMethod') {
-    super(host, entityPath, {
-      getAll: GetAllPaymentMethodsResponse,
-      get: GetPaymentMethodResponse,
-      create: CreatePaymentMethodResponse,
-      update: UpdatePaymentMethodResponse,
-      delete: DeletePaymentMethodResponse,
-    });
+  constructor(host: string, entityPath = '/api/paymentMethod', requestConfig?: RequestInit) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllPaymentMethodsResponse,
+        get: GetPaymentMethodResponse,
+        create: CreatePaymentMethodResponse,
+        update: UpdatePaymentMethodResponse,
+        delete: DeletePaymentMethodResponse,
+      },
+      requestConfig,
+    );
   }
 
   async getValueHelp(requestConfig?: RequestInit): Promise<TResult<TPaymentMethodVH[]>> {

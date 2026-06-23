@@ -25,14 +25,19 @@ export class RecurringPaymentService extends EntityService<
   typeof UpdateRecurringPaymentResponse,
   typeof DeleteRecurringPaymentResponse
 > {
-  constructor(host: string, entityPath = '/api/recurringPayment') {
-    super(host, entityPath, {
-      getAll: GetAllRecurringPaymentsResponse,
-      get: GetRecurringPaymentResponse,
-      create: CreateRecurringPaymentResponse,
-      update: UpdateRecurringPaymentResponse,
-      delete: DeleteRecurringPaymentResponse,
-    });
+  constructor(host: string, entityPath = '/api/recurringPayment', requestConfig?: RequestInit) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllRecurringPaymentsResponse,
+        get: GetRecurringPaymentResponse,
+        create: CreateRecurringPaymentResponse,
+        update: UpdateRecurringPaymentResponse,
+        delete: DeleteRecurringPaymentResponse,
+      },
+      requestConfig,
+    );
   }
 
   async getAll(query?: IGetAllRecurringPaymentsQuery, requestConfig?: RequestInit) {
