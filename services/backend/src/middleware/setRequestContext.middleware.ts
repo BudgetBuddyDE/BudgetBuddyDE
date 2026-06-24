@@ -54,13 +54,18 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
     user: sessionData.user,
     session: sessionData.session,
     permissions: {},
+    authenticationMethod: headers.get('x-api-key')?.trim() ? 'api-key' : 'session-cookie',
   };
   logger.debug('Session data retrieved', {requestId: req.requestId, userId: context.user?.id});
 
   req.context = context;
   res.locals.context = context;
 
-  logger.debug('Request context set', {requestId: req.requestId, userId: req.context.user?.id});
+  logger.debug('Request context set', {
+    requestId: req.requestId,
+    userId: req.context.user?.id,
+    authenticationMethod: req.context.authenticationMethod,
+  });
 
   next();
 }

@@ -1,6 +1,8 @@
 import type {PermissionConfig} from '@budgetbuddyde/api/auth';
 import type {Session as AuthSession, User as AuthUser} from 'better-auth';
 
+export type AuthenticationMethod = 'session-cookie' | 'api-key';
+
 export interface RequestContext<User = AuthUser, Session = AuthSession> {
   /**
    * @deprecated Not used — request tracing has been removed.
@@ -19,4 +21,8 @@ export interface RequestContext<User = AuthUser, Session = AuthSession> {
    * Permissions configuration for the authenticated user.
    */
   permissions: PermissionConfig;
+  /**
+   * Credential used to authenticate the request.
+   */
+  authenticationMethod: AuthenticationMethod;
 }

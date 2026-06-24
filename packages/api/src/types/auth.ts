@@ -1,6 +1,8 @@
 export type Entity = 'transaction' | 'recurringPayment' | 'budget' | 'category' | 'paymentMethod';
 
-export type EntityOperation = 'create' | 'read' | 'update' | 'delete';
+export type EntityAction = 'create' | 'read' | 'update' | 'delete';
+
+export type EntityOperation = 'read' | 'write';
 
 export type Permission = `${Entity}:${EntityOperation}`;
 
