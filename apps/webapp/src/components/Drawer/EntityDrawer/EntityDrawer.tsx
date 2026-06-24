@@ -9,6 +9,7 @@ import {EntityFooter} from './EntityFooter';
 import {EntityHeader} from './EntityHeader';
 import {
   AutocompleteFieldComponent,
+  CustomFieldComponent,
   DateFieldComponent,
   NumberFieldComponent,
   SelectFieldComponent,
@@ -138,6 +139,11 @@ export const EntityDrawer = <T extends FieldValues>({
         case 'select':
           return (
             <SelectFieldComponent key={field.name} field={field} control={form.control} wrapperSize={wrapperSize} />
+          );
+
+        case 'custom':
+          return (
+            <CustomFieldComponent key={field.name} field={field} control={form.control} wrapperSize={wrapperSize} />
           );
 
         default:

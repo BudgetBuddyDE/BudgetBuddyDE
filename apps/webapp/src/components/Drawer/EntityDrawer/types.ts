@@ -1,6 +1,7 @@
 import type {GridProps, TextFieldProps} from '@mui/material';
 import type {FieldValues, Path} from 'react-hook-form';
 import type {AutocompleteField} from './Fields/AutocompleteFieldComponent';
+import type {CustomField} from './Fields/CustomFieldComponent';
 import type {DateField} from './Fields/DateFieldComponent';
 import type {NumberField} from './Fields/NumberFieldComponent';
 import type {SelectField} from './Fields/SelectFieldComponent';
@@ -22,4 +23,5 @@ export type EntityDrawerField<T extends FieldValues> =
   | TextField<T>
   | NumberField<T>
   | AutocompleteField<T, unknown>
-  | SelectField<T>;
+  | SelectField<T>
+  | CustomField<T>;

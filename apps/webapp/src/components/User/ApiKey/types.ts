@@ -1,9 +1,11 @@
 import type {ApiKey} from '@better-auth/api-key';
+import type {PermissionConfig} from '@budgetbuddyde/api/auth';
 
 export type {ApiKey};
 export type ApiKeyFormFields = {
   name: string | null;
   expiresAt: Date | null;
+  permissions: PermissionConfig;
 };
 
 export type CreatedKeyDialogState = {

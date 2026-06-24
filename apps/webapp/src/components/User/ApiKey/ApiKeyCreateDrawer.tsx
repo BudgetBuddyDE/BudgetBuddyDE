@@ -1,8 +1,10 @@
 'use client';
 
+import type {PermissionConfig} from '@budgetbuddyde/api/auth';
 import {AlertTitle} from '@mui/material';
 import React from 'react';
 import {EntityDrawer, type EntityDrawerField, type EntityDrawerFormHandler} from '@/components/Drawer';
+import {ApiKeyPermissionField} from './ApiKeyPermissionField';
 import type {ApiKeyFormFields} from './types';
 
 export type ApiKeyCreateDrawerProps = {
@@ -35,8 +37,19 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
         label: 'Expires at',
         placeholder: 'Leave empty for no expiration',
       },
+      {
+        type: 'custom',
+        name: 'permissions',
+        render: ({field}) => (
+          <ApiKeyPermissionField
+            value={field.value as PermissionConfig}
+            onChange={field.onChange}
+            disabled={isLoading}
+          />
+        ),
+      },
     ],
-    [],
+    [isLoading],
   );
 
   return (
@@ -52,6 +65,7 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
       onResetForm={() => ({
         name: null,
         expiresAt: null,
+        permissions: {},
       })}
       defaultValues={defaultValues}
       fields={fields}

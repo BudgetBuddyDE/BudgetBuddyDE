@@ -78,6 +78,7 @@ export const ApiKeyTable: React.FC = () => {
       defaultValues: {
         name: null,
         expiresAt: null,
+        permissions: {},
       },
     });
   };
@@ -102,20 +103,31 @@ export const ApiKeyTable: React.FC = () => {
     setIsCreating(true);
     try {
       const expiresIn = expiresInDays ? expiresInDays * 24 * 60 * 60 : undefined;
-      const {data, error: createError} = await authClient.apiKey.create({
-        name,
-        ...(expiresIn ? {expiresIn} : {}),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_AUTH_SERVICE_HOST || 'http://localhost:8080'}/api/auth/api-key/create-with-permissions`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            name,
+            permissions: payload.permissions,
+            ...(expiresIn ? {expiresIn} : {}),
+          }),
+        },
+      );
+      const data = (await response.json()) as {key?: string; message?: string};
 
-      if (createError) {
+      if (!response.ok) {
+        const message = data.message ?? 'Failed to create API key';
         showSnackbar({
-          message: `Failed to create API key: ${createError.message}`,
+          message: `Failed to create API key: ${message}`,
           action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
         });
         return;
       }
 
-      const createdKey = (data as {key?: string} | null)?.key;
+      const createdKey = data.key;
       if (!createdKey) {
         showSnackbar({message: 'API key created, but the key value was not returned'});
       } else {
@@ -251,6 +263,7 @@ export const ApiKeyTable: React.FC = () => {
         defaultValues={{
           name: drawerState.defaultValues?.name ?? null,
           expiresAt: drawerState.defaultValues?.expiresAt ?? null,
+          permissions: drawerState.defaultValues?.permissions ?? {},
         }}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
