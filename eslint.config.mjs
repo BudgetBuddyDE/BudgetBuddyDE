@@ -9,6 +9,7 @@ import tseslint from 'typescript-eslint';
 const tsProjects = [
   './tsconfig.json',
   './apps/webapp/tsconfig.json',
+  './examples/*/tsconfig.json',
   './packages/*/tsconfig.json',
   './services/*/tsconfig.json',
 ];
@@ -16,6 +17,7 @@ const tsProjects = [
 const sourceFiles = [
   'vitest.config.ts',
   'apps/webapp/src/**/*.{js,jsx,ts,tsx}',
+  'examples/*/src/**/*.{js,jsx,ts,tsx}',
   'packages/*/src/**/*.{js,jsx,ts,tsx}',
   'services/*/src/**/*.{js,jsx,ts,tsx}',
   'services/*/instrumentation.ts',

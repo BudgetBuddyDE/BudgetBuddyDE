@@ -1,0 +1,34 @@
+{
+  "name": "@budgetbuddyde/example-api-key-client",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal Node.js TypeScript example for using @budgetbuddyde/api with an API key.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "rimraf lib && tsc",
+    "pretest": "npm run check",
+    "test": "vitest run --silent",
+    "test:watch": "vitest",
+    "check": "npm run format:check && npm run lint:check",
+    "check:write": "npm run lint && npm run format",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix --max-warnings=0",
+    "lint:check": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{js,jsx,ts,tsx,json,css,md}\"",
+    "start": "node lib/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@budgetbuddyde/api": "*",
+    "dotenv": "^17.2.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@vitest/ui": "^3.2.4",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
