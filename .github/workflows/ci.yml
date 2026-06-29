@@ -65,3 +65,6 @@ jobs:
 
       - name: Build apps with Turborepo
         run: npx turbo run build --filter=./apps/*
+
+      - name: Build examples with Turborepo
+        run: npx turbo run build --filter='./examples/*'

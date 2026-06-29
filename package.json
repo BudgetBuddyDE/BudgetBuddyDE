@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/*",
     "services/*",
-    "apps/webapp"
+    "apps/webapp",
+    "examples/*"
   ],
   "scripts": {
     "prepare": "node .husky/install.mjs",
@@ -23,6 +24,7 @@
     "build-packages": "turbo run build --filter=./packages/*",
     "build-services": "turbo run build --filter=./services/*",
     "build-apps": "turbo run build --filter=./apps/*",
+    "build-examples": "turbo run build --filter='./examples/*'",
     "typecheck": "turbo run typecheck",
     "ci": "npm run format:check && npm run lint:check && npm run typecheck && npm test && npm run build"
   },
