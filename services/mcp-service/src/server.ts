@@ -5,14 +5,20 @@ import cors from 'cors';
 import express from 'express';
 import {config} from './config';
 import {runWithRequestAuthContext, type RequestAuthContext} from './lib/requestAuth';
-import {apiKeyMiddleware, handleError, logRequest, rateLimitMiddleware} from './middleware';
+import {apiKeyMiddleware, handleError, logger, logRequest, rateLimitMiddleware} from './middleware';
 import {registerAllTools} from './tools';
 
 export const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(logRequest);
-app.use(rateLimitMiddleware);
+if (config.runtime === 'production') {
+  app.use(rateLimitMiddleware);
+  logger.info('Rate limiting is enabled in production environment.');
+} else
+  logger.warn(
+    'Rate limiting is disabled in non-production environments. Make sure to enable it in production to prevent abuse.',
+  );
 
 // Health / status
 app.get(/^\/(api\/)?(status|health)\/?$/, (_req, res) => {
