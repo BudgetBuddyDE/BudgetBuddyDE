@@ -1,8 +1,8 @@
-import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import type {TCreateOrUpdateTransactionPayload} from '@budgetbuddyde/api/types';
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {api, getApiRequestConfig} from '../lib/api';
 import {err, ok} from './helpers';
+import {api, getApiRequestConfig} from '../lib/api';
 
 export function registerTransactionTools(server: McpServer): void {
   server.tool(
@@ -27,13 +27,18 @@ export function registerTransactionTools(server: McpServer): void {
     },
   );
 
-  server.tool('get_transaction', 'Get a single transaction by ID', {
-    id: z.string().uuid().describe('Transaction UUID'),
-  }, async ({id}) => {
-    const [result, error] = await api.backend.transaction.getById(id, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'get_transaction',
+    'Get a single transaction by ID',
+    {
+      id: z.string().uuid().describe('Transaction UUID'),
+    },
+    async ({id}) => {
+      const [result, error] = await api.backend.transaction.getById(id, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 
   server.tool(
     'create_transaction',
@@ -46,7 +51,7 @@ export function registerTransactionTools(server: McpServer): void {
       transferAmount: z.number().describe('Amount in EUR (negative = expense, positive = income)'),
       information: z.string().optional().describe('Optional note'),
     },
-    async (payload) => {
+    async payload => {
       const typedPayload = {
         ...payload,
         processedAt: new Date(payload.processedAt),
@@ -80,11 +85,16 @@ export function registerTransactionTools(server: McpServer): void {
     },
   );
 
-  server.tool('delete_transaction', 'Delete a transaction by ID', {
-    id: z.string().uuid().describe('Transaction UUID'),
-  }, async ({id}) => {
-    const [result, error] = await api.backend.transaction.deleteById(id, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'delete_transaction',
+    'Delete a transaction by ID',
+    {
+      id: z.string().uuid().describe('Transaction UUID'),
+    },
+    async ({id}) => {
+      const [result, error] = await api.backend.transaction.deleteById(id, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 }

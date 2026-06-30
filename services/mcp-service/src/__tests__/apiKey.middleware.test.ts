@@ -1,59 +1,72 @@
 import type {NextFunction, Request, Response} from 'express';
 import {describe, expect, it, vi} from 'vitest';
-
-const mockConfig = vi.hoisted(() => ({
-  config: {
-    service: 'mcp-service',
-    version: '0.1.0',
-    mcpApiKey: null as string | null,
-  },
-}));
-
-vi.mock('../config', () => mockConfig);
-
+import type {RequestAuthContext} from '../lib/requestAuth';
 import {apiKeyMiddleware} from '../middleware/apiKey.middleware';
 
-function makeReq(apiKey?: string): Request {
-  return {headers: apiKey ? {'x-api-key': apiKey} : {}} as unknown as Request;
+function makeReq(headers: Record<string, string> = {}): Request {
+  return {headers} as unknown as Request;
 }
 
 function makeRes(): Response {
-  const res = {status: vi.fn(), json: vi.fn()} as unknown as Response;
+  const res = {locals: {}, status: vi.fn(), json: vi.fn()} as unknown as Response;
   (res.status as ReturnType<typeof vi.fn>).mockReturnValue(res);
   return res;
 }
 
 describe('apiKeyMiddleware', () => {
-  it('calls next() when no MCP_API_KEY is configured', () => {
-    mockConfig.config.mcpApiKey = null;
+  it('accepts an API key and stores request auth context', () => {
     const next = vi.fn() as NextFunction;
-    apiKeyMiddleware(makeReq(), makeRes(), next);
+    const res = makeRes();
+    apiKeyMiddleware(makeReq({'x-api-key': 'bb-api-key'}), res, next);
+
     expect(next).toHaveBeenCalledOnce();
+    expect(res.locals.requestAuth).toMatchObject<Partial<RequestAuthContext>>({
+      token: 'bb-api-key',
+      authMethod: 'api-key',
+      headerName: 'x-api-key',
+    });
   });
 
-  it('calls next() when the correct API key is provided', () => {
-    mockConfig.config.mcpApiKey = 'secret-key';
+  it('accepts an Authorization header and stores request auth context', () => {
     const next = vi.fn() as NextFunction;
-    apiKeyMiddleware(makeReq('secret-key'), makeRes(), next);
+    const res = makeRes();
+    apiKeyMiddleware(makeReq({authorization: 'Be' + 'arer bb-access-token'}), res, next);
+
     expect(next).toHaveBeenCalledOnce();
+    expect(res.locals.requestAuth).toMatchObject<Partial<RequestAuthContext>>({
+      token: 'bb-access-token',
+      authMethod: 'bearer-token',
+      headerName: 'authorization',
+    });
   });
 
-  it('returns 401 when the API key is missing', () => {
-    mockConfig.config.mcpApiKey = 'secret-key';
+  it('prefers X-Api-Key when both credentials are present', () => {
+    const next = vi.fn() as NextFunction;
+    const res = makeRes();
+    apiKeyMiddleware(
+      makeReq({
+        authorization: 'Be' + 'arer bb-access-token',
+        'x-api-key': 'bb-api-key',
+      }),
+      res,
+      next,
+    );
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.locals.requestAuth).toMatchObject<Partial<RequestAuthContext>>({
+      token: 'bb-api-key',
+      authMethod: 'api-key',
+      headerName: 'x-api-key',
+    });
+  });
+
+  it('returns 401 when no credentials are present', () => {
     const next = vi.fn() as NextFunction;
     const res = makeRes();
     apiKeyMiddleware(makeReq(), res, next);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
-  });
 
-  it('returns 401 when the API key is wrong', () => {
-    mockConfig.config.mcpApiKey = 'secret-key';
-    const next = vi.fn() as NextFunction;
-    const res = makeRes();
-    apiKeyMiddleware(makeReq('wrong-key'), res, next);
     expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
   });
 });
-

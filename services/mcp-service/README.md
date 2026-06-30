@@ -19,11 +19,14 @@ npm run dev
 | Variable                | Required | Description                                              | Default       |
 |:------------------------|:--------:|:---------------------------------------------------------|:--------------|
 | `BUDGETBUDDY_BACKEND_URL` | ✓       | Base URL of the BudgetBuddyDE backend service            | –             |
-| `BUDGETBUDDY_API_KEY`   | ✓        | API key used to authenticate against the backend         | –             |
-| `MCP_API_KEY`           | –        | If set, every request to `/mcp` must carry this key in `x-api-key` | – |
-| `PORT`                  | –        | HTTP port the service listens on                         | `7000`        |
+| `PORT`                  | –        | HTTP port the service listens on                         | `8070`        |
 | `NODE_ENV`              | –        | Runtime environment                                      | `development` |
 | `LOG_LEVEL`             | –        | Winston log level                                        | `info`        |
+
+Authentication for `/mcp` must be provided per request via either:
+
+- `Authorization` header with an access token
+- `X-Api-Key` header with an API key
 
 ## MCP Endpoint
 
@@ -41,9 +44,9 @@ DELETE /mcp (close session)
 {
   "mcpServers": {
     "budgetbuddyde": {
-      "url": "http://localhost:7000/mcp",
+      "url": "http://localhost:8070/mcp",
       "headers": {
-        "x-api-key": "<MCP_API_KEY>"
+        "x-api-key": "<your-api-key>"
       }
     }
   }

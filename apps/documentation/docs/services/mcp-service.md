@@ -18,8 +18,7 @@ npx @budgetbuddyde/mcp-service
 ## Features
 
 - **26 MCP tools** covering full CRUD for categories, payment methods, transactions, recurring payments, and budgets plus read-only access to attachments
-- **API-key authentication** against the BudgetBuddyDE backend
-- **Optional endpoint protection** via a service-level `MCP_API_KEY`
+- **Per-request authentication** via `Authorization` or `X-Api-Key`, forwarded to the backend
 - **ExpressJS HTTP server** – compatible with any Streamable-HTTP MCP client
 
 ## Architecture
@@ -55,11 +54,11 @@ GET    /health — health check
 ### Authentication Flow
 
 ```
-AI Client ──x-api-key──▶ MCP Service ──x-api-key (BUDGETBUDDY_API_KEY)──▶ Backend
+AI Client ──Authorization / x-api-key──▶ MCP Service ──Authorization / x-api-key──▶ Backend
 ```
 
-1. The AI client optionally sends `x-api-key: <MCP_API_KEY>` on every request to the MCP service.
-2. The MCP service forwards all backend calls using the pre-configured `BUDGETBUDDY_API_KEY`.
+1. The AI client sends either an `Authorization` token or an `x-api-key` on every request to the MCP service.
+2. The MCP service forwards the same credential type and value to the backend.
 
 ## Available Tools
 
@@ -126,7 +125,7 @@ AI Client ──x-api-key──▶ MCP Service ──x-api-key (BUDGETBUDDY_API_
 
 ```bash
 npm install
-cp .env.example .env  # fill in BUDGETBUDDY_BACKEND_URL and BUDGETBUDDY_API_KEY
+cp .env.example .env  # fill in BUDGETBUDDY_BACKEND_URL
 npm run dev
 ```
 
@@ -157,9 +156,7 @@ npm start
 | Variable | Required | Description | Default |
 |:---------|:--------:|:------------|:--------|
 | `BUDGETBUDDY_BACKEND_URL` | ✓ | Base URL of the BudgetBuddyDE backend | – |
-| `BUDGETBUDDY_API_KEY` | ✓ | API key for authenticating against the backend | – |
-| `MCP_API_KEY` | – | If set, all `/mcp` requests must include this key in `x-api-key` | – |
-| `PORT` | – | HTTP port | `7000` |
+| `PORT` | – | HTTP port | `8070` |
 | `NODE_ENV` | – | Runtime environment | `development` |
 | `LOG_LEVEL` | – | Winston log level | `info` |
 
@@ -173,9 +170,9 @@ Add to `claude_desktop_config.json`:
 {
   "mcpServers": {
     "budgetbuddyde": {
-      "url": "http://localhost:7000/mcp",
+      "url": "http://localhost:8070/mcp",
       "headers": {
-        "x-api-key": "<MCP_API_KEY>"
+        "x-api-key": "<your-api-key>"
       }
     }
   }
@@ -186,21 +183,7 @@ Add to `claude_desktop_config.json`:
 
 ```bash
 BUDGETBUDDY_BACKEND_URL=https://api.budget-buddy.de \
-BUDGETBUDDY_API_KEY=bb-your-key \
 npx @budgetbuddyde/mcp-service
-```
-
-## Deployment
-
-### Docker
-
-```bash
-docker build -t budgetbuddyde/mcp-service .
-docker run -d -p 7000:7000 \
-  -e BUDGETBUDDY_BACKEND_URL=https://api.budget-buddy.de \
-  -e BUDGETBUDDY_API_KEY=bb-your-key \
-  -e MCP_API_KEY=your-mcp-secret \
-  budgetbuddyde/mcp-service
 ```
 
 ## Dependencies

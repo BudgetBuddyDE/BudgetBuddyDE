@@ -1,8 +1,8 @@
-import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import type {TAttachment} from '@budgetbuddyde/api/types';
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {api, getApiRequestConfig} from '../lib/api';
 import {err, ok} from './helpers';
+import {api, getApiRequestConfig} from '../lib/api';
 
 export function registerAttachmentTools(server: McpServer): void {
   server.tool(

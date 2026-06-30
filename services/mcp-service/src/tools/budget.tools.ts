@@ -1,26 +1,36 @@
-import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import type {TCreateOrUpdateBudgetPayload} from '@budgetbuddyde/api/types';
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {api, getApiRequestConfig} from '../lib/api';
 import {err, ok} from './helpers';
+import {api, getApiRequestConfig} from '../lib/api';
 
 export function registerBudgetTools(server: McpServer): void {
-  server.tool('list_budgets', 'List all budgets for the authenticated user', {
-    from: z.number().optional().describe('Offset for pagination'),
-    to: z.number().optional().describe('Limit for pagination'),
-  }, async (params) => {
-    const [result, error] = await api.backend.budget.getAll(params, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'list_budgets',
+    'List all budgets for the authenticated user',
+    {
+      from: z.number().optional().describe('Offset for pagination'),
+      to: z.number().optional().describe('Limit for pagination'),
+    },
+    async params => {
+      const [result, error] = await api.backend.budget.getAll(params, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 
-  server.tool('get_budget', 'Get a single budget by ID', {
-    id: z.string().uuid().describe('Budget UUID'),
-  }, async ({id}) => {
-    const [result, error] = await api.backend.budget.getById(id, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'get_budget',
+    'Get a single budget by ID',
+    {
+      id: z.string().uuid().describe('Budget UUID'),
+    },
+    async ({id}) => {
+      const [result, error] = await api.backend.budget.getById(id, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 
   server.tool(
     'create_budget',
@@ -32,7 +42,7 @@ export function registerBudgetTools(server: McpServer): void {
       categories: z.array(z.string().uuid()).describe('Category UUIDs assigned to this budget'),
       description: z.string().max(200).optional().describe('Optional description'),
     },
-    async (payload) => {
+    async payload => {
       const [result, error] = await api.backend.budget.create(
         payload as unknown as TCreateOrUpdateBudgetPayload,
         getApiRequestConfig(),
@@ -64,11 +74,16 @@ export function registerBudgetTools(server: McpServer): void {
     },
   );
 
-  server.tool('delete_budget', 'Delete a budget by ID', {
-    id: z.string().uuid().describe('Budget UUID'),
-  }, async ({id}) => {
-    const [result, error] = await api.backend.budget.deleteById(id, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'delete_budget',
+    'Delete a budget by ID',
+    {
+      id: z.string().uuid().describe('Budget UUID'),
+    },
+    async ({id}) => {
+      const [result, error] = await api.backend.budget.deleteById(id, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 }

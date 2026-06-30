@@ -1,27 +1,37 @@
-import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import type {TCreateOrUpdateRecurringPaymentPayload} from '@budgetbuddyde/api/types';
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {api, getApiRequestConfig} from '../lib/api';
 import {err, ok} from './helpers';
+import {api, getApiRequestConfig} from '../lib/api';
 
 export function registerRecurringPaymentTools(server: McpServer): void {
-  server.tool('list_recurring_payments', 'List recurring payments for the authenticated user', {
-    from: z.number().optional().describe('Offset for pagination'),
-    to: z.number().optional().describe('Limit for pagination'),
-    search: z.string().optional().describe('Search term'),
-  }, async (params) => {
-    const [result, error] = await api.backend.recurringPayment.getAll(params, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'list_recurring_payments',
+    'List recurring payments for the authenticated user',
+    {
+      from: z.number().optional().describe('Offset for pagination'),
+      to: z.number().optional().describe('Limit for pagination'),
+      search: z.string().optional().describe('Search term'),
+    },
+    async params => {
+      const [result, error] = await api.backend.recurringPayment.getAll(params, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 
-  server.tool('get_recurring_payment', 'Get a single recurring payment by ID', {
-    id: z.string().uuid().describe('Recurring payment UUID'),
-  }, async ({id}) => {
-    const [result, error] = await api.backend.recurringPayment.getById(id, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'get_recurring_payment',
+    'Get a single recurring payment by ID',
+    {
+      id: z.string().uuid().describe('Recurring payment UUID'),
+    },
+    async ({id}) => {
+      const [result, error] = await api.backend.recurringPayment.getById(id, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 
   server.tool(
     'create_recurring_payment',
@@ -35,7 +45,7 @@ export function registerRecurringPaymentTools(server: McpServer): void {
       paused: z.boolean().optional().default(false).describe('Whether the payment is paused'),
       information: z.string().optional().describe('Optional note'),
     },
-    async (payload) => {
+    async payload => {
       const [result, error] = await api.backend.recurringPayment.create(
         payload as unknown as TCreateOrUpdateRecurringPaymentPayload,
         getApiRequestConfig(),
@@ -69,11 +79,16 @@ export function registerRecurringPaymentTools(server: McpServer): void {
     },
   );
 
-  server.tool('delete_recurring_payment', 'Delete a recurring payment by ID', {
-    id: z.string().uuid().describe('Recurring payment UUID'),
-  }, async ({id}) => {
-    const [result, error] = await api.backend.recurringPayment.deleteById(id, getApiRequestConfig());
-    if (error) return err(error);
-    return ok(result);
-  });
+  server.tool(
+    'delete_recurring_payment',
+    'Delete a recurring payment by ID',
+    {
+      id: z.string().uuid().describe('Recurring payment UUID'),
+    },
+    async ({id}) => {
+      const [result, error] = await api.backend.recurringPayment.deleteById(id, getApiRequestConfig());
+      if (error) return err(error);
+      return ok(result);
+    },
+  );
 }

@@ -1,21 +1,19 @@
 import type {NextFunction, Request, Response} from 'express';
-import {config} from '../config';
+import {extractRequestAuth} from '../lib/requestAuth';
 
 /**
- * Middleware that enforces API key authentication when `MCP_API_KEY` is configured.
- * Requests missing or carrying the wrong key receive a 401.
+ * Middleware that enforces request authentication via Authorization or X-Api-Key.
  */
 export function apiKeyMiddleware(req: Request, res: Response, next: NextFunction): void {
-  if (!config.mcpApiKey) {
-    next();
+  const requestAuth = extractRequestAuth(req);
+
+  if (!requestAuth) {
+    res.status(401).json({
+      error: 'Unauthorized – provide an Authorization token or X-Api-Key header',
+    });
     return;
   }
 
-  const provided = req.headers['x-api-key'];
-  if (!provided || provided !== config.mcpApiKey) {
-    res.status(401).json({error: 'Unauthorized – invalid or missing API key'});
-    return;
-  }
-
+  res.locals.requestAuth = requestAuth;
   next();
 }

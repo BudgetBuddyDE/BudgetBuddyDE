@@ -9,18 +9,14 @@ export type Config = {
   port: ReturnType<typeof getPort>;
   runtime: Runtime;
   backendUrl: string;
-  backendApiKey: string;
-  mcpApiKey: string | null;
   logLevel: string;
 };
 
 export const config: Config = {
   service: name,
   version: version,
-  port: getPort(7000),
+  port: getPort(8070),
   runtime: getCurrentRuntime(),
   backendUrl: process.env.BUDGETBUDDY_BACKEND_URL || 'http://localhost:9000',
-  backendApiKey: process.env.BUDGETBUDDY_API_KEY || '',
-  mcpApiKey: process.env.MCP_API_KEY?.trim() || null,
   logLevel: getLogLevel(process.env.LOG_LEVEL),
 };
