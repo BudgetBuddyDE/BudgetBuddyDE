@@ -5,13 +5,14 @@ import cors from 'cors';
 import express from 'express';
 import {config} from './config';
 import {runWithRequestAuthContext, type RequestAuthContext} from './lib/requestAuth';
-import {apiKeyMiddleware, handleError, logRequest} from './middleware';
+import {apiKeyMiddleware, handleError, logRequest, rateLimitMiddleware} from './middleware';
 import {registerAllTools} from './tools';
 
 export const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(logRequest);
+app.use(rateLimitMiddleware);
 
 // Health / status
 app.get(/^\/(api\/)?(status|health)\/?$/, (_req, res) => {
