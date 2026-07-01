@@ -1,4 +1,4 @@
-import type {TCreateOrUpdateTransactionPayload} from '@budgetbuddyde/api/types';
+import {Transaction, CreateOrUpdateTransactionPayload} from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
 import {err, ok} from './helpers';
@@ -35,7 +35,7 @@ export function registerTransactionTools(server: McpServer): void {
     {
       description: 'Get a single transaction by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Transaction UUID'),
+        id: Transaction.shape.id.describe('Transaction UUID'),
       },
     },
     async ({id}, _extra) => {
@@ -49,21 +49,10 @@ export function registerTransactionTools(server: McpServer): void {
     'create_transaction',
     {
       description: 'Create a new transaction',
-      inputSchema: {
-        categoryId: z.string().uuid().describe('Category UUID'),
-        paymentMethodId: z.string().uuid().describe('Payment method UUID'),
-        processedAt: z.string().describe('ISO date-time when the transaction was processed'),
-        receiver: z.string().describe('Receiver / merchant name'),
-        transferAmount: z.number().describe('Amount in EUR (negative = expense, positive = income)'),
-        information: z.string().optional().describe('Optional note'),
-      },
+      inputSchema: CreateOrUpdateTransactionPayload,
     },
     async (payload, _extra) => {
-      const typedPayload = {
-        ...payload,
-        processedAt: new Date(payload.processedAt),
-      } as unknown as TCreateOrUpdateTransactionPayload;
-      const [result, error] = await api.backend.transaction.create(typedPayload, getApiRequestConfig());
+      const [result, error] = await api.backend.transaction.create(payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
@@ -73,21 +62,11 @@ export function registerTransactionTools(server: McpServer): void {
     'update_transaction',
     {
       description: 'Update an existing transaction',
-      inputSchema: {
-        id: z.string().uuid().describe('Transaction UUID'),
-        categoryId: z.string().uuid().optional(),
-        paymentMethodId: z.string().uuid().optional(),
-        processedAt: z.string().optional().describe('ISO date-time'),
-        receiver: z.string().optional(),
-        transferAmount: z.number().optional(),
-        information: z.string().optional(),
-      },
+      inputSchema: CreateOrUpdateTransactionPayload.partial().extend({
+        id: Transaction.shape.id.describe('Transaction UUID'),
+      }),
     },
-    async ({id, processedAt, ...rest}, _extra) => {
-      const payload = {
-        ...rest,
-        ...(processedAt ? {processedAt: new Date(processedAt)} : {}),
-      } as unknown as Partial<TCreateOrUpdateTransactionPayload>;
+    async ({id, ...payload}, _extra) => {
       const [result, error] = await api.backend.transaction.updateById(id, payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
@@ -99,7 +78,7 @@ export function registerTransactionTools(server: McpServer): void {
     {
       description: 'Delete a transaction by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Transaction UUID'),
+        id: Transaction.shape.id.describe('Transaction UUID'),
       },
     },
     async ({id}, _extra) => {

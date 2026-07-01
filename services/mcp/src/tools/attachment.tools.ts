@@ -1,4 +1,4 @@
-import type {TAttachment} from '@budgetbuddyde/api/types';
+import {Attachment, SignedAttachmentUrlTTL} from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
 import {err, ok} from './helpers';
@@ -10,16 +10,12 @@ export function registerAttachmentTools(server: McpServer): void {
     {
       description: 'Retrieve a single attachment by ID (returns the attachment metadata and a signed URL)',
       inputSchema: {
-        id: z.string().uuid().describe('Attachment UUID (v7)'),
-        ttl: z.number().min(60).max(3600).optional().describe('Signed URL TTL in seconds (60–3600, default: 900)'),
+        id: Attachment.shape.id.describe('Attachment UUID (v7)'),
+        ttl: SignedAttachmentUrlTTL.optional().describe('Signed URL TTL in seconds (60–3600, default: 900)'),
       },
     },
     async ({id, ttl}, _extra) => {
-      const [result, error] = await api.backend.attachment.getById(
-        id as TAttachment['id'],
-        {ttl: ttl as never},
-        getApiRequestConfig(),
-      );
+      const [result, error] = await api.backend.attachment.getById(id, {ttl}, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },

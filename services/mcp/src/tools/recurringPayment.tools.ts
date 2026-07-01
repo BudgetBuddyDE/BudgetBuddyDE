@@ -1,4 +1,4 @@
-import type {TCreateOrUpdateRecurringPaymentPayload} from '@budgetbuddyde/api/types';
+import {RecurringPayment, CreateOrUpdateRecurringPaymentPayload} from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
 import {err, ok} from './helpers';
@@ -27,7 +27,7 @@ export function registerRecurringPaymentTools(server: McpServer): void {
     {
       description: 'Get a single recurring payment by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Recurring payment UUID'),
+        id: RecurringPayment.shape.id.describe('Recurring payment UUID'),
       },
     },
     async ({id}, _extra) => {
@@ -41,21 +41,10 @@ export function registerRecurringPaymentTools(server: McpServer): void {
     'create_recurring_payment',
     {
       description: 'Create a new recurring payment',
-      inputSchema: {
-        categoryId: z.string().uuid().describe('Category UUID'),
-        paymentMethodId: z.string().uuid().describe('Payment method UUID'),
-        executeAt: z.number().min(1).max(31).describe('Day of the month to execute (1–31)'),
-        receiver: z.string().describe('Receiver / merchant name'),
-        transferAmount: z.number().describe('Amount in EUR (negative = expense, positive = income)'),
-        paused: z.boolean().optional().default(false).describe('Whether the payment is paused'),
-        information: z.string().optional().describe('Optional note'),
-      },
+      inputSchema: CreateOrUpdateRecurringPaymentPayload,
     },
     async (payload, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.create(
-        payload as unknown as TCreateOrUpdateRecurringPaymentPayload,
-        getApiRequestConfig(),
-      );
+      const [result, error] = await api.backend.recurringPayment.create(payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
@@ -65,23 +54,12 @@ export function registerRecurringPaymentTools(server: McpServer): void {
     'update_recurring_payment',
     {
       description: 'Update an existing recurring payment',
-      inputSchema: {
-        id: z.string().uuid().describe('Recurring payment UUID'),
-        categoryId: z.string().uuid().optional(),
-        paymentMethodId: z.string().uuid().optional(),
-        executeAt: z.number().min(1).max(31).optional(),
-        receiver: z.string().optional(),
-        transferAmount: z.number().optional(),
-        paused: z.boolean().optional(),
-        information: z.string().optional(),
-      },
+      inputSchema: CreateOrUpdateRecurringPaymentPayload.partial().extend({
+        id: RecurringPayment.shape.id.describe('Recurring payment UUID'),
+      }),
     },
     async ({id, ...payload}, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.updateById(
-        id,
-        payload as unknown as Partial<TCreateOrUpdateRecurringPaymentPayload>,
-        getApiRequestConfig(),
-      );
+      const [result, error] = await api.backend.recurringPayment.updateById(id, payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
@@ -92,7 +70,7 @@ export function registerRecurringPaymentTools(server: McpServer): void {
     {
       description: 'Delete a recurring payment by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Recurring payment UUID'),
+        id: RecurringPayment.shape.id.describe('Recurring payment UUID'),
       },
     },
     async ({id}, _extra) => {

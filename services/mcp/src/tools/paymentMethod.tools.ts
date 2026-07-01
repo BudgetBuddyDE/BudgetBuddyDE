@@ -1,3 +1,4 @@
+import {PaymentMethod, CreateOrUpdatePaymentMethodPayload} from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
 import {err, ok} from './helpers';
@@ -26,7 +27,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
     {
       description: 'Get a single payment method by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Payment method UUID'),
+        id: PaymentMethod.shape.id.describe('Payment method UUID'),
       },
     },
     async ({id}, _extra) => {
@@ -40,12 +41,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
     'create_payment_method',
     {
       description: 'Create a new payment method',
-      inputSchema: {
-        name: z.string().describe('Display name'),
-        provider: z.string().min(1).max(100).describe('Provider name (e.g. Visa, Mastercard)'),
-        address: z.string().min(1).max(100).describe('Account address or card number (last 4 digits)'),
-        description: z.string().optional().describe('Optional description'),
-      },
+      inputSchema: CreateOrUpdatePaymentMethodPayload,
     },
     async (payload, _extra) => {
       const [result, error] = await api.backend.paymentMethod.create(payload, getApiRequestConfig());
@@ -58,13 +54,9 @@ export function registerPaymentMethodTools(server: McpServer): void {
     'update_payment_method',
     {
       description: 'Update an existing payment method',
-      inputSchema: {
-        id: z.string().uuid().describe('Payment method UUID'),
-        name: z.string().optional(),
-        provider: z.string().min(1).max(100).optional(),
-        address: z.string().min(1).max(100).optional(),
-        description: z.string().optional(),
-      },
+      inputSchema: CreateOrUpdatePaymentMethodPayload.partial().extend({
+        id: PaymentMethod.shape.id.describe('Payment method UUID'),
+      }),
     },
     async ({id, ...payload}, _extra) => {
       const [result, error] = await api.backend.paymentMethod.updateById(id, payload, getApiRequestConfig());
@@ -78,7 +70,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
     {
       description: 'Delete a payment method by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Payment method UUID'),
+        id: PaymentMethod.shape.id.describe('Payment method UUID'),
       },
     },
     async ({id}, _extra) => {

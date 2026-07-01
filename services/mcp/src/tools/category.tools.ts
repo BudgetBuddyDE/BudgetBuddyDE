@@ -1,3 +1,4 @@
+import {Category, CreateOrUpdateCategoryPayload} from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
 import {err, ok} from './helpers';
@@ -26,7 +27,7 @@ export function registerCategoryTools(server: McpServer): void {
     {
       description: 'Get a single category by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Category UUID'),
+        id: Category.shape.id.describe('Category UUID'),
       },
     },
     async ({id}, _extra) => {
@@ -40,10 +41,7 @@ export function registerCategoryTools(server: McpServer): void {
     'create_category',
     {
       description: 'Create a new category',
-      inputSchema: {
-        name: z.string().describe('Category name'),
-        description: z.string().optional().describe('Optional description'),
-      },
+      inputSchema: CreateOrUpdateCategoryPayload,
     },
     async (payload, _extra) => {
       const [result, error] = await api.backend.category.create(payload, getApiRequestConfig());
@@ -56,11 +54,9 @@ export function registerCategoryTools(server: McpServer): void {
     'update_category',
     {
       description: 'Update an existing category',
-      inputSchema: {
-        id: z.string().uuid().describe('Category UUID'),
-        name: z.string().optional().describe('New name'),
-        description: z.string().optional().describe('New description'),
-      },
+      inputSchema: CreateOrUpdateCategoryPayload.partial().extend({
+        id: Category.shape.id.describe('Category UUID'),
+      }),
     },
     async ({id, ...payload}, _extra) => {
       const [result, error] = await api.backend.category.updateById(id, payload, getApiRequestConfig());
@@ -74,7 +70,7 @@ export function registerCategoryTools(server: McpServer): void {
     {
       description: 'Delete a category by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Category UUID'),
+        id: Category.shape.id.describe('Category UUID'),
       },
     },
     async ({id}, _extra) => {

@@ -1,4 +1,4 @@
-import type {TCreateOrUpdateBudgetPayload} from '@budgetbuddyde/api/types';
+import {Budget, CreateOrUpdateBudgetPayload} from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
 import {err, ok} from './helpers';
@@ -26,7 +26,7 @@ export function registerBudgetTools(server: McpServer): void {
     {
       description: 'Get a single budget by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Budget UUID'),
+        id: Budget.shape.id.describe('Budget UUID'),
       },
     },
     async ({id}, _extra) => {
@@ -40,19 +40,10 @@ export function registerBudgetTools(server: McpServer): void {
     'create_budget',
     {
       description: 'Create a new budget',
-      inputSchema: {
-        type: z.enum(['i', 'e']).describe('Budget type: "i" = income, "e" = expense'),
-        name: z.string().min(1).max(40).describe('Budget name'),
-        budget: z.number().min(0).describe('Budget limit amount in EUR'),
-        categories: z.array(z.string().uuid()).describe('Category UUIDs assigned to this budget'),
-        description: z.string().max(200).optional().describe('Optional description'),
-      },
+      inputSchema: CreateOrUpdateBudgetPayload,
     },
     async (payload, _extra) => {
-      const [result, error] = await api.backend.budget.create(
-        payload as unknown as TCreateOrUpdateBudgetPayload,
-        getApiRequestConfig(),
-      );
+      const [result, error] = await api.backend.budget.create(payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
@@ -62,21 +53,12 @@ export function registerBudgetTools(server: McpServer): void {
     'update_budget',
     {
       description: 'Update an existing budget',
-      inputSchema: {
-        id: z.string().uuid().describe('Budget UUID'),
-        type: z.enum(['i', 'e']).optional(),
-        name: z.string().min(1).max(40).optional(),
-        budget: z.number().min(0).optional(),
-        categories: z.array(z.string().uuid()).optional(),
-        description: z.string().max(200).optional(),
-      },
+      inputSchema: CreateOrUpdateBudgetPayload.partial().extend({
+        id: Budget.shape.id.describe('Budget UUID'),
+      }),
     },
     async ({id, ...payload}, _extra) => {
-      const [result, error] = await api.backend.budget.updateById(
-        id,
-        payload as unknown as Partial<TCreateOrUpdateBudgetPayload>,
-        getApiRequestConfig(),
-      );
+      const [result, error] = await api.backend.budget.updateById(id, payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
@@ -87,7 +69,7 @@ export function registerBudgetTools(server: McpServer): void {
     {
       description: 'Delete a budget by ID',
       inputSchema: {
-        id: z.string().uuid().describe('Budget UUID'),
+        id: Budget.shape.id.describe('Budget UUID'),
       },
     },
     async ({id}, _extra) => {
