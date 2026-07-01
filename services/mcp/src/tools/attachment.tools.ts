@@ -5,14 +5,16 @@ import {err, ok} from './helpers';
 import {api, getApiRequestConfig} from '../lib/api';
 
 export function registerAttachmentTools(server: McpServer): void {
-  server.tool(
+  server.registerTool(
     'get_attachment',
-    'Retrieve a single attachment by ID (returns the attachment metadata and a signed URL)',
     {
-      id: z.string().uuid().describe('Attachment UUID (v7)'),
-      ttl: z.number().min(60).max(3600).optional().describe('Signed URL TTL in seconds (60–3600, default: 900)'),
+      description: 'Retrieve a single attachment by ID (returns the attachment metadata and a signed URL)',
+      inputSchema: {
+        id: z.string().uuid().describe('Attachment UUID (v7)'),
+        ttl: z.number().min(60).max(3600).optional().describe('Signed URL TTL in seconds (60–3600, default: 900)'),
+      },
     },
-    async ({id, ttl}) => {
+    async ({id, ttl}, _extra) => {
       const [result, error] = await api.backend.attachment.getById(
         id as TAttachment['id'],
         {ttl: ttl as never},
@@ -23,15 +25,17 @@ export function registerAttachmentTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'list_transaction_attachments',
-    'List attachments for a specific transaction',
     {
-      transactionId: z.string().uuid().describe('Transaction UUID'),
-      from: z.number().optional().describe('Offset for pagination'),
-      to: z.number().optional().describe('Limit for pagination'),
+      description: 'List attachments for a specific transaction',
+      inputSchema: {
+        transactionId: z.string().uuid().describe('Transaction UUID'),
+        from: z.number().optional().describe('Offset for pagination'),
+        to: z.number().optional().describe('Limit for pagination'),
+      },
     },
-    async ({transactionId, ...query}) => {
+    async ({transactionId, ...query}, _extra) => {
       const [result, error] = await api.backend.transaction.getTransactionAttachments(
         transactionId,
         query,

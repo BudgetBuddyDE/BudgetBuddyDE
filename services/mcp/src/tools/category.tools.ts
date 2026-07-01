@@ -4,70 +4,80 @@ import {err, ok} from './helpers';
 import {api, getApiRequestConfig} from '../lib/api';
 
 export function registerCategoryTools(server: McpServer): void {
-  server.tool(
+  server.registerTool(
     'list_categories',
-    'List all categories for the authenticated user',
     {
-      from: z.number().optional().describe('Offset for pagination'),
-      to: z.number().optional().describe('Limit for pagination'),
-      search: z.string().optional().describe('Search term to filter categories by name or description'),
+      description: 'List all categories for the authenticated user',
+      inputSchema: {
+        from: z.number().optional().describe('Offset for pagination'),
+        to: z.number().optional().describe('Limit for pagination'),
+        search: z.string().optional().describe('Search term to filter categories by name or description'),
+      },
     },
-    async params => {
+    async (params, _extra) => {
       const [result, error] = await api.backend.category.getAll(params, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
   );
 
-  server.tool(
+  server.registerTool(
     'get_category',
-    'Get a single category by ID',
     {
-      id: z.string().uuid().describe('Category UUID'),
+      description: 'Get a single category by ID',
+      inputSchema: {
+        id: z.string().uuid().describe('Category UUID'),
+      },
     },
-    async ({id}) => {
+    async ({id}, _extra) => {
       const [result, error] = await api.backend.category.getById(id, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
   );
 
-  server.tool(
+  server.registerTool(
     'create_category',
-    'Create a new category',
     {
-      name: z.string().describe('Category name'),
-      description: z.string().optional().describe('Optional description'),
+      description: 'Create a new category',
+      inputSchema: {
+        name: z.string().describe('Category name'),
+        description: z.string().optional().describe('Optional description'),
+      },
     },
-    async payload => {
+    async (payload, _extra) => {
       const [result, error] = await api.backend.category.create(payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
   );
 
-  server.tool(
+  server.registerTool(
     'update_category',
-    'Update an existing category',
     {
-      id: z.string().uuid().describe('Category UUID'),
-      name: z.string().optional().describe('New name'),
-      description: z.string().optional().describe('New description'),
+      description: 'Update an existing category',
+      inputSchema: {
+        id: z.string().uuid().describe('Category UUID'),
+        name: z.string().optional().describe('New name'),
+        description: z.string().optional().describe('New description'),
+      },
     },
-    async ({id, ...payload}) => {
+    async ({id, ...payload}, _extra) => {
       const [result, error] = await api.backend.category.updateById(id, payload, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
     },
   );
 
-  server.tool(
+  server.registerTool(
     'delete_category',
-    'Delete a category by ID',
     {
-      id: z.string().uuid().describe('Category UUID'),
+      description: 'Delete a category by ID',
+      inputSchema: {
+        id: z.string().uuid().describe('Category UUID'),
+      },
     },
-    async ({id}) => {
+    async ({id}, _extra) => {
       const [result, error] = await api.backend.category.deleteById(id, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
