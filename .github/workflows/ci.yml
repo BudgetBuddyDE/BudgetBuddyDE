@@ -3,17 +3,15 @@ name: CI
 on:
   pull_request:
   push:
-    branches:
-      - main
-      - master
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Validate
+  setup:
+    name: Setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,8 +23,37 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
+
+  quality:
+    name: Validate
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
 
       - name: Check workspace formatting with Turborepo
         run: npx turbo run format:check
@@ -54,8 +81,12 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Restore node_modules
+        uses: actions/cache/restore@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
 
       - name: Build packages with Turborepo
         run: npx turbo run build --filter=./packages/*
