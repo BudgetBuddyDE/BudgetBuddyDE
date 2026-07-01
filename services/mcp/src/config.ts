@@ -15,7 +15,7 @@ export type Config = {
 export const config: Config = {
   service: name,
   version: version,
-  port: getPort(8070),
+  port: getPort(3070),
   runtime: getCurrentRuntime(),
   backendUrl: process.env.BUDGETBUDDY_BACKEND_URL || 'http://localhost:9000',
   logLevel: getLogLevel(process.env.LOG_LEVEL),

@@ -14,13 +14,8 @@ export function getApiRequestConfig(): RequestInit {
   const headers = new Headers({
     Accept: 'application/json',
     'Content-Type': 'application/json',
+    'X-API-KEY': requestAuth.token,
   });
-
-  if (requestAuth.headerName === 'authorization') {
-    headers.set('Authorization', 'Bearer '.concat(requestAuth.token));
-  } else {
-    headers.set('x-api-key', requestAuth.token);
-  }
 
   return {
     headers,

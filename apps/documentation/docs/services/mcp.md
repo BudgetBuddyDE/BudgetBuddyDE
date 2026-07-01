@@ -2,9 +2,9 @@
 title: MCP Service
 icon: lucide/bot
 tags:
-    - service
-    - mcp
-    - ai
+  - service
+  - mcp
+  - ai
 ---
 
 ## Overview
@@ -12,7 +12,7 @@ tags:
 The MCP Service exposes the BudgetBuddyDE backend as an AI-callable tool server implementing the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It is built on Express.js and uses the [Streamable HTTP transport](https://spec.modelcontextprotocol.io/specification/2025-03-26/basic/transports/#streamable-http) so that any MCP-compatible AI client (e.g. Claude Desktop, Cursor, or a custom agent) can interact with BudgetBuddyDE data.
 
 ```
-npx @budgetbuddyde/mcp-service
+npx @budgetbuddyde/mcp
 ```
 
 ## Features
@@ -54,70 +54,70 @@ GET    /health — health check
 ### Authentication Flow
 
 ```
-AI Client ──Authorization / x-api-key──▶ MCP Service ──Authorization / x-api-key──▶ Backend
+AI Client ──Authorization / x-api-key──▶ MCP Service ──/ x-api-key──▶ Backend
 ```
 
 1. The AI client sends either an `Authorization` token or an `x-api-key` on every request to the MCP service.
-2. The MCP service forwards the same credential type and value to the backend.
+2. The MCP service forwards the same credential using the `x-api-key` header and value to the backend.
 
 ## Available Tools
 
 ### Categories (`/api/category`)
 
-| Tool | Description |
-|:-----|:------------|
+| Tool              | Description                                           |
+| :---------------- | :---------------------------------------------------- |
 | `list_categories` | List all categories (supports `from`, `to`, `search`) |
-| `get_category` | Get a category by UUID |
-| `create_category` | Create a new category |
-| `update_category` | Update an existing category |
-| `delete_category` | Delete a category by UUID |
+| `get_category`    | Get a category by UUID                                |
+| `create_category` | Create a new category                                 |
+| `update_category` | Update an existing category                           |
+| `delete_category` | Delete a category by UUID                             |
 
 ### Payment Methods (`/api/paymentMethod`)
 
-| Tool | Description |
-|:-----|:------------|
-| `list_payment_methods` | List all payment methods |
-| `get_payment_method` | Get a payment method by UUID |
-| `create_payment_method` | Create a new payment method |
+| Tool                    | Description                       |
+| :---------------------- | :-------------------------------- |
+| `list_payment_methods`  | List all payment methods          |
+| `get_payment_method`    | Get a payment method by UUID      |
+| `create_payment_method` | Create a new payment method       |
 | `update_payment_method` | Update an existing payment method |
-| `delete_payment_method` | Delete a payment method by UUID |
+| `delete_payment_method` | Delete a payment method by UUID   |
 
 ### Transactions (`/api/transaction`)
 
-| Tool | Description |
-|:-----|:------------|
-| `list_transactions` | List transactions (supports pagination and date filters) |
-| `get_transaction` | Get a transaction by UUID |
-| `create_transaction` | Create a new transaction |
-| `update_transaction` | Update an existing transaction |
-| `delete_transaction` | Delete a transaction by UUID |
+| Tool                 | Description                                              |
+| :------------------- | :------------------------------------------------------- |
+| `list_transactions`  | List transactions (supports pagination and date filters) |
+| `get_transaction`    | Get a transaction by UUID                                |
+| `create_transaction` | Create a new transaction                                 |
+| `update_transaction` | Update an existing transaction                           |
+| `delete_transaction` | Delete a transaction by UUID                             |
 
 ### Recurring Payments (`/api/recurringPayment`)
 
-| Tool | Description |
-|:-----|:------------|
-| `list_recurring_payments` | List recurring payments |
-| `get_recurring_payment` | Get a recurring payment by UUID |
-| `create_recurring_payment` | Create a new recurring payment |
+| Tool                       | Description                          |
+| :------------------------- | :----------------------------------- |
+| `list_recurring_payments`  | List recurring payments              |
+| `get_recurring_payment`    | Get a recurring payment by UUID      |
+| `create_recurring_payment` | Create a new recurring payment       |
 | `update_recurring_payment` | Update an existing recurring payment |
-| `delete_recurring_payment` | Delete a recurring payment by UUID |
+| `delete_recurring_payment` | Delete a recurring payment by UUID   |
 
 ### Budgets (`/api/budget`)
 
-| Tool | Description |
-|:-----|:------------|
-| `list_budgets` | List all budgets |
-| `get_budget` | Get a budget by UUID |
-| `create_budget` | Create a new budget |
+| Tool            | Description               |
+| :-------------- | :------------------------ |
+| `list_budgets`  | List all budgets          |
+| `get_budget`    | Get a budget by UUID      |
+| `create_budget` | Create a new budget       |
 | `update_budget` | Update an existing budget |
-| `delete_budget` | Delete a budget by UUID |
+| `delete_budget` | Delete a budget by UUID   |
 
 ### Attachments (`/api/attachment`) — read-only
 
-| Tool | Description |
-|:-----|:------------|
-| `get_attachment` | Get a single attachment with a fresh signed URL |
-| `list_transaction_attachments` | List all attachments for a transaction |
+| Tool                           | Description                                     |
+| :----------------------------- | :---------------------------------------------- |
+| `get_attachment`               | Get a single attachment with a fresh signed URL |
+| `list_transaction_attachments` | List all attachments for a transaction          |
 
 ## Development
 
@@ -153,12 +153,12 @@ npm start
 
 #### Environment Variables
 
-| Variable | Required | Description | Default |
-|:---------|:--------:|:------------|:--------|
-| `BUDGETBUDDY_BACKEND_URL` | ✓ | Base URL of the BudgetBuddyDE backend | – |
-| `PORT` | – | HTTP port | `8070` |
-| `NODE_ENV` | – | Runtime environment | `development` |
-| `LOG_LEVEL` | – | Winston log level | `info` |
+| Variable                  | Required | Description                           | Default       |
+| :------------------------ | :------: | :------------------------------------ | :------------ |
+| `BUDGETBUDDY_BACKEND_URL` |    ✓     | Base URL of the BudgetBuddyDE backend | –             |
+| `PORT`                    |    –     | HTTP port                             | `3070`        |
+| `NODE_ENV`                |    –     | Runtime environment                   | `development` |
+| `LOG_LEVEL`               |    –     | Winston log level                     | `info`        |
 
 ## Usage
 
@@ -170,7 +170,7 @@ Add to `claude_desktop_config.json`:
 {
   "mcpServers": {
     "budgetbuddyde": {
-      "url": "http://localhost:8070/mcp",
+      "url": "http://localhost:3070/mcp",
       "headers": {
         "x-api-key": "<your-api-key>"
       }
@@ -183,7 +183,7 @@ Add to `claude_desktop_config.json`:
 
 ```bash
 BUDGETBUDDY_BACKEND_URL=https://api.budget-buddy.de \
-npx @budgetbuddyde/mcp-service
+npx @budgetbuddyde/mcp
 ```
 
 ## Dependencies

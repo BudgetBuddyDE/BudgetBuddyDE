@@ -21,6 +21,7 @@ export function registerTransactionTools(server: McpServer): void {
         $dateFrom: $dateFrom ? new Date($dateFrom) : undefined,
         $dateTo: $dateTo ? new Date($dateTo) : undefined,
       };
+
       const [result, error] = await api.backend.transaction.getAll(query, getApiRequestConfig());
       if (error) return err(error);
       return ok(result);
