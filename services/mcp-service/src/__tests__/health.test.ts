@@ -1,4 +1,3 @@
-import {HTTPStatusCode} from '@budgetbuddyde/api';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {getHealthStatus} from '../lib/health';
 
@@ -26,7 +25,7 @@ describe('getHealthStatus', () => {
     const health = await getHealthStatus('http://localhost:9000');
 
     expect(health).toEqual({
-      status: HTTPStatusCode.OK,
+      status: 200,
       message: 'Status of the application',
       data: {
         status: 'ok',
@@ -40,15 +39,12 @@ describe('getHealthStatus', () => {
   });
 
   it('returns degraded payload when backend health check fails', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockRejectedValue(new Error('Backend unavailable')),
-    );
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Backend unavailable')));
 
     const health = await getHealthStatus('http://localhost:9000');
 
     expect(health).toEqual({
-      status: HTTPStatusCode.INTERNAL_SERVER_ERROR,
+      status: 500,
       message: 'Status of the application',
       data: {
         status: 'degraded',
@@ -61,4 +57,3 @@ describe('getHealthStatus', () => {
     });
   });
 });
-

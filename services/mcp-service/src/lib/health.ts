@@ -1,7 +1,5 @@
-import {HTTPStatusCode} from '@budgetbuddyde/api';
-
 export type HealthStatusResponse = {
-  status: HTTPStatusCode;
+  status: 200 | 500;
   message: string;
   data: {
     status: 'ok' | 'degraded';
@@ -14,6 +12,8 @@ export type HealthStatusResponse = {
 };
 
 const HEALTH_MESSAGE = 'Status of the application';
+const HEALTHY_STATUS_CODE = 200;
+const DEGRADED_STATUS_CODE = 500;
 
 function buildHealthResponse(input: unknown): HealthStatusResponse {
   const payload = input as
@@ -33,7 +33,7 @@ function buildHealthResponse(input: unknown): HealthStatusResponse {
   const isServiceHealthy = isDatabaseConnected && isRedisReachable;
 
   return {
-    status: isServiceHealthy ? HTTPStatusCode.OK : HTTPStatusCode.INTERNAL_SERVER_ERROR,
+    status: isServiceHealthy ? HEALTHY_STATUS_CODE : DEGRADED_STATUS_CODE,
     message: HEALTH_MESSAGE,
     data: {
       status: isServiceHealthy ? 'ok' : 'degraded',
@@ -57,4 +57,3 @@ export async function getHealthStatus(backendUrl: string): Promise<HealthStatusR
     return buildHealthResponse(undefined);
   }
 }
-
