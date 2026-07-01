@@ -4,6 +4,7 @@ import {StreamableHTTPServerTransport} from '@modelcontextprotocol/sdk/server/st
 import cors from 'cors';
 import express from 'express';
 import {config} from './config';
+import {getHealthStatus} from './lib/health';
 import {runWithRequestAuthContext, type RequestAuthContext} from './lib/requestAuth';
 import {apiKeyMiddleware, handleError, logger, logRequest, rateLimitMiddleware} from './middleware';
 import {registerAllTools} from './tools';
@@ -21,8 +22,9 @@ if (config.runtime === 'production') {
   );
 
 // Health / status
-app.get(/^\/(api\/)?(status|health)\/?$/, (_req, res) => {
-  res.json({status: 'ok', service: config.service, version: config.version});
+app.all(/^\/(api\/)?(status|health)\/?$/, async (_req, res) => {
+  const healthStatus = await getHealthStatus(config.backendUrl);
+  res.status(healthStatus.status).json(healthStatus);
 });
 
 // MCP endpoint (stateless – each request gets its own transport)
