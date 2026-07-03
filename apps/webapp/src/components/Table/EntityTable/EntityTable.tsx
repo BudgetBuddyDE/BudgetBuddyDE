@@ -53,6 +53,7 @@ export type EntityTableProps<T, K extends keyof T = keyof T> = {
   stickyHeader?: boolean;
   maxHeight?: number | string;
   rowHeight?: number;
+  tableLayout?: 'auto' | 'fixed';
   sx?: SxProps<Theme>;
   onRowClick?: BasicTableProps<T, K>['onRowClick'];
   renderRow?: BasicTableProps<T, K>['renderRow'];
@@ -72,6 +73,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
   stickyHeader = true,
   maxHeight,
   rowHeight,
+  tableLayout = 'auto',
   sx,
   onRowClick,
   renderRow,
@@ -210,7 +212,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
 
         {data.length > 0 && (
           <TableContainer sx={{maxHeight}}>
-            <Table stickyHeader={stickyHeader} sx={{tableLayout: 'auto'}}>
+            <Table stickyHeader={stickyHeader} sx={{tableLayout}}>
               <TableHead>
                 <TableRow>
                   {withSelection && (

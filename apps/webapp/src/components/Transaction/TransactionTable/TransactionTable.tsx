@@ -402,37 +402,81 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       {
         key: 'processedAt',
         label: 'Processed at',
-        renderCell: value => <Typography variant="body1">{Formatter.date.format(value as Date)}</Typography>,
+        width: 96,
+        renderCell: value => (
+          <Typography variant="body2" noWrap>
+            {Formatter.date.format(value as Date)}
+          </Typography>
+        ),
+      },
+      {
+        key: 'category',
+        label: 'Category',
+        width: 132,
+        renderCell: (_value, row) => (
+          <CategoryChip
+            categoryName={row.category.name}
+            size="small"
+            sx={{maxWidth: '100%', '& .MuiChip-label': {overflow: 'hidden', textOverflow: 'ellipsis'}}}
+          />
+        ),
+      },
+      {
+        key: 'paymentMethod',
+        label: 'Payment Method',
+        width: 178,
+        renderCell: (_value, row) => (
+          <PaymentMethodChip
+            paymentMethodName={row.paymentMethod.name}
+            size="small"
+            sx={{maxWidth: '100%', '& .MuiChip-label': {overflow: 'hidden', textOverflow: 'ellipsis'}}}
+          />
+        ),
       },
       {
         key: 'receiver',
-        label: 'Details',
-        renderCell: (_value, row) => (
-          <Stack spacing={1}>
-            <Typography variant="body1">{row.receiver}</Typography>
-            <Stack flexDirection="row" flexWrap="wrap" useFlexGap gap={1}>
-              <CategoryChip categoryName={row.category.name} size="small" />
-              <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />
-            </Stack>
-          </Stack>
+        label: 'Receiver',
+        width: 168,
+        renderCell: value => (
+          <Typography variant="body2" noWrap title={value as string}>
+            {value as string}
+          </Typography>
         ),
       },
       {
         key: 'transferAmount',
-        label: 'Transfer Amount',
+        label: 'Amount',
+        align: 'right',
+        width: 112,
         renderCell: value => (
-          <Typography variant="body1">{Formatter.currency.formatBalance(value as number)}</Typography>
+          <Typography variant="body2" noWrap>
+            {Formatter.currency.formatBalance(value as number)}
+          </Typography>
         ),
       },
       {
         key: 'information',
         label: 'Information',
-        renderCell: value => <Typography variant="body1">{(value as string | null) ?? 'No information'}</Typography>,
+        width: '28%',
+        renderCell: value => {
+          const information = (value as string | null) ?? 'No information';
+          return (
+            <Typography
+              variant="body2"
+              noWrap
+              title={information}
+              sx={{display: 'block', maxWidth: '100%', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis'}}
+            >
+              {information}
+            </Typography>
+          );
+        },
       },
       {
         key: 'attachments',
         label: 'Attachments',
         align: 'left',
+        width: 136,
         renderCell: (_value, row) => (
           <TransactionAttachmentPreviewStrip
             attachments={row.attachments}
@@ -444,8 +488,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
       {
         key: 'id' as keyof TExpandedTransaction,
-        label: '',
+        label: 'Actions',
         align: 'right',
+        width: 72,
         renderCell: (_value, row) => (
           <EntityMenu<TExpandedTransaction>
             entity={row}
@@ -519,6 +564,22 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         slice={slice}
         dataKey="id"
         columns={columns}
+        rowHeight={52}
+        tableLayout="fixed"
+        sx={{
+          '& .MuiTableCell-root': {
+            px: 1.5,
+            py: 0.75,
+          },
+          '& .MuiTableCell-paddingCheckbox': {
+            pl: 1,
+            pr: 0.5,
+            width: 48,
+          },
+          '& .MuiTableHead .MuiTableCell-root': {
+            py: 1,
+          },
+        }}
         toolbar={{
           title: 'Transactions',
           subtitle: 'Manage your transactions',
