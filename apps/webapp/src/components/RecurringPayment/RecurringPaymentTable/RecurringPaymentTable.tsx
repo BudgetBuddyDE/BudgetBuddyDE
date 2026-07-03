@@ -9,7 +9,7 @@ import {
 } from '@budgetbuddyde/api/recurringPayment';
 import {ReceiverVH, type TReceiverVH} from '@budgetbuddyde/api/transaction';
 import {AddRounded} from '@mui/icons-material';
-import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
+import {Button, Chip, createFilterOptions, InputAdornment, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
@@ -431,10 +431,12 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     () => [
       {
         key: 'executeAt',
-        label: 'Execute at',
+        label: 'Date',
+        width: 96,
         renderCell: (_value, row) => (
           <Typography
-            variant="body1"
+            variant="body2"
+            noWrap
             sx={{
               textDecoration: row.paused ? 'line-through' : 'unset',
             }}
@@ -444,34 +446,73 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         ),
       },
       {
-        key: 'receiver',
-        label: 'Details',
+        key: 'category',
+        label: 'Category',
+        width: 132,
         renderCell: (_value, row) => (
-          <>
-            <Typography variant="body1">{row.receiver}</Typography>
-            <Stack flexDirection={'row'}>
-              <CategoryChip categoryName={row.category.name} size="small" sx={{mr: 1}} />
-              <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />
-            </Stack>
-          </>
+          <CategoryChip
+            categoryName={row.category.name}
+            size="small"
+            sx={{maxWidth: '100%', '& .MuiChip-label': {overflow: 'hidden', textOverflow: 'ellipsis'}}}
+          />
+        ),
+      },
+      {
+        key: 'paymentMethod',
+        label: 'Payment Method',
+        width: 178,
+        renderCell: (_value, row) => (
+          <PaymentMethodChip
+            paymentMethodName={row.paymentMethod.name}
+            size="small"
+            sx={{maxWidth: '100%', '& .MuiChip-label': {overflow: 'hidden', textOverflow: 'ellipsis'}}}
+          />
+        ),
+      },
+      {
+        key: 'receiver',
+        label: 'Receiver',
+        width: 168,
+        renderCell: value => (
+          <Typography variant="body2" noWrap title={value as string}>
+            {value as string}
+          </Typography>
         ),
       },
       {
         key: 'transferAmount',
-        label: 'Transfer Amount',
+        label: 'Amount',
+        align: 'right',
+        width: 112,
         renderCell: value => (
-          <Typography variant="body1">{Formatter.currency.formatBalance(value as number)}</Typography>
+          <Typography variant="body2" noWrap>
+            {Formatter.currency.formatBalance(value as number)}
+          </Typography>
         ),
       },
       {
         key: 'information',
         label: 'Information',
-        renderCell: value => <Typography variant="body1">{(value as string | null) ?? 'No information'}</Typography>,
+        width: '32%',
+        renderCell: value => {
+          const information = (value as string | null) ?? 'No information';
+          return (
+            <Typography
+              variant="body2"
+              noWrap
+              title={information}
+              sx={{display: 'block', maxWidth: '100%', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis'}}
+            >
+              {information}
+            </Typography>
+          );
+        },
       },
       {
         key: 'id' as keyof TExpandedRecurringPayment,
-        label: '',
+        label: 'Actions',
         align: 'right',
+        width: 72,
         renderCell: (_value, row) => (
           <EntityMenu<TExpandedRecurringPayment>
             entity={row}
@@ -529,6 +570,22 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         slice={slice}
         dataKey="id"
         columns={columns}
+        rowHeight={52}
+        tableLayout="fixed"
+        sx={{
+          '& .MuiTableCell-root': {
+            px: 1.5,
+            py: 0.75,
+          },
+          '& .MuiTableCell-paddingCheckbox': {
+            pl: 1,
+            pr: 0.5,
+            width: 48,
+          },
+          '& .MuiTableHead .MuiTableCell-root': {
+            py: 1,
+          },
+        }}
         toolbar={{
           title: 'Recurring Payments',
           subtitle: 'Manage your recurring payments',
@@ -568,7 +625,6 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
-        rowHeight={83.5}
       />
 
       <EntityDrawer<EntityFormFields>
