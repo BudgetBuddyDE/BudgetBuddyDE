@@ -570,22 +570,6 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         slice={slice}
         dataKey="id"
         columns={columns}
-        rowHeight={52}
-        tableLayout="fixed"
-        sx={{
-          '& .MuiTableCell-root': {
-            px: 1.5,
-            py: 0.75,
-          },
-          '& .MuiTableCell-paddingCheckbox': {
-            pl: 1,
-            pr: 0.5,
-            width: 48,
-          },
-          '& .MuiTableHead .MuiTableCell-root': {
-            py: 1,
-          },
-        }}
         toolbar={{
           title: 'Recurring Payments',
           subtitle: 'Manage your recurring payments',

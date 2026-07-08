@@ -72,8 +72,8 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
   emptyMessage = 'No items found',
   stickyHeader = true,
   maxHeight,
-  rowHeight,
-  tableLayout = 'auto',
+  rowHeight = 52,
+  tableLayout = 'fixed',
   sx,
   onRowClick,
   renderRow,
@@ -149,7 +149,27 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
     </TableRow>
   );
   return (
-    <Paper elevation={3} sx={{borderRadius: 2, boxShadow: 'unset', overflow: 'hidden', ...sx}}>
+    <Paper
+      elevation={3}
+      sx={{
+        borderRadius: 2,
+        boxShadow: 'unset',
+        overflow: 'hidden',
+        '& .MuiTableCell-root': {
+          px: 1.5,
+          py: 0.75,
+        },
+        '& .MuiTableCell-paddingCheckbox': {
+          pl: 1,
+          pr: 0.5,
+          width: 48,
+        },
+        '& .MuiTableHead .MuiTableCell-root': {
+          py: 1,
+        },
+        ...sx,
+      }}
+    >
       {toolbar && <TableToolbar {...toolbar} title={toolbarTitle} isLoading={isLoading && data.length === 0} />}
 
       {withSelection && selectedIds.size > 0 && (
