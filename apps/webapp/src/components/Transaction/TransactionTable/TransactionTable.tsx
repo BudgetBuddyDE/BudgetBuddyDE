@@ -488,7 +488,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
       {
         key: 'id' as keyof TExpandedTransaction,
-        label: 'Actions',
+        label: '',
         align: 'right',
         width: 72,
         renderCell: (_value, row) => (

@@ -510,7 +510,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'id' as keyof TExpandedRecurringPayment,
-        label: 'Actions',
+        label: '',
         align: 'right',
         width: 72,
         renderCell: (_value, row) => (
