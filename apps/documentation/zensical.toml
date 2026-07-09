@@ -72,6 +72,9 @@ nav = [
                 "monitoring/open-telemetry.md",
             ]}
         ]},
+        {"Examples" = [
+            "examples-api-key-export.md"
+        ]},
         {"Packages" = [
             "packages/api.md",
             "packages/db.md",

@@ -3,10 +3,14 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   EnvironmentVariableNotSetError,
   createApiKeyRequestConfig,
+  createCliLogger,
   determineNextExecutionDate,
   fetchBudgetBuddyOverview,
+  fetchBudgetBuddyExport,
   formatPaymentDetails,
+  parseCliArgs,
   readConfigFromEnv,
+  serializeExport,
 } from './index';
 
 const now = '2026-06-28T12:00:00.000Z';
@@ -110,6 +114,34 @@ describe('api-key-client example', () => {
     );
   });
 
+  it('parses export CLI arguments', () => {
+    expect(parseCliArgs(['--entity', 'transactions', '--format', 'csv', '--id', 'tx_123'])).toEqual({
+      entity: 'transactions',
+      format: 'csv',
+      id: 'tx_123',
+      verbose: false,
+    });
+    expect(parseCliArgs(['--verbose'])).toEqual({entity: 'all', format: 'json', verbose: true});
+    expect(parseCliArgs([])).toEqual({entity: 'all', format: 'json', verbose: false});
+    expect(() => parseCliArgs(['--entity', 'unknown'])).toThrow('--entity must be one of');
+    expect(() => parseCliArgs(['--entity', 'all', '--id', 'tx_123'])).toThrow(
+      '--id can only be used with a single --entity',
+    );
+  });
+
+  it('configures the CLI logger with info and debug levels', () => {
+    expect(createCliLogger().level).toBe('info');
+    expect(createCliLogger(true).level).toBe('debug');
+  });
+
+  it('serializes export data as JSON and CSV', () => {
+    const exportResult = {transactions: [transactionFixture as unknown as Record<string, unknown>]};
+
+    expect(serializeExport(exportResult, 'json')).toContain('"transactions"');
+    expect(serializeExport(exportResult, 'csv')).toContain('# transactions');
+    expect(serializeExport(exportResult, 'csv')).toContain('Supermarket');
+  });
+
   it('fetches transactions and recurring payments through the API package', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
@@ -181,5 +213,29 @@ describe('api-key-client example', () => {
     const firstRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
     expect(firstRequest.headers).toBeInstanceOf(Headers);
     expect((firstRequest.headers as Headers).get('x-api-key')).toBe('bb-test-key');
+  });
+
+  it('exports a single category by id through the API package', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      jsonResponse({
+        status: 200,
+        data: category,
+      }),
+    );
+
+    const exported = await fetchBudgetBuddyExport(
+      {
+        apiKey: 'bb-test-key',
+        backendUrl: 'https://backend.example.test',
+        limit: 3,
+      },
+      {entity: 'categories', format: 'json', id: category.id, verbose: false},
+    );
+
+    expect(exported.categories).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      `https://backend.example.test/api/category/${category.id}`,
+      expect.objectContaining({method: 'GET'}),
+    );
   });
 });
