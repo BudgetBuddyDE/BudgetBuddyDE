@@ -1,6 +1,6 @@
 # API Key Client Example
 
-Minimal Node.js TypeScript example for reading BudgetBuddyDE data with `@budgetbuddyde/api` and a user API key.
+Node.js TypeScript CLI example for exporting BudgetBuddyDE data with `@budgetbuddyde/api`, `@budgetbuddyde/utils` and a user API key.
 
 ## Environment Variables
 
@@ -8,16 +8,38 @@ Minimal Node.js TypeScript example for reading BudgetBuddyDE data with `@budgetb
 | -------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
 | `BUDGETBUDDY_API_KEY`      | Yes      | User API key created in the BudgetBuddyDE settings. The example sends it as the `x-api-key` header.         |
 | `BUDGETBUDDY_BACKEND_URL`  | Yes      | Base URL of the BudgetBuddyDE backend, for example `https://backend.budgetbuddy.de` or a local backend URL. |
-| `BUDGETBUDDY_RESULT_LIMIT` | No       | Number of transactions and recurring payments to fetch. Defaults to `5` when unset or invalid.              |
+| `BUDGETBUDDY_RESULT_LIMIT` | No       | Number of records to fetch per entity for collection exports. Defaults to `100` when unset or invalid.      |
 
 Copy `.env.example` to `.env` as a starting point, or export the variables in your shell. The example loads `.env` via `dotenv`.
 
-## Run
+## Build
 
 ```bash
-export BUDGETBUDDY_API_KEY="bb-your-api-key"
-export BUDGETBUDDY_BACKEND_URL="https://backend.budgetbuddy.de"
-
+npm run build --workspace=@budgetbuddyde/api
+npm run build --workspace=@budgetbuddyde/utils
 npm run build --workspace=@budgetbuddyde/example-api-key-client
-npm run start --workspace=@budgetbuddyde/example-api-key-client
 ```
+
+## Export all entities
+
+```bash
+npm run start --workspace=@budgetbuddyde/example-api-key-client -- --format json
+npm run start --workspace=@budgetbuddyde/example-api-key-client -- --format csv
+```
+
+## Export one entity
+
+```bash
+npm run start --workspace=@budgetbuddyde/example-api-key-client -- --entity transactions --format json
+npm run start --workspace=@budgetbuddyde/example-api-key-client -- --entity categories --format csv
+```
+
+Supported entities are `transactions`, `recurringPayments`, `categories`, `paymentMethods` and `budgets`.
+
+## Export one record
+
+```bash
+npm run start --workspace=@budgetbuddyde/example-api-key-client -- --entity categories --id <category-id> --format json
+```
+
+`--id` can only be used together with a single `--entity`. Use `--verbose` or `-v` to raise the CLI log level from `info` to `debug`. Logs are written to stderr so exported data stays on stdout.
