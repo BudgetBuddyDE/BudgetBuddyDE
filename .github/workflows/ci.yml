@@ -27,7 +27,12 @@ jobs:
         id: cache
         uses: actions/cache@v6
         with:
-          path: node_modules
+          path: |
+            node_modules
+            packages/*/node_modules
+            services/*/node_modules
+            apps/*/node_modules
+            examples/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
@@ -51,7 +56,12 @@ jobs:
       - name: Restore node_modules
         uses: actions/cache/restore@v6
         with:
-          path: node_modules
+          path: |
+            node_modules
+            packages/*/node_modules
+            services/*/node_modules
+            apps/*/node_modules
+            examples/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
 
@@ -84,7 +94,12 @@ jobs:
       - name: Restore node_modules
         uses: actions/cache/restore@v6
         with:
-          path: node_modules
+          path: |
+            node_modules
+            packages/*/node_modules
+            services/*/node_modules
+            apps/*/node_modules
+            examples/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
 
