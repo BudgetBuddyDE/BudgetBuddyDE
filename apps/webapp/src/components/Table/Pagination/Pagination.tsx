@@ -16,7 +16,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   count,
   page,
   rowsPerPage,
-  rowsPerPageOptions = [10, 25, 50, 100],
+  rowsPerPageOptions = [15, 25, 50, 100],
   onPageChange,
   onRowsPerPageChange,
 }) => {

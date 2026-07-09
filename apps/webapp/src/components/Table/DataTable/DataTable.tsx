@@ -68,7 +68,7 @@ export const DataTable = <T extends GridValidRowModel & {id: string | number}>({
   pagination = true,
   paginationModel,
   onPaginationModelChange,
-  pageSizeOptions = [10, 25, 50, 100],
+  pageSizeOptions = [15, 25, 50, 100],
   rowCount,
   paginationMode = 'client',
   sortModel,

@@ -61,7 +61,7 @@ export const EntityDataTable = <T extends GridValidRowModel & {id: string | numb
   pagination = true,
   paginationModel,
   onPaginationModelChange,
-  pageSizeOptions = [10, 25, 50, 100],
+  pageSizeOptions = [15, 25, 50, 100],
   paginationMode = 'client',
   sortModel,
   onSortModelChange,
