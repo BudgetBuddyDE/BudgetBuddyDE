@@ -3,6 +3,7 @@ import type {TPaymentMethod} from '../paymentMethod.type';
 import type {IBaseGetAllQuery} from './query.interface';
 
 export interface IGetAllRecurringPaymentsQuery extends IBaseGetAllQuery {
+  $paused?: boolean;
   $executeFrom?: number;
   $executeTo?: number;
   $categories?: TCategory['id'][];

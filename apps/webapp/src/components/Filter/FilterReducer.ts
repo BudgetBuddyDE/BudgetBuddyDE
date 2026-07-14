@@ -6,6 +6,7 @@ export type Filters<C = TCategoryVH, P = TPaymentMethodVH> = {
   hasActiveFilters: boolean;
   keywords: string | null;
   dateRange: DateRangeState;
+  paused: boolean | null;
   executeFrom: string;
   executeTo: string;
   categories: C[];
@@ -19,6 +20,7 @@ export function getInitialFilterState(): FilterState {
     hasActiveFilters: false,
     keywords: null,
     dateRange: {startDate: null, endDate: null},
+    paused: null,
     executeFrom: '',
     executeTo: '',
     categories: [],
@@ -31,6 +33,7 @@ export type FilterAction =
   | {action: 'SET_DATE_RANGE'; startDate: Date | null; endDate: Date | null}
   | {action: 'SET_START_DATE'; startDate: Date | null}
   | {action: 'SET_END_DATE'; endDate: Date | null}
+  | {action: 'SET_PAUSED'; paused: boolean | null}
   | {action: 'SET_EXECUTE_FROM'; executeFrom: string}
   | {action: 'SET_EXECUTE_TO'; executeTo: string}
   | {action: 'SET_CATEGORIES'; categories: TCategoryVH[]}
@@ -61,6 +64,9 @@ export function FilterReducer(state: FilterState, action: FilterAction): FilterS
         dateRange: {startDate: state.dateRange.startDate ?? null, endDate: action.endDate},
       };
       return {...updatedState, hasActiveFilters: determineHasActiveFilters(updatedState)};
+    case 'SET_PAUSED':
+      updatedState = {...state, paused: action.paused};
+      return {...updatedState, hasActiveFilters: determineHasActiveFilters(updatedState)};
     case 'SET_EXECUTE_FROM':
       updatedState = {...state, executeFrom: action.executeFrom};
       return {...updatedState, hasActiveFilters: determineHasActiveFilters(updatedState)};
@@ -85,6 +91,7 @@ function determineHasActiveFilters(state: FilterState): boolean {
     state.keywords ||
     state.dateRange.startDate ||
     state.dateRange.endDate ||
+    state.paused !== null ||
     state.executeFrom ||
     state.executeTo ||
     state.categories.length > 0 ||
