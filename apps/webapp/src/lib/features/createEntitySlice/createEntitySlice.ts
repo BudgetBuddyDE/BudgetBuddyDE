@@ -21,6 +21,8 @@ export type EntityFilters = {
   paymentMethods?: string[];
   /** Shared: exclude these payment method IDs */
   excl_paymentMethods?: string[];
+  /** RecurringPayment-specific: paused state */
+  paused?: boolean | null;
   /** RecurringPayment-specific: execute day >= this value (1–31) */
   executeFrom?: number | null;
   /** RecurringPayment-specific: execute day <= this value (1–31) */

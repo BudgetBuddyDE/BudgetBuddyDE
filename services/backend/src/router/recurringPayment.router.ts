@@ -19,6 +19,7 @@ recurringPaymentRouter.get(
       search: z.string().optional(),
       from: z.coerce.number().optional(),
       to: z.coerce.number().optional(),
+      $paused: z.coerce.boolean().optional(),
       $executeFrom: z.coerce.number().min(1).max(31).optional(),
       $executeTo: z.coerce.number().min(1).max(31).optional(),
       $categories: z
@@ -52,6 +53,9 @@ recurringPaymentRouter.get(
 
     const query = req.query;
     const additionalFilters: TAdditionalFilter<(typeof recurringPayments)['_']['config']>[] = [];
+    if (query.$paused !== undefined) {
+      additionalFilters.push({columnName: 'paused', operator: 'eq', value: query.$paused});
+    }
     if (query.$executeFrom) {
       additionalFilters.push({columnName: 'executeAt', operator: 'gte', value: query.$executeFrom});
     }

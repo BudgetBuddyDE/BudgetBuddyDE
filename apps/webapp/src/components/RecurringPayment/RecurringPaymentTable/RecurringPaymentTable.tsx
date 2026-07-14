@@ -590,7 +590,10 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
             <FilterWrapper
               currentFilters={filters}
               onApply={handleFilterApply}
+              withRecurringPaymentStatus
               withExecuteDay
+              recurringPaymentStatusQuickFilters={['active', 'inactive']}
+              recurringPaymentExecutionQuickFilters={['executed', 'scheduled']}
               withCategories
               withPaymentMethods
             />

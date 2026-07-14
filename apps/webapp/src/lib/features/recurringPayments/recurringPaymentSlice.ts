@@ -9,6 +9,7 @@ export const recurringPaymentSlice = createEntitySlice(
   query => apiClient.backend.recurringPayment.getAll(query),
   filters => {
     const extra: Partial<IGetAllRecurringPaymentsQuery> = {};
+    if (filters.paused != null) extra.$paused = filters.paused;
     if (filters.executeFrom != null) extra.$executeFrom = filters.executeFrom;
     if (filters.executeTo != null) extra.$executeTo = filters.executeTo;
     if (filters.categories?.length) extra.$categories = filters.categories as TCategory['id'][];

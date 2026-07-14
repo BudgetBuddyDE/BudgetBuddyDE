@@ -115,6 +115,11 @@ suite('Filter - URL utils', () => {
       expect(parseRecurringPaymentFiltersFromParams({q: 'netflix'})).toEqual({keyword: 'netflix'});
     });
 
+    it('parses paused state as boolean', () => {
+      expect(parseRecurringPaymentFiltersFromParams({paused: 'true'})).toEqual({paused: true});
+      expect(parseRecurringPaymentFiltersFromParams({paused: 'false'})).toEqual({paused: false});
+    });
+
     it('parses executeFrom as integer', () => {
       expect(parseRecurringPaymentFiltersFromParams({execFrom: '5'})).toEqual({executeFrom: 5});
     });
@@ -244,6 +249,11 @@ suite('Filter - URL utils', () => {
     it('serializes keyword', () => {
       const p = serializeRecurringPaymentFilters({...emptyFilters, keyword: 'spotify'});
       expect(p.get('q')).toBe('spotify');
+    });
+
+    it('serializes paused state as boolean string', () => {
+      const p = serializeRecurringPaymentFilters({...emptyFilters, paused: false});
+      expect(p.get('paused')).toBe('false');
     });
 
     it('serializes executeFrom as string number', () => {

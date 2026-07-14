@@ -124,10 +124,24 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
 
               return null;
             })}
-            {children}
           </ActionPaper>
         )}
       </Box>
+      {!isLoading && children && (
+        <Box
+          sx={theme => ({
+            width: 'calc(100% + 32px)',
+            mx: -2,
+            mt: 1.5,
+            px: 2,
+            py: 1.5,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          })}
+        >
+          {children}
+        </Box>
+      )}
     </Box>
   );
 };

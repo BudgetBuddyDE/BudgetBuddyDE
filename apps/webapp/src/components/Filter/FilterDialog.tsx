@@ -11,6 +11,8 @@ import {
   DialogTitle,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useMediaQuery,
   useTheme,
@@ -27,6 +29,7 @@ export type FilterDialogProps = Pick<DialogProps, 'open'> & {
   onReset?: () => void;
   onApply?: () => void;
   withDateRange?: boolean;
+  withRecurringPaymentStatus?: boolean;
   withExecuteDay?: boolean;
   withCategories?: boolean;
   withPaymentMethods?: boolean;
@@ -48,6 +51,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
   onReset,
   onApply,
   withDateRange,
+  withRecurringPaymentStatus,
   withExecuteDay,
   withCategories,
   withPaymentMethods,
@@ -110,6 +114,25 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
                   },
                 }}
               />
+            </Stack>
+          )}
+
+          {withRecurringPaymentStatus && (
+            <Stack gap={1}>
+              <SectionLabel label="Status" />
+              <ToggleButtonGroup
+                size="small"
+                exclusive
+                value={state.paused === null ? null : state.paused ? 'inactive' : 'active'}
+                onChange={(_, value) => {
+                  if (!value) return;
+                  dispatch({action: 'SET_PAUSED', paused: value === 'inactive'});
+                }}
+                aria-label="Recurring payment status quick filters"
+              >
+                <ToggleButton value="active">Active</ToggleButton>
+                <ToggleButton value="inactive">Inactive</ToggleButton>
+              </ToggleButtonGroup>
             </Stack>
           )}
 

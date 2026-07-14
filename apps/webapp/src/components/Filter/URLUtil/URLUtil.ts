@@ -12,6 +12,7 @@ const PARAM = {
   excl_categories: 'excl_cat',
   paymentMethods: 'pm',
   excl_paymentMethods: 'excl_pm',
+  paused: 'paused',
   executeFrom: 'execFrom',
   executeTo: 'execTo',
 } as const;
@@ -77,6 +78,9 @@ export function parseRecurringPaymentFiltersFromParams(
   const q = params[PARAM.keyword];
   if (typeof q === 'string' && q) filters.keyword = q;
 
+  const paused = params[PARAM.paused];
+  if (typeof paused === 'string' && paused) filters.paused = paused === 'true';
+
   const execFrom = params[PARAM.executeFrom];
   if (typeof execFrom === 'string' && execFrom) {
     const n = parseInt(execFrom, 10);
@@ -140,6 +144,7 @@ export function serializeTransactionFilters(filters: EntityFilters): URLSearchPa
 export function serializeRecurringPaymentFilters(filters: EntityFilters): URLSearchParams {
   const p = new URLSearchParams();
   if (filters.keyword) p.set(PARAM.keyword, filters.keyword);
+  if (filters.paused != null) p.set(PARAM.paused, String(filters.paused));
   if (filters.executeFrom != null) p.set(PARAM.executeFrom, String(filters.executeFrom));
   if (filters.executeTo != null) p.set(PARAM.executeTo, String(filters.executeTo));
   if (filters.categories?.length) p.set(PARAM.categories, filters.categories.join(','));

@@ -585,6 +585,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
               currentFilters={filters}
               onApply={handleFilterApply}
               withDateRange
+              transactionDateQuickFilters={['today', 'thisWeek', 'thisMonth', 'lastMonth']}
               withCategories
               withPaymentMethods
             />
