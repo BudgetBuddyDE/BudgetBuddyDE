@@ -11,6 +11,7 @@ export const recurringPaymentSlice = createEntitySlice(
     const extra: Partial<IGetAllRecurringPaymentsQuery> = {};
     if (filters.executeFrom != null) extra.$executeFrom = filters.executeFrom;
     if (filters.executeTo != null) extra.$executeTo = filters.executeTo;
+    if (filters.paused != null) extra.$paused = filters.paused;
     if (filters.categories?.length) extra.$categories = filters.categories as TCategory['id'][];
     if (filters.excl_categories?.length) extra.$excl_categories = filters.excl_categories as TCategory['id'][];
     if (filters.paymentMethods?.length) extra.$paymentMethods = filters.paymentMethods as TPaymentMethod['id'][];

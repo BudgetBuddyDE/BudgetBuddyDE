@@ -14,6 +14,7 @@ const PARAM = {
   excl_paymentMethods: 'excl_pm',
   executeFrom: 'execFrom',
   executeTo: 'execTo',
+  paused: 'paused',
 } as const;
 
 /**
@@ -89,6 +90,12 @@ export function parseRecurringPaymentFiltersFromParams(
     if (!Number.isNaN(n)) filters.executeTo = n;
   }
 
+  const paused = params[PARAM.paused];
+  if (typeof paused === 'string' && paused) {
+    if (paused === 'true') filters.paused = true;
+    if (paused === 'false') filters.paused = false;
+  }
+
   const cat = params[PARAM.categories];
   const catIds = parseIds(Array.isArray(cat) ? cat.join(',') : (cat ?? ''));
   if (catIds.length) filters.categories = catIds;
@@ -142,6 +149,7 @@ export function serializeRecurringPaymentFilters(filters: EntityFilters): URLSea
   if (filters.keyword) p.set(PARAM.keyword, filters.keyword);
   if (filters.executeFrom != null) p.set(PARAM.executeFrom, String(filters.executeFrom));
   if (filters.executeTo != null) p.set(PARAM.executeTo, String(filters.executeTo));
+  if (filters.paused != null) p.set(PARAM.paused, String(filters.paused));
   if (filters.categories?.length) p.set(PARAM.categories, filters.categories.join(','));
   if (filters.excl_categories?.length) p.set(PARAM.excl_categories, filters.excl_categories.join(','));
   if (filters.paymentMethods?.length) p.set(PARAM.paymentMethods, filters.paymentMethods.join(','));

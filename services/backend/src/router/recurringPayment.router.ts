@@ -21,6 +21,10 @@ recurringPaymentRouter.get(
       to: z.coerce.number().optional(),
       $executeFrom: z.coerce.number().min(1).max(31).optional(),
       $executeTo: z.coerce.number().min(1).max(31).optional(),
+      $paused: z
+        .enum(['true', 'false'])
+        .transform(value => value === 'true')
+        .optional(),
       $categories: z
         .array(Category.shape.id)
         .or(Category.shape.id)
@@ -57,6 +61,9 @@ recurringPaymentRouter.get(
     }
     if (query.$executeTo) {
       additionalFilters.push({columnName: 'executeAt', operator: 'lte', value: query.$executeTo});
+    }
+    if (query.$paused !== undefined && query.$paused !== null) {
+      additionalFilters.push({columnName: 'paused', operator: 'eq', value: query.$paused});
     }
     if (query.$categories) {
       additionalFilters.push({columnName: 'categoryId', operator: 'in', value: query.$categories});

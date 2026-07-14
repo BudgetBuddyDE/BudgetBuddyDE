@@ -11,7 +11,7 @@ export type TSearchFilter<Table extends TableConfig> = {
   searchableColumnName?: (keyof Table['columns'])[];
 };
 
-type TBaseValue = string | number | Date;
+type TBaseValue = string | number | boolean | Date;
 
 export type TAdditionalFilter<Table extends TableConfig> =
   | {

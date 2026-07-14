@@ -123,6 +123,18 @@ suite('Filter - URL utils', () => {
       expect(parseRecurringPaymentFiltersFromParams({execTo: '28'})).toEqual({executeTo: 28});
     });
 
+    it('parses paused=true', () => {
+      expect(parseRecurringPaymentFiltersFromParams({paused: 'true'})).toEqual({paused: true});
+    });
+
+    it('parses paused=false', () => {
+      expect(parseRecurringPaymentFiltersFromParams({paused: 'false'})).toEqual({paused: false});
+    });
+
+    it('ignores invalid paused values', () => {
+      expect(parseRecurringPaymentFiltersFromParams({paused: 'invalid'})).toEqual({});
+    });
+
     it('ignores non-numeric executeFrom', () => {
       expect(parseRecurringPaymentFiltersFromParams({execFrom: 'abc'})).toEqual({});
     });
@@ -261,6 +273,16 @@ suite('Filter - URL utils', () => {
       expect(p.get('execFrom')).toBe('0');
     });
 
+    it('serializes paused=true', () => {
+      const p = serializeRecurringPaymentFilters({...emptyFilters, paused: true});
+      expect(p.get('paused')).toBe('true');
+    });
+
+    it('serializes paused=false', () => {
+      const p = serializeRecurringPaymentFilters({...emptyFilters, paused: false});
+      expect(p.get('paused')).toBe('false');
+    });
+
     it('serializes categories, paymentMethods', () => {
       const p = serializeRecurringPaymentFilters({
         ...emptyFilters,
@@ -338,6 +360,7 @@ suite('Filter - URL utils', () => {
         keyword: 'netflix',
         executeFrom: 1,
         executeTo: 15,
+        paused: false,
         categories: ['c1'],
         excl_categories: ['c2'],
         paymentMethods: ['p1'],
@@ -351,6 +374,7 @@ suite('Filter - URL utils', () => {
       expect(parsed.keyword).toBe(original.keyword);
       expect(parsed.executeFrom).toBe(original.executeFrom);
       expect(parsed.executeTo).toBe(original.executeTo);
+      expect(parsed.paused).toBe(original.paused);
       expect(parsed.categories).toEqual(original.categories);
       expect(parsed.excl_categories).toEqual(original.excl_categories);
       expect(parsed.paymentMethods).toEqual(original.paymentMethods);

@@ -25,6 +25,8 @@ export type EntityFilters = {
   executeFrom?: number | null;
   /** RecurringPayment-specific: execute day <= this value (1–31) */
   executeTo?: number | null;
+  /** RecurringPayment-specific: active/inactive state */
+  paused?: boolean | null;
 };
 
 export type EntitySliceState<T> = {
