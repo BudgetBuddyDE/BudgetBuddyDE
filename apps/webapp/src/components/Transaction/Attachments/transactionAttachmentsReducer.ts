@@ -3,7 +3,9 @@ import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 /** Represents the complete UI and data state for the transaction attachments feature. */
 export type TransactionAttachmentsState = {
   attachments: TAttachmentWithUrl[];
+  totalCount: number;
   isLoading: boolean;
+  isLoadingMore: boolean;
   isUploading: boolean;
   isDragging: boolean;
   viewedAttachment: TAttachmentWithUrl | null;
@@ -13,7 +15,8 @@ export type TransactionAttachmentsState = {
 /** Union of all actions that can be dispatched to update {@link TransactionAttachmentsState}. */
 export type TransactionAttachmentsAction =
   | {type: 'LOAD_START'}
-  | {type: 'LOAD_SUCCESS'; attachments: TAttachmentWithUrl[]}
+  | {type: 'LOAD_MORE_START'}
+  | {type: 'LOAD_SUCCESS'; attachments: TAttachmentWithUrl[]; totalCount: number; append?: boolean}
   | {type: 'LOAD_ERROR'}
   | {type: 'UPLOAD_START'}
   | {type: 'UPLOAD_SUCCESS'; newAttachments: TAttachmentWithUrl[]}
@@ -28,7 +31,9 @@ export type TransactionAttachmentsAction =
 /** Initial state used when the hook is first mounted. */
 export const transactionAttachmentsInitialState: TransactionAttachmentsState = {
   attachments: [],
+  totalCount: 0,
   isLoading: true,
+  isLoadingMore: false,
   isUploading: false,
   isDragging: false,
   viewedAttachment: null,
@@ -46,14 +51,27 @@ export function transactionAttachmentsReducer(
   switch (action.type) {
     case 'LOAD_START':
       return {...state, isLoading: true};
+    case 'LOAD_MORE_START':
+      return {...state, isLoadingMore: true};
     case 'LOAD_SUCCESS':
-      return {...state, isLoading: false, attachments: action.attachments};
+      return {
+        ...state,
+        isLoading: false,
+        isLoadingMore: false,
+        attachments: action.append ? [...state.attachments, ...action.attachments] : action.attachments,
+        totalCount: action.totalCount,
+      };
     case 'LOAD_ERROR':
-      return {...state, isLoading: false};
+      return {...state, isLoading: false, isLoadingMore: false};
     case 'UPLOAD_START':
       return {...state, isUploading: true};
     case 'UPLOAD_SUCCESS':
-      return {...state, isUploading: false, attachments: [...state.attachments, ...action.newAttachments]};
+      return {
+        ...state,
+        isUploading: false,
+        attachments: [...action.newAttachments, ...state.attachments],
+        totalCount: state.totalCount + action.newAttachments.length,
+      };
     case 'UPLOAD_ERROR':
       return {...state, isUploading: false};
     case 'SET_DRAGGING':
@@ -70,6 +88,7 @@ export function transactionAttachmentsReducer(
       return {
         ...state,
         deletingAttachmentId: null,
+        totalCount: Math.max(0, state.totalCount - 1),
         attachments: state.attachments.filter(a => a.id !== action.attachmentId),
       };
     default:

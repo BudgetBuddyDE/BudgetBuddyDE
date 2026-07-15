@@ -45,3 +45,9 @@ To learn more about this example:
 
 You now have a working example project.
 You can head back to the documentation and continue by browsing the [templates](https://mui.com/material-ui/getting-started/templates/) section.
+
+## Transaction attachment loading
+
+The transaction attachment dialog loads attachments incrementally in pages of 24. This keeps large transactions responsive by avoiding upfront rendering of every thumbnail and by only requesting signed URLs for the current page. Users can fetch additional pages with the "Load more attachments" action.
+
+The transaction table uses the backend-provided `attachmentCount` plus a small preview strip, so the table stays fast even when a transaction has many attachments.

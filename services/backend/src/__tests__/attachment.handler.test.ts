@@ -373,6 +373,27 @@ suite('TransactionAttachmentHandler.findTransactionAttachmentsByOwner', () => {
     expect(result.totalCount).toBe(0);
   });
 
+  it('caps requested page size to avoid generating too many signed URLs', async () => {
+    const mockCountChain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([{count: 250}]),
+    };
+    const mockLimit = vi.fn().mockResolvedValue([]);
+    const mockRecordsChain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      offset: vi.fn().mockReturnThis(),
+      limit: mockLimit,
+    };
+    mockDbSelect.mockReturnValueOnce(mockCountChain).mockReturnValueOnce(mockRecordsChain);
+
+    await handler.findTransactionAttachmentsByOwner(USER_ID, {from: 0, to: 250});
+
+    expect(mockLimit).toHaveBeenCalledWith(100);
+  });
+
   it('returns attachments with signed URLs when records exist', async () => {
     const record = {
       id: ATTACHMENT_ID,

@@ -23,6 +23,15 @@ type PaginationQuery = {
   ttl?: number;
 };
 
+const DEFAULT_ATTACHMENT_PAGE_SIZE = 24;
+const MAX_ATTACHMENT_PAGE_SIZE = 100;
+
+function getPaginationWindow({from = 0, to}: PaginationQuery): {from: number; limit: number} {
+  const normalizedFrom = Math.max(0, from);
+  const requestedLimit = to !== undefined ? Math.max(0, to - normalizedFrom) : DEFAULT_ATTACHMENT_PAGE_SIZE;
+  return {from: normalizedFrom, limit: Math.min(requestedLimit, MAX_ATTACHMENT_PAGE_SIZE)};
+}
+
 export class TransactionAttachmentHandler extends AttachmentHandler {
   private generateAttachmentStoragePath(
     userId: string,
@@ -109,8 +118,8 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     userId: string,
     query: PaginationQuery = {},
   ): Promise<{attachments: AttachmentWithSignedUrl[]; totalCount: number}> {
-    const {from = 0, to, ttl} = query;
-    const limit = to !== undefined ? to - from : 50;
+    const {ttl} = query;
+    const {from, limit} = getPaginationWindow(query);
 
     const [totalCountResult, records] = await Promise.all([
       db
@@ -168,8 +177,8 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     transactionId: string,
     query: PaginationQuery = {},
   ): Promise<{attachments: AttachmentWithSignedUrl[]; totalCount: number}> {
-    const {from = 0, to, ttl} = query;
-    const limit = to !== undefined ? to - from : 50;
+    const {ttl} = query;
+    const {from, limit} = getPaginationWindow(query);
 
     const ownerAndTransaction = and(
       eq(attachments.ownerId, userId),

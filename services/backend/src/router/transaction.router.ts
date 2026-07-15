@@ -1,5 +1,10 @@
 import type {TUserID} from '@budgetbuddyde/api';
-import {SignedAttachmentUrlTTL, type TAttachment, type TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
+import {
+  ATTACHMENT_CONTENT_TYPES,
+  SignedAttachmentUrlTTL,
+  type TAttachment,
+  type TAttachmentWithUrl,
+} from '@budgetbuddyde/api/attachment';
 import {Category} from '@budgetbuddyde/api/category';
 import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import {
@@ -23,9 +28,29 @@ import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 
 export const transactionRouter = Router();
-const upload = multer({storage: multer.memoryStorage()});
+const MAX_ATTACHMENT_FILES_PER_REQUEST = 10;
+const MAX_ATTACHMENT_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const TRANSACTION_ATTACHMENT_PREVIEW_LIMIT = 3;
+const ALLOWED_ATTACHMENT_CONTENT_TYPES = new Set<string>(ATTACHMENT_CONTENT_TYPES);
+const OCTET_STREAM_ALLOWED_EXTENSIONS = new Set(['heic', 'heif']);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    files: MAX_ATTACHMENT_FILES_PER_REQUEST,
+    fileSize: MAX_ATTACHMENT_FILE_SIZE_BYTES,
+  },
+});
 const attachmentLogger = logger.child({label: 'transactions.attachments'});
 const attachmentService = new TransactionAttachmentHandler(process.env.AWS_S3_BUCKET_NAME as string);
+
+const isAllowedAttachmentFile = (file: Express.Multer.File): boolean => {
+  if (ALLOWED_ATTACHMENT_CONTENT_TYPES.has(file.mimetype)) return true;
+  if (file.mimetype === 'application/octet-stream') {
+    const extension = file.originalname.split('.').pop()?.toLowerCase() ?? '';
+    return OCTET_STREAM_ALLOWED_EXTENSIONS.has(extension);
+  }
+  return false;
+};
 
 const mapAttachmentWithUrl = (attachment: {
   id: string;
@@ -204,16 +229,18 @@ transactionRouter.get(
         attachmentCountByTransactionId.set(transactionId, (attachmentCountByTransactionId.get(transactionId) ?? 0) + 1);
 
         const previewRows = previewRowsByTransactionId.get(transactionId) ?? [];
-        previewRows.push({
-          id: attachmentRow.id,
-          ownerId: attachmentRow.ownerId,
-          fileName: attachmentRow.fileName,
-          fileExtension: attachmentRow.fileExtension,
-          contentType: attachmentRow.contentType,
-          location: attachmentRow.location,
-          createdAt: attachmentRow.createdAt,
-        });
-        previewRowsByTransactionId.set(transactionId, previewRows);
+        if (previewRows.length < TRANSACTION_ATTACHMENT_PREVIEW_LIMIT) {
+          previewRows.push({
+            id: attachmentRow.id,
+            ownerId: attachmentRow.ownerId,
+            fileName: attachmentRow.fileName,
+            fileExtension: attachmentRow.fileExtension,
+            contentType: attachmentRow.contentType,
+            location: attachmentRow.location,
+            createdAt: attachmentRow.createdAt,
+          });
+          previewRowsByTransactionId.set(transactionId, previewRows);
+        }
       }
     }
 
@@ -437,7 +464,7 @@ transactionRouter.post(
 
 transactionRouter.post(
   '/:id/attachments',
-  upload.array('files'),
+  upload.array('files', MAX_ATTACHMENT_FILES_PER_REQUEST),
   validateRequest({
     params: z.object({
       id: TransactionSchemas.select.shape.id,
@@ -460,8 +487,16 @@ transactionRouter.post(
         .buildAndSend(res);
     }
 
+    const invalidFiles = files.filter(file => !isAllowedAttachmentFile(file));
+    if (invalidFiles.length > 0) {
+      return ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('Unsupported attachment file type')
+        .buildAndSend(res);
+    }
+
     try {
-      const transactionId = req.params.id;
+      const transactionId = req.params.id as string;
       const uploadedAttachments = await attachmentService.uploadTransactionAttachments(userId, transactionId, files);
 
       ApiResponse.builder<TAttachmentWithUrl[]>()
