@@ -26,11 +26,17 @@ npm start
 - [ExpressJS](https://expressjs.com/)
 - [Drizzle ORM](https://orm.drizzle.team/)
 
+## Configuration
+
+All service configuration is centralized in [`src/config.ts`](src/config.ts). This includes environment-backed
+infrastructure settings as well as rate limiting, scheduled jobs, caching, and attachment processing limits.
+Backend modules consume the exported `config` object instead of reading environment variables directly.
+
 ## Attachment performance and safety
 
 Transaction attachment endpoints are optimized for large attachment collections:
 
 - `GET /api/transaction/:id/attachments` is paginated. When no range is supplied, the backend returns the first 24 attachments and caps each request at 100 attachments.
 - `GET /api/transaction` returns only a small signed-url preview per transaction while still returning `attachmentCount` for the full count.
-- Uploads are protected with server-side limits of 10 files per request and 10 MiB per file. The backend validates attachment content types and only accepts the configured image formats.
+- Uploads are protected with server-side limits of 10 files per request and 20 MiB per file. The backend validates attachment content types and only accepts the configured image formats.
 - Signed URLs remain short-lived and are generated only for the attachments that are actually returned to the client.

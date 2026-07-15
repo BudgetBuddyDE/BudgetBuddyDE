@@ -10,6 +10,23 @@ const mockRedisSetex = vi.fn();
 const mockRedisScan = vi.fn();
 const mockRedisDel = vi.fn();
 
+const {mockConfig} = vi.hoisted(() => ({
+  mockConfig: {
+    redis: {
+      url: 'redis://localhost:6379' as string | undefined,
+    },
+    cache: {
+      enabled: true,
+      keyPrefix: 'cache',
+      invalidationScanCount: 100,
+      routes: [
+        {path: '/api/category', ttl: 300},
+        {path: '/api/transaction', ttl: 60, cacheKeyPrefix: 'txn'},
+      ],
+    },
+  },
+}));
+
 vi.mock('../db/redis', () => ({
   getRedisClient: () => ({
     get: mockRedisGet,
@@ -39,18 +56,16 @@ vi.mock('../lib/logger', () => ({
 
 // Provide a stable config that the middleware can import
 vi.mock('../config', () => ({
-  config: {
-    cache: {
-      enabled: true,
-      routes: [
-        {path: '/api/category', ttl: 300},
-        {path: '/api/transaction', ttl: 60, cacheKeyPrefix: 'txn'},
-      ],
-    },
-  },
+  config: mockConfig,
 }));
 
-import {buildCacheKey, cacheResponse, findMatchingRoute, invalidateCache, isCacheAvailable} from '../middleware';
+import {
+  buildCacheKey,
+  cacheResponse,
+  findMatchingRoute,
+  invalidateCache,
+  isCacheAvailable,
+} from '../middleware/cache.middleware';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -87,12 +102,12 @@ function makeResponse(): Response & {_jsonBody: unknown} {
 suite('Cache', () => {
   describe('isCacheAvailable', () => {
     it('returns true when REDIS_URL is set and cache is enabled', () => {
-      process.env.REDIS_URL = 'redis://localhost:6379';
+      mockConfig.redis.url = 'redis://localhost:6379';
       expect(isCacheAvailable()).toBe(true);
     });
 
     it('returns false when REDIS_URL is not set', () => {
-      delete process.env.REDIS_URL;
+      mockConfig.redis.url = undefined;
       expect(isCacheAvailable()).toBe(false);
     });
   });
@@ -130,7 +145,7 @@ suite('Cache', () => {
 
     beforeEach(() => {
       vi.clearAllMocks();
-      process.env.REDIS_URL = 'redis://localhost:6379';
+      mockConfig.redis.url = 'redis://localhost:6379';
     });
 
     it('calls next() and skips caching for non-GET requests', async () => {
@@ -142,7 +157,7 @@ suite('Cache', () => {
     });
 
     it('calls next() when caching is disabled (no REDIS_URL)', async () => {
-      delete process.env.REDIS_URL;
+      mockConfig.redis.url = undefined;
       const req = makeRequest();
       const res = makeResponse();
       await cacheResponse(req, res, next);
@@ -229,7 +244,7 @@ suite('Cache', () => {
 
     beforeEach(() => {
       vi.clearAllMocks();
-      process.env.REDIS_URL = 'redis://localhost:6379';
+      mockConfig.redis.url = 'redis://localhost:6379';
     });
 
     it('calls next() for GET requests without touching Redis', async () => {
@@ -241,7 +256,7 @@ suite('Cache', () => {
     });
 
     it('calls next() when caching is disabled', async () => {
-      delete process.env.REDIS_URL;
+      mockConfig.redis.url = undefined;
       const req = makeRequest({method: 'POST'});
       const res = makeResponse();
       await invalidateCache(req, res, next);

@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
+import {getRequiredRedisConfig} from '../config';
 import {logger} from '../lib/logger';
-import {EnvironmentVariableNotSetError} from '../types/error';
 
 const redisLogger = logger.child({label: 'redis'});
 
@@ -8,13 +8,9 @@ let redis: Redis | null = null;
 
 export function getRedisClient(): Redis {
   if (!redis) {
-    const redisUrl = process.env.REDIS_URL;
-    // assert(redisUrl !== undefined, 'REDIS_URL environment variable is not set');
-    if (redisUrl === undefined) {
-      throw new EnvironmentVariableNotSetError('REDIS_URL');
-    }
-    redis = new Redis(redisUrl, {
-      db: Number(process.env.REDIS_DB) || 1,
+    const redisConfig = getRequiredRedisConfig();
+    redis = new Redis(redisConfig.url, {
+      db: redisConfig.database,
     });
 
     redis.on('connect', () => {

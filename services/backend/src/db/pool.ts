@@ -1,14 +1,13 @@
-import 'dotenv/config';
 import pg from 'pg';
+import {config} from '../config';
 import {logger} from '../lib/logger';
 
 const {Pool} = pg;
-const {DATABASE_URL} = process.env;
 export const dbLogger = logger.child({label: 'pool'});
 export const pool = new Pool({
-  connectionString: DATABASE_URL as string,
-  connectionTimeoutMillis: 5000,
-  max: 20,
+  connectionString: config.database.connectionString,
+  connectionTimeoutMillis: config.database.connectionTimeoutMillis,
+  max: config.database.maxConnections,
 });
 
 pool.on('connect', () => dbLogger.debug('Connected to the database'));

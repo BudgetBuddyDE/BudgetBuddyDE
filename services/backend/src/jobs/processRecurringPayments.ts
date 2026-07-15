@@ -9,10 +9,10 @@ import {createTransactionFromRecurringPayment} from '../utils/createTransactionF
  * Processes all due recurring payments and creates corresponding transactions.
  */
 export async function processRecurringPayments() {
-  const today = toZonedTime(new Date(), config.jobs.timezone);
+  const today = toZonedTime(new Date(), config.jobs.recurringPayments.timezone);
   logger.info('Starting recurring payments processing job...', {
     date: format(today, 'yyyy-MM-dd'),
-    timezone: config.jobs.timezone,
+    timezone: config.jobs.recurringPayments.timezone,
   });
 
   let duePayments = await db.query.recurringPayments.findMany({

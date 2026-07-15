@@ -1,7 +1,7 @@
 import type {NextFunction, Request, Response} from 'express';
 import {type CacheRouteConfig, config} from '../config';
 import {getRedisClient} from '../db/redis';
-import {logger} from '../lib';
+import {logger} from '../lib/logger';
 
 const cacheLogger = logger.child({label: 'cache', middleware: 'cache'});
 
@@ -9,7 +9,7 @@ const cacheLogger = logger.child({label: 'cache', middleware: 'cache'});
  * Returns true when caching should be attempted (Redis URL is set and caching is globally enabled).
  */
 export function isCacheAvailable(): boolean {
-  return Boolean(process.env.REDIS_URL) && config.cache.enabled;
+  return Boolean(config.redis.url) && config.cache.enabled;
 }
 
 /**
@@ -26,7 +26,7 @@ export function findMatchingRoute(requestPath: string): CacheRouteConfig | undef
  */
 export function buildCacheKey(route: CacheRouteConfig, userId: string, originalUrl: string): string {
   const prefix = route.cacheKeyPrefix ?? route.path;
-  return `cache:${prefix}:${userId}:${originalUrl}`;
+  return `${config.cache.keyPrefix}:${prefix}:${userId}:${originalUrl}`;
 }
 
 /**
@@ -112,11 +112,17 @@ export async function invalidateCache(req: Request, res: Response, next: NextFun
     try {
       const redis = getRedisClient();
       const prefix = route.cacheKeyPrefix ?? route.path;
-      const pattern = `cache:${prefix}:${userId}:*`;
+      const pattern = `${config.cache.keyPrefix}:${prefix}:${userId}:*`;
 
       let cursor = '0';
       do {
-        const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+        const [nextCursor, keys] = await redis.scan(
+          cursor,
+          'MATCH',
+          pattern,
+          'COUNT',
+          config.cache.invalidationScanCount,
+        );
         cursor = nextCursor;
         if (keys.length > 0) {
           await redis.del(...keys);

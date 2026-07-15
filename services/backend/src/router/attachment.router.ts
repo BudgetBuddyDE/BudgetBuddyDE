@@ -4,13 +4,14 @@ import {AttachmentSchemas} from '@budgetbuddyde/db/backend';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
+import {getRequiredObjectStorageConfig} from '../config';
 import {logger} from '../lib';
 import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const attachmentRouter = Router();
 const attachmentLogger = logger.child({label: 'attachment.router'});
-const attachmentService = new TransactionAttachmentHandler(process.env.AWS_S3_BUCKET_NAME as string);
+const attachmentService = new TransactionAttachmentHandler(getRequiredObjectStorageConfig().bucketName);
 
 /**
  * GET /api/attachment/:attachmentId

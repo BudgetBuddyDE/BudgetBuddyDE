@@ -1,11 +1,12 @@
 import {createAuthClient} from 'better-auth/client';
 import {apiKeyClient} from '@better-auth/api-key/client';
+import {config} from '../config';
 
 export const authClient = createAuthClient({
   /** The base URL of the server (optional if you're using the same domain) */
-  baseURL: process.env.AUTH_SERVICE_HOST || 'http://localhost:8080',
+  baseURL: config.auth.baseUrl,
   fetchOptions: {
-    credentials: 'include',
+    credentials: config.auth.credentials,
   },
   plugins: [apiKeyClient()],
 });

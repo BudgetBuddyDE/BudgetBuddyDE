@@ -3,6 +3,7 @@ import type {TAttachment, TAttachmentWithUrl} from '@budgetbuddyde/api/attachmen
 import {attachments, transactionAttachments} from '@budgetbuddyde/db/backend';
 import {and, count, eq, inArray} from 'drizzle-orm';
 import {uuidv7} from 'uuidv7';
+import {config} from '../../config';
 import {db} from '../../db';
 import {AttachmentHandler} from './attachment.handler';
 
@@ -23,13 +24,11 @@ type PaginationQuery = {
   ttl?: number;
 };
 
-const DEFAULT_ATTACHMENT_PAGE_SIZE = 24;
-const MAX_ATTACHMENT_PAGE_SIZE = 100;
-
 function getPaginationWindow({from = 0, to}: PaginationQuery): {from: number; limit: number} {
   const normalizedFrom = Math.max(0, from);
-  const requestedLimit = to !== undefined ? Math.max(0, to - normalizedFrom) : DEFAULT_ATTACHMENT_PAGE_SIZE;
-  return {from: normalizedFrom, limit: Math.min(requestedLimit, MAX_ATTACHMENT_PAGE_SIZE)};
+  const requestedLimit =
+    to !== undefined ? Math.max(0, to - normalizedFrom) : config.attachments.pagination.defaultPageSize;
+  return {from: normalizedFrom, limit: Math.min(requestedLimit, config.attachments.pagination.maxPageSize)};
 }
 
 export class TransactionAttachmentHandler extends AttachmentHandler {

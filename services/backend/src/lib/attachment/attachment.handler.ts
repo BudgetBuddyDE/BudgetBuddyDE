@@ -9,6 +9,7 @@ import {type AttachmentSchemas, attachments} from '@budgetbuddyde/db/backend';
 import {and, eq, inArray} from 'drizzle-orm';
 import sharp from 'sharp';
 import type winston from 'winston';
+import {config} from '../../config';
 import {db} from '../../db';
 import {AttachmentCache} from '../cache/attachment.cache';
 import {logger} from '../logger';
@@ -40,7 +41,7 @@ export abstract class AttachmentHandler {
   protected readonly logger: winston.Logger;
   protected readonly bucketName: string;
   protected readonly cache: AttachmentCache;
-  protected readonly defaultTtl: number = 900; // 15 minutes
+  protected readonly defaultTtl: number = config.attachments.signedUrlTtlSeconds;
 
   constructor(bucket: string, options?: Partial<AttachmentHandlerOptions>) {
     this.s3Client = getS3Client();
@@ -58,44 +59,26 @@ export abstract class AttachmentHandler {
   }
 
   /**
-   * Extension-to-MIME overrides for types that browsers commonly misreport as
-   * `application/octet-stream` (e.g. HEIC on non-Safari browsers).
-   */
-  private static readonly EXTENSION_MIME_OVERRIDES: Record<string, string> = {
-    heic: 'image/heic',
-    heif: 'image/heif',
-  };
-
-  /**
    * Return the correct MIME type for a multer file.
    * When the browser reports `application/octet-stream`, the actual type is
-   * derived from the file extension using {@link EXTENSION_MIME_OVERRIDES}.
+   * derived from the configured file-extension overrides.
    */
   static resolveMimeType(file: Express.Multer.File): string {
     if (file.mimetype !== 'application/octet-stream') {
       return file.mimetype;
     }
     const ext = AttachmentHandler.getFileExtension(file);
-    return AttachmentHandler.EXTENSION_MIME_OVERRIDES[ext] ?? file.mimetype;
+    return config.attachments.mimeTypeOverrides[ext] ?? file.mimetype;
   }
 
-  private static readonly MAX_IMAGE_DIMENSION_PX = 1920;
-
-  private static readonly OPTIMIZABLE_IMAGE_MIME_TYPES = new Set([
-    'image/jpeg',
-    'image/jpg',
-    'image/png',
-    'image/webp',
-  ]);
-
   private static isOptimizableImage(contentType: string): boolean {
-    return AttachmentHandler.OPTIMIZABLE_IMAGE_MIME_TYPES.has(contentType);
+    return config.attachments.imageOptimization.mimeTypes.has(contentType);
   }
 
   private static async optimizeImageBuffer(fileBuffer: Buffer, contentType: string): Promise<Buffer> {
     const image = sharp(fileBuffer, {failOn: 'none'}).rotate().resize({
-      width: AttachmentHandler.MAX_IMAGE_DIMENSION_PX,
-      height: AttachmentHandler.MAX_IMAGE_DIMENSION_PX,
+      width: config.attachments.imageOptimization.maxDimensionPx,
+      height: config.attachments.imageOptimization.maxDimensionPx,
       fit: 'inside',
       withoutEnlargement: true,
     });
@@ -103,11 +86,13 @@ export abstract class AttachmentHandler {
     switch (contentType) {
       case 'image/jpeg':
       case 'image/jpg':
-        return image.jpeg({quality: 82, mozjpeg: true}).toBuffer();
+        return image.jpeg({quality: config.attachments.imageOptimization.jpegQuality, mozjpeg: true}).toBuffer();
       case 'image/png':
-        return image.png({compressionLevel: 9, palette: true}).toBuffer();
+        return image
+          .png({compressionLevel: config.attachments.imageOptimization.pngCompressionLevel, palette: true})
+          .toBuffer();
       case 'image/webp':
-        return image.webp({quality: 82}).toBuffer();
+        return image.webp({quality: config.attachments.imageOptimization.webpQuality}).toBuffer();
       default:
         return fileBuffer;
     }

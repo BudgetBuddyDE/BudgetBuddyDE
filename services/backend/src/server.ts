@@ -25,22 +25,19 @@ import {
 export const app = express();
 
 app.use(cors(config.cors));
-if (config.runtime === 'production') {
+if (config.rateLimit.enabled) {
   app.use(
     rateLimit({
-      ...config.rateLimit,
+      ...config.rateLimit.options,
       store: new RedisStore({
-        prefix: `rate-limit:${config.service}:`,
+        prefix: config.rateLimit.keyPrefix,
         // biome-ignore lint/suspicious/noExplicitAny: ioredis returns unknown, rate-limit-redis expects RedisReply
         sendCommand: (...args: string[]) => getRedisClient().call(...(args as [string, ...string[]])) as any,
       }),
     }),
   );
-  logger.info('Rate limiting is enabled in production environment.');
-} else
-  logger.warn(
-    'Rate limiting is disabled in non-production environments. Make sure to enable it in production to prevent abuse.',
-  );
+  logger.info('Rate limiting is enabled.');
+} else logger.warn('Rate limiting is disabled. Make sure to enable it in production to prevent abuse.');
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const redisStatus = getRedisClient().status;
@@ -120,14 +117,22 @@ export const server = app.listen(config.port, () => {
   console.table(options);
   logger.info('%s is available under http://localhost:%d', config.service, config.port, {...options});
 
-  const jobName = 'process-recurring-payments';
-  cron.schedule('30 1 * * *', processRecurringPayments, {
-    name: jobName,
-    timezone: config.jobs.timezone,
-  });
-  logger.info('Scheduled job "%s" to run daily at 01:30 AM (%s timezone)', jobName, config.jobs.timezone, {
-    job: jobName,
-    schedule: '30 1 * * *',
-    timezone: config.jobs.timezone,
-  });
+  const recurringPaymentsJob = config.jobs.recurringPayments;
+  if (recurringPaymentsJob.enabled) {
+    cron.schedule(recurringPaymentsJob.schedule, processRecurringPayments, {
+      name: recurringPaymentsJob.name,
+      timezone: recurringPaymentsJob.timezone,
+    });
+    logger.info(
+      'Scheduled job "%s" with schedule "%s" (%s timezone)',
+      recurringPaymentsJob.name,
+      recurringPaymentsJob.schedule,
+      recurringPaymentsJob.timezone,
+      {
+        job: recurringPaymentsJob.name,
+        schedule: recurringPaymentsJob.schedule,
+        timezone: recurringPaymentsJob.timezone,
+      },
+    );
+  }
 });

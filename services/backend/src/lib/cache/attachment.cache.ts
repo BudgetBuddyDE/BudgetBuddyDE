@@ -1,9 +1,10 @@
 import type {TSignedAttachmentUrl} from '@budgetbuddyde/api/attachment';
+import {config} from '../../config';
 import {Cache} from './cache';
 
 export class AttachmentCache extends Cache {
   constructor() {
-    super('attachments');
+    super(config.attachments.cacheNamespace);
   }
 
   writeSignedAttachmentUrl(attachmentId: string, signedUrl: string, ttlSeconds: number) {

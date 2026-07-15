@@ -130,6 +130,10 @@ npm run format
 
 #### Environment Variables
 
+Environment variables and all remaining service settings are mapped centrally in `services/backend/src/config.ts`.
+Runtime modules access the resulting `config` object through its `auth`, `database`, `redis`, `objectStorage`,
+`rateLimit`, `jobs`, `cache`, and `attachments` sections.
+
 | Variable            | Description                                           | Default Value       |
 |:--------------------|:------------------------------------------------------|:--------------------|
 | `NODE_ENV`          | Execution environment (development, production, test) | `development`       |
@@ -144,7 +148,8 @@ npm run format
 | `PORT`              | Port on which the service runs                        | `9000`              |
 | `LOKI_URL`          | URL for the Loki logging service                      | `http://loki:3100`  |
 | `AWS_S3_BUCKET_NAME`    | Name of the S3 bucket used for storing attachments    | -                   |
-| `AWS_S3_ENDPOINT`       | Endpoint URL of the S3-compatible object store        | -                   |
+| `AWS_ENDPOINT_URL`      | Endpoint URL of the S3-compatible object store        | -                   |
+| `AWS_DEFAULT_REGION`    | Region of the S3-compatible object store              | -                   |
 | `AWS_ACCESS_KEY_ID`     | Access key for the S3 object store                    | -                   |
 | `AWS_SECRET_ACCESS_KEY` | Secret key for the S3 object store                    | -                   |
 
