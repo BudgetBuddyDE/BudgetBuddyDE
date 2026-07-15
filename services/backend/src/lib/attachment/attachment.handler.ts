@@ -1,4 +1,5 @@
 import path from 'node:path';
+import {gzipSync} from 'node:zlib';
 import type {S3Client} from '@aws-sdk/client-s3';
 import {DeleteObjectsCommand, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -6,6 +7,7 @@ import type {TypeOfSchema} from '@budgetbuddyde/api';
 import type {IGetAllAttachmentsQuery, TAttachment, TSignedAttachmentUrl} from '@budgetbuddyde/api/attachment';
 import {type AttachmentSchemas, attachments} from '@budgetbuddyde/db/backend';
 import {and, eq, inArray} from 'drizzle-orm';
+import sharp from 'sharp';
 import type winston from 'winston';
 import {db} from '../../db';
 import {AttachmentCache} from '../cache/attachment.cache';
@@ -14,7 +16,13 @@ import {getS3Client} from '../s3';
 
 type AttachmentRecord = TypeOfSchema<typeof AttachmentSchemas.select>;
 
-type SignedUrlOptions = Pick<IGetAllAttachmentsQuery, 'ttl'>;
+type SignedUrlOptions = Partial<Pick<IGetAllAttachmentsQuery, 'ttl'>>;
+
+type PreparedAttachmentBuffer = {
+  buffer: Buffer;
+  contentEncoding?: string;
+  optimization: 'image' | 'gzip' | 'none';
+};
 
 type UploadFileOptions = Pick<
   TAttachment,
@@ -69,6 +77,70 @@ export abstract class AttachmentHandler {
     }
     const ext = AttachmentHandler.getFileExtension(file);
     return AttachmentHandler.EXTENSION_MIME_OVERRIDES[ext] ?? file.mimetype;
+  }
+
+  private static readonly MAX_IMAGE_DIMENSION_PX = 1920;
+
+  private static readonly OPTIMIZABLE_IMAGE_MIME_TYPES = new Set([
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+  ]);
+
+  private static isOptimizableImage(contentType: string): boolean {
+    return AttachmentHandler.OPTIMIZABLE_IMAGE_MIME_TYPES.has(contentType);
+  }
+
+  private static async optimizeImageBuffer(fileBuffer: Buffer, contentType: string): Promise<Buffer> {
+    const image = sharp(fileBuffer, {failOn: 'none'}).rotate().resize({
+      width: AttachmentHandler.MAX_IMAGE_DIMENSION_PX,
+      height: AttachmentHandler.MAX_IMAGE_DIMENSION_PX,
+      fit: 'inside',
+      withoutEnlargement: true,
+    });
+
+    switch (contentType) {
+      case 'image/jpeg':
+      case 'image/jpg':
+        return image.jpeg({quality: 82, mozjpeg: true}).toBuffer();
+      case 'image/png':
+        return image.png({compressionLevel: 9, palette: true}).toBuffer();
+      case 'image/webp':
+        return image.webp({quality: 82}).toBuffer();
+      default:
+        return fileBuffer;
+    }
+  }
+
+  /**
+   * Prepare an attachment payload for storage. Images are optimized with
+   * image-aware resizing/re-encoding first because gzip usually does not reduce
+   * already-compressed image formats. Non-images still use gzip when it reduces
+   * the payload size.
+   */
+  static async prepareAttachmentBuffer(fileBuffer: Buffer, contentType: string): Promise<PreparedAttachmentBuffer> {
+    if (AttachmentHandler.isOptimizableImage(contentType)) {
+      try {
+        const optimizedImageBuffer = await AttachmentHandler.optimizeImageBuffer(fileBuffer, contentType);
+
+        if (optimizedImageBuffer.length < fileBuffer.length) {
+          return {buffer: optimizedImageBuffer, optimization: 'image'};
+        }
+      } catch {
+        // Keep the original upload if an image is malformed or libvips cannot decode it.
+      }
+
+      return {buffer: fileBuffer, optimization: 'none'};
+    }
+
+    const compressedBuffer = gzipSync(fileBuffer);
+
+    if (compressedBuffer.length >= fileBuffer.length) {
+      return {buffer: fileBuffer, optimization: 'none'};
+    }
+
+    return {buffer: compressedBuffer, contentEncoding: 'gzip', optimization: 'gzip'};
   }
 
   /**
@@ -241,12 +313,18 @@ export abstract class AttachmentHandler {
 
     this.logger.debug('Inserted attachment metadata into database', {attachmentId: options.id});
 
+    const preparedBuffer = await AttachmentHandler.prepareAttachmentBuffer(
+      options.fileBuffer,
+      options.contentType as string,
+    );
+
     // Upload to S3
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: options.location,
-      Body: options.fileBuffer,
+      Body: preparedBuffer.buffer,
       ContentType: options.contentType as string,
+      ContentEncoding: preparedBuffer.contentEncoding,
     });
 
     this.logger.debug('Uploading file %s to S3 at %s', options.id, options.location);

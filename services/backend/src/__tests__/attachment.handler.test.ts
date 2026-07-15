@@ -1,3 +1,4 @@
+import sharp from 'sharp';
 import {beforeEach, describe, expect, it, suite, vi} from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -111,6 +112,49 @@ const ATTACHMENT_ID = '01926a0b-0000-7000-8000-000000000001';
 // ---------------------------------------------------------------------------
 
 suite('AttachmentHandler', () => {
+  describe('prepareAttachmentBuffer', () => {
+    it('gzip-compresses non-image buffers when the compressed payload is smaller', async () => {
+      const buffer = Buffer.from('receipt-data-'.repeat(100));
+
+      const prepared = await AttachmentHandler.prepareAttachmentBuffer(buffer, 'application/pdf');
+
+      expect(prepared.contentEncoding).toBe('gzip');
+      expect(prepared.optimization).toBe('gzip');
+      expect(prepared.buffer.length).toBeLessThan(buffer.length);
+    });
+
+    it('keeps original non-image buffers when gzip would not reduce the payload size', async () => {
+      const buffer = Buffer.from([0x1f]);
+
+      const prepared = await AttachmentHandler.prepareAttachmentBuffer(buffer, 'application/pdf');
+
+      expect(prepared.contentEncoding).toBeUndefined();
+      expect(prepared.optimization).toBe('none');
+      expect(prepared.buffer).toBe(buffer);
+    });
+
+    it('optimizes large images without gzip content encoding', async () => {
+      const buffer = await sharp({
+        create: {
+          width: 2400,
+          height: 2400,
+          channels: 3,
+          background: '#f4f0e8',
+        },
+      })
+        .jpeg({quality: 100})
+        .toBuffer();
+
+      const prepared = await AttachmentHandler.prepareAttachmentBuffer(buffer, 'image/jpeg');
+
+      expect(prepared.contentEncoding).toBeUndefined();
+      expect(prepared.optimization).toBe('image');
+      expect(prepared.buffer.length).toBeLessThan(buffer.length);
+      const metadata = await sharp(prepared.buffer).metadata();
+      expect(Math.max(metadata.width ?? 0, metadata.height ?? 0)).toBeLessThanOrEqual(1920);
+    });
+  });
+
   describe('getFileExtension', () => {
     it('returns lowercase extension without leading dot', () => {
       const file = makeMulFile({originalname: 'photo.PNG'});
@@ -307,7 +351,17 @@ suite('TransactionAttachmentHandler.uploadTransactionAttachments', () => {
     mockGetSignedUrl.mockResolvedValue('https://signed.example.com/new');
     mockRedisSet.mockResolvedValue('OK');
 
-    const file = makeMulFile();
+    const imageBuffer = await sharp({
+      create: {
+        width: 2400,
+        height: 2400,
+        channels: 3,
+        background: '#f4f0e8',
+      },
+    })
+      .png()
+      .toBuffer();
+    const file = makeMulFile({buffer: imageBuffer, size: imageBuffer.length});
     const results = await handler.uploadTransactionAttachments(USER_ID, TX_ID, [file]);
 
     expect(results).toHaveLength(1);
@@ -317,6 +371,30 @@ suite('TransactionAttachmentHandler.uploadTransactionAttachments', () => {
     expect(results[0].contentType).toBe('image/png');
     expect(results[0].signedUrl).toBe('https://signed.example.com/new');
     expect(mockS3Send).toHaveBeenCalledOnce();
+    const command = mockS3Send.mock.calls[0][0];
+    expect(command.input.ContentEncoding).toBeUndefined();
+    expect(command.input.Body.length).toBeLessThan(file.buffer.length);
+  });
+
+  it('uploads the original payload when compression would not reduce file size', async () => {
+    mockDbTransaction.mockImplementationOnce(async (callback: (tx: unknown) => Promise<void>) => {
+      const mockTx = {
+        insert: vi.fn().mockReturnValue({values: vi.fn().mockResolvedValue([])}),
+      };
+      await callback(mockTx);
+    });
+
+    mockS3Send.mockResolvedValue({});
+    mockRedisGet.mockResolvedValue(null);
+    mockGetSignedUrl.mockResolvedValue('https://signed.example.com/raw');
+    mockRedisSet.mockResolvedValue('OK');
+
+    const file = makeMulFile({buffer: Buffer.from([0x1f]), mimetype: 'application/pdf', size: 1});
+    await handler.uploadTransactionAttachments(USER_ID, TX_ID, [file]);
+
+    const command = mockS3Send.mock.calls[0][0];
+    expect(command.input.ContentEncoding).toBeUndefined();
+    expect(command.input.Body).toBe(file.buffer);
   });
 
   it('generates correct S3 storage path', async () => {
@@ -332,7 +410,17 @@ suite('TransactionAttachmentHandler.uploadTransactionAttachments', () => {
     mockGetSignedUrl.mockResolvedValue('https://signed.example.com/path');
     mockRedisSet.mockResolvedValue('OK');
 
-    const file = makeMulFile({originalname: 'receipt.jpg', mimetype: 'image/jpg'});
+    const jpegBuffer = await sharp({
+      create: {
+        width: 10,
+        height: 10,
+        channels: 3,
+        background: '#ffffff',
+      },
+    })
+      .jpeg()
+      .toBuffer();
+    const file = makeMulFile({originalname: 'receipt.jpg', mimetype: 'image/jpg', buffer: jpegBuffer});
     const results = await handler.uploadTransactionAttachments(USER_ID, TX_ID, [file]);
 
     expect(results[0].location).toMatch(new RegExp(`^${USER_ID}/transactions/${TX_ID}/[0-9a-f-]+\\.jpg$`));

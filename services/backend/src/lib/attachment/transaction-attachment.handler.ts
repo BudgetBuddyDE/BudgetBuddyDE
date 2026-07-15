@@ -79,14 +79,16 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
 
     // Upload all files to S3 in parallel
     await Promise.all(
-      prepared.map(({attachmentId, mimeType, location, file}) => {
+      prepared.map(async ({attachmentId, mimeType, location, file}) => {
+        const preparedBuffer = await AttachmentHandler.prepareAttachmentBuffer(file.buffer, mimeType);
         this.logger.debug('Uploading attachment %s to S3 at %s', attachmentId, location, {attachmentId, location});
         return this.s3Client.send(
           new PutObjectCommand({
             Bucket: this.bucketName,
             Key: location,
-            Body: file.buffer,
+            Body: preparedBuffer.buffer,
             ContentType: mimeType,
+            ContentEncoding: preparedBuffer.contentEncoding,
           }),
         );
       }),
