@@ -29,7 +29,7 @@ import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 
 export const transactionRouter = Router();
 const MAX_ATTACHMENT_FILES_PER_REQUEST = 10;
-const MAX_ATTACHMENT_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_ATTACHMENT_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 const TRANSACTION_ATTACHMENT_PREVIEW_LIMIT = 3;
 const ALLOWED_ATTACHMENT_CONTENT_TYPES = new Set<string>(ATTACHMENT_CONTENT_TYPES);
 const OCTET_STREAM_ALLOWED_EXTENSIONS = new Set(['heic', 'heif']);
