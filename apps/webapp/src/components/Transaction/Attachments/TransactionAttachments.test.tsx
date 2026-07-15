@@ -58,7 +58,7 @@ describe('TransactionAttachments', () => {
 
   it('renders the upload zone', async () => {
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: [], message: 'ok', status: 200, from: 'db'},
+      {data: [], totalCount: 0, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
 
@@ -71,7 +71,7 @@ describe('TransactionAttachments', () => {
 
   it('shows "No attachments yet" when there are no attachments', async () => {
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: [], message: 'ok', status: 200, from: 'db'},
+      {data: [], totalCount: 0, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
 
@@ -87,7 +87,7 @@ describe('TransactionAttachments', () => {
   it('renders attachment thumbnails when attachments exist', async () => {
     const attachments = [makeAttachment('att-1'), makeAttachment('att-2')];
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: attachments, message: 'ok', status: 200, from: 'db'},
+      {data: attachments, totalCount: attachments.length, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
 
@@ -101,10 +101,39 @@ describe('TransactionAttachments', () => {
     });
   });
 
+  it('loads attachments page-by-page', async () => {
+    const firstPage = [makeAttachment('page-1')];
+    const secondPage = [makeAttachment('page-2')];
+    vi.mocked(apiClient.backend.transaction.getTransactionAttachments)
+      .mockResolvedValueOnce([{data: firstPage, totalCount: 2, message: 'ok', status: 200, from: 'db'}, null])
+      .mockResolvedValueOnce([{data: secondPage, totalCount: 2, message: 'ok', status: 200, from: 'db'}, null]);
+
+    await act(async () => {
+      render(<TransactionAttachments transactionId={TX_ID} />);
+    });
+
+    await waitFor(() => screen.getByText('file-page-1.png'));
+    expect(screen.getByText(/showing 1 of 2 attachments/i)).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', {name: /load more attachments/i}));
+    });
+
+    await waitFor(() => screen.getByText('file-page-2.png'));
+    expect(apiClient.backend.transaction.getTransactionAttachments).toHaveBeenNthCalledWith(1, TX_ID, {
+      from: 0,
+      to: 24,
+    });
+    expect(apiClient.backend.transaction.getTransactionAttachments).toHaveBeenNthCalledWith(2, TX_ID, {
+      from: 1,
+      to: 25,
+    });
+  });
+
   it('opens the lightbox when View is clicked', async () => {
     const attachment = makeAttachment('att-view');
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: [attachment], message: 'ok', status: 200, from: 'db'},
+      {data: [attachment], totalCount: 1, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
 
@@ -127,7 +156,7 @@ describe('TransactionAttachments', () => {
   it('opens delete confirmation when Delete is clicked', async () => {
     const attachment = makeAttachment('att-del');
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: [attachment], message: 'ok', status: 200, from: 'db'},
+      {data: [attachment], totalCount: 1, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
 
@@ -148,7 +177,7 @@ describe('TransactionAttachments', () => {
   it('calls deleteTransactionAttachments when delete is confirmed', async () => {
     const attachment = makeAttachment('att-confirm');
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: [attachment], message: 'ok', status: 200, from: 'db'},
+      {data: [attachment], totalCount: 1, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
     vi.mocked(apiClient.backend.transaction.deleteTransactionAttachments).mockResolvedValueOnce([
@@ -178,7 +207,7 @@ describe('TransactionAttachments', () => {
 
   it('renders the file input with correct accept attribute', async () => {
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: [], message: 'ok', status: 200, from: 'db'},
+      {data: [], totalCount: 0, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
 
@@ -194,11 +223,11 @@ describe('TransactionAttachments', () => {
 
   it('calls uploadTransactionAttachments when a file is selected', async () => {
     vi.mocked(apiClient.backend.transaction.getTransactionAttachments).mockResolvedValue([
-      {data: [], message: 'ok', status: 200, from: 'db'},
+      {data: [], totalCount: 0, message: 'ok', status: 200, from: 'db'},
       null,
     ]);
     vi.mocked(apiClient.backend.transaction.uploadTransactionAttachments).mockResolvedValueOnce([
-      {data: [], message: 'uploaded', status: 201, from: 'db'},
+      {data: [], totalCount: 0, message: 'uploaded', status: 201, from: 'db'},
       null,
     ]);
 

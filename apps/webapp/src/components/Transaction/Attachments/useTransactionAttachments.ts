@@ -6,10 +6,10 @@ import type {TTransaction} from '@budgetbuddyde/api/transaction';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {useFetch} from '@/hooks/useFetch';
 import {transactionAttachmentsInitialState, transactionAttachmentsReducer} from './transactionAttachmentsReducer';
 
 const ALLOWED_CONTENT_TYPES = new Set<string>(ATTACHMENT_CONTENT_TYPES);
+const ATTACHMENT_PAGE_SIZE = 24;
 
 /** Extensions that browsers may report as `application/octet-stream` but are valid image types. */
 const OCTET_STREAM_ALLOWED_EXTENSIONS = new Set(['heic', 'heif']);
@@ -25,37 +25,45 @@ function isAllowedFileType(file: File): boolean {
 
 /**
  * Manages all state and async operations for a transaction's attachments.
- *
- * Provides:
- * - `state` – current {@link TransactionAttachmentsState} (via `useReducer`)
- * - `dispatch` – raw dispatcher to trigger state transitions directly
- * - `handleUpload` – uploads one or more files and appends them to the list
- * - `handleDownload` – triggers a browser download for a given attachment
- * - `handleDeleteConfirm` – deletes the attachment stored in `state.deletingAttachmentId`
+ * Attachments are loaded page-by-page to avoid generating signed URLs and
+ * rendering image cards for large attachment collections upfront.
  *
  * @param transactionId - The ID of the transaction whose attachments are managed.
  */
 export function useTransactionAttachments(transactionId: TTransaction['id']) {
   const {showSnackbar} = useSnackbarContext();
   const [state, dispatch] = React.useReducer(transactionAttachmentsReducer, transactionAttachmentsInitialState);
-  const fetchAttachments = React.useCallback(async () => {
-    const [result, error] = await apiClient.backend.transaction.getTransactionAttachments(transactionId);
-    if (error) {
-      dispatch({type: 'LOAD_ERROR'});
-      showSnackbar({message: `Failed to load attachments: ${error.message}`});
-      return [];
-    }
-    return result.data ?? [];
-  }, [transactionId, showSnackbar]);
 
-  const {isLoading, data: fetchedAttachments} = useFetch<TAttachmentWithUrl[]>(fetchAttachments);
+  const fetchAttachments = React.useCallback(
+    async (from = 0, append = false) => {
+      dispatch({type: append ? 'LOAD_MORE_START' : 'LOAD_START'});
+      const [result, error] = await apiClient.backend.transaction.getTransactionAttachments(transactionId, {
+        from,
+        to: from + ATTACHMENT_PAGE_SIZE,
+      });
+      if (error) {
+        dispatch({type: 'LOAD_ERROR'});
+        showSnackbar({message: `Failed to load attachments: ${error.message}`});
+        return;
+      }
+      dispatch({
+        type: 'LOAD_SUCCESS',
+        attachments: result.data ?? [],
+        totalCount: result.totalCount ?? result.data?.length ?? 0,
+        append,
+      });
+    },
+    [transactionId, showSnackbar],
+  );
 
-  // Sync fetched attachments into the reducer whenever useFetch delivers new data
   React.useEffect(() => {
-    if (fetchedAttachments !== null) {
-      dispatch({type: 'LOAD_SUCCESS', attachments: fetchedAttachments});
-    }
-  }, [fetchedAttachments]);
+    void fetchAttachments(0, false);
+  }, [fetchAttachments]);
+
+  const handleLoadMore = React.useCallback(() => {
+    if (state.isLoading || state.isLoadingMore || state.attachments.length >= state.totalCount) return;
+    void fetchAttachments(state.attachments.length, true);
+  }, [fetchAttachments, state.attachments.length, state.isLoading, state.isLoadingMore, state.totalCount]);
 
   const handleUpload = React.useCallback(
     async (files: File[]) => {
@@ -82,7 +90,6 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
   );
 
   const handleDownload = React.useCallback((attachment: TAttachmentWithUrl) => {
-    // TODO: Rethink if we rather just download the file instead of redirecting the user
     const anchor = document.createElement('a');
     anchor.href = attachment.signedUrl;
     anchor.download = attachment.fileName;
@@ -108,6 +115,5 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
     showSnackbar({message: 'Attachment deleted'});
   }, [state.deletingAttachmentId, transactionId, showSnackbar]);
 
-  // isLoading from useFetch takes precedence over the reducer's initial value
-  return {state: {...state, isLoading}, dispatch, handleUpload, handleDownload, handleDeleteConfirm};
+  return {state, dispatch, handleUpload, handleDownload, handleDeleteConfirm, handleLoadMore};
 }

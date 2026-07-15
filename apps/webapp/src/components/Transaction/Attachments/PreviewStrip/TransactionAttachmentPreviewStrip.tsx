@@ -14,12 +14,14 @@ export type TransactionAttachmentPreviewStripProps = {
 
 export const TransactionAttachmentPreviewStrip: React.FC<TransactionAttachmentPreviewStripProps> = ({
   attachments = [],
+  attachmentCount,
   previewLimit = 3,
   onClick,
 }) => {
-  if (attachments.length <= 0) return null;
+  const totalAttachments = attachmentCount ?? attachments.length;
+  if (totalAttachments <= 0) return null;
   const avatarContent = (
-    <AvatarGroup max={previewLimit} total={attachments.length}>
+    <AvatarGroup max={previewLimit} total={totalAttachments}>
       {attachments.length > 0 ? (
         attachments.map(attachment => (
           <Avatar key={attachment.id} src={attachment.signedUrl} alt={attachment.fileName} variant="rounded" />
@@ -39,7 +41,7 @@ export const TransactionAttachmentPreviewStrip: React.FC<TransactionAttachmentPr
         event.stopPropagation();
         onClick();
       }}
-      aria-label={`Open ${attachments.length} transaction attachments`}
+      aria-label={`Open ${totalAttachments} transaction attachments`}
       sx={{
         borderRadius: 1.25,
         justifyContent: 'flex-start',

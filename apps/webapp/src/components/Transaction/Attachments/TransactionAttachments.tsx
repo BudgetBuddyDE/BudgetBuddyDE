@@ -2,7 +2,7 @@
 
 import type {TTransaction} from '@budgetbuddyde/api/transaction';
 import {AttachFileRounded} from '@mui/icons-material';
-import {Box, Grid, Skeleton} from '@mui/material';
+import {Box, Button, Grid, Skeleton, Typography} from '@mui/material';
 import type React from 'react';
 import {AttachmentLightbox, AttachmentThumbnail, FileDropZone} from '@/components/Attachments';
 import {DeleteDialog} from '@/components/Dialog';
@@ -23,8 +23,19 @@ export type TransactionAttachmentsProps = {
  * {@link AttachmentLightbox}, and `DeleteDialog`.
  */
 export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({transactionId}) => {
-  const {state, dispatch, handleUpload, handleDownload, handleDeleteConfirm} = useTransactionAttachments(transactionId);
-  const {attachments, isLoading, isUploading, isDragging, viewedAttachment, deletingAttachmentId} = state;
+  const {state, dispatch, handleUpload, handleDownload, handleDeleteConfirm, handleLoadMore} =
+    useTransactionAttachments(transactionId);
+  const {
+    attachments,
+    totalCount,
+    isLoading,
+    isLoadingMore,
+    isUploading,
+    isDragging,
+    viewedAttachment,
+    deletingAttachmentId,
+  } = state;
+  const hasMoreAttachments = attachments.length < totalCount;
 
   return (
     <Box>
@@ -54,18 +65,31 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
           ))}
         </Grid>
       ) : attachments.length > 0 ? (
-        <Grid container spacing={1}>
-          {attachments.map(attachment => (
-            <Grid key={attachment.id} size={{xs: 6, sm: 4}}>
-              <AttachmentThumbnail
-                attachment={attachment}
-                onView={a => dispatch({type: 'VIEW_OPEN', attachment: a})}
-                onDownload={handleDownload}
-                onDelete={a => dispatch({type: 'DELETE_OPEN', attachmentId: a.id})}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <>
+          <Typography variant="body2" color="text.secondary" sx={{mb: 1}}>
+            Showing {attachments.length} of {totalCount} attachments
+          </Typography>
+          <Grid container spacing={1}>
+            {attachments.map((attachment, index) => (
+              <Grid key={attachment.id} size={{xs: 6, sm: 4}}>
+                <AttachmentThumbnail
+                  attachment={attachment}
+                  priority={index < 6}
+                  onView={a => dispatch({type: 'VIEW_OPEN', attachment: a})}
+                  onDownload={handleDownload}
+                  onDelete={a => dispatch({type: 'DELETE_OPEN', attachmentId: a.id})}
+                />
+              </Grid>
+            ))}
+          </Grid>
+          {hasMoreAttachments && (
+            <Box sx={{display: 'flex', justifyContent: 'center', mt: 2}}>
+              <Button variant="outlined" loading={isLoadingMore} onClick={handleLoadMore}>
+                Load more attachments
+              </Button>
+            </Box>
+          )}
+        </>
       ) : (
         <NoResults icon={<AttachFileRounded />} text={'No attachments yet'} />
       )}
