@@ -1,0 +1,1 @@
+ALTER TABLE "budgetbuddy_backend"."recurring_payment" ADD COLUMN "interval" varchar DEFAULT 'monthly' NOT NULL;

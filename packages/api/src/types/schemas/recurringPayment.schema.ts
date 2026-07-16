@@ -1,12 +1,14 @@
 import {z} from 'zod';
 import {ApiResponse} from './common.schema';
 import {ExpandedTransaction, Transaction} from './transaction.schema';
+export const RecurringInterval = z.enum(['monthly', 'quarterly', 'yearly']);
 
 export const RecurringPayment = Transaction.omit({
   processedAt: true,
 }).extend({
   paused: z.boolean().default(false),
   executeAt: z.number().min(1).max(31),
+  interval: RecurringInterval.default('monthly'),
 });
 
 export const ExpandedRecurringPayment = ExpandedTransaction.omit({
@@ -14,6 +16,7 @@ export const ExpandedRecurringPayment = ExpandedTransaction.omit({
 }).extend({
   paused: z.boolean().default(false),
   executeAt: z.number().min(1).max(31),
+  interval: RecurringInterval.default('monthly'),
 });
 
 // export const CreateRecurringPaymentPayload = RecurringPayment.pick({
@@ -42,6 +45,7 @@ export const ExpandedRecurringPayment = ExpandedTransaction.omit({
 
 export const CreateOrUpdateRecurringPaymentPayload = RecurringPayment.pick({
   executeAt: true,
+  interval: true,
   paused: true,
   categoryId: true,
   paymentMethodId: true,

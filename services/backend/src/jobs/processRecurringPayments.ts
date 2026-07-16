@@ -4,6 +4,7 @@ import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
+import {isRecurringPaymentDue} from '../utils/isRecurringPaymentDue';
 
 /**
  * Processes all due recurring payments and creates corresponding transactions.
@@ -20,8 +21,6 @@ export async function processRecurringPayments() {
       return operators.and(operators.eq(fields.paused, false), operators.eq(fields.executeAt, today.getDate()));
     },
   });
-
-  logger.info(`Found ${duePayments.length} recurring payments to process.`);
 
   // Determine how many days are in the current month
   const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -52,6 +51,9 @@ export async function processRecurringPayments() {
     });
     duePayments = duePayments.concat(extraPayments);
   }
+
+  duePayments = duePayments.filter(payment => isRecurringPaymentDue(payment, today));
+  logger.info(`Found ${duePayments.length} recurring payments to process for their configured interval.`);
 
   try {
     if (duePayments.length === 0) {

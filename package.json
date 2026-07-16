@@ -6,6 +6,7 @@
     "packages/*",
     "services/*",
     "apps/webapp",
+    "apps/new-webapp",
     "examples/*"
   ],
   "scripts": {
