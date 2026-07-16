@@ -2,6 +2,18 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {Settings} from './settings';
+import {I18nProvider} from '@/lib/i18n';
+import {ThemeProvider} from '@/theme/theme-provider';
+
+function renderSettings() {
+  return render(
+    <I18nProvider>
+      <ThemeProvider>
+        <Settings />
+      </ThemeProvider>
+    </I18nProvider>,
+  );
+}
 
 const state = vi.hoisted(() => ({
   params: new URLSearchParams(),
@@ -54,7 +66,7 @@ describe('Settings', () => {
   });
 
   it('updates profile identity through the authentication service', async () => {
-    render(<Settings />);
+    renderSettings();
     const name = screen.getByLabelText('Full name');
     await userEvent.clear(name);
     await userEvent.type(name, 'Alex Taylor');
@@ -65,7 +77,7 @@ describe('Settings', () => {
 
   it('persists locale, currency, and theme preferences', async () => {
     state.params = new URLSearchParams('tab=preferences');
-    render(<Settings />);
+    renderSettings();
     await userEvent.selectOptions(screen.getByLabelText('Default currency'), 'CHF');
     await userEvent.selectOptions(screen.getByLabelText('Theme'), 'dark');
     await userEvent.click(screen.getByRole('button', {name: 'Save preferences'}));
@@ -75,7 +87,7 @@ describe('Settings', () => {
 
   it('previews valid and invalid CSV rows before import', async () => {
     state.params = new URLSearchParams('tab=data');
-    render(<Settings />);
+    renderSettings();
     const csvContent =
       'date,amount,receiver,category,paymentMethod\n2026-07-15,-42,Market,Groceries,Visa\ninvalid,0,,Missing,Unknown';
     vi.stubGlobal(
@@ -127,7 +139,7 @@ describe('Settings', () => {
       ],
       error: null,
     });
-    render(<Settings />);
+    renderSettings();
     expect(await screen.findByText('Current browser')).toBeVisible();
     expect(screen.getByText('Current')).toBeVisible();
     expect(screen.getByRole('button', {name: 'Revoke'})).toBeVisible();

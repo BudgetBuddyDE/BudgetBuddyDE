@@ -14,9 +14,11 @@ import Link from 'next/link';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {Badge, Button, ProgressBar} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
-import {formatCurrency, formatDate} from '@/utils/format';
+import {useI18n} from '@/lib/i18n';
+import {recurringStatus} from '@/utils/recurring-status';
 
 export function Dashboard() {
+  const {t, formatCurrency, formatDate} = useI18n();
   const {data, status, error, reload} = useFinance();
   const now = new Date();
   const monthly = data.transactions.filter(
@@ -29,7 +31,7 @@ export function Dashboard() {
   const balance = income - expenses;
   const recent = data.transactions.toSorted((a, b) => b.processedAt.getTime() - a.processedAt.getTime()).slice(0, 5);
   const upcoming = data.recurring
-    .filter(item => !item.paused)
+    .filter(item => recurringStatus(item) === 'active')
     .toSorted((a, b) => a.nextExecutionAt.getTime() - b.nextExecutionAt.getTime())
     .slice(0, 4);
   const uncategorized = monthly.filter(item => !item.categoryId).length;
@@ -38,27 +40,27 @@ export function Dashboard() {
   return (
     <div className="page-stack dashboard-page">
       <PageHeader
-        eyebrow={`${now.toLocaleDateString('en', {weekday: 'long'})} · Financial overview`}
-        title="Good to see you."
-        description="Your month at a glance, with the next decisions already surfaced."
+        eyebrow={`${formatDate(now, {weekday: 'long'})} · ${t('dashboard.overview')}`}
+        title={t('dashboard.title')}
+        description={t('dashboard.description')}
         action={
           <Button onClick={() => window.location.assign('/transactions?intent=create')}>
-            <Plus size={17} /> Add transaction
+            <Plus size={17} /> {t('dashboard.addTransaction')}
           </Button>
         }
       />
       {status === 'error' && (
         <StatePanel state="error" description={error ?? undefined} onRetry={() => void reload(true)} />
       )}
-      <section className="metric-grid" aria-label="Monthly summary">
+      <section className="metric-grid" aria-label={t('dashboard.monthlySummary')}>
         <article className="metric-card metric-featured">
           <div className="metric-top">
-            <span>Net balance</span>
+            <span>{t('dashboard.netBalance')}</span>
             <WalletCards size={18} />
           </div>
           <strong>{formatCurrency(balance)}</strong>
           <p>
-            <TrendingUp size={15} /> Current month cash flow
+            <TrendingUp size={15} /> {t('dashboard.cashFlow')}
           </p>
           <div className="metric-sparkline" aria-hidden="true">
             <i />
@@ -75,55 +77,55 @@ export function Dashboard() {
         </article>
         <article className="metric-card">
           <div className="metric-top">
-            <span>Income</span>
+            <span>{t('entity.income')}</span>
             <span className="icon-good">
               <ArrowUpRight size={18} />
             </span>
           </div>
           <strong>{formatCurrency(income)}</strong>
-          <p className="muted">Across {monthly.filter(item => item.transferAmount > 0).length} entries</p>
+          <p className="muted">
+            {t('dashboard.entryCount', {count: monthly.filter(item => item.transferAmount > 0).length})}
+          </p>
         </article>
         <article className="metric-card">
           <div className="metric-top">
-            <span>Expenses</span>
+            <span>{t('entity.expenses')}</span>
             <span className="icon-danger">
               <ArrowDownRight size={18} />
             </span>
           </div>
           <strong>{formatCurrency(expenses)}</strong>
-          <p className="muted">Across {monthly.filter(item => item.transferAmount < 0).length} entries</p>
+          <p className="muted">
+            {t('dashboard.entryCount', {count: monthly.filter(item => item.transferAmount < 0).length})}
+          </p>
         </article>
         <article className="metric-card">
           <div className="metric-top">
-            <span>Budget health</span>
+            <span>{t('dashboard.budgetHealth')}</span>
             <span className="icon-warn">
               <CircleAlert size={18} />
             </span>
           </div>
-          <strong>{overBudget.length ? `${overBudget.length} over` : 'On track'}</strong>
-          <p className="muted">
-            {data.budgets.length} active budget{data.budgets.length === 1 ? '' : 's'}
-          </p>
+          <strong>
+            {overBudget.length ? t('dashboard.overCount', {count: overBudget.length}) : t('kpi.budget.track')}
+          </strong>
+          <p className="muted">{t('dashboard.activeBudgets', {count: data.budgets.length})}</p>
         </article>
       </section>
       {(overBudget.length > 0 || uncategorized > 0) && (
-        <section className="attention-strip" aria-label="Needs attention">
+        <section className="attention-strip" aria-label={t('dashboard.needsAttention')}>
           <span className="attention-icon">
             <CircleAlert size={19} />
           </span>
           <div>
-            <strong>Needs your attention</strong>
+            <strong>{t('dashboard.needsAttention')}</strong>
             <p>
-              {overBudget.length > 0
-                ? `${overBudget.length} budget ${overBudget.length === 1 ? 'is' : 'are'} above the target.`
-                : ''}{' '}
-              {uncategorized > 0
-                ? `${uncategorized} transaction${uncategorized === 1 ? ' is' : 's are'} uncategorized.`
-                : ''}
+              {overBudget.length > 0 ? t('dashboard.budgetsOver', {count: overBudget.length}) : ''}{' '}
+              {uncategorized > 0 ? t('dashboard.uncategorized', {count: uncategorized}) : ''}
             </p>
           </div>
           <Link href={overBudget.length ? '/budgets' : '/transactions'}>
-            Review <ArrowRight size={15} />
+            {t('dashboard.review')} <ArrowRight size={15} />
           </Link>
         </section>
       )}
@@ -131,11 +133,11 @@ export function Dashboard() {
         <section className="content-panel recent-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Activity</p>
-              <h2>Recent transactions</h2>
+              <p className="eyebrow">{t('dashboard.activity')}</p>
+              <h2>{t('dashboard.recent')}</h2>
             </div>
             <Link href="/transactions">
-              View all <ArrowRight size={15} />
+              {t('dashboard.viewAll')} <ArrowRight size={15} />
             </Link>
           </div>
           {status === 'loading' && recent.length === 0 ? (
@@ -143,8 +145,8 @@ export function Dashboard() {
           ) : recent.length === 0 ? (
             <StatePanel
               state="empty"
-              title="No transactions this month"
-              description="Add an income or expense to start your overview."
+              title={t('dashboard.noTransactions')}
+              description={t('dashboard.noTransactionsDescription')}
             />
           ) : (
             <div className="transaction-list">
@@ -170,11 +172,11 @@ export function Dashboard() {
         <section className="content-panel upcoming-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Next up</p>
-              <h2>Upcoming payments</h2>
+              <p className="eyebrow">{t('dashboard.nextUp')}</p>
+              <h2>{t('dashboard.upcoming')}</h2>
             </div>
             <Link href="/recurring-payments">
-              Manage <ArrowRight size={15} />
+              {t('dashboard.manage')} <ArrowRight size={15} />
             </Link>
           </div>
           {status === 'loading' && upcoming.length === 0 ? (
@@ -182,8 +184,8 @@ export function Dashboard() {
           ) : upcoming.length === 0 ? (
             <StatePanel
               state="empty"
-              title="No upcoming payments"
-              description="Your scheduled commitments will appear here."
+              title={t('dashboard.noUpcoming')}
+              description={t('dashboard.noUpcomingDescription')}
             />
           ) : (
             <div className="upcoming-list">
@@ -191,12 +193,12 @@ export function Dashboard() {
                 <div key={item.id} className="upcoming-item">
                   <span className="date-tile">
                     <strong>{item.nextExecutionAt.getDate()}</strong>
-                    <small>{item.nextExecutionAt.toLocaleString('en', {month: 'short'})}</small>
+                    <small>{formatDate(item.nextExecutionAt, {month: 'short'})}</small>
                   </span>
                   <span>
                     <strong>{item.receiver}</strong>
                     <small>
-                      {item.categoryName} · {item.interval}
+                      {item.categoryName} · {t(`entity.${item.interval}`)}
                     </small>
                   </span>
                   <strong className="money expense">{formatCurrency(item.transferAmount)}</strong>
@@ -208,11 +210,11 @@ export function Dashboard() {
         <section className="content-panel budget-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Guardrails</p>
-              <h2>Budget progress</h2>
+              <p className="eyebrow">{t('dashboard.guardrails')}</p>
+              <h2>{t('dashboard.budgetProgress')}</h2>
             </div>
             <Link href="/budgets">
-              All budgets <ArrowRight size={15} />
+              {t('dashboard.allBudgets')} <ArrowRight size={15} />
             </Link>
           </div>
           {status === 'loading' && data.budgets.length === 0 ? (
@@ -220,8 +222,8 @@ export function Dashboard() {
           ) : data.budgets.length === 0 ? (
             <StatePanel
               state="empty"
-              title="No budgets set"
-              description="Create a budget to track category spending."
+              title={t('dashboard.noBudgets')}
+              description={t('dashboard.noBudgetsDescription')}
             />
           ) : (
             <div className="budget-list">
@@ -231,8 +233,8 @@ export function Dashboard() {
                   <div key={item.id} className="budget-progress">
                     <ProgressBar value={ratio} label={item.name} />
                     <div>
-                      <span>{formatCurrency(Math.abs(item.balance))} spent</span>
-                      <span>{formatCurrency(item.budget)} target</span>
+                      <span>{t('entity.spent', {amount: formatCurrency(Math.abs(item.balance))})}</span>
+                      <span>{t('dashboard.target', {amount: formatCurrency(item.budget)})}</span>
                     </div>
                   </div>
                 );
@@ -243,10 +245,10 @@ export function Dashboard() {
         <section className="content-panel insight-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Pattern</p>
-              <h2>Expense mix</h2>
+              <p className="eyebrow">{t('dashboard.pattern')}</p>
+              <h2>{t('dashboard.expenseMix')}</h2>
             </div>
-            <Badge tone="neutral">This month</Badge>
+            <Badge tone="neutral">{t('dashboard.thisMonth')}</Badge>
           </div>
           <ExpenseMix />
         </section>
@@ -256,6 +258,7 @@ export function Dashboard() {
 }
 
 function ExpenseMix() {
+  const {t, formatCurrency} = useI18n();
   const {data} = useFinance();
   const totals = new Map<string, number>();
   for (const item of data.transactions)
@@ -267,12 +270,12 @@ function ExpenseMix() {
     return (
       <StatePanel
         state="empty"
-        title="No expense data"
-        description="Category insights appear after your first expense."
+        title={t('dashboard.noExpenseData')}
+        description={t('dashboard.noExpenseDescription')}
       />
     );
   return (
-    <div className="mix-chart" role="img" aria-label="Expense distribution by category">
+    <div className="mix-chart" role="img" aria-label={t('dashboard.expenseDistribution')}>
       {rows.map(([name, value], index) => (
         <div key={name} className="mix-row">
           <span>{name}</span>

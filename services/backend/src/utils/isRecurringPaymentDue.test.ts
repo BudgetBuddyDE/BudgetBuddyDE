@@ -21,4 +21,13 @@ describe('isRecurringPaymentDue', () => {
   it('never treats a pre-creation period as due', () => {
     expect(isRecurringPaymentDue({interval: 'monthly', createdAt}, new Date(2025, 11, 15))).toBe(false);
   });
+
+  it('never executes a payment whose end date has passed', () => {
+    expect(
+      isRecurringPaymentDue(
+        {interval: 'monthly', createdAt, expiresAt: new Date(2026, 5, 14, 23, 59)},
+        new Date(2026, 5, 15),
+      ),
+    ).toBe(false);
+  });
 });

@@ -1,17 +1,21 @@
-import {ArrowLeft, Gauge} from 'lucide-react';
+'use client';
+import {ArrowLeft} from 'lucide-react';
 import Link from 'next/link';
+import {BrandLogo} from '@/components/brand-logo';
+import {useI18n} from '@/lib/i18n';
 export default function NotFound() {
+  const {t} = useI18n();
   return (
     <main className="status-page">
       <Link href="/dashboard" className="status-brand">
-        <Gauge size={21} /> BudgetBuddy
+        <BrandLogo compact alt="" />
       </Link>
       <div className="status-card">
-        <p className="eyebrow">404 · Not found</p>
-        <h1>This page is outside the budget.</h1>
-        <p>The address may have changed or the resource is no longer available.</p>
+        <p className="eyebrow">{t('notFound.eyebrow')}</p>
+        <h1>{t('notFound.title')}</h1>
+        <p>{t('notFound.description')}</p>
         <Link className="button button-primary button-md" href="/dashboard">
-          <ArrowLeft size={16} /> Back to overview
+          <ArrowLeft size={16} /> {t('notFound.back')}
         </Link>
       </div>
     </main>

@@ -1,21 +1,21 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import {Download, Eye, FileImage, Plus, Trash2, UploadCloud} from 'lucide-react';
+import {Download, Eye, FileImage, Plus, Trash2} from 'lucide-react';
 import Image from 'next/image';
 import {useSearchParams} from 'next/navigation';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {apiClient} from '@/apiClient';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
+import {TransactionAttachments} from '@/components/transaction-attachments';
 import {Button, ConfirmDialog, DialogShell, SelectField} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
-import {formatDate} from '@/utils/format';
+import {useI18n} from '@/lib/i18n';
 
 const BATCH_SIZE = 20;
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(['image/png', 'image/jpg', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif']);
 
 export function Attachments() {
+  const {t, formatDate} = useI18n();
   const {data} = useFinance();
   const searchParams = useSearchParams();
   const [items, setItems] = useState<TAttachmentWithUrl[]>([]);
@@ -25,9 +25,6 @@ export function Attachments() {
   const [preview, setPreview] = useState<TAttachmentWithUrl | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [transactionId, setTransactionId] = useState('');
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(
     async (append = false) => {
@@ -40,7 +37,7 @@ export function Attachments() {
         ttl: 300 as never,
       });
       if (requestError || !response) {
-        setError(requestError instanceof Error ? requestError.message : 'Attachments could not be loaded.');
+        setError(requestError instanceof Error ? requestError.message : t('attachment.error.load'));
         setStatus('error');
         return;
       }
@@ -49,7 +46,7 @@ export function Attachments() {
       setTotal(response.totalCount ?? nextItems.length);
       setStatus('success');
     },
-    [items.length],
+    [items.length, t],
   );
 
   useEffect(() => {
@@ -59,38 +56,10 @@ export function Attachments() {
     if (searchParams.get('intent') === 'upload') setUploadOpen(true);
   }, [searchParams]);
 
-  const upload = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const files = [...(fileRef.current?.files ?? [])];
-    setUploadError(null);
-    if (!transactionId) {
-      setUploadError('Choose the transaction these files belong to.');
-      return;
-    }
-    if (files.length === 0) {
-      setUploadError('Choose at least one image.');
-      return;
-    }
-    const invalid = files.find(file => !ALLOWED_TYPES.has(file.type) || file.size > MAX_FILE_SIZE);
-    if (invalid) {
-      setUploadError(`${invalid.name} is not a supported image or is larger than 10 MB.`);
-      return;
-    }
-    setUploading(true);
-    const [, requestError] = await apiClient.backend.transaction.uploadTransactionAttachments(transactionId, files);
-    setUploading(false);
-    if (requestError) {
-      setUploadError(requestError instanceof Error ? requestError.message : 'Upload failed.');
-      return;
-    }
-    setUploadOpen(false);
-    await load(false);
-  };
-
   const remove = async (attachmentId: string) => {
     const [, requestError] = await apiClient.backend.attachment.deleteById(attachmentId as never);
     if (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'The attachment could not be deleted.');
+      setError(requestError instanceof Error ? requestError.message : t('attachment.error.delete'));
       return;
     }
     await load(false);
@@ -99,19 +68,19 @@ export function Attachments() {
   return (
     <div className="page-stack">
       <PageHeader
-        eyebrow="Receipts"
-        title="Attachments"
-        description="Your transaction documents, protected by short-lived signed links."
+        eyebrow={t('attachment.receipts')}
+        title={t('attachment.title')}
+        description={t('attachment.description')}
         action={
           <Button onClick={() => setUploadOpen(true)}>
-            <Plus size={17} /> Upload files
+            <Plus size={17} /> {t('attachment.uploadFiles')}
           </Button>
         }
       />
       <section className="attachment-toolbar">
         <div>
-          <strong>{total} files</strong>
-          <span>Images · newest first</span>
+          <strong>{t('attachment.fileCount', {count: total})}</strong>
+          <span>{t('attachment.newestFirst')}</span>
         </div>
         <BadgeInfo />
       </section>
@@ -120,24 +89,20 @@ export function Attachments() {
       ) : status === 'error' ? (
         <StatePanel state="error" description={error ?? undefined} onRetry={() => void load(false)} />
       ) : items.length === 0 ? (
-        <StatePanel
-          state="empty"
-          title="No receipts uploaded"
-          description="Attach an image to a transaction to keep records together."
-        />
+        <StatePanel state="empty" title={t('attachment.none')} description={t('attachment.noneDescription')} />
       ) : (
         <>
-          <section className="attachment-grid" aria-label="Attachment gallery">
+          <section className="attachment-grid" aria-label={t('attachment.gallery')}>
             {items.map(item => (
               <article key={item.id} className="attachment-card">
                 <button
                   className="attachment-preview"
                   onClick={() => setPreview(item)}
-                  aria-label={`Preview ${item.fileName}`}
+                  aria-label={t('attachment.preview', {name: item.fileName})}
                 >
                   <Image src={item.signedUrl} alt="" fill sizes="(max-width: 700px) 50vw, 260px" unoptimized />
                   <span>
-                    <Eye size={17} /> Preview
+                    <Eye size={17} /> {t('attachment.previewAction')}
                   </span>
                 </button>
                 <div className="attachment-meta">
@@ -149,18 +114,22 @@ export function Attachments() {
                     <small>{formatDate(item.createdAt)}</small>
                   </span>
                   <div className="attachment-actions">
-                    <a href={item.signedUrl} download={item.fileName} aria-label={`Download ${item.fileName}`}>
+                    <a
+                      href={item.signedUrl}
+                      download={item.fileName}
+                      aria-label={t('attachment.download', {name: item.fileName})}
+                    >
                       <Download size={16} />
                     </a>
                     <ConfirmDialog
                       trigger={
-                        <button aria-label={`Delete ${item.fileName}`}>
+                        <button aria-label={t('attachment.delete', {name: item.fileName})}>
                           <Trash2 size={16} />
                         </button>
                       }
-                      title={`Delete ${item.fileName}?`}
-                      description="The receipt will be removed from the transaction and cannot be recovered."
-                      confirmLabel="Delete file"
+                      title={t('attachment.deleteTitle', {name: item.fileName})}
+                      description={t('attachment.deleteDescription')}
+                      confirmLabel={t('attachment.deleteFile')}
                       onConfirm={() => remove(item.id)}
                     />
                   </div>
@@ -171,11 +140,9 @@ export function Attachments() {
           {items.length < total && (
             <div className="load-more">
               <Button variant="secondary" onClick={() => void load(true)} disabled={status === 'loading'}>
-                {status === 'loading' ? 'Loading…' : 'Load more'}
+                {status === 'loading' ? t('common.loading') : t('common.loadMore')}
               </Button>
-              <span>
-                {items.length} of {total}
-              </span>
+              <span>{t('attachment.ofCount', {count: items.length, total})}</span>
             </div>
           )}
         </>
@@ -183,59 +150,49 @@ export function Attachments() {
       <DialogShell
         open={uploadOpen}
         onOpenChange={setUploadOpen}
-        title="Upload attachments"
-        description="PNG, JPEG, WebP, HEIC, or HEIF. Maximum 10 MB per file."
+        title={t('attachment.uploadTitle')}
+        description={t('attachment.constraints')}
       >
-        <form className="entity-form" onSubmit={event => void upload(event)}>
+        <div className="entity-form">
           <SelectField
-            label="Transaction"
+            label={t('transaction.singular')}
             value={transactionId}
             onChange={event => setTransactionId(event.target.value)}
             required
           >
-            <option value="">Choose transaction</option>
+            <option value="">{t('attachment.chooseTransaction')}</option>
             {data.transactions.map(item => (
               <option key={item.id} value={item.id}>
                 {item.receiver} · {formatDate(item.processedAt)}
               </option>
             ))}
           </SelectField>
-          <label className="drop-zone">
-            <UploadCloud size={28} />
-            <strong>Choose receipt images</strong>
-            <span>or drag files into this area</span>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/png,image/jpg,image/jpeg,image/webp,image/heic,image/heif"
-              multiple
+          {transactionId ? (
+            <TransactionAttachments transactionId={transactionId} onChanged={() => void load(false)} />
+          ) : (
+            <StatePanel
+              state="empty"
+              title={t('attachment.chooseTransactionTitle')}
+              description={t('attachment.chooseTransactionDescription')}
             />
-          </label>
-          {uploadError && (
-            <div className="form-error" role="alert">
-              {uploadError}
-            </div>
           )}
           <div className="form-actions">
             <Button variant="secondary" onClick={() => setUploadOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={uploading}>
-              {uploading ? 'Uploading…' : 'Upload'}
+              {t('attachment.done')}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogShell>
       <DialogShell
         open={Boolean(preview)}
         onOpenChange={open => !open && setPreview(null)}
-        title={preview?.fileName ?? 'Attachment preview'}
+        title={preview?.fileName ?? t('attachment.previewTitle')}
       >
         {preview && (
           <div className="lightbox">
             <Image
               src={preview.signedUrl}
-              alt={`Preview of ${preview.fileName}`}
+              alt={t('attachment.previewAlt', {name: preview.fileName})}
               width={1200}
               height={900}
               unoptimized
@@ -248,5 +205,6 @@ export function Attachments() {
 }
 
 function BadgeInfo() {
-  return <span className="privacy-badge">Private · signed URLs expire after 5 min</span>;
+  const {t} = useI18n();
+  return <span className="privacy-badge">{t('attachment.privacy')}</span>;
 }

@@ -1,4 +1,9 @@
+'use client';
 import {AccountStatus} from '@/components/account-status';
+import {useI18n} from '@/lib/i18n';
 export default function EmailChangedPage() {
-  return <AccountStatus title="Email updated" description="Your sign-in address has been changed successfully." />;
+  const {t} = useI18n();
+  return (
+    <AccountStatus title={t('accountStatus.emailUpdated')} description={t('accountStatus.emailUpdatedDescription')} />
+  );
 }

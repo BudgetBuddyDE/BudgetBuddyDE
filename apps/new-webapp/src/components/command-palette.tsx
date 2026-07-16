@@ -7,14 +7,26 @@ import {authClient} from '@/authClient';
 import {DialogShell} from '@/components/ui/primitives';
 import {CORE_INTENTS, filterIntents, objectEditIntents, type AppIntent} from '@/lib/intents';
 import {useFinance} from '@/lib/finance-provider';
+import {useI18n} from '@/lib/i18n';
 
 export function CommandPalette({open, onOpenChange}: {open: boolean; onOpenChange: (open: boolean) => void}) {
+  const {t} = useI18n();
   const router = useRouter();
   const {data} = useFinance();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const intents = useMemo(() => [...CORE_INTENTS, ...objectEditIntents(data)], [data]);
+  const intents = useMemo(
+    () =>
+      [...CORE_INTENTS, ...objectEditIntents(data)].map(intent => {
+        const label =
+          intent.kind === 'edit'
+            ? t(`command.edit.${intent.entity}`, {name: intent.label.split(' · ')[1] ?? intent.label})
+            : t(`command.intent.${intent.id}`);
+        return {...intent, label, keywords: [...intent.keywords, label]};
+      }),
+    [data, t],
+  );
   const matches = useMemo(() => filterIntents(intents, query).slice(0, 18), [intents, query]);
 
   useEffect(() => {
@@ -64,8 +76,8 @@ export function CommandPalette({open, onOpenChange}: {open: boolean; onOpenChang
     <DialogShell
       open={open}
       onOpenChange={onOpenChange}
-      title="Command centre"
-      description="Navigate or start a workflow without leaving the keyboard."
+      title={t('command.title')}
+      description={t('command.description')}
     >
       <div className="command-search">
         <Search size={18} aria-hidden="true" />
@@ -77,18 +89,18 @@ export function CommandPalette({open, onOpenChange}: {open: boolean; onOpenChang
             setActiveIndex(0);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search pages, actions, or objects…"
-          aria-label="Search commands"
+          placeholder={t('command.placeholder')}
+          aria-label={t('command.search')}
           role="combobox"
           aria-expanded="true"
           aria-controls="command-results"
           aria-activedescendant={matches[activeIndex] ? `command-${matches[activeIndex].id}` : undefined}
         />
-        <kbd>Esc</kbd>
+        <kbd>{t('command.escape')}</kbd>
       </div>
-      <div id="command-results" className="command-results" role="listbox" aria-label="Commands">
+      <div id="command-results" className="command-results" role="listbox" aria-label={t('command.commands')}>
         {matches.length === 0 ? (
-          <div className="command-empty">No matching command. Try a page or object name.</div>
+          <div className="command-empty">{t('command.empty')}</div>
         ) : (
           matches.map((intent, index) => (
             <button
@@ -105,7 +117,7 @@ export function CommandPalette({open, onOpenChange}: {open: boolean; onOpenChang
               </span>
               <span>
                 <strong>{intent.label}</strong>
-                <small>{intent.group}</small>
+                <small>{t(`command.group.${intent.group.toLocaleLowerCase()}`)}</small>
               </span>
               <CornerDownLeft className="command-enter" size={15} />
             </button>
@@ -115,10 +127,10 @@ export function CommandPalette({open, onOpenChange}: {open: boolean; onOpenChang
       <div className="command-footer">
         <span>
           <kbd>↑</kbd>
-          <kbd>↓</kbd> move
+          <kbd>↓</kbd> {t('command.move')}
         </span>
         <span>
-          <kbd>↵</kbd> open
+          <kbd>↵</kbd> {t('command.open')}
         </span>
       </div>
     </DialogShell>

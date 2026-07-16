@@ -1,14 +1,17 @@
 import {render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
+import {I18nProvider} from '@/lib/i18n';
 import {EntityWorkspace} from './entity-workspace';
 
 const finance = vi.hoisted(() => ({
   updateEntity: vi.fn().mockResolvedValue(true),
   createEntity: vi.fn().mockResolvedValue(true),
   deleteEntity: vi.fn().mockResolvedValue(true),
+  deleteEntities: vi.fn().mockResolvedValue({deleted: [], failed: []}),
   executeRecurring: vi.fn(),
   mergeEntities: vi.fn().mockResolvedValue(true),
+  setTablePageSize: vi.fn(),
   reload: vi.fn(),
   data: {
     categories: [
@@ -38,18 +41,28 @@ vi.mock('@/lib/finance-provider', () => ({
   useFinance: () => ({...finance, status: 'success', error: null, mutationPending: false}),
 }));
 
+function renderWorkspace(kind: 'transactions' | 'categories') {
+  return render(
+    <I18nProvider>
+      <EntityWorkspace kind={kind} />
+    </I18nProvider>,
+  );
+}
+
 describe('EntityWorkspace', () => {
   it('renders dense transaction data with selection and accessible actions', () => {
-    render(<EntityWorkspace kind="transactions" />);
-    expect(screen.getByRole('table', {name: 'Transactions'})).toHaveTextContent('Market');
-    expect(screen.getByText('-€42.50')).toBeVisible();
+    renderWorkspace('transactions');
+    const table = screen.getByRole('table', {name: 'Transactions'});
+    expect(table).toHaveTextContent('Market');
+    expect(within(table).getByText('-€42.50')).toBeVisible();
     expect(screen.getByRole('checkbox', {name: 'Select Market'})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Edit Market'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Actions for Market'})).toBeVisible();
   });
 
   it('opens a populated editor and saves a valid change', async () => {
-    render(<EntityWorkspace kind="categories" />);
-    await userEvent.click(screen.getByRole('button', {name: 'Edit Groceries'}));
+    renderWorkspace('categories');
+    await userEvent.click(screen.getByRole('button', {name: 'Actions for Groceries'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: 'Edit Groceries'}));
     const dialog = screen.getByRole('dialog', {name: 'Edit category'});
     expect(within(dialog).getByLabelText('Name')).toHaveValue('Groceries');
     await userEvent.clear(within(dialog).getByLabelText('Name'));
@@ -62,7 +75,7 @@ describe('EntityWorkspace', () => {
   });
 
   it('merges selected reference records into an explicit target', async () => {
-    render(<EntityWorkspace kind="categories" />);
+    renderWorkspace('categories');
     await userEvent.click(screen.getByRole('checkbox', {name: 'Select Groceries'}));
     await userEvent.click(screen.getByRole('checkbox', {name: 'Select Supermarket'}));
     await userEvent.click(screen.getByRole('button', {name: 'Merge'}));
@@ -74,7 +87,7 @@ describe('EntityWorkspace', () => {
 
   it('shows the required loading and empty states', () => {
     finance.data.transactions = [];
-    render(<EntityWorkspace kind="transactions" />);
+    renderWorkspace('transactions');
     expect(screen.getByText('Nothing here yet')).toBeVisible();
   });
 });

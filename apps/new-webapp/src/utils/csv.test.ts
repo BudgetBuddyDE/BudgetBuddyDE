@@ -20,6 +20,8 @@ describe('CSV transaction import', () => {
     );
     expect(preview[0]?.input).toMatchObject({transferAmount: -42.5, categoryId: 'cat-1', paymentMethodId: 'pay-1'});
     expect(preview[1]?.input).toBeNull();
-    expect(preview[1]?.errors).toEqual(expect.arrayContaining(['Invalid date', 'Invalid amount', 'Missing receiver']));
+    expect(preview[1]?.errors).toEqual(
+      expect.arrayContaining(['csv.invalidDate', 'csv.invalidAmount', 'csv.missingReceiver']),
+    );
   });
 });

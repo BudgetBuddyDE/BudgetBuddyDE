@@ -1,5 +1,8 @@
+'use client';
+
 import {AlertTriangle, CheckCircle2, Inbox, LoaderCircle, RefreshCw} from 'lucide-react';
 import {Button} from '@/components/ui/primitives';
+import {useI18n} from '@/lib/i18n';
 
 export function PageHeader({
   eyebrow,
@@ -35,26 +38,27 @@ export function StatePanel({
   description?: string;
   onRetry?: () => void;
 }) {
+  const {t} = useI18n();
   const content = {
     loading: {
       icon: <LoaderCircle className="spin" aria-hidden="true" />,
-      title: title ?? 'Loading your finance data',
-      description: description ?? 'This usually takes only a moment.',
+      title: title ?? t('state.loading.title'),
+      description: description ?? t('state.loading.description'),
     },
     empty: {
       icon: <Inbox aria-hidden="true" />,
-      title: title ?? 'Nothing here yet',
-      description: description ?? 'Create your first item to get started.',
+      title: title ?? t('state.empty.title'),
+      description: description ?? t('state.empty.description'),
     },
     error: {
       icon: <AlertTriangle aria-hidden="true" />,
-      title: title ?? 'We could not load this area',
-      description: description ?? 'Your data is safe. Try the request again.',
+      title: title ?? t('state.error.title'),
+      description: description ?? t('state.error.description'),
     },
     success: {
       icon: <CheckCircle2 aria-hidden="true" />,
-      title: title ?? 'All done',
-      description: description ?? 'Your changes were saved.',
+      title: title ?? t('state.success.title'),
+      description: description ?? t('state.success.description'),
     },
   }[state];
 
@@ -67,7 +71,7 @@ export function StatePanel({
       </div>
       {state === 'error' && onRetry && (
         <Button variant="secondary" size="sm" onClick={onRetry}>
-          <RefreshCw size={15} /> Retry
+          <RefreshCw size={15} /> {t('common.retry')}
         </Button>
       )}
     </div>
@@ -75,8 +79,9 @@ export function StatePanel({
 }
 
 export function SkeletonRows({count = 5}: {count?: number}) {
+  const {t} = useI18n();
   return (
-    <div className="skeleton-list" aria-label="Loading content">
+    <div className="skeleton-list" aria-label={t('common.loadingContent')}>
       {Array.from({length: count}, (_, index) => (
         <span key={index} className="skeleton-row" />
       ))}

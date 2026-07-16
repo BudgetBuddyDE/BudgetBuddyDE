@@ -3,7 +3,8 @@
   "version": "3.5.2",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "echo \"codesandbox preview only, need an update\"",
+    "_dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "pretest": "npm run check",

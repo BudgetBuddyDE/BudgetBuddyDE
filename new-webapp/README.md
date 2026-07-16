@@ -14,6 +14,7 @@ The new webapp should provide the existing BudgetBuddyDE functionality in a more
 - [04-delivery-plan.md](./04-delivery-plan.md): Recommended implementation sequence for Codex tasks.
 - [05-current-webapp-structure.md](./05-current-webapp-structure.md): Reference structure and conventions of the existing webapp.
 - [06-current-webapp-functionality.md](./06-current-webapp-functionality.md): Initial functionality inventory based on the existing webapp.
+- [07-improvement-requirements.md](./07-improvement-requirements.md): Prioritized UX improvements, shared table behavior, domain statistics, and acceptance criteria.
 
 ## Recommended Codex Task Structure
 

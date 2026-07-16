@@ -2,9 +2,10 @@
 
 import {Dialog} from '@base-ui/react/dialog';
 import {cva, type VariantProps} from 'class-variance-authority';
-import {X} from 'lucide-react';
+import {Eye, EyeOff, X} from 'lucide-react';
 import {forwardRef, useId, useState} from 'react';
 import {cn} from '@/utils/cn';
+import {useI18n} from '@/lib/i18n';
 
 const buttonVariants = cva('button', {
   variants: {
@@ -67,6 +68,49 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(function TextF
         </span>
       )}
     </label>
+  );
+});
+export interface PasswordFieldProps extends Omit<FieldProps, 'type'> {
+  showLabel?: string;
+  hideLabel?: string;
+}
+
+export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(function PasswordField(
+  {showLabel, hideLabel, className, label, hint, error, id, ...props},
+  ref,
+) {
+  const {t} = useI18n();
+  const [visible, setVisible] = useState(false);
+  const generatedId = useId();
+  const inputId = id ?? (props.name ? `field-${props.name}` : generatedId);
+  const descriptionId = hint || error ? `${inputId}-description` : undefined;
+  const actionLabel = visible ? (hideLabel ?? t('password.hide')) : (showLabel ?? t('password.show'));
+  return (
+    <div className={cn('field', className)}>
+      <label className="field-label" htmlFor={inputId}>
+        {label}
+      </label>
+      <span className="password-input">
+        <input
+          ref={ref}
+          id={inputId}
+          type={visible ? 'text' : 'password'}
+          className={cn('input', error && 'input-error')}
+          aria-invalid={Boolean(error)}
+          aria-describedby={descriptionId}
+          aria-label={props['aria-label'] ?? label}
+          {...props}
+        />
+        <IconButton aria-label={actionLabel} aria-pressed={visible} onClick={() => setVisible(value => !value)}>
+          {visible ? <EyeOff size={17} aria-hidden="true" /> : <Eye size={17} aria-hidden="true" />}
+        </IconButton>
+      </span>
+      {(error || hint) && (
+        <span id={descriptionId} className={cn('field-hint', error && 'field-error')}>
+          {error ?? hint}
+        </span>
+      )}
+    </div>
   );
 });
 
@@ -137,6 +181,7 @@ export interface DialogShellProps {
 }
 
 export function DialogShell({open, onOpenChange, title, description, children, footer}: DialogShellProps) {
+  const {t} = useI18n();
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -147,7 +192,7 @@ export function DialogShell({open, onOpenChange, title, description, children, f
               <Dialog.Title className="dialog-title">{title}</Dialog.Title>
               {description && <Dialog.Description className="dialog-description">{description}</Dialog.Description>}
             </div>
-            <Dialog.Close render={<IconButton aria-label="Close dialog" />}>
+            <Dialog.Close render={<IconButton aria-label={t('common.closeDialog')} />}>
               <X size={18} />
             </Dialog.Close>
           </div>
@@ -163,7 +208,7 @@ export function ConfirmDialog({
   trigger,
   title,
   description,
-  confirmLabel = 'Confirm',
+  confirmLabel,
   busy = false,
   onConfirm,
 }: {
@@ -175,6 +220,7 @@ export function ConfirmDialog({
   onConfirm: () => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
+  const {t} = useI18n();
   const handleConfirm = async () => {
     await onConfirm();
     setOpen(false);
@@ -190,15 +236,15 @@ export function ConfirmDialog({
         footer={
           <>
             <Button variant="secondary" onClick={() => setOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" disabled={busy} onClick={() => void handleConfirm()}>
-              {busy ? 'Working…' : confirmLabel}
+              {busy ? t('common.working') : (confirmLabel ?? t('common.confirm'))}
             </Button>
           </>
         }
       >
-        <div className="danger-note">This action cannot be undone.</div>
+        <div className="danger-note">{t('common.actionCannotBeUndone')}</div>
       </DialogShell>
     </>
   );

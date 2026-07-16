@@ -5,7 +5,7 @@ import {useRouter, useSearchParams} from 'next/navigation';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {Badge, Button, IconButton, ProgressBar, SelectField, TextField} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
-import {formatCurrency, formatPercent} from '@/utils/format';
+import {useI18n} from '@/lib/i18n';
 
 function periodBounds(period: 'month' | 'year', date: Date) {
   const start =
@@ -16,6 +16,7 @@ function periodBounds(period: 'month' | 'year', date: Date) {
 }
 
 export function Reporting() {
+  const {t, formatCurrency, formatDate, formatPercent} = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const {data, status, error, reload} = useFinance();
@@ -34,9 +35,7 @@ export function Reporting() {
   const net = income - expenses;
   const savingRate = income ? net / income : 0;
   const label =
-    period === 'year'
-      ? String(selectedDate.getFullYear())
-      : selectedDate.toLocaleDateString('en-DE', {month: 'long', year: 'numeric'});
+    period === 'year' ? String(selectedDate.getFullYear()) : formatDate(selectedDate, {month: 'long', year: 'numeric'});
   const categoryTotals = new Map<string, {income: number; expenses: number}>();
   for (const item of transactions) {
     const current = categoryTotals.get(item.categoryName) ?? {income: 0, expenses: 0};
@@ -61,7 +60,7 @@ export function Reporting() {
   };
   const exportCsv = () => {
     const csv = [
-      'Category,Income,Expenses',
+      [t('common.category'), t('entity.income'), t('entity.expenses')].join(','),
       ...rows.map(([name, values]) => `"${name.replaceAll('"', '""')}",${values.income},${values.expenses}`),
     ].join('\n');
     const href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
@@ -75,40 +74,46 @@ export function Reporting() {
   return (
     <div className="page-stack">
       <PageHeader
-        eyebrow="Analysis"
-        title="Reporting"
-        description="One consistent view of your cash flow, categories, budgets, and recurring commitments."
+        eyebrow={t('reporting.analysis')}
+        title={t('reporting.title')}
+        description={t('reporting.description')}
         action={
           <Button variant="secondary" onClick={exportCsv} disabled={rows.length === 0}>
-            <Download size={16} /> Export CSV
+            <Download size={16} /> {t('common.exportCsv')}
           </Button>
         }
       />
       <section className="report-toolbar">
         <div className="period-stepper">
-          <IconButton aria-label={`Previous ${period}`} onClick={() => move(-1)}>
+          <IconButton
+            aria-label={t('reporting.previousPeriod', {period: t(`reporting.${period}`)})}
+            onClick={() => move(-1)}
+          >
             <ArrowLeft size={17} />
           </IconButton>
           <span>
             <CalendarDays size={17} />
             <strong>{label}</strong>
           </span>
-          <IconButton aria-label={`Next ${period}`} onClick={() => move(1)}>
+          <IconButton
+            aria-label={t('reporting.nextPeriod', {period: t(`reporting.${period}`)})}
+            onClick={() => move(1)}
+          >
             <ArrowRight size={17} />
           </IconButton>
         </div>
         <div className="report-controls">
           <SelectField
-            label="Period"
+            label={t('reporting.period')}
             className="compact-field"
             value={period}
             onChange={event => updatePeriod(event.target.value)}
           >
-            <option value="month">Month</option>
-            <option value="year">Full year</option>
+            <option value="month">{t('reporting.month')}</option>
+            <option value="year">{t('reporting.year')}</option>
           </SelectField>
           <TextField
-            label="Reference date"
+            label={t('reporting.referenceDate')}
             className="compact-field"
             type="date"
             value={selectedDate.toISOString().slice(0, 10)}
@@ -119,33 +124,33 @@ export function Reporting() {
       {status === 'error' && (
         <StatePanel state="error" description={error ?? undefined} onRetry={() => void reload(true)} />
       )}
-      <section className="report-metrics" aria-label={`${label} totals`}>
+      <section className="report-metrics" aria-label={t('reporting.totals', {period: label})}>
         <article>
           <span className="report-icon income">
             <ArrowUpRight size={18} />
           </span>
-          <p>Income</p>
+          <p>{t('entity.income')}</p>
           <strong>{formatCurrency(income)}</strong>
         </article>
         <article>
           <span className="report-icon expense">
             <ArrowDownRight size={18} />
           </span>
-          <p>Expenses</p>
+          <p>{t('entity.expenses')}</p>
           <strong>{formatCurrency(expenses)}</strong>
         </article>
         <article>
           <span className="report-icon net">
             <Equal size={18} />
           </span>
-          <p>Net result</p>
+          <p>{t('reporting.net')}</p>
           <strong>{formatCurrency(net)}</strong>
         </article>
         <article>
           <span className="report-icon savings">
             <Wallet size={18} />
           </span>
-          <p>Savings rate</p>
+          <p>{t('reporting.savingsRate')}</p>
           <strong>{formatPercent(savingRate)}</strong>
         </article>
       </section>
@@ -153,18 +158,18 @@ export function Reporting() {
         <section className="content-panel report-chart-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Composition</p>
-              <h2>Category breakdown</h2>
+              <p className="eyebrow">{t('reporting.composition')}</p>
+              <h2>{t('reporting.categoryBreakdown')}</h2>
             </div>
-            <Badge>{transactions.length} transactions</Badge>
+            <Badge>{t('transaction.count', {count: transactions.length})}</Badge>
           </div>
           {status === 'loading' && transactions.length === 0 ? (
             <SkeletonRows />
           ) : rows.length === 0 ? (
             <StatePanel
               state="empty"
-              title={`No activity in ${label}`}
-              description="Choose another period or add a transaction."
+              title={t('reporting.noActivity', {period: label})}
+              description={t('reporting.noActivityDescription')}
             />
           ) : (
             <div className="category-bars">
@@ -187,16 +192,16 @@ export function Reporting() {
         <section className="content-panel report-budget-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Limits</p>
-              <h2>Budget consumption</h2>
+              <p className="eyebrow">{t('reporting.limits')}</p>
+              <h2>{t('reporting.budgetConsumption')}</h2>
             </div>
             <LinkToBudgets />
           </div>
           {data.budgets.length === 0 ? (
             <StatePanel
               state="empty"
-              title="No budget data"
-              description="Set category budgets to compare targets with actual spending."
+              title={t('reporting.noBudgets')}
+              description={t('reporting.noBudgetsDescription')}
             />
           ) : (
             <div className="budget-list">
@@ -219,16 +224,16 @@ export function Reporting() {
       <section className="content-panel report-table-panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">Accessible data</p>
-            <h2>Category totals</h2>
+            <p className="eyebrow">{t('reporting.accessibleData')}</p>
+            <h2>{t('reporting.categoryTotals')}</h2>
           </div>
         </div>
-        <div className="report-table" role="table" aria-label={`Category totals for ${label}`}>
+        <div className="report-table" role="table" aria-label={t('reporting.categoryTotalsFor', {period: label})}>
           <div className="report-table-row header" role="row">
-            <span>Category</span>
-            <span>Income</span>
-            <span>Expenses</span>
-            <span>Net</span>
+            <span>{t('common.category')}</span>
+            <span>{t('entity.income')}</span>
+            <span>{t('entity.expenses')}</span>
+            <span>{t('reporting.net')}</span>
           </div>
           {rows.map(([name, values]) => (
             <div key={name} className="report-table-row" role="row">
@@ -245,9 +250,10 @@ export function Reporting() {
 }
 
 function LinkToBudgets() {
+  const {t} = useI18n();
   return (
     <a className="text-link" href="/budgets">
-      Manage budgets <ArrowRight size={14} />
+      {t('reporting.manageBudgets')} <ArrowRight size={14} />
     </a>
   );
 }

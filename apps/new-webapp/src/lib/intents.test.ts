@@ -26,6 +26,7 @@ const data: FinanceData = {
       interval: 'monthly',
       nextExecutionAt: new Date('2026-07-20'),
       paused: false,
+      expiresAt: null,
       receiver: 'Landlord',
       transferAmount: -900,
       information: null,

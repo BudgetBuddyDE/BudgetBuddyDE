@@ -2,7 +2,16 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {describe, expect, it, vi} from 'vitest';
-import {Badge, Button, ConfirmDialog, DialogShell, ProgressBar, SelectField, TextField} from './primitives';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  DialogShell,
+  PasswordField,
+  ProgressBar,
+  SelectField,
+  TextField,
+} from './primitives';
 
 describe('UI primitives', () => {
   it('exposes labels, descriptions, variants, and progress semantics', () => {
@@ -22,6 +31,21 @@ describe('UI primitives', () => {
     expect(screen.getByLabelText('Status')).toHaveValue('Active');
     expect(screen.getByText('Healthy')).toHaveClass('badge-good');
     expect(screen.getByRole('progressbar', {name: 'Food budget'})).toHaveAttribute('aria-valuenow', '100');
+  });
+
+  it('toggles password visibility without changing its value or validation state', async () => {
+    const user = userEvent.setup();
+    render(<PasswordField label="Password" defaultValue="secret-value" error="Password error" />);
+    const input = screen.getByLabelText('Password');
+    expect(input).toHaveAttribute('type', 'password');
+    expect(input).toHaveValue('secret-value');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+
+    await user.click(screen.getByRole('button', {name: 'Show password'}));
+    expect(input).toHaveAttribute('type', 'text');
+    expect(input).toHaveValue('secret-value');
+    expect(screen.getByRole('button', {name: 'Hide password'})).toHaveFocus();
+    expect(input).toHaveAttribute('aria-invalid', 'true');
   });
 
   it('manages dialog state and closes after confirmation', async () => {

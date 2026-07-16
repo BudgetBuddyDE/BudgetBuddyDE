@@ -1,6 +1,10 @@
 export type RecurringInterval = 'monthly' | 'quarterly' | 'yearly';
 
-export function isRecurringPaymentDue(payment: {interval: RecurringInterval; createdAt: Date}, executionDate: Date) {
+export function isRecurringPaymentDue(
+  payment: {interval: RecurringInterval; createdAt: Date; expiresAt?: Date | null},
+  executionDate: Date,
+) {
+  if (payment.expiresAt && payment.expiresAt <= executionDate) return false;
   const monthsSinceCreation =
     (executionDate.getFullYear() - payment.createdAt.getFullYear()) * 12 +
     executionDate.getMonth() -

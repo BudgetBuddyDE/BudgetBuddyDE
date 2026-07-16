@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="48" viewBox="0 0 250 48" role="img" aria-labelledby="title desc">
+  <title id="title">BudgetBuddy</title>
+  <desc id="desc">BudgetBuddy wordmark with rising budget bars</desc>
+  <rect width="48" height="48" rx="14" fill="#CFEF6F"/>
+  <path d="M13 31.5V24h6v7.5h-6Zm8 0V18h6v13.5h-6Zm8 0V12h6v19.5h-6Z" fill="#0D1D1A"/>
+  <path d="M12.5 35.5h23" fill="none" stroke="#0D1D1A" stroke-width="2" stroke-linecap="round"/>
+  <text x="62" y="31" fill="#EEF3EF" font-family="Manrope,Inter,Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="-.6">BudgetBuddy</text>
+</svg>

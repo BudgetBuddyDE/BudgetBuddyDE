@@ -1,54 +1,66 @@
 'use client';
 
-import {ArrowRight, Check, Github, Gauge, LockKeyhole, ShieldCheck, Sparkles} from 'lucide-react';
+import {ArrowRight, Check, Github, LockKeyhole, ShieldCheck, Sparkles} from 'lucide-react';
 import Link from 'next/link';
 import {useRouter, useSearchParams} from 'next/navigation';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {z} from 'zod';
 import {authClient} from '@/authClient';
-import {Button, TextField} from '@/components/ui/primitives';
+import {BrandLogo} from '@/components/brand-logo';
+import {Button, PasswordField, TextField} from '@/components/ui/primitives';
+import {useI18n} from '@/lib/i18n';
 
 export type AuthMode = 'sign-in' | 'sign-up' | 'request-reset' | 'reset-password';
 
-const authSchema = z.object({
-  firstName: z.string().trim().optional(),
-  lastName: z.string().trim().optional(),
-  email: z.email('Enter a valid email address.').optional(),
-  password: z.string().min(8, 'Use at least 8 characters.').optional(),
-  confirmPassword: z.string().optional(),
-});
+interface AuthValues {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
 
-type AuthValues = z.infer<typeof authSchema>;
+function createAuthSchema(t: (key: string) => string) {
+  return z.object({
+    firstName: z.string().trim().optional(),
+    lastName: z.string().trim().optional(),
+    email: z.email(t('auth.validation.email')).optional(),
+    password: z.string().min(8, t('auth.validation.passwordLength')).optional(),
+    confirmPassword: z.string().optional(),
+  });
+}
 
-const COPY: Record<AuthMode, {eyebrow: string; title: string; description: string; submit: string}> = {
+const COPY_KEYS: Record<AuthMode, {eyebrow: string; title: string; description: string; submit: string}> = {
   'sign-in': {
-    eyebrow: 'Welcome back',
-    title: 'Sign in to your workspace',
-    description: 'Continue where you left off and keep your month on track.',
-    submit: 'Sign in',
+    eyebrow: 'auth.signIn.eyebrow',
+    title: 'auth.signIn.title',
+    description: 'auth.signIn.description',
+    submit: 'auth.signIn.submit',
   },
   'sign-up': {
-    eyebrow: 'Create your account',
-    title: 'Start with financial clarity',
-    description: 'A calm, private workspace for the money decisions that matter.',
-    submit: 'Create account',
+    eyebrow: 'auth.signUp.eyebrow',
+    title: 'auth.signUp.title',
+    description: 'auth.signUp.description',
+    submit: 'auth.signUp.submit',
   },
   'request-reset': {
-    eyebrow: 'Account recovery',
-    title: 'Reset your password',
-    description: 'We will send a secure reset link to your verified email address.',
-    submit: 'Send reset link',
+    eyebrow: 'auth.requestReset.eyebrow',
+    title: 'auth.requestReset.title',
+    description: 'auth.requestReset.description',
+    submit: 'auth.requestReset.submit',
   },
   'reset-password': {
-    eyebrow: 'Choose a password',
-    title: 'Secure your account',
-    description: 'Use at least eight characters and avoid a password used elsewhere.',
-    submit: 'Save new password',
+    eyebrow: 'auth.reset.eyebrow',
+    title: 'auth.reset.title',
+    description: 'auth.reset.description',
+    submit: 'auth.reset.submit',
   },
 };
 
 export function AuthForm({mode}: {mode: AuthMode}) {
+  const {t} = useI18n();
+  const authSchema = useMemo(() => createAuthSchema(t), [t]);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [serviceError, setServiceError] = useState<string | null>(null);
@@ -58,30 +70,36 @@ export function AuthForm({mode}: {mode: AuthMode}) {
     handleSubmit,
     formState: {errors, isSubmitting},
   } = useForm<AuthValues>();
-  const copy = COPY[mode];
+  const copyKeys = COPY_KEYS[mode];
+  const copy = {
+    eyebrow: t(copyKeys.eyebrow),
+    title: t(copyKeys.title),
+    description: t(copyKeys.description),
+    submit: t(copyKeys.submit),
+  };
 
   const submit = async (values: AuthValues) => {
     setServiceError(null);
     setSuccess(null);
     const parsed = authSchema.safeParse(values);
     if (!parsed.success) {
-      setServiceError(parsed.error.issues[0]?.message ?? 'Check your details.');
+      setServiceError(parsed.error.issues[0]?.message ?? t('auth.validation.details'));
       return;
     }
     if ((mode === 'sign-in' || mode === 'sign-up' || mode === 'reset-password') && !values.password) {
-      setServiceError('Enter your password.');
+      setServiceError(t('auth.validation.passwordRequired'));
       return;
     }
     if ((mode === 'sign-in' || mode === 'sign-up' || mode === 'request-reset') && !values.email) {
-      setServiceError('Enter your email address.');
+      setServiceError(t('auth.validation.emailRequired'));
       return;
     }
     if (mode === 'sign-up' && (!values.firstName || !values.lastName)) {
-      setServiceError('Enter your first and last name.');
+      setServiceError(t('auth.validation.nameRequired'));
       return;
     }
     if (mode === 'reset-password' && values.password !== values.confirmPassword) {
-      setServiceError('The passwords do not match.');
+      setServiceError(t('auth.validation.passwordMismatch'));
       return;
     }
 
@@ -92,7 +110,7 @@ export function AuthForm({mode}: {mode: AuthMode}) {
         callbackURL: '/dashboard',
       });
       if (error) {
-        setServiceError(error.message ?? 'Sign-in failed. Check your details.');
+        setServiceError(error.message ?? t('auth.error.signIn'));
         return;
       }
       router.replace('/dashboard');
@@ -104,76 +122,73 @@ export function AuthForm({mode}: {mode: AuthMode}) {
         callbackURL: '/dashboard',
       });
       if (error) {
-        setServiceError(error.message ?? 'Your account could not be created.');
+        setServiceError(error.message ?? t('auth.error.signUp'));
         return;
       }
-      setSuccess('Account created. Check your inbox to verify your email.');
+      setSuccess(t('auth.success.signUp'));
     } else if (mode === 'request-reset') {
       const {error} = await authClient.requestPasswordReset({
         email: values.email!,
         redirectTo: `${window.location.origin}/password/reset`,
       });
       if (error) {
-        setServiceError(error.message ?? 'The reset email could not be sent.');
+        setServiceError(error.message ?? t('auth.error.resetRequest'));
         return;
       }
-      setSuccess('If an account exists for this address, a reset link is on its way.');
+      setSuccess(t('auth.success.resetRequest'));
     } else {
       const token = searchParams.get('token');
       if (!token) {
-        setServiceError('This reset link is incomplete or has expired.');
+        setServiceError(t('auth.error.resetToken'));
         return;
       }
       const {error} = await authClient.resetPassword({newPassword: values.password!, token});
       if (error) {
-        setServiceError(error.message ?? 'The password could not be changed.');
+        setServiceError(error.message ?? t('auth.error.resetPassword'));
         return;
       }
-      setSuccess('Password updated. You can now sign in.');
+      setSuccess(t('auth.success.resetPassword'));
     }
   };
 
   const socialSignIn = async (provider: 'google' | 'github') => {
     setServiceError(null);
     const {error} = await authClient.signIn.social({provider, callbackURL: '/dashboard'});
-    if (error) setServiceError(error.message ?? `Could not continue with ${provider}.`);
+    if (error) setServiceError(error.message ?? t('auth.error.social', {provider}));
   };
 
   return (
     <div className="auth-card">
-      <div className="auth-mobile-brand">
-        <Gauge size={22} />
-        <strong>BudgetBuddy</strong>
-      </div>
+      <BrandLogo className="auth-mobile-brand" />
       <p className="eyebrow">{copy.eyebrow}</p>
       <h1>{copy.title}</h1>
       <p className="auth-description">{copy.description}</p>
       {(mode === 'sign-in' || mode === 'sign-up') && (
         <div className="social-grid">
           <Button variant="secondary" onClick={() => void socialSignIn('google')}>
-            <span className="google-g">G</span> Google
+            <span className="google-g">G</span> {t('auth.google')}
           </Button>
           <Button variant="secondary" onClick={() => void socialSignIn('github')}>
-            <Github size={17} /> GitHub
+            <Github size={17} /> {t('auth.github')}
           </Button>
         </div>
       )}
       {(mode === 'sign-in' || mode === 'sign-up') && (
         <div className="auth-divider">
-          <span>or continue with email</span>
+          <span>{t('auth.continueEmail')}</span>
         </div>
       )}
       <form className="auth-form" onSubmit={event => void handleSubmit(submit)(event)} noValidate>
         {mode === 'sign-up' && (
           <div className="form-grid two">
             <TextField
-              label="First name"
+              label={t('auth.firstName')}
               autoComplete="given-name"
               error={errors.firstName?.message}
               {...register('firstName')}
             />
             <TextField
-              label="Last name"
+              label={t('auth.lastName')}
               autoComplete="family-name"
               error={errors.lastName?.message}
               {...register('lastName')}
@@ -182,7 +197,7 @@ export function AuthForm({mode}: {mode: AuthMode}) {
         )}
         {mode !== 'reset-password' && (
           <TextField
-            label="Email address"
+            label={t('auth.email')}
             type="email"
             autoComplete="email"
             error={errors.email?.message}
@@ -190,19 +205,17 @@ export function AuthForm({mode}: {mode: AuthMode}) {
           />
         )}
         {(mode === 'sign-in' || mode === 'sign-up' || mode === 'reset-password') && (
-          <TextField
-            label={mode === 'reset-password' ? 'New password' : 'Password'}
-            type="password"
+          <PasswordField
+            label={mode === 'reset-password' ? t('auth.newPassword') : t('auth.password')}
             autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
-            hint={mode !== 'sign-in' ? 'At least 8 characters' : undefined}
+            hint={mode !== 'sign-in' ? t('auth.passwordHint') : undefined}
             error={errors.password?.message}
             {...register('password')}
           />
         )}
         {mode === 'reset-password' && (
-          <TextField
-            label="Confirm password"
-            type="password"
+          <PasswordField
+            label={t('auth.confirmPassword')}
             autoComplete="new-password"
             {...register('confirmPassword')}
           />
@@ -210,9 +223,9 @@ export function AuthForm({mode}: {mode: AuthMode}) {
         {mode === 'sign-in' && (
           <div className="forgot-row">
             <label>
-              <input type="checkbox" /> Keep me signed in
+              <input type="checkbox" /> {t('auth.keepSignedIn')}
             </label>
-            <Link href="/password/request-reset">Forgot password?</Link>
+            <Link href="/password/request-reset">{t('auth.forgotPassword')}</Link>
           </div>
         )}
         {serviceError && (
@@ -228,58 +241,53 @@ export function AuthForm({mode}: {mode: AuthMode}) {
           </div>
         )}
         <Button className="auth-submit" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Please wait…' : copy.submit}
+          {isSubmitting ? t('auth.wait') : copy.submit}
           <ArrowRight size={17} />
         </Button>
       </form>
       <p className="auth-switch">
         {mode === 'sign-in' ? (
           <>
-            New to BudgetBuddy? <Link href="/sign-up">Create an account</Link>
+            {t('auth.newUser')} <Link href="/sign-up">{t('auth.createAccount')}</Link>
           </>
         ) : mode === 'sign-up' ? (
           <>
-            Already have an account? <Link href="/sign-in">Sign in</Link>
+            {t('auth.existingUser')} <Link href="/sign-in">{t('auth.signIn.submit')}</Link>
           </>
         ) : (
           <>
-            Remembered your password? <Link href="/sign-in">Back to sign in</Link>
+            {t('auth.rememberedPassword')} <Link href="/sign-in">{t('auth.backToSignIn')}</Link>
           </>
         )}
       </p>
       <p className="auth-security">
-        <LockKeyhole size={14} /> Encrypted connection · Your data stays private
+        <LockKeyhole size={14} /> {t('auth.security')}
       </p>
     </div>
   );
 }
 
 export function AuthVisual() {
+  const {t, formatCurrency} = useI18n();
   return (
     <aside className="auth-visual">
       <div className="auth-brand">
-        <span className="brand-mark">
-          <Gauge size={22} />
-        </span>
-        <div>
-          <strong>BudgetBuddy</strong>
-          <small>Finance workspace</small>
-        </div>
+        <BrandLogo onDark />
       </div>
       <div className="auth-quote">
         <span className="quote-icon">
           <Sparkles size={20} />
         </span>
-        <blockquote>“The best budget is the one you can understand at a glance.”</blockquote>
-        <p>Build clarity, one month at a time.</p>
+        <blockquote>{t('auth.visual.quote')}</blockquote>
+        <p>{t('auth.visual.quoteCaption')}</p>
       </div>
       <div className="auth-preview">
         <div className="preview-top">
-          <span>Monthly overview</span>
+          <span>{t('auth.visual.monthlyOverview')}</span>
           <span>•••</span>
         </div>
-        <strong>€4,286.40</strong>
-        <small>Available balance</small>
+        <strong>{formatCurrency(4286.4)}</strong>
+        <small>{t('auth.visual.availableBalance')}</small>
         <div className="preview-bars">
           <i />
           <i />
@@ -292,21 +300,21 @@ export function AuthVisual() {
         </div>
         <div className="preview-stats">
           <span>
-            <small>Income</small>
-            <strong>€5,420</strong>
+            <small>{t('auth.visual.income')}</small>
+            <strong>{formatCurrency(5420)}</strong>
           </span>
           <span>
-            <small>Expenses</small>
-            <strong>€1,134</strong>
+            <small>{t('auth.visual.expenses')}</small>
+            <strong>{formatCurrency(1134)}</strong>
           </span>
         </div>
       </div>
       <div className="auth-trust">
         <span>
-          <Check size={15} /> Private by design
+          <Check size={15} /> {t('auth.visual.private')}
         </span>
         <span>
-          <Check size={15} /> Built for self-hosting
+          <Check size={15} /> {t('auth.visual.selfHosting')}
         </span>
       </div>
     </aside>

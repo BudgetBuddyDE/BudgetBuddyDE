@@ -1,4 +1,9 @@
+'use client';
 import {AccountStatus} from '@/components/account-status';
+import {useI18n} from '@/lib/i18n';
 export default function EmailVerifiedPage() {
-  return <AccountStatus title="Email verified" description="Your address is confirmed and your account is ready." />;
+  const {t} = useI18n();
+  return (
+    <AccountStatus title={t('accountStatus.emailVerified')} description={t('accountStatus.emailVerifiedDescription')} />
+  );
 }

@@ -4,5 +4,6 @@ ci/secrets/**
 !ci/secrets/
 node_modules/
 .env
+.next/
 build/
 local-docs/

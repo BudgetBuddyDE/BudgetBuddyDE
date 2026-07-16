@@ -68,7 +68,7 @@ describe('Reporting', () => {
     render(<Reporting />);
     const period = screen.getByLabelText('Period');
     expect(period).toHaveValue('month');
-    expect(screen.getByRole('button', {name: 'Previous month'})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Next month'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Previous Month'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Next Month'})).toBeVisible();
   });
 });

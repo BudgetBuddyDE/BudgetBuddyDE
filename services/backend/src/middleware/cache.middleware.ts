@@ -85,10 +85,38 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
   }
 }
 
+async function invalidateRouteCache(route: CacheRouteConfig, userId: string): Promise<void> {
+  try {
+    const redis = getRedisClient();
+    const prefix = route.cacheKeyPrefix ?? route.path;
+    const pattern = `${config.cache.keyPrefix}:${prefix}:${userId}:*`;
+
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        config.cache.invalidationScanCount,
+      );
+      cursor = nextCursor;
+      if (keys.length > 0) {
+        await redis.del(...keys);
+        cacheLogger.debug('Invalidated %d cache keys matching "%s"', keys.length, pattern, {keys});
+      }
+    } while (cursor !== '0');
+  } catch (err) {
+    cacheLogger.error('Cache invalidation failed', err);
+  }
+}
+
 /**
- * Middleware that invalidates cached GET responses after a successful mutating request (POST, PUT, DELETE).
+ * Invalidates cached GET responses around a mutating request (POST, PUT, DELETE).
  *
- * All cached keys for the matched route and current user are removed via Redis SCAN + DEL.
+ * The eager invalidation prevents a client from receiving stale data when it reloads
+ * immediately after the mutation response. The successful-response invalidation also
+ * removes entries populated by concurrent reads while the mutation was in progress.
  */
 export async function invalidateCache(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (!isCacheAvailable() || !['POST', 'PUT', 'DELETE'].includes(req.method)) {
@@ -108,31 +136,9 @@ export async function invalidateCache(req: Request, res: Response, next: NextFun
     return;
   }
 
+  await invalidateRouteCache(route, userId);
   res.on('finish', async () => {
-    try {
-      const redis = getRedisClient();
-      const prefix = route.cacheKeyPrefix ?? route.path;
-      const pattern = `${config.cache.keyPrefix}:${prefix}:${userId}:*`;
-
-      let cursor = '0';
-      do {
-        const [nextCursor, keys] = await redis.scan(
-          cursor,
-          'MATCH',
-          pattern,
-          'COUNT',
-          config.cache.invalidationScanCount,
-        );
-        cursor = nextCursor;
-        if (keys.length > 0) {
-          await redis.del(...keys);
-          cacheLogger.debug('Invalidated %d cache keys matching "%s"', keys.length, pattern, {keys});
-        }
-      } while (cursor !== '0');
-    } catch (err) {
-      cacheLogger.error('Cache invalidation failed', err);
-    }
+    if (res.statusCode >= 200 && res.statusCode < 300) await invalidateRouteCache(route, userId);
   });
-
   next();
 }

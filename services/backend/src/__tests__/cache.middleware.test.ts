@@ -240,7 +240,8 @@ suite('Cache', () => {
   });
 
   describe('invalidateCache', () => {
-    const next: NextFunction = vi.fn();
+    const nextMock = vi.fn();
+    const next: NextFunction = nextMock;
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -272,51 +273,59 @@ suite('Cache', () => {
       expect(res.on).not.toHaveBeenCalled();
     });
 
-    it('registers a "finish" listener for POST on a matched route', async () => {
+    it('invalidates before the handler and registers successful-response invalidation', async () => {
+      mockRedisScan.mockResolvedValueOnce(['0', ['cache:/api/category:user-1:/api/category']]);
+      mockRedisDel.mockResolvedValueOnce(1);
       const req = makeRequest({method: 'POST'});
       const res = makeResponse();
+
       await invalidateCache(req, res, next);
-      expect(next).toHaveBeenCalledOnce();
+
+      expect(mockRedisDel).toHaveBeenCalledWith('cache:/api/category:user-1:/api/category');
+      expect(mockRedisDel.mock.invocationCallOrder[0]).toBeLessThan(nextMock.mock.invocationCallOrder[0]);
       expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
     });
 
-    it('invalidates matching cache keys on finish', async () => {
-      mockRedisScan.mockResolvedValueOnce([
-        '0',
-        ['cache:/api/category:user-1:/api/category', 'cache:/api/category:user-1:/api/category?from=0'],
-      ]);
-      mockRedisDel.mockResolvedValueOnce(2);
+    it('invalidates matching cache keys again after a successful response', async () => {
+      mockRedisScan
+        .mockResolvedValueOnce([
+          '0',
+          ['cache:/api/category:user-1:/api/category', 'cache:/api/category:user-1:/api/category?from=0'],
+        ])
+        .mockResolvedValueOnce([
+          '0',
+          ['cache:/api/category:user-1:/api/category', 'cache:/api/category:user-1:/api/category?from=0'],
+        ]);
+      mockRedisDel.mockResolvedValue(2);
 
       const req = makeRequest({method: 'DELETE', path: '/api/category/123', originalUrl: '/api/category/123'});
-      // Use a real event emitter so we can trigger 'finish'
-      const listeners: Record<string, () => void> = {};
+      const listeners: Record<string, () => Promise<void>> = {};
       const res = {
         ...makeResponse(),
-        on: (event: string, cb: () => void) => {
+        on: (event: string, cb: () => Promise<void>) => {
           listeners[event] = cb;
         },
       } as unknown as Response;
 
       await invalidateCache(req, res, next);
-
-      // Trigger the finish event
       await listeners.finish();
 
-      expect(mockRedisScan).toHaveBeenCalledWith('0', 'MATCH', 'cache:/api/category:user-1:*', 'COUNT', 100);
-      expect(mockRedisDel).toHaveBeenCalledWith(
+      expect(mockRedisScan).toHaveBeenCalledTimes(2);
+      expect(mockRedisDel).toHaveBeenCalledTimes(2);
+      expect(mockRedisDel).toHaveBeenLastCalledWith(
         'cache:/api/category:user-1:/api/category',
         'cache:/api/category:user-1:/api/category?from=0',
       );
     });
 
-    it('uses cacheKeyPrefix in invalidation pattern', async () => {
-      mockRedisScan.mockResolvedValueOnce(['0', []]);
+    it('uses cacheKeyPrefix in both invalidation passes', async () => {
+      mockRedisScan.mockResolvedValueOnce(['0', []]).mockResolvedValueOnce(['0', []]);
 
       const req = makeRequest({method: 'PUT', path: '/api/transaction/5', originalUrl: '/api/transaction/5'});
-      const listeners: Record<string, () => void> = {};
+      const listeners: Record<string, () => Promise<void>> = {};
       const res = {
         ...makeResponse(),
-        on: (event: string, cb: () => void) => {
+        on: (event: string, cb: () => Promise<void>) => {
           listeners[event] = cb;
         },
       } as unknown as Response;
@@ -324,8 +333,8 @@ suite('Cache', () => {
       await invalidateCache(req, res, next);
       await listeners.finish();
 
-      // cacheKeyPrefix is 'txn' for transaction route
-      expect(mockRedisScan).toHaveBeenCalledWith('0', 'MATCH', 'cache:txn:user-1:*', 'COUNT', 100);
+      expect(mockRedisScan).toHaveBeenCalledTimes(2);
+      expect(mockRedisScan).toHaveBeenLastCalledWith('0', 'MATCH', 'cache:txn:user-1:*', 'COUNT', 100);
     });
   });
 });

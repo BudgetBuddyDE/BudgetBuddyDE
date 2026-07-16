@@ -33,6 +33,7 @@ export interface RecurringPaymentView {
   interval: 'monthly' | 'quarterly' | 'yearly';
   nextExecutionAt: Date;
   paused: boolean;
+  expiresAt: Date | null;
   receiver: string;
   transferAmount: number;
   information: string | null;
@@ -86,6 +87,7 @@ export interface RecurringPaymentInput {
   executeAt: number;
   interval: 'monthly' | 'quarterly' | 'yearly';
   paused: boolean;
+  expiresAt?: Date | null;
   receiver: string;
   transferAmount: number;
   information?: string;

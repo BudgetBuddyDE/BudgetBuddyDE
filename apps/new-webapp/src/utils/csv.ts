@@ -1,10 +1,17 @@
 import type {CategoryView, PaymentMethodView, TransactionInput} from '@/types/finance';
 
+export type ImportError =
+  | 'csv.invalidDate'
+  | 'csv.invalidAmount'
+  | 'csv.missingReceiver'
+  | 'csv.unknownCategory'
+  | 'csv.unknownPaymentMethod';
+
 export interface ImportPreviewRow {
   rowNumber: number;
   raw: Record<string, string>;
   input: TransactionInput | null;
-  errors: string[];
+  errors: ImportError[];
 }
 
 export function parseCsv(content: string): string[][] {
@@ -57,12 +64,12 @@ export function createTransactionImportPreview(
     const methodName = field(values, 'paymentmethod').toLocaleLowerCase();
     const category = categories.find(item => item.name.toLocaleLowerCase() === categoryName);
     const paymentMethod = paymentMethods.find(item => item.name.toLocaleLowerCase() === methodName);
-    const errors: string[] = [];
-    if (Number.isNaN(date.getTime())) errors.push('Invalid date');
-    if (!Number.isFinite(amount) || amount === 0) errors.push('Invalid amount');
-    if (!field(values, 'receiver')) errors.push('Missing receiver');
-    if (!category) errors.push('Unknown category');
-    if (!paymentMethod) errors.push('Unknown payment method');
+    const errors: ImportError[] = [];
+    if (Number.isNaN(date.getTime())) errors.push('csv.invalidDate');
+    if (!Number.isFinite(amount) || amount === 0) errors.push('csv.invalidAmount');
+    if (!field(values, 'receiver')) errors.push('csv.missingReceiver');
+    if (!category) errors.push('csv.unknownCategory');
+    if (!paymentMethod) errors.push('csv.unknownPaymentMethod');
 
     return {
       rowNumber: index + 2,

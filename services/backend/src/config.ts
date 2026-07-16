@@ -201,12 +201,12 @@ export const config: Config = {
     keyPrefix: 'cache',
     invalidationScanCount: 100,
     routes: [
-      {path: '/api/category', ttl: 300},
-      {path: '/api/paymentMethod', ttl: 300},
-      {path: '/api/transaction', ttl: 60},
-      {path: '/api/recurringPayment', ttl: 300},
-      {path: '/api/budget', ttl: 300},
-      {path: '/api/insights', ttl: 120},
+      {path: '/api/category', ttl: 300, cacheKeyPrefix: 'finance'},
+      {path: '/api/paymentMethod', ttl: 300, cacheKeyPrefix: 'finance'},
+      {path: '/api/transaction', ttl: 60, cacheKeyPrefix: 'finance'},
+      {path: '/api/recurringPayment', ttl: 300, cacheKeyPrefix: 'finance'},
+      {path: '/api/budget', ttl: 300, cacheKeyPrefix: 'finance'},
+      {path: '/api/insights', ttl: 120, cacheKeyPrefix: 'finance'},
     ],
   },
   attachments: {

@@ -76,7 +76,7 @@ describe('Dashboard', () => {
     expect(screen.getAllByText('€3,000.00').length).toBeGreaterThan(0);
     expect(screen.getAllByText('€500.00').length).toBeGreaterThan(0);
     expect(screen.getByText('Landlord')).toBeVisible();
-    expect(screen.getByText('Home · monthly')).toBeVisible();
+    expect(screen.getByText('Home · Monthly')).toBeVisible();
   });
 
   it('provides direct links to detailed workflows', () => {

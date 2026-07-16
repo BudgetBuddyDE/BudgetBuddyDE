@@ -72,6 +72,7 @@ export const recurringPayments = backendSchema.table('recurring_payment', {
     .default('monthly')
     .notNull(),
   paused: boolean().default(false).notNull(),
+  expiresAt: timestamp('expires_at', {withTimezone: true}),
   receiver: varchar({length: 100}).notNull(),
   transferAmount: doublePrecision('transfer_amount').notNull(),
   information: text(),
