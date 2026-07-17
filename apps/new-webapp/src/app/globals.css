@@ -2112,10 +2112,16 @@ kbd {
   color: var(--accent);
 }
 .auth-content {
+  position: relative;
   display: grid;
   min-height: 100vh;
   place-items: center;
   padding: 44px;
+}
+.auth-theme-toggle {
+  position: absolute;
+  top: 24px;
+  right: 24px;
 }
 .auth-card {
   width: min(430px, 100%);

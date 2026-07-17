@@ -10,14 +10,12 @@ import {
   Gauge,
   LayoutDashboard,
   Menu,
-  Moon,
   PiggyBank,
   Plus,
   ReceiptText,
   Repeat2,
   Search,
   Settings,
-  Sun,
   Tags,
   X,
 } from 'lucide-react';
@@ -27,6 +25,7 @@ import {useEffect, useState} from 'react';
 import {authClient} from '@/authClient';
 import {CommandPalette} from '@/components/command-palette';
 import {StatePanel} from '@/components/shared';
+import {ThemeToggle} from '@/components/theme-toggle';
 import {Button, IconButton} from '@/components/ui/primitives';
 import {FinanceProvider, useFinance} from '@/lib/finance-provider';
 import {cn} from '@/utils/cn';
@@ -55,29 +54,14 @@ function ShellContent({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [dark, setDark] = useState(false);
   const {notice, clearNotice} = useFinance();
 
   useEffect(() => setMobileOpen(false), [pathname]);
-  useEffect(() => {
-    const preferred =
-      localStorage.getItem('budgetbuddy-theme') ??
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    setDark(preferred === 'dark');
-    document.documentElement.dataset.theme = preferred;
-  }, []);
   useEffect(() => {
     if (!notice) return;
     const timeout = window.setTimeout(clearNotice, 4200);
     return () => window.clearTimeout(timeout);
   }, [clearNotice, notice]);
-
-  const toggleTheme = () => {
-    const next = dark ? 'light' : 'dark';
-    setDark(!dark);
-    document.documentElement.dataset.theme = next;
-    localStorage.setItem('budgetbuddy-theme', next);
-  };
 
   return (
     <div className={cn('app-shell', collapsed && 'sidebar-collapsed')}>
@@ -166,9 +150,7 @@ function ShellContent({
             </kbd>
           </button>
           <div className="topbar-actions">
-            <IconButton aria-label={dark ? 'Use light theme' : 'Use dark theme'} onClick={toggleTheme}>
-              {dark ? <Sun size={18} /> : <Moon size={18} />}
-            </IconButton>
+            <ThemeToggle />
             <IconButton aria-label="Notifications">
               <Bell size={18} />
             </IconButton>
