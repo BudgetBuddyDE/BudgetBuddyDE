@@ -35,6 +35,7 @@ import type {
   RecurringPaymentView,
   TransactionView,
 } from '@/types/finance';
+import {downloadTextFile, serializeRecordsCsv} from '@/utils/export';
 import {formatCurrency, formatDate} from '@/utils/format';
 
 const PAGE_SIZE = 10;
@@ -545,7 +546,7 @@ function EntityRow({
 export function EntityWorkspace({kind}: {kind: EntityKind}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const {data, status, error, reload, mergeEntities, mutationPending} = useFinance();
+  const {data, status, error, reload, deleteEntity, mergeEntities, mutationPending} = useFinance();
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<EntityView | undefined>();
   const [selected, setSelected] = useState<string[]>([]);
@@ -610,6 +611,21 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
   };
   const mergeable = kind === 'categories' || kind === 'payment-methods';
   const selectedItems = source.filter(item => selected.includes(item.id));
+  const exportItems = selectedItems.length > 0 ? selectedItems : filtered;
+  const deleteSelected = async () => {
+    const deletedIds = new Set<string>();
+    for (const item of selectedItems) {
+      if (await deleteEntity(kind, item.id)) deletedIds.add(item.id);
+    }
+    setSelected(current => current.filter(id => !deletedIds.has(id)));
+  };
+  const exportCsv = () => {
+    downloadTextFile(
+      serializeRecordsCsv(exportItems),
+      'text/csv;charset=utf-8',
+      `budgetbuddy-${kind}${selectedItems.length > 0 ? '-selected' : ''}.csv`,
+    );
+  };
   const openMerge = () => {
     const target = selectedItems[0];
     if (!target || !mergeable) return;
@@ -626,32 +642,6 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
       setMergeOpen(false);
     }
   };
-  const exportTransactionsCsv = () => {
-    if (kind !== 'transactions') return;
-    const csv = [
-      'date,amount,receiver,category,paymentMethod,note',
-      ...filtered.map(item => {
-        const transaction = item as TransactionView;
-        return [
-          transaction.processedAt.toISOString().slice(0, 10),
-          transaction.transferAmount,
-          transaction.receiver,
-          transaction.categoryName,
-          transaction.paymentMethodName,
-          transaction.information ?? '',
-        ]
-          .map(value => `"${String(value).replaceAll('"', '""')}"`)
-          .join(',');
-      }),
-    ].join('\n');
-    const href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = 'budgetbuddy-transactions.csv';
-    link.click();
-    URL.revokeObjectURL(href);
-  };
-
   useEffect(() => {
     const intent = searchParams.get('intent');
     if (intent === 'create') openEditor();
@@ -701,11 +691,23 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
                 <Merge size={15} /> Merge
               </Button>
             )}
-            {kind === 'transactions' && (
-              <Button variant="secondary" size="sm" disabled={filtered.length === 0} onClick={exportTransactionsCsv}>
-                <Download size={15} /> Export CSV
-              </Button>
+            {selected.length > 0 && (
+              <ConfirmDialog
+                trigger={
+                  <Button variant="danger" size="sm">
+                    <Trash2 size={15} /> Delete selected
+                  </Button>
+                }
+                title={`Delete ${selected.length} selected ${selected.length === 1 ? meta.singular : meta.title.toLocaleLowerCase()}?`}
+                description="Every selected record and its direct associations will be removed."
+                confirmLabel="Delete selected"
+                busy={mutationPending}
+                onConfirm={deleteSelected}
+              />
             )}
+            <Button variant="secondary" size="sm" disabled={exportItems.length === 0} onClick={exportCsv}>
+              <Download size={15} /> {selected.length > 0 ? 'Export selected CSV' : 'Export CSV'}
+            </Button>
             <SelectField
               label="Sort"
               className="compact-field"

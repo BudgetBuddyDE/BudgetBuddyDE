@@ -76,6 +76,29 @@ describe('EntityWorkspace', () => {
     expect(finance.mergeEntities).toHaveBeenCalledWith('categories', ['cat-2'], 'cat-1');
   });
 
+  it('deletes and exports selected rows', async () => {
+    const createObjectUrl = vi.fn().mockReturnValue('blob:export');
+    const revokeObjectUrl = vi.fn();
+    Object.defineProperties(URL, {
+      createObjectURL: {value: createObjectUrl, configurable: true},
+      revokeObjectURL: {value: revokeObjectUrl, configurable: true},
+    });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    render(<EntityWorkspace kind="transactions" />);
+
+    await userEvent.click(screen.getByRole('checkbox', {name: 'Select Market'}));
+    await userEvent.click(screen.getByRole('button', {name: 'Export selected CSV'}));
+    expect(createObjectUrl).toHaveBeenCalledWith(expect.any(Blob));
+    expect(click).toHaveBeenCalledOnce();
+
+    await userEvent.click(screen.getByRole('button', {name: 'Delete selected'}));
+    const dialog = screen.getByRole('dialog', {name: 'Delete 1 selected transaction?'});
+    await userEvent.click(within(dialog).getByRole('button', {name: 'Delete selected'}));
+    expect(finance.deleteEntity).toHaveBeenCalledWith('transactions', 'tx-1');
+    expect(screen.queryByRole('button', {name: 'Delete selected'})).not.toBeInTheDocument();
+    click.mockRestore();
+  });
+
   it('shows the required loading and empty states', () => {
     finance.data.transactions = [];
     render(<EntityWorkspace kind="transactions" />);
