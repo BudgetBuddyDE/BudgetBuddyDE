@@ -7,9 +7,7 @@ function csvValue(value: unknown) {
 export function serializeRecordsCsv(records: readonly object[]) {
   if (records.length === 0) return '';
   const columns = [...new Set(records.flatMap(record => Object.keys(record)))];
-  const rows = records.map(record =>
-    columns.map(key => csvValue((record as Record<string, unknown>)[key])).join(','),
-  );
+  const rows = records.map(record => columns.map(key => csvValue((record as Record<string, unknown>)[key])).join(','));
   return [columns.map(csvValue).join(','), ...rows].join('\n');
 }
 

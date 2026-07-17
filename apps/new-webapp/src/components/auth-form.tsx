@@ -199,11 +199,7 @@ export function AuthForm({mode}: {mode: AuthMode}) {
           />
         )}
         {mode === 'reset-password' && (
-          <PasswordField
-            label="Confirm password"
-            autoComplete="new-password"
-            {...register('confirmPassword')}
-          />
+          <PasswordField label="Confirm password" autoComplete="new-password" {...register('confirmPassword')} />
         )}
         {mode === 'sign-in' && (
           <div className="forgot-row">
