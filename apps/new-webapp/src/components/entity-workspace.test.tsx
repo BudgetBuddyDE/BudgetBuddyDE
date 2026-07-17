@@ -45,6 +45,7 @@ describe('EntityWorkspace', () => {
     expect(screen.getByText('-€42.50')).toBeVisible();
     expect(screen.getByRole('checkbox', {name: 'Select Market'})).toBeVisible();
     expect(screen.getByRole('button', {name: 'Edit Market'})).toBeVisible();
+    expect(screen.queryByRole('button', {name: 'More table actions'})).not.toBeInTheDocument();
   });
 
   it('opens a populated editor and saves a valid change', async () => {

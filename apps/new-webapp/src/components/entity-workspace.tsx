@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Download,
   Merge,
-  MoreHorizontal,
   Pencil,
   Play,
   Plus,
@@ -712,9 +711,7 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
               <option value="name-asc">Name A–Z</option>
               <option value="name-desc">Name Z–A</option>
             </SelectField>
-            <IconButton aria-label="More table actions">
-              <MoreHorizontal size={18} />
-            </IconButton>
+
           </div>
         </div>
         {(kind === 'transactions' || kind === 'recurring') && (
