@@ -4,7 +4,7 @@ import {ChevronLeft, ChevronRight, Download, Merge, Plus, Search, Trash2, X} fro
 import {useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useMemo, useState} from 'react';
 import {EntityRow} from '@/components/entity-row';
-import {ENTITY_META, entityName, type EntityView} from '@/components/entity-workspace-shared';
+import {ENTITY_CONFIG, type EntityView} from '@/components/entity-config';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {
   Badge,
@@ -174,7 +174,7 @@ export function EntityEditor({
   const {data, createEntity, updateEntity, mutationPending} = useFinance();
   const [formError, setFormError] = useState<string | null>(null);
   const defaults = editorDefaults(kind, item) as Record<string, string | string[] | undefined>;
-  const meta = ENTITY_META[kind];
+  const meta = ENTITY_CONFIG[kind].meta;
   const field = (name: string) => {
     const value = defaults[name];
     return typeof value === 'string' ? value : '';
@@ -359,7 +359,8 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
   const [selected, setSelected] = useState<string[]>([]);
   const [mergeOpen, setMergeOpen] = useState(false);
   const [mergeTarget, setMergeTarget] = useState('');
-  const meta = ENTITY_META[kind];
+  const config = ENTITY_CONFIG[kind];
+  const meta = config.meta;
   const query = searchParams.get('q') ?? '';
   const sort = searchParams.get('sort') ?? (kind === 'transactions' ? 'date-desc' : 'name-asc');
   const typeFilter = searchParams.get('type') ?? '';
@@ -370,7 +371,7 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
   const toFilter = searchParams.get('to') ?? '';
   const page = Math.max(1, Number(searchParams.get('page') ?? '1') || 1);
 
-  const source: EntityView[] = kind === 'payment-methods' ? data.paymentMethods : data[kind];
+  const source = config.select(data);
   const filtered = useMemo(() => {
     const normalized = query.toLocaleLowerCase();
     const items = source.filter(item => {
@@ -398,9 +399,9 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
         return (b as TransactionView).processedAt.getTime() - (a as TransactionView).processedAt.getTime();
       if (sort === 'amount-desc' && (kind === 'transactions' || kind === 'recurring'))
         return Math.abs((b as TransactionView).transferAmount) - Math.abs((a as TransactionView).transferAmount);
-      return entityName(kind, a).localeCompare(entityName(kind, b)) * (sort === 'name-desc' ? -1 : 1);
+      return config.name(a).localeCompare(config.name(b)) * (sort === 'name-desc' ? -1 : 1);
     });
-  }, [categoryFilter, fromFilter, kind, methodFilter, query, sort, source, statusFilter, toFilter, typeFilter]);
+  }, [categoryFilter, config, fromFilter, kind, methodFilter, query, sort, source, statusFilter, toFilter, typeFilter]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visible = filtered.slice((Math.min(page, pageCount) - 1) * PAGE_SIZE, Math.min(page, pageCount) * PAGE_SIZE);
 
@@ -416,7 +417,7 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
     setEditing(item);
     setEditorOpen(true);
   };
-  const mergeable = kind === 'categories' || kind === 'payment-methods';
+  const mergeable = config.mergeable === true && (kind === 'categories' || kind === 'payment-methods');
   const selectedItems = source.filter(item => selected.includes(item.id));
   const exportItems = selectedItems.length > 0 ? selectedItems : filtered;
   const deleteSelected = async () => {
@@ -650,13 +651,11 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
                   }
                 />
               </span>
-              <span>{kind === 'transactions' || kind === 'recurring' ? 'Payee' : 'Name'}</span>
-              <span>{kind === 'transactions' ? 'Category' : kind === 'budgets' ? 'Spent' : 'Details'}</span>
-              <span>{kind === 'transactions' ? 'Payment method' : kind === 'budgets' ? 'Remaining' : 'Reference'}</span>
-              {kind !== 'categories' && <span>Status / date</span>}
-              {(kind === 'transactions' || kind === 'recurring' || kind === 'budgets') && (
-                <span className="align-right">Amount</span>
-              )}
+              {config.headers.map(header => (
+                <span key={header} className={header === 'Amount' ? 'align-right' : undefined}>
+                  {header}
+                </span>
+              ))}
               <span aria-label="Actions" />
             </div>
             {visible.map(item => (
@@ -706,7 +705,7 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
       <DialogShell
         open={mergeOpen}
         onOpenChange={setMergeOpen}
-        title={`Merge ${ENTITY_META[kind].title.toLocaleLowerCase()}`}
+        title={`Merge ${meta.title.toLocaleLowerCase()}`}
         description="Choose the record to keep. Existing assignments are moved to that record."
       >
         <div className="entity-form">
@@ -717,7 +716,7 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
           >
             {selectedItems.map(item => (
               <option key={item.id} value={item.id}>
-                {entityName(kind, item)}
+                {config.name(item)}
               </option>
             ))}
           </SelectField>
