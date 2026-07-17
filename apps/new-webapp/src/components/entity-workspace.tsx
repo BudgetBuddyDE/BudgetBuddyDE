@@ -1,19 +1,10 @@
 'use client';
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Merge,
-  Pencil,
-  Play,
-  Plus,
-  Search,
-  Trash2,
-  X,
-} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Download, Merge, Plus, Search, Trash2, X} from 'lucide-react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useMemo, useState} from 'react';
+import {EntityRow} from '@/components/entity-row';
+import {ENTITY_META, entityName, type EntityView} from '@/components/entity-workspace-shared';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {
   Badge,
@@ -23,7 +14,6 @@ import {
   IconButton,
   SelectField,
   TextField,
-  Tooltip,
 } from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
 import type {
@@ -39,46 +29,11 @@ import {downloadTextFile, serializeJson, serializeRecordsCsv} from '@/utils/expo
 import {formatCurrency, formatDate} from '@/utils/format';
 
 const PAGE_SIZE = 10;
-const META: Record<EntityKind, {title: string; singular: string; description: string}> = {
-  transactions: {
-    title: 'Transactions',
-    singular: 'transaction',
-    description: 'Review, filter, and maintain every movement of money.',
-  },
-  categories: {
-    title: 'Categories',
-    singular: 'category',
-    description: 'Keep your financial taxonomy clear and consistent.',
-  },
-  'payment-methods': {
-    title: 'Payment methods',
-    singular: 'payment method',
-    description: 'Manage the accounts and cards used for your transactions.',
-  },
-  recurring: {
-    title: 'Recurring payments',
-    singular: 'recurring payment',
-    description: 'Plan regular commitments and keep upcoming payments visible.',
-  },
-  budgets: {
-    title: 'Budgets',
-    singular: 'budget',
-    description: 'Set category targets and spot overspending before month end.',
-  },
-};
-
-type EntityView = TransactionView | CategoryView | PaymentMethodView | RecurringPaymentView | BudgetView;
-
 function searchableText(item: EntityView) {
   return Object.values(item)
     .filter(value => typeof value === 'string')
     .join(' ')
     .toLocaleLowerCase();
-}
-
-function entityName(kind: EntityKind, item: EntityView) {
-  if (kind === 'transactions' || kind === 'recurring') return (item as TransactionView | RecurringPaymentView).receiver;
-  return (item as CategoryView | PaymentMethodView | BudgetView).name;
 }
 
 function editorDefaults(kind: EntityKind, item?: EntityView) {
@@ -219,7 +174,7 @@ export function EntityEditor({
   const {data, createEntity, updateEntity, mutationPending} = useFinance();
   const [formError, setFormError] = useState<string | null>(null);
   const defaults = editorDefaults(kind, item) as Record<string, string | string[] | undefined>;
-  const meta = META[kind];
+  const meta = ENTITY_META[kind];
   const field = (name: string) => {
     const value = defaults[name];
     return typeof value === 'string' ? value : '';
@@ -395,154 +350,6 @@ export function EntityEditor({
   );
 }
 
-function EntityRow({
-  kind,
-  item,
-  selected,
-  onSelect,
-  onEdit,
-}: {
-  kind: EntityKind;
-  item: EntityView;
-  selected: boolean;
-  onSelect: () => void;
-  onEdit: () => void;
-}) {
-  const {deleteEntity, executeRecurring, mutationPending} = useFinance();
-  const name = entityName(kind, item);
-  let cells: React.ReactNode;
-  if (kind === 'transactions') {
-    const transaction = item as TransactionView;
-    cells = (
-      <>
-        <span className="table-primary">
-          <strong>{transaction.receiver}</strong>
-          <small>{transaction.information || 'No note'}</small>
-        </span>
-        <span>{transaction.categoryName}</span>
-        <span>{transaction.paymentMethodName}</span>
-        <span>{formatDate(transaction.processedAt)}</span>
-        <span className={transaction.transferAmount < 0 ? 'money expense' : 'money income'}>
-          {formatCurrency(transaction.transferAmount)}
-        </span>
-      </>
-    );
-  } else if (kind === 'categories') {
-    const category = item as CategoryView;
-    cells = (
-      <>
-        <span className="table-primary">
-          <strong>
-            <i className="category-dot" />
-            {category.name}
-          </strong>
-          <small>{category.description || 'No description'}</small>
-        </span>
-        <span>Category</span>
-        <span className="muted">Available</span>
-      </>
-    );
-  } else if (kind === 'payment-methods') {
-    const method = item as PaymentMethodView;
-    cells = (
-      <>
-        <span className="table-primary">
-          <strong>{method.name}</strong>
-          <small>{method.description || 'No description'}</small>
-        </span>
-        <span>{method.provider}</span>
-        <span>{method.address}</span>
-        <span>
-          <Badge tone="good">Active</Badge>
-        </span>
-      </>
-    );
-  } else if (kind === 'recurring') {
-    const recurring = item as RecurringPaymentView;
-    cells = (
-      <>
-        <span className="table-primary">
-          <strong>{recurring.receiver}</strong>
-          <small>{recurring.categoryName}</small>
-        </span>
-        <span className="table-primary">
-          <strong>{formatDate(recurring.nextExecutionAt)}</strong>
-          <small>
-            {recurring.interval[0]?.toLocaleUpperCase()}
-            {recurring.interval.slice(1)} · day {recurring.executeAt}
-          </small>
-        </span>
-        <span>{recurring.paymentMethodName}</span>
-        <span>
-          <Badge tone={recurring.paused ? 'warn' : 'good'}>{recurring.paused ? 'Paused' : 'Active'}</Badge>
-        </span>
-        <span className={recurring.transferAmount < 0 ? 'money expense' : 'money income'}>
-          {formatCurrency(recurring.transferAmount)}
-        </span>
-      </>
-    );
-  } else {
-    const budget = item as BudgetView;
-    const used = budget.budget ? Math.abs(budget.balance) / budget.budget : 0;
-    cells = (
-      <>
-        <span className="table-primary">
-          <strong>{budget.name}</strong>
-          <small>{budget.categoryNames.join(', ') || 'No category assigned'}</small>
-        </span>
-        <span>{formatCurrency(Math.abs(budget.balance))} spent</span>
-        <span>{formatCurrency(Math.max(0, budget.budget - Math.abs(budget.balance)))} left</span>
-        <span>
-          <Badge tone={used >= 1 ? 'danger' : used >= 0.8 ? 'warn' : 'good'}>{Math.round(used * 100)}% used</Badge>
-        </span>
-        <span className="money">{formatCurrency(budget.budget)}</span>
-      </>
-    );
-  }
-  return (
-    <div className={`data-row data-row-${kind}`} role="row">
-      <span className="select-cell">
-        <input type="checkbox" checked={selected} onChange={onSelect} aria-label={`Select ${name}`} />
-      </span>
-      {cells}
-      <span className="row-actions">
-        {kind === 'recurring' && (
-          <Tooltip label={`Execute ${name}`}>
-            <IconButton
-              aria-label={`Execute ${name}`}
-              disabled={mutationPending}
-              onClick={() => void executeRecurring(item.id)}
-            >
-              <Play size={16} />
-            </IconButton>
-          </Tooltip>
-        )}
-        <Tooltip label={`Edit ${name}`}>
-          <IconButton aria-label={`Edit ${name}`} onClick={onEdit}>
-            <Pencil size={16} />
-          </IconButton>
-        </Tooltip>
-        <ConfirmDialog
-          trigger={
-            <Tooltip label={`Delete ${name}`}>
-              <IconButton aria-label={`Delete ${name}`}>
-                <Trash2 size={16} />
-              </IconButton>
-            </Tooltip>
-          }
-          title={`Delete ${name}?`}
-          description={`The ${META[kind].singular} and its direct associations will be removed.`}
-          confirmLabel="Delete"
-          busy={mutationPending}
-          onConfirm={async () => {
-            await deleteEntity(kind, item.id);
-          }}
-        />
-      </span>
-    </div>
-  );
-}
-
 export function EntityWorkspace({kind}: {kind: EntityKind}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -552,7 +359,7 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
   const [selected, setSelected] = useState<string[]>([]);
   const [mergeOpen, setMergeOpen] = useState(false);
   const [mergeTarget, setMergeTarget] = useState('');
-  const meta = META[kind];
+  const meta = ENTITY_META[kind];
   const query = searchParams.get('q') ?? '';
   const sort = searchParams.get('sort') ?? (kind === 'transactions' ? 'date-desc' : 'name-asc');
   const typeFilter = searchParams.get('type') ?? '';
@@ -723,7 +530,6 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
               <option value="name-asc">Name A–Z</option>
               <option value="name-desc">Name Z–A</option>
             </SelectField>
-
           </div>
         </div>
         {(kind === 'transactions' || kind === 'recurring') && (
@@ -900,7 +706,7 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
       <DialogShell
         open={mergeOpen}
         onOpenChange={setMergeOpen}
-        title={`Merge ${META[kind].title.toLocaleLowerCase()}`}
+        title={`Merge ${ENTITY_META[kind].title.toLocaleLowerCase()}`}
         description="Choose the record to keep. Existing assignments are moved to that record."
       >
         <div className="entity-form">
