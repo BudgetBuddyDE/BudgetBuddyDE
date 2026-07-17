@@ -67,7 +67,7 @@ export class CategoryService extends EntityService<
       query.append('from', from.toLocaleDateString('en-CA'));
       query.append('to', to.toLocaleDateString('en-CA'));
 
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/stats?${query.toString()}`,
         this.mergeRequestConfig(
           {
@@ -113,7 +113,7 @@ export class CategoryService extends EntityService<
     }>
   > {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/merge`,
         this.mergeRequestConfig(
           {

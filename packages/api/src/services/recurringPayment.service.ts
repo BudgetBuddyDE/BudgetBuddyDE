@@ -51,7 +51,7 @@ export class RecurringPaymentService extends EntityService<
     requestConfig?: RequestInit,
   ): Promise<TResult<TExecuteRecurringPaymentResponse>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${recurringPaymentId}/execute`,
         this.mergeRequestConfig(
           {

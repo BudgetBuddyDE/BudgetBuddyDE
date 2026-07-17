@@ -11,20 +11,23 @@ import {headers} from '@/lib/headers';
 import {DashboardStatsWrapper} from '../DashboardStatsWrapper';
 
 export default async function BudgetView() {
-  const [budgets, error] = await apiClient.backend.budget.getAll(
-    {
-      from: 0,
-      to: 10,
-    },
-    {
-      headers: await headers(),
-    },
-  );
+  const requestHeaders = await headers();
+  const [[budgets, error], [estimated, estimatedError]] = await Promise.all([
+    apiClient.backend.budget.getAll(
+      {
+        from: 0,
+        to: 10,
+      },
+      {headers: requestHeaders},
+    ),
+    apiClient.backend.budget.getEstimatedBudget({headers: requestHeaders}),
+  ]);
+  if (estimatedError) throw estimatedError;
   return (
     <React.Fragment>
       <PathnameErrorBoundary>
         <React.Suspense fallback={<CircularProgress />}>
-          <DashboardStatsWrapper />
+          <DashboardStatsWrapper estimated={estimated} />
         </React.Suspense>
       </PathnameErrorBoundary>
 

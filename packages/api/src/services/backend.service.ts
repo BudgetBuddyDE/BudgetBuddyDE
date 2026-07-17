@@ -1,4 +1,5 @@
 import type {z} from 'zod';
+import {fetchWithCache, clearRequestCache} from './requestCache';
 import type {TResult} from '../types/common';
 
 export class BackendService {
@@ -70,6 +71,12 @@ export class BackendService {
    * Checks if the response has a JSON content type.
    * This method does not verify that the actually content is valid JSON.
    */
+  protected request(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const method = (init?.method ?? 'GET').toUpperCase();
+    if (method !== 'GET') clearRequestCache();
+    return fetchWithCache(input, init);
+  }
+
   protected isJsonResponse(response: Response): boolean {
     const contentType = response.headers.get('content-type');
     return contentType?.includes('application/json') || false;
@@ -96,15 +103,18 @@ export class BackendService {
         : String(v);
     };
 
-    Object.entries(query).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach(v => {
-          queryParams.append(key, datesToString(v));
-        });
-      } else {
-        queryParams.append(key, datesToString(value));
-      }
-    });
+    Object.entries(query)
+      .filter(([, value]) => value !== undefined && value !== null)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach(v => {
+            if (v !== undefined && v !== null) queryParams.append(key, datesToString(v));
+          });
+        } else {
+          queryParams.append(key, datesToString(value));
+        }
+      });
     return queryParams;
   }
 }

@@ -43,7 +43,7 @@ export class EntityService<
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<GetAllResult>>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}?${this.reqQueryObjToURLSearchParams(query).toString()}`,
         this.mergeRequestConfig(
           {
@@ -76,7 +76,7 @@ export class EntityService<
 
   async getById(entityId: string, requestConfig?: RequestInit): Promise<TResult<z.output<GetResult>>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${entityId}`,
         this.mergeRequestConfig(
           {
@@ -108,7 +108,7 @@ export class EntityService<
 
   async create(payload: CreatePayload, requestConfig?: RequestInit): Promise<TResult<z.output<CreateResult>>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}`,
         this.mergeRequestConfig(
           {
@@ -149,7 +149,7 @@ export class EntityService<
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<UpdateResult>>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${entityId}`,
         this.mergeRequestConfig(
           {
@@ -186,7 +186,7 @@ export class EntityService<
 
   async deleteById(entityId: string, requestConfig?: RequestInit): Promise<TResult<z.output<DeleteResult>>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${entityId}`,
         this.mergeRequestConfig(
           {

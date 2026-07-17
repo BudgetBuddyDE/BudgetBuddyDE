@@ -1,19 +1,28 @@
 import {Grid, Stack} from '@mui/material';
 import React from 'react';
+import {apiClient} from '@/apiClient';
 import {BudgetPieChart} from '@/components/Budget/BudgetPieChart';
 import {CategoryExpenseChart} from '@/components/Category/CategoryPieChart';
 import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
 import {UpcomingRecurringPaymentList} from '@/components/RecurringPayment/RecurringPaymentList';
 import {LatestTransactionsList, UpcomingTransactionsList} from '@/components/Transaction/TransactionList';
+import {headers} from '@/lib/headers';
+import {logger} from '@/logger';
 import {DashboardStatsWrapper} from './DashboardStatsWrapper';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [estimatedBudget, error] = await apiClient.backend.budget.getEstimatedBudget({headers: await headers()});
+  if (error) {
+    logger.error(error.message);
+    throw error;
+  }
+
   return (
     <React.Fragment>
       <PathnameErrorBoundary>
         <React.Suspense fallback={<CircularProgress />}>
-          <DashboardStatsWrapper />
+          <DashboardStatsWrapper estimated={estimatedBudget} />
         </React.Suspense>
       </PathnameErrorBoundary>
 
@@ -29,7 +38,13 @@ export default function DashboardPage() {
         <Stack spacing={2}>
           <CategoryExpenseChart />
 
-          <BudgetPieChart />
+          <BudgetPieChart
+            initialData={{
+              expenses: estimatedBudget.expenses.paid,
+              upcomingExpenses: estimatedBudget.expenses.upcoming,
+              freeAmount: estimatedBudget.freeAmount,
+            }}
+          />
         </Stack>
       </Grid>
 

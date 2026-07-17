@@ -45,7 +45,7 @@ export class TransactionService extends EntityService<
 
   async getReceiverVH(requestConfig?: RequestInit): Promise<TResult<TReceiverVH[]>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/receiver`,
         this.mergeRequestConfig(
           {
@@ -84,7 +84,7 @@ export class TransactionService extends EntityService<
   ): Promise<TResult<z.output<typeof GetTransactionAttachmentsResponse>>> {
     try {
       const params = this.reqQueryObjToURLSearchParams(query);
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/attachments?${params.toString()}`,
         this.mergeRequestConfig(
           {
@@ -124,7 +124,7 @@ export class TransactionService extends EntityService<
   ): Promise<TResult<z.output<typeof GetTransactionAttachmentsResponse>>> {
     try {
       const params = this.reqQueryObjToURLSearchParams(query);
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${transactionId}/attachments?${params.toString()}`,
         this.mergeRequestConfig(
           {
@@ -168,7 +168,7 @@ export class TransactionService extends EntityService<
         formData.append('files', file);
       }
 
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${transactionId}/attachments`,
         this.mergeRequestConfig(
           {
@@ -208,7 +208,7 @@ export class TransactionService extends EntityService<
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<typeof DeleteTransactionResponse>>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${transactionId}/attachments`,
         this.mergeRequestConfig(
           {

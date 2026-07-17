@@ -20,7 +20,7 @@ export class AttachmentService extends BackendService {
   ): Promise<TResult<z.output<typeof GetAttachmentResponse>>> {
     try {
       const params = this.reqQueryObjToURLSearchParams(query);
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${attachmentId}?${params.toString()}`,
         this.mergeRequestConfig(
           {
@@ -53,7 +53,7 @@ export class AttachmentService extends BackendService {
    */
   async deleteById(attachmentId: TAttachment['id'], requestConfig?: RequestInit): Promise<TResult<void>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/${attachmentId}`,
         this.mergeRequestConfig(
           {

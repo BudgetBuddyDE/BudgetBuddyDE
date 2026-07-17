@@ -8,7 +8,6 @@ import {PieChart} from '@/components/Charts';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
-import {useFetch} from '@/hooks/useFetch';
 import {Formatter} from '@/utils/Formatter';
 
 export type BudgetStats = {
@@ -17,8 +16,9 @@ export type BudgetStats = {
   upcomingExpenses: number;
 };
 
-// biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
-export type BudgetPieChartProps = {};
+export type BudgetPieChartProps = {
+  initialData?: BudgetStats;
+};
 
 /**
  * Renders a pie chart component for displaying budget information.
@@ -29,19 +29,40 @@ export type BudgetPieChartProps = {};
  * <BudgetPieChart />
  * ```
  */
-export const BudgetPieChart: React.FC<BudgetPieChartProps> = () => {
-  const fetchDataFunc = React.useCallback(async () => {
-    const [estimations, err] = await apiClient.backend.budget.getEstimatedBudget();
-    if (err) {
-      throw err;
+export const BudgetPieChart: React.FC<BudgetPieChartProps> = ({initialData}) => {
+  const [data, setData] = React.useState<BudgetStats | null>(initialData ?? null);
+  const [isLoading, setIsLoading] = React.useState(!initialData);
+  const [error, setError] = React.useState<Error | null>(null);
+
+  React.useEffect(() => {
+    if (initialData) {
+      setData(initialData);
+      setIsLoading(false);
+      return;
     }
-    return {
-      expenses: estimations.expenses.paid,
-      upcomingExpenses: estimations.expenses.upcoming,
-      freeAmount: estimations.freeAmount,
+
+    let active = true;
+    void (async () => {
+      try {
+        const [estimated, requestError] = await apiClient.backend.budget.getEstimatedBudget();
+        if (requestError) throw requestError;
+        const result = {
+          expenses: estimated.expenses.paid,
+          upcomingExpenses: estimated.expenses.upcoming,
+          freeAmount: estimated.freeAmount,
+        };
+        if (active) setData(result);
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause : new Error(String(cause)));
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
     };
-  }, []);
-  const {isLoading, data, error} = useFetch<BudgetStats>(fetchDataFunc);
+  }, [initialData]);
 
   const chartData = React.useMemo(() => {
     if (!data) return [];

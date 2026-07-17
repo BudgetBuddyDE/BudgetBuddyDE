@@ -1,20 +1,10 @@
+import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
 import {AddRounded, BalanceRounded, RemoveRounded} from '@mui/icons-material';
 import {Grid} from '@mui/material';
-import {apiClient} from '@/apiClient';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
-import {headers} from '@/lib/headers';
-import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 
-export const DashboardStatsWrapper = async () => {
-  const [estimated, error] = await apiClient.backend.budget.getEstimatedBudget({
-    headers: await headers(),
-  });
-  if (error) {
-    logger.error(error.message);
-    throw error;
-  }
-
+export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}) => {
   const currentBalance = estimated.income.received - estimated.expenses.paid;
   const estimatedBalance =
     estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);

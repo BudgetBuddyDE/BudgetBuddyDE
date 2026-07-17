@@ -15,7 +15,7 @@ export class InsightsService extends BackendService {
   ): Promise<TResult<TypeOfSchema<typeof GetHistoricalBalanceResponse>>> {
     try {
       const stringifiedQuery = this.reqQueryObjToURLSearchParams(query).toString();
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/balance?${stringifiedQuery}`,
         this.mergeRequestConfig(
           {
@@ -52,7 +52,7 @@ export class InsightsService extends BackendService {
   ): Promise<TResult<TypeOfSchema<typeof GetHistoricalCategoryBalanceResponse>>> {
     try {
       const stringifiedQuery = this.reqQueryObjToURLSearchParams(query).toString();
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/category-balance?${stringifiedQuery}`,
         this.mergeRequestConfig(
           {

@@ -32,7 +32,7 @@ export class BudgetService extends EntityService<
 
   async getEstimatedBudget(requestConfig?: RequestInit): Promise<TResult<TEstimatedBudget>> {
     try {
-      const response = await fetch(
+      const response = await this.request(
         `${this.getBaseRequestPath()}/estimated`,
         this.mergeRequestConfig(
           {
