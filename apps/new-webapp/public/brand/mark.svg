@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">BudgetBuddy</title>
+  <desc id="desc">Rising budget bars</desc>
+  <rect width="48" height="48" rx="14" fill="#0D1D1A"/>
+  <path d="M13 31.5V24h6v7.5h-6Zm8 0V18h6v13.5h-6Zm8 0V12h6v19.5h-6Z" fill="#CFEF6F"/>
+  <path d="M12.5 35.5h23" fill="none" stroke="#F7F9F6" stroke-width="2" stroke-linecap="round"/>
+</svg>

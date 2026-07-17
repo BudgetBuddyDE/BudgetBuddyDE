@@ -39,11 +39,24 @@ export class RecurringPaymentService extends EntityService<
     return super.getAll(query, requestConfig);
   }
 
-  determineNextExecutionDate(executeAt: TExpandedRecurringPayment['executeAt']): Date {
-    const today = new Date();
-    return today.getDate() < executeAt
-      ? new Date(today.getFullYear(), today.getMonth(), executeAt)
-      : new Date(today.getFullYear(), today.getMonth() + 1, executeAt);
+  determineNextExecutionDate(
+    executeAt: TExpandedRecurringPayment['executeAt'],
+    interval: TExpandedRecurringPayment['interval'] = 'monthly',
+    anchorDate: Date | string = new Date(),
+    fromDate = new Date(),
+  ): Date {
+    const anchor = anchorDate instanceof Date ? anchorDate : new Date(anchorDate);
+    const intervalMonths = interval === 'yearly' ? 12 : interval === 'quarterly' ? 3 : 1;
+    for (let monthOffset = 0; monthOffset <= intervalMonths; monthOffset += 1) {
+      const candidateMonth = new Date(fromDate.getFullYear(), fromDate.getMonth() + monthOffset, 1);
+      const monthsFromAnchor =
+        (candidateMonth.getFullYear() - anchor.getFullYear()) * 12 + candidateMonth.getMonth() - anchor.getMonth();
+      if (monthsFromAnchor < 0 || monthsFromAnchor % intervalMonths !== 0) continue;
+      const lastDay = new Date(candidateMonth.getFullYear(), candidateMonth.getMonth() + 1, 0).getDate();
+      const candidate = new Date(candidateMonth.getFullYear(), candidateMonth.getMonth(), Math.min(executeAt, lastDay));
+      if (candidate >= fromDate) return candidate;
+    }
+    return new Date(fromDate.getFullYear(), fromDate.getMonth() + intervalMonths, executeAt);
   }
 
   async executePayment(

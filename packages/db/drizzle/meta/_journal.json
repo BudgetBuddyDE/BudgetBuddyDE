@@ -36,6 +36,20 @@
       "when": 1781637109766,
       "tag": "0004_hot_deathbird",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784153657390,
+      "tag": "0005_nappy_kulan_gath",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784228254025,
+      "tag": "0006_public_blob",
+      "breakpoints": true
     }
   ]
 }
