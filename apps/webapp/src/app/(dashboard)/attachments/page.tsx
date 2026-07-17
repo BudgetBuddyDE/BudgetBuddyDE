@@ -1,12 +1,13 @@
 import {Grid, Skeleton} from '@mui/material';
 import React from 'react';
 import {apiClient} from '@/apiClient';
+import {ErrorAlert} from '@/components/ErrorAlert';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {headers} from '@/lib/headers';
 import {AllAttachmentsClient} from './AllAttachmentsClient';
 
 export default async function AttachmentsPage() {
-  const [result] = await apiClient.backend.transaction.getAllTransactionAttachments(undefined, {
+  const [result, error] = await apiClient.backend.transaction.getAllTransactionAttachments(undefined, {
     headers: await headers(),
   });
 
@@ -17,6 +18,7 @@ export default async function AttachmentsPage() {
   return (
     <ContentGrid title="Attachments" description="All your transaction attachments in one place">
       <Grid size={{xs: 12}}>
+        {error ? <ErrorAlert error={error} /> : null}
         <React.Suspense
           fallback={
             <Grid container spacing={2}>
@@ -29,7 +31,7 @@ export default async function AttachmentsPage() {
             </Grid>
           }
         >
-          <AllAttachmentsClient initialAttachments={attachments} />
+          {!error && <AllAttachmentsClient initialAttachments={attachments} />}
         </React.Suspense>
       </Grid>
     </ContentGrid>

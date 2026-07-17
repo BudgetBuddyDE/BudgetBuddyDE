@@ -1,6 +1,9 @@
 import {Grid} from '@mui/material';
+import React from 'react';
+import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {parseRecurringPaymentFiltersFromParams} from '@/components/Filter';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
+import {CircularProgress} from '@/components/Loading';
 import {RecurringPaymentTable} from '@/components/RecurringPayment/RecurringPaymentTable';
 
 export default async function RecurringPaymentsPage({
@@ -14,7 +17,11 @@ export default async function RecurringPaymentsPage({
   return (
     <ContentGrid title="Recurring Payments">
       <Grid size="grow">
-        <RecurringPaymentTable initialFilters={initialFilters} />
+        <PathnameErrorBoundary>
+          <React.Suspense fallback={<CircularProgress />}>
+            <RecurringPaymentTable initialFilters={initialFilters} />
+          </React.Suspense>
+        </PathnameErrorBoundary>
       </Grid>
     </ContentGrid>
   );

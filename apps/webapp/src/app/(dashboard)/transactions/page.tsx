@@ -1,6 +1,9 @@
 import {Grid} from '@mui/material';
+import React from 'react';
+import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {parseTransactionFiltersFromParams} from '@/components/Filter';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
+import {CircularProgress} from '@/components/Loading';
 import {TransactionTable} from '@/components/Transaction/TransactionTable';
 
 export default async function TransactionsPage({
@@ -14,7 +17,11 @@ export default async function TransactionsPage({
   return (
     <ContentGrid title="Transactions">
       <Grid size="grow">
-        <TransactionTable initialFilters={initialFilters} />
+        <PathnameErrorBoundary>
+          <React.Suspense fallback={<CircularProgress />}>
+            <TransactionTable initialFilters={initialFilters} />
+          </React.Suspense>
+        </PathnameErrorBoundary>
       </Grid>
     </ContentGrid>
   );

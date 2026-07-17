@@ -4,7 +4,7 @@ import {apiClient} from '@/apiClient';
 import {BudgetList} from '@/components/Budget/BudgetList';
 import {SpendingGoalsRadarChart} from '@/components/Budget/SpendingGoals';
 import {CategoryExpenseChart, CategoryIncomeChart} from '@/components/Category/CategoryPieChart';
-import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
+import {PathnameErrorBoundary, RouteErrorFallback} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
 import {RecurringPaymentPieChart} from '@/components/RecurringPayment/RecurringPaymentPieChart';
 import {headers} from '@/lib/headers';
@@ -22,21 +22,35 @@ export default async function BudgetView() {
     ),
     apiClient.backend.budget.getEstimatedBudget({headers: requestHeaders}),
   ]);
-  if (estimatedError) throw estimatedError;
   return (
     <React.Fragment>
       <PathnameErrorBoundary>
         <React.Suspense fallback={<CircularProgress />}>
-          <DashboardStatsWrapper estimated={estimated} />
+          {estimatedError || !estimated ? (
+            <RouteErrorFallback
+              error={estimatedError ?? new Error('Budget statistics are unavailable')}
+              title="Budget statistics are temporarily unavailable"
+            />
+          ) : (
+            <DashboardStatsWrapper estimated={estimated} />
+          )}
         </React.Suspense>
       </PathnameErrorBoundary>
 
       <Grid size={{xs: 12, md: 8}}>
-        <BudgetList />
+        <PathnameErrorBoundary>
+          <React.Suspense fallback={<CircularProgress />}>
+            <BudgetList />
+          </React.Suspense>
+        </PathnameErrorBoundary>
       </Grid>
 
       <Grid size={{xs: 12, md: 4}}>
-        <SpendingGoalsRadarChart budgets={budgets?.data ?? []} error={error} />
+        <PathnameErrorBoundary>
+          <React.Suspense fallback={<CircularProgress />}>
+            <SpendingGoalsRadarChart budgets={budgets?.data ?? []} error={error} />
+          </React.Suspense>
+        </PathnameErrorBoundary>
       </Grid>
 
       {[
@@ -54,7 +68,9 @@ export default async function BudgetView() {
         },
       ].map(({key, children}) => (
         <Grid key={key} size={{xs: 12, md: 4}}>
-          {children}
+          <PathnameErrorBoundary>
+            <React.Suspense fallback={<CircularProgress />}>{children}</React.Suspense>
+          </PathnameErrorBoundary>
         </Grid>
       ))}
     </React.Fragment>

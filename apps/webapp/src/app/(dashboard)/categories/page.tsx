@@ -1,7 +1,10 @@
 import {Grid} from '@mui/material';
+import React from 'react';
 import {CategoryTable} from '@/components/Category/CategoryTable';
+import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {parseKeywordFilterFromParams} from '@/components/Filter';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
+import {CircularProgress} from '@/components/Loading';
 
 export default async function CategoriesPage({
   searchParams,
@@ -14,7 +17,11 @@ export default async function CategoriesPage({
   return (
     <ContentGrid title="Categories">
       <Grid size={{xs: 12, md: 12}}>
-        <CategoryTable initialKeyword={keyword ?? undefined} />
+        <PathnameErrorBoundary>
+          <React.Suspense fallback={<CircularProgress />}>
+            <CategoryTable initialKeyword={keyword ?? undefined} />
+          </React.Suspense>
+        </PathnameErrorBoundary>
       </Grid>
     </ContentGrid>
   );
