@@ -1,0 +1,17 @@
+{
+  "name": "BudgetBuddy",
+  "short_name": "BudgetBuddy",
+  "description": "Personal finance workspace for transactions, budgets, and recurring payments.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f3f5f3",
+  "theme_color": "#0d1d1a",
+  "icons": [
+    {
+      "src": "/brand/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
