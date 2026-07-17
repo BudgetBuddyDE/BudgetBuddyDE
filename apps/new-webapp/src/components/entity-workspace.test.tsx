@@ -30,8 +30,34 @@ const finance = vi.hoisted(() => ({
         attachmentCount: 0,
       },
     ],
-    recurring: [],
-    budgets: [],
+    recurring: [
+      {
+        id: 'rec-1',
+        executeAt: 1,
+        interval: 'monthly',
+        nextExecutionAt: new Date('2026-08-01'),
+        paused: false,
+        receiver: 'Rent',
+        transferAmount: -900,
+        information: null,
+        categoryId: 'cat-1',
+        categoryName: 'Groceries',
+        paymentMethodId: 'pay-1',
+        paymentMethodName: 'Visa',
+      },
+    ],
+    budgets: [
+      {
+        id: 'budget-1',
+        type: 'e',
+        name: 'Food budget',
+        description: null,
+        budget: 500,
+        balance: 200,
+        categoryIds: ['cat-1'],
+        categoryNames: ['Groceries'],
+      },
+    ],
   },
 }));
 vi.mock('@/lib/finance-provider', () => ({
@@ -51,6 +77,41 @@ describe('EntityWorkspace', () => {
     expect(screen.queryByRole('button', {name: 'More table actions'})).not.toBeInTheDocument();
   });
 
+  it('shows category deletion impact in tabs for all affected entities', async () => {
+    render(<EntityWorkspace kind="categories" />);
+    await userEvent.click(screen.getByRole('checkbox', {name: 'Select Groceries'}));
+    await userEvent.click(screen.getByRole('button', {name: 'Delete selected'}));
+    const dialog = screen.getByRole('dialog', {name: 'Delete 1 selected category?'});
+    expect(within(dialog).getByRole('tab', {name: /Transactions 1/})).toHaveAttribute('aria-selected', 'true');
+    expect(within(dialog).getByText('Market')).toBeVisible();
+    await userEvent.click(within(dialog).getByRole('tab', {name: /Recurring payments 1/}));
+    expect(within(dialog).getByText('Rent')).toBeVisible();
+    await userEvent.click(within(dialog).getByRole('tab', {name: /Budgets 1/}));
+    expect(within(dialog).getByText('Food budget')).toBeVisible();
+  });
+
+  it('shows payment-method deletion impact for transactions and recurring payments', async () => {
+    render(<EntityWorkspace kind="payment-methods" />);
+    await userEvent.click(screen.getByRole('checkbox', {name: 'Select Visa'}));
+    await userEvent.click(screen.getByRole('button', {name: 'Delete selected'}));
+    const dialog = screen.getByRole('dialog', {name: 'Delete 1 selected payment method?'});
+    expect(within(dialog).getByRole('tab', {name: /Transactions 1/})).toBeVisible();
+    expect(within(dialog).getByText('Market')).toBeVisible();
+    await userEvent.click(within(dialog).getByRole('tab', {name: /Recurring payments 1/}));
+    expect(within(dialog).getByText('Rent')).toBeVisible();
+    await userEvent.click(within(dialog).getByRole('tab', {name: /Budgets 0/}));
+    expect(within(dialog).getByText('No affected budgets.')).toBeVisible();
+  });
+
+  it('shows deletion impact from a category row action', async () => {
+    render(<EntityWorkspace kind="categories" />);
+    await userEvent.click(screen.getByRole('button', {name: 'Delete Groceries'}));
+    const dialog = screen.getByRole('dialog', {name: 'Delete Groceries?'});
+    expect(within(dialog).getByRole('tab', {name: /Transactions 1/})).toBeVisible();
+    expect(within(dialog).getByText('Market')).toBeVisible();
+    await userEvent.click(within(dialog).getByRole('tab', {name: /Budgets 1/}));
+    expect(within(dialog).getByText('Food budget')).toBeVisible();
+  });
   it('opens a populated editor and saves a valid change', async () => {
     render(<EntityWorkspace kind="categories" />);
     await userEvent.click(screen.getByRole('button', {name: 'Edit Groceries'}));

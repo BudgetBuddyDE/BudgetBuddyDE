@@ -228,6 +228,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   busy = false,
   onConfirm,
+  children,
 }: {
   trigger: React.ReactNode;
   title: string;
@@ -235,6 +236,7 @@ export function ConfirmDialog({
   confirmLabel?: string;
   busy?: boolean;
   onConfirm: () => void | Promise<void>;
+  children?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const handleConfirm = async () => {
@@ -260,6 +262,7 @@ export function ConfirmDialog({
           </>
         }
       >
+        {children}
         <div className="danger-note">This action cannot be undone.</div>
       </DialogShell>
     </>

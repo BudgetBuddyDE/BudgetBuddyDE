@@ -975,6 +975,64 @@ kbd {
 .dialog-content {
   padding: 20px 22px;
 }
+.deletion-impact {
+  margin: -4px 0 16px;
+}
+.deletion-impact-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+.deletion-impact-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 9px 10px;
+  color: var(--text-soft);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.deletion-impact-tab:hover,
+.deletion-impact-tab.active {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+.deletion-impact-list {
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-top: 10px;
+}
+.deletion-impact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 9px 2px;
+  font-size: 13px;
+}
+.deletion-impact-row > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.deletion-impact-row small {
+  overflow: hidden;
+  color: var(--text-soft);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .dialog-footer {
   display: flex;
   justify-content: flex-end;

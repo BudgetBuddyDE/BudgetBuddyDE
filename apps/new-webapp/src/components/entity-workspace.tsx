@@ -17,10 +17,102 @@ import {
   TextField,
 } from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
-import type {EntityKind, RecurringPaymentView, TransactionView} from '@/types/finance';
+import type {BudgetView, EntityKind, FinanceData, RecurringPaymentView, TransactionView} from '@/types/finance';
+import {formatCurrency, formatDate} from '@/utils/format';
 import {downloadTextFile, serializeJson, serializeRecordsCsv} from '@/utils/export';
 
 const PAGE_SIZE = 10;
+
+type ImpactTab = 'transactions' | 'recurring' | 'budgets';
+
+function DeletionImpact({
+  kind,
+  selectedItems,
+  data,
+}: {
+  kind: EntityKind;
+  selectedItems: EntityView[];
+  data: FinanceData;
+}) {
+  const [tab, setTab] = useState<ImpactTab>('transactions');
+  const categoryIds = new Set(kind === 'categories' ? selectedItems.map(item => item.id) : []);
+  const paymentMethodIds = new Set(kind === 'payment-methods' ? selectedItems.map(item => item.id) : []);
+  const transactions = data.transactions.filter(
+    item => categoryIds.has(item.categoryId) || paymentMethodIds.has(item.paymentMethodId),
+  );
+  const recurring = data.recurring.filter(
+    item => categoryIds.has(item.categoryId) || paymentMethodIds.has(item.paymentMethodId),
+  );
+  const budgets = data.budgets.filter(item => item.categoryIds.some(categoryId => categoryIds.has(categoryId)));
+  const items = {transactions, recurring, budgets};
+  const labels: Record<ImpactTab, string> = {
+    transactions: 'Transactions',
+    recurring: 'Recurring payments',
+    budgets: 'Budgets',
+  };
+
+  return (
+    <div className="deletion-impact" aria-label="Deletion impact">
+      <div className="deletion-impact-tabs" role="tablist" aria-label="Affected entities">
+        {(Object.keys(labels) as ImpactTab[]).map(item => (
+          <button
+            key={item}
+            type="button"
+            role="tab"
+            aria-selected={tab === item}
+            className={tab === item ? 'deletion-impact-tab active' : 'deletion-impact-tab'}
+            onClick={() => setTab(item)}
+          >
+            {labels[item]} <Badge tone={items[item].length > 0 ? 'danger' : 'neutral'}>{items[item].length}</Badge>
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" className="deletion-impact-list">
+        {items[tab].length === 0 ? (
+          <p className="muted">No affected {labels[tab].toLocaleLowerCase()}.</p>
+        ) : (
+          items[tab].map(item => {
+            if (tab === 'transactions') {
+              const transaction = item as TransactionView;
+              return (
+                <div className="deletion-impact-row" key={transaction.id}>
+                  <span>
+                    <strong>{transaction.receiver}</strong>
+                    <small>{formatDate(transaction.processedAt)}</small>
+                  </span>
+                  <strong>{formatCurrency(transaction.transferAmount)}</strong>
+                </div>
+              );
+            }
+            if (tab === 'recurring') {
+              const payment = item as RecurringPaymentView;
+              return (
+                <div className="deletion-impact-row" key={payment.id}>
+                  <span>
+                    <strong>{payment.receiver}</strong>
+                    <small>Next: {formatDate(payment.nextExecutionAt)}</small>
+                  </span>
+                  <strong>{formatCurrency(payment.transferAmount)}</strong>
+                </div>
+              );
+            }
+            const budget = item as BudgetView;
+            return (
+              <div className="deletion-impact-row" key={budget.id}>
+                <span>
+                  <strong>{budget.name}</strong>
+                  <small>{budget.categoryNames.join(', ') || 'No categories'}</small>
+                </span>
+                <strong>{formatCurrency(budget.budget)}</strong>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 function searchableText(item: EntityView) {
   return Object.values(item)
     .filter(value => typeof value === 'string')
@@ -189,7 +281,11 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
                 confirmLabel="Delete selected"
                 busy={mutationPending}
                 onConfirm={deleteSelected}
-              />
+              >
+                {(kind === 'categories' || kind === 'payment-methods') && (
+                  <DeletionImpact kind={kind} selectedItems={selectedItems} data={data} />
+                )}
+              </ConfirmDialog>
             )}
             <Button variant="secondary" size="sm" disabled={exportItems.length === 0} onClick={exportCsv}>
               <Download size={15} /> {selected.length > 0 ? 'Export selected CSV' : 'Export CSV'}
@@ -348,6 +444,11 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
                   )
                 }
                 onEdit={() => openEditor(item)}
+                deletionImpact={
+                  kind === 'categories' || kind === 'payment-methods' ? (
+                    <DeletionImpact kind={kind} selectedItems={[item]} data={data} />
+                  ) : undefined
+                }
               />
             ))}
           </div>

@@ -5,6 +5,7 @@ import {ENTITY_CONFIG, type EntityView} from '@/components/entity-config';
 import {ConfirmDialog, IconButton, Tooltip} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
 import type {EntityKind} from '@/types/finance';
+import type {ReactNode} from 'react';
 
 export function EntityRow({
   kind,
@@ -12,12 +13,14 @@ export function EntityRow({
   selected,
   onSelect,
   onEdit,
+  deletionImpact,
 }: {
   kind: EntityKind;
   item: EntityView;
   selected: boolean;
   onSelect: () => void;
   onEdit: () => void;
+  deletionImpact?: ReactNode;
 }) {
   const {deleteEntity, executeRecurring, mutationPending} = useFinance();
   const config = ENTITY_CONFIG[kind];
@@ -61,7 +64,9 @@ export function EntityRow({
           onConfirm={async () => {
             await deleteEntity(kind, item.id);
           }}
-        />
+        >
+          {deletionImpact}
+        </ConfirmDialog>
       </span>
     </div>
   );
