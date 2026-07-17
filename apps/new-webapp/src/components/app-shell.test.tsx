@@ -1,12 +1,13 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {AppShell} from './app-shell';
 
 const sessionState = vi.hoisted(() => ({
   value: {data: {user: {id: 'u1', name: 'Alex Morgan', email: 'alex@example.com'}}, isPending: false, error: null},
+  signOut: vi.fn(),
 }));
-vi.mock('@/authClient', () => ({authClient: {useSession: () => sessionState.value, signOut: vi.fn()}}));
+vi.mock('@/authClient', () => ({authClient: {useSession: () => sessionState.value, signOut: sessionState.signOut}}));
 vi.mock('@/lib/finance-provider', () => ({
   FinanceProvider: ({children}: {children: React.ReactNode}) => <>{children}</>,
   useFinance: () => ({
@@ -26,6 +27,29 @@ describe('AppShell', () => {
     expect(screen.getByRole('heading', {name: 'Route content'})).toBeVisible();
     expect(screen.getByRole('navigation', {name: 'Primary navigation'})).toHaveTextContent('Transactions');
     expect(screen.getByText('alex@example.com')).toBeVisible();
+  });
+
+  it('opens account actions from both avatar hover targets and signs out', async () => {
+    const user = userEvent.setup();
+    sessionState.signOut.mockResolvedValue(undefined);
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    const sidebarTrigger = screen.getByRole('button', {name: 'Open sidebar account menu'});
+    await user.hover(sidebarTrigger);
+    const sidebarMenu = screen.getByRole('menu', {name: 'Sidebar account'});
+    expect(sidebarMenu).toBeVisible();
+    expect(within(sidebarMenu).getByRole('menuitem', {name: 'Settings'})).toHaveAttribute('href', '/settings/profile');
+    await user.unhover(sidebarTrigger);
+
+    const topbarTrigger = screen.getByRole('button', {name: 'Open account menu'});
+    await user.hover(topbarTrigger);
+    const topbarMenu = screen.getByRole('menu', {name: 'Account'});
+    await user.click(within(topbarMenu).getByRole('menuitem', {name: 'Sign out'}));
+    expect(sessionState.signOut).toHaveBeenCalledOnce();
   });
 
   it('opens the command centre from keyboard and search trigger', async () => {

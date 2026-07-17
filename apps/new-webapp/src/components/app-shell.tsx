@@ -23,11 +23,11 @@ import Link from 'next/link';
 import {usePathname, useRouter} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import {authClient} from '@/authClient';
-import {Avatar} from '@/components/avatar';
 import {CommandPalette} from '@/components/command-palette';
 import {StatePanel} from '@/components/shared';
 import {ThemeToggle} from '@/components/theme-toggle';
 import {Button, IconButton} from '@/components/ui/primitives';
+import {UserMenu} from '@/components/user-menu';
 import {FinanceProvider, useFinance} from '@/lib/finance-provider';
 import {cn} from '@/utils/cn';
 
@@ -123,13 +123,7 @@ function ShellContent({
           </Link>
         </nav>
         <div className="sidebar-footer">
-          <div className="user-chip">
-            <Avatar name={userName} image={userImage} />
-            <span>
-              <strong>{userName}</strong>
-              <small>{userEmail}</small>
-            </span>
-          </div>
+          <UserMenu name={userName} email={userEmail} image={userImage} placement="sidebar" />
           <button
             className="collapse-button"
             onClick={() => setCollapsed(value => !value)}
@@ -157,9 +151,7 @@ function ShellContent({
             <IconButton aria-label="Notifications">
               <Bell size={18} />
             </IconButton>
-            <Link href="/settings/profile" className="topbar-avatar-link" aria-label="Open profile">
-              <Avatar name={userName} image={userImage} size="sm" />
-            </Link>
+            <UserMenu name={userName} email={userEmail} image={userImage} placement="topbar" />
           </div>
         </header>
         <main id="main-content" className="main-content">

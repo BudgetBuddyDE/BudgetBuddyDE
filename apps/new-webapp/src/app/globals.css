@@ -446,12 +446,25 @@ button:disabled {
   padding: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
+.user-menu {
+  position: relative;
+}
+.user-menu-sidebar {
+  min-width: 0;
+}
+.user-menu-trigger {
+  border: 0;
+  cursor: pointer;
+}
 .user-chip {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: 10px;
   overflow: hidden;
   padding: 7px;
+  background: transparent;
+  text-align: left;
 }
 .avatar {
   display: grid;
@@ -483,7 +496,7 @@ button:disabled {
   color: var(--accent-ink);
   font-size: 18px;
 }
-.user-chip > span:last-child {
+.user-menu-identity {
   display: grid;
   min-width: 0;
 }
@@ -530,7 +543,7 @@ button:disabled {
 .sidebar-collapsed .quick-add kbd,
 .sidebar-collapsed .nav-label,
 .sidebar-collapsed .nav-item span,
-.sidebar-collapsed .user-chip > span:last-child,
+.sidebar-collapsed .user-menu-identity,
 .sidebar-collapsed .collapse-button span {
   display: none;
 }
@@ -607,6 +620,65 @@ kbd {
   display: flex;
   margin-left: 4px;
   border-radius: 50%;
+  padding: 0;
+  background: transparent;
+}
+.account-menu {
+  position: absolute;
+  z-index: 120;
+  display: grid;
+  width: 220px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-strong);
+}
+.user-menu-sidebar .account-menu {
+  bottom: 100%;
+  left: 0;
+}
+.user-menu-topbar .account-menu {
+  top: 100%;
+  right: 0;
+}
+.account-menu-heading {
+  display: grid;
+  min-width: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.account-menu-heading strong,
+.account-menu-heading small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu-heading small {
+  color: var(--text-soft);
+  font-size: 10px;
+}
+.account-menu > a,
+.account-menu > button {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  text-align: left;
+}
+.account-menu > a:hover,
+.account-menu > button:hover {
+  background: var(--surface-strong);
+}
+.account-menu > button {
+  color: var(--expense);
 }
 .main-content {
   width: min(1480px, 100%);
