@@ -453,19 +453,35 @@ button:disabled {
   overflow: hidden;
   padding: 7px;
 }
-.avatar,
-.topbar-avatar {
+.avatar {
   display: grid;
   flex: 0 0 auto;
+  overflow: hidden;
   place-items: center;
   border-radius: 50%;
   background: #dbe6c1;
   color: #263317;
   font-weight: 800;
 }
-.avatar {
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-sm {
+  width: 34px;
+  height: 34px;
+}
+.avatar-md {
   width: 35px;
   height: 35px;
+}
+.avatar-lg {
+  width: 52px;
+  height: 52px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 18px;
 }
 .user-chip > span:last-child {
   display: grid;
@@ -587,10 +603,10 @@ kbd {
   align-items: center;
   gap: 4px;
 }
-.topbar-avatar {
-  width: 34px;
-  height: 34px;
+.topbar-avatar-link {
+  display: flex;
   margin-left: 4px;
+  border-radius: 50%;
 }
 .main-content {
   width: min(1480px, 100%);
@@ -1786,17 +1802,6 @@ kbd {
   margin: 3px 0 0;
   color: var(--text-soft);
   font-size: 10px;
-}
-.profile-avatar {
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 18px;
-  font-weight: 800;
 }
 .settings-form {
   display: grid;

@@ -19,6 +19,7 @@ import {
 import {useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useRef, useState} from 'react';
 import {authClient} from '@/authClient';
+import {Avatar} from '@/components/avatar';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {Button, ConfirmDialog, DialogShell, SelectField, TextField} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
@@ -276,7 +277,7 @@ export function Settings() {
                   <h2>Personal information</h2>
                   <p>Used for your account and security notifications.</p>
                 </div>
-                <span className="profile-avatar">{session?.user.name?.slice(0, 1).toLocaleUpperCase() ?? 'U'}</span>
+                <Avatar name={session?.user.name ?? 'User'} image={session?.user.image} size="lg" />
               </div>
               <form className="settings-form" onSubmit={event => void updateProfile(event)}>
                 <TextField label="Full name" name="name" defaultValue={session?.user.name ?? ''} required />

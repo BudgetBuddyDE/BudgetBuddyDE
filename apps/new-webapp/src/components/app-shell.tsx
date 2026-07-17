@@ -23,6 +23,7 @@ import Link from 'next/link';
 import {usePathname, useRouter} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import {authClient} from '@/authClient';
+import {Avatar} from '@/components/avatar';
 import {CommandPalette} from '@/components/command-palette';
 import {StatePanel} from '@/components/shared';
 import {ThemeToggle} from '@/components/theme-toggle';
@@ -44,10 +45,12 @@ const NAVIGATION = [
 function ShellContent({
   userName,
   userEmail,
+  userImage,
   children,
 }: {
   userName: string;
   userEmail: string;
+  userImage?: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -121,7 +124,7 @@ function ShellContent({
         </nav>
         <div className="sidebar-footer">
           <div className="user-chip">
-            <span className="avatar">{userName.slice(0, 1).toLocaleUpperCase()}</span>
+            <Avatar name={userName} image={userImage} />
             <span>
               <strong>{userName}</strong>
               <small>{userEmail}</small>
@@ -154,8 +157,8 @@ function ShellContent({
             <IconButton aria-label="Notifications">
               <Bell size={18} />
             </IconButton>
-            <Link href="/settings/profile" className="topbar-avatar" aria-label="Open profile">
-              {userName.slice(0, 1).toLocaleUpperCase()}
+            <Link href="/settings/profile" className="topbar-avatar-link" aria-label="Open profile">
+              <Avatar name={userName} image={userImage} size="sm" />
             </Link>
           </div>
         </header>
@@ -197,7 +200,7 @@ export function AppShell({children}: {children: React.ReactNode}) {
   const userName = session.user.name || session.user.email.split('@')[0];
   return (
     <FinanceProvider userId={session.user.id}>
-      <ShellContent userName={userName} userEmail={session.user.email}>
+      <ShellContent userName={userName} userEmail={session.user.email} userImage={session.user.image}>
         {children}
       </ShellContent>
     </FinanceProvider>
