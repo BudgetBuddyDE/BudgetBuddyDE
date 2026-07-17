@@ -23,7 +23,7 @@ import {Avatar} from '@/components/avatar';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {Button, ConfirmDialog, DialogShell, SelectField, TextField} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
-import {createTransactionImportPreview, type ImportPreviewRow} from '@/utils/csv';
+import {createImportPreview, type ImportPreviewRow} from '@/utils/csv';
 import {downloadTextFile, serializeJson, serializeRecordsCsv} from '@/utils/export';
 import {formatDate} from '@/utils/format';
 
@@ -196,16 +196,48 @@ export function Settings() {
       downloadTextFile(content, 'application/json;charset=utf-8', filename);
       return;
     }
-    const collections: Record<string, readonly object[]> = {
-      categories: financeData.categories,
-      paymentMethods: financeData.paymentMethods,
-      transactions: financeData.transactions,
-      recurring: financeData.recurring,
-      budgets: financeData.budgets,
-    };
-    const records = Object.entries(collections).flatMap(([entityType, items]) =>
-      items.map(item => ({entityType, ...item})),
-    );
+    const records = [
+      ...financeData.categories.map(item => ({
+        entityType: 'categories',
+        name: item.name,
+        description: item.description ?? '',
+      })),
+      ...financeData.paymentMethods.map(item => ({
+        entityType: 'payment-methods',
+        name: item.name,
+        provider: item.provider,
+        address: item.address,
+        description: item.description ?? '',
+      })),
+      ...financeData.transactions.map(item => ({
+        entityType: 'transactions',
+        date: item.processedAt,
+        amount: item.transferAmount,
+        receiver: item.receiver,
+        category: item.categoryName,
+        paymentMethod: item.paymentMethodName,
+        note: item.information ?? '',
+      })),
+      ...financeData.recurring.map(item => ({
+        entityType: 'recurring',
+        executeAt: item.executeAt,
+        interval: item.interval,
+        paused: item.paused,
+        receiver: item.receiver,
+        amount: item.transferAmount,
+        category: item.categoryName,
+        paymentMethod: item.paymentMethodName,
+        note: item.information ?? '',
+      })),
+      ...financeData.budgets.map(item => ({
+        entityType: 'budgets',
+        type: item.type,
+        name: item.name,
+        description: item.description ?? '',
+        budget: item.budget,
+        categories: item.categoryNames.join('; '),
+      })),
+    ];
     downloadTextFile(serializeRecordsCsv(records), 'text/csv;charset=utf-8', filename);
   };
   const previewCsv = async (file?: File) => {
@@ -216,17 +248,17 @@ export function Settings() {
       reader.onerror = () => reject(reader.error ?? new Error('The CSV file could not be read.'));
       reader.readAsText(file);
     });
-    setImportPreview(createTransactionImportPreview(content, financeData.categories, financeData.paymentMethods));
+    setImportPreview(createImportPreview(content, financeData.categories, financeData.paymentMethods));
   };
   const importValidRows = async () => {
     const validRows = importPreview.filter(row => row.input);
     setImporting(true);
     let imported = 0;
     for (const row of validRows) {
-      if (row.input && (await createEntity('transactions', row.input))) imported += 1;
+      if (row.input && (await createEntity(row.kind, row.input))) imported += 1;
     }
     setImporting(false);
-    setMessage(`${imported} of ${validRows.length} valid transactions imported.`);
+    setMessage(`${imported} of ${validRows.length} valid rows imported.`);
     setImportPreview([]);
     if (csvInputRef.current) csvInputRef.current.value = '';
   };
@@ -388,8 +420,11 @@ export function Settings() {
                     <UploadCloud size={19} />
                   </span>
                   <div>
-                    <strong>Import transactions from CSV</strong>
-                    <p>Required columns: date, amount, receiver, category, paymentMethod. Optional: note.</p>
+                    <strong>Import finance data from CSV</strong>
+                    <p>
+                      Transactions, recurring payments, categories, and payment methods are supported. Exported
+                      BudgetBuddy CSV files are accepted.
+                    </p>
                   </div>
                   <label className="button button-secondary button-md">
                     Choose CSV

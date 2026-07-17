@@ -48,6 +48,8 @@ describe('Settings', () => {
     state.params = new URLSearchParams();
     state.updateUser.mockResolvedValue({error: null});
     state.changeEmail.mockResolvedValue({error: null});
+    state.createEntity.mockClear();
+    state.createEntity.mockResolvedValue(true);
     localStorage.clear();
     state.listAccounts.mockResolvedValue({data: [], error: null});
     state.unlinkAccount.mockResolvedValue({error: null});
@@ -99,6 +101,47 @@ describe('Settings', () => {
     expect(await screen.findByRole('table', {name: 'CSV import preview'})).toHaveTextContent('Market');
     expect(screen.getAllByText(/valid rows/)[0]).toHaveTextContent('1 valid rows');
     expect(screen.getByText(/rows need attention/)).toHaveTextContent('1 rows need attention');
+    vi.unstubAllGlobals();
+  });
+
+  it('imports categories, payment methods, and recurring payments from one export', async () => {
+    state.params = new URLSearchParams('tab=data');
+    render(<Settings />);
+    const csvContent =
+      'entityType,name,description,provider,address,executeAt,interval,paused,receiver,amount,category,paymentMethod\n' +
+      'categories,Travel,Trips,,,,,,,,,\n' +
+      'payment-methods,Amex,Card,American Express,1234,,,,,,,\n' +
+      'recurring,,,,,1,monthly,false,Streaming,-12,Groceries,Visa';
+    vi.stubGlobal(
+      'FileReader',
+      class {
+        result = csvContent;
+        error = null;
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        readAsText() {
+          this.onload?.();
+        }
+      },
+    );
+    await userEvent.upload(screen.getByLabelText('Choose CSV'), new File([csvContent], 'export.csv'));
+    await userEvent.click(await screen.findByRole('button', {name: 'Import 3 valid rows'}));
+    expect(state.createEntity).toHaveBeenCalledWith('categories', {name: 'Travel', description: 'Trips'});
+    expect(state.createEntity).toHaveBeenCalledWith('payment-methods', {
+      name: 'Amex',
+      provider: 'American Express',
+      address: '1234',
+      description: 'Card',
+    });
+    expect(state.createEntity).toHaveBeenCalledWith(
+      'recurring',
+      expect.objectContaining({
+        receiver: 'Streaming',
+        transferAmount: -12,
+        categoryId: 'cat-1',
+        paymentMethodId: 'pay-1',
+      }),
+    );
     vi.unstubAllGlobals();
   });
 
