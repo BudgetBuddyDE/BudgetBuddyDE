@@ -7,7 +7,7 @@ import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {z} from 'zod';
 import {authClient} from '@/authClient';
-import {Button, TextField} from '@/components/ui/primitives';
+import {Button, PasswordField, TextField} from '@/components/ui/primitives';
 
 export type AuthMode = 'sign-in' | 'sign-up' | 'request-reset' | 'reset-password';
 
@@ -190,9 +190,8 @@ export function AuthForm({mode}: {mode: AuthMode}) {
           />
         )}
         {(mode === 'sign-in' || mode === 'sign-up' || mode === 'reset-password') && (
-          <TextField
+          <PasswordField
             label={mode === 'reset-password' ? 'New password' : 'Password'}
-            type="password"
             autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
             hint={mode !== 'sign-in' ? 'At least 8 characters' : undefined}
             error={errors.password?.message}
@@ -200,9 +199,8 @@ export function AuthForm({mode}: {mode: AuthMode}) {
           />
         )}
         {mode === 'reset-password' && (
-          <TextField
+          <PasswordField
             label="Confirm password"
-            type="password"
             autoComplete="new-password"
             {...register('confirmPassword')}
           />

@@ -2,7 +2,7 @@
 
 import {Dialog} from '@base-ui/react/dialog';
 import {cva, type VariantProps} from 'class-variance-authority';
-import {X} from 'lucide-react';
+import {Eye, EyeOff, X} from 'lucide-react';
 import {forwardRef, useId, useState} from 'react';
 import {cn} from '@/utils/cn';
 
@@ -67,6 +67,48 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(function TextF
         </span>
       )}
     </label>
+  );
+});
+
+export const PasswordField = forwardRef<HTMLInputElement, Omit<FieldProps, 'type'>>(function PasswordField(
+  {label, hint, error, className, id, ...props},
+  ref,
+) {
+  const [visible, setVisible] = useState(false);
+  const generatedId = useId();
+  const inputId = id ?? (props.name ? `field-${props.name}` : generatedId);
+  const descriptionId = hint || error ? `${inputId}-description` : undefined;
+  return (
+    <div className={cn('field', className)}>
+      <label className="field-label" htmlFor={inputId}>
+        {label}
+      </label>
+      <div className="password-input">
+        <input
+          ref={ref}
+          id={inputId}
+          type={visible ? 'text' : 'password'}
+          className={cn('input', error && 'input-error')}
+          aria-invalid={Boolean(error)}
+          aria-describedby={descriptionId}
+          aria-label={props['aria-label'] ?? label}
+          {...props}
+        />
+        <IconButton
+          className="password-toggle"
+          aria-label={`${visible ? 'Hide' : 'Show'} ${label.toLocaleLowerCase()}`}
+          aria-pressed={visible}
+          onClick={() => setVisible(value => !value)}
+        >
+          {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+        </IconButton>
+      </div>
+      {(error || hint) && (
+        <span id={descriptionId} className={cn('field-hint', error && 'field-error')}>
+          {error ?? hint}
+        </span>
+      )}
+    </div>
   );
 });
 

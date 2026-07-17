@@ -244,6 +244,17 @@ button:disabled {
 .input::placeholder {
   color: var(--text-faint);
 }
+.password-input {
+  position: relative;
+}
+.password-input .input {
+  padding-right: 48px;
+}
+.password-toggle {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+}
 .input-error {
   border-color: var(--expense);
 }
