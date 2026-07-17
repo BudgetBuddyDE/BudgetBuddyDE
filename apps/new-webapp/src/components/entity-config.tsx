@@ -157,8 +157,8 @@ export const ENTITY_CONFIG: Record<EntityKind, EntityConfig> = {
             <strong>{budget.name}</strong>
             <small>{budget.categoryNames.join(', ') || 'No category assigned'}</small>
           </span>
-          <span>{formatCurrency(Math.abs(budget.balance))} spent</span>
-          <span>{formatCurrency(Math.max(0, budget.budget - Math.abs(budget.balance)))} left</span>
+          <span>{formatCurrency(Math.abs(budget.balance))}</span>
+          <span>{formatCurrency(Math.max(0, budget.budget - Math.abs(budget.balance)))}</span>
           <span>
             <Badge tone={used >= 1 ? 'danger' : used >= 0.8 ? 'warn' : 'good'}>{Math.round(used * 100)}% used</Badge>
           </span>
