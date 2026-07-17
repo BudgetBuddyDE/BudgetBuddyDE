@@ -828,8 +828,8 @@ kbd {
   grid-template-columns: 28px minmax(180px, 1.5fr) 90px minmax(120px, 1fr) 90px 110px;
 }
 .data-row-categories {
-  grid-template-columns: 28px minmax(230px, 2fr) 1fr 1fr 104px;
-  min-width: 650px;
+  grid-template-columns: 28px minmax(230px, 2fr) 104px;
+  min-width: 400px;
 }
 .data-row-payment-methods {
   grid-template-columns: 28px minmax(190px, 1.5fr) 1fr 1fr 90px 104px;

@@ -63,7 +63,7 @@ export const ENTITY_CONFIG: Record<EntityKind, EntityConfig> = {
     },
     select: data => data.categories,
     name: item => (item as CategoryView).name,
-    headers: ['Name', 'Details', 'Reference'],
+    headers: ['Name'],
     mergeable: true,
     renderCells: item => {
       const category = item as CategoryView;
@@ -76,8 +76,6 @@ export const ENTITY_CONFIG: Record<EntityKind, EntityConfig> = {
             </strong>
             <small>{category.description || 'No description'}</small>
           </span>
-          <span>Category</span>
-          <span className="muted">Available</span>
         </>
       );
     },
