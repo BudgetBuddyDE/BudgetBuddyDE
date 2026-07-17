@@ -72,8 +72,8 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({initi
   }, [deletingAttachmentId, showSnackbar]);
 
   const handleLoadMore = useCallback(() => {
-    setVisibleCount(prev => prev + PAGE_SIZE);
-  }, []);
+    setVisibleCount(prev => Math.min(prev + PAGE_SIZE, attachments.length));
+  }, [attachments.length]);
 
   const handleLightboxClose = useCallback(() => {
     setViewedAttachment(null);
