@@ -117,7 +117,7 @@ export const ENTITY_CONFIG: Record<EntityKind, EntityConfig> = {
     },
     select: data => data.recurring,
     name: item => (item as RecurringPaymentView).receiver,
-    headers: ['Payee', 'Details', 'Reference', 'Status / date', 'Amount'],
+    headers: ['Payee', 'Details', 'Reference', 'Amount'],
     renderCells: item => {
       const recurring = item as RecurringPaymentView;
       return (
@@ -134,9 +134,6 @@ export const ENTITY_CONFIG: Record<EntityKind, EntityConfig> = {
             </small>
           </span>
           <span>{recurring.paymentMethodName}</span>
-          <span>
-            <Badge tone={recurring.paused ? 'warn' : 'good'}>{recurring.paused ? 'Paused' : 'Active'}</Badge>
-          </span>
           <span className={recurring.transferAmount < 0 ? 'money expense' : 'money income'}>
             {formatCurrency(recurring.transferAmount)}
           </span>
