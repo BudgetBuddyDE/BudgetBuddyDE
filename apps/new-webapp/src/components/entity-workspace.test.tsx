@@ -76,7 +76,7 @@ describe('EntityWorkspace', () => {
     expect(finance.mergeEntities).toHaveBeenCalledWith('categories', ['cat-2'], 'cat-1');
   });
 
-  it('deletes and exports selected rows', async () => {
+  it('deletes and exports selected rows in CSV and JSON', async () => {
     const createObjectUrl = vi.fn().mockReturnValue('blob:export');
     const revokeObjectUrl = vi.fn();
     Object.defineProperties(URL, {
@@ -88,8 +88,10 @@ describe('EntityWorkspace', () => {
 
     await userEvent.click(screen.getByRole('checkbox', {name: 'Select Market'}));
     await userEvent.click(screen.getByRole('button', {name: 'Export selected CSV'}));
+    await userEvent.click(screen.getByRole('button', {name: 'Export selected JSON'}));
+    expect(createObjectUrl).toHaveBeenCalledTimes(2);
     expect(createObjectUrl).toHaveBeenCalledWith(expect.any(Blob));
-    expect(click).toHaveBeenCalledOnce();
+    expect(click).toHaveBeenCalledTimes(2);
 
     await userEvent.click(screen.getByRole('button', {name: 'Delete selected'}));
     const dialog = screen.getByRole('dialog', {name: 'Delete 1 selected transaction?'});

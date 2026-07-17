@@ -76,6 +76,8 @@ describe('Settings', () => {
   it('previews valid and invalid CSV rows before import', async () => {
     state.params = new URLSearchParams('tab=data');
     render(<Settings />);
+    expect(screen.getByRole('button', {name: 'Export CSV'})).toBeEnabled();
+    expect(screen.getByRole('button', {name: 'Export JSON'})).toBeEnabled();
     const csvContent =
       'date,amount,receiver,category,paymentMethod\n2026-07-15,-42,Market,Groceries,Visa\ninvalid,0,,Missing,Unknown';
     vi.stubGlobal(

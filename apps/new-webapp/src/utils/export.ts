@@ -13,6 +13,10 @@ export function serializeRecordsCsv(records: readonly object[]) {
   return [columns.map(csvValue).join(','), ...rows].join('\n');
 }
 
+export function serializeJson(value: unknown) {
+  return JSON.stringify(value, null, 2);
+}
+
 export function downloadTextFile(content: string, type: string, filename: string) {
   const href = URL.createObjectURL(new Blob([content], {type}));
   const link = document.createElement('a');

@@ -64,6 +64,12 @@ describe('Reporting', () => {
     expect(table).toHaveTextContent('Food');
   });
 
+  it('offers reports as CSV and JSON files', () => {
+    render(<Reporting />);
+    expect(screen.getByRole('button', {name: 'Export CSV'})).toBeEnabled();
+    expect(screen.getByRole('button', {name: 'Export JSON'})).toBeEnabled();
+  });
+
   it('supports month and full-year period selection', () => {
     render(<Reporting />);
     const period = screen.getByLabelText('Period');

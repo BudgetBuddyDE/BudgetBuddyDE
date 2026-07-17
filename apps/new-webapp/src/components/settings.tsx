@@ -24,6 +24,7 @@ import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {Button, ConfirmDialog, DialogShell, SelectField, TextField} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
 import {createTransactionImportPreview, type ImportPreviewRow} from '@/utils/csv';
+import {downloadTextFile, serializeJson, serializeRecordsCsv} from '@/utils/export';
 import {formatDate} from '@/utils/format';
 
 type SettingsTab = 'profile' | 'preferences' | 'data' | 'sessions' | 'api-keys';
@@ -187,14 +188,25 @@ export function Settings() {
     document.documentElement.lang = locale.split('-')[0] ?? 'en';
     setMessage('Preferences saved. New views use your selected locale and currency.');
   };
-  const exportJson = () => {
-    const content = JSON.stringify({exportedAt: new Date().toISOString(), version: 1, data: financeData}, null, 2);
-    const href = URL.createObjectURL(new Blob([content], {type: 'application/json'}));
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = `budgetbuddy-export-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(href);
+  const exportData = (format: 'csv' | 'json') => {
+    const now = new Date();
+    const filename = `budgetbuddy-export-${now.toISOString().slice(0, 10)}.${format}`;
+    if (format === 'json') {
+      const content = serializeJson({exportedAt: now.toISOString(), version: 1, data: financeData});
+      downloadTextFile(content, 'application/json;charset=utf-8', filename);
+      return;
+    }
+    const collections: Record<string, readonly object[]> = {
+      categories: financeData.categories,
+      paymentMethods: financeData.paymentMethods,
+      transactions: financeData.transactions,
+      recurring: financeData.recurring,
+      budgets: financeData.budgets,
+    };
+    const records = Object.entries(collections).flatMap(([entityType, items]) =>
+      items.map(item => ({entityType, ...item})),
+    );
+    downloadTextFile(serializeRecordsCsv(records), 'text/csv;charset=utf-8', filename);
   };
   const previewCsv = async (file?: File) => {
     if (!file) return;
@@ -361,9 +373,14 @@ export function Settings() {
                   <h2>Import and export</h2>
                   <p>Move your data with a traceable preview before any import.</p>
                 </div>
-                <Button variant="secondary" onClick={exportJson}>
-                  <Download size={16} /> Export JSON
-                </Button>
+                <div className="page-actions">
+                  <Button variant="secondary" onClick={() => exportData('csv')}>
+                    <Download size={16} /> Export CSV
+                  </Button>
+                  <Button variant="secondary" onClick={() => exportData('json')}>
+                    <Download size={16} /> Export JSON
+                  </Button>
+                </div>
               </div>
               <div className="data-management">
                 <div className="import-instructions">

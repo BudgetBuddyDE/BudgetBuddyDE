@@ -35,7 +35,7 @@ import type {
   RecurringPaymentView,
   TransactionView,
 } from '@/types/finance';
-import {downloadTextFile, serializeRecordsCsv} from '@/utils/export';
+import {downloadTextFile, serializeJson, serializeRecordsCsv} from '@/utils/export';
 import {formatCurrency, formatDate} from '@/utils/format';
 
 const PAGE_SIZE = 10;
@@ -619,12 +619,12 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
     }
     setSelected(current => current.filter(id => !deletedIds.has(id)));
   };
+  const exportFilename = `budgetbuddy-${kind}${selectedItems.length > 0 ? '-selected' : ''}`;
   const exportCsv = () => {
-    downloadTextFile(
-      serializeRecordsCsv(exportItems),
-      'text/csv;charset=utf-8',
-      `budgetbuddy-${kind}${selectedItems.length > 0 ? '-selected' : ''}.csv`,
-    );
+    downloadTextFile(serializeRecordsCsv(exportItems), 'text/csv;charset=utf-8', `${exportFilename}.csv`);
+  };
+  const exportJson = () => {
+    downloadTextFile(serializeJson(exportItems), 'application/json;charset=utf-8', `${exportFilename}.json`);
   };
   const openMerge = () => {
     const target = selectedItems[0];
@@ -707,6 +707,9 @@ export function EntityWorkspace({kind}: {kind: EntityKind}) {
             )}
             <Button variant="secondary" size="sm" disabled={exportItems.length === 0} onClick={exportCsv}>
               <Download size={15} /> {selected.length > 0 ? 'Export selected CSV' : 'Export CSV'}
+            </Button>
+            <Button variant="secondary" size="sm" disabled={exportItems.length === 0} onClick={exportJson}>
+              <Download size={15} /> {selected.length > 0 ? 'Export selected JSON' : 'Export JSON'}
             </Button>
             <SelectField
               label="Sort"

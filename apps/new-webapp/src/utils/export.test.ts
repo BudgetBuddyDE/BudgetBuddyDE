@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {serializeRecordsCsv} from './export';
+import {serializeJson, serializeRecordsCsv} from './export';
 
 describe('record exports', () => {
   it('serializes selected records as escaped CSV', () => {
@@ -8,5 +8,11 @@ describe('record exports', () => {
         {id: 'tx-1', receiver: 'Market, Central', processedAt: new Date('2026-07-15T00:00:00.000Z')},
       ]),
     ).toBe('"id","receiver","processedAt"\n"tx-1","Market, Central","2026-07-15T00:00:00.000Z"');
+  });
+
+  it('serializes records as readable JSON with ISO dates', () => {
+    expect(serializeJson([{id: 'tx-1', processedAt: new Date('2026-07-15T00:00:00.000Z')}])).toBe(
+      '[\n  {\n    "id": "tx-1",\n    "processedAt": "2026-07-15T00:00:00.000Z"\n  }\n]',
+    );
   });
 });

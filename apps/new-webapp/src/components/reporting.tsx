@@ -5,6 +5,7 @@ import {useRouter, useSearchParams} from 'next/navigation';
 import {PageHeader, SkeletonRows, StatePanel} from '@/components/shared';
 import {Badge, Button, IconButton, ProgressBar, SelectField, TextField} from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
+import {downloadTextFile, serializeJson, serializeRecordsCsv} from '@/utils/export';
 import {formatCurrency, formatPercent} from '@/utils/format';
 
 function periodBounds(period: 'month' | 'year', date: Date) {
@@ -47,6 +48,7 @@ export function Reporting() {
   const rows = [...categoryTotals.entries()].toSorted(
     (a, b) => b[1].expenses + b[1].income - (a[1].expenses + a[1].income),
   );
+  const exportRows = rows.map(([category, values]) => ({category, ...values}));
   const updatePeriod = (nextPeriod: string, nextDate = selectedDate) => {
     const next = new URLSearchParams(searchParams.toString());
     next.set('period', nextPeriod);
@@ -59,17 +61,13 @@ export function Reporting() {
     else nextDate.setMonth(nextDate.getMonth() + direction);
     updatePeriod(period, nextDate);
   };
-  const exportCsv = () => {
-    const csv = [
-      'Category,Income,Expenses',
-      ...rows.map(([name, values]) => `"${name.replaceAll('"', '""')}",${values.income},${values.expenses}`),
-    ].join('\n');
-    const href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = `budgetbuddy-report-${selectedDate.toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(href);
+  const exportReport = (format: 'csv' | 'json') => {
+    const filename = `budgetbuddy-report-${selectedDate.toISOString().slice(0, 10)}.${format}`;
+    if (format === 'csv') {
+      downloadTextFile(serializeRecordsCsv(exportRows), 'text/csv;charset=utf-8', filename);
+    } else {
+      downloadTextFile(serializeJson(exportRows), 'application/json;charset=utf-8', filename);
+    }
   };
 
   return (
@@ -79,9 +77,14 @@ export function Reporting() {
         title="Reporting"
         description="One consistent view of your cash flow, categories, budgets, and recurring commitments."
         action={
-          <Button variant="secondary" onClick={exportCsv} disabled={rows.length === 0}>
-            <Download size={16} /> Export CSV
-          </Button>
+          <div className="page-actions">
+            <Button variant="secondary" onClick={() => exportReport('csv')} disabled={rows.length === 0}>
+              <Download size={16} /> Export CSV
+            </Button>
+            <Button variant="secondary" onClick={() => exportReport('json')} disabled={rows.length === 0}>
+              <Download size={16} /> Export JSON
+            </Button>
+          </div>
         }
       />
       <section className="report-toolbar">
