@@ -113,6 +113,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       const {executeAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
       const [createdRecurringPayment, error] = await apiClient.backend.recurringPayment.create({
         paused: false,
+        interval: 'monthly',
         executeAt: executeAt.getDate(),
         categoryId: category.id,
         paymentMethodId: paymentMethod.id,
