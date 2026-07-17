@@ -2,7 +2,6 @@
 
 import {
   BarChart3,
-  Bell,
   ChevronLeft,
   Command,
   CreditCard,
@@ -148,9 +147,6 @@ function ShellContent({
           </button>
           <div className="topbar-actions">
             <ThemeToggle />
-            <IconButton aria-label="Notifications">
-              <Bell size={18} />
-            </IconButton>
             <UserMenu name={userName} email={userEmail} image={userImage} placement="topbar" />
           </div>
         </header>
