@@ -39,12 +39,15 @@ vi.mock('@/lib/finance-provider', () => ({
 }));
 
 describe('EntityWorkspace', () => {
-  it('renders dense transaction data with selection and accessible actions', () => {
+  it('renders dense transaction data with selection and action tooltips', async () => {
     render(<EntityWorkspace kind="transactions" />);
     expect(screen.getByRole('table', {name: 'Transactions'})).toHaveTextContent('Market');
     expect(screen.getByText('-€42.50')).toBeVisible();
     expect(screen.getByRole('checkbox', {name: 'Select Market'})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Edit Market'})).toBeVisible();
+    const editButton = screen.getByRole('button', {name: 'Edit Market'});
+    expect(editButton).toBeVisible();
+    await userEvent.hover(editButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Edit Market');
     expect(screen.queryByRole('button', {name: 'More table actions'})).not.toBeInTheDocument();
   });
 

@@ -169,6 +169,26 @@ export function ProgressBar({value, label}: {value: number; label: string}) {
   );
 }
 
+export function Tooltip({label, children}: {label: string; children: React.ReactNode}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span
+      className="tooltip-trigger"
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+      onFocusCapture={() => setVisible(true)}
+      onBlurCapture={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <span className="tooltip" role="tooltip">
+          {label}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export interface DialogShellProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

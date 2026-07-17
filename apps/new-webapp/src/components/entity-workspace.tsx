@@ -23,6 +23,7 @@ import {
   IconButton,
   SelectField,
   TextField,
+  Tooltip,
 } from '@/components/ui/primitives';
 import {useFinance} from '@/lib/finance-provider';
 import type {
@@ -505,22 +506,28 @@ function EntityRow({
       {cells}
       <span className="row-actions">
         {kind === 'recurring' && (
-          <IconButton
-            aria-label={`Execute ${name}`}
-            disabled={mutationPending}
-            onClick={() => void executeRecurring(item.id)}
-          >
-            <Play size={16} />
-          </IconButton>
+          <Tooltip label={`Execute ${name}`}>
+            <IconButton
+              aria-label={`Execute ${name}`}
+              disabled={mutationPending}
+              onClick={() => void executeRecurring(item.id)}
+            >
+              <Play size={16} />
+            </IconButton>
+          </Tooltip>
         )}
-        <IconButton aria-label={`Edit ${name}`} onClick={onEdit}>
-          <Pencil size={16} />
-        </IconButton>
+        <Tooltip label={`Edit ${name}`}>
+          <IconButton aria-label={`Edit ${name}`} onClick={onEdit}>
+            <Pencil size={16} />
+          </IconButton>
+        </Tooltip>
         <ConfirmDialog
           trigger={
-            <IconButton aria-label={`Delete ${name}`}>
-              <Trash2 size={16} />
-            </IconButton>
+            <Tooltip label={`Delete ${name}`}>
+              <IconButton aria-label={`Delete ${name}`}>
+                <Trash2 size={16} />
+              </IconButton>
+            </Tooltip>
           }
           title={`Delete ${name}?`}
           description={`The ${META[kind].singular} and its direct associations will be removed.`}
