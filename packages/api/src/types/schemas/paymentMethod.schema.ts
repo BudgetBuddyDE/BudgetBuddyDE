@@ -4,7 +4,9 @@ import {ApiResponse, UserID} from './common.schema';
 export const PaymentMethod = z.object({
   id: z.uuid().brand('PaymentMethodID'),
   ownerId: UserID,
-  name: z.string(),
+  name: z.string().min(1).max(40),
+  type: z.enum(['cash', 'bank', 'card', 'wallet', 'other']),
+  status: z.enum(['active', 'inactive']),
   provider: z.string().nonempty().min(1).max(100),
   address: z.string().nonempty().min(1).max(100),
   description: z.string().nullable(),
@@ -28,6 +30,8 @@ export const PaymentMethod = z.object({
 
 export const CreateOrUpdatePaymentMethodPayload = PaymentMethod.pick({
   name: true,
+  type: true,
+  status: true,
   provider: true,
   address: true,
   description: true,
@@ -38,6 +42,8 @@ export const CreateOrUpdatePaymentMethodPayload = PaymentMethod.pick({
 export const PaymentMethodVH = PaymentMethod.pick({
   id: true,
   name: true,
+  type: true,
+  status: true,
   address: true,
   provider: true,
   description: true,

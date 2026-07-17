@@ -7,6 +7,8 @@ export const RecurringPayment = Transaction.omit({
 }).extend({
   paused: z.boolean().default(false),
   executeAt: z.number().min(1).max(31),
+  interval: z.enum(['monthly', 'quarterly', 'yearly']),
+  nextExecutionAt: z.iso.datetime().or(z.date()),
 });
 
 export const ExpandedRecurringPayment = ExpandedTransaction.omit({
@@ -14,6 +16,8 @@ export const ExpandedRecurringPayment = ExpandedTransaction.omit({
 }).extend({
   paused: z.boolean().default(false),
   executeAt: z.number().min(1).max(31),
+  interval: z.enum(['monthly', 'quarterly', 'yearly']),
+  nextExecutionAt: z.iso.datetime().or(z.date()),
 });
 
 // export const CreateRecurringPaymentPayload = RecurringPayment.pick({
@@ -42,6 +46,8 @@ export const ExpandedRecurringPayment = ExpandedTransaction.omit({
 
 export const CreateOrUpdateRecurringPaymentPayload = RecurringPayment.pick({
   executeAt: true,
+  interval: true,
+  nextExecutionAt: true,
   paused: true,
   categoryId: true,
   paymentMethodId: true,

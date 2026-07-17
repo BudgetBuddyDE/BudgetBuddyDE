@@ -76,7 +76,7 @@ const options: BetterAuthOptions = {
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
     revokeSessionsOnPasswordReset: true,
     disableSignUp: process.env.DISABLE_SIGNUP === 'true',
     async sendResetPassword({user: {id, email, name}, url}) {

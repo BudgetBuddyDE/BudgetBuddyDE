@@ -1,7 +1,7 @@
 import {boolean, doublePrecision, integer, primaryKey, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core';
 import {uuidv7} from 'uuidv7';
 import {user} from '../auth';
-import {budgetType} from './enums';
+import {budgetType, categoryType, paymentMethodStatus, paymentMethodType, recurringInterval} from './enums';
 import {backendSchema} from './schema';
 
 export const paymentMethods = backendSchema.table('payment_method', {
@@ -10,6 +10,8 @@ export const paymentMethods = backendSchema.table('payment_method', {
     .notNull()
     .references(() => user.id, {onDelete: 'cascade'}),
   name: varchar({length: 40}).notNull(),
+  type: paymentMethodType().default('other').notNull(),
+  status: paymentMethodStatus().default('active').notNull(),
   provider: varchar({length: 32}).notNull(),
   address: varchar({length: 32}).notNull(),
   description: text(),
@@ -26,6 +28,10 @@ export const categories = backendSchema.table('category', {
     .notNull()
     .references(() => user.id, {onDelete: 'cascade'}),
   name: varchar({length: 40}).notNull(),
+  type: categoryType().default('expense').notNull(),
+  color: varchar({length: 7}).default('#64748b').notNull(),
+  icon: varchar({length: 32}).default('circle').notNull(),
+  budgetTarget: doublePrecision('budget_target'),
   description: text(),
   createdAt: timestamp('created_at', {withTimezone: true}).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', {withTimezone: true})
@@ -68,6 +74,8 @@ export const recurringPayments = backendSchema.table('recurring_payment', {
     .references(() => paymentMethods.id, {onDelete: 'cascade'})
     .notNull(),
   executeAt: integer('execute_at').notNull(),
+  interval: recurringInterval().default('monthly').notNull(),
+  nextExecutionAt: timestamp('next_execution_at').notNull(),
   paused: boolean().default(false).notNull(),
   receiver: varchar({length: 100}).notNull(),
   transferAmount: doublePrecision('transfer_amount').notNull(),
@@ -87,6 +95,8 @@ export const budgets = backendSchema.table('budget', {
   type: budgetType('type').notNull(),
   name: varchar({length: 32}).notNull(),
   budget: doublePrecision().notNull(),
+  period: varchar({length: 7}).notNull(),
+  warningThreshold: integer('warning_threshold').default(80).notNull(),
   description: text(),
   createdAt: timestamp('created_at', {withTimezone: true}).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', {withTimezone: true})

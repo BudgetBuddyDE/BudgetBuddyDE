@@ -4,13 +4,14 @@ import {Category} from '@budgetbuddyde/api/category';
 import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import {
   attachments,
+  categories,
   TransactionSchemas,
   transactionAttachments,
   transactionReceiverView,
   transactions,
 } from '@budgetbuddyde/db/backend';
 import {toZonedTime} from 'date-fns-tz';
-import {and, desc, eq, inArray, sql} from 'drizzle-orm';
+import {and, asc, desc, eq, inArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import multer from 'multer';
@@ -89,6 +90,9 @@ transactionRouter.get(
       search: z.string().optional(),
       from: z.coerce.number().optional(),
       to: z.coerce.number().optional(),
+      sort: z.enum(['date', 'amount', 'category']).default('date'),
+      order: z.enum(['asc', 'desc']).default('desc'),
+      $type: z.enum(['income', 'expense']).optional(),
       $dateFrom: z.coerce.date().optional(),
       $dateTo: z.coerce.date().optional(),
       $categories: z
@@ -122,6 +126,13 @@ transactionRouter.get(
 
     const query = req.query;
     const additionalFilters: TAdditionalFilter<(typeof transactions)['_']['config']>[] = [];
+    if (query.$type) {
+      additionalFilters.push({
+        columnName: 'transferAmount',
+        operator: query.$type === 'income' ? 'gte' : 'lt',
+        value: 0,
+      });
+    }
     if (query.$dateFrom) {
       const dateFrom = toZonedTime(query.$dateFrom, config.timezone);
       dateFrom.setHours(0, 0, 0, 0);
@@ -166,8 +177,15 @@ transactionRouter.get(
         where() {
           return filter;
         },
-        orderBy(fields, operators) {
-          return [operators.desc(fields.processedAt), operators.desc(fields.updatedAt)];
+        orderBy(fields) {
+          const direction = query.order === 'asc' ? asc : desc;
+          const sortExpression =
+            query.sort === 'amount'
+              ? fields.transferAmount
+              : query.sort === 'category'
+                ? sql<string>`(select ${categories.name} from ${categories} where ${categories.id} = ${fields.categoryId})`
+                : fields.processedAt;
+          return [direction(sortExpression), desc(fields.updatedAt)];
         },
         offset: req.query.from,
         limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,

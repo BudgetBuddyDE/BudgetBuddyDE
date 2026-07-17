@@ -63,13 +63,16 @@ Priorities:
 - Filter by date range, type, category, payment method, and search text.
 - Sort by date, amount, and category.
 - Pagination or incremental loading.
-- Prepare bulk selection for future multi-action workflows.
+- Allow multiple transactions to be created together and multiple existing transactions to be edited together within a single dialog.
+- The multi-transaction dialog may be desktop-only and unavailable on smaller devices; the single-transaction create and edit workflows must remain available on every supported device.
 
 ### Acceptance Criteria
 
 - A new transaction appears after saving without a full page reload.
 - Filters are represented in the URL.
 - Invalid amounts and dates are prevented.
+- On supported desktop viewports, users can add or edit multiple transactions in one dialog and save their changes without opening a separate dialog for each transaction.
+- On smaller viewports, the multi-transaction entry point may be omitted without affecting the standard single-transaction workflows.
 - Deletion requires confirmation.
 
 ## P0: Categories

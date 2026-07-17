@@ -147,6 +147,10 @@ categoryRouter.get(
         categoryId: transactions.categoryId,
         categoryName: categories.name,
         categoryDescription: categories.description,
+        categoryType: categories.type,
+        categoryColor: categories.color,
+        categoryIcon: categories.icon,
+        categoryBudgetTarget: categories.budgetTarget,
         balance: sql<number>`sum(${transactions.transferAmount})`.as('balance'),
         income:
           sql<number>`SUM(CASE WHEN ${transactions.transferAmount} > 0 THEN ${transactions.transferAmount} ELSE 0 END)`.as(
@@ -162,7 +166,16 @@ categoryRouter.get(
       .where(
         and(eq(transactions.ownerId, userId), gte(transactions.processedAt, from), lte(transactions.processedAt, to)),
       )
-      .groupBy(transactions.ownerId, transactions.categoryId, categories.name, categories.description);
+      .groupBy(
+        transactions.ownerId,
+        transactions.categoryId,
+        categories.name,
+        categories.description,
+        categories.type,
+        categories.color,
+        categories.icon,
+        categories.budgetTarget,
+      );
 
     ApiResponse.builder()
       .withStatus(HTTPStatusCode.OK)
@@ -178,6 +191,10 @@ categoryRouter.get(
             id: row.categoryId,
             name: row.categoryName,
             description: row.categoryDescription,
+            type: row.categoryType,
+            color: row.categoryColor,
+            icon: row.categoryIcon,
+            budgetTarget: row.categoryBudgetTarget,
           },
         })),
       })

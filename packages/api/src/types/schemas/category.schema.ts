@@ -4,7 +4,11 @@ import {ApiResponse, UserID} from './common.schema';
 export const Category = z.object({
   id: z.uuid().brand('CategoryID'),
   ownerId: UserID,
-  name: z.string(),
+  name: z.string().min(1).max(40),
+  type: z.enum(['income', 'expense', 'both']),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  icon: z.string().min(1).max(32),
+  budgetTarget: z.number().min(0).nullable(),
   description: z.string().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -22,14 +26,23 @@ export const Category = z.object({
 
 export const CreateOrUpdateCategoryPayload = Category.pick({
   name: true,
+  type: true,
+  color: true,
+  icon: true,
+  budgetTarget: true,
   description: true,
 }).extend({
   description: Category.shape.description.optional(),
+  budgetTarget: Category.shape.budgetTarget.optional(),
 });
 
 export const CategoryVH = Category.pick({
   id: true,
   name: true,
+  type: true,
+  color: true,
+  icon: true,
+  budgetTarget: true,
   description: true,
 });
 
@@ -44,6 +57,10 @@ export const CategoryStats = z.object({
       category: Category.pick({
         id: true,
         name: true,
+        type: true,
+        color: true,
+        icon: true,
+        budgetTarget: true,
         description: true,
       }),
     }),

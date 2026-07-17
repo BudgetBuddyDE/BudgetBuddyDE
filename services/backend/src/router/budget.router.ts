@@ -6,7 +6,7 @@ import {
   transactionHistoryView,
   transactions,
 } from '@budgetbuddyde/db/backend';
-import {and, eq, gt, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
+import {and, eq, gt, gte, inArray, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -143,6 +143,10 @@ budgetRouter.get(
       search: z.string().optional(),
       from: z.coerce.number().optional(),
       to: z.coerce.number().optional(),
+      $period: z
+        .string()
+        .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+        .optional(),
     }),
   }),
   async (req, res) => {
@@ -159,6 +163,7 @@ budgetRouter.get(
         searchTerm: req.query.search,
         searchableColumnName: ['name', 'description'],
       },
+      req.query.$period ? [{columnName: 'period', operator: 'eq', value: req.query.$period}] : [],
     );
 
     const [[{count: totalCount}], records] = await Promise.all([
@@ -195,6 +200,7 @@ budgetRouter.get(
         budget.ownerId,
         budget.type,
         budget.categories.map(c => c.categoryId),
+        budget.period,
       );
 
       updatedBudgets.push({
@@ -252,9 +258,10 @@ budgetRouter.get(
     const budgetWithBalance: (typeof record)[number] & {balance: number} = {
       ...record[0],
       balance: await calculateBudgetBalance(
-        record[0].id,
+        record[0].ownerId,
         record[0].type,
         record[0].categories.map(c => c.categoryId),
+        record[0].period,
       ),
     };
 
@@ -319,6 +326,7 @@ budgetRouter.post(
         userId,
         result.type,
         result.categories.map(c => c.categoryId),
+        result.period,
       );
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
@@ -416,6 +424,7 @@ budgetRouter.put(
         userId,
         result.type,
         result.categories.map(c => c.categoryId),
+        result.period,
       );
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
@@ -476,31 +485,21 @@ async function calculateBudgetBalance(
   ownerId: string,
   budgetType: 'i' | 'e',
   categories: string[],
-  time: Date = new Date(),
+  period: string,
 ): Promise<number> {
-  if (categories.length === 0) {
-    return 0;
-  }
-
-  const currentMonth = time.getMonth() + 1;
-  const currentYear = time.getFullYear();
-
-  // Use transactionHistoryView for aggregated data by category
+  if (categories.length === 0) return 0;
+  const [year, month] = period.split('-').map(Number);
+  const amountColumn = budgetType === 'i' ? transactionHistoryView.income : transactionHistoryView.expenses;
   const result = await db
-    .select({
-      total: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('total'),
-    })
+    .select({total: sql<number>`COALESCE(SUM(${amountColumn}), 0)`.as('total')})
     .from(transactionHistoryView)
     .where(
       and(
         eq(transactionHistoryView.ownerId, ownerId),
-        eq(transactionHistoryView.month, currentMonth),
-        eq(transactionHistoryView.year, currentYear),
-        budgetType === 'i'
-          ? inArray(transactionHistoryView.categoryId, categories)
-          : notInArray(transactionHistoryView.categoryId, categories),
+        eq(transactionHistoryView.month, month),
+        eq(transactionHistoryView.year, year),
+        inArray(transactionHistoryView.categoryId, categories),
       ),
     );
-
   return result[0]?.total || 0;
 }

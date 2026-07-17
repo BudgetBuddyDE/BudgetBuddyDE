@@ -36,6 +36,34 @@
       "when": 1781637109766,
       "tag": "0004_hot_deathbird",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784241333831,
+      "tag": "0005_lush_yellowjacket",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784241687575,
+      "tag": "0006_nappy_dexter_bennett",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784242114584,
+      "tag": "0007_dapper_sersi",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784242546679,
+      "tag": "0008_lush_pretty_boy",
+      "breakpoints": true
     }
   ]
 }

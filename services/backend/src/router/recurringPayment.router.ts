@@ -97,7 +97,7 @@ recurringPaymentRouter.get(
           return filter;
         },
         orderBy(fields, operators) {
-          return [operators.desc(fields.executeAt), operators.desc(fields.updatedAt)];
+          return [operators.asc(fields.nextExecutionAt), operators.desc(fields.updatedAt)];
         },
         offset: req.query.from,
         limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,

@@ -9,6 +9,8 @@ export const Budget = z.object({
   ownerId: UserID,
   type: BudgetType,
   budget: z.number().min(0, 'The budget must be a positive number'),
+  period: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+  warningThreshold: z.number().int().min(1).max(100),
   balance: z.number(),
   name: z.string().min(1).max(40),
   description: z.string().max(200).nullable().default(null),
@@ -45,6 +47,8 @@ export const CreateOrUpdateBudgetPayload = Budget.pick({
   name: true,
   description: true,
   budget: true,
+  period: true,
+  warningThreshold: true,
 }).extend({
   categories: z.array(Category.shape.id),
   description: Budget.shape.description.optional(),

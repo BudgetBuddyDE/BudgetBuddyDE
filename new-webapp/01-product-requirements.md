@@ -102,8 +102,8 @@ These items remain valid future extensions but must not block the MVP.
 ## Technical Requirements
 
 - The new webapp must be built under apps/new-webapp.
-- The framework is Next.js with the App Router and TypeScript.
-- The UI layer uses ShadCN components implemented with Base UI and must integrate with the existing monorepo conventions.
+- The new webapp must be built with Next.js, using the App Router and TypeScript.
+- The UI layer must use both ShadCN and Base UI; both technologies are mandatory and must integrate with the existing monorepo conventions.
 - The new app must reuse existing internal packages, services, authentication boundaries, CI conventions, and the root lockfile.
 - Every custom component and wrapper must have automated test coverage, including relevant states, interactions, and provider behavior.
 - Data access must use a deliberate caching strategy that maximizes safe reuse without exposing private data between users.

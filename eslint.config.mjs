@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
+import nextPlugin from '@next/eslint-plugin-next';
 import reactHooks from 'eslint-plugin-react-hooks';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
@@ -9,6 +10,7 @@ import tseslint from 'typescript-eslint';
 const tsProjects = [
   './tsconfig.json',
   './apps/webapp/tsconfig.json',
+  './apps/new-webapp/tsconfig.json',
   './examples/*/tsconfig.json',
   './packages/*/tsconfig.json',
   './services/*/tsconfig.json',
@@ -17,6 +19,7 @@ const tsProjects = [
 const sourceFiles = [
   'vitest.config.ts',
   'apps/webapp/src/**/*.{js,jsx,ts,tsx}',
+  'apps/new-webapp/src/**/*.{js,jsx,ts,tsx}',
   'examples/*/src/**/*.{js,jsx,ts,tsx}',
   'packages/*/src/**/*.{js,jsx,ts,tsx}',
   'services/*/src/**/*.{js,jsx,ts,tsx}',
@@ -112,6 +115,14 @@ export default tseslint.config(
           varsIgnorePattern: '^_',
         },
       ],
+    },
+  },
+  {
+    files: ['apps/new-webapp/src/**/*.{js,jsx,ts,tsx}'],
+    plugins: {'@next/next': nextPlugin},
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
     },
   },
   {

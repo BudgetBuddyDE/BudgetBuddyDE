@@ -140,7 +140,7 @@ The insights view currently provides:
 
 ### Partial or Constrained
 
-- Bulk selection is not a complete multi-action workflow and remains a future extension.
+- Bulk selection is not a complete multi-action workflow in the current app; the new app must provide the multi-transaction dialog defined under New Functionality to Add.
 - The new app should preserve URL filter serialization and keep filter state consistent between tables, dashboard links, and API requests.
 - Monetary values, dates, time zones, and validation behavior require explicit contracts in the new implementation.
 
@@ -348,7 +348,6 @@ The current app inspection leaves these topics for explicit product decisions:
 - The final dashboard metric definitions and period selection behavior.
 - The complete budget period and warning model.
 - The supported recurring payment intervals and automatic execution semantics.
-- Whether bulk transaction actions are part of the first release.
 - Whether monthly reports and advanced analytics are first-release features.
 - Whether account households, collaboration, bank synchronization, multi-currency support, and automated categorization remain out of scope.
 - The exact cache technology and cache lifetime per API resource.
@@ -357,6 +356,10 @@ The current app inspection leaves these topics for explicit product decisions:
 ## New Functionality to Add
 
 The following capabilities extend the current app inventory and are required for the new webapp.
+
+### Multi-Transaction Create and Edit
+
+The new app must let users create multiple transactions and edit multiple existing transactions within a single dialog. This feature may be limited to desktop viewports and may be unavailable on smaller devices. The standard single-transaction create and edit workflows must remain available on every supported device.
 
 ### Comprehensive Reporting
 
