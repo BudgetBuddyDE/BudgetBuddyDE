@@ -222,9 +222,12 @@ export const CommandPalette: React.FC = () => {
       scroll={'paper'}
       fullWidth
       maxWidth="sm"
+      slotProps={{
+        paper: {elevation: 0},
+      }}
       sx={{
         '& .MuiDialog-container': {
-          alignItems: 'flex-start',
+          alignItems: 'center',
         },
       }}
     >
@@ -252,7 +255,7 @@ export const CommandPalette: React.FC = () => {
 
         <Box sx={{maxHeight: 400, overflowY: 'auto'}}>
           {isResolving && (
-            <List disablePadding>
+            <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
                   <ListItemText primary="Loading..." />
@@ -261,7 +264,7 @@ export const CommandPalette: React.FC = () => {
             </List>
           )}
           {!isResolving && groupedCommands.length === 0 && isResolverMode && (
-            <List disablePadding>
+            <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
                   <ListItemText primary={resolverCommand.emptyLabel ?? 'No matching targets'} />
@@ -278,7 +281,7 @@ export const CommandPalette: React.FC = () => {
                 <Typography variant="overline" sx={{px: 2, pt: 1, display: 'block', opacity: 0.7}}>
                   {section}
                 </Typography>
-                <List disablePadding>
+                <List dense disablePadding>
                   {items.map(item => {
                     const itemIndex = flatCommands.findIndex(cmd => cmd.id === item.id);
                     const isSelected = focusMode === 'list' && selectedIndex === itemIndex;
