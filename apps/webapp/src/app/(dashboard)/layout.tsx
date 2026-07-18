@@ -25,7 +25,7 @@ export default function Layout({children}: React.PropsWithChildren) {
         >
           <AppBar />
 
-          <Container maxWidth="xl" sx={{mt: 2, mb: 4}}>
+          <Container maxWidth="xl" sx={{mt: 2, mb: 4, scrollbarGutter: 'stable'}}>
             <CommandPaletteProvider>
               <RegisterDefaultCommands />
               {children}
