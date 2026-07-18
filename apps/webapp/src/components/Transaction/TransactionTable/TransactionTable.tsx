@@ -642,6 +642,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     [handleEditEntity],
   );
 
+  const batchColumns = React.useMemo(
+    () => transactionBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods}),
+    [batchCategories, batchPaymentMethods],
+  );
+
   const slice: EntitySlice<TExpandedTransaction> = React.useMemo(
     () => ({
       data: transactions ?? [],
@@ -732,7 +737,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         title={batchDialogState.mode === 'CREATE' ? 'Create transactions' : 'Edit transactions'}
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
-        columns={transactionBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods})}
+        columns={batchColumns}
         createEmptyRow={createEmptyTransactionRow}
         mapRowsToPayload={mapTransactionRowsToPayload}
         onSubmit={handleBatchSubmit}

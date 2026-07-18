@@ -45,6 +45,8 @@ describe('batch route contracts', () => {
     await expect(hasAllOwnedIds('user-1', ['a', 'b'], findOwned)).resolves.toBe(false);
     expect(findOwned).toHaveBeenCalledWith('user-1', ['a', 'b']);
     await expect(hasAllOwnedIds('user-1', ['a'], findOwned)).resolves.toBe(true);
+    await expect(hasAllOwnedIds('user-1', ['a', 'a'], findOwned)).resolves.toBe(true);
+    expect(findOwned).toHaveBeenLastCalledWith('user-1', ['a']);
   });
 
   it('returns updates in request order and rolls back a failed transaction callback', async () => {

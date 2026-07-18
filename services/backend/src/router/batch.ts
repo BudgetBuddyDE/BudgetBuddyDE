@@ -27,9 +27,10 @@ export async function hasAllOwnedIds(
   ids: readonly string[],
   findOwned: (userId: string, ids: readonly string[]) => Promise<readonly {id: string}[]>,
 ): Promise<boolean> {
-  if (ids.length === 0) return true;
-  const owned = await findOwned(userId, ids);
-  return owned.length === ids.length;
+  const uniqueIds = [...new Set(ids)];
+  if (uniqueIds.length === 0) return true;
+  const owned = await findOwned(userId, uniqueIds);
+  return owned.length === uniqueIds.length;
 }
 
 export async function applyBatchUpdates<Tx, Update, Result>(

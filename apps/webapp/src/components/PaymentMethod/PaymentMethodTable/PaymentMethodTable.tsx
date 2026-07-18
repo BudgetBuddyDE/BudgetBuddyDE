@@ -329,6 +329,8 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     [handleEditEntity],
   );
 
+  const batchColumns = React.useMemo(() => paymentMethodBatchColumns(), []);
+
   const slice: EntitySlice<TPaymentMethod> = React.useMemo(
     () => ({
       data: paymentMethods ?? [],
@@ -431,7 +433,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         title={batchDialogState.mode === 'CREATE' ? 'Create payment methods' : 'Edit payment methods'}
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
-        columns={paymentMethodBatchColumns()}
+        columns={batchColumns}
         createEmptyRow={createEmptyPaymentMethodRow}
         mapRowsToPayload={mapPaymentMethodRowsToPayload}
         onSubmit={handleBatchSubmit}

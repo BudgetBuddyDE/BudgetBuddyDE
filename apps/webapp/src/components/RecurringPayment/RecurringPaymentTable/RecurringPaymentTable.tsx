@@ -657,6 +657,11 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     [handleEditEntity, handleTogglePauseOnEntity, handleExecutePayment],
   );
 
+  const batchColumns = React.useMemo(
+    () => recurringPaymentBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods}),
+    [batchCategories, batchPaymentMethods],
+  );
+
   const slice: EntitySlice<TExpandedRecurringPayment> = React.useMemo(
     () => ({
       data: recurringPayments ?? [],
@@ -751,7 +756,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         title={batchDialogState.mode === 'CREATE' ? 'Create recurring payments' : 'Edit recurring payments'}
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
-        columns={recurringPaymentBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods})}
+        columns={batchColumns}
         createEmptyRow={createEmptyRecurringPaymentRow}
         mapRowsToPayload={mapRecurringPaymentRowsToPayload}
         onSubmit={handleBatchSubmit}

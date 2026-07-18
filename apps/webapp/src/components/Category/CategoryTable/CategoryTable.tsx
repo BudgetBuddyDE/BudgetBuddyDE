@@ -337,6 +337,8 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     [handleEditEntity],
   );
 
+  const batchColumns = React.useMemo(() => categoryBatchColumns(), []);
+
   const slice: EntitySlice<TCategory> = React.useMemo(
     () => ({
       data: categories ?? [],
@@ -435,7 +437,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         title={batchDialogState.mode === 'CREATE' ? 'Create categories' : 'Edit categories'}
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
-        columns={categoryBatchColumns()}
+        columns={batchColumns}
         createEmptyRow={createEmptyCategoryRow}
         mapRowsToPayload={mapCategoryRowsToPayload}
         onSubmit={handleBatchSubmit}
