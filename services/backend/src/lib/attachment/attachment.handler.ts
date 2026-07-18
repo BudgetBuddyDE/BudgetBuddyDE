@@ -128,6 +128,70 @@ export abstract class AttachmentHandler {
     return {buffer: compressedBuffer, contentEncoding: 'gzip', optimization: 'gzip'};
   }
 
+  private static readonly MAX_IMAGE_DIMENSION_PX = 1920;
+
+  private static readonly OPTIMIZABLE_IMAGE_MIME_TYPES = new Set([
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+  ]);
+
+  private static isOptimizableImage(contentType: string): boolean {
+    return AttachmentHandler.OPTIMIZABLE_IMAGE_MIME_TYPES.has(contentType);
+  }
+
+  private static async optimizeImageBuffer(fileBuffer: Buffer, contentType: string): Promise<Buffer> {
+    const image = sharp(fileBuffer, {failOn: 'none'}).rotate().resize({
+      width: AttachmentHandler.MAX_IMAGE_DIMENSION_PX,
+      height: AttachmentHandler.MAX_IMAGE_DIMENSION_PX,
+      fit: 'inside',
+      withoutEnlargement: true,
+    });
+
+    switch (contentType) {
+      case 'image/jpeg':
+      case 'image/jpg':
+        return image.jpeg({quality: 82, mozjpeg: true}).toBuffer();
+      case 'image/png':
+        return image.png({compressionLevel: 9, palette: true}).toBuffer();
+      case 'image/webp':
+        return image.webp({quality: 82}).toBuffer();
+      default:
+        return fileBuffer;
+    }
+  }
+
+  /**
+   * Prepare an attachment payload for storage. Images are optimized with
+   * image-aware resizing/re-encoding first because gzip usually does not reduce
+   * already-compressed image formats. Non-images still use gzip when it reduces
+   * the payload size.
+   */
+  static async prepareAttachmentBuffer(fileBuffer: Buffer, contentType: string): Promise<PreparedAttachmentBuffer> {
+    if (AttachmentHandler.isOptimizableImage(contentType)) {
+      try {
+        const optimizedImageBuffer = await AttachmentHandler.optimizeImageBuffer(fileBuffer, contentType);
+
+        if (optimizedImageBuffer.length < fileBuffer.length) {
+          return {buffer: optimizedImageBuffer, optimization: 'image'};
+        }
+      } catch {
+        // Keep the original upload if an image is malformed or libvips cannot decode it.
+      }
+
+      return {buffer: fileBuffer, optimization: 'none'};
+    }
+
+    const compressedBuffer = gzipSync(fileBuffer);
+
+    if (compressedBuffer.length >= fileBuffer.length) {
+      return {buffer: fileBuffer, optimization: 'none'};
+    }
+
+    return {buffer: compressedBuffer, contentEncoding: 'gzip', optimization: 'gzip'};
+  }
+
   /**
    * Verify if user is authorized to access attachment
    */
