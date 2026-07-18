@@ -90,6 +90,7 @@ nav = [
             "development/components/tables.md",
             "development/components/filter.md",
             "development/components/attachments.md",
+            "development/components/intent-based-navigation.md",
         ]}
     ]},
     {"Monitoring" = [
