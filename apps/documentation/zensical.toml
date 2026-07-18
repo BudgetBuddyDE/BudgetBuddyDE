@@ -51,50 +51,49 @@ copyright = """
 #
 # Read more: https://zensical.org/docs/setup/navigation/
 nav = [
-    {"Home" = [
-        "index.md",
-        "development/start-development.md",
-        "documentation.md",
-        "deployment.md",
-        "ci-cd.md",
-        "contributing.md",
-        {"Apps" = [
-            "apps/webapp.md",
-            "apps/website.md",
-            "apps/attachments.md"
-        ]},
-        {"Services" = [
-            "services/auth-service.md",
-            "services/api-keys.md",
-            "services/backend.md",
-            {"Monitoring" = [
-                "monitoring/grafana.md",
-                "monitoring/open-telemetry.md",
-            ]}
-        ]},
-        {"Packages" = [
+    {"User" = [
+        "user/index.md",
+        "user/getting-started.md",
+        "user/self-hosting.md",
+        "user/operations.md",
+        "user/support.md"
+    ]},
+    {"Developer" = [
+        "developer/index.md",
+        "developer/development.md",
+        "developer/architecture.md",
+        "developer/project-structure.md",
+        "developer/services.md",
+        "developer/quality.md",
+        "developer/observability.md",
+        {"Components and packages" = [
             "packages/api.md",
             "packages/db.md",
             "packages/types.md",
             "packages/utils.md",
-            "packages/logger.md"
-        ]}
-    ]},
-    {"Development" = [
-        "development/index.md",
-        "development/start-development.md",
-        "development/git-hooks.md",
-        "development/database.md",
-        {"Components" = [
+            "packages/logger.md",
             "development/components/index.md",
             "development/components/tables.md",
             "development/components/filter.md",
-            "development/components/attachments.md",
+            "development/components/attachments.md"
+        ]},
+        {"Services and interfaces" = [
+            "services/auth-service.md",
+            "services/api-keys.md",
+            "services/backend.md",
+            "services/mcp.md"
+        ]},
+        {"Data management" = [
+            "development/database.md"
+        ]},
+        {"Observability references" = [
+            "monitoring/grafana.md",
+            "monitoring/open-telemetry.md"
+        ]},
+        {"Contributions and standards" = [
+            "contributing.md",
+            "documentation.md"
         ]}
-    ]},
-    {"Monitoring" = [
-        "monitoring/grafana.md",
-        "monitoring/open-telemetry.md",
     ]}
 ]
 
