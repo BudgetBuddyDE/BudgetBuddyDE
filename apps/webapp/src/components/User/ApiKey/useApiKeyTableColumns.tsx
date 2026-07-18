@@ -1,6 +1,6 @@
 'use client';
 
-import {DeleteRounded} from '@mui/icons-material';
+import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import {Chip, IconButton, Stack, Tooltip, Typography} from '@mui/material';
 import React from 'react';
 import type {ColumnDefinition} from '@/components/Table';

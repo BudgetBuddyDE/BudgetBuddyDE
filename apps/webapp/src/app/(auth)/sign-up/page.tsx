@@ -1,6 +1,6 @@
 'use client';
 
-import {SendRounded} from '@mui/icons-material';
+import SendRounded from '@mui/icons-material/SendRounded';
 import {Box, Button, Checkbox, Divider, FormControlLabel, Grid, Link, TextField, Typography} from '@mui/material';
 import NextLink from 'next/link';
 import {redirect, useRouter, useSearchParams} from 'next/navigation';

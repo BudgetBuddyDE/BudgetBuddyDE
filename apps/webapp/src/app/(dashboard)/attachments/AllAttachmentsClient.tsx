@@ -1,7 +1,7 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import {AttachFileRounded} from '@mui/icons-material';
+import AttachFileRounded from '@mui/icons-material/AttachFileRounded';
 import {Button, Grid} from '@mui/material';
 import type React from 'react';
 import {useCallback, useMemo, useState} from 'react';
@@ -10,6 +10,7 @@ import {AttachmentLightbox, AttachmentThumbnail} from '@/components/Attachments'
 import {DeleteDialog} from '@/components/Dialog';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useConsumeIntent} from '@/lib/ibn';
 
 const PAGE_SIZE = 20;
 
@@ -79,32 +80,63 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({initi
     setViewedAttachment(null);
   }, []);
 
-  if (attachments.length === 0) {
-    return <NoResults icon={<AttachFileRounded />} text="No attachments have been added yet" />;
-  }
+  const handleIntentDelete = useCallback(
+    async (id: string) => {
+      const existingAttachment = attachments.find(attachment => attachment.id === id);
+      if (existingAttachment) {
+        setDeletingAttachmentId(existingAttachment.id);
+        return;
+      }
+
+      const [attachment, error] = await apiClient.backend.attachment.getById(id as TAttachmentWithUrl['id']);
+      if (error) {
+        showSnackbar({message: `Failed to open attachment: ${error.message}`});
+        return;
+      }
+      if (!attachment?.data) {
+        showSnackbar({message: 'Attachment not found'});
+        return;
+      }
+      setDeletingAttachmentId(attachment.data.id);
+    },
+    [attachments, showSnackbar],
+  );
+
+  const handleInvalidIntent = useCallback(
+    (message: string) => {
+      showSnackbar({message});
+    },
+    [showSnackbar],
+  );
+
+  useConsumeIntent('attachment', {onDelete: handleIntentDelete, onInvalid: handleInvalidIntent});
 
   return (
     <>
-      <Grid container spacing={2}>
-        {visibleAttachments.map((attachment, index) => (
-          <Grid key={attachment.id} size={{xs: 12, sm: 6, md: 3}}>
-            <AttachmentThumbnail
-              attachment={attachment}
-              onView={handleView}
-              onDownload={handleDownload}
-              onDelete={handleRequestDelete}
-              priority={index < 4}
-            />
-          </Grid>
-        ))}
-        {hasMore && (
-          <Grid size={{xs: 12}} sx={{display: 'flex', justifyContent: 'center', pt: 1}}>
-            <Button variant="outlined" onClick={handleLoadMore}>
-              Load more ({attachments.length - visibleCount} remaining)
-            </Button>
-          </Grid>
-        )}
-      </Grid>
+      {attachments.length === 0 ? (
+        <NoResults icon={<AttachFileRounded />} text="No attachments have been added yet" />
+      ) : (
+        <Grid container spacing={2}>
+          {visibleAttachments.map((attachment, index) => (
+            <Grid key={attachment.id} size={{xs: 12, sm: 6, md: 3}}>
+              <AttachmentThumbnail
+                attachment={attachment}
+                onView={handleView}
+                onDownload={handleDownload}
+                onDelete={handleRequestDelete}
+                priority={index < 4}
+              />
+            </Grid>
+          ))}
+          {hasMore && (
+            <Grid size={{xs: 12}} sx={{display: 'flex', justifyContent: 'center', pt: 1}}>
+              <Button variant="outlined" onClick={handleLoadMore}>
+                Load more ({attachments.length - visibleCount} remaining)
+              </Button>
+            </Grid>
+          )}
+        </Grid>
+      )}
 
       <AttachmentLightbox attachment={viewedAttachment} onClose={handleLightboxClose} onDownload={handleDownload} />
 

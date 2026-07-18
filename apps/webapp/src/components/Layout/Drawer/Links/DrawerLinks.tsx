@@ -1,10 +1,8 @@
-import {
-  AttachFileRounded,
-  LabelRounded as LabelIcon,
-  PaymentsRounded as PaymentsIcon,
-  ReceiptRounded,
-  ScheduleSendRounded as ScheduleSendIcon,
-} from '@mui/icons-material';
+import AttachFileRounded from '@mui/icons-material/AttachFileRounded';
+import LabelIcon from '@mui/icons-material/LabelRounded';
+import PaymentsIcon from '@mui/icons-material/PaymentsRounded';
+import ReceiptRounded from '@mui/icons-material/ReceiptRounded';
+import ScheduleSendIcon from '@mui/icons-material/ScheduleSendRounded';
 import {DashboardViewIconMapping} from '@/app/(dashboard)/dashboard/DashboardNavigation';
 
 export const DrawerLinks = [

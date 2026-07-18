@@ -1,6 +1,7 @@
 'use client';
 
-import {VisibilityOffRounded, VisibilityRounded} from '@mui/icons-material';
+import VisibilityOffRounded from '@mui/icons-material/VisibilityOffRounded';
+import VisibilityRounded from '@mui/icons-material/VisibilityRounded';
 import {
   FormControl,
   type FormControlProps,

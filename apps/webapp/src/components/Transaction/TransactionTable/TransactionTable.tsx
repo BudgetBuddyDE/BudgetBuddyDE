@@ -9,14 +9,13 @@ import {
   type TReceiverVH,
   type TTransaction,
 } from '@budgetbuddyde/api/transaction';
-import {AddRounded, ReceiptRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
 import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
 import {CategoryChip} from '@/components/Category/CategoryChip';
-import {type Command, useCommandPalette} from '@/components/CommandPalette';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
   EntityDrawer,
@@ -35,6 +34,7 @@ import {TransactionAttachmentPreviewStrip, TransactionAttachmentsDialog} from '@
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
+import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 
@@ -55,7 +55,6 @@ export type TransactionTableProps = {
 };
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilters}) => {
-  const {register: registerCommand, unregister: unregisterCommand} = useCommandPalette();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = transactionSlice.actions;
   const dispatch = useAppDispatch();
@@ -176,39 +175,88 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     });
   }, []);
 
-  const handleEditEntity = ({
-    id,
-    processedAt,
-    receiver,
-    category,
-    paymentMethod,
-    transferAmount,
-    information,
-  }: TExpandedTransaction) => {
-    dispatchDrawerAction({
-      type: 'OPEN',
-      action: 'EDIT',
-      defaultValues: {
-        id,
-        processedAt: processedAt instanceof Date ? processedAt : new Date(processedAt),
-        receiver: {receiver: receiver},
-        category: {
-          id: category.id,
-          name: category.name,
-          description: category.description,
+  const handleEditEntity = React.useCallback(
+    ({id, processedAt, receiver, category, paymentMethod, transferAmount, information}: TExpandedTransaction) => {
+      dispatchDrawerAction({
+        type: 'OPEN',
+        action: 'EDIT',
+        defaultValues: {
+          id,
+          processedAt: processedAt instanceof Date ? processedAt : new Date(processedAt),
+          receiver: {receiver: receiver},
+          category: {
+            id: category.id,
+            name: category.name,
+            description: category.description,
+          },
+          paymentMethod: {
+            id: paymentMethod.id,
+            name: paymentMethod.name,
+            address: paymentMethod.address,
+            provider: paymentMethod.provider,
+            description: paymentMethod.description,
+          },
+          transferAmount,
+          information,
         },
-        paymentMethod: {
-          id: paymentMethod.id,
-          name: paymentMethod.name,
-          address: paymentMethod.address,
-          provider: paymentMethod.provider,
-          description: paymentMethod.description,
-        },
-        transferAmount,
-        information,
-      },
-    });
-  };
+      });
+    },
+    [],
+  );
+
+  const loadTransactionForIntent = React.useCallback(
+    async (id: string) => {
+      const existingTransaction = transactions?.find(transaction => transaction.id === id);
+      if (existingTransaction) return existingTransaction;
+
+      const [transaction, error] = await apiClient.backend.transaction.getById(id);
+      if (error) {
+        showSnackbar({message: `Failed to open transaction: ${error.message}`});
+        return null;
+      }
+      if (!transaction?.data) {
+        showSnackbar({message: 'Transaction not found'});
+        return null;
+      }
+      return transaction.data;
+    },
+    [showSnackbar, transactions],
+  );
+
+  const handleIntentEdit = React.useCallback(
+    async (id: string) => {
+      const transaction = await loadTransactionForIntent(id);
+      if (transaction) handleEditEntity(transaction);
+    },
+    [handleEditEntity, loadTransactionForIntent],
+  );
+
+  const handleIntentDelete = React.useCallback((id: string) => {
+    dispatchDeleteDialogAction({action: 'OPEN', target: id as TTransaction['id']});
+  }, []);
+
+  const handleIntentAttachmentCreate = React.useCallback(
+    async ({id}: {entity: 'transaction'; id: string}) => {
+      const transaction = await loadTransactionForIntent(id);
+      if (transaction) setAttachmentsDialog({open: true, transaction});
+    },
+    [loadTransactionForIntent],
+  );
+
+  const handleInvalidIntent = React.useCallback(
+    (message: string) => {
+      showSnackbar({message});
+    },
+    [showSnackbar],
+  );
+
+  useConsumeIntent('transaction', {
+    onCreate: handleCreateEntity,
+    onEdit: handleIntentEdit,
+    onDelete: handleIntentDelete,
+    onAttachmentCreate: handleIntentAttachmentCreate,
+    onInvalid: handleInvalidIntent,
+  });
 
   const handleDeleteEntity = async (entityId: TExpandedTransaction['id']) => {
     const [deletedTransaction, error] = await apiClient.backend.transaction.deleteById(entityId);
@@ -541,22 +589,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       }),
     );
   }, [dispatch, getPage, currentPage, rowsPerPage]);
-
-  React.useEffect(() => {
-    const commands: Command[] = [
-      {
-        id: 'create-transaction',
-        label: 'Create Transaction',
-        section: 'Transaction',
-        icon: <ReceiptRounded />,
-        onSelect: () => {
-          handleCreateEntity();
-        },
-      },
-    ];
-    registerCommand(commands);
-    return () => unregisterCommand(commands.map(c => c.id));
-  }, [handleCreateEntity, registerCommand, unregisterCommand]);
 
   return (
     <React.Fragment>

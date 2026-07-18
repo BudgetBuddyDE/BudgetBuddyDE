@@ -1,7 +1,8 @@
 'use client';
 
 import {CreateOrUpdatePaymentMethodPayload, type TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
-import {AddRounded, MergeRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
+import MergeRounded from '@mui/icons-material/MergeRounded';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -26,6 +27,7 @@ import {
 } from '@/components/Table';
 import {paymentMethodSlice} from '@/lib/features/paymentMethods/paymentMethodSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
+import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {MergePaymentMethodsDialog, type MergePaymentMethodsForm} from '../MergePaymentMethodsDialog';
 
@@ -69,9 +71,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     dispatchDrawerAction({type: 'CLOSE'});
   };
 
-  const handleCreateEntity = () => {
+  const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({type: 'OPEN', action: 'CREATE'});
-  };
+  }, []);
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
@@ -127,7 +129,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     }
   };
 
-  const handleEditEntity = (entity: TPaymentMethod) => {
+  const handleEditEntity = React.useCallback((entity: TPaymentMethod) => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'EDIT',
@@ -139,7 +141,52 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         description: entity.description,
       },
     });
-  };
+  }, []);
+
+  const loadPaymentMethodForIntent = React.useCallback(
+    async (id: string) => {
+      const existingPaymentMethod = paymentMethods?.find(paymentMethod => paymentMethod.id === id);
+      if (existingPaymentMethod) return existingPaymentMethod;
+
+      const [paymentMethod, error] = await apiClient.backend.paymentMethod.getById(id);
+      if (error) {
+        showSnackbar({message: `Failed to open payment method: ${error.message}`});
+        return null;
+      }
+      if (!paymentMethod?.data) {
+        showSnackbar({message: 'Payment method not found'});
+        return null;
+      }
+      return paymentMethod.data;
+    },
+    [paymentMethods, showSnackbar],
+  );
+
+  const handleIntentEdit = React.useCallback(
+    async (id: string) => {
+      const paymentMethod = await loadPaymentMethodForIntent(id);
+      if (paymentMethod) handleEditEntity(paymentMethod);
+    },
+    [handleEditEntity, loadPaymentMethodForIntent],
+  );
+
+  const handleIntentDelete = React.useCallback((id: string) => {
+    dispatchDeleteDialogAction({action: 'OPEN', target: id as TPaymentMethod['id']});
+  }, []);
+
+  const handleInvalidIntent = React.useCallback(
+    (message: string) => {
+      showSnackbar({message});
+    },
+    [showSnackbar],
+  );
+
+  useConsumeIntent('paymentMethod', {
+    onCreate: handleCreateEntity,
+    onEdit: handleIntentEdit,
+    onDelete: handleIntentDelete,
+    onInvalid: handleInvalidIntent,
+  });
 
   const handleDeleteEntity = async (entityId: TPaymentMethod['id']) => {
     const [deletedPaymentMethod, error] = await apiClient.backend.paymentMethod.deleteById(entityId);

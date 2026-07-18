@@ -1,7 +1,7 @@
 'use client';
 
 import {ATTACHMENT_CONTENT_TYPES} from '@budgetbuddyde/api/attachment';
-import {CloudUploadRounded} from '@mui/icons-material';
+import CloudUploadRounded from '@mui/icons-material/CloudUploadRounded';
 import {alpha, Box, type BoxProps, CircularProgress, Typography, useTheme} from '@mui/material';
 import type React from 'react';
 import {useRef} from 'react';

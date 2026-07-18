@@ -1,4 +1,4 @@
-import {MoreVertRounded} from '@mui/icons-material';
+import MoreVertRounded from '@mui/icons-material/MoreVertRounded';
 import type React from 'react';
 import {ActionPaper, type ActionPaperProps} from '@/components/ActionPaper';
 import {Menu, type MenuProps} from '@/components/Menu';

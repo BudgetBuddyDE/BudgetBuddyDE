@@ -1,7 +1,8 @@
 'use client';
 
 import {CreateOrUpdateCategoryPayload, type TCategory} from '@budgetbuddyde/api/category';
-import {AddRounded, MergeRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
+import MergeRounded from '@mui/icons-material/MergeRounded';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -33,6 +34,7 @@ import {
 } from '@/components/Transaction/TransactionDialog';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
+import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {MergeCategoriesDialog, type MergeCategoriesForm} from '../MergeCategoriesDialog';
 
@@ -78,9 +80,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     dispatchDrawerAction({type: 'CLOSE'});
   };
 
-  const handleCreateEntity = () => {
+  const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({type: 'OPEN', action: 'CREATE'});
-  };
+  }, []);
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
@@ -149,7 +151,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     dispatchTransactionDialogAction({action: 'CLEAR'});
   };
 
-  const handleEditEntity = (entity: TCategory) => {
+  const handleEditEntity = React.useCallback((entity: TCategory) => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'EDIT',
@@ -159,7 +161,52 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         description: entity.description,
       },
     });
-  };
+  }, []);
+
+  const loadCategoryForIntent = React.useCallback(
+    async (id: string) => {
+      const existingCategory = categories?.find(category => category.id === id);
+      if (existingCategory) return existingCategory;
+
+      const [category, error] = await apiClient.backend.category.getById(id);
+      if (error) {
+        showSnackbar({message: `Failed to open category: ${error.message}`});
+        return null;
+      }
+      if (!category?.data) {
+        showSnackbar({message: 'Category not found'});
+        return null;
+      }
+      return category.data;
+    },
+    [categories, showSnackbar],
+  );
+
+  const handleIntentEdit = React.useCallback(
+    async (id: string) => {
+      const category = await loadCategoryForIntent(id);
+      if (category) handleEditEntity(category);
+    },
+    [handleEditEntity, loadCategoryForIntent],
+  );
+
+  const handleIntentDelete = React.useCallback((id: string) => {
+    dispatchDeleteDialogAction({action: 'OPEN', target: id as TCategory['id']});
+  }, []);
+
+  const handleInvalidIntent = React.useCallback(
+    (message: string) => {
+      showSnackbar({message});
+    },
+    [showSnackbar],
+  );
+
+  useConsumeIntent('category', {
+    onCreate: handleCreateEntity,
+    onEdit: handleIntentEdit,
+    onDelete: handleIntentDelete,
+    onInvalid: handleInvalidIntent,
+  });
 
   const handleDeleteEntity = async (entityId: TCategory['id']) => {
     const [deletedCategory, error] = await apiClient.backend.category.deleteById(entityId);

@@ -1,5 +1,7 @@
 import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
-import {AddRounded, BalanceRounded, RemoveRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
+import BalanceRounded from '@mui/icons-material/BalanceRounded';
+import RemoveRounded from '@mui/icons-material/RemoveRounded';
 import {Grid} from '@mui/material';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
 import {Formatter} from '@/utils/Formatter';

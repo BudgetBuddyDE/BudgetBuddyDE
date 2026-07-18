@@ -1,7 +1,7 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import {DownloadRounded} from '@mui/icons-material';
+import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import {Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography} from '@mui/material';
 import type React from 'react';
 import {Image} from '@/components/Image';

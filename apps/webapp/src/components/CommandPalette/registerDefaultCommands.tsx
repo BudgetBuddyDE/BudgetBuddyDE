@@ -1,6 +1,9 @@
 'use client';
 
-import {DashboardRounded, LogoutRounded, SettingsRounded, VpnKeyRounded} from '@mui/icons-material';
+import DashboardRounded from '@mui/icons-material/DashboardRounded';
+import LogoutRounded from '@mui/icons-material/LogoutRounded';
+import SettingsRounded from '@mui/icons-material/SettingsRounded';
+import VpnKeyRounded from '@mui/icons-material/VpnKeyRounded';
 import {useRouter} from 'next/navigation';
 import React from 'react';
 import {signOut} from '@/authClient';

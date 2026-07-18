@@ -1,6 +1,6 @@
 'use client';
 
-import {AddRounded as AddIcon} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/AddRounded';
 import type {FabProps} from '@mui/material';
 import {Fab} from '@mui/material';
 import type React from 'react';

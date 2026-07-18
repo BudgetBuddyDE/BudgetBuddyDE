@@ -1,4 +1,4 @@
-import {CloseRounded} from '@mui/icons-material';
+import CloseRounded from '@mui/icons-material/CloseRounded';
 import {IconButton, Stack, Typography} from '@mui/material';
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';

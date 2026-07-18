@@ -2,7 +2,7 @@
 
 import {CreateOrUpdateBudgetPayload, type TBudget} from '@budgetbuddyde/api/budget';
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
-import {AddRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
 import {Box, Button, IconButton, InputAdornment, Stack} from '@mui/material';
 import React from 'react';
 import {apiClient} from '@/apiClient';
@@ -30,6 +30,7 @@ import {
 } from '@/components/Transaction/TransactionDialog';
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
+import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {type Budget, BudgetItem, type BudgetItemProps} from './BudgetItem';
 
@@ -41,6 +42,18 @@ type EntityFormFields = FirstLevelNullable<
 
 // biome-ignore lint/complexity/noBannedTypes: No props needed (as of now)
 export type BudgetListProps = {};
+
+function toBudgetItemModel(entity: TBudget): Budget {
+  return {
+    ID: entity.id,
+    name: entity.name,
+    type: entity.type,
+    budget: entity.budget,
+    balance: entity.balance,
+    description: entity.description || undefined,
+    categories: entity.categories.map(({category: {id, name, description}}) => ({id, name, description})),
+  };
+}
 
 export const BudgetList: React.FC<BudgetListProps> = () => {
   const {showSnackbar} = useSnackbarContext();
@@ -67,7 +80,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     generateDefaultTransactionDialogState(),
   );
 
-  const handleCreateEntity = () => {
+  const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'CREATE',
@@ -80,9 +93,9 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         toCategories: [],
       },
     });
-  };
+  }, []);
 
-  const handleEditEntity = ({ID, type, name, budget, description, categories}: Budget) => {
+  const handleEditEntity = React.useCallback(({ID, type, name, budget, description, categories}: Budget) => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'EDIT',
@@ -95,7 +108,52 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         toCategories: categories,
       },
     });
-  };
+  }, []);
+
+  const loadBudgetForIntent = React.useCallback(
+    async (id: string) => {
+      const existingBudget = budgets?.find(budget => budget.id === id);
+      if (existingBudget) return existingBudget;
+
+      const [budget, error] = await apiClient.backend.budget.getById(id);
+      if (error) {
+        showSnackbar({message: `Failed to open budget: ${error.message}`});
+        return null;
+      }
+      if (!budget?.data) {
+        showSnackbar({message: 'Budget not found'});
+        return null;
+      }
+      return budget.data;
+    },
+    [budgets, showSnackbar],
+  );
+
+  const handleIntentEdit = React.useCallback(
+    async (id: string) => {
+      const budget = await loadBudgetForIntent(id);
+      if (budget) handleEditEntity(toBudgetItemModel(budget));
+    },
+    [handleEditEntity, loadBudgetForIntent],
+  );
+
+  const handleIntentDelete = React.useCallback((id: string) => {
+    dispatchDeleteDialogAction({action: 'OPEN', target: id as TBudget['id']});
+  }, []);
+
+  const handleInvalidIntent = React.useCallback(
+    (message: string) => {
+      showSnackbar({message});
+    },
+    [showSnackbar],
+  );
+
+  useConsumeIntent('budget', {
+    onCreate: handleCreateEntity,
+    onEdit: handleIntentEdit,
+    onDelete: handleIntentDelete,
+    onInvalid: handleInvalidIntent,
+  });
 
   const handleDeleteEntity = async (entityId: Budget['ID']) => {
     const [success, error] = await apiClient.backend.budget.deleteById(entityId);
@@ -327,23 +385,11 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
             <CircularProgress />
           ) : budgets !== null && budgets.length > 0 ? (
             <Stack rowGap={1}>
-              {budgets.map(({id, name, budget, balance, type, description, categories}) => {
+              {budgets.map(budget => {
                 return (
                   <BudgetItem
-                    key={id}
-                    budget={{
-                      ID: id,
-                      name,
-                      type,
-                      budget,
-                      balance,
-                      description: description || undefined,
-                      categories: categories.map(({category: {id, name, description}}) => ({
-                        id,
-                        name,
-                        description,
-                      })),
-                    }}
+                    key={budget.id}
+                    budget={toBudgetItemModel(budget)}
                     onEditBudget={handleEditEntity}
                     onDeleteBudget={({ID}) => {
                       dispatchDeleteDialogAction({

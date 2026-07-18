@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     silent: 'passed-only',
     environment: 'node',
-    exclude: ['**/build/**', '**/lib/**', '**/node_modules/**'],
+    exclude: ['**/build/**', '**/node_modules/**'],
     coverage: {
       enabled: false,
       exclude: ['vitest.config.ts', 'build/**', 'lib/**', '**/index.ts'],

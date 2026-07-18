@@ -1,6 +1,7 @@
 'use client';
 
-import {ClearRounded, DeleteRounded} from '@mui/icons-material';
+import ClearRounded from '@mui/icons-material/ClearRounded';
+import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import {
   Box,
   Button,
@@ -23,7 +24,7 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
-import type {BasicTableProps, ColumnDefinition} from '@/components/Table';
+import type {BasicTableProps, ColumnDefinition} from '../BasicTable';
 import {Pagination, type PaginationProps} from '../Pagination';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
 import {getNestedValue} from '../utils';

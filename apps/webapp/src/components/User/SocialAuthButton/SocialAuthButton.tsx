@@ -1,6 +1,7 @@
 'use client';
 
-import {GitHub, Google} from '@mui/icons-material';
+import GitHub from '@mui/icons-material/GitHub';
+import Google from '@mui/icons-material/Google';
 import {Button, type ButtonProps} from '@mui/material';
 import type React from 'react';
 import {authClient} from '@/authClient';

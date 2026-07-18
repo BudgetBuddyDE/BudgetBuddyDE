@@ -1,6 +1,6 @@
 'use client';
 
-import {DeleteRounded} from '@mui/icons-material';
+import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import {Alert, Box, Button, Grid, Stack, TextField} from '@mui/material';
 import React from 'react';
 import {authClient, revalidateSession} from '@/authClient';

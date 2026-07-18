@@ -1,6 +1,7 @@
 'use client';
 
-import {MenuRounded as MenuIcon, MenuOpenRounded as MenuOpenIcon} from '@mui/icons-material';
+import MenuOpenIcon from '@mui/icons-material/MenuOpenRounded';
+import MenuIcon from '@mui/icons-material/MenuRounded';
 import {IconButton, type IconButtonProps} from '@mui/material';
 import type React from 'react';
 

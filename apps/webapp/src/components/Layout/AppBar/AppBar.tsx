@@ -1,6 +1,7 @@
 'use client';
 
-import {LogoutRounded as LogoutIcon, SettingsRounded as SettingsIcon} from '@mui/icons-material';
+import LogoutIcon from '@mui/icons-material/LogoutRounded';
+import SettingsIcon from '@mui/icons-material/SettingsRounded';
 import {
   Box,
   Button,

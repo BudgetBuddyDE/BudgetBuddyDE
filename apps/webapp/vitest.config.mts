@@ -7,6 +7,7 @@ export default mergeConfig(baseConfig, defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     name: "webapp",
+    exclude: ["**/build/**", "**/node_modules/**"],
     // happy-dom is significantly faster than jsdom for environment setup
     // and DOM operations while remaining fully compatible with @testing-library/react
     environment: "happy-dom",

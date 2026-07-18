@@ -1,6 +1,6 @@
 'use client';
 
-import {DeleteRounded} from '@mui/icons-material';
+import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import {Button, Divider, IconButton, List, ListItem, ListItemText, Stack, Tooltip, Typography} from '@mui/material';
 import type {Session} from 'better-auth';
 import React from 'react';

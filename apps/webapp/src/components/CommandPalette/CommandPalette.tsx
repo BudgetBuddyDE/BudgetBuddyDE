@@ -1,6 +1,6 @@
 'use client';
 
-import {SearchRounded} from '@mui/icons-material';
+import SearchRounded from '@mui/icons-material/SearchRounded';
 import {
   Box,
   Dialog,
@@ -17,23 +17,35 @@ import {
 } from '@mui/material';
 import React from 'react';
 import {NoResults} from '../NoResults';
-import {useCommandPalette} from './CommandPaletteContext';
+import {type Command, useCommandPalette} from './CommandPaletteContext';
+
+const commandMatchesQuery = (command: Command, query: string) => {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [command.label, ...(command.keywords ?? [])].join(' ').toLowerCase();
+  return haystack.includes(q);
+};
 
 export const CommandPalette: React.FC = () => {
   const {open, setOpen, commands} = useCommandPalette();
   const [query, setQuery] = React.useState('');
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [focusMode, setFocusMode] = React.useState<'input' | 'list'>('input');
+  const [resolverCommand, setResolverCommand] = React.useState<Command | null>(null);
+  const [resolverResults, setResolverResults] = React.useState<Command[]>([]);
+  const [isResolving, setIsResolving] = React.useState(false);
+  const resolverRequestRef = React.useRef(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  const isResolverMode = resolverCommand !== null;
+
   const filteredCommands = React.useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return commands;
-    return commands.filter(c => c.label.toLowerCase().includes(q));
-  }, [commands, query]);
+    if (isResolverMode) return resolverResults;
+    return commands.filter(command => commandMatchesQuery(command, query));
+  }, [commands, isResolverMode, query, resolverResults]);
 
   const groupedCommands = React.useMemo(() => {
-    const map = new Map<string, typeof filteredCommands>();
+    const map = new Map<string, Command[]>();
     for (const c of filteredCommands) {
       const groupName = c.section ?? 'General';
       const groupCommands = map.get(groupName) ?? [];
@@ -43,49 +55,101 @@ export const CommandPalette: React.FC = () => {
     return Array.from(map.entries());
   }, [filteredCommands]);
 
-  const flatCommands = React.useMemo(() => {
-    return filteredCommands;
-  }, [filteredCommands]);
+  const flatCommands = React.useMemo(
+    () => filteredCommands.filter(command => command.onSelect || command.resolve),
+    [filteredCommands],
+  );
 
-  const handleSelectCommand = (cmdId: string) => {
-    const cmd = commands.find(c => c.id === cmdId);
-    if (!cmd) return;
-    setOpen(false);
-
-    // Execute after close for smoother UX
-    setTimeout(() => {
-      // Clear search query in order to provide a fresh start when the palette is reopened
-      setQuery('');
-      // Reset navigation state
-      setSelectedIndex(-1);
-      setFocusMode('input');
-      cmd.onSelect();
-    }, 100);
-  };
-
-  const executeSelectedCommand = () => {
-    if (selectedIndex >= 0 && selectedIndex < flatCommands.length) {
-      const cmd = flatCommands[selectedIndex];
-      handleSelectCommand(cmd.id);
-    }
-  };
-
-  // Reset selection when filtered commands change
-  React.useEffect(() => {
+  const resetNavigationState = React.useCallback(() => {
     setSelectedIndex(-1);
     setFocusMode('input');
   }, []);
 
+  const exitResolverMode = React.useCallback(() => {
+    setResolverCommand(null);
+    setResolverResults([]);
+    setIsResolving(false);
+    setQuery('');
+    resetNavigationState();
+    inputRef.current?.focus();
+  }, [resetNavigationState]);
+
+  const handleSelectCommand = React.useCallback(
+    (cmdId: string) => {
+      const cmd = flatCommands.find(c => c.id === cmdId);
+      if (!cmd) return;
+
+      if (cmd.resolve) {
+        setResolverCommand(cmd);
+        setResolverResults([]);
+        setQuery('');
+        resetNavigationState();
+        requestAnimationFrame(() => inputRef.current?.focus());
+        return;
+      }
+
+      if (!cmd.onSelect) return;
+
+      setOpen(false);
+
+      // Execute after close for smoother UX
+      setTimeout(() => {
+        // Clear search query in order to provide a fresh start when the palette is reopened
+        setQuery('');
+        setResolverCommand(null);
+        setResolverResults([]);
+        // Reset navigation state
+        resetNavigationState();
+        cmd.onSelect?.();
+      }, 100);
+    },
+    [flatCommands, resetNavigationState, setOpen],
+  );
+
+  const executeSelectedCommand = React.useCallback(() => {
+    if (selectedIndex >= 0 && selectedIndex < flatCommands.length) {
+      const cmd = flatCommands[selectedIndex];
+      handleSelectCommand(cmd.id);
+    }
+  }, [flatCommands, handleSelectCommand, selectedIndex]);
+
+  React.useEffect(() => {
+    if (!resolverCommand?.resolve) return;
+
+    const requestId = resolverRequestRef.current + 1;
+    resolverRequestRef.current = requestId;
+    setIsResolving(true);
+
+    Promise.resolve(resolverCommand.resolve(query))
+      .then(results => {
+        if (resolverRequestRef.current !== requestId) return;
+        setResolverResults(results);
+      })
+      .catch(() => {
+        if (resolverRequestRef.current !== requestId) return;
+        setResolverResults([]);
+      })
+      .finally(() => {
+        if (resolverRequestRef.current === requestId) setIsResolving(false);
+      });
+  }, [query, resolverCommand]);
+
+  // Reset selection when filtered commands change
+  React.useEffect(() => {
+    resetNavigationState();
+  }, [filteredCommands, resetNavigationState]);
+
   // Reset when dialog opens/closes
   React.useEffect(() => {
     if (open) {
-      setSelectedIndex(-1);
-      setFocusMode('input');
       setQuery('');
+      setResolverCommand(null);
+      setResolverResults([]);
+      setIsResolving(false);
+      resetNavigationState();
     }
-  }, [open]);
+  }, [open, resetNavigationState]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Will cause another lint-error
   React.useEffect(() => {
     if (!open) return;
 
@@ -129,14 +193,27 @@ export const CommandPalette: React.FC = () => {
 
         case 'Escape':
           e.preventDefault();
-          setOpen(false);
+          if (isResolverMode) {
+            exitResolverMode();
+          } else {
+            setOpen(false);
+          }
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, focusMode, selectedIndex, flatCommands, setOpen]);
+  }, [
+    executeSelectedCommand,
+    exitResolverMode,
+    flatCommands.length,
+    focusMode,
+    isResolverMode,
+    open,
+    selectedIndex,
+    setOpen,
+  ]);
 
   return (
     <Dialog
@@ -157,7 +234,7 @@ export const CommandPalette: React.FC = () => {
             ref={inputRef}
             autoFocus
             fullWidth
-            placeholder="Search an action..."
+            placeholder={isResolverMode ? `Search ${resolverCommand.label.toLowerCase()}` : 'Search an action...'}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onFocus={() => setFocusMode('input')}
@@ -174,39 +251,60 @@ export const CommandPalette: React.FC = () => {
         </Box>
 
         <Box sx={{maxHeight: 400, overflowY: 'auto'}}>
-          {groupedCommands.length === 0 && <NoResults text={`No results for '${query}'!`} sx={{m: 2}} />}
-          {groupedCommands.map(([section, items], idx, arr) => (
-            <Box key={section}>
-              <Typography variant="overline" sx={{px: 2, pt: 1, display: 'block', opacity: 0.7}}>
-                {section}
-              </Typography>
-              <List disablePadding>
-                {items.map(item => {
-                  const itemIndex = flatCommands.findIndex(cmd => cmd.id === item.id);
-                  const isSelected = focusMode === 'list' && selectedIndex === itemIndex;
+          {isResolving && (
+            <List disablePadding>
+              <ListItem disablePadding>
+                <ListItemButton disabled>
+                  <ListItemText primary="Loading..." />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          )}
+          {!isResolving && groupedCommands.length === 0 && isResolverMode && (
+            <List disablePadding>
+              <ListItem disablePadding>
+                <ListItemButton disabled>
+                  <ListItemText primary={resolverCommand.emptyLabel ?? 'No matching targets'} />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          )}
+          {!isResolving && groupedCommands.length === 0 && !isResolverMode && (
+            <NoResults text={`No results for '${query}'!`} sx={{m: 2}} />
+          )}
+          {!isResolving &&
+            groupedCommands.map(([section, items], idx, arr) => (
+              <Box key={section}>
+                <Typography variant="overline" sx={{px: 2, pt: 1, display: 'block', opacity: 0.7}}>
+                  {section}
+                </Typography>
+                <List disablePadding>
+                  {items.map(item => {
+                    const itemIndex = flatCommands.findIndex(cmd => cmd.id === item.id);
+                    const isSelected = focusMode === 'list' && selectedIndex === itemIndex;
 
-                  return (
-                    <ListItem key={item.id} disablePadding>
-                      <ListItemButton
-                        onClick={() => handleSelectCommand(item.id)}
-                        selected={isSelected}
-                        sx={{
-                          backgroundColor: isSelected ? 'action.selected' : 'transparent',
-                          '&:hover': {
-                            backgroundColor: 'action.hover',
-                          },
-                        }}
-                      >
-                        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-                        <ListItemText primary={item.label} secondary={item.shortcut} />
-                      </ListItemButton>
-                    </ListItem>
-                  );
-                })}
-              </List>
-              {idx !== arr.length - 1 && <Divider />}
-            </Box>
-          ))}
+                    return (
+                      <ListItem key={item.id} disablePadding>
+                        <ListItemButton
+                          onClick={() => handleSelectCommand(item.id)}
+                          selected={isSelected}
+                          sx={{
+                            backgroundColor: isSelected ? 'action.selected' : 'transparent',
+                            '&:hover': {
+                              backgroundColor: 'action.hover',
+                            },
+                          }}
+                        >
+                          {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
+                          <ListItemText primary={item.label} secondary={item.shortcut} />
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+                {idx !== arr.length - 1 && <Divider />}
+              </Box>
+            ))}
         </Box>
       </DialogContent>
     </Dialog>

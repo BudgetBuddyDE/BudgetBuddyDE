@@ -1,6 +1,7 @@
 'use client';
 
-import {AddRounded as AddIcon, ReceiptRounded as ReceiptIcon} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/AddRounded';
+import ReceiptIcon from '@mui/icons-material/ReceiptRounded';
 import {Box, Chip, type ChipProps, IconButton} from '@mui/material';
 import type React from 'react';
 

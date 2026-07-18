@@ -1,4 +1,4 @@
-import {SavingsRounded as SavingsIcon} from '@mui/icons-material';
+import SavingsIcon from '@mui/icons-material/SavingsRounded';
 import {Box, type BoxProps, type IconProps, Typography, type TypographyProps} from '@mui/material';
 import NextLink from 'next/link';
 import type React from 'react';

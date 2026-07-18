@@ -8,7 +8,10 @@ export type Command = {
   shortcut?: string;
   section?: string;
   icon?: React.ReactNode;
-  onSelect: () => void;
+  keywords?: string[];
+  onSelect?: () => void | Promise<void>;
+  resolve?: (query: string) => Command[] | Promise<Command[]>;
+  emptyLabel?: string;
 };
 
 export type CommandPaletteContextValue = {
@@ -59,7 +62,6 @@ export const CommandPaletteProvider: React.FC<React.PropsWithChildren> = ({child
         e.preventDefault();
         setOpen(true);
       }
-      if (lowerKey === 'escape') setOpen(false);
     };
 
     window.addEventListener('keydown', onKeyDown);

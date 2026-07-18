@@ -8,7 +8,7 @@ import {
   type TRecurringPayment,
 } from '@budgetbuddyde/api/recurringPayment';
 import {ReceiverVH, type TReceiverVH} from '@budgetbuddyde/api/transaction';
-import {AddRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
 import {Button, Chip, createFilterOptions, InputAdornment, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -32,6 +32,7 @@ import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringPaymentSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
+import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 
@@ -164,7 +165,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     }
   };
 
-  const handleCreateEntity = () => {
+  const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'CREATE',
@@ -172,42 +173,82 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         executeAt: new Date(),
       },
     });
-  };
+  }, []);
 
-  const handleEditEntity = ({
-    id,
-    executeAt,
-    receiver,
-    category,
-    paymentMethod,
-    transferAmount,
-    information,
-  }: TExpandedRecurringPayment) => {
-    const now = new Date();
-    dispatchDrawerAction({
-      type: 'OPEN',
-      action: 'EDIT',
-      defaultValues: {
-        id,
-        executeAt: new Date(now.getFullYear(), now.getMonth(), executeAt),
-        receiver: {receiver: receiver},
-        category: {
-          id: category.id,
-          name: category.name,
-          description: category.description,
+  const handleEditEntity = React.useCallback(
+    ({id, executeAt, receiver, category, paymentMethod, transferAmount, information}: TExpandedRecurringPayment) => {
+      const now = new Date();
+      dispatchDrawerAction({
+        type: 'OPEN',
+        action: 'EDIT',
+        defaultValues: {
+          id,
+          executeAt: new Date(now.getFullYear(), now.getMonth(), executeAt),
+          receiver: {receiver: receiver},
+          category: {
+            id: category.id,
+            name: category.name,
+            description: category.description,
+          },
+          paymentMethod: {
+            id: paymentMethod.id,
+            name: paymentMethod.name,
+            address: paymentMethod.address,
+            provider: paymentMethod.provider,
+            description: paymentMethod.description,
+          },
+          transferAmount,
+          information,
         },
-        paymentMethod: {
-          id: paymentMethod.id,
-          name: paymentMethod.name,
-          address: paymentMethod.address,
-          provider: paymentMethod.provider,
-          description: paymentMethod.description,
-        },
-        transferAmount,
-        information,
-      },
-    });
-  };
+      });
+    },
+    [],
+  );
+
+  const loadRecurringPaymentForIntent = React.useCallback(
+    async (id: string) => {
+      const existingRecurringPayment = recurringPayments?.find(payment => payment.id === id);
+      if (existingRecurringPayment) return existingRecurringPayment;
+
+      const [recurringPayment, error] = await apiClient.backend.recurringPayment.getById(id);
+      if (error) {
+        showSnackbar({message: `Failed to open recurring payment: ${error.message}`});
+        return null;
+      }
+      if (!recurringPayment?.data) {
+        showSnackbar({message: 'Recurring payment not found'});
+        return null;
+      }
+      return recurringPayment.data;
+    },
+    [recurringPayments, showSnackbar],
+  );
+
+  const handleIntentEdit = React.useCallback(
+    async (id: string) => {
+      const recurringPayment = await loadRecurringPaymentForIntent(id);
+      if (recurringPayment) handleEditEntity(recurringPayment);
+    },
+    [handleEditEntity, loadRecurringPaymentForIntent],
+  );
+
+  const handleIntentDelete = React.useCallback((id: string) => {
+    dispatchDeleteDialogAction({action: 'OPEN', target: id as TRecurringPayment['id']});
+  }, []);
+
+  const handleInvalidIntent = React.useCallback(
+    (message: string) => {
+      showSnackbar({message});
+    },
+    [showSnackbar],
+  );
+
+  useConsumeIntent('recurringPayment', {
+    onCreate: handleCreateEntity,
+    onEdit: handleIntentEdit,
+    onDelete: handleIntentDelete,
+    onInvalid: handleInvalidIntent,
+  });
 
   const handleTogglePauseOnEntity = async (entity: TExpandedRecurringPayment) => {
     const [updatedRecurringPayment, error] = await apiClient.backend.recurringPayment.updateById(entity.id, {

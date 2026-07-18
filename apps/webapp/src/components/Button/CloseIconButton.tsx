@@ -1,6 +1,6 @@
 'use client';
 
-import {Close as CloseIcon} from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
 import {IconButton, type IconButtonProps} from '@mui/material';
 import type React from 'react';
 

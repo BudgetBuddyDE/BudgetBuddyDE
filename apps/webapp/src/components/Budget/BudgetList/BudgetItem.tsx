@@ -1,7 +1,8 @@
 'use client';
 
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
-import {ThumbUpAltRounded, WarningRounded} from '@mui/icons-material';
+import ThumbUpAltRounded from '@mui/icons-material/ThumbUpAltRounded';
+import WarningRounded from '@mui/icons-material/WarningRounded';
 import {Box, Chip, Stack, Typography} from '@mui/material';
 import type React from 'react';
 import {Icon} from '@/components/Icon';

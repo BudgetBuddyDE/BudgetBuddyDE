@@ -1,6 +1,6 @@
 'use client';
 
-import {ArrowBackRounded} from '@mui/icons-material';
+import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded';
 import {IconButton} from '@mui/material';
 import NextLink from 'next/link';
 import {useRouter} from 'next/navigation';

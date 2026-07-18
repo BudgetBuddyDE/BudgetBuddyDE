@@ -1,7 +1,7 @@
 'use client';
 
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
-import {SsidChartRounded} from '@mui/icons-material';
+import SsidChartRounded from '@mui/icons-material/SsidChartRounded';
 import {Skeleton, Stack, useTheme} from '@mui/material';
 import {subMonths} from 'date-fns';
 import React from 'react';

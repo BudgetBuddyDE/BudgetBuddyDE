@@ -1,6 +1,6 @@
 'use client';
 
-import {AddRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
 import {Button} from '@mui/material';
 import React from 'react';
 import {appConfig} from '@/appConfig';
@@ -10,6 +10,7 @@ import {type EntityDrawerFormHandler, entityDrawerReducer, getInitialEntityDrawe
 import {AddFab, FabContainer} from '@/components/FAB';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {EntityTable, type EntitySlice} from '@/components/Table';
+import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {ApiKeyCreateDrawer} from './ApiKeyCreateDrawer';
 import {ApiKeyDeleteDialog} from './ApiKeyDeleteDialog';
@@ -71,7 +72,7 @@ export const ApiKeyTable: React.FC = () => {
     fetchApiKeys();
   }, [fetchApiKeys]);
 
-  const handleCreateEntity = () => {
+  const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({
       type: 'OPEN',
       action: 'CREATE',
@@ -80,7 +81,7 @@ export const ApiKeyTable: React.FC = () => {
         expiresAt: null,
       },
     });
-  };
+  }, []);
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -204,6 +205,23 @@ export const ApiKeyTable: React.FC = () => {
   const handleDeleteApiKeyClick = React.useCallback((apiKeyId: ApiKey['id']) => {
     dispatchDeleteDialog({action: 'OPEN', target: apiKeyId});
   }, []);
+
+  const handleIntentDelete = React.useCallback((id: string) => {
+    dispatchDeleteDialog({action: 'OPEN', target: id});
+  }, []);
+
+  const handleInvalidIntent = React.useCallback(
+    (message: string) => {
+      showSnackbar({message});
+    },
+    [showSnackbar],
+  );
+
+  useConsumeIntent('apiKey', {
+    onCreate: handleCreateEntity,
+    onDelete: handleIntentDelete,
+    onInvalid: handleInvalidIntent,
+  });
 
   const columns = useApiKeyTableColumns(handleDeleteApiKeyClick);
 

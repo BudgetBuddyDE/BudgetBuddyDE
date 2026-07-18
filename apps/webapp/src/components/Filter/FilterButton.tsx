@@ -1,6 +1,6 @@
 'use client';
 
-import {FilterListRounded} from '@mui/icons-material';
+import FilterListRounded from '@mui/icons-material/FilterListRounded';
 import {IconButton, type IconButtonProps, Tooltip} from '@mui/material';
 import type React from 'react';
 

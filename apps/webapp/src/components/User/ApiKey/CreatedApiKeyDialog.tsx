@@ -1,6 +1,6 @@
 'use client';
 
-import {ContentCopyRounded} from '@mui/icons-material';
+import ContentCopyRounded from '@mui/icons-material/ContentCopyRounded';
 import {
   Box,
   Button,

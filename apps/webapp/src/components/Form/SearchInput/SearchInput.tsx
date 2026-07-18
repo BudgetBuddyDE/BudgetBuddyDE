@@ -1,6 +1,7 @@
 'use client';
 
-import {ClearRounded, SearchRounded as SearchIcon} from '@mui/icons-material';
+import ClearRounded from '@mui/icons-material/ClearRounded';
+import SearchIcon from '@mui/icons-material/SearchRounded';
 import {alpha, IconButton, InputAdornment, InputBase, type InputBaseProps, styled} from '@mui/material';
 import debounce from 'lodash.debounce';
 import React from 'react';

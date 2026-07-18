@@ -1,6 +1,6 @@
 'use client';
 
-import {LogoutRounded as LogoutIcon} from '@mui/icons-material';
+import LogoutIcon from '@mui/icons-material/LogoutRounded';
 import {Box, Button, type ButtonProps, Chip, Divider, Typography, useTheme} from '@mui/material';
 import {useRouter} from 'next/navigation';
 import type React from 'react';

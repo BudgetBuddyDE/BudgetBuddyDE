@@ -1,6 +1,6 @@
 'use client';
 
-import {QuestionMarkRounded} from '@mui/icons-material';
+import QuestionMarkRounded from '@mui/icons-material/QuestionMarkRounded';
 import {Skeleton, type SxProps, type Theme, Typography} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';

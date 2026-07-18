@@ -1,7 +1,10 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import {DeleteRounded, DownloadRounded, ImageNotSupportedRounded, VisibilityRounded} from '@mui/icons-material';
+import DeleteRounded from '@mui/icons-material/DeleteRounded';
+import DownloadRounded from '@mui/icons-material/DownloadRounded';
+import ImageNotSupportedRounded from '@mui/icons-material/ImageNotSupportedRounded';
+import VisibilityRounded from '@mui/icons-material/VisibilityRounded';
 import {
   alpha,
   Box,

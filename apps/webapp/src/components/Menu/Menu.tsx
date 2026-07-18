@@ -1,6 +1,6 @@
 'use client';
 
-import {MoreVertRounded} from '@mui/icons-material';
+import MoreVertRounded from '@mui/icons-material/MoreVertRounded';
 import {
   Button,
   type ButtonProps,

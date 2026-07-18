@@ -1,7 +1,7 @@
 'use client';
 
 import type {TTransaction} from '@budgetbuddyde/api/transaction';
-import {AttachFileRounded} from '@mui/icons-material';
+import AttachFileRounded from '@mui/icons-material/AttachFileRounded';
 import {Box, Button, Grid, Skeleton, Typography} from '@mui/material';
 import type React from 'react';
 import {AttachmentLightbox, AttachmentThumbnail, FileDropZone} from '@/components/Attachments';

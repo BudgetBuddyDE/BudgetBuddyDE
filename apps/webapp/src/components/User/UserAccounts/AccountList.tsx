@@ -1,6 +1,6 @@
 'use client';
 
-import {LinkOffRounded} from '@mui/icons-material';
+import LinkOffRounded from '@mui/icons-material/LinkOffRounded';
 import {Button, Divider, IconButton, List, ListItem, ListItemText, Tooltip, Typography} from '@mui/material';
 import React from 'react';
 import {authClient, revalidateSession} from '@/authClient';

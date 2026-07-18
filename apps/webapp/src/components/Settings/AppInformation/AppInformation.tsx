@@ -1,4 +1,7 @@
-import {AlternateEmailRounded, AppSettingsAltRounded, CodeRounded, LanguageRounded} from '@mui/icons-material';
+import AlternateEmailRounded from '@mui/icons-material/AlternateEmailRounded';
+import AppSettingsAltRounded from '@mui/icons-material/AppSettingsAltRounded';
+import CodeRounded from '@mui/icons-material/CodeRounded';
+import LanguageRounded from '@mui/icons-material/LanguageRounded';
 import {Box, Link, Stack, Typography} from '@mui/material';
 import NextLink from 'next/link';
 

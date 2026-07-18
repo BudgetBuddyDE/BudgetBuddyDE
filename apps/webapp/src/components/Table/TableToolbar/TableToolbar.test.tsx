@@ -1,4 +1,4 @@
-import {AddRounded} from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {TableToolbar} from './TableToolbar';

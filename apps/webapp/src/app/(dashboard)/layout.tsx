@@ -1,6 +1,11 @@
 import {Box, Container} from '@mui/material';
 import type React from 'react';
-import {CommandPalette, CommandPaletteProvider, RegisterDefaultCommands} from '@/components/CommandPalette';
+import {
+  CommandPalette,
+  CommandPaletteProvider,
+  RegisterDefaultCommands,
+  RegisterIntentCommands,
+} from '@/components/CommandPalette';
 import {AppBar} from '@/components/Layout/AppBar';
 import {Drawer, DrawerProvider} from '@/components/Layout/Drawer';
 import {Footer} from '@/components/Layout/Footer';
@@ -28,6 +33,7 @@ export default function Layout({children}: React.PropsWithChildren) {
           <Container maxWidth="xl" sx={{mt: 2, mb: 4, scrollbarGutter: 'stable'}}>
             <CommandPaletteProvider>
               <RegisterDefaultCommands />
+              <RegisterIntentCommands />
               {children}
               <CommandPalette />
             </CommandPaletteProvider>

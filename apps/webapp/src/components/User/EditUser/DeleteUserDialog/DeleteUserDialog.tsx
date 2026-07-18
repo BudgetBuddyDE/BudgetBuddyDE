@@ -1,6 +1,6 @@
 'use client';
 
-import {WarningRounded} from '@mui/icons-material';
+import WarningRounded from '@mui/icons-material/WarningRounded';
 import {
   Button,
   Dialog,

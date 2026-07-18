@@ -1,6 +1,7 @@
 'use client';
 
-import {SettingsRounded, VpnKeyRounded} from '@mui/icons-material';
+import SettingsRounded from '@mui/icons-material/SettingsRounded';
+import VpnKeyRounded from '@mui/icons-material/VpnKeyRounded';
 import {Box, Stack, Tab, Tabs, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import {authClient} from '@/authClient';

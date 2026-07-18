@@ -1,7 +1,7 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import {CloudUploadRounded} from '@mui/icons-material';
+import CloudUploadRounded from '@mui/icons-material/CloudUploadRounded';
 import {Avatar, AvatarGroup, Box, ButtonBase} from '@mui/material';
 import type React from 'react';
 

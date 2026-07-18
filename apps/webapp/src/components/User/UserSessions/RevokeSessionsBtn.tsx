@@ -1,6 +1,6 @@
 'use client';
 
-import {WarningRounded} from '@mui/icons-material';
+import WarningRounded from '@mui/icons-material/WarningRounded';
 import {Button, type ButtonProps, Skeleton} from '@mui/material';
 import type React from 'react';
 import {authClient, revalidateSession} from '@/authClient';
