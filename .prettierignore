@@ -6,4 +6,5 @@ lib/
 coverage/
 gen/
 local-docs/
+.agents/
 ci/secrets/**

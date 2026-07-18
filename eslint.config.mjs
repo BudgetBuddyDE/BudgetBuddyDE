@@ -48,6 +48,7 @@ export default tseslint.config(
       '**/drizzle/**',
       'ci/secrets/**',
       'local-docs/**',
+      '.agents/**',
     ],
   },
   js.configs.recommended,
