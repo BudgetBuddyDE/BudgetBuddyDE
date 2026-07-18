@@ -22,7 +22,7 @@ describe('log decorator', () => {
 
     expect(logger.debug).toHaveBeenCalledWith(
       'Method called',
-      expect.objectContaining({args: {type: 'array', length: 1, items: [{visible: 'ok'}]}}),
+      expect.objectContaining({args: '{"type":"array","length":1,"items":[{"visible":"ok"}]}'}),
     );
     expect(logger.debug).toHaveBeenCalledWith('Method finished', expect.objectContaining({status: 'success'}));
   });
@@ -38,22 +38,39 @@ describe('log decorator', () => {
     expect(logger.debug).toHaveBeenCalledWith('Method called', {
       className: 'TestService',
       methodName: 'loadData',
-      args: {
-        type: 'array',
-        length: 1,
-        items: [{token: '[Redacted]', visible: 'ok'}],
-      },
+      args: '{"type":"array","length":1,"items":[{"token":"[Redacted]","visible":"ok"}]}',
     });
     expect(logger.debug).toHaveBeenCalledWith('Method finished', {
       className: 'TestService',
       methodName: 'loadData',
       status: 'success',
       durationMs: expect.any(Number),
-      result: {
-        type: 'object',
-        keys: ['id', 'data'],
-        id: 'result-1',
-        dataLength: 1,
+      result: '{"type":"object","keys":["id","data"],"id":"result-1","dataLength":1}',
+    });
+  });
+
+  it('stringifies non-Error object failures', () => {
+    const logger = createSink();
+    const failure = {reason: 'request failed', details: ['timeout']};
+    const decorated = createLogDecorator({logger})(function () {
+      throw failure;
+    }, context);
+
+    let thrown: unknown;
+    try {
+      decorated.call({constructor: {name: 'TestService'}});
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBe(failure);
+    expect(logger.error).toHaveBeenCalledWith('Method failed', {
+      className: 'TestService',
+      methodName: 'loadData',
+      status: 'error',
+      durationMs: expect.any(Number),
+      error: {
+        value: '{"reason":"request failed","details":{"type":"array","length":1,"items":["timeout"]}}',
       },
     });
   });

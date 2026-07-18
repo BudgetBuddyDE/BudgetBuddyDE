@@ -54,7 +54,7 @@ function errorMeta(error: unknown, redactKeys: readonly string[] = DEFAULT_REDAC
     };
   }
 
-  return {value: sanitizeValue(error, new WeakSet<object>(), redactKeys)};
+  return {value: stringifyObjectOrArray(sanitizeValue(error, new WeakSet<object>(), redactKeys))};
 }
 
 function isRedactedKey(key: string, redactKeys: readonly string[]) {
@@ -86,6 +86,11 @@ function sanitizeValue(value: unknown, seen: WeakSet<object>, redactKeys: readon
         isRedactedKey(key, redactKeys) ? '[Redacted]' : sanitizeValue(nestedValue, seen, redactKeys, depth + 1),
       ]),
   );
+}
+
+function stringifyObjectOrArray(value: unknown): unknown {
+  if (value === null || typeof value !== 'object') return value;
+  return JSON.stringify(value);
 }
 
 function getReturnedError(value: unknown): Error | undefined {
@@ -149,7 +154,9 @@ export function createLogDecorator(options: LogOptions = {}) {
 
       sink.debug('Method called', {
         ...baseMeta,
-        ...(config.logArgs ? {args: sanitizeValue(args, new WeakSet<object>(), config.redactKeys)} : {}),
+        ...(config.logArgs
+          ? {args: stringifyObjectOrArray(sanitizeValue(args, new WeakSet<object>(), config.redactKeys))}
+          : {}),
       });
 
       const handleSuccess = (value: unknown) => {
@@ -159,7 +166,7 @@ export function createLogDecorator(options: LogOptions = {}) {
           ...baseMeta,
           status: returnedError ? 'error' : 'success',
           durationMs,
-          ...(config.logResult ? {result: summarizeResult(value, config.redactKeys)} : {}),
+          ...(config.logResult ? {result: stringifyObjectOrArray(summarizeResult(value, config.redactKeys))} : {}),
           ...(returnedError ? {error: errorMeta(returnedError, config.redactKeys)} : {}),
         };
         if (returnedError) sink.error('Method returned an error result', meta);
