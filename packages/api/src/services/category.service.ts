@@ -13,6 +13,7 @@ import {
   MergeCategoriesResponse,
   UpdateCategoryResponse,
 } from '../types/schemas/category.schema';
+import {log} from '../utils/decorators/log.decorator';
 
 export class CategoryService extends EntityService<
   TCreateOrUpdateCategoryPayload,
@@ -33,6 +34,7 @@ export class CategoryService extends EntityService<
     });
   }
 
+  @log
   async getValueHelp(requestConfig?: RequestInit): Promise<TResult<TCategoryVH[]>> {
     const [categories, error] = await this.getAll(undefined, requestConfig);
     if (error) {
@@ -51,6 +53,7 @@ export class CategoryService extends EntityService<
    * @param param0 - The start and end dates for the statistics.
    * @returns A promise that resolves to an array of expanded category statistics.
    */
+  @log
   async getCategoryStats(
     {
       from,
@@ -97,6 +100,7 @@ export class CategoryService extends EntityService<
     }
   }
 
+  @log
   async merge(
     {
       source,

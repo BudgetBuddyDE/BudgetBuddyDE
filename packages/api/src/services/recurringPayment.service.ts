@@ -15,6 +15,7 @@ import {
   GetRecurringPaymentResponse,
   UpdateRecurringPaymentResponse,
 } from '../types/schemas/recurringPayment.schema';
+import {log} from '../utils/decorators/log.decorator';
 
 export class RecurringPaymentService extends EntityService<
   TCreateOrUpdateRecurringPaymentPayload,
@@ -46,6 +47,7 @@ export class RecurringPaymentService extends EntityService<
       : new Date(today.getFullYear(), today.getMonth() + 1, executeAt);
   }
 
+  @log
   async executePayment(
     recurringPaymentId: string,
     requestConfig?: RequestInit,

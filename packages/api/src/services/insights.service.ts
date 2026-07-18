@@ -3,12 +3,14 @@ import {BackendService} from './backend.service';
 import type {TResult, TypeOfSchema} from '../types';
 import type {IGetHistoricalBalanceQuery} from '../types/interfaces';
 import {GetHistoricalBalanceResponse, GetHistoricalCategoryBalanceResponse} from '../types/schemas';
+import {log} from '../utils/decorators/log.decorator';
 
 export class InsightsService extends BackendService {
   constructor(host: string) {
     super(host, '/api/insights');
   }
 
+  @log
   async getHistoricalBalance<Query extends IGetHistoricalBalanceQuery>(
     query: Query,
     requestConfig?: RequestInit,
@@ -46,6 +48,7 @@ export class InsightsService extends BackendService {
     }
   }
 
+  @log
   async getHistoricalCategoryBalance<Query extends IGetHistoricalBalanceQuery>(
     query: Query,
     requestConfig?: RequestInit,

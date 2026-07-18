@@ -10,6 +10,7 @@ import {
   GetBudgetResponse,
   UpdateBudgetResponse,
 } from '../types/schemas/budget.schema';
+import {log} from '../utils/decorators/log.decorator';
 
 export class BudgetService extends EntityService<
   TCreateOrUpdateBudgetPayload,
@@ -30,6 +31,7 @@ export class BudgetService extends EntityService<
     });
   }
 
+  @log
   async getEstimatedBudget(requestConfig?: RequestInit): Promise<TResult<TEstimatedBudget>> {
     try {
       const response = await this.request(

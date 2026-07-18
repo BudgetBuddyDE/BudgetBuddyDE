@@ -12,6 +12,7 @@ import {
   PaymentMethodVH,
   UpdatePaymentMethodResponse,
 } from '../types/schemas/paymentMethod.schema';
+import {log} from '../utils/decorators/log.decorator';
 
 export class PaymentMethodService extends EntityService<
   TCreateOrUpdatePaymentMethodPayload,
@@ -32,6 +33,7 @@ export class PaymentMethodService extends EntityService<
     });
   }
 
+  @log
   async getValueHelp(requestConfig?: RequestInit): Promise<TResult<TPaymentMethodVH[]>> {
     const [paymentMethods, error] = await this.getAll(undefined, requestConfig);
     if (error) {
@@ -45,6 +47,7 @@ export class PaymentMethodService extends EntityService<
     return [valueHelpValues.data, null];
   }
 
+  @log
   async merge(
     {
       source,

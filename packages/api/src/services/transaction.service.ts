@@ -19,6 +19,7 @@ import type {
   TGetTransactionAttachmentsQuery,
   TReceiverVH,
 } from '../types/transaction.type';
+import {log} from '../utils/decorators/log.decorator';
 
 export class TransactionService extends EntityService<
   TCreateOrUpdateTransactionPayload,
@@ -43,6 +44,7 @@ export class TransactionService extends EntityService<
     return super.getAll(query, requestConfig);
   }
 
+  @log
   async getReceiverVH(requestConfig?: RequestInit): Promise<TResult<TReceiverVH[]>> {
     try {
       const response = await this.request(
@@ -78,6 +80,7 @@ export class TransactionService extends EntityService<
   /**
    * Fetch all transaction attachments for the authenticated user (across all transactions).
    */
+  @log
   async getAllTransactionAttachments(
     query?: TGetTransactionAttachmentsQuery,
     requestConfig?: RequestInit,
@@ -117,6 +120,7 @@ export class TransactionService extends EntityService<
   /**
    * Fetch all attachments for a specific transaction.
    */
+  @log
   async getTransactionAttachments(
     transactionId: string,
     query?: TGetTransactionAttachmentsQuery,
@@ -157,6 +161,7 @@ export class TransactionService extends EntityService<
   /**
    * Upload attachments for a specific transaction.
    */
+  @log
   async uploadTransactionAttachments(
     transactionId: string,
     files: File[],
@@ -202,6 +207,7 @@ export class TransactionService extends EntityService<
    * Delete attachments from a specific transaction.
    * Optionally pass specific attachment IDs; if omitted, all transaction attachments are deleted.
    */
+  @log
   async deleteTransactionAttachments(
     transactionId: string,
     payload?: TDeleteTransactionAttachmentsPayload,

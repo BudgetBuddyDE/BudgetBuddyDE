@@ -4,6 +4,7 @@ import {BackendService} from './backend.service';
 import type {TAttachment, TGetAttachmentsQuery} from '../types/attachment.type';
 import type {TResult} from '../types/common';
 import {GetAttachmentResponse} from '../types/schemas/attachment.schema';
+import {log} from '../utils/decorators/log.decorator';
 
 export class AttachmentService extends BackendService {
   constructor(host: string, attachmentPath = '/api/attachment') {
@@ -13,6 +14,7 @@ export class AttachmentService extends BackendService {
   /**
    * Retrieve a single attachment by ID with a signed URL.
    */
+  @log
   async getById(
     attachmentId: TAttachment['id'],
     query?: TGetAttachmentsQuery,
@@ -51,6 +53,7 @@ export class AttachmentService extends BackendService {
   /**
    * Delete a single attachment by ID.
    */
+  @log
   async deleteById(attachmentId: TAttachment['id'], requestConfig?: RequestInit): Promise<TResult<void>> {
     try {
       const response = await this.request(

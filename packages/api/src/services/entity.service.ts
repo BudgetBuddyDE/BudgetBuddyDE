@@ -3,6 +3,7 @@ import {BackendError, ResponseNotJsonError} from '../error';
 import {BackendService} from './backend.service';
 import type {TResult} from '../types/common';
 import type {IBaseGetAllQuery} from '../types/interfaces/query.interface';
+import {log} from '../utils/decorators/log.decorator';
 
 type TEntitySchemas<
   GetAll extends z.ZodType,
@@ -38,6 +39,7 @@ export class EntityService<
     this.schemas = schemas;
   }
 
+  @log
   async getAll<Query extends IBaseGetAllQuery>(
     query?: Query,
     requestConfig?: RequestInit,
@@ -74,6 +76,7 @@ export class EntityService<
     }
   }
 
+  @log
   async getById(entityId: string, requestConfig?: RequestInit): Promise<TResult<z.output<GetResult>>> {
     try {
       const response = await this.request(
@@ -106,6 +109,7 @@ export class EntityService<
     }
   }
 
+  @log
   async create(payload: CreatePayload, requestConfig?: RequestInit): Promise<TResult<z.output<CreateResult>>> {
     try {
       const response = await this.request(
@@ -143,6 +147,7 @@ export class EntityService<
     }
   }
 
+  @log
   async updateById(
     entityId: string,
     payload: UpdatePayload,
@@ -184,6 +189,7 @@ export class EntityService<
     }
   }
 
+  @log
   async deleteById(entityId: string, requestConfig?: RequestInit): Promise<TResult<z.output<DeleteResult>>> {
     try {
       const response = await this.request(
