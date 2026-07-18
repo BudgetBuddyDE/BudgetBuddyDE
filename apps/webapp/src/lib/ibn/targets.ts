@@ -1,5 +1,6 @@
 import type {IntentAction, IntentEntity} from './types';
 
+/** Route and action metadata for one intent target. */
 export type IntentTargetConfig = {
   route: string;
   createRoute?: string;
@@ -8,6 +9,12 @@ export type IntentTargetConfig = {
   actions: readonly IntentAction[];
 };
 
+/**
+ * Registry of all routes that can consume intents.
+ *
+ * The optional `createRoute` is used when creation is handled by a different
+ * page than the entity's regular route, as with transaction attachments.
+ */
 export const IBN_TARGETS = {
   transaction: {
     route: '/transactions',

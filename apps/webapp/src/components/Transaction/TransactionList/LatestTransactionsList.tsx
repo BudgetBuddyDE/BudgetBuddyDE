@@ -1,4 +1,6 @@
+import AddIcon from '@mui/icons-material/AddRounded';
 import {apiClient} from '@/apiClient';
+import {IntentButton} from '@/components/IBN';
 import {headers} from '@/lib/headers';
 import {logger} from '@/logger';
 import {TransactionList, type TransactionListProps} from './TransactionList';
@@ -37,6 +39,16 @@ export const LatestTransactionsList = async ({onAddEntity}: LatestTransactionsLi
         },
       }))}
       onAddEntity={onAddEntity}
+      headerAction={
+        <IntentButton
+          intent={{entity: 'transaction', action: 'create'}}
+          iconButton
+          aria-label="Create Transaction"
+          color="primary"
+        >
+          <AddIcon />
+        </IntentButton>
+      }
       noResultsMessage="You haven't made any transactions yet"
     />
   );

@@ -1,3 +1,4 @@
+/** Query-string keys used to transport an intent between pages. */
 export const IBN_QUERY_KEYS = {
   entity: 'ibnEntity',
   action: 'ibnAction',
@@ -6,6 +7,7 @@ export const IBN_QUERY_KEYS = {
   parentId: 'ibnParentId',
 } as const;
 
+/** Entities that can be addressed through Intent-Based Navigation. */
 export const IBN_ENTITIES = [
   'transaction',
   'recurringPayment',
@@ -16,11 +18,16 @@ export const IBN_ENTITIES = [
   'apiKey',
 ] as const;
 
+/** Actions that can be requested through an intent. */
 export const IBN_ACTIONS = ['create', 'edit', 'delete'] as const;
 
+/** Union of supported intent entity names. */
 export type IntentEntity = (typeof IBN_ENTITIES)[number];
+
+/** Union of supported intent actions. */
 export type IntentAction = (typeof IBN_ACTIONS)[number];
 
+/** Type-safe request to create, edit, or delete a supported entity. */
 export type Intent =
   | {entity: 'transaction'; action: 'create'}
   | {entity: 'transaction'; action: 'edit' | 'delete'; id: string}

@@ -1,6 +1,7 @@
 import {IBN_TARGETS} from './targets';
 import {IBN_ACTIONS, IBN_ENTITIES, IBN_QUERY_KEYS, type Intent, type IntentAction, type IntentEntity} from './types';
 
+/** Result of parsing URL parameters: an intent, a validation error, or no intent. */
 export type ParsedIntent = {intent: Intent} | {error: string} | null;
 
 const isIntentEntity = (value: string | null): value is IntentEntity =>
@@ -12,6 +13,12 @@ const isIntentAction = (value: string | null): value is IntentAction =>
 const canTargetHandleAction = (entity: IntentEntity, action: IntentAction) =>
   (IBN_TARGETS[entity].actions as readonly IntentAction[]).includes(action);
 
+/**
+ * Parses and validates an intent from URL search parameters.
+ *
+ * Returns `null` when no IBN parameters are present and an error result for
+ * malformed or unsupported intents.
+ */
 export function parseIntentFromSearchParams(params: URLSearchParams): ParsedIntent {
   const entityValue = params.get(IBN_QUERY_KEYS.entity);
   const actionValue = params.get(IBN_QUERY_KEYS.action);
@@ -65,6 +72,7 @@ export function parseIntentFromSearchParams(params: URLSearchParams): ParsedInte
   }
 }
 
+/** Serializes a type-safe intent into its IBN query parameters. */
 export function serializeIntentToSearchParams(intent: Intent): URLSearchParams {
   const params = new URLSearchParams();
   params.set(IBN_QUERY_KEYS.entity, intent.entity);
@@ -77,12 +85,14 @@ export function serializeIntentToSearchParams(intent: Intent): URLSearchParams {
   return params;
 }
 
+/** Returns a copy of the parameters with all IBN keys removed. */
 export function stripIntentSearchParams(params: URLSearchParams): URLSearchParams {
   const stripped = new URLSearchParams(params.toString());
   Object.values(IBN_QUERY_KEYS).forEach(key => stripped.delete(key));
   return stripped;
 }
 
+/** Builds the destination route and query string for an intent. */
 export function buildIntentHref(intent: Intent): string {
   const route =
     intent.entity === 'attachment' && intent.action === 'create'

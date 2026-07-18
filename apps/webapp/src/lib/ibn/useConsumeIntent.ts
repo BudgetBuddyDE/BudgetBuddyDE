@@ -5,11 +5,17 @@ import React from 'react';
 import type {Intent, IntentEntity} from './types';
 import {parseIntentFromSearchParams, stripIntentSearchParams} from './url';
 
+/** Callbacks invoked when a destination consumes an intent. */
 export type IntentHandlers = {
+  /** Opens the create UI for the addressed entity. */
   onCreate?: () => void | Promise<void>;
+  /** Opens the edit UI for the entity with the given ID. */
   onEdit?: (id: string) => void | Promise<void>;
+  /** Opens the delete flow for the entity with the given ID. */
   onDelete?: (id: string) => void | Promise<void>;
+  /** Opens attachment creation for the referenced transaction. */
   onAttachmentCreate?: (parent: {entity: 'transaction'; id: string}) => void | Promise<void>;
+  /** Reports malformed intents or handler failures. */
   onInvalid?: (message: string) => void;
 };
 
@@ -28,6 +34,12 @@ const intentKeyFromParams = (params: URLSearchParams) => {
   return intentParams.toString();
 };
 
+/**
+ * Consumes the intent addressed to a feature and removes it from the URL.
+ *
+ * Invalid intents and handler failures are reported through `onInvalid` and are
+ * removed as well, preventing repeated execution on subsequent renders.
+ */
 export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers): void {
   const searchParams = useSearchParams();
   const pathname = usePathname();

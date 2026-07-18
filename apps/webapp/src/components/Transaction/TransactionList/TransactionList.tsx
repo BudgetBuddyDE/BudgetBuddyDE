@@ -19,6 +19,7 @@ export type EntityListProps<T> = {
   noResultsMessage?: string;
   data: T[];
   onAddEntity?: () => void;
+  headerAction?: React.ReactNode;
   cardProps?: CardProps;
 };
 
@@ -43,6 +44,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   noResultsMessage = "You haven't made any purchases yet",
   data,
   onAddEntity,
+  headerAction,
   cardProps,
 }) => {
   const chipProps: ChipProps = {
@@ -58,11 +60,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           <Card.Title>{title}</Card.Title>
           {subtitle !== undefined && subtitle.length > 0 && <Card.Subtitle>{subtitle}</Card.Subtitle>}
         </Box>
-        {onAddEntity && (
+        {(headerAction || onAddEntity) && (
           <Card.HeaderActions>
-            <IconButton color="primary" onClick={onAddEntity}>
-              <AddIcon />
-            </IconButton>
+            {headerAction ?? (
+              <IconButton color="primary" onClick={onAddEntity}>
+                <AddIcon />
+              </IconButton>
+            )}
           </Card.HeaderActions>
         )}
       </Card.Header>

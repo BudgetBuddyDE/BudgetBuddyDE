@@ -3,6 +3,7 @@ import {authClient} from '@/authClient';
 import {Formatter} from '@/utils/Formatter';
 import type {IntentEntity} from './types';
 
+/** Search result that can be selected as an edit or delete intent target. */
 export type IntentTargetOption = {id: string; label: string; description?: string; keywords?: string[]};
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -13,6 +14,12 @@ const withUuidFallback = (query: string, options: IntentTargetOption[]) => {
   return [...options, {id: trimmedQuery, label: `Use ID "${trimmedQuery}"`, keywords: [trimmedQuery]}];
 };
 
+/**
+ * Searches records for a given entity and normalizes them for the command palette.
+ *
+ * A valid UUID is offered as a fallback target when it is not returned by the
+ * entity search endpoint.
+ */
 export async function searchIntentTargets(entity: IntentEntity, query: string): Promise<IntentTargetOption[]> {
   const search = query.trim();
   let options: IntentTargetOption[] = [];

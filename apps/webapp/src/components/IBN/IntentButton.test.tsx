@@ -20,4 +20,17 @@ describe('IntentButton', () => {
       '/transactions?ibnEntity=transaction&ibnAction=create',
     );
   });
+
+  it('renders an icon button link for an intent', () => {
+    render(
+      <IntentButton intent={{entity: 'transaction', action: 'create'}} iconButton aria-label="Create Transaction">
+        <span aria-hidden="true">+</span>
+      </IntentButton>,
+    );
+
+    expect(screen.getByRole('link', {name: 'Create Transaction'})).toHaveAttribute(
+      'href',
+      '/transactions?ibnEntity=transaction&ibnAction=create',
+    );
+  });
 });

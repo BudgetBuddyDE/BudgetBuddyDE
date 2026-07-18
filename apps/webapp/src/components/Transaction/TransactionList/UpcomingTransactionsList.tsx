@@ -1,5 +1,7 @@
+import AddIcon from '@mui/icons-material/AddRounded';
 import {addDays} from 'date-fns';
 import {apiClient} from '@/apiClient';
+import {IntentButton} from '@/components/IBN';
 import {headers} from '@/lib/headers';
 import {logger} from '@/logger';
 import {TransactionList, type TransactionListProps} from './TransactionList';
@@ -37,6 +39,16 @@ export const UpcomingTransactionsList = async ({onAddEntity}: UpcomingTransactio
         },
       }))}
       onAddEntity={onAddEntity}
+      headerAction={
+        <IntentButton
+          intent={{entity: 'transaction', action: 'create'}}
+          iconButton
+          aria-label="Create Transaction"
+          color="primary"
+        >
+          <AddIcon />
+        </IntentButton>
+      }
       noResultsMessage="You don't have any upcoming transactions for this month"
     />
   );

@@ -6,6 +6,7 @@ import {Box, Chip, type ChipProps, CircularProgress, IconButton} from '@mui/mate
 import type React from 'react';
 import {Card} from '@/components/Card';
 import {CategoryChip} from '@/components/Category/CategoryChip';
+import {IntentButton} from '@/components/IBN';
 import {ListWithIcon} from '@/components/ListWithIcon';
 import {NoResults} from '@/components/NoResults';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
@@ -49,13 +50,22 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
           <Card.Title>{title}</Card.Title>
           {subtitle !== undefined && <Card.Subtitle>{subtitle}</Card.Subtitle>}
         </Box>
-        {onAddEntity && (
-          <Card.HeaderActions>
+        <Card.HeaderActions>
+          {onAddEntity ? (
             <IconButton color="primary" onClick={onAddEntity}>
               <AddIcon />
             </IconButton>
-          </Card.HeaderActions>
-        )}
+          ) : (
+            <IntentButton
+              intent={{entity: 'recurringPayment', action: 'create'}}
+              iconButton
+              aria-label="Create Recurring-Payment"
+              color="primary"
+            >
+              <AddIcon />
+            </IntentButton>
+          )}
+        </Card.HeaderActions>
       </Card.Header>
       <Card.Body>
         {isLoading ? (
