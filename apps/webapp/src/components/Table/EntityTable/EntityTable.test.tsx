@@ -1,3 +1,4 @@
+import EditRounded from '@mui/icons-material/EditRounded';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import type {ColumnDefinition} from '../BasicTable';
@@ -168,6 +169,33 @@ describe('EntityTable', () => {
 
     fireEvent.click(screen.getByText('Alice'));
     expect(onRowClick).toHaveBeenCalledWith(mockUsers[0], 0);
+  });
+
+  it('passes selected rows to selection actions and clears selection', () => {
+    const onSelect = vi.fn();
+    const slice: EntitySlice<User> = {
+      data: mockUsers,
+      isLoading: false,
+      error: null,
+    };
+
+    render(
+      <EntityTable
+        slice={slice}
+        dataKey="id"
+        columns={mockColumns}
+        withSelection
+        selectionActions={[{icon: <EditRounded />, label: 'Edit selected', onClick: onSelect}]}
+      />,
+    );
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[1]);
+    fireEvent.click(checkboxes[2]);
+    fireEvent.click(screen.getByRole('button', {name: 'Edit selected'}));
+
+    expect(onSelect).toHaveBeenCalledWith([mockUsers[0], mockUsers[1]]);
+    expect(screen.queryByRole('button', {name: 'Edit selected'})).not.toBeInTheDocument();
   });
 
   it('renders with custom renderCell', () => {

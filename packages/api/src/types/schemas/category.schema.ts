@@ -27,6 +27,25 @@ export const CreateOrUpdateCategoryPayload = Category.pick({
   description: Category.shape.description.optional(),
 });
 
+export const BatchCreateCategoryPayload = z.array(CreateOrUpdateCategoryPayload).min(1).max(100);
+export const BatchUpdateCategoryPayload = z
+  .object({
+    updates: z
+      .array(
+        z.object({
+          id: Category.shape.id,
+          data: CreateOrUpdateCategoryPayload.partial(),
+        }),
+      )
+      .min(1)
+      .max(100),
+  })
+  .superRefine(({updates}, ctx) => {
+    if (new Set(updates.map(update => update.id)).size !== updates.length) {
+      ctx.addIssue({code: 'custom', path: ['updates'], message: 'Update IDs must be unique'});
+    }
+  });
+
 export const CategoryVH = Category.pick({
   id: true,
   name: true,
@@ -60,6 +79,8 @@ export const CreateCategoryResponse = ApiResponse.extend({
   data: z.array(Category).nullable(),
 });
 export const UpdateCategoryResponse = CreateCategoryResponse;
+export const BatchCreateCategoryResponse = CreateCategoryResponse;
+export const BatchUpdateCategoryResponse = UpdateCategoryResponse;
 export const DeleteCategoryResponse = CreateCategoryResponse;
 export const CategoryStatsResponse = ApiResponse.extend({
   data: CategoryStats,

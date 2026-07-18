@@ -13,6 +13,7 @@ import {db} from '../db';
 import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
+import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
 
 export const categoryRouter = Router();
 
@@ -238,6 +239,105 @@ categoryRouter.get(
       .withTotalCount(totalCount)
       .withFrom('db')
       .buildAndSend(res);
+  },
+);
+
+categoryRouter.post(
+  '/batch',
+  validateRequest({
+    body: createBatchSchema(CategorySchemas.insert.omit({ownerId: true})),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    try {
+      const createdRecords = await db.transaction(async tx => {
+        const records = await tx
+          .insert(categories)
+          .values(req.body.map(body => ({...body, ownerId: userId})))
+          .returning();
+        if (records.length !== req.body.length)
+          throw new Error('Batch category create returned an unexpected row count');
+        return records;
+      });
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Categories created successfully')
+        .withData(createdRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+categoryRouter.put(
+  '/batch',
+  validateRequest({
+    body: updateBatchSchema(
+      CategorySchemas.select.shape.id,
+      CategorySchemas.update.omit({ownerId: true, id: true, createdAt: true, updatedAt: true}),
+    ),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const updates = req.body.updates as Array<{id: string; data: z.infer<typeof CategorySchemas.update>}>;
+    const ids = updates.map(update => update.id);
+    const owned = await hasAllOwnedIds(userId, ids, async (owner, targetIds) =>
+      db.query.categories.findMany({
+        columns: {id: true},
+        where(fields, operators) {
+          return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+        },
+      }),
+    );
+    if (!owned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage('One or more categories were not found')
+        .buildAndSend(res);
+      return;
+    }
+
+    try {
+      const updatedRecords = await db.transaction(tx =>
+        applyBatchUpdates(
+          tx,
+          updates,
+          async (transaction, update) => {
+            const [record] = await transaction
+              .update(categories)
+              .set({...update.data, ownerId: userId})
+              .where(and(eq(categories.ownerId, userId), eq(categories.id, update.id)))
+              .returning();
+            return record;
+          },
+          update => `Category ${update.id} could not be updated`,
+        ),
+      );
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Categories updated successfully')
+        .withData(updatedRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
   },
 );
 

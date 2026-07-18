@@ -1,4 +1,5 @@
 export * from './BasicTable';
+export * from './BatchEntityDialog';
 export * from './DataTable';
 export * from './EntityDataTable';
 export * from './EntityMenu';

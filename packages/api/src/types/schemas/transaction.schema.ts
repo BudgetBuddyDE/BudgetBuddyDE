@@ -75,6 +75,25 @@ export const CreateOrUpdateTransactionPayload = Transaction.pick({
   information: Transaction.shape.information.optional(),
 });
 
+export const BatchCreateTransactionPayload = z.array(CreateOrUpdateTransactionPayload).min(1).max(100);
+export const BatchUpdateTransactionPayload = z
+  .object({
+    updates: z
+      .array(
+        z.object({
+          id: Transaction.shape.id,
+          data: CreateOrUpdateTransactionPayload.partial(),
+        }),
+      )
+      .min(1)
+      .max(100),
+  })
+  .superRefine(({updates}, ctx) => {
+    if (new Set(updates.map(update => update.id)).size !== updates.length) {
+      ctx.addIssue({code: 'custom', path: ['updates'], message: 'Update IDs must be unique'});
+    }
+  });
+
 export const ReceiverVH = Transaction.pick({
   receiver: true,
 });
@@ -89,6 +108,8 @@ export const CreateTransactionResponse = ApiResponse.extend({
   data: z.array(Transaction).nullable(),
 });
 export const UpdateTransactionResponse = CreateTransactionResponse;
+export const BatchCreateTransactionResponse = CreateTransactionResponse;
+export const BatchUpdateTransactionResponse = UpdateTransactionResponse;
 export const DeleteTransactionResponse = CreateTransactionResponse;
 export const ReceiverVHResponse = ApiResponse.extend({
   data: z.array(ReceiverVH).nullable(),

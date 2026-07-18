@@ -2,6 +2,7 @@
 
 import {CreateOrUpdatePaymentMethodPayload, type TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import AddRounded from '@mui/icons-material/AddRounded';
+import EditRounded from '@mui/icons-material/EditRounded';
 import MergeRounded from '@mui/icons-material/MergeRounded';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
@@ -19,6 +20,7 @@ import {AddFab, FabContainer} from '@/components/FAB';
 import {serializeKeywordFilter} from '@/components/Filter';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {
+  BatchEntityDialog,
   type ColumnDefinition,
   EntityMenu,
   type EntitySlice,
@@ -29,6 +31,13 @@ import {paymentMethodSlice} from '@/lib/features/paymentMethods/paymentMethodSli
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
+import {
+  columns as paymentMethodBatchColumns,
+  createEmptyRow as createEmptyPaymentMethodRow,
+  fromEntity as paymentMethodDraftFromEntity,
+  mapRowsToPayload as mapPaymentMethodRowsToPayload,
+  type DraftRow as PaymentMethodDraftRow,
+} from './paymentMethodBatchAdapter';
 import {MergePaymentMethodsDialog, type MergePaymentMethodsForm} from '../MergePaymentMethodsDialog';
 
 type EntityFormFields = FirstLevelNullable<
@@ -66,6 +75,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     deleteDialogReducer,
     getInitialDeleteDialogState<TPaymentMethod['id']>(),
   );
+  const [batchDialogState, setBatchDialogState] = React.useState<{
+    open: boolean;
+    mode: 'CREATE' | 'EDIT';
+    initialRows: PaymentMethodDraftRow[];
+  }>({open: false, mode: 'CREATE', initialRows: []});
+  const [isBatchSubmitting, setIsBatchSubmitting] = React.useState(false);
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -74,6 +89,46 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
   const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({type: 'OPEN', action: 'CREATE'});
   }, []);
+
+  const handleCreateMultiple = React.useCallback(() => {
+    setBatchDialogState({open: true, mode: 'CREATE', initialRows: [createEmptyPaymentMethodRow()]});
+  }, []);
+
+  const handleEditSelected = React.useCallback((entities: TPaymentMethod[]) => {
+    setBatchDialogState({
+      open: true,
+      mode: 'EDIT',
+      initialRows: entities.map(paymentMethodDraftFromEntity),
+    });
+  }, []);
+
+  const handleBatchSubmit = React.useCallback(
+    async (payload: Array<Parameters<typeof apiClient.backend.paymentMethod.createMany>[0][number]>) => {
+      setIsBatchSubmitting(true);
+      try {
+        const result =
+          batchDialogState.mode === 'CREATE'
+            ? await apiClient.backend.paymentMethod.createMany(payload)
+            : await apiClient.backend.paymentMethod.updateMany(
+                payload.map((data, index) => ({id: batchDialogState.initialRows[index]?.id ?? '', data})),
+              );
+        if (result[1]) {
+          throw new Error(result[1].message);
+        }
+        showSnackbar({
+          message:
+            batchDialogState.mode === 'CREATE'
+              ? 'Payment methods created successfully'
+              : 'Payment methods updated successfully',
+        });
+        dispatch(refresh());
+        setBatchDialogState(current => ({...current, open: false}));
+      } finally {
+        setIsBatchSubmitting(false);
+      }
+    },
+    [batchDialogState, dispatch, refresh, showSnackbar],
+  );
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
@@ -287,6 +342,11 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
   const selectionActions: SelectionAction<TPaymentMethod>[] = React.useMemo(() => {
     return [
       {
+        icon: <EditRounded fontSize="small" />,
+        label: 'Edit selected',
+        onClick: handleEditSelected,
+      },
+      {
         icon: <MergeRounded fontSize="small" />,
         label: 'Merge',
         onClick(paymentMethods) {
@@ -300,7 +360,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         },
       },
     ];
-  }, []);
+  }, [handleEditSelected]);
 
   // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
@@ -339,6 +399,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
               label: 'Create',
               onClick: handleCreateEntity,
             },
+            {
+              id: 'create-multiple-payment-methods',
+              icon: <AddRounded />,
+              label: 'Create multiple',
+              onClick: handleCreateMultiple,
+            },
           ],
         }}
         emptyMessage={
@@ -355,6 +421,22 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+      />
+
+      <BatchEntityDialog<
+        PaymentMethodDraftRow,
+        Parameters<typeof apiClient.backend.paymentMethod.createMany>[0][number]
+      >
+        open={batchDialogState.open}
+        title={batchDialogState.mode === 'CREATE' ? 'Create payment methods' : 'Edit payment methods'}
+        mode={batchDialogState.mode}
+        initialRows={batchDialogState.initialRows}
+        columns={paymentMethodBatchColumns()}
+        createEmptyRow={createEmptyPaymentMethodRow}
+        mapRowsToPayload={mapPaymentMethodRowsToPayload}
+        onSubmit={handleBatchSubmit}
+        onClose={() => setBatchDialogState(current => ({...current, open: false}))}
+        isSubmitting={isBatchSubmitting}
       />
 
       <EntityDrawer<EntityFormFields>

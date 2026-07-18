@@ -200,7 +200,9 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                   size={'small'}
                   startIcon={action.icon}
                   onClick={() => {
-                    action.onClick(selectedEntities);
+                    const entities = selectedEntities;
+                    action.onClick(entities);
+                    setSelectedIds(new Set());
                   }}
                 >
                   {action.label}

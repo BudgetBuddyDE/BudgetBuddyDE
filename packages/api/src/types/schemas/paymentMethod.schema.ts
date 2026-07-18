@@ -35,6 +35,25 @@ export const CreateOrUpdatePaymentMethodPayload = PaymentMethod.pick({
   description: PaymentMethod.shape.description.optional(),
 });
 
+export const BatchCreatePaymentMethodPayload = z.array(CreateOrUpdatePaymentMethodPayload).min(1).max(100);
+export const BatchUpdatePaymentMethodPayload = z
+  .object({
+    updates: z
+      .array(
+        z.object({
+          id: PaymentMethod.shape.id,
+          data: CreateOrUpdatePaymentMethodPayload.partial(),
+        }),
+      )
+      .min(1)
+      .max(100),
+  })
+  .superRefine(({updates}, ctx) => {
+    if (new Set(updates.map(update => update.id)).size !== updates.length) {
+      ctx.addIssue({code: 'custom', path: ['updates'], message: 'Update IDs must be unique'});
+    }
+  });
+
 export const PaymentMethodVH = PaymentMethod.pick({
   id: true,
   name: true,
@@ -53,6 +72,8 @@ export const CreatePaymentMethodResponse = ApiResponse.extend({
   data: z.array(PaymentMethod).nullable(),
 });
 export const UpdatePaymentMethodResponse = CreatePaymentMethodResponse;
+export const BatchCreatePaymentMethodResponse = CreatePaymentMethodResponse;
+export const BatchUpdatePaymentMethodResponse = UpdatePaymentMethodResponse;
 export const DeletePaymentMethodResponse = CreatePaymentMethodResponse;
 export const MergePaymentMethodsResponse = ApiResponse.extend({
   data: z.object({

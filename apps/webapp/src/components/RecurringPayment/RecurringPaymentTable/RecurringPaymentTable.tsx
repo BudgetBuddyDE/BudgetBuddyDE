@@ -4,11 +4,13 @@ import {CategoryVH, type TCategoryVH} from '@budgetbuddyde/api/category';
 import {PaymentMethodVH, type TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {
   CreateOrUpdateRecurringPaymentPayload,
+  type TCreateOrUpdateRecurringPaymentPayload,
   type TExpandedRecurringPayment,
   type TRecurringPayment,
 } from '@budgetbuddyde/api/recurringPayment';
 import {ReceiverVH, type TReceiverVH} from '@budgetbuddyde/api/transaction';
 import AddRounded from '@mui/icons-material/AddRounded';
+import EditRounded from '@mui/icons-material/EditRounded';
 import {Button, Chip, createFilterOptions, InputAdornment, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -28,13 +30,20 @@ import {AddFab, FabContainer} from '@/components/FAB';
 import {FilterWrapper, serializeRecurringPaymentFilters} from '@/components/Filter';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
+import {BatchEntityDialog, type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringPaymentSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
+import {
+  columns as recurringPaymentBatchColumns,
+  createEmptyRow as createEmptyRecurringPaymentRow,
+  fromEntity as recurringPaymentDraftFromEntity,
+  mapRowsToPayload as mapRecurringPaymentRowsToPayload,
+  type DraftRow as RecurringPaymentDraftRow,
+} from './recurringPaymentBatchAdapter';
 
 type EntityFormFields = FirstLevelNullable<
   Pick<
@@ -77,6 +86,14 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     deleteDialogReducer,
     getInitialDeleteDialogState<TRecurringPayment['id']>(),
   );
+  const [batchDialogState, setBatchDialogState] = React.useState<{
+    open: boolean;
+    mode: 'CREATE' | 'EDIT';
+    initialRows: RecurringPaymentDraftRow[];
+  }>({open: false, mode: 'CREATE', initialRows: []});
+  const [batchCategories, setBatchCategories] = React.useState<TCategoryVH[]>([]);
+  const [batchPaymentMethods, setBatchPaymentMethods] = React.useState<TPaymentMethodVH[]>([]);
+  const [isBatchSubmitting, setIsBatchSubmitting] = React.useState(false);
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -174,6 +191,67 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
     });
   }, []);
+
+  const loadBatchValueHelp = React.useCallback(async () => {
+    const [categoriesResult, paymentMethodsResult] = await Promise.all([
+      apiClient.backend.category.getValueHelp(),
+      apiClient.backend.paymentMethod.getValueHelp(),
+    ]);
+    const [categories, categoriesError] = categoriesResult;
+    const [paymentMethods, paymentMethodsError] = paymentMethodsResult;
+    if (categoriesError || paymentMethodsError) {
+      showSnackbar({
+        message: `Failed to load recurring payment options: ${(categoriesError ?? paymentMethodsError)?.message ?? 'Unknown error'}`,
+      });
+      return false;
+    }
+    setBatchCategories(categories ?? []);
+    setBatchPaymentMethods(paymentMethods ?? []);
+    return true;
+  }, [showSnackbar]);
+
+  const handleCreateMultiple = React.useCallback(async () => {
+    if (!(await loadBatchValueHelp())) return;
+    setBatchDialogState({open: true, mode: 'CREATE', initialRows: [createEmptyRecurringPaymentRow()]});
+  }, [loadBatchValueHelp]);
+
+  const handleEditSelected = React.useCallback(
+    async (entities: TExpandedRecurringPayment[]) => {
+      if (!(await loadBatchValueHelp())) return;
+      setBatchDialogState({
+        open: true,
+        mode: 'EDIT',
+        initialRows: entities.map(recurringPaymentDraftFromEntity),
+      });
+    },
+    [loadBatchValueHelp],
+  );
+
+  const handleBatchSubmit = React.useCallback(
+    async (payload: TCreateOrUpdateRecurringPaymentPayload[]) => {
+      setIsBatchSubmitting(true);
+      try {
+        const result =
+          batchDialogState.mode === 'CREATE'
+            ? await apiClient.backend.recurringPayment.createMany(payload)
+            : await apiClient.backend.recurringPayment.updateMany(
+                payload.map((data, index) => ({id: batchDialogState.initialRows[index]?.id ?? '', data})),
+              );
+        if (result[1]) throw new Error(result[1].message);
+        showSnackbar({
+          message:
+            batchDialogState.mode === 'CREATE'
+              ? 'Recurring payments created successfully'
+              : 'Recurring payments updated successfully',
+        });
+        dispatch(refresh());
+        setBatchDialogState(current => ({...current, open: false}));
+      } finally {
+        setIsBatchSubmitting(false);
+      }
+    },
+    [batchDialogState, dispatch, refresh, showSnackbar],
+  );
 
   const handleEditEntity = React.useCallback(
     ({id, executeAt, receiver, category, paymentMethod, transferAmount, information}: TExpandedRecurringPayment) => {
@@ -626,6 +704,12 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
               label: 'Create',
               onClick: handleCreateEntity,
             },
+            {
+              id: 'create-multiple-recurring-payments',
+              icon: <AddRounded />,
+              label: 'Create multiple',
+              onClick: handleCreateMultiple,
+            },
           ],
           children: (
             <FilterWrapper
@@ -647,12 +731,32 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         onDeleteSelectedEntities={entities => {
           dispatchDeleteDialogAction({action: 'OPEN', target: entities});
         }}
+        selectionActions={[
+          {
+            icon: <EditRounded fontSize="small" />,
+            label: 'Edit selected',
+            onClick: handleEditSelected,
+          },
+        ]}
         pagination={{
           page: currentPage,
           rowsPerPage: rowsPerPage,
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+      />
+
+      <BatchEntityDialog<RecurringPaymentDraftRow, TCreateOrUpdateRecurringPaymentPayload>
+        open={batchDialogState.open}
+        title={batchDialogState.mode === 'CREATE' ? 'Create recurring payments' : 'Edit recurring payments'}
+        mode={batchDialogState.mode}
+        initialRows={batchDialogState.initialRows}
+        columns={recurringPaymentBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods})}
+        createEmptyRow={createEmptyRecurringPaymentRow}
+        mapRowsToPayload={mapRecurringPaymentRowsToPayload}
+        onSubmit={handleBatchSubmit}
+        onClose={() => setBatchDialogState(current => ({...current, open: false}))}
+        isSubmitting={isBatchSubmitting}
       />
 
       <EntityDrawer<EntityFormFields>

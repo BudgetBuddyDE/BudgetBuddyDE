@@ -5,11 +5,13 @@ import {PaymentMethodVH, type TPaymentMethodVH} from '@budgetbuddyde/api/payment
 import {
   CreateOrUpdateTransactionPayload,
   ReceiverVH,
+  type TCreateOrUpdateTransactionPayload,
   type TExpandedTransaction,
   type TReceiverVH,
   type TTransaction,
 } from '@budgetbuddyde/api/transaction';
 import AddRounded from '@mui/icons-material/AddRounded';
+import EditRounded from '@mui/icons-material/EditRounded';
 import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -29,7 +31,7 @@ import {AddFab, FabContainer} from '@/components/FAB';
 import {FilterWrapper, serializeTransactionFilters} from '@/components/Filter';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
+import {BatchEntityDialog, type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
 import {TransactionAttachmentPreviewStrip, TransactionAttachmentsDialog} from '@/components/Transaction/Attachments';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
@@ -37,6 +39,13 @@ import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
+import {
+  columns as transactionBatchColumns,
+  createEmptyRow as createEmptyTransactionRow,
+  fromEntity as transactionDraftFromEntity,
+  mapRowsToPayload as mapTransactionRowsToPayload,
+  type DraftRow as TransactionDraftRow,
+} from './transactionBatchAdapter';
 
 type EntityFormFields = FirstLevelNullable<
   Pick<
@@ -82,6 +91,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     open: boolean;
     transaction: TExpandedTransaction | null;
   }>({open: false, transaction: null});
+  const [batchDialogState, setBatchDialogState] = React.useState<{
+    open: boolean;
+    mode: 'CREATE' | 'EDIT';
+    initialRows: TransactionDraftRow[];
+  }>({open: false, mode: 'CREATE', initialRows: []});
+  const [batchCategories, setBatchCategories] = React.useState<TCategoryVH[]>([]);
+  const [batchPaymentMethods, setBatchPaymentMethods] = React.useState<TPaymentMethodVH[]>([]);
+  const [isBatchSubmitting, setIsBatchSubmitting] = React.useState(false);
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -174,6 +191,67 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
     });
   }, []);
+
+  const loadBatchValueHelp = React.useCallback(async () => {
+    const [categoriesResult, paymentMethodsResult] = await Promise.all([
+      apiClient.backend.category.getValueHelp(),
+      apiClient.backend.paymentMethod.getValueHelp(),
+    ]);
+    const [categories, categoriesError] = categoriesResult;
+    const [paymentMethods, paymentMethodsError] = paymentMethodsResult;
+    if (categoriesError || paymentMethodsError) {
+      showSnackbar({
+        message: `Failed to load transaction options: ${(categoriesError ?? paymentMethodsError)?.message ?? 'Unknown error'}`,
+      });
+      return false;
+    }
+    setBatchCategories(categories ?? []);
+    setBatchPaymentMethods(paymentMethods ?? []);
+    return true;
+  }, [showSnackbar]);
+
+  const handleCreateMultiple = React.useCallback(async () => {
+    if (!(await loadBatchValueHelp())) return;
+    setBatchDialogState({open: true, mode: 'CREATE', initialRows: [createEmptyTransactionRow()]});
+  }, [loadBatchValueHelp]);
+
+  const handleEditSelected = React.useCallback(
+    async (entities: TExpandedTransaction[]) => {
+      if (!(await loadBatchValueHelp())) return;
+      setBatchDialogState({
+        open: true,
+        mode: 'EDIT',
+        initialRows: entities.map(transactionDraftFromEntity),
+      });
+    },
+    [loadBatchValueHelp],
+  );
+
+  const handleBatchSubmit = React.useCallback(
+    async (payload: TCreateOrUpdateTransactionPayload[]) => {
+      setIsBatchSubmitting(true);
+      try {
+        const result =
+          batchDialogState.mode === 'CREATE'
+            ? await apiClient.backend.transaction.createMany(payload)
+            : await apiClient.backend.transaction.updateMany(
+                payload.map((data, index) => ({id: batchDialogState.initialRows[index]?.id ?? '', data})),
+              );
+        if (result[1]) throw new Error(result[1].message);
+        showSnackbar({
+          message:
+            batchDialogState.mode === 'CREATE'
+              ? 'Transactions created successfully'
+              : 'Transactions updated successfully',
+        });
+        dispatch(refresh());
+        setBatchDialogState(current => ({...current, open: false}));
+      } finally {
+        setIsBatchSubmitting(false);
+      }
+    },
+    [batchDialogState, dispatch, refresh, showSnackbar],
+  );
 
   const handleEditEntity = React.useCallback(
     ({id, processedAt, receiver, category, paymentMethod, transferAmount, information}: TExpandedTransaction) => {
@@ -611,6 +689,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
               label: 'Create',
               onClick: handleCreateEntity,
             },
+            {
+              id: 'create-multiple-transactions',
+              icon: <AddRounded />,
+              label: 'Create multiple',
+              onClick: handleCreateMultiple,
+            },
           ],
           children: (
             <FilterWrapper
@@ -628,12 +712,32 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         onDeleteSelectedEntities={entities => {
           dispatchDeleteDialogAction({action: 'OPEN', target: entities});
         }}
+        selectionActions={[
+          {
+            icon: <EditRounded fontSize="small" />,
+            label: 'Edit selected',
+            onClick: handleEditSelected,
+          },
+        ]}
         pagination={{
           page: currentPage,
           rowsPerPage: rowsPerPage,
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+      />
+
+      <BatchEntityDialog<TransactionDraftRow, TCreateOrUpdateTransactionPayload>
+        open={batchDialogState.open}
+        title={batchDialogState.mode === 'CREATE' ? 'Create transactions' : 'Edit transactions'}
+        mode={batchDialogState.mode}
+        initialRows={batchDialogState.initialRows}
+        columns={transactionBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods})}
+        createEmptyRow={createEmptyTransactionRow}
+        mapRowsToPayload={mapTransactionRowsToPayload}
+        onSubmit={handleBatchSubmit}
+        onClose={() => setBatchDialogState(current => ({...current, open: false}))}
+        isSubmitting={isBatchSubmitting}
       />
 
       <EntityDrawer<EntityFormFields>

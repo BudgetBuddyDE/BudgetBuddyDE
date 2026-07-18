@@ -148,6 +148,44 @@ export class EntityService<
   }
 
   @log
+  async createMany(payload: CreatePayload[], requestConfig?: RequestInit): Promise<TResult<z.output<CreateResult>>> {
+    try {
+      const response = await this.request(
+        `${this.getBaseRequestPath()}/batch`,
+        this.mergeRequestConfig(
+          {
+            method: 'POST',
+            headers: new Headers(
+              requestConfig?.headers || {
+                'Content-Type': 'application/json',
+              },
+            ),
+            credentials: 'include',
+            body: JSON.stringify(payload),
+          },
+          requestConfig,
+        ),
+      );
+      if (!response.ok) {
+        throw new BackendError(response.status, response.statusText);
+      }
+      if (!this.isJsonResponse(response)) {
+        throw new ResponseNotJsonError();
+      }
+      const data = await response.json();
+
+      const parsingResult = this.schemas.create.safeParse(data);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+
+      return [parsingResult.data, null];
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
+  @log
   async updateById(
     entityId: string,
     payload: UpdatePayload,
@@ -166,6 +204,47 @@ export class EntityService<
             ),
             credentials: 'include',
             body: JSON.stringify(payload),
+          },
+          requestConfig,
+        ),
+      );
+      if (!response.ok) {
+        throw new BackendError(response.status, response.statusText);
+      }
+      if (!this.isJsonResponse(response)) {
+        throw new ResponseNotJsonError();
+      }
+      const data = await response.json();
+
+      const parsingResult = this.schemas.update.safeParse(data);
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+
+      return [parsingResult.data, null];
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
+  @log
+  async updateMany(
+    updates: Array<{id: string; data: UpdatePayload}>,
+    requestConfig?: RequestInit,
+  ): Promise<TResult<z.output<UpdateResult>>> {
+    try {
+      const response = await this.request(
+        `${this.getBaseRequestPath()}/batch`,
+        this.mergeRequestConfig(
+          {
+            method: 'PUT',
+            headers: new Headers(
+              requestConfig?.headers || {
+                'Content-Type': 'application/json',
+              },
+            ),
+            credentials: 'include',
+            body: JSON.stringify({updates}),
           },
           requestConfig,
         ),

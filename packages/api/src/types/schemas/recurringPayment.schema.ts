@@ -52,6 +52,25 @@ export const CreateOrUpdateRecurringPaymentPayload = RecurringPayment.pick({
   information: RecurringPayment.shape.information.optional(),
 });
 
+export const BatchCreateRecurringPaymentPayload = z.array(CreateOrUpdateRecurringPaymentPayload).min(1).max(100);
+export const BatchUpdateRecurringPaymentPayload = z
+  .object({
+    updates: z
+      .array(
+        z.object({
+          id: RecurringPayment.shape.id,
+          data: CreateOrUpdateRecurringPaymentPayload.partial(),
+        }),
+      )
+      .min(1)
+      .max(100),
+  })
+  .superRefine(({updates}, ctx) => {
+    if (new Set(updates.map(update => update.id)).size !== updates.length) {
+      ctx.addIssue({code: 'custom', path: ['updates'], message: 'Update IDs must be unique'});
+    }
+  });
+
 export const GetAllRecurringPaymentsResponse = ApiResponse.extend({
   data: z.array(ExpandedRecurringPayment).nullable(),
 });
@@ -62,6 +81,8 @@ export const CreateRecurringPaymentResponse = ApiResponse.extend({
   data: z.array(RecurringPayment).nullable(),
 });
 export const UpdateRecurringPaymentResponse = CreateRecurringPaymentResponse;
+export const BatchCreateRecurringPaymentResponse = CreateRecurringPaymentResponse;
+export const BatchUpdateRecurringPaymentResponse = UpdateRecurringPaymentResponse;
 export const DeleteRecurringPaymentResponse = CreateRecurringPaymentResponse;
 export const ExecuteRecurringPaymentResponse = ApiResponse.extend({
   data: Transaction.nullable(),

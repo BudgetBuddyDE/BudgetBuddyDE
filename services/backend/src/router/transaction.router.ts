@@ -21,6 +21,7 @@ import {logger} from '../lib';
 import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
+import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
 
 export const transactionRouter = Router();
 const upload = multer({
@@ -442,6 +443,168 @@ transactionRouter.post(
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Transaction created successfully')
         .withData(createdRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+transactionRouter.post(
+  '/batch',
+  validateRequest({
+    body: createBatchSchema(
+      TransactionSchemas.insert.omit({ownerId: true, processedAt: true}).extend({processedAt: z.coerce.date()}),
+    ),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const categoryIds = [...new Set(req.body.map(body => body.categoryId))];
+    const paymentMethodIds = [...new Set(req.body.map(body => body.paymentMethodId))];
+    const [categoriesOwned, paymentMethodsOwned] = await Promise.all([
+      hasAllOwnedIds(userId, categoryIds, async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, paymentMethodIds, async (owner, ids) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+    ]);
+    if (!categoriesOwned || !paymentMethodsOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories or payment methods are invalid')
+        .buildAndSend(res);
+      return;
+    }
+
+    try {
+      const createdRecords = await db.transaction(async tx => {
+        const records = await tx
+          .insert(transactions)
+          .values(req.body.map(body => ({...body, ownerId: userId})))
+          .returning();
+        if (records.length !== req.body.length)
+          throw new Error('Batch transaction create returned an unexpected row count');
+        return records;
+      });
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Transactions created successfully')
+        .withData(createdRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+transactionRouter.put(
+  '/batch',
+  validateRequest({
+    body: updateBatchSchema(
+      TransactionSchemas.select.shape.id,
+      TransactionSchemas.update
+        .omit({ownerId: true, id: true, createdAt: true, updatedAt: true, processedAt: true})
+        .extend({processedAt: z.coerce.date().optional()}),
+    ),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const updates = req.body.updates as Array<{id: string; data: z.infer<typeof TransactionSchemas.update>}>;
+    const ids = updates.map(update => update.id);
+    const categoryIds = [
+      ...new Set(updates.flatMap(update => (update.data.categoryId ? [update.data.categoryId] : []))),
+    ];
+    const paymentMethodIds = [
+      ...new Set(updates.flatMap(update => (update.data.paymentMethodId ? [update.data.paymentMethodId] : []))),
+    ];
+    const [owned, categoriesOwned, paymentMethodsOwned] = await Promise.all([
+      hasAllOwnedIds(userId, ids, async (owner, targetIds) =>
+        db.query.transactions.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, categoryIds, async (owner, targetIds) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, paymentMethodIds, async (owner, targetIds) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+          },
+        }),
+      ),
+    ]);
+    if (!owned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage('One or more transactions were not found')
+        .buildAndSend(res);
+      return;
+    }
+    if (!categoriesOwned || !paymentMethodsOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories or payment methods are invalid')
+        .buildAndSend(res);
+      return;
+    }
+
+    try {
+      const updatedRecords = await db.transaction(tx =>
+        applyBatchUpdates(
+          tx,
+          updates,
+          async (transaction, update) => {
+            const [record] = await transaction
+              .update(transactions)
+              .set({...update.data, ownerId: userId})
+              .where(and(eq(transactions.ownerId, userId), eq(transactions.id, update.id)))
+              .returning();
+            return record;
+          },
+          update => `Transaction ${update.id} could not be updated`,
+        ),
+      );
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Transactions updated successfully')
+        .withData(updatedRecords)
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {

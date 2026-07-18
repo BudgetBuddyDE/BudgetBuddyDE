@@ -2,6 +2,7 @@
 
 import {CreateOrUpdateCategoryPayload, type TCategory} from '@budgetbuddyde/api/category';
 import AddRounded from '@mui/icons-material/AddRounded';
+import EditRounded from '@mui/icons-material/EditRounded';
 import MergeRounded from '@mui/icons-material/MergeRounded';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
@@ -19,6 +20,7 @@ import {AddFab, FabContainer} from '@/components/FAB';
 import {serializeKeywordFilter} from '@/components/Filter';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {
+  BatchEntityDialog,
   type ColumnDefinition,
   EntityMenu,
   type EntitySlice,
@@ -36,6 +38,13 @@ import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
+import {
+  columns as categoryBatchColumns,
+  createEmptyRow as createEmptyCategoryRow,
+  fromEntity as categoryDraftFromEntity,
+  mapRowsToPayload as mapCategoryRowsToPayload,
+  type DraftRow as CategoryDraftRow,
+} from './categoryBatchAdapter';
 import {MergeCategoriesDialog, type MergeCategoriesForm} from '../MergeCategoriesDialog';
 
 type EntityFormFields = FirstLevelNullable<Pick<TCategory, 'id' | 'name' | 'description'>>;
@@ -75,6 +84,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     deleteDialogReducer,
     getInitialDeleteDialogState<TCategory['id']>(),
   );
+  const [batchDialogState, setBatchDialogState] = React.useState<{
+    open: boolean;
+    mode: 'CREATE' | 'EDIT';
+    initialRows: CategoryDraftRow[];
+  }>({open: false, mode: 'CREATE', initialRows: []});
+  const [isBatchSubmitting, setIsBatchSubmitting] = React.useState(false);
 
   const closeEntityDrawer = () => {
     dispatchDrawerAction({type: 'CLOSE'});
@@ -83,6 +98,44 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
   const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({type: 'OPEN', action: 'CREATE'});
   }, []);
+
+  const handleCreateMultiple = React.useCallback(() => {
+    setBatchDialogState({open: true, mode: 'CREATE', initialRows: [createEmptyCategoryRow()]});
+  }, []);
+
+  const handleEditSelected = React.useCallback((entities: TCategory[]) => {
+    setBatchDialogState({
+      open: true,
+      mode: 'EDIT',
+      initialRows: entities.map(categoryDraftFromEntity),
+    });
+  }, []);
+
+  const handleBatchSubmit = React.useCallback(
+    async (payload: Array<Parameters<typeof apiClient.backend.category.createMany>[0][number]>) => {
+      setIsBatchSubmitting(true);
+      try {
+        const result =
+          batchDialogState.mode === 'CREATE'
+            ? await apiClient.backend.category.createMany(payload)
+            : await apiClient.backend.category.updateMany(
+                payload.map((data, index) => ({id: batchDialogState.initialRows[index]?.id ?? '', data})),
+              );
+        if (result[1]) {
+          throw new Error(result[1].message);
+        }
+        showSnackbar({
+          message:
+            batchDialogState.mode === 'CREATE' ? 'Categories created successfully' : 'Categories updated successfully',
+        });
+        dispatch(refresh());
+        setBatchDialogState(current => ({...current, open: false}));
+      } finally {
+        setIsBatchSubmitting(false);
+      }
+    },
+    [batchDialogState, dispatch, refresh, showSnackbar],
+  );
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
@@ -297,6 +350,11 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
   const selectionActions: SelectionAction<TCategory>[] = React.useMemo(() => {
     return [
       {
+        icon: <EditRounded fontSize="small" />,
+        label: 'Edit selected',
+        onClick: handleEditSelected,
+      },
+      {
         icon: <MergeRounded fontSize={'small'} />,
         label: 'Merge',
         onClick(categories) {
@@ -310,7 +368,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         },
       },
     ];
-  }, []);
+  }, [handleEditSelected]);
 
   // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
@@ -349,6 +407,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
               label: 'Create',
               onClick: handleCreateEntity,
             },
+            {
+              id: 'create-multiple-categories',
+              icon: <AddRounded />,
+              label: 'Create multiple',
+              onClick: handleCreateMultiple,
+            },
           ],
         }}
         onRowClick={handleClickEntity}
@@ -364,6 +428,19 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+      />
+
+      <BatchEntityDialog<CategoryDraftRow, Parameters<typeof apiClient.backend.category.createMany>[0][number]>
+        open={batchDialogState.open}
+        title={batchDialogState.mode === 'CREATE' ? 'Create categories' : 'Edit categories'}
+        mode={batchDialogState.mode}
+        initialRows={batchDialogState.initialRows}
+        columns={categoryBatchColumns()}
+        createEmptyRow={createEmptyCategoryRow}
+        mapRowsToPayload={mapCategoryRowsToPayload}
+        onSubmit={handleBatchSubmit}
+        onClose={() => setBatchDialogState(current => ({...current, open: false}))}
+        isSubmitting={isBatchSubmitting}
       />
 
       <EntityDrawer<EntityFormFields>

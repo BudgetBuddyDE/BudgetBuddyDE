@@ -7,6 +7,7 @@ import {db} from '../db';
 import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
+import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
 
 export const paymentMethodRouter = Router();
 
@@ -159,6 +160,105 @@ paymentMethodRouter.get(
       .withData(records)
       .withFrom('db')
       .buildAndSend(res);
+  },
+);
+
+paymentMethodRouter.post(
+  '/batch',
+  validateRequest({
+    body: createBatchSchema(PaymentMethodSchemas.insert.omit({ownerId: true})),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    try {
+      const createdRecords = await db.transaction(async tx => {
+        const records = await tx
+          .insert(paymentMethods)
+          .values(req.body.map(body => ({...body, ownerId: userId})))
+          .returning();
+        if (records.length !== req.body.length)
+          throw new Error('Batch payment method create returned an unexpected row count');
+        return records;
+      });
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Payment methods created successfully')
+        .withData(createdRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+paymentMethodRouter.put(
+  '/batch',
+  validateRequest({
+    body: updateBatchSchema(
+      PaymentMethodSchemas.select.shape.id,
+      PaymentMethodSchemas.update.omit({ownerId: true, id: true, createdAt: true, updatedAt: true}),
+    ),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const updates = req.body.updates as Array<{id: string; data: z.infer<typeof PaymentMethodSchemas.update>}>;
+    const ids = updates.map(update => update.id);
+    const owned = await hasAllOwnedIds(userId, ids, async (owner, targetIds) =>
+      db.query.paymentMethods.findMany({
+        columns: {id: true},
+        where(fields, operators) {
+          return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+        },
+      }),
+    );
+    if (!owned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage('One or more payment methods were not found')
+        .buildAndSend(res);
+      return;
+    }
+
+    try {
+      const updatedRecords = await db.transaction(tx =>
+        applyBatchUpdates(
+          tx,
+          updates,
+          async (transaction, update) => {
+            const [record] = await transaction
+              .update(paymentMethods)
+              .set({...update.data, ownerId: userId})
+              .where(and(eq(paymentMethods.ownerId, userId), eq(paymentMethods.id, update.id)))
+              .returning();
+            return record;
+          },
+          update => `Payment method ${update.id} could not be updated`,
+        ),
+      );
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Payment methods updated successfully')
+        .withData(updatedRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
   },
 );
 

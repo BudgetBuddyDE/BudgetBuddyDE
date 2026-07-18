@@ -8,6 +8,7 @@ import z from 'zod';
 import {db} from '../db';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
+import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
 export const recurringPaymentRouter = Router();
@@ -115,6 +116,170 @@ recurringPaymentRouter.get(
       .withData(records)
       .withFrom('db')
       .buildAndSend(res);
+  },
+);
+
+recurringPaymentRouter.post(
+  '/batch',
+  validateRequest({
+    body: createBatchSchema(
+      RecurringPaymentSchemas.insert.omit({ownerId: true}).extend({
+        executeAt: z.coerce.number().int().min(1).max(31),
+      }),
+    ),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const categoryIds = [...new Set(req.body.map(body => body.categoryId))];
+    const paymentMethodIds = [...new Set(req.body.map(body => body.paymentMethodId))];
+    const [categoriesOwned, paymentMethodsOwned] = await Promise.all([
+      hasAllOwnedIds(userId, categoryIds, async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, paymentMethodIds, async (owner, ids) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+    ]);
+    if (!categoriesOwned || !paymentMethodsOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories or payment methods are invalid')
+        .buildAndSend(res);
+      return;
+    }
+
+    try {
+      const createdRecords = await db.transaction(async tx => {
+        const records = await tx
+          .insert(recurringPayments)
+          .values(req.body.map(body => ({...body, ownerId: userId})))
+          .returning();
+        if (records.length !== req.body.length)
+          throw new Error('Batch recurring payment create returned an unexpected row count');
+        return records;
+      });
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Recurring payments created successfully')
+        .withData(createdRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
+  },
+);
+
+recurringPaymentRouter.put(
+  '/batch',
+  validateRequest({
+    body: updateBatchSchema(
+      RecurringPaymentSchemas.select.shape.id,
+      RecurringPaymentSchemas.update.omit({ownerId: true, id: true, createdAt: true, updatedAt: true}).extend({
+        executeAt: z.coerce.number().int().min(1).max(31).optional(),
+      }),
+    ),
+  }),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const updates = req.body.updates as Array<{id: string; data: z.infer<typeof RecurringPaymentSchemas.update>}>;
+    const ids = updates.map(update => update.id);
+    const categoryIds = [
+      ...new Set(updates.flatMap(update => (update.data.categoryId ? [update.data.categoryId] : []))),
+    ];
+    const paymentMethodIds = [
+      ...new Set(updates.flatMap(update => (update.data.paymentMethodId ? [update.data.paymentMethodId] : []))),
+    ];
+    const [owned, categoriesOwned, paymentMethodsOwned] = await Promise.all([
+      hasAllOwnedIds(userId, ids, async (owner, targetIds) =>
+        db.query.recurringPayments.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, categoryIds, async (owner, targetIds) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, paymentMethodIds, async (owner, targetIds) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
+          },
+        }),
+      ),
+    ]);
+    if (!owned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage('One or more recurring payments were not found')
+        .buildAndSend(res);
+      return;
+    }
+    if (!categoriesOwned || !paymentMethodsOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories or payment methods are invalid')
+        .buildAndSend(res);
+      return;
+    }
+
+    try {
+      const updatedRecords = await db.transaction(tx =>
+        applyBatchUpdates(
+          tx,
+          updates,
+          async (transaction, update) => {
+            const [record] = await transaction
+              .update(recurringPayments)
+              .set({...update.data, ownerId: userId})
+              .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, update.id)))
+              .returning();
+            return record;
+          },
+          update => `Recurring payment ${update.id} could not be updated`,
+        ),
+      );
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.OK)
+        .withMessage('Recurring payments updated successfully')
+        .withData(updatedRecords)
+        .withFrom('db')
+        .buildAndSend(res);
+    } catch (err) {
+      ApiResponse.builder()
+        .fromError(err instanceof Error ? err : new Error(String(err)))
+        .buildAndSend(res);
+    }
   },
 );
 
