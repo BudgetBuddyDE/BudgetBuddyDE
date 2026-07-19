@@ -15,7 +15,7 @@ export const IconBackground = styled(Box)<{
   width: '40px',
   height: 'auto',
   aspectRatio: '1/1',
-  backgroundColor: alpha(iconColor ? theme.palette[iconColor].main : theme.palette.primary.main, 0.2),
+  backgroundColor: alpha(iconColor ? theme.palette[iconColor].main : theme.palette.primary.main, 0.1),
   color: iconColor ? theme.palette[iconColor].main : theme.palette.primary.main,
   borderRadius: `${Number(theme.shape.borderRadius) * 0.75}px`,
 }));

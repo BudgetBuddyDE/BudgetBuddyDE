@@ -10,8 +10,10 @@ export type ImageComponentProps = Omit<ImageProps, 'alt' | 'width' | 'height'> &
   sx?: SxProps<Theme>;
 };
 
-function NextImageBase({alt = '', width = 100, height = 100, ...props}: ImageComponentProps) {
-  return <NextImage alt={alt} width={width} height={height} {...props} />;
+function NextImageBase({alt = '', width, height, fill, ...props}: ImageComponentProps) {
+  if (fill) return <NextImage alt={alt} fill {...props} />;
+
+  return <NextImage alt={alt} width={width ?? 100} height={height ?? 100} {...props} />;
 }
 
 export const Image = styled(NextImageBase)(({theme}) => ({

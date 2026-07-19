@@ -16,7 +16,10 @@ export default async function AttachmentsPage() {
   );
 
   return (
-    <ContentGrid title="Attachments" description="All your transaction attachments in one place">
+    <ContentGrid
+      title={`Attachments (${attachments.length}/${result?.totalCount ?? 0})`}
+      description="All your transaction attachments in one place"
+    >
       <Grid size={{xs: 12}}>
         {error ? <ErrorAlert error={error} /> : null}
         <React.Suspense

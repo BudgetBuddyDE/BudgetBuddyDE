@@ -1,28 +1,19 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
+import {ImageRounded} from '@mui/icons-material';
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import ImageNotSupportedRounded from '@mui/icons-material/ImageNotSupportedRounded';
-import VisibilityRounded from '@mui/icons-material/VisibilityRounded';
-import {
-  alpha,
-  Box,
-  type BoxProps,
-  IconButton,
-  Skeleton,
-  Stack,
-  type SxProps,
-  type Theme,
-  Tooltip,
-  Typography,
-  useTheme,
-} from '@mui/material';
+import {alpha, Box, type BoxProps, Skeleton, Stack, Tooltip, Typography, useTheme} from '@mui/material';
 import type React from 'react';
 import {memo, useState} from 'react';
 import {Card} from '@/components/Card';
 import {Image} from '@/components/Image';
 import {Formatter} from '@/utils/Formatter';
+import {ActionButton} from './ActionButton';
+import {Icon} from '../Icon';
+import {PreviewPill} from './PreviewPill';
 
 export type AttachmentActionProps = Omit<BoxProps, 'onClick'> & {
   attachment: TAttachmentWithUrl;
@@ -31,39 +22,20 @@ export type AttachmentActionProps = Omit<BoxProps, 'onClick'> & {
   onDelete?: (attachment: TAttachmentWithUrl) => void;
 };
 
-const AttachmentActions: React.FC<AttachmentActionProps> = ({
-  attachment,
-  onView,
-  onDownload,
-  onDelete,
-  ...boxProps
-}) => {
-  return (
-    <Box className={'attachment-actions'} {...boxProps}>
-      {onView && (
-        <Tooltip title="View">
-          <IconButton size="small" onClick={() => onView(attachment)} sx={{color: 'white'}}>
-            <VisibilityRounded fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      )}
-      {onDownload && (
-        <Tooltip title="Download">
-          <IconButton size="small" onClick={() => onDownload(attachment)} sx={{color: 'white'}}>
-            <DownloadRounded fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      )}
-      {onDelete && (
-        <Tooltip title="Delete">
-          <IconButton size="small" onClick={() => onDelete(attachment)} sx={{color: 'white'}}>
-            <DeleteRounded fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      )}
-    </Box>
-  );
-};
+const AttachmentActions: React.FC<AttachmentActionProps> = ({attachment, onDownload, onDelete, ...boxProps}) => (
+  <Box className="attachment-actions" {...boxProps}>
+    {onDownload && (
+      <ActionButton label="Download" onClick={() => onDownload(attachment)}>
+        <DownloadRounded />
+      </ActionButton>
+    )}
+    {onDelete && (
+      <ActionButton label="Delete" onClick={() => onDelete(attachment)}>
+        <DeleteRounded />
+      </ActionButton>
+    )}
+  </Box>
+);
 
 /** Props for {@link AttachmentThumbnail}. */
 export type AttachmentThumbnailProps = {
@@ -93,39 +65,35 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
     const [imgError, setImgError] = useState(false);
     const [imgLoaded, setImgLoaded] = useState(false);
 
-    const ImageContainerSx: SxProps<Theme> = {
-      width: '100%',
-      height: 132,
-      borderRadius: 2,
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 0,
-    };
-
     return (
-      <Card sx={{position: 'relative', p: 0, '&:hover .attachment-actions': {opacity: 1, transform: 'translateY(0)'}}}>
-        <Card.Header>
+      <Card
+        sx={{
+          position: 'relative',
+          p: 0,
+          overflow: 'hidden',
+          backgroundColor: 'background.paper',
+          '&:hover .attachment-preview, &:focus-within .attachment-preview': {
+            opacity: 1,
+            transform: 'translateY(0)',
+          },
+        }}
+      >
+        <Box sx={{position: 'relative', aspectRatio: '4 / 3', overflow: 'hidden'}}>
           {imgError ? (
             <Box
               sx={{
-                ...ImageContainerSx,
-                flex: 1,
+                height: '100%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.light, 0.16)})`,
               }}
             >
-              <ImageNotSupportedRounded color="disabled" />
+              <ImageNotSupportedRounded color="disabled" sx={{fontSize: 40}} />
             </Box>
           ) : (
-            <Box sx={{position: 'relative', ...ImageContainerSx}}>
-              {/* Per-card shimmer: disappears individually as each image decodes */}
-              {!imgLoaded && (
-                <Skeleton
-                  variant="rectangular"
-                  sx={{position: 'absolute', inset: 0, width: '100%', height: '100%', borderRadius: 0, zIndex: 1}}
-                />
-              )}
+            <>
+              {!imgLoaded && <Skeleton variant="rectangular" sx={{position: 'absolute', inset: 0, zIndex: 1}} />}
               <Image
                 src={attachment.signedUrl}
                 alt={attachment.fileName}
@@ -141,48 +109,45 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
                   transition: 'opacity 0.25s ease',
                 }}
               />
-            </Box>
+              <Box
+                className="attachment-preview"
+                sx={{
+                  position: 'absolute',
+                  right: 16,
+                  bottom: 16,
+                  zIndex: 2,
+                  opacity: 0,
+                  transform: 'translateY(4px)',
+                  transition: 'opacity 0.2s ease, transform 0.2s ease',
+                }}
+              >
+                <PreviewPill attachment={attachment} onClick={onView} />
+              </Box>
+            </>
           )}
-        </Card.Header>
-        <Card.Body>
-          <Stack>
+        </Box>
+
+        <Stack direction="row" alignItems="center" spacing={1.25} sx={{px: 1.5, py: 1.25, minWidth: 0}}>
+          <Icon icon={<ImageRounded />} sx={{flex: '0 0 auto'}} />
+          <Stack spacing={0.25} sx={{minWidth: 0, flex: 1}}>
             <Tooltip title={attachment.fileName}>
-              <Typography variant="caption" noWrap sx={{px: 1, color: 'text.primary'}}>
+              <Typography variant="body2" fontWeight={700} noWrap>
                 {attachment.fileName}
               </Typography>
             </Tooltip>
-            <Typography variant="caption" color="text.secondary" sx={{px: 1, pb: 1}}>
-              {Formatter.date.format(attachment.createdAt, true)} • {attachment.fileExtension.toUpperCase()}
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {Formatter.date.format(attachment.createdAt, true)}
             </Typography>
           </Stack>
-        </Card.Body>
-        <Card.Footer>
           {!imgError && (
             <AttachmentActions
-              sx={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                opacity: 0,
-                transform: 'translateY(-4px)',
-                transition: 'opacity 0.2s ease, transform 0.2s ease',
-                // Simple semi-transparent bg instead of backdrop-filter:blur – avoids
-                // creating GPU compositor layers for every card (major lag source at 30+).
-                backgroundColor: alpha(theme.palette.common.black, 0.64),
-                borderRadius: 1,
-                px: 0.5,
-                py: 0.25,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-              }}
+              sx={{display: 'flex', alignItems: 'center', flex: '0 0 auto'}}
               attachment={attachment}
-              onView={onView}
               onDownload={onDownload}
               onDelete={onDelete}
             />
           )}
-        </Card.Footer>
+        </Stack>
       </Card>
     );
   },
