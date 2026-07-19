@@ -1,7 +1,6 @@
 'use client';
 
 import AddIcon from '@mui/icons-material/AddRounded';
-import ReceiptIcon from '@mui/icons-material/ReceiptRounded';
 import {Box, Chip, type ChipProps, CircularProgress, IconButton} from '@mui/material';
 import type React from 'react';
 import {Card} from '@/components/Card';
@@ -11,6 +10,7 @@ import {ListWithIcon} from '@/components/ListWithIcon';
 import {NoResults} from '@/components/NoResults';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import type {EntityListProps} from '@/components/Transaction/TransactionList';
+import {EntityIcon} from '@/lib/ibn';
 import {Formatter} from '@/utils/Formatter';
 
 export type RecurringPaymentListProps = EntityListProps<{
@@ -75,7 +75,7 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
             return (
               <ListWithIcon
                 key={recurringPayment.ID}
-                icon={<ReceiptIcon />}
+                icon={<EntityIcon entity="recurringPayment" />}
                 title={recurringPayment.receiver}
                 subtitle={
                   <Box>

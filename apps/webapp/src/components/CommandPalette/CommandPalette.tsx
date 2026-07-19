@@ -26,220 +26,201 @@ const commandMatchesQuery = (command: Command, query: string) => {
   return haystack.includes(q);
 };
 
+const SECTION_ORDER: Record<string, number> = {
+  Navigation: 0,
+  Actions: 1,
+  Settings: 2,
+  Session: 3,
+};
+
 export const CommandPalette: React.FC = () => {
   const {open, setOpen, commands} = useCommandPalette();
   const [query, setQuery] = React.useState('');
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [focusMode, setFocusMode] = React.useState<'input' | 'list'>('input');
-  const [resolverCommand, setResolverCommand] = React.useState<Command | null>(null);
-  const [resolverResults, setResolverResults] = React.useState<Command[]>([]);
+  const [levels, setLevels] = React.useState<Array<{label: string; commands: Command[]}>>([]);
+  const [activeCommand, setActiveCommand] = React.useState<Command | null>(null);
+  const [resolvedCommands, setResolvedCommands] = React.useState<Command[]>([]);
   const [isResolving, setIsResolving] = React.useState(false);
-  const resolverRequestRef = React.useRef(0);
+  const requestRef = React.useRef(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const isResolverMode = resolverCommand !== null;
-
+  const currentCommands = levels.at(-1)?.commands ?? commands;
+  const isResolverMode = activeCommand !== null;
   const filteredCommands = React.useMemo(() => {
-    if (isResolverMode) return resolverResults;
-    return commands.filter(command => commandMatchesQuery(command, query));
-  }, [commands, isResolverMode, query, resolverResults]);
-
+    if (isResolverMode) return resolvedCommands;
+    return currentCommands.filter(command => commandMatchesQuery(command, query));
+  }, [currentCommands, isResolverMode, query, resolvedCommands]);
   const groupedCommands = React.useMemo(() => {
-    const map = new Map<string, Command[]>();
-    for (const c of filteredCommands) {
-      const groupName = c.section ?? 'General';
-      const groupCommands = map.get(groupName) ?? [];
-      groupCommands.push(c);
-      map.set(groupName, groupCommands);
+    const groups = new Map<string, Command[]>();
+    for (const command of filteredCommands) {
+      const section = command.section ?? 'General';
+      const group = groups.get(section) ?? [];
+      group.push(command);
+      groups.set(section, group);
     }
-    return Array.from(map.entries());
+    return Array.from(groups.entries()).sort(
+      ([firstSection], [secondSection]) =>
+        (SECTION_ORDER[firstSection] ?? Number.MAX_SAFE_INTEGER) -
+        (SECTION_ORDER[secondSection] ?? Number.MAX_SAFE_INTEGER),
+    );
   }, [filteredCommands]);
+  const flatCommands = filteredCommands.filter(command => command.onSelect || command.resolve || command.children);
 
-  const flatCommands = React.useMemo(
-    () => filteredCommands.filter(command => command.onSelect || command.resolve),
-    [filteredCommands],
-  );
-
-  const resetNavigationState = React.useCallback(() => {
+  const resetNavigation = React.useCallback(() => {
     setSelectedIndex(-1);
     setFocusMode('input');
   }, []);
-
-  const exitResolverMode = React.useCallback(() => {
-    setResolverCommand(null);
-    setResolverResults([]);
-    setIsResolving(false);
+  const resetFlow = React.useCallback(() => {
+    setLevels([]);
+    setActiveCommand(null);
+    setResolvedCommands([]);
     setQuery('');
-    resetNavigationState();
-    inputRef.current?.focus();
-  }, [resetNavigationState]);
+    resetNavigation();
+  }, [resetNavigation]);
+  const goBack = React.useCallback(() => {
+    if (activeCommand) {
+      setActiveCommand(null);
+      setResolvedCommands([]);
+    } else if (levels.length) {
+      setLevels(previous => previous.slice(0, -1));
+    } else {
+      setOpen(false);
+    }
+    setQuery('');
+    resetNavigation();
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, [activeCommand, levels.length, resetNavigation, setOpen]);
 
-  const handleSelectCommand = React.useCallback(
-    (cmdId: string) => {
-      const cmd = flatCommands.find(c => c.id === cmdId);
-      if (!cmd) return;
-
-      if (cmd.resolve) {
-        setResolverCommand(cmd);
-        setResolverResults([]);
+  const selectCommand = React.useCallback(
+    (id: string) => {
+      const command = flatCommands.find(item => item.id === id);
+      if (!command) return;
+      if (command.children) {
+        setLevels(previous => [...previous, {label: command.label, commands: command.children ?? []}]);
         setQuery('');
-        resetNavigationState();
+        resetNavigation();
         requestAnimationFrame(() => inputRef.current?.focus());
         return;
       }
-
-      if (!cmd.onSelect) return;
-
-      setOpen(false);
-
-      // Execute after close for smoother UX
-      setTimeout(() => {
-        // Clear search query in order to provide a fresh start when the palette is reopened
+      if (command.resolve) {
+        setActiveCommand(command);
+        setResolvedCommands([]);
         setQuery('');
-        setResolverCommand(null);
-        setResolverResults([]);
-        // Reset navigation state
-        resetNavigationState();
-        cmd.onSelect?.();
+        resetNavigation();
+        requestAnimationFrame(() => inputRef.current?.focus());
+        return;
+      }
+      if (!command.onSelect) return;
+      setOpen(false);
+      setTimeout(() => {
+        resetFlow();
+        void command.onSelect?.();
       }, 100);
     },
-    [flatCommands, resetNavigationState, setOpen],
+    [flatCommands, resetFlow, resetNavigation, setOpen],
   );
-
-  const executeSelectedCommand = React.useCallback(() => {
-    if (selectedIndex >= 0 && selectedIndex < flatCommands.length) {
-      const cmd = flatCommands[selectedIndex];
-      handleSelectCommand(cmd.id);
-    }
-  }, [flatCommands, handleSelectCommand, selectedIndex]);
+  const executeSelected = React.useCallback(() => {
+    if (focusMode === 'list' && selectedIndex >= 0) selectCommand(flatCommands[selectedIndex]?.id ?? '');
+  }, [flatCommands, focusMode, selectCommand, selectedIndex]);
 
   React.useEffect(() => {
-    if (!resolverCommand?.resolve) return;
-
-    const requestId = resolverRequestRef.current + 1;
-    resolverRequestRef.current = requestId;
+    if (!activeCommand?.resolve) return;
+    const requestId = ++requestRef.current;
     setIsResolving(true);
-
-    Promise.resolve(resolverCommand.resolve(query))
+    Promise.resolve(activeCommand.resolve(query))
       .then(results => {
-        if (resolverRequestRef.current !== requestId) return;
-        setResolverResults(results);
+        if (requestRef.current === requestId) setResolvedCommands(results);
       })
       .catch(() => {
-        if (resolverRequestRef.current !== requestId) return;
-        setResolverResults([]);
+        if (requestRef.current === requestId) setResolvedCommands([]);
       })
       .finally(() => {
-        if (resolverRequestRef.current === requestId) setIsResolving(false);
+        if (requestRef.current === requestId) setIsResolving(false);
       });
-  }, [query, resolverCommand]);
+  }, [activeCommand, query]);
 
-  // Reset selection when filtered commands change
+  React.useEffect(() => resetNavigation(), [filteredCommands, resetNavigation]);
   React.useEffect(() => {
-    resetNavigationState();
-  }, [filteredCommands, resetNavigationState]);
-
-  // Reset when dialog opens/closes
-  React.useEffect(() => {
-    if (open) {
-      setQuery('');
-      setResolverCommand(null);
-      setResolverResults([]);
-      setIsResolving(false);
-      resetNavigationState();
-    }
-  }, [open, resetNavigationState]);
-
+    if (!open) resetFlow();
+  }, [open, resetFlow]);
   React.useEffect(() => {
     if (!open) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          if (focusMode === 'input') {
-            // Move from input to first item
-            if (flatCommands.length > 0) {
-              setFocusMode('list');
-              setSelectedIndex(0);
-            }
-          } else {
-            // Navigate down in list
-            setSelectedIndex(prev => (prev < flatCommands.length - 1 ? prev + 1 : prev));
-          }
-          break;
-
-        case 'ArrowUp':
-          e.preventDefault();
-          if (focusMode === 'list') {
-            if (selectedIndex <= 0) {
-              // Move back to input
-              setFocusMode('input');
-              setSelectedIndex(-1);
-              inputRef.current?.focus();
-            } else {
-              // Navigate up in list
-              setSelectedIndex(prev => prev - 1);
-            }
-          }
-          break;
-
-        case 'Enter':
-          e.preventDefault();
-          if (focusMode === 'list' && selectedIndex >= 0) {
-            executeSelectedCommand();
-          }
-          break;
-
-        case 'Escape':
-          e.preventDefault();
-          if (isResolverMode) {
-            exitResolverMode();
-          } else {
-            setOpen(false);
-          }
-          break;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Backspace' && !query && (levels.length > 0 || activeCommand)) {
+        event.preventDefault();
+        goBack();
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        goBack();
+        return;
+      }
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (focusMode === 'input' && flatCommands.length) {
+          setFocusMode('list');
+          setSelectedIndex(0);
+        } else setSelectedIndex(index => Math.min(index + 1, flatCommands.length - 1));
+      } else if (event.key === 'ArrowUp' && focusMode === 'list') {
+        event.preventDefault();
+        if (selectedIndex <= 0) {
+          setFocusMode('input');
+          setSelectedIndex(-1);
+          inputRef.current?.focus();
+        } else setSelectedIndex(index => index - 1);
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        executeSelected();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, [
-    executeSelectedCommand,
-    exitResolverMode,
+    activeCommand,
+    executeSelected,
     flatCommands.length,
     focusMode,
-    isResolverMode,
+    goBack,
+    levels.length,
     open,
+    query,
     selectedIndex,
-    setOpen,
   ]);
+
+  const title = levels.length ? 'Choose entity' : activeCommand ? activeCommand.label : 'Commands';
+  const placeholder =
+    activeCommand?.placeholder ??
+    (activeCommand
+      ? `Search ${activeCommand.label.toLowerCase()}`
+      : levels.length
+        ? 'Search entity...'
+        : 'Search commands...');
+  const breadcrumb = [...levels.map(level => level.label), activeCommand?.label].filter(Boolean).join('  ›  ');
 
   return (
     <Dialog
       open={open}
       onClose={() => setOpen(false)}
-      scroll={'paper'}
+      scroll="paper"
       fullWidth
       maxWidth="sm"
-      slotProps={{
-        paper: {elevation: 0},
-      }}
-      sx={{
-        '& .MuiDialog-container': {
-          alignItems: 'center',
-        },
-      }}
+      slotProps={{paper: {elevation: 0}}}
+      sx={{'& .MuiDialog-container': {alignItems: 'center'}}}
     >
       <DialogContent sx={{p: 0}}>
         <Box sx={{p: 2, borderBottom: t => `1px solid ${t.palette.divider}`}}>
+          <Typography variant="caption" sx={{display: 'block', mb: 1, opacity: 0.7}}>
+            {breadcrumb || title}
+          </Typography>
           <TextField
             ref={inputRef}
             autoFocus
             fullWidth
-            placeholder={isResolverMode ? `Search ${resolverCommand.label.toLowerCase()}` : 'Search an action...'}
+            placeholder={placeholder}
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={event => setQuery(event.target.value)}
             onFocus={() => setFocusMode('input')}
             slotProps={{
               input: {
@@ -252,7 +233,6 @@ export const CommandPalette: React.FC = () => {
             }}
           />
         </Box>
-
         <Box sx={{maxHeight: 400, overflowY: 'auto'}}>
           {isResolving && (
             <List dense disablePadding>
@@ -263,39 +243,36 @@ export const CommandPalette: React.FC = () => {
               </ListItem>
             </List>
           )}
-          {!isResolving && groupedCommands.length === 0 && isResolverMode && (
+          {!isResolving && !groupedCommands.length && isResolverMode && (
             <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
-                  <ListItemText primary={resolverCommand.emptyLabel ?? 'No matching targets'} />
+                  <ListItemText primary={activeCommand.emptyLabel ?? 'No matching records'} />
                 </ListItemButton>
               </ListItem>
             </List>
           )}
-          {!isResolving && groupedCommands.length === 0 && !isResolverMode && (
+          {!isResolving && !groupedCommands.length && !isResolverMode && (
             <NoResults text={`No results for '${query}'!`} sx={{m: 2}} />
           )}
           {!isResolving &&
-            groupedCommands.map(([section, items], idx, arr) => (
+            groupedCommands.map(([section, items], groupIndex) => (
               <Box key={section}>
                 <Typography variant="overline" sx={{px: 2, pt: 1, display: 'block', opacity: 0.7}}>
                   {section}
                 </Typography>
                 <List dense disablePadding>
                   {items.map(item => {
-                    const itemIndex = flatCommands.findIndex(cmd => cmd.id === item.id);
-                    const isSelected = focusMode === 'list' && selectedIndex === itemIndex;
-
+                    const itemIndex = flatCommands.findIndex(command => command.id === item.id);
+                    const selected = focusMode === 'list' && selectedIndex === itemIndex;
                     return (
                       <ListItem key={item.id} disablePadding>
                         <ListItemButton
-                          onClick={() => handleSelectCommand(item.id)}
-                          selected={isSelected}
+                          onClick={() => selectCommand(item.id)}
+                          selected={selected}
                           sx={{
-                            backgroundColor: isSelected ? 'action.selected' : 'transparent',
-                            '&:hover': {
-                              backgroundColor: 'action.hover',
-                            },
+                            backgroundColor: selected ? 'action.selected' : 'transparent',
+                            '&:hover': {backgroundColor: 'action.hover'},
                           }}
                         >
                           {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
@@ -305,9 +282,51 @@ export const CommandPalette: React.FC = () => {
                     );
                   })}
                 </List>
-                {idx !== arr.length - 1 && <Divider />}
+                {groupIndex !== groupedCommands.length - 1 && <Divider />}
               </Box>
             ))}
+        </Box>
+        <Box
+          component="footer"
+          aria-label="Keyboard shortcuts"
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1.5,
+            alignItems: 'center',
+            px: 2,
+            py: 1.25,
+            borderTop: t => `1px solid ${t.palette.divider}`,
+            color: 'text.secondary',
+            typography: 'caption',
+          }}
+        >
+          {[
+            ['↑↓', 'Navigate'],
+            ['↵', 'Select'],
+            ['Esc', 'Back'],
+            ['⌫', 'Back'],
+          ].map(([key, label]) => (
+            <Box key={`${key}-${label}`} component="span" sx={{display: 'inline-flex', alignItems: 'center', gap: 0.5}}>
+              <Box
+                component="kbd"
+                sx={{
+                  minWidth: key.length > 1 ? '2.25rem' : '1.5rem',
+                  px: 0.5,
+                  py: 0.125,
+                  border: t => `1px solid ${t.palette.divider}`,
+                  borderRadius: 0.75,
+                  backgroundColor: 'action.hover',
+                  fontFamily: 'inherit',
+                  textAlign: 'center',
+                  lineHeight: 1.4,
+                }}
+              >
+                {key}
+              </Box>
+              <Box component="span">{label}</Box>
+            </Box>
+          ))}
         </Box>
       </DialogContent>
     </Dialog>

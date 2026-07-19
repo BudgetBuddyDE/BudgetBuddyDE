@@ -2,11 +2,11 @@
 
 import DashboardRounded from '@mui/icons-material/DashboardRounded';
 import InsightsRounded from '@mui/icons-material/InsightsRounded';
-import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded';
 import {ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
+import {EntityIcon} from '@/lib/ibn';
 
 export const DashboardViewMapping = {
   '/dashboard': {
@@ -25,7 +25,7 @@ export const DashboardViewMapping = {
 
 export const DashboardViewIconMapping: Record<keyof typeof DashboardViewMapping, React.ReactNode | undefined> = {
   '/dashboard': <DashboardRounded />,
-  '/dashboard/budget': <TrendingUpRounded />,
+  '/dashboard/budget': <EntityIcon entity="budget" />,
   '/dashboard/insights': <InsightsRounded />,
 };
 

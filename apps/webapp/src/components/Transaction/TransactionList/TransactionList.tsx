@@ -1,7 +1,6 @@
 'use client';
 
 import AddIcon from '@mui/icons-material/AddRounded';
-import ReceiptIcon from '@mui/icons-material/ReceiptRounded';
 import {Box, Chip, type ChipProps, IconButton} from '@mui/material';
 import type React from 'react';
 
@@ -10,6 +9,7 @@ import {CategoryChip} from '@/components/Category/CategoryChip';
 import {ListWithIcon} from '@/components/ListWithIcon';
 import {NoResults} from '@/components/NoResults';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
+import {EntityIcon} from '@/lib/ibn';
 import {Formatter} from '@/utils/Formatter';
 
 export type EntityListProps<T> = {
@@ -75,7 +75,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           data.map(transaction => (
             <ListWithIcon
               key={transaction.ID}
-              icon={<ReceiptIcon />}
+              icon={<EntityIcon entity="transaction" />}
               title={transaction.receiver}
               subtitle={
                 <Box>

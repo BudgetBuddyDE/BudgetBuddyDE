@@ -1,12 +1,12 @@
 'use client';
 
 import type {TTransaction} from '@budgetbuddyde/api/transaction';
-import AttachFileRounded from '@mui/icons-material/AttachFileRounded';
 import {Box, Button, Grid, Skeleton, Typography} from '@mui/material';
 import type React from 'react';
 import {AttachmentLightbox, AttachmentThumbnail, FileDropZone} from '@/components/Attachments';
 import {DeleteDialog} from '@/components/Dialog';
 import {NoResults} from '@/components/NoResults';
+import {EntityIcon} from '@/lib/ibn';
 import {useTransactionAttachments} from './useTransactionAttachments';
 
 /** Props for {@link TransactionAttachments}. */
@@ -91,7 +91,7 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
           )}
         </>
       ) : (
-        <NoResults icon={<AttachFileRounded />} text={'No attachments yet'} />
+        <NoResults icon={<EntityIcon entity="attachment" />} text={'No attachments yet'} />
       )}
 
       <AttachmentLightbox

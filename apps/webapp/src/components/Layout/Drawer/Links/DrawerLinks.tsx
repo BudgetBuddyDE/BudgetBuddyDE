@@ -1,9 +1,5 @@
-import AttachFileRounded from '@mui/icons-material/AttachFileRounded';
-import LabelIcon from '@mui/icons-material/LabelRounded';
-import PaymentsIcon from '@mui/icons-material/PaymentsRounded';
-import ReceiptRounded from '@mui/icons-material/ReceiptRounded';
-import ScheduleSendIcon from '@mui/icons-material/ScheduleSendRounded';
 import {DashboardViewIconMapping} from '@/app/(dashboard)/dashboard/DashboardNavigation';
+import {EntityIcon} from '@/lib/ibn';
 
 export const DrawerLinks = [
   {
@@ -14,26 +10,26 @@ export const DrawerLinks = [
   {
     text: 'Transactions',
     path: '/transactions',
-    icon: <ReceiptRounded />,
+    icon: <EntityIcon entity="transaction" />,
   },
   {
     text: 'Recurring Payments',
     path: '/recurringPayments',
-    icon: <ScheduleSendIcon />,
+    icon: <EntityIcon entity="recurringPayment" />,
   },
   {
     text: 'Payment Methods',
     path: '/paymentMethods',
-    icon: <PaymentsIcon />,
+    icon: <EntityIcon entity="paymentMethod" />,
   },
   {
     text: 'Categories',
     path: '/categories',
-    icon: <LabelIcon />,
+    icon: <EntityIcon entity="category" />,
   },
   {
     text: 'Attachments',
     path: '/attachments',
-    icon: <AttachFileRounded />,
+    icon: <EntityIcon entity="attachment" />,
   },
 ].filter(Boolean);

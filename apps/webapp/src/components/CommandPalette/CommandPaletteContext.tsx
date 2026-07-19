@@ -11,6 +11,8 @@ export type Command = {
   keywords?: string[];
   onSelect?: () => void | Promise<void>;
   resolve?: (query: string) => Command[] | Promise<Command[]>;
+  children?: Command[];
+  placeholder?: string;
   emptyLabel?: string;
 };
 

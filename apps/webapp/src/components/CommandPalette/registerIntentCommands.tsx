@@ -1,16 +1,12 @@
 'use client';
 
-import AttachFileRounded from '@mui/icons-material/AttachFileRounded';
-import CategoryRounded from '@mui/icons-material/CategoryRounded';
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import EditRounded from '@mui/icons-material/EditRounded';
-import KeyRounded from '@mui/icons-material/KeyRounded';
-import PaymentsRounded from '@mui/icons-material/PaymentsRounded';
-import ReceiptRounded from '@mui/icons-material/ReceiptRounded';
-import SavingsRounded from '@mui/icons-material/SavingsRounded';
 import React from 'react';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {
+  EntityIcon,
+  IBN_ENTITIES,
   IBN_TARGETS,
   searchIntentTargets,
   type Intent,
@@ -21,16 +17,6 @@ import {
 } from '@/lib/ibn';
 import {type Command, useCommandPalette} from './CommandPaletteContext';
 
-const iconByEntity: Record<IntentEntity, React.ReactNode> = {
-  transaction: <ReceiptRounded />,
-  recurringPayment: <PaymentsRounded />,
-  paymentMethod: <PaymentsRounded />,
-  category: <CategoryRounded />,
-  budget: <SavingsRounded />,
-  attachment: <AttachFileRounded />,
-  apiKey: <KeyRounded />,
-};
-
 const createIntentByEntity: Partial<Record<IntentEntity, Intent>> = {
   transaction: {entity: 'transaction', action: 'create'},
   recurringPayment: {entity: 'recurringPayment', action: 'create'},
@@ -39,18 +25,6 @@ const createIntentByEntity: Partial<Record<IntentEntity, Intent>> = {
   budget: {entity: 'budget', action: 'create'},
   apiKey: {entity: 'apiKey', action: 'create'},
 };
-
-const createEntities = ['transaction', 'recurringPayment', 'paymentMethod', 'category', 'budget', 'apiKey'] as const;
-const editEntities = ['transaction', 'recurringPayment', 'paymentMethod', 'category', 'budget'] as const;
-const deleteEntities = [
-  'transaction',
-  'recurringPayment',
-  'paymentMethod',
-  'category',
-  'budget',
-  'attachment',
-  'apiKey',
-] as const;
 
 const buildEntityIntent = (
   entity: IntentEntity,
@@ -95,79 +69,84 @@ export const RegisterIntentCommands: React.FC = () => {
   const {showSnackbar} = useSnackbarContext();
 
   React.useEffect(() => {
-    const resolveTargets =
-      (entity: IntentEntity, action: Extract<IntentAction, 'edit' | 'delete'>) => async (query: string) => {
-        try {
-          const targets = await searchIntentTargets(entity, query);
-          return targets.map(target => targetToLeafCommand(entity, action, target, navigateIntent));
-        } catch (error) {
-          const message = error instanceof Error ? error.message : 'Failed to load targets';
-          showSnackbar({message});
-          return [];
-        }
-      };
-
-    const commands: Command[] = [
-      ...createEntities.map(entity => ({
-        id: `ibn-create-${entity}`,
-        label: `Create ${IBN_TARGETS[entity].label}`,
-        section: 'Create',
-        icon: iconByEntity[entity],
-        keywords: [IBN_TARGETS[entity].pluralLabel, entity],
-        onSelect: () => {
-          const intent = createIntentByEntity[entity];
-          if (intent) navigateIntent(intent);
-        },
-      })),
-      {
-        id: 'ibn-create-attachment',
-        label: 'Create Attachment...',
-        section: 'Create',
-        icon: iconByEntity.attachment,
-        keywords: ['upload', 'file', 'transaction'],
-        emptyLabel: 'No matching transactions',
+    const entityCommand = (entity: IntentEntity, action: IntentAction): Command => {
+      const config = IBN_TARGETS[entity];
+      if (action === 'create' && entity !== 'attachment') {
+        return {
+          id: `ibn-${action}-${entity}`,
+          label: config.label,
+          section: 'Entities',
+          icon: <EntityIcon entity={entity} />,
+          keywords: [config.pluralLabel, entity],
+          onSelect: () => {
+            const intent = createIntentByEntity[entity];
+            if (intent) navigateIntent(intent);
+          },
+        };
+      }
+      const resolvedEntity = entity === 'attachment' ? 'transaction' : entity;
+      return {
+        id: `ibn-${action}-${entity}`,
+        label: config.label,
+        section: 'Entities',
+        icon: <EntityIcon entity={entity} />,
+        keywords: [config.pluralLabel, entity],
+        placeholder: `Search ${config.label.toLowerCase()}...`,
+        emptyLabel: `No matching ${config.pluralLabel.toLowerCase()}`,
         resolve: async query => {
           try {
-            const targets = await searchIntentTargets('transaction', query);
-            return targets.map(target => ({
-              id: `ibn-create-attachment-${target.id}`,
-              label: target.label,
-              shortcut: target.description,
-              section: IBN_TARGETS.transaction.pluralLabel,
-              keywords: target.keywords,
-              onSelect: () =>
-                navigateIntent({
-                  entity: 'attachment',
-                  action: 'create',
-                  parentEntity: 'transaction',
-                  parentId: target.id,
-                }),
-            }));
+            const targets = await searchIntentTargets(resolvedEntity, query);
+            return targets.map(target =>
+              entity === 'attachment'
+                ? {
+                    id: `ibn-create-attachment-${target.id}`,
+                    label: target.label,
+                    shortcut: target.description,
+                    section: config.pluralLabel,
+                    keywords: target.keywords,
+                    onSelect: () =>
+                      navigateIntent({
+                        entity: 'attachment',
+                        action: 'create',
+                        parentEntity: 'transaction',
+                        parentId: target.id,
+                      }),
+                  }
+                : targetToLeafCommand(
+                    entity,
+                    action as Extract<IntentAction, 'edit' | 'delete'>,
+                    target,
+                    navigateIntent,
+                  ),
+            );
           } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to load transactions';
-            showSnackbar({message});
+            showSnackbar({message: error instanceof Error ? error.message : 'Failed to load targets'});
             return [];
           }
         },
+      };
+    };
+
+    const entitiesFor = (action: IntentAction) =>
+      IBN_ENTITIES.filter(entity =>
+        IBN_TARGETS[entity].actions.some(availableAction => availableAction === action),
+      ).map(entity => entityCommand(entity, action));
+    const commands: Command[] = [
+      {
+        id: 'ibn-create',
+        label: 'Create...',
+        section: 'Actions',
+        icon: <EntityIcon entity="transaction" />,
+        children: entitiesFor('create'),
       },
-      ...editEntities.map(entity => ({
-        id: `ibn-edit-${entity}`,
-        label: `Edit ${IBN_TARGETS[entity].label}...`,
-        section: 'Edit',
-        icon: <EditRounded />,
-        keywords: [IBN_TARGETS[entity].pluralLabel, entity],
-        emptyLabel: `No matching ${IBN_TARGETS[entity].pluralLabel.toLowerCase()}`,
-        resolve: resolveTargets(entity, 'edit'),
-      })),
-      ...deleteEntities.map(entity => ({
-        id: `ibn-delete-${entity}`,
-        label: `Delete ${IBN_TARGETS[entity].label}...`,
-        section: 'Delete',
+      {id: 'ibn-edit', label: 'Edit...', section: 'Actions', icon: <EditRounded />, children: entitiesFor('edit')},
+      {
+        id: 'ibn-delete',
+        label: 'Delete...',
+        section: 'Actions',
         icon: <DeleteRounded />,
-        keywords: [IBN_TARGETS[entity].pluralLabel, entity, 'remove'],
-        emptyLabel: `No matching ${IBN_TARGETS[entity].pluralLabel.toLowerCase()}`,
-        resolve: resolveTargets(entity, 'delete'),
-      })),
+        children: entitiesFor('delete'),
+      },
     ];
 
     register(commands);

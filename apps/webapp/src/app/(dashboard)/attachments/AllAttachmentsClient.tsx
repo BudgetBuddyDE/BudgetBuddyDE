@@ -1,7 +1,6 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import AttachFileRounded from '@mui/icons-material/AttachFileRounded';
 import {Button, Grid} from '@mui/material';
 import type React from 'react';
 import {useCallback, useMemo, useState} from 'react';
@@ -10,7 +9,7 @@ import {AttachmentLightbox, AttachmentThumbnail} from '@/components/Attachments'
 import {DeleteDialog} from '@/components/Dialog';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {useConsumeIntent} from '@/lib/ibn';
+import {EntityIcon, useConsumeIntent} from '@/lib/ibn';
 
 const PAGE_SIZE = 20;
 
@@ -114,7 +113,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({initi
   return (
     <>
       {attachments.length === 0 ? (
-        <NoResults icon={<AttachFileRounded />} text="No attachments have been added yet" />
+        <NoResults icon={<EntityIcon entity="attachment" />} text="No attachments have been added yet" />
       ) : (
         <Grid container spacing={2}>
           {visibleAttachments.map((attachment, index) => (
