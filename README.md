@@ -45,13 +45,14 @@ Monorepo powered by [Turbo](https://turbo.build/).
 ### Apps
 
 - **[Webapp](apps/webapp):** The main application for managing your budget.
-- **[Website](apps/website):** The landing page.`
-- **[Documentation](apps/documentation):** The documentation.`
+- **[Website](apps/website):** The landing page.
+- **[Documentation](apps/documentation):** The documentation.
 
 ### Services
 
 - **[Auth Service](./apps/documentation/docs/services/auth-service.md):** Handles user authentication and authorization.
 - **[Backend](./apps/documentation/docs/services/backend.md):** The main backend service providing the API.
+- **[MCP](./apps/documentation/docs/services/mcp.md):** MCP service for interacting with the backend in combination with LLMs.
 
 ### Packages
 

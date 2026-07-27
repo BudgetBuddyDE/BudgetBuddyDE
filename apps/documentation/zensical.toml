@@ -68,7 +68,6 @@ nav = [
             "services/api-keys.md",
             "services/backend.md",
             {"Monitoring" = [
-                "monitoring/grafana.md",
                 "monitoring/open-telemetry.md",
             ]}
         ]},
@@ -94,7 +93,6 @@ nav = [
         ]}
     ]},
     {"Monitoring" = [
-        "monitoring/grafana.md",
         "monitoring/open-telemetry.md",
     ]}
 ]
