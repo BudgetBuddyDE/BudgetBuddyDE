@@ -21,26 +21,27 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.storageapi.dev',
       },
-      // Allow any HTTP/HTTPS host so self-hosted MinIO / local dev works out of the box.
-      // Scope is limited to the /attachment path prefix.
+      // Local development with self-hosted MinIO.
       {
-        protocol: 'https',
-        hostname: '**',
+        protocol: 'http',
+        hostname: 'localhost',
         pathname: '/**',
       },
       {
         protocol: 'http',
-        hostname: '**',
+        hostname: '127.0.0.1',
         pathname: '/**',
       },
+      ...(process.env.ATTACHMENT_STORAGE_HOST
+        ? [
+            {
+              protocol: 'https',
+              hostname: process.env.ATTACHMENT_STORAGE_HOST,
+              pathname: '/**',
+            },
+          ]
+        : []),
     ],
-  },
-  env: {
-    NEXT_TELEMETRY_DISABLED: '1',
-    NEXT_PUBLIC_APP_VERSION: packageJson.version,
-  },
-  eslint: {
-    ignoreDuringBuilds: true
   },
   transpilePackages: ["better-auth"],
   turbopack: {
