@@ -7,9 +7,10 @@ import {headers} from '@/lib/headers';
 import {AllAttachmentsClient} from './AllAttachmentsClient';
 
 export default async function AttachmentsPage() {
-  const [result, error] = await apiClient.backend.transaction.getAllTransactionAttachments(undefined, {
-    headers: await headers(),
-  });
+  const [result, error] = await apiClient.backend.transaction.getAllTransactionAttachments(
+    {from: 0, to: 20},
+    {headers: await headers()},
+  );
 
   const attachments = [...(result?.data ?? [])].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -34,7 +35,12 @@ export default async function AttachmentsPage() {
             </Grid>
           }
         >
-          {!error && <AllAttachmentsClient initialAttachments={attachments} />}
+          {!error && (
+            <AllAttachmentsClient
+              initialAttachments={attachments}
+              initialTotalCount={result?.totalCount ?? attachments.length}
+            />
+          )}
         </React.Suspense>
       </Grid>
     </ContentGrid>

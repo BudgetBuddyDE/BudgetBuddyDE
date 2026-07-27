@@ -15,6 +15,7 @@ const PAGE_SIZE = 20;
 
 export type AllAttachmentsClientProps = {
   initialAttachments: TAttachmentWithUrl[];
+  initialTotalCount?: number;
 };
 
 /**
@@ -24,15 +25,20 @@ export type AllAttachmentsClientProps = {
  * Renders at most PAGE_SIZE thumbnails at a time to keep the initial paint
  * fast; a "Load more" button reveals the next batch.
  */
-export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({initialAttachments}) => {
+export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
+  initialAttachments,
+  initialTotalCount = initialAttachments.length,
+}) => {
   const {showSnackbar} = useSnackbarContext();
   const [attachments, setAttachments] = useState(initialAttachments);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [viewedAttachment, setViewedAttachment] = useState<TAttachmentWithUrl | null>(null);
   const [deletingAttachmentId, setDeletingAttachmentId] = useState<TAttachmentWithUrl['id'] | null>(null);
 
   const visibleAttachments = useMemo(() => attachments.slice(0, visibleCount), [attachments, visibleCount]);
-  const hasMore = visibleCount < attachments.length;
+  const hasMore = attachments.length < totalCount;
 
   const handleView = useCallback((attachment: TAttachmentWithUrl) => {
     setViewedAttachment(attachment);
@@ -71,9 +77,27 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({initi
     setAttachments(prev => prev.filter(a => a.id !== id));
   }, [deletingAttachmentId, showSnackbar]);
 
-  const handleLoadMore = useCallback(() => {
-    setVisibleCount(prev => Math.min(prev + PAGE_SIZE, attachments.length));
-  }, [attachments.length]);
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || attachments.length >= totalCount) return;
+
+    const from = attachments.length;
+    setIsLoadingMore(true);
+    const [result, error] = await apiClient.backend.transaction.getAllTransactionAttachments({
+      from,
+      to: from + PAGE_SIZE,
+    });
+    setIsLoadingMore(false);
+
+    if (error) {
+      showSnackbar({message: `Failed to load more attachments: ${error.message}`});
+      return;
+    }
+
+    const nextAttachments = result?.data ?? [];
+    setAttachments(prev => [...prev, ...nextAttachments]);
+    setTotalCount(result?.totalCount ?? totalCount);
+    setVisibleCount(prev => prev + nextAttachments.length);
+  }, [attachments.length, isLoadingMore, showSnackbar, totalCount]);
 
   const handleLightboxClose = useCallback(() => {
     setViewedAttachment(null);
@@ -129,8 +153,8 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({initi
           ))}
           {hasMore && (
             <Grid size={{xs: 12}} sx={{display: 'flex', justifyContent: 'center', pt: 1}}>
-              <Button variant="outlined" onClick={handleLoadMore}>
-                Load more ({attachments.length - visibleCount} remaining)
+              <Button variant="outlined" onClick={handleLoadMore} disabled={isLoadingMore}>
+                {isLoadingMore ? 'Loading…' : `Load more (${totalCount - attachments.length} remaining)`}
               </Button>
             </Grid>
           )}
