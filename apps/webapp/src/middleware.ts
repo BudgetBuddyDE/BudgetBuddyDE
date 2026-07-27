@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(SIGN_IN_ROUTE, request.url));
   }
 
-  middlewareLogger.debug('Session %s retrieved for user %s', data?.session.token, data?.user.id, meta);
+  middlewareLogger.debug('Authenticated session retrieved', meta);
   return NextResponse.next();
 }
 
