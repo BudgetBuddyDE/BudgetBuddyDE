@@ -10,13 +10,17 @@ import {
   type TReceiverVH,
   type TTransaction,
 } from '@budgetbuddyde/api/transaction';
-import AddRounded from '@mui/icons-material/AddRounded';
-import EditRounded from '@mui/icons-material/EditRounded';
-import {Button, Chip, createFilterOptions, InputAdornment, Stack, Typography} from '@mui/material';
+import {
+  AddRounded as AddRoundedIcon,
+  EditRounded as EditRoundedIcon,
+  UploadFile as UploadFileIcon,
+} from '@mui/icons-material';
+import {Button, Chip, createFilterOptions, IconButton, InputAdornment, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
+import {ActionPaper} from '@/components/ActionPaper';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -603,14 +607,25 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         label: 'Attachments',
         align: 'left',
         width: 136,
-        renderCell: (_value, row) => (
-          <TransactionAttachmentPreviewStrip
-            attachments={row.attachments}
-            attachmentCount={row.attachmentCount}
-            previewLimit={4}
-            onClick={() => setAttachmentsDialog({open: true, transaction: row})}
-          />
-        ),
+        renderCell: (_value, row) =>
+          row.attachmentCount && row.attachmentCount > 0 ? (
+            <TransactionAttachmentPreviewStrip
+              attachments={row.attachments}
+              attachmentCount={row.attachmentCount}
+              previewLimit={4}
+              onClick={() => setAttachmentsDialog({open: true, transaction: row})}
+            />
+          ) : (
+            <ActionPaper sx={{width: 'min-content'}}>
+              <IconButton
+                onClick={() => {
+                  setAttachmentsDialog({open: true, transaction: row});
+                }}
+              >
+                <UploadFileIcon color={'primary'} />
+              </IconButton>
+            </ActionPaper>
+          ),
       },
       {
         key: 'id' as keyof TExpandedTransaction,
@@ -624,16 +639,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             handleDeleteEntity={({id}) => {
               dispatchDeleteDialogAction({action: 'OPEN', target: id});
             }}
-            actions={[
-              {
-                children: (
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    Attachments
-                  </Stack>
-                ),
-                onClick: () => setAttachmentsDialog({open: true, transaction: row}),
-              },
-            ]}
           />
         ),
       },
@@ -690,13 +695,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           actions: [
             {
               id: 'create-transaction',
-              icon: <AddRounded />,
+              icon: <AddRoundedIcon />,
               label: 'Create',
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-transactions',
-              icon: <AddRounded />,
+              icon: <AddRoundedIcon />,
               label: 'Create multiple',
               onClick: handleCreateMultiple,
             },
@@ -719,7 +724,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         }}
         selectionActions={[
           {
-            icon: <EditRounded fontSize="small" />,
+            icon: <EditRoundedIcon fontSize="small" />,
             label: 'Edit selected',
             onClick: handleEditSelected,
           },
