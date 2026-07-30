@@ -93,7 +93,7 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
             </Box>
           ) : (
             <>
-              {!imgLoaded && <Skeleton variant="rectangular" sx={{position: 'absolute', inset: 0, zIndex: 1}} />}
+              {!imgLoaded && <Skeleton variant="rectangular" sx={{zIndex: 1, width: '100%', height: '100%'}} />}
               <Image
                 src={attachment.signedUrl}
                 alt={attachment.fileName}

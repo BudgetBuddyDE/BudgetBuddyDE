@@ -17,17 +17,13 @@ export default async function AttachmentsPage() {
   );
 
   return (
-    <ContentGrid
-      title={`Attachments (${attachments.length}/${result?.totalCount ?? 0})`}
-      description="All your transaction attachments in one place"
-    >
+    <ContentGrid title={'Attachments'} description="All your transaction attachments in one place">
       <Grid size={{xs: 12}}>
         {error ? <ErrorAlert error={error} /> : null}
         <React.Suspense
           fallback={
             <Grid container spacing={2}>
               {[...Array(6)].map((_, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: Skeletons have no meaningful key
                 <Grid key={i} size={{xs: 12, sm: 6, md: 4}}>
                   <Skeleton variant="rectangular" height={200} sx={{borderRadius: 1}} />
                 </Grid>
