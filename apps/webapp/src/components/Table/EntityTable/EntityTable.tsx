@@ -19,6 +19,7 @@ import {
   type Theme,
   Typography,
 } from '@mui/material';
+import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {ErrorAlert} from '@/components/ErrorAlert';
@@ -86,6 +87,32 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
   const hasError = !!(error && (typeof error === 'object' || (typeof error === 'string' && error.length > 0)));
   const errorMessage = error instanceof Error ? error.message : error;
   const displayCount = totalCount ?? data.length;
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
+
+  const updatePaginationUrl = React.useCallback(
+    (page: number, rowsPerPage: number) => {
+      const params = new URLSearchParams(searchParamsString);
+      params.set('page', String(page));
+      params.set('pageSize', String(rowsPerPage));
+      router.replace(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, searchParamsString],
+  );
+
+  React.useEffect(() => {
+    if (!pagination) return;
+
+    const page = Number.parseInt(searchParams.get('page') ?? '', 10);
+    const pageSize = Number.parseInt(searchParams.get('pageSize') ?? '', 10);
+    if (Number.isInteger(page) && page >= 0 && page !== pagination.page) pagination.onPageChange(page);
+    if (Number.isInteger(pageSize) && pageSize > 0 && pageSize !== pagination.rowsPerPage) {
+      pagination.onRowsPerPageChange(pageSize);
+    }
+  }, [pagination, searchParams]);
 
   const [selectedIds, setSelectedIds] = React.useState<Set<T[K]>>(new Set());
 
@@ -286,8 +313,14 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
               page={pagination.page}
               rowsPerPage={pagination.rowsPerPage}
               rowsPerPageOptions={pagination.rowsPerPageOptions}
-              onPageChange={pagination.onPageChange}
-              onRowsPerPageChange={pagination.onRowsPerPageChange}
+              onPageChange={page => {
+                updatePaginationUrl(page, pagination.rowsPerPage);
+                pagination.onPageChange(page);
+              }}
+              onRowsPerPageChange={rowsPerPage => {
+                updatePaginationUrl(pagination.page, rowsPerPage);
+                pagination.onRowsPerPageChange(rowsPerPage);
+              }}
             />
           </ActionPaper>
         </Box>
