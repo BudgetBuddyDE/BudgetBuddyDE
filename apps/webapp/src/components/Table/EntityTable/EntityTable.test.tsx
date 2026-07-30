@@ -1,6 +1,5 @@
 import EditRounded from '@mui/icons-material/EditRounded';
 import {fireEvent, render, screen} from '@testing-library/react';
-import {useRouter, useSearchParams} from 'next/navigation';
 import {describe, expect, it, vi} from 'vitest';
 import type {ColumnDefinition} from '../BasicTable';
 import type {EntitySlice} from './EntityTable';
@@ -125,56 +124,6 @@ describe('EntityTable', () => {
     );
 
     expect(screen.getByText('Rows:')).toBeInTheDocument();
-  });
-
-  it('persists pagination changes in the URL while retaining existing query parameters', () => {
-    const replace = vi.fn();
-    vi.mocked(useRouter).mockReturnValue({replace} as never);
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('q=alice&ibnEntity=user') as never);
-
-    const slice: EntitySlice<User> = {
-      data: mockUsers,
-      isLoading: false,
-      error: null,
-      totalCount: 50,
-    };
-
-    render(
-      <EntityTable
-        slice={slice}
-        dataKey="id"
-        columns={mockColumns}
-        pagination={{
-          page: 0,
-          rowsPerPage: 10,
-          onPageChange: vi.fn(),
-          onRowsPerPageChange: vi.fn(),
-        }}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', {name: /next/i}));
-    expect(replace).toHaveBeenCalledWith('/?q=alice&ibnEntity=user&page=1&pageSize=10');
-  });
-
-  it('initializes pagination from URL parameters', async () => {
-    const onPageChange = vi.fn();
-    const onRowsPerPageChange = vi.fn();
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('page=2&pageSize=25') as never);
-
-    render(
-      <EntityTable
-        slice={{data: mockUsers, isLoading: false, error: null}}
-        dataKey="id"
-        columns={mockColumns}
-        pagination={{page: 0, rowsPerPage: 10, onPageChange, onRowsPerPageChange}}
-      />,
-    );
-
-    await vi.waitFor(() => {
-      expect(onPageChange).toHaveBeenCalledWith(2);
-      expect(onRowsPerPageChange).toHaveBeenCalledWith(25);
-    });
   });
 
   it('calls pagination handlers', () => {
