@@ -43,8 +43,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.62.0",
     "react-redux": "^9.2.0",
-    "zod": "^4.0.14",
-    "zustand": "^5.0.7"
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
