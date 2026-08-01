@@ -27,9 +27,5 @@ export const Avatar: React.FC<TAvatarProps> = props => {
   if (data.user.image) {
     return <MuiAvatar src={data.user.image} variant="rounded" {...props} sx={style} />;
   }
-  return (
-    <MuiAvatar variant="rounded" {...props} sx={style}>
-      {data?.user.name.substring(0, 2).toUpperCase()}
-    </MuiAvatar>
-  );
+  return <MuiAvatar src={`/api/avatar?seed=${data.user.email}`} variant="rounded" {...props} sx={style} />;
 };
