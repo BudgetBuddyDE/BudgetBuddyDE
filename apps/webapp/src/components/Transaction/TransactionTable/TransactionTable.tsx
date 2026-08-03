@@ -14,6 +14,7 @@ import {
   AddRounded as AddRoundedIcon,
   EditRounded as EditRoundedIcon,
   UploadFile as UploadFileIcon,
+  PostAddRounded as CreateMultipleIcon,
 } from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, IconButton, InputAdornment, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
@@ -701,7 +702,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             },
             {
               id: 'create-multiple-transactions',
-              icon: <AddRoundedIcon />,
+              icon: <CreateMultipleIcon />,
               label: 'Create multiple',
               onClick: handleCreateMultiple,
             },

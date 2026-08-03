@@ -9,8 +9,11 @@ import {
   type TRecurringPayment,
 } from '@budgetbuddyde/api/recurringPayment';
 import {ReceiverVH, type TReceiverVH} from '@budgetbuddyde/api/transaction';
-import AddRounded from '@mui/icons-material/AddRounded';
-import EditRounded from '@mui/icons-material/EditRounded';
+import {
+  AddRounded as AddIcon,
+  EditRounded as EditIcon,
+  PostAddRounded as CreateMultipleIcon,
+} from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, InputAdornment, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -705,13 +708,13 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           actions: [
             {
               id: 'create-recurring-payment',
-              icon: <AddRounded />,
+              icon: <AddIcon />,
               label: 'Create',
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-recurring-payments',
-              icon: <AddRounded />,
+              icon: <CreateMultipleIcon />,
               label: 'Create multiple',
               onClick: handleCreateMultiple,
             },
@@ -738,7 +741,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         }}
         selectionActions={[
           {
-            icon: <EditRounded fontSize="small" />,
+            icon: <EditIcon fontSize="small" />,
             label: 'Edit selected',
             onClick: handleEditSelected,
           },

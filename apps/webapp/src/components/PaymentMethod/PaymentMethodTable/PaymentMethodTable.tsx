@@ -1,9 +1,12 @@
 'use client';
 
 import {CreateOrUpdatePaymentMethodPayload, type TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
-import AddRounded from '@mui/icons-material/AddRounded';
-import EditRounded from '@mui/icons-material/EditRounded';
-import MergeRounded from '@mui/icons-material/MergeRounded';
+import {
+  AddRounded as AddIcon,
+  EditRounded as EditIcon,
+  MergeRounded as MergeIcon,
+  PostAddRounded as CreateMultipleIcon,
+} from '@mui/icons-material';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -344,12 +347,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
   const selectionActions: SelectionAction<TPaymentMethod>[] = React.useMemo(() => {
     return [
       {
-        icon: <EditRounded fontSize="small" />,
+        icon: <EditIcon fontSize="small" />,
         label: 'Edit selected',
         onClick: handleEditSelected,
       },
       {
-        icon: <MergeRounded fontSize="small" />,
+        icon: <MergeIcon fontSize="small" />,
         label: 'Merge',
         onClick(paymentMethods) {
           dispatchMergeDrawerAction({
@@ -397,13 +400,13 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
           actions: [
             {
               id: 'create-payment-method',
-              icon: <AddRounded />,
+              icon: <AddIcon />,
               label: 'Create',
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-payment-methods',
-              icon: <AddRounded />,
+              icon: <CreateMultipleIcon />,
               label: 'Create multiple',
               onClick: handleCreateMultiple,
             },

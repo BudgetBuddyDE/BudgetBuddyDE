@@ -1,9 +1,12 @@
 'use client';
 
 import {CreateOrUpdateCategoryPayload, type TCategory} from '@budgetbuddyde/api/category';
-import AddRounded from '@mui/icons-material/AddRounded';
-import EditRounded from '@mui/icons-material/EditRounded';
-import MergeRounded from '@mui/icons-material/MergeRounded';
+import {
+  AddRounded as AddIcon,
+  EditRounded as EditIcon,
+  MergeRounded as MergeIcon,
+  PostAddRounded as CreateMultipleIcon,
+} from '@mui/icons-material';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
@@ -352,12 +355,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
   const selectionActions: SelectionAction<TCategory>[] = React.useMemo(() => {
     return [
       {
-        icon: <EditRounded fontSize="small" />,
+        icon: <EditIcon fontSize="small" />,
         label: 'Edit selected',
         onClick: handleEditSelected,
       },
       {
-        icon: <MergeRounded fontSize={'small'} />,
+        icon: <MergeIcon fontSize={'small'} />,
         label: 'Merge',
         onClick(categories) {
           dispatchMergeDrawerAction({
@@ -405,13 +408,13 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           actions: [
             {
               id: 'create-category',
-              icon: <AddRounded />,
+              icon: <AddIcon />,
               label: 'Create',
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-categories',
-              icon: <AddRounded />,
+              icon: <CreateMultipleIcon />,
               label: 'Create multiple',
               onClick: handleCreateMultiple,
             },
