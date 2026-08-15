@@ -1,7 +1,6 @@
-
-import path from "path";
-import { fileURLToPath } from "url";
-import packageJson from "./package.json" with { type: "json" };
+/* global process */
+import path from 'path';
+import {fileURLToPath} from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,7 +42,7 @@ const nextConfig = {
         : []),
     ],
   },
-  transpilePackages: ["better-auth"],
+  transpilePackages: ['better-auth'],
   turbopack: {
     resolveAlias: {
       'better-auth/react$': path.resolve(__dirname, 'node_modules/better-auth/dist/client/react/index.cjs'),

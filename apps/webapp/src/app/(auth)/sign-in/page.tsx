@@ -20,8 +20,14 @@ export default function SignInPage() {
   const emailFromQuery = searchParams?.get('email') || '';
 
   async function onSubmit(formData: FormData) {
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const emailValue = formData.get('email');
+    const passwordValue = formData.get('password');
+    if (typeof emailValue !== 'string' || typeof passwordValue !== 'string') {
+      showSnackbar({message: 'Please enter a valid email address and password.'});
+      return;
+    }
+    const email = emailValue;
+    const password = passwordValue;
 
     await authClient.signIn.email({
       email,

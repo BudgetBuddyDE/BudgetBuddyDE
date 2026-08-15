@@ -42,6 +42,7 @@ export const CommandPalette: React.FC = () => {
   const [activeCommand, setActiveCommand] = React.useState<Command | null>(null);
   const [resolvedCommands, setResolvedCommands] = React.useState<Command[]>([]);
   const [isResolving, setIsResolving] = React.useState(false);
+  const [resolveError, setResolveError] = React.useState<Error | null>(null);
   const requestRef = React.useRef(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -128,12 +129,16 @@ export const CommandPalette: React.FC = () => {
     if (!activeCommand?.resolve) return;
     const requestId = ++requestRef.current;
     setIsResolving(true);
+    setResolveError(null);
     Promise.resolve(activeCommand.resolve(query))
       .then(results => {
         if (requestRef.current === requestId) setResolvedCommands(results);
       })
-      .catch(() => {
-        if (requestRef.current === requestId) setResolvedCommands([]);
+      .catch(error => {
+        if (requestRef.current === requestId) {
+          setResolvedCommands([]);
+          setResolveError(error instanceof Error ? error : new Error(String(error)));
+        }
       })
       .finally(() => {
         if (requestRef.current === requestId) setIsResolving(false);
@@ -251,6 +256,11 @@ export const CommandPalette: React.FC = () => {
                 </ListItemButton>
               </ListItem>
             </List>
+          )}
+          {!isResolving && resolveError && (
+            <Typography color="error" sx={{m: 2}}>
+              {resolveError.message}
+            </Typography>
           )}
           {!isResolving && !groupedCommands.length && !isResolverMode && (
             <NoResults text={`No results for '${query}'!`} sx={{m: 2}} />

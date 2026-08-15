@@ -111,16 +111,14 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
     });
   };
 
-  const isAllSelected = data.length > 0 && selectedIds.size === data.length;
-  const isPartiallySelected = selectedIds.size > 0 && selectedIds.size < data.length;
+  const isAllSelected = data.length > 0 && data.every(row => selectedIds.has(row[dataKey]));
+  const isPartiallySelected = selectedIds.size > 0 && !isAllSelected;
   const selectedEntities = data.filter(row => selectedIds.has(row[dataKey]));
 
-  // Clear selection when data changes - data length change is a proxy for data changing
-  const dataLength = data.length;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: We want to clear selection when data changes
+  // Selection belongs to the visible page and must not survive a data refresh.
   React.useEffect(() => {
     setSelectedIds(new Set());
-  }, [dataLength]);
+  }, [data]);
 
   const defaultRenderRow = (row: T, index: number) => (
     <TableRow

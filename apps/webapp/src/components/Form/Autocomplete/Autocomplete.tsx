@@ -37,7 +37,7 @@ export type AutocompleteProps<
     // Only required when searchAsYouType is true
     debounceInMillis?: number;
     // keywords will only be provided when searchAsYouType is true
-    retrieveOptionsFunc: (keywords: string) => Promise<Value[]> | Value[];
+    retrieveOptionsFunc: (keywords?: string) => Promise<Value[]> | Value[];
     // type RetrieveOptionsFunc<ReturnType, WithKeyword extends boolean = false> = WithKeyword extends true
     //   ? (keywords: string) => Promise<ReturnType[]> | ReturnType[]
     //   : () => Promise<ReturnType[]> | ReturnType[];
@@ -67,34 +67,25 @@ export const Autocomplete = <
   const [fetchError, setFetchError] = React.useState<Error | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [inputValue, setInputValue] = React.useState('');
+  const requestIdRef = React.useRef(0);
 
   const fetchOptions = React.useCallback(() => {
-    try {
-      setLoading(true);
+    const requestId = ++requestIdRef.current;
+    setLoading(true);
+    setFetchError(null);
 
-      void (async () => {
-        setLoading(true);
-        if (retrieveOptionsFunc.constructor.name === 'AsyncFunction') {
-          logger.debug('Fetching options asynchronously');
-          const retrievedOptions = searchAsYouType
-            ? await retrieveOptionsFunc(inputValue)
-            : // @ts-expect-error: We know that retrieveOptionsFunc can be called without parameters when searchAsYouType is false
-              await retrieveOptionsFunc();
-          setOptions(retrievedOptions);
-        } else {
-          logger.debug('Fetching options synchronously');
-          const retrievedOptions = searchAsYouType
-            ? (retrieveOptionsFunc(inputValue) as Value[])
-            : // @ts-expect-error: We know that retrieveOptionsFunc can be called without parameters when searchAsYouType is false
-              (retrieveOptionsFunc() as Value[]);
-          setOptions(retrievedOptions);
-        }
-        setLoading(false);
-      })();
-    } catch (e) {
-      setFetchError(e instanceof Error ? e : new Error(String(e)));
-      setLoading(false);
-    }
+    void (async () => {
+      try {
+        const retrievedOptions = await Promise.resolve(retrieveOptionsFunc(searchAsYouType ? inputValue : undefined));
+        if (requestId !== requestIdRef.current) return;
+        setOptions(retrievedOptions);
+      } catch (e) {
+        if (requestId !== requestIdRef.current) return;
+        setFetchError(e instanceof Error ? e : new Error(String(e)));
+      } finally {
+        if (requestId === requestIdRef.current) setLoading(false);
+      }
+    })();
   }, [searchAsYouType, inputValue, retrieveOptionsFunc]);
 
   const handleOpen = () => {
@@ -124,6 +115,19 @@ export const Autocomplete = <
     void fetchOptions();
   }, [inputValue]);
 
+  const debouncedInputChange = React.useMemo(
+    () => debounce((_: unknown, value: string) => setInputValue(value), props.debounceInMillis ?? 300),
+    [props.debounceInMillis],
+  );
+
+  React.useEffect(
+    () => () => {
+      debouncedInputChange.cancel();
+      requestIdRef.current += 1;
+    },
+    [debouncedInputChange],
+  );
+
   if (fetchError) {
     return <ErrorAlert error={fetchError} />;
   }
@@ -135,12 +139,7 @@ export const Autocomplete = <
       options={options}
       renderOption={renderOption}
       loading={loading}
-      onInputChange={
-        searchAsYouType
-          ? // REVISIT: Still triggers quote often when typing longer words which is resultung in many requests
-            debounce((_, value) => setInputValue(value), props.debounceInMillis ?? 300)
-          : undefined
-      }
+      onInputChange={searchAsYouType ? debouncedInputChange : undefined}
       defaultValue={defaultValue}
       renderInput={params => (
         <TextField

@@ -5,6 +5,7 @@ import {logger} from './logger';
 const middlewareLogger = logger.child({scope: 'middleware'});
 
 export async function middleware(request: NextRequest) {
+  NextResponse.next();
   const SIGN_IN_ROUTE = '/sign-in';
   const url = request.nextUrl;
   const meta: Record<string, string | number> = {

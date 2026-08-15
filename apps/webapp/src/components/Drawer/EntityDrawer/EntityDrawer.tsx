@@ -1,7 +1,6 @@
 import {Alert, type AlertProps, Grid} from '@mui/material';
 import React, {type JSX} from 'react';
 import {type DefaultValues, type FieldValues, useForm} from 'react-hook-form';
-import {ErrorAlert} from '@/components/ErrorAlert';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {parseNumber} from '@/utils/parseNumber';
 import {Drawer, type DrawerProps} from '../Drawer';
@@ -16,7 +15,10 @@ import {
 } from './Fields';
 import type {EntityDrawerField} from './types';
 
-export type EntityDrawerFormHandler<T extends FieldValues> = (payload: T, onSuccess: () => void) => void;
+export type EntityDrawerFormHandler<T extends FieldValues> = (
+  payload: T,
+  onSuccess: () => void,
+) => void | Promise<void>;
 
 export type EntityDrawerProps<T extends FieldValues> = Pick<
   DrawerProps,
@@ -81,18 +83,16 @@ export const EntityDrawer = <T extends FieldValues>({
         onClose();
         handlers.handleFormReset();
       },
-      handleSubmit: (data: T) => {
-        onSubmit(data, () => {
+      handleSubmit: async (data: T) => {
+        await onSubmit(data, () => {
           handlers.handleFormReset();
         });
       },
       handleFormReset: () => {
         if (onResetForm) {
           const newValues = onResetForm();
-          console.log('Handler - onResetForm provided, resetting to:', newValues);
           form.reset(newValues);
         } else {
-          console.log('Handler - No onResetForm, using defaultValues:', defaultValues);
           form.reset(defaultValues);
         }
       },
@@ -103,13 +103,12 @@ export const EntityDrawer = <T extends FieldValues>({
   // Only reset form when drawer is opened or defaultValues change
   React.useEffect(() => {
     if (open && defaultValues) {
-      console.log('Resetting form to default values:', defaultValues);
       form.reset(defaultValues);
     }
   }, [open, defaultValues, form]);
 
   // Memoize the rendered fields to optimize performance
-  const renderedFields: JSX.Element[] = React.useMemo(() => {
+  const renderedFields: (JSX.Element | null)[] = React.useMemo(() => {
     return fields.map(field => {
       const wrapperSize = field.size || {xs: 12};
 
@@ -141,21 +140,7 @@ export const EntityDrawer = <T extends FieldValues>({
           );
 
         default:
-          return (
-            <Grid key={`field-unknown-${Math.random()}`} size={{xs: 12}}>
-              <ErrorAlert
-                error={
-                  new Error(
-                    `Unbekannter Feldtyp: ${
-                      // biome-ignore lint/suspicious/noExplicitAny: I can't type it properly here
-                      (field as any).type
-                    }`,
-                  )
-                }
-                sx={{width: '100%'}}
-              />
-            </Grid>
-          );
+          return null;
       }
     });
   }, [fields, form.control]);

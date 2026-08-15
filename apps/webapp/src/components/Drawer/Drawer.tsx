@@ -18,7 +18,7 @@ export type DrawerProps = React.PropsWithChildren<
   }
 >;
 
-export const Drawer: React.FC<DrawerProps> = ({children, closeOnBackdropClick, closeOnEscape, ...props}) => {
+export const Drawer: React.FC<DrawerProps> = ({children, closeOnBackdropClick, closeOnEscape, onClose, ...props}) => {
   const screenSize = useScreenSize();
   const isIOS = determineOS(navigator.userAgent) === 'iOS';
 
@@ -29,7 +29,7 @@ export const Drawer: React.FC<DrawerProps> = ({children, closeOnBackdropClick, c
   const handleClose = React.useCallback(
     (event: unknown, reason: 'backdropClick' | 'escapeKeyDown') => {
       if (
-        !props.onClose ||
+        !onClose ||
         (reason === 'backdropClick' && !closeOnBackdropClick) ||
         (reason === 'escapeKeyDown' && !closeOnEscape)
       ) {
@@ -40,9 +40,9 @@ export const Drawer: React.FC<DrawerProps> = ({children, closeOnBackdropClick, c
       // onClose?: ModalProps['onClose'];
       // will be onClose?: { bivarianceHack(event: {}, reason: 'backdropClick' | 'escapeKeyDown'): void; }['bivarianceHack'];
       // biome-ignore lint/complexity/noBannedTypes: This is just the type they expect
-      return props.onClose(event as React.SyntheticEvent<{}, Event>, reason);
+      return onClose(event as React.SyntheticEvent<{}, Event>, reason);
     },
-    [closeOnBackdropClick, closeOnEscape, props.onClose],
+    [closeOnBackdropClick, closeOnEscape, onClose],
   );
 
   if (drawerAnchor === 'bottom') {

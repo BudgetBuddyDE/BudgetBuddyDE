@@ -101,6 +101,8 @@ export default tseslint.config(
           'newlines-between': 'ignore',
         },
       ],
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
       'no-undef': 'off',
       'no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',

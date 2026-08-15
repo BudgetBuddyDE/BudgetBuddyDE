@@ -25,6 +25,10 @@ vi.mock('@/components/Snackbar', () => {
   };
 });
 
+vi.mock('@/lib/ibn', () => ({
+  EntityIcon: () => null,
+}));
+
 import {apiClient} from '@/apiClient';
 import {TransactionAttachments} from './TransactionAttachments';
 

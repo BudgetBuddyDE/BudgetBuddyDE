@@ -154,13 +154,6 @@ export const EditUser = () => {
     true,
   );
 
-  React.useEffect(() => {
-    return () => {
-      formRef.current?.reset();
-      setFormEditable(false);
-    };
-  }, []);
-
   if (isSessionPending || !sessionData) return null; // should never be the case
   return (
     <React.Fragment>

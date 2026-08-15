@@ -365,10 +365,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
   }, [handleEditSelected]);
 
   // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
   React.useLayoutEffect(() => {
     dispatch(setFilters({keyword: initialKeyword ?? null}));
-  }, []);
+  }, [dispatch, initialKeyword, setFilters]);
 
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {

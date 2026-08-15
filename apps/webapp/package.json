@@ -6,22 +6,22 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "pretest": "npm run check",
     "test": "vitest run --silent",
     "test:watch": "vitest",
-    "check": "npm run format:check && npm run lint:check",
+    "check": "npm run format:check && npm run lint:check && npm run typecheck",
     "typecheck": "tsc --noEmit",
     "check:write": "npm run lint && npm run format",
-    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix --max-warnings=0",
-    "lint:check": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" next.config.mjs vitest.config.mts --fix --max-warnings=0",
+    "lint:check": "eslint \"src/**/*.{js,jsx,ts,tsx}\" next.config.mjs vitest.config.mts --max-warnings=0",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" package.json next.config.mjs vitest.config.mts",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" package.json next.config.mjs vitest.config.mts"
   },
   "dependencies": {
     "@better-auth/api-key": "1.5.6",
     "@budgetbuddyde/api": "*",
     "@budgetbuddyde/types": "*",
+    "@dicebear/core": "^9.4.3",
+    "@dicebear/thumbs": "^9.4.2",
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
@@ -33,7 +33,6 @@
     "@mui/x-date-pickers": "^8.11.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@tklein1801/logger.js": "^0.0.1",
-    "assert": "^2.1.0",
     "better-auth": "1.5.6",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
@@ -43,8 +42,8 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.62.0",
     "react-redux": "^9.2.0",
-    "zod": "^4.0.14",
-    "zustand": "^5.0.7"
+    "styled-components": "^6.4.4",
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",

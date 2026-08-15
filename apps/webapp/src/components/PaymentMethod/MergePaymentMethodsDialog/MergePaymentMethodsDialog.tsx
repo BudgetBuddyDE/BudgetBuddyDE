@@ -13,7 +13,7 @@ import {
   type FirstLevelNullable,
 } from '@/components/Drawer';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {categorySlice} from '@/lib/features/categories/categorySlice';
+import {paymentMethodSlice} from '@/lib/features/paymentMethods/paymentMethodSlice';
 import {useAppDispatch} from '@/lib/hooks';
 import {logger} from '@/logger';
 
@@ -30,7 +30,7 @@ export type MergePaymentMethodsDialogProps = {
 
 export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps> = ({source, isOpen, onClose}) => {
   const {showSnackbar} = useSnackbarContext();
-  const {refresh} = categorySlice.actions;
+  const {refresh} = paymentMethodSlice.actions;
   const dispatch = useAppDispatch();
 
   const defaultValues: EntityDrawerProps<MergePaymentMethodsForm>['defaultValues'] = React.useMemo(() => {

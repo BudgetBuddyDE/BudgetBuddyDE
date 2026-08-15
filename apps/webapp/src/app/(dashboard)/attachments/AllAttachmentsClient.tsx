@@ -75,6 +75,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
     }
     showSnackbar({message: 'Attachment deleted'});
     setAttachments(prev => prev.filter(a => a.id !== id));
+    setTotalCount(prev => Math.max(0, prev - 1));
   }, [deletingAttachmentId, showSnackbar]);
 
   const handleLoadMore = useCallback(async () => {

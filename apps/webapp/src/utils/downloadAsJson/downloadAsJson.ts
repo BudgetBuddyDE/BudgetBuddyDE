@@ -21,6 +21,6 @@ export function downloadAsJson(data: object, fileName: string): Error | null {
     URL.revokeObjectURL(url);
     return null;
   } catch (error) {
-    return error as Error;
+    return error instanceof Error ? error : new Error(String(error));
   }
 }

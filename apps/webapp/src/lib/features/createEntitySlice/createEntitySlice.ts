@@ -1,4 +1,4 @@
-import type {IBaseGetAllQuery} from '@budgetbuddyde/api/common';
+import type {IBaseGetAllQuery} from '@budgetbuddyde/api/interfaces';
 import type {ServiceResponse} from '@budgetbuddyde/types/';
 import type {PayloadAction} from '@reduxjs/toolkit';
 import {appConfig} from '@/appConfig';
@@ -37,6 +37,7 @@ export type EntitySliceState<T> = {
   rowsPerPage: number;
   status: 'idle' | 'loading' | 'failed';
   error: Error | null;
+  requestId: string | null;
 };
 
 export function createInitialState<T>(initalData?: T): EntitySliceState<T> {
@@ -48,6 +49,7 @@ export function createInitialState<T>(initalData?: T): EntitySliceState<T> {
     rowsPerPage: appConfig.tables.itemPerPage,
     status: 'idle',
     error: null,
+    requestId: null,
   };
 }
 
@@ -89,19 +91,24 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           return data;
         },
         {
-          pending: state => {
+          pending: (state, action) => {
             state.status = 'loading';
+            state.error = null;
+            state.requestId = action.meta.requestId;
           },
           fulfilled: (state, action) => {
+            if (state.requestId !== action.meta.requestId) return;
             state.status = 'idle';
+            state.error = null;
             // @ts-expect-error
             state.data = action.payload.data;
             state.count = action.payload.totalCount || 0;
           },
-          rejected: (state, {error}) => {
+          rejected: (state, action) => {
+            if (state.requestId !== action.meta.requestId) return;
             state.status = 'failed';
             // @ts-expect-error
-            state.error = error;
+            state.error = action.error;
           },
         },
       ),
@@ -145,21 +152,26 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           return data;
         },
         {
-          pending: state => {
+          pending: (state, action) => {
             state.status = 'loading';
+            state.error = null;
+            state.requestId = action.meta.requestId;
           },
           fulfilled: (state, action) => {
+            if (state.requestId !== action.meta.requestId) return;
             state.status = 'idle';
+            state.error = null;
             state.currentPage = action.meta.arg?.page;
             state.rowsPerPage = action.meta.arg?.rowsPerPage;
             // @ts-expect-error
             state.data = action.payload.data;
             state.count = action.payload.totalCount || 0;
           },
-          rejected: (state, {error}) => {
+          rejected: (state, action) => {
+            if (state.requestId !== action.meta.requestId) return;
             state.status = 'failed';
             // @ts-expect-error
-            state.error = error;
+            state.error = action.error;
           },
         },
       ),
@@ -183,11 +195,15 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           return {data: data, filters: filters};
         },
         {
-          pending: state => {
+          pending: (state, action) => {
             state.status = 'loading';
+            state.error = null;
+            state.requestId = action.meta.requestId;
           },
           fulfilled: (state, action) => {
+            if (state.requestId !== action.meta.requestId) return;
             state.status = 'idle';
+            state.error = null;
             state.currentPage = 0; // Reset to first page, because we have a new set of data
             // Merge current filters with new applied filters
             state.filter = {...state.filter, ...action.payload.filters};
@@ -196,10 +212,11 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
             state.data = data.data;
             state.count = data.totalCount || 0;
           },
-          rejected: state => {
+          rejected: (state, action) => {
+            if (state.requestId !== action.meta.requestId) return;
             state.status = 'failed';
             // @ts-expect-error
-            state.error = error;
+            state.error = action.error;
           },
         },
       ),
@@ -211,6 +228,7 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
       }),
       setRowsPerPage: create.reducer((state, action: PayloadAction<number>) => {
         state.rowsPerPage = action.payload;
+        state.currentPage = 0;
       }),
     }),
     selectors: {

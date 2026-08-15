@@ -7,6 +7,7 @@ export function useFetch<ReturnValue>(getterFunc: () => Promise<ReturnValue> | R
   const [error, setError] = React.useState<Error | null>(null);
   const [data, setData] = React.useState<ReturnValue | null>(null);
   const [hasFetched, setHasFetched] = React.useState(false);
+  const requestIdRef = React.useRef(0);
   // Track previous getter to detect meaningful changes
   const prevGetterRef = React.useRef(getterFunc);
 
@@ -14,20 +15,23 @@ export function useFetch<ReturnValue>(getterFunc: () => Promise<ReturnValue> | R
     (force = false) => {
       if (hasFetched && !force) return;
 
-      try {
-        setIsLoading(true);
-        setHasFetched(true);
+      const requestId = ++requestIdRef.current;
+      setIsLoading(true);
+      setError(null);
+      setHasFetched(true);
 
-        void (async () => {
-          const isAsyncGetter = getterFunc.constructor.name === 'AsyncFunction';
-          const retrievedData = isAsyncGetter ? await getterFunc() : (getterFunc() as ReturnValue);
+      void (async () => {
+        try {
+          const retrievedData = await Promise.resolve(getterFunc());
+          if (requestId !== requestIdRef.current) return;
           setData(retrievedData);
-          setIsLoading(false);
-        })();
-      } catch (e) {
-        setError(e instanceof Error ? e : new Error(String(e)));
-        setIsLoading(false);
-      }
+        } catch (e) {
+          if (requestId !== requestIdRef.current) return;
+          setError(e instanceof Error ? e : new Error(String(e)));
+        } finally {
+          if (requestId === requestIdRef.current) setIsLoading(false);
+        }
+      })();
     },
     [getterFunc, hasFetched],
   );
@@ -51,6 +55,13 @@ export function useFetch<ReturnValue>(getterFunc: () => Promise<ReturnValue> | R
     prevGetterRef.current = getterFunc;
     // Including fetchOptions is safe; guard conditions prevent loops
   }, [getterFunc, hasFetched, fetchDataFunc]);
+
+  React.useEffect(
+    () => () => {
+      requestIdRef.current += 1;
+    },
+    [],
+  );
 
   return {isLoading, error, data: dataGetter, hasFetchedData: hasFetched};
 }

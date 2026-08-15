@@ -328,36 +328,42 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     onInvalid: handleInvalidIntent,
   });
 
-  const handleTogglePauseOnEntity = async (entity: TExpandedRecurringPayment) => {
-    const [updatedRecurringPayment, error] = await apiClient.backend.recurringPayment.updateById(entity.id, {
-      paused: !entity.paused,
-    });
-    if (!updatedRecurringPayment || error) {
-      return showSnackbar({
-        message: `Failed to update recurring payment: ${error.message}`,
-        action: <Button onClick={() => handleTogglePauseOnEntity(entity)}>Retry</Button>,
+  const handleTogglePauseOnEntity = React.useCallback(
+    async (entity: TExpandedRecurringPayment) => {
+      const [updatedRecurringPayment, error] = await apiClient.backend.recurringPayment.updateById(entity.id, {
+        paused: !entity.paused,
       });
-    }
-    showSnackbar({
-      message: updatedRecurringPayment.message ?? 'Recurring payment updated successfully',
-    });
-    dispatchDrawerAction({type: 'CLOSE'});
-    dispatch(refresh());
-  };
+      if (!updatedRecurringPayment || error) {
+        return showSnackbar({
+          message: `Failed to update recurring payment: ${error.message}`,
+          action: <Button onClick={() => handleTogglePauseOnEntity(entity)}>Retry</Button>,
+        });
+      }
+      showSnackbar({
+        message: updatedRecurringPayment.message ?? 'Recurring payment updated successfully',
+      });
+      dispatchDrawerAction({type: 'CLOSE'});
+      dispatch(refresh());
+    },
+    [dispatch, refresh, showSnackbar],
+  );
 
-  const handleExecutePayment = async (entity: TExpandedRecurringPayment) => {
-    const [result, error] = await apiClient.backend.recurringPayment.executePayment(entity.id);
-    if (!result || error) {
-      return showSnackbar({
-        message: `Failed to execute payment: ${error.message}`,
-        action: <Button onClick={() => handleExecutePayment(entity)}>Retry</Button>,
+  const handleExecutePayment = React.useCallback(
+    async (entity: TExpandedRecurringPayment) => {
+      const [result, error] = await apiClient.backend.recurringPayment.executePayment(entity.id);
+      if (!result || error) {
+        return showSnackbar({
+          message: `Failed to execute payment: ${error.message}`,
+          action: <Button onClick={() => handleExecutePayment(entity)}>Retry</Button>,
+        });
+      }
+      showSnackbar({
+        message: result.message ?? 'Transaction created successfully',
       });
-    }
-    showSnackbar({
-      message: result.message ?? 'Transaction created successfully',
-    });
-    dispatch(refresh());
-  };
+      dispatch(refresh());
+    },
+    [dispatch, refresh, showSnackbar],
+  );
 
   const handleDeleteEntity = async (entityId: TExpandedRecurringPayment['id']) => {
     const [deletedRecurringPayment, error] = await apiClient.backend.recurringPayment.deleteById(entityId);
@@ -673,10 +679,9 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
   );
 
   // Initialize filters from URL params on mount — always dispatch to clear any stale Redux state
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
   React.useLayoutEffect(() => {
     dispatch(setFilters(initialFilters ?? {}));
-  }, []);
+  }, [dispatch, initialFilters, setFilters]);
 
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {

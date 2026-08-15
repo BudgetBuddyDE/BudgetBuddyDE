@@ -34,8 +34,6 @@ export function deleteDialogReducer<TargetIdentifier = string>(
       if (state.target === null) {
         throw new Error('Target identifier must not be null on CONFIRM action');
       }
-      // Execute the callback function
-      // Note: This does not block the reducer; side effects should be handled carefully in real applications
       action.callback(state.target);
       return {
         isOpen: action.autoClose === false ? state.isOpen : false,

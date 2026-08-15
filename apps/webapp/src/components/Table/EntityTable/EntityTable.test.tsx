@@ -198,6 +198,33 @@ describe('EntityTable', () => {
     expect(screen.queryByRole('button', {name: 'Edit selected'})).not.toBeInTheDocument();
   });
 
+  it('clears selection when page data changes without changing its length', () => {
+    const onSelect = vi.fn();
+    const slice: EntitySlice<User> = {data: mockUsers, isLoading: false, error: null};
+    const {rerender} = render(
+      <EntityTable
+        slice={slice}
+        dataKey="id"
+        columns={mockColumns}
+        withSelection
+        selectionActions={[{icon: <EditRounded />, label: 'Edit selected', onClick: onSelect}]}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole('checkbox')[1]);
+    rerender(
+      <EntityTable
+        slice={{...slice, data: mockUsers.map(user => ({...user, name: `${user.name} updated`}))}}
+        dataKey="id"
+        columns={mockColumns}
+        withSelection
+        selectionActions={[{icon: <EditRounded />, label: 'Edit selected', onClick: onSelect}]}
+      />,
+    );
+
+    expect(screen.queryByRole('button', {name: 'Edit selected'})).not.toBeInTheDocument();
+  });
+
   it('renders with custom renderCell', () => {
     const slice: EntitySlice<User> = {
       data: mockUsers,
