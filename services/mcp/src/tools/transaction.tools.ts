@@ -4,6 +4,11 @@ import {z} from 'zod';
 import {err, ok} from './helpers';
 import {api, getApiRequestConfig} from '../lib/api';
 
+// MCP input schemas must be representable as JSON Schema; Date instances are not.
+const McpTransactionPayload = CreateOrUpdateTransactionPayload.omit({processedAt: true}).extend({
+  processedAt: z.iso.datetime().describe('Transaction date as an ISO 8601 string'),
+});
+
 export function registerTransactionTools(server: McpServer): void {
   server.registerTool(
     'list_transactions',
@@ -49,7 +54,7 @@ export function registerTransactionTools(server: McpServer): void {
     'create_transaction',
     {
       description: 'Create a new transaction',
-      inputSchema: CreateOrUpdateTransactionPayload,
+      inputSchema: McpTransactionPayload,
     },
     async (payload, _extra) => {
       const [result, error] = await api.backend.transaction.create(payload, getApiRequestConfig());
@@ -62,7 +67,7 @@ export function registerTransactionTools(server: McpServer): void {
     'update_transaction',
     {
       description: 'Update an existing transaction',
-      inputSchema: CreateOrUpdateTransactionPayload.partial().extend({
+      inputSchema: McpTransactionPayload.partial().extend({
         id: Transaction.shape.id.describe('Transaction UUID'),
       }),
     },
