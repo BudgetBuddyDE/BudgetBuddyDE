@@ -6,9 +6,22 @@ class TestBackendService extends BackendService {
   query(value?: object) {
     return this.reqQueryObjToURLSearchParams(value).toString();
   }
+
+  baseRequestPath() {
+    return this.getBaseRequestPath();
+  }
 }
 
 describe('BackendService', () => {
+  it('supports direct and gateway-prefixed service URLs', () => {
+    expect(new TestBackendService('https://prod.backend.example', '/api/transaction').baseRequestPath()).toBe(
+      'https://prod.backend.example/api/transaction',
+    );
+    expect(
+      new TestBackendService('https://prod.gateway.example/backend/v1/', '/api/transaction').baseRequestPath(),
+    ).toBe('https://prod.gateway.example/backend/v1/api/transaction');
+  });
+
   it('creates deterministic query strings and omits empty values', () => {
     const service = new TestBackendService('', '');
 

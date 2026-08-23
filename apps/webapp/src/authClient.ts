@@ -3,8 +3,10 @@ import {createAuthClient} from 'better-auth/react';
 import {redirect} from 'next/navigation';
 import {logger} from './logger';
 
+const authServiceHost = (process.env.NEXT_PUBLIC_AUTH_SERVICE_HOST || 'http://localhost:8080').replace(/\/+$/, '');
+
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_AUTH_SERVICE_HOST || 'http://localhost:8080',
+  baseURL: authServiceHost,
   fetchOptions: {
     // onRequest(context) {
     // 	logger.debug("onRequest", context);

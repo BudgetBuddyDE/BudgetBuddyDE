@@ -12,6 +12,7 @@ import {handleError, log, servedBy} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 
 export const app = express();
+app.set('trust proxy', config.trustProxyHops);
 
 app.use(cors(config.cors));
 if (config.runtime === 'production') {

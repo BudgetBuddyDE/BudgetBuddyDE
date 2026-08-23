@@ -153,12 +153,21 @@ npm start
 
 #### Environment Variables
 
-| Variable                  | Required | Description                           | Default       |
-| :------------------------ | :------: | :------------------------------------ | :------------ |
-| `BUDGETBUDDY_BACKEND_URL` |    ✓     | Base URL of the BudgetBuddyDE backend | –             |
-| `PORT`                    |    –     | HTTP port                             | `3070`        |
-| `NODE_ENV`                |    –     | Runtime environment                   | `development` |
-| `LOG_LEVEL`               |    –     | Winston log level                     | `info`        |
+| Variable                  | Required | Description                                                  | Default       |
+| :------------------------ | :------: | :----------------------------------------------------------- | :------------ |
+| `BUDGETBUDDY_BACKEND_URL` |    ✓     | Base URL of the Backend, direct or gateway-prefixed          | –             |
+| `TRUST_PROXY_HOPS`        |    –     | Number of trusted reverse-proxy hops for client IP detection | `0`           |
+| `PORT`                    |    –     | HTTP port                                                    | `3070`        |
+| `NODE_ENV`                |    –     | Runtime environment                                          | `development` |
+| `LOG_LEVEL`               |    –     | Winston log level                                            | `info`        |
+
+The MCP service accepts either a direct backend URL or the versioned Traefik
+URL. Its typed API client appends the same `/api/*` paths in both cases:
+
+```text
+BUDGETBUDDY_BACKEND_URL=http://backend:9000
+BUDGETBUDDY_BACKEND_URL=https://prod.gateway.domain.de/backend/v1
+```
 
 ## Usage
 

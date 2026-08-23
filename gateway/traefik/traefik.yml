@@ -1,0 +1,51 @@
+api:
+  dashboard: false
+
+ping:
+  entryPoint: traefik
+
+entryPoints:
+  traefik:
+    address: ':8080'
+  web:
+    address: ':80'
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ':443'
+
+providers:
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+log:
+  format: json
+  level: INFO
+
+accessLog:
+  format: json
+  fields:
+    headers:
+      defaultMode: drop
+      names:
+        X-Request-Id: keep
+        X-Forwarded-For: keep
+        X-Forwarded-Host: keep
+        X-Forwarded-Proto: keep
+
+metrics:
+  prometheus: {}
+
+# Replace the email address before enabling this gateway in production.
+# The ACME file is stored in the named Docker volume from docker-compose.yml.
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@example.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web

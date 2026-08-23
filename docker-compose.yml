@@ -1,15 +1,38 @@
 services:
+  traefik:
+    image: traefik:v3.3
+    container_name: budgetbuddyde_gateway
+    restart: unless-stopped
+    profiles:
+      - gateway
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./gateway/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./gateway/traefik/dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro
+      - traefik_letsencrypt:/letsencrypt
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test: ['CMD', 'traefik', 'healthcheck', '--ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   drizzle_db_gateway:
     image: ghcr.io/drizzle-team/gateway:latest
     container_name: drizzle_dateway
-    environment: 
+    environment:
       PORT: 4983
       MASTERPASS: your_master_password
       STORE_PATH: /app
       DB: postgres://myuser:mypassword@db:5432/mydatabase
     depends_on:
       - db
-    ports: 
+    ports:
       - '4983:4983'
     volumes:
       - drizzle_db_gateway:/app
@@ -27,13 +50,14 @@ services:
   cache:
     image: redis:7-alpine
     container_name: cache
-    command: ["redis-server", "--requirepass", "mycachepassword"]
+    command: ['redis-server', '--requirepass', 'mycachepassword']
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - cache_data:/data
 
 volumes:
+  traefik_letsencrypt:
   drizzle_db_gateway:
   db_data:
   cache_data:

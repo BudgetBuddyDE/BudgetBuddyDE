@@ -1,12 +1,12 @@
 ---
 title: Backend
 icon: lucide/container
-tags: 
-    - service
-    - backend
+tags:
+  - service
+  - backend
 ---
 
-## Overview 
+## Overview
 
 ![CI Build Status](https://ci.tklein.it/api/v1/teams/budgetbuddyde/pipelines/backend/jobs/build-backend/badge?title=Build)
 ![Version](https://img.shields.io/github/v/tag/budgetbuddyde/budgetbuddyde?filter=backend*&cacheSeconds=3600)
@@ -58,33 +58,33 @@ src/
 ### API Documentation
 
 | Method | Path      | Description           |
-|:-------|:----------|:----------------------|
+| :----- | :-------- | :-------------------- |
 | GET    | `/health` | Health Check Endpoint |
 
 #### Attachments (`/api/attachment`)
 
-| Method | Path                   | Description                                                 |
-|:-------|:-----------------------|:------------------------------------------------------------|
-| GET    | `/:attachmentId`       | Get a single attachment by ID (returns a fresh signed URL)  |
-| DELETE | `/:attachmentId`       | Delete a single attachment (S3 + DB)                        |
+| Method | Path             | Description                                                |
+| :----- | :--------------- | :--------------------------------------------------------- |
+| GET    | `/:attachmentId` | Get a single attachment by ID (returns a fresh signed URL) |
+| DELETE | `/:attachmentId` | Delete a single attachment (S3 + DB)                       |
 
 #### Transactions (`/api/transaction`) — Attachment sub-resource
 
-| Method | Path                    | Description                                                                                              |
-|:-------|:------------------------|:---------------------------------------------------------------------------------------------------------|
-| GET    | `/attachments`          | List all attachments for the authenticated user (paginated)                                              |
-| GET    | `/:id/attachments`      | List attachments for a specific transaction (paginated)                                                  |
-| POST   | `/:id/attachments`      | Upload one or more files as attachments for a transaction (multipart)                                    |
-| DELETE | `/:id/attachments`      | Delete attachments for a transaction (optionally filter by IDs)                                          |
+| Method | Path               | Description                                                           |
+| :----- | :----------------- | :-------------------------------------------------------------------- |
+| GET    | `/attachments`     | List all attachments for the authenticated user (paginated)           |
+| GET    | `/:id/attachments` | List attachments for a specific transaction (paginated)               |
+| POST   | `/:id/attachments` | Upload one or more files as attachments for a transaction (multipart) |
+| DELETE | `/:id/attachments` | Delete attachments for a transaction (optionally filter by IDs)       |
 
 #### Expanded transaction response
 
 The `GET /api/transaction` (list) and `GET /api/transaction/:id` (single) responses now include attachment fields on every `ExpandedTransaction` object:
 
-| Field             | Endpoint(s)              | Description                                                          |
-|:------------------|:-------------------------|:---------------------------------------------------------------------|
-| `attachmentCount` | list + single            | Number of attachments associated with the transaction                |
-| `attachments`     | single only              | Full list of `TAttachmentWithUrl` objects with generated signed URLs |
+| Field             | Endpoint(s)   | Description                                                          |
+| :---------------- | :------------ | :------------------------------------------------------------------- |
+| `attachmentCount` | list + single | Number of attachments associated with the transaction                |
+| `attachments`     | single only   | Full list of `TAttachmentWithUrl` objects with generated signed URLs |
 
 The list endpoint (`GET /api/transaction`) includes only the count (no signed-URL generation) to keep response times predictable. The single-entity endpoint (`GET /api/transaction/:id`) returns the full attachment list with signed URLs for immediate use in the UI.
 
@@ -134,30 +134,40 @@ Environment variables and all remaining service settings are mapped centrally in
 Runtime modules access the resulting `config` object through its `auth`, `database`, `redis`, `objectStorage`,
 `rateLimit`, `jobs`, `cache`, and `attachments` sections.
 
-| Variable            | Description                                           | Default Value       |
-|:--------------------|:------------------------------------------------------|:--------------------|
-| `NODE_ENV`          | Execution environment (development, production, test) | `development`       |
-| `DATABASE_URL`      | Connection string to the database                     | -                   |
-| `REDIS_URL`         | Connection string for Redis cache                     | -                   |
-| `REDIS_DB`          | Index of the Redis database                           | `1`                 |
-| `TRUSTED_ORIGINS`   | Comma-separated list of trusted origins for CORS      | -                   |
-| `AUTH_SERVICE_HOST` | Host URL under which the Auth Service is reachable    | -                   |
-| `LOG_LEVEL`         | Log level for the application                         | `info`              |
-| `LOG_HIDE_META`     | Whether to hide metadata in logs                      | `false`             |
-| `TIMEZONE`          | Timezone for the application (for scheduling jobs)    | `Europe/Berlin`     |
-| `PORT`              | Port on which the service runs                        | `9000`              |
-| `LOKI_URL`          | URL for the Loki logging service                      | `http://loki:3100`  |
-| `AWS_S3_BUCKET_NAME`    | Name of the S3 bucket used for storing attachments    | -                   |
-| `AWS_ENDPOINT_URL`      | Endpoint URL of the S3-compatible object store        | -                   |
-| `AWS_DEFAULT_REGION`    | Region of the S3-compatible object store              | -                   |
-| `AWS_ACCESS_KEY_ID`     | Access key for the S3 object store                    | -                   |
-| `AWS_SECRET_ACCESS_KEY` | Secret key for the S3 object store                    | -                   |
+| Variable                | Description                                                  | Default Value      |
+| :---------------------- | :----------------------------------------------------------- | :----------------- |
+| `NODE_ENV`              | Execution environment (development, production, test)        | `development`      |
+| `DATABASE_URL`          | Connection string to the database                            | -                  |
+| `REDIS_URL`             | Connection string for Redis cache                            | -                  |
+| `REDIS_DB`              | Index of the Redis database                                  | `1`                |
+| `TRUSTED_ORIGINS`       | Comma-separated list of trusted origins for CORS             | -                  |
+| `AUTH_SERVICE_HOST`     | Base URL of the Auth Service, direct or gateway-prefixed     | -                  |
+| `TRUST_PROXY_HOPS`      | Number of trusted reverse-proxy hops for client IP detection | `0`                |
+| `LOG_LEVEL`             | Log level for the application                                | `info`             |
+| `LOG_HIDE_META`         | Whether to hide metadata in logs                             | `false`            |
+| `TIMEZONE`              | Timezone for the application (for scheduling jobs)           | `Europe/Berlin`    |
+| `PORT`                  | Port on which the service runs                               | `9000`             |
+| `LOKI_URL`              | URL for the Loki logging service                             | `http://loki:3100` |
+| `AWS_S3_BUCKET_NAME`    | Name of the S3 bucket used for storing attachments           | -                  |
+| `AWS_ENDPOINT_URL`      | Endpoint URL of the S3-compatible object store               | -                  |
+| `AWS_DEFAULT_REGION`    | Region of the S3-compatible object store                     | -                  |
+| `AWS_ACCESS_KEY_ID`     | Access key for the S3 object store                           | -                  |
+| `AWS_SECRET_ACCESS_KEY` | Secret key for the S3 object store                           | -                  |
 
 !!! note
-    The `AWS_*` variables are required for the Attachments feature. Signed URLs are cached in Redis with a TTL of **900 s (15 min)**; the cache namespace is `attachments:<attachmentId>`.
+The `AWS_*` variables are required for the Attachments feature. Signed URLs are cached in Redis with a TTL of **900 s (15 min)**; the cache namespace is `attachments:<attachmentId>`.
 
 !!! important
-    If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
+If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
+
+`AUTH_SERVICE_HOST` accepts both forms below. The backend appends Better Auth's
+normal `/api/auth/*` paths to the configured base URL, so no route changes are
+required when switching between direct service access and Traefik:
+
+```text
+AUTH_SERVICE_HOST=http://auth-service:8080
+AUTH_SERVICE_HOST=https://prod.gateway.domain.de/auth/v1
+```
 
 #### Rate Limiting
 
@@ -165,10 +175,10 @@ Rate limiting is active **in production only** (`runtime === "production"`) and 
 
 The limits are configured in `config.ts`:
 
-| Parameter   | Value      | Description                           |
-|:------------|:-----------|:--------------------------------------|
-| `windowMs`  | 5 minutes  | Time window for rate limit tracking   |
-| `limit`     | 300        | Maximum requests per IP per window    |
+| Parameter  | Value     | Description                         |
+| :--------- | :-------- | :---------------------------------- |
+| `windowMs` | 5 minutes | Time window for rate limit tracking |
+| `limit`    | 300       | Maximum requests per IP per window  |
 
 When the limit is exceeded, the service responds with HTTP `429 Too Many Requests`. Standard `RateLimit-*` headers (draft-7) are included in every response.
 
@@ -193,19 +203,19 @@ cache:<cacheKeyPrefix>:<userId>:<originalUrl>
 
 **Route configuration** (`src/config.ts`, `cache.routes`):
 
-| Route | TTL |
-|:---|:---|
-| `/api/category` | 300 s |
-| `/api/paymentMethod` | 300 s |
-| `/api/transaction` | 60 s |
+| Route                   | TTL   |
+| :---------------------- | :---- |
+| `/api/category`         | 300 s |
+| `/api/paymentMethod`    | 300 s |
+| `/api/transaction`      | 60 s  |
 | `/api/recurringPayment` | 300 s |
-| `/api/budget` | 300 s |
-| `/api/insights` | 120 s |
+| `/api/budget`           | 300 s |
+| `/api/insights`         | 120 s |
 
 ```ts
 type CacheRouteConfig = {
-  path: string;            // request path prefix to match
-  ttl: number;             // time-to-live in seconds
+  path: string; // request path prefix to match
+  ttl: number; // time-to-live in seconds
   cacheKeyPrefix?: string; // optional custom prefix for the cache key (defaults to path)
 };
 ```
@@ -218,9 +228,9 @@ type CacheRouteConfig = {
 
 **Response headers**
 
-| Header | Value | Meaning |
-|:---|:---|:---|
-| `X-Cache` | `HIT` | Response served from Redis cache |
+| Header    | Value  | Meaning                                                |
+| :-------- | :----- | :----------------------------------------------------- |
+| `X-Cache` | `HIT`  | Response served from Redis cache                       |
 | `X-Cache` | `MISS` | Response fetched from the database and stored in cache |
 
 ## Deployment
@@ -230,7 +240,7 @@ Information about the deployment process (e.g. Docker, CI/CD Pipelines).
 ### Database
 
 !!! important
-    The database schema is provided by the [`@budgetbuddyde/db`](../packages/db.md) package. For information on migrations and the initial database setup, see the package documentation.
+The database schema is provided by the [`@budgetbuddyde/db`](../packages/db.md) package. For information on migrations and the initial database setup, see the package documentation.
 
 ### Docker
 

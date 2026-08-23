@@ -2,16 +2,16 @@
 title: Webapp
 icon: lucide/app-window
 tags:
-    - app
+  - app
 ---
 
-# Webapp 
+# Webapp
 
 ## Overview
 
 ![version](https://img.shields.io/github/v/tag/budgetbuddyde/budgetbuddyde?filter=webapp*&cacheSeconds=3600)
 
-The Webapp is the main application of BudgetBuddyDE, providing users with an intuitive and user-friendly interface to manage their finances. 
+The Webapp is the main application of BudgetBuddyDE, providing users with an intuitive and user-friendly interface to manage their finances.
 It is based on Next.js with TypeScript and uses the [auth-service](../services/auth-service.md#overview) as well as the [backend](../services/backend.md) to process and store data.
 
 ## Features
@@ -59,7 +59,7 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 ### API
 
 | Method | Path        | Description     |
-|--------|-------------|-----------------|
+| ------ | ----------- | --------------- |
 | GET    | /api/health | Health endpoint |
 
 ## Development
@@ -69,7 +69,7 @@ It is based on Next.js with TypeScript and uses the [auth-service](../services/a
 ```bash
 # Install dependencies
 npm install
- 
+
 # Start in development mode
 npm run dev
 ```
@@ -79,10 +79,10 @@ npm run dev
 ```bash
 # Check linter
 npm run check
- 
+
 # Automatically fix linter errors
 npm run check:write
- 
+
 # Format code
 npm run format
 ```
@@ -91,10 +91,24 @@ npm run format
 
 #### Environment Variables
 
-| Variable                           | Description                              | Default value       |
-|------------------------------------|------------------------------------------|---------------------|
-| `NEXT_PUBLIC_AUTH_SERVICE_HOST`    | Host URL of the Auth-Service             | `undefined`         |
-| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Host URL of the Backend-Service          | `undefined`         |
+| Variable                           | Description                                                 | Default value |
+| ---------------------------------- | ----------------------------------------------------------- | ------------- |
+| `NEXT_PUBLIC_AUTH_SERVICE_HOST`    | Base URL of the Auth-Service, direct or gateway-prefixed    | `undefined`   |
+| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Base URL of the Backend-Service, direct or gateway-prefixed | `undefined`   |
+
+Both variables accept either a direct service URL or a Traefik gateway URL. The
+application appends its normal API paths to the configured URL in both cases:
+
+```text
+NEXT_PUBLIC_AUTH_SERVICE_HOST=http://localhost:8080
+NEXT_PUBLIC_AUTH_SERVICE_HOST=https://prod.gateway.domain.de/auth/v1
+
+NEXT_PUBLIC_BACKEND_SERVICE_HOST=http://localhost:9000
+NEXT_PUBLIC_BACKEND_SERVICE_HOST=https://prod.gateway.domain.de/backend/v1
+```
+
+Gateway URLs must not include a trailing slash. The clients also normalize a
+trailing slash to prevent duplicate slashes in generated requests.
 
 For more information, see the Next.js references below:
 
@@ -115,20 +129,23 @@ The test configuration lives in `vitest.config.mts` at the app root and extends 
 - **Globals:** enabled (no explicit `import { describe, it, expect }` needed in test files)
 
 ```ts title="vitest.config.mts"
-export default mergeConfig(baseConfig, defineConfig({
-  plugins: [tsconfigPaths(), react()],
-  test: {
-    name: "webapp",
-    environment: "happy-dom",
-    setupFiles: ["./src/vitest.setup.ts"],
-    pool: "vmThreads",
-    deps: {
-      optimizer: {
-        web: { enabled: true },
+export default mergeConfig(
+  baseConfig,
+  defineConfig({
+    plugins: [tsconfigPaths(), react()],
+    test: {
+      name: 'webapp',
+      environment: 'happy-dom',
+      setupFiles: ['./src/vitest.setup.ts'],
+      pool: 'vmThreads',
+      deps: {
+        optimizer: {
+          web: {enabled: true},
+        },
       },
     },
-  },
-}));
+  }),
+);
 ```
 
 ### Running Tests
@@ -144,7 +161,7 @@ npm run test:watch
 ### Coverage
 
 | Category          | Files                                                                                                                                                                                                                                                                                                                                                                            |
-|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **UI Components** | `ErrorAlert`, `NoResults`, `CircularProgress`, `Card` (incl. Header/Title/Subtitle/Body/Footer/HeaderActions), `ActionPaper`, `CloseIconButton`, `AddFab`, `FabContainer`, `Brand`, `Icon`, `Image`, `AppLogo`, `ReadMoreText`, `ErrorBoundary`, `ModeSwitch`, `Menu`, `ListWithIcon`, `SnackbarProvider` / `useSnackbarContext`, `DeleteDialog`, `PasswordInput`, `SearchInput` |
 | **Attachments**   | `TransactionAttachments` (upload, list, view, download, delete)                                                                                                                                                                                                                                                                                                                  |
 | **Category**      | `CategoryChip`                                                                                                                                                                                                                                                                                                                                                                   |
@@ -162,7 +179,7 @@ npm run test:watch
 The following measures were taken to keep the test suite fast:
 
 | Measure                                | Before                                      | After                                                              | Effect                                                                                          |
-|----------------------------------------|---------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| -------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
 | **`happy-dom` instead of `jsdom`**     | ~20 s env. setup (aggregated)               | ~2 s                                                               | DOM environments are created ~10× faster; happy-dom is a lighter, spec-compliant implementation |
 | **`pool: 'vmThreads'`**                | child-process forks                         | Worker Threads                                                     | Lower per-worker startup overhead; threads share the same process memory                        |
 | **`deps.optimizer.web.enabled: true`** | every file re-transforms all `node_modules` | first run builds ESM cache; subsequent runs skip re-transformation | Heavy dependencies (MUI, React, Emotion, …) are pre-bundled once and reused                     |
@@ -170,7 +187,7 @@ The following measures were taken to keep the test suite fast:
 **Overall result:** wall-clock duration went from **~16.5 s → ~6.9 s** (≈ 2.4× faster).
 
 !!! note "happy-dom evaluates CSS media queries"
-    Unlike jsdom, happy-dom applies CSS media queries when computing element visibility. Components that are intentionally hidden at certain breakpoints (e.g. `FabContainer`, which uses `display: none` at `md+`) will be reported as inaccessible by `getByRole`. Use `getByText` or pass `{ hidden: true }` in those tests.
+Unlike jsdom, happy-dom applies CSS media queries when computing element visibility. Components that are intentionally hidden at certain breakpoints (e.g. `FabContainer`, which uses `display: none` at `md+`) will be reported as inaccessible by `getByRole`. Use `getByText` or pass `{ hidden: true }` in those tests.
 
 ### Conventions
 
@@ -184,10 +201,10 @@ The following measures were taken to keep the test suite fast:
 ### Important Notes
 
 !!! warning "Snackbar rendering"
-    MUI's `Snackbar` component cannot be fully rendered in the happy-dom environment (React 19 + MUI v7 compatibility). The `SnackbarProvider` tests therefore use `renderHook` to verify context behaviour instead of rendering the full provider tree.
+MUI's `Snackbar` component cannot be fully rendered in the happy-dom environment (React 19 + MUI v7 compatibility). The `SnackbarProvider` tests therefore use `renderHook` to verify context behaviour instead of rendering the full provider tree.
 
 !!! note "next/navigation and next/image mocks"
-    The global mocks for `next/navigation` and `next/image` are applied in `src/vitest.setup.ts`. If a component requires specific router state (e.g. a particular pathname), override the mock locally with `vi.mocked(usePathname).mockReturnValue('/my-path')`.
+The global mocks for `next/navigation` and `next/image` are applied in `src/vitest.setup.ts`. If a component requires specific router state (e.g. a particular pathname), override the mock locally with `vi.mocked(usePathname).mockReturnValue('/my-path')`.
 
 ## Deployment
 

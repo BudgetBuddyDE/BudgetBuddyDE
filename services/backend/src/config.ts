@@ -46,6 +46,7 @@ export type Config = {
   service: typeof name;
   version: typeof version;
   port: ReturnType<typeof getPort>;
+  trustProxyHops: number;
   runtime: Runtime;
   auth: {
     baseUrl: string;
@@ -119,6 +120,8 @@ const SERVICE_VERSION = version;
 const SERVICE_RUNTIME = getCurrentRuntime();
 const TIMEZONE = process.env.TIMEZONE || 'Europe/Berlin';
 const REDIS_URL = process.env.REDIS_URL;
+const AUTH_SERVICE_HOST = (process.env.AUTH_SERVICE_HOST || 'http://localhost:8080').replace(/\/+$/, '');
+const TRUST_PROXY_HOPS = Math.max(0, Number.parseInt(process.env.TRUST_PROXY_HOPS || '0', 10) || 0);
 const OBJECT_STORAGE: ObjectStorageConfig = {
   endpoint: process.env.AWS_ENDPOINT_URL,
   bucketName: process.env.AWS_S3_BUCKET_NAME,
@@ -132,9 +135,10 @@ export const config: Config = {
   service: SERVICE_NAME,
   version: SERVICE_VERSION,
   port: getPort(9000),
+  trustProxyHops: TRUST_PROXY_HOPS,
   runtime: SERVICE_RUNTIME,
   auth: {
-    baseUrl: process.env.AUTH_SERVICE_HOST || 'http://localhost:8080',
+    baseUrl: AUTH_SERVICE_HOST,
     credentials: 'include',
   },
   database: {

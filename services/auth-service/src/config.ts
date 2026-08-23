@@ -13,6 +13,7 @@ export type Config = {
   version: typeof version;
   baseUrl: string;
   port: ReturnType<typeof getPort>;
+  trustProxyHops: number;
   runtime: Runtime;
   log: Pick<Logger, 'level' | 'transports'> & {
     defaultMeta?: Record<string, string | number | boolean>;
@@ -28,12 +29,15 @@ export type Config = {
 const SERVICE_NAME = name;
 const SERVICE_VERSION = version;
 const SERVICE_RUNTIME = getCurrentRuntime();
+const BASE_URL = (process.env.BASE_URL || 'http://localhost').replace(/\/+$/, '');
+const TRUST_PROXY_HOPS = Math.max(0, Number.parseInt(process.env.TRUST_PROXY_HOPS || '0', 10) || 0);
 
 export const config: Config = {
   service: SERVICE_NAME,
   version: SERVICE_VERSION,
-  baseUrl: process.env.BASE_URL || 'http://localhost',
+  baseUrl: BASE_URL,
   port: getPort(8080),
+  trustProxyHops: TRUST_PROXY_HOPS,
   runtime: SERVICE_RUNTIME,
   log: {
     level: getLogLevel(process.env.LOG_LEVEL),

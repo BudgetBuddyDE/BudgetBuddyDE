@@ -1,0 +1,137 @@
+# This file is the single source of truth for public routes and upstream URLs.
+# For local development, services running on the host are reached through
+# host.docker.internal. Replace these URLs with private service DNS names in
+# production, for example http://backend:9000.
+
+http:
+  middlewares:
+    security-headers:
+      headers:
+        contentTypeNosniff: true
+        frameDeny: true
+        referrerPolicy: strict-origin-when-cross-origin
+
+    auth-rate-limit:
+      rateLimit:
+        average: 60
+        period: 1m
+        burst: 20
+
+    api-rate-limit:
+      rateLimit:
+        average: 300
+        period: 5m
+        burst: 50
+
+    mcp-rate-limit:
+      rateLimit:
+        average: 120
+        period: 1m
+        burst: 20
+
+    strip-auth-prefix:
+      stripPrefix:
+        prefixes:
+          - /auth/v1
+
+    strip-backend-prefix:
+      stripPrefix:
+        prefixes:
+          - /backend/v1
+
+    strip-mcp-prefix:
+      stripPrefix:
+        prefixes:
+          - /mcp/v1
+
+    backend-body-limit:
+      buffering:
+        maxRequestBodyBytes: 26214400
+
+  routers:
+    auth:
+      rule: 'Host(`prod.gateway.domain.de`) && (Path(`/auth/v1`) || PathPrefix(`/auth/v1/`))'
+      entryPoints:
+        - websecure
+      middlewares:
+        - strip-auth-prefix
+        - security-headers
+        - auth-rate-limit
+      service: auth-service
+      tls:
+        certResolver: letsencrypt
+
+    backend:
+      rule: 'Host(`prod.gateway.domain.de`) && (Path(`/backend/v1`) || PathPrefix(`/backend/v1/`))'
+      entryPoints:
+        - websecure
+      middlewares:
+        - strip-backend-prefix
+        - security-headers
+        - api-rate-limit
+        - backend-body-limit
+      service: backend-service
+      tls:
+        certResolver: letsencrypt
+
+    mcp:
+      rule: 'Host(`prod.gateway.domain.de`) && (Path(`/mcp/v1`) || PathPrefix(`/mcp/v1/`))'
+      entryPoints:
+        - websecure
+      middlewares:
+        - strip-mcp-prefix
+        - security-headers
+        - mcp-rate-limit
+      service: mcp-service
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    auth-service:
+      loadBalancer:
+        serversTransport: auth-transport
+        servers:
+          - url: http://host.docker.internal:8080
+        healthCheck:
+          path: /api/health
+          interval: 10s
+          timeout: 3s
+
+    backend-service:
+      loadBalancer:
+        serversTransport: backend-transport
+        servers:
+          - url: http://host.docker.internal:9000
+        healthCheck:
+          path: /api/health
+          interval: 10s
+          timeout: 3s
+
+    mcp-service:
+      loadBalancer:
+        serversTransport: mcp-transport
+        servers:
+          - url: http://host.docker.internal:3070
+        healthCheck:
+          path: /api/health
+          interval: 10s
+          timeout: 3s
+
+  serversTransports:
+    auth-transport:
+      forwardingTimeouts:
+        dialTimeout: 5s
+        responseHeaderTimeout: 30s
+        idleConnTimeout: 90s
+
+    backend-transport:
+      forwardingTimeouts:
+        dialTimeout: 5s
+        responseHeaderTimeout: 60s
+        idleConnTimeout: 90s
+
+    mcp-transport:
+      forwardingTimeouts:
+        dialTimeout: 5s
+        responseHeaderTimeout: 0s
+        idleConnTimeout: 1h

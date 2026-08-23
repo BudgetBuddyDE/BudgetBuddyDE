@@ -20,17 +20,53 @@ Use the `docker-compose.yml` from the repository.
 ### Running the Stack
 
 1. Start the services:
+
    ```bash
    # Start services in detached mode
    docker-compose up -d
    ```
 
 2. The services (and databases) will be available at:
-    - **Auth Service**: `http://localhost:8080`
-    - **Backend**: `http://localhost:9000`
+   - **Auth Service**: `http://localhost:8080`
+   - **Backend**: `http://localhost:9000`
 
 !!! warning
-    The Webapp is currently not included in this Docker Compose setup. You can deploy it separately (e.g., on Vercel) or build a Docker image for it manually.
+The Webapp is currently not included in this Docker Compose setup. You can deploy it separately (e.g., on Vercel) or build a Docker image for it manually.
+
+## Traefik Gateway
+
+The repository includes a file-based Traefik gateway under
+[`gateway/traefik`](../../../gateway/traefik/README.md). It exposes versioned
+public routes while keeping the existing service routes unchanged:
+
+```text
+/auth/v1/*    -> Auth-Service
+/backend/v1/* -> Backend
+/mcp/v1/*     -> MCP
+```
+
+Start the gateway locally with:
+
+```bash
+docker compose --profile gateway up -d traefik
+```
+
+The authoritative route and upstream configuration is
+`gateway/traefik/dynamic.yml`. In production, replace the local
+`host.docker.internal` upstreams with private service DNS names and remove
+public ingress from the individual services. The gateway forwards existing
+session cookies, bearer credentials, and API keys; it does not replace the
+Better Auth validation performed by the services.
+
+Applications can switch between direct and gateway URLs without changing API
+routes. For example:
+
+```text
+http://localhost:9000
+https://prod.gateway.domain.de/backend/v1
+```
+
+The typed clients append the same `/api/*` paths to either base URL.
 
 ## Railway
 
@@ -48,17 +84,17 @@ The Railway documentation offers some help regarding the possible configuration 
 
 ```json title="railway.json"
 {
-   "$schema": "https://railway.com/railway.schema.json",
-   "build": {
-      "builder": "NIXPACKS",
-      "buildCommand": "echo building!"
-   },
-   "deploy": {
-      "preDeployCommand": ["npm run db:migrate"],
-      "startCommand": "echo starting!",
-      "healthcheckPath": "/",
-      "healthcheckTimeout": 100,
-      "restartPolicyType": "never"
-   }
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "echo building!"
+  },
+  "deploy": {
+    "preDeployCommand": ["npm run db:migrate"],
+    "startCommand": "echo starting!",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "never"
+  }
 }
 ```

@@ -12,10 +12,17 @@ import {isCSRFCheckDisabled} from './utils';
 
 const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET} = process.env;
 
+function getAuthBaseUrl(): string {
+  if (config.runtime === 'production') return config.baseUrl;
+
+  const url = new URL(config.baseUrl);
+  return url.port || url.pathname !== '/' ? config.baseUrl : `${config.baseUrl}:${config.port}`;
+}
+
 const authLogger = logger.child({label: 'auth'});
 
 const options: BetterAuthOptions = {
-  baseURL: config.runtime === 'production' ? config.baseUrl : `${config.baseUrl}:${config.port}`,
+  baseURL: getAuthBaseUrl(),
   appName: config.service,
   database: drizzleAdapter(db, {
     provider: 'pg',

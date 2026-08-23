@@ -15,7 +15,8 @@ export class BackendService {
   protected basePath: string;
 
   constructor(host: string, basePath: string) {
-    this.host = host;
+    // Accept direct service URLs and gateway URLs with a path prefix equally.
+    this.host = host.replace(/\/+$/, '');
     this.basePath = basePath;
   }
 

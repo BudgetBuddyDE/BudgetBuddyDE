@@ -23,6 +23,7 @@ import {
 } from './router';
 
 export const app = express();
+app.set('trust proxy', config.trustProxyHops);
 
 app.use(cors(config.cors));
 if (config.rateLimit.enabled) {

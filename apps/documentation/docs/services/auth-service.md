@@ -1,9 +1,9 @@
 ---
 title: Auth Service
 icon: lucide/container
-tags: 
-    - service
-    - auth
+tags:
+  - service
+  - auth
 ---
 
 ## Overview
@@ -52,7 +52,7 @@ src/
 The documentation of [Better-Auth](https://better-auth.com/) can be viewed [here](https://better-auth.com/docs/).
 
 | Method | Path      | Description           |
-|:-------|:----------|:----------------------|
+| :----- | :-------- | :-------------------- |
 | GET    | `/health` | Health Check Endpoint |
 
 ## Development
@@ -87,26 +87,35 @@ npm run format
 
 #### Environment Variables
 
-| Variable               | Description                                                        | Default Value       |
-|:-----------------------|:-------------------------------------------------------------------|:--------------------|
-| `DATABASE_URL`         | Connection string to the database                                  | -                   |
-| `REDIS_URL`            | Connection string for Redis cache                                  | -                   |
-| `TRUSTED_ORIGINS`      | Comma-separated list of trusted origins for CORS                   | -                   |
-| `AUTH_SECRET`          | Random string to secure authentication                             | -                   |
-| `BASE_URL`             | Host URL of the service to e.g. generate links in emails correctly | -                   |
-| `BACKEND_HOST_URL`     | Host URL under which the backend is reachable                      | -                   |
-| `RESEND_API_KEY`       | Resend API to send emails via Resend                               | -                   |
-| `LOG_LEVEL`            | Log level for the application                                      | `info`              |
-| `LOG_HIDE_META`        | Whether to hide metadata in logs                                   | `false`             |
-| `GITHUB_CLIENT_ID`     | GitHub OAuth Client ID                                             | -                   |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret                                         | -                   |
-| `GOOGLE_CLIENT_ID`     | Google OAuth Client ID                                             | -                   |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret                                         | -                   |
-| `PORT`                 | Port on which the service runs                                     | `8080`              |
-| `LOKI_URL`             | URL for the Loki logging service                                   | `http://loki:3100`  |
+| Variable               | Description                                                      | Default Value      |
+| :--------------------- | :--------------------------------------------------------------- | :----------------- |
+| `DATABASE_URL`         | Connection string to the database                                | -                  |
+| `REDIS_URL`            | Connection string for Redis cache                                | -                  |
+| `TRUSTED_ORIGINS`      | Comma-separated list of trusted origins for CORS                 | -                  |
+| `AUTH_SECRET`          | Random string to secure authentication                           | -                  |
+| `BASE_URL`             | Public base URL, direct or gateway-prefixed, for generated links | -                  |
+| `TRUST_PROXY_HOPS`     | Number of trusted reverse-proxy hops for client IP detection     | `0`                |
+| `BACKEND_HOST_URL`     | Host URL under which the backend is reachable                    | -                  |
+| `RESEND_API_KEY`       | Resend API to send emails via Resend                             | -                  |
+| `LOG_LEVEL`            | Log level for the application                                    | `info`             |
+| `LOG_HIDE_META`        | Whether to hide metadata in logs                                 | `false`            |
+| `GITHUB_CLIENT_ID`     | GitHub OAuth Client ID                                           | -                  |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret                                       | -                  |
+| `GOOGLE_CLIENT_ID`     | Google OAuth Client ID                                           | -                  |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret                                       | -                  |
+| `PORT`                 | Port on which the service runs                                   | `8080`             |
+| `LOKI_URL`             | URL for the Loki logging service                                 | `http://loki:3100` |
 
 !!! note
-    If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
+If the environment variable `LOKI_URL` is not set, logs will be output "locally" to the console.
+
+`BASE_URL` may point directly to the Auth-Service or to the versioned Traefik
+route. Better Auth appends its normal `/api/auth/*` paths to either value:
+
+```text
+BASE_URL=http://localhost:8080
+BASE_URL=https://prod.gateway.domain.de/auth/v1
+```
 
 #### Rate Limiting
 
@@ -114,13 +123,13 @@ Rate limiting is active **in production only** (`runtime === "production"`) and 
 
 The limits are configured in `config.ts`:
 
-| Parameter   | Value      | Description                           |
-|:------------|:-----------|:--------------------------------------|
-| `windowMs`  | 5 minutes  | Time window for rate limit tracking   |
-| `limit`     | 500        | Maximum requests per IP per window    |
+| Parameter  | Value     | Description                         |
+| :--------- | :-------- | :---------------------------------- |
+| `windowMs` | 5 minutes | Time window for rate limit tracking |
+| `limit`    | 500       | Maximum requests per IP per window  |
 
 !!! info
-    The rate limit for the auth service is higher than the defined limit for the [backend](./backend.md#rate-limiting){data-preview} due to the increased traffic caused by the webapp.
+The rate limit for the auth service is higher than the defined limit for the [backend](./backend.md#rate-limiting){data-preview} due to the increased traffic caused by the webapp.
 
 When the limit is exceeded, the service responds with HTTP `429 Too Many Requests`. Standard `RateLimit-*` headers (draft-7) are included in every response.
 
