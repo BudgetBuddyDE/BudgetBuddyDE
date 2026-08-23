@@ -1,32 +1,56 @@
 ---
-title: Getting started
-description: Get started with Zensical, the static site generator for documentation.
-icon: lucide/rocket
-status: new # deprecated
+title: BudgetBuddy Documentation
+description: Understand, run, use, and extend BudgetBuddy.
+icon: lucide/house
 ---
 
-## About
+BudgetBuddy is an open-source personal finance manager for income, expenses, recurring payments, budgets, and analytics.
 
-A concise guide to this documentation project and how to use Zensical as the static site generator. This repository contains the docs source, site configuration, and examples used by BudgetBuddy's documentation website.
+## Quick Start
 
-## Features
+<div class="grid cards" markdown>
 
-### Core App Features
+- **Use BudgetBuddy**
 
-- [x] **Comprehensive Dashboard** — Get a real-time overview of your financial health with interactive statistics, upcoming recurring payments, and latest transactions.
-- [x] **Detailed Transaction Management** — Easily record, categorize, and track every income and expense to maintain a clear financial history.
-- [x] **Automated Recurring Payments** — Manage subscriptions and scheduled bills effortlessly with automatic tracking and upcoming payment reminders.
-- [x] **Smart Budgeting** — Set monthly financial goals for different categories and monitor your progress with visual budget indicators.
-- [x] **Financial Analytics & Insights** — Visualize your spending habits through interactive charts, including category-based expense breakdowns and budget distribution.
-- [x] **Customizable Infrastructure** — Define your own categories and payment methods (e.g., bank accounts, cash, credit cards) to fit your personal workflow.
-- [x] **Table Filtering** — Filter transactions and recurring payments by date range, execute day, categories, and payment methods directly from the table toolbar. Active filters are persisted in the URL so they survive page reloads and can be shared via link.
-- [ ] **Automated Reports** - Generate monthly financial summaries and insights to help you understand your spending patterns and make informed decisions.
-- [ ] **Attachments** — Upload and manage receipts, invoices, and other financial documents directly within the app for easy reference and organization.
-- [ ] **Model Context Protocol (MCP)** — Allow LLMs to interact with the app's data and functionality through a standardized interface, enabling advanced features like natural language queries and AI-driven insights.
-- [ ] **Insights** - Provide users with actionable insights based on their financial data, such as spending trends, budget recommendations, and personalized financial tips.
+  Learn about the application's main features.
 
-## Guides
+  [:octicons-arrow-right-24: Open the user guide](user-guide/index.md)
 
-- [Start developing](development/start-development.md) — Set up the local environment and run the dev server
-- [Deployment](deployment.md) — How to build and publish the static site
-- [CI/CD](ci-cd.md) — Pipeline overview and release process
+- **Develop locally**
+
+  Set up the monorepo and start the webapp, services, and infrastructure.
+
+  [:octicons-arrow-right-24: Set up the development environment](getting-started/development.md)
+
+- **Self-host BudgetBuddy**
+
+  Prepare your own environment with PostgreSQL, Redis, and the BudgetBuddy services.
+
+  [:octicons-arrow-right-24: Self-hosting](administration/index.md)
+
+- **Integrate**
+
+  Use the typed API client or the MCP interface.
+
+  [:octicons-arrow-right-24: API reference](reference/index.md)
+
+</div>
+
+## Project At A Glance
+
+- Dashboard with current financial overviews
+- Transactions for income and expenses
+- Recurring payments and automatic processing
+- Budgets and analytics
+- Custom categories and payment methods
+- Attachments such as receipts through S3-compatible storage
+- API key and MCP integration for external clients
+
+BudgetBuddy is under active development. The [project status](project/roadmap.md) describes which features are stable, in progress, or planned.
+
+## Links
+
+- [Live app](https://app.budget-buddy.de)
+- [Website](https://budget-buddy.de)
+- [GitHub repository](https://github.com/BudgetBuddyDE/BudgetBuddyDE)
+- [Issues and feature requests](https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues)

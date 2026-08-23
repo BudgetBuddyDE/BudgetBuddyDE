@@ -1,17 +1,23 @@
 ---
-title: Database
-icon: lucide/database
-tags: [development, database]
+title: Database Development
+description: Develop and migrate schema changes with Drizzle.
+icon: lucide/database-zap
 ---
 
-## Overview
+The database package provides the schema, relations, and migrations. Tables are under `packages/db/src/backend` and `packages/db/src/auth`.
 
-For persistence, a PostgreSQL database is used along with a Redis instance for caching and persistence of short-lived records (e.g. session management, rate limiting, etc.).
-The database is accessed via [Drizzle](https://orm.drizzle.team/) as an ORM to simplify interaction with the database and ensure type safety. The database schema (defined with DrizzleORM) is provided through the NPM package [`@budgetbuddyde/db`](../packages/db.md#about){data-preview}. This NPM package is [automatically deployed](../packages/db.md#deployment){data-preview} as soon as a change is pushed. If there are changes to the database schema (migrations added under `/drizzle`), these can be applied using a CI pipeline.
+## Workflow
 
-!!! important "Database Migrations"
-    The step to apply migrations is currently not automated in order to prevent unintended changes to the database.
+1. Change the schema or a relation.
+2. Review the generated migration.
+3. Run the migration locally.
+4. Run backend tests and the type check.
+5. Commit the migration together with the code.
 
-## Model
+```bash
+npm run db:generate --workspace @budgetbuddyde/db
+npm run db:migrate --workspace @budgetbuddyde/db
+npm run typecheck --workspace @budgetbuddyde/db
+```
 
-> Will be added soon
+For auth schema changes, `npm run ba:schema-generate --workspace @budgetbuddyde/db` may be required first. Never accept generated changes without review.

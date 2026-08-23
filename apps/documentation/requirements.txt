@@ -1,7 +1,11 @@
-click==8.3.1
-deepmerge==2.0
-Markdown==3.10.2
-Pygments==2.19.2
-pymdown-extensions==10.21
+click==8.4.2
+colorama==0.4.6
+deepmerge==3.0
+Jinja2==3.1.6
+Markdown==3.10.3
+MarkupSafe==3.0.3
+Pygments==2.21.0
+pymdown-extensions==11.0.2
 PyYAML==6.0.3
-zensical==0.0.23
+tomli==2.4.1
+zensical==0.0.57

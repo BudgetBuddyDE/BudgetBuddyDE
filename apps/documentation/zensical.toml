@@ -11,18 +11,18 @@
 # The site_name is shown in the page header and the browser window title
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_name
-site_name = "Documentation"
+site_name = "BudgetBuddy Documentation"
 
 # The site_description is included in the HTML head and should contain a
 # meaningful description of the site content for use by search engines.
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_description
-site_description = "A new project generated from the default template project."
+site_description = "Understand, run, use, and extend BudgetBuddy."
 
 # The site_author attribute. This is used in the HTML head element.
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_author
-site_author = "Thorben Klein"
+site_author = "BudgetBuddyDE"
 
 # Repository
 repo_name = "BudgetBuddyDE/BudgetBuddyDE"
@@ -53,47 +53,81 @@ copyright = """
 nav = [
     {"Home" = [
         "index.md",
-        "development/start-development.md",
-        "documentation.md",
-        "deployment.md",
-        "ci-cd.md",
-        "contributing.md",
-        {"Apps" = [
-            "apps/webapp.md",
-            "apps/website.md",
-            "apps/attachments.md"
-        ]},
-        {"Services" = [
-            "services/auth-service.md",
-            "services/api-keys.md",
-            "services/backend.md",
-            {"Monitoring" = [
-                "monitoring/open-telemetry.md",
-            ]}
-        ]},
-        {"Packages" = [
-            "packages/api.md",
-            "packages/db.md",
-            "packages/types.md",
-            "packages/utils.md",
-            "packages/logger.md"
+        {"Getting Started" = [
+            "getting-started/index.md",
+            "getting-started/development.md",
+            "getting-started/first-steps.md",
+            "getting-started/faq.md"
         ]}
+    ]},
+    {"User Guide" = [
+        "user-guide/index.md",
+        "user-guide/dashboard.md",
+        "user-guide/transactions.md",
+        "user-guide/recurring-payments.md",
+        "user-guide/budgets.md",
+        "user-guide/categories.md",
+        "user-guide/payment-methods.md",
+        "user-guide/analytics.md",
+        "user-guide/attachments.md",
+        "user-guide/data-management.md"
+    ]},
+    {"Self-Hosting" = [
+        "administration/index.md",
+        "administration/deployment.md",
+        "administration/configuration.md",
+        "administration/database.md",
+        "administration/backups.md",
+        "administration/monitoring.md",
+        "administration/upgrades.md",
+        "administration/troubleshooting.md"
+    ]},
+    {"Architecture" = [
+        "architecture/index.md",
+        "architecture/overview.md",
+        "architecture/data-flow.md",
+        "architecture/authentication.md",
+        "architecture/data-model.md",
+        "architecture/caching-and-errors.md",
+        "architecture/security.md",
+        "architecture/decisions/index.md"
     ]},
     {"Development" = [
         "development/index.md",
-        "development/start-development.md",
-        "development/git-hooks.md",
+        "development/setup.md",
+        "development/project-structure.md",
+        "development/coding-conventions.md",
+        "development/testing.md",
         "development/database.md",
-        {"Components" = [
-            "development/components/index.md",
-            "development/components/tables.md",
-            "development/components/filter.md",
-            "development/components/attachments.md",
-            "development/components/intent-based-navigation.md",
-        ]}
+        "development/frontend.md",
+        "development/backend.md",
+        "development/add-package.md",
+        "development/add-service.md"
     ]},
-    {"Monitoring" = [
-        "monitoring/open-telemetry.md",
+    {"Reference" = [
+        "reference/index.md",
+        "reference/api.md",
+        "reference/authentication.md",
+        "reference/api-errors.md",
+        "reference/environment-variables.md",
+        "reference/cli-commands.md",
+        "reference/mcp.md"
+    ]},
+    {"Contributing" = [
+        "contributing/index.md",
+        "contributing/guide.md",
+        "contributing/git-workflow.md",
+        "contributing/pull-requests.md",
+        "contributing/releases.md",
+        "contributing/documentation.md"
+    ]},
+    {"Project" = [
+        "project/index.md",
+        "project/roadmap.md",
+        "project/changelog.md",
+        "project/privacy.md",
+        "project/license.md",
+        "project/glossary.md"
     ]}
 ]
 

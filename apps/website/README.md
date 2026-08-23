@@ -1,1 +1,1 @@
-[Documentation](../documentation/docs/apps/website.md)
+[Documentation](../documentation/docs/architecture/overview.md)

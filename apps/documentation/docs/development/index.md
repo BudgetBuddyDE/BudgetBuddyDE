@@ -1,47 +1,21 @@
 ---
 title: Development
-description: Information on setting up the local development environment as well as developing the application and services.
-icon: lucide/code
-status: new
-tags: [development]
+description: Extend, test, and maintain BudgetBuddy.
+icon: lucide/code-2
 ---
 
-<div class="grid cards" markdown>
+## Development Workflow
 
--   **Set up in 5 minutes**
+1. [Set up the environment](setup.md)
+2. [Understand the monorepo](project-structure.md)
+3. [Follow the conventions](coding-conventions.md)
+4. [Test the change](testing.md)
+5. Create an appropriate [pull request](../contributing/pull-requests.md)
 
-    Guide on how to set up the local development environment and start developing the application and services.
+## By Area
 
-    [:octicons-arrow-right-24: Getting started](start-development.md)
-
--   **Project Structure**
-
-    Overview of the monorepo layout, workspace conventions, Turborepo pipeline, and CI workflows.
-
-    [:octicons-arrow-right-24: Learn more](project-structure.md)
-
--   **Database**
-
-    Introduction to the database used in the application, how to set it up and how to interact with it.
-
-    [:octicons-arrow-right-24: Learn more](database.md)
-
--   **Add a Package**
-
-    Step-by-step guide to create a new internal or publishable package.
-
-    [:octicons-arrow-right-24: Add a package](add-package.md)
-
--   **Add a Service**
-
-    Step-by-step guide to create a new deployable backend service.
-
-    [:octicons-arrow-right-24: Add a service](add-service.md)
-
--   **Components**
-
-    Overview of the different components of the application and how they interact with each other.
-
-    [:octicons-arrow-right-24: Learn more](components/index.md)
-
-</div>
+- [Frontend development](frontend.md)
+- [Backend development](backend.md)
+- [Database development](database.md)
+- [Add a new package](add-package.md)
+- [Add a new service](add-service.md)

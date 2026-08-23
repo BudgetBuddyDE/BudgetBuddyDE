@@ -50,17 +50,17 @@ Monorepo powered by [Turbo](https://turbo.build/).
 
 ### Services
 
-- **[Auth Service](./apps/documentation/docs/services/auth-service.md):** Handles user authentication and authorization.
-- **[Backend](./apps/documentation/docs/services/backend.md):** The main backend service providing the API.
-- **[MCP](./apps/documentation/docs/services/mcp.md):** MCP service for interacting with the backend in combination with LLMs.
+- **[Auth Service](./apps/documentation/docs/architecture/authentication.md):** Handles user authentication and authorization.
+- **[Backend](./apps/documentation/docs/architecture/overview.md):** The main backend service providing the API.
+- **[MCP](./apps/documentation/docs/reference/mcp.md):** MCP service for interacting with the backend in combination with LLMs.
 
 ### Packages
 
-- **[Database](./apps/documentation/docs/packages/db.md):** DrizzleORM database schema definitions.
-- **[Api](./apps/documentation/docs/packages/api.md):** Type-safe API client for backend communication.`
-- **[Logger](./apps/documentation/docs/packages/logger.md):** (Deprecated) Shared logging utility.
-- **[Utils](./apps/documentation/docs/packages/utils.md):** Shared utility functions.
-- **[Types](./apps/documentation/docs/packages/types.md):** Shared TypeScript types and schemas.
+- **[Database](./apps/documentation/docs/architecture/data-model.md):** DrizzleORM database schema definitions.
+- **[Api](./apps/documentation/docs/reference/api.md):** Type-safe API client for backend communication.
+- **[Logger](packages/logger):** (Deprecated) Shared logging utility.
+- **[Utils](packages/utils):** Shared utility functions.
+- **[Types](./apps/documentation/docs/architecture/overview.md):** Shared TypeScript types and schemas.
 
 ## Getting Started
 
