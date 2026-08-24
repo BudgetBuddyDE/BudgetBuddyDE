@@ -26,7 +26,7 @@ resources:
     type: discord-alert
     icon: bell-ring
     source:
-      url: ((discord_webhook))
+      url: ((discord.webhook_url))
 
   - name: node-image
     type: registry-image
@@ -40,7 +40,7 @@ resources:
     icon: git
     source:
       uri: git@github.com:((repo_owner))/((repo_name)).git
-      private_key: ((repo_private_key))
+      private_key: ((github.private_key))
       branch: main
       paths: [((repo_path))/**]
 
@@ -49,8 +49,8 @@ resources:
     icon: docker
     source:
       repository: ((docker_image))
-      username: ((docker_username))
-      password: ((docker_password))
+      username: ((docker.username))
+      password: ((docker.password))
 
   - name: status
     type: cogito
@@ -59,7 +59,7 @@ resources:
     source:
       owner: ((repo_owner))
       repo: ((repo_name))
-      access_token: ((github_pat))
+      access_token: ((github.pat))
 
   - name: version
     type: semver
@@ -67,11 +67,11 @@ resources:
     source:
       driver: s3
       initial_version: 0.0.0-rc.0
-      bucket: ((version_bucket))
+      bucket: ((s3-versions.bucket))
       key: ((service))/version
-      region_name: ((version_bucket_region))
-      access_key_id: ((version_bucket_access_key))
-      secret_access_key: ((version_bucket_secret))
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
 
   - name: version-prod
     type: semver
@@ -79,11 +79,11 @@ resources:
     source:
       driver: s3
       initial_version: 0.0.0-rc.0
-      bucket: ((version_bucket))
+      bucket: ((s3-versions.bucket))
       key: ((service))/prod
-      region_name: ((version_bucket_region))
-      access_key_id: ((version_bucket_access_key))
-      secret_access_key: ((version_bucket_secret))
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
 
 meta:
   gh-status-handlers: &gh-status-handlers
@@ -145,10 +145,10 @@ jobs:
           - get: repository
             trigger: true
           - get: version
-            params: { pre: rc }
+            params: {pre: rc}
           - get: container-version
             resource: version
-            params: { bump: final }
+            params: {bump: final}
       - put: status
         inputs: [repository]
         params: {state: pending}
@@ -177,7 +177,7 @@ jobs:
                 cd ((repo_path))
                 npm version "$NEW_VERSION" --no-git-tag-version
       - put: container-registry
-        get_params: { skip_download: true }
+        get_params: {skip_download: true}
         params:
           build: repository/((repo_path))
           dockerfile: repository/((repo_path))/Dockerfile
@@ -185,7 +185,7 @@ jobs:
           additional_tags: container-version/version
           tag_as_latest: true
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
 
   - name: release-patch
     on_failure:
@@ -200,25 +200,25 @@ jobs:
           - get: repository
             passed: [build-((service_name))]
           - get: version
-            params: { bump: patch }
+            params: {bump: patch}
           - get: built-image
             resource: container-registry
             passed: [build-((service_name))]
-            params: { save: true }
+            params: {save: true}
       - task: prepare-release
         image: node-image
         config:
           <<: *task-release
       - put: container-registry
-        get_params: { skip_download: true }
+        get_params: {skip_download: true}
         params:
           load: built-image
           tag_file: version/version
           tag_as_latest: true
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: version-prod
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository
@@ -237,25 +237,25 @@ jobs:
           - get: repository
             passed: [build-((service_name))]
           - get: version
-            params: { bump: minor }
+            params: {bump: minor}
           - get: built-image
             resource: container-registry
             passed: [build-((service_name))]
-            params: { save: true }
+            params: {save: true}
       - task: prepare-release
         image: node-image
         config:
           <<: *task-release
       - put: container-registry
-        get_params: { skip_download: true }
+        get_params: {skip_download: true}
         params:
           load: built-image
           tag_file: version/version
           tag_as_latest: true
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: version-prod
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository
@@ -274,25 +274,25 @@ jobs:
           - get: repository
             passed: [build-((service_name))]
           - get: version
-            params: { bump: major }
+            params: {bump: major}
           - get: built-image
             resource: container-registry
             passed: [build-((service_name))]
-            params: { save: true }
+            params: {save: true}
       - task: prepare-release
         image: node-image
         config:
           <<: *task-release
       - put: container-registry
-        get_params: { skip_download: true }
+        get_params: {skip_download: true}
         params:
           load: built-image
           tag_file: version/version
           tag_as_latest: true
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: version-prod
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository

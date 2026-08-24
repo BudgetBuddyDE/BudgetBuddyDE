@@ -63,25 +63,21 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 ```bash
 fly -t ci set-pipeline -p webapp -c ./pipelines/test-webapp.pipeline.yml \
   --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
   -v repo_branch="main" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
   -v repo_path="apps/webapp" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
   -v service="app_webapp" \
-  -v service_name="webapp" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+  -v service_name="webapp"
+
+# or
+fly -t ci set-pipeline -p webapp -c ./pipelines/test-webapp.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_branch="main" -v repo_path="apps/webapp" -v service="app_webapp" -v service_name="webapp"
 ```
 
 ### Manage database migrations & backups
 
 ```bash
-fly -t ci set-pipeline -p database -c ./pipelines/manage-database.pipeline.yml \
+fly -t ci set-pipeline -p manage-database -c ./pipelines/manage-database.pipeline.yml \
   --team budgetbuddyde \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
@@ -96,6 +92,9 @@ fly -t ci set-pipeline -p database -c ./pipelines/manage-database.pipeline.yml \
   -v db_backup_bucket="bb-railway-database-backups" \
   -v test_database_url="$(cat ./secrets/database/credentials.txt | sed -n '2p')" \
   -v database_url="$(cat ./secrets/database/credentials.txt | sed -n '4p')"
+
+# or
+fly -t ci set-pipeline -p manage-database -c ./pipelines/manage-database.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="packages/db" -v service="pck_db" -v service_name="db"
 ```
 
 ### Publish `@budgetbuddyde/db`
@@ -107,17 +106,12 @@ fly -t ci set-pipeline \
     --team budgetbuddyde \
     -v repo_owner="budgetbuddyde" \
     -v repo_name="budgetbuddyde" \
-    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-    -v github_pat="$(cat ./secrets/github/pat)" \
     -i repo_path="packages/db" \
-    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
     -i service="pck_db" \
-    -i service_name="db" \
-    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+    -i service_name="db"
+
+# or
+fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/db" -i service="pck_db" -i service_name="db"
 ```
 
 ### Publish `@budetbuddyde/api`
@@ -129,17 +123,12 @@ fly -t ci set-pipeline \
     --team budgetbuddyde \
     -v repo_owner="budgetbuddyde" \
     -v repo_name="budgetbuddyde" \
-    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-    -v github_pat="$(cat ./secrets/github/pat)" \
     -i repo_path="packages/api" \
-    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
     -i service="pck_api" \
-    -i service_name="api" \
-    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+    -i service_name="api"
+
+# or
+fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/api" -i service="pck_api" -i service_name="api"
 ```
 
 ### Publish `@budetbuddyde/logger`
@@ -151,17 +140,12 @@ fly -t ci set-pipeline \
     --team budgetbuddyde \
     -v repo_owner="budgetbuddyde" \
     -v repo_name="budgetbuddyde" \
-    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-    -v github_pat="$(cat ./secrets/github/pat)" \
     -i repo_path="packages/logger" \
-    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
     -i service="pck_logger" \
-    -i service_name="logger" \
-    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+    -i service_name="logger"
+
+# or
+fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/logger" -i service="pck_logger" -i service_name="logger"
 ```
 
 ### Publish `@budetbuddyde/types`
@@ -173,17 +157,12 @@ fly -t ci set-pipeline \
     --team budgetbuddyde \
     -v repo_owner="budgetbuddyde" \
     -v repo_name="budgetbuddyde" \
-    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-    -v github_pat="$(cat ./secrets/github/pat)" \
     -i repo_path="packages/types" \
-    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
     -i service="pck_types" \
-    -i service_name="types" \
-    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+    -i service_name="types"
+
+# or
+fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/types" -i service="pck_types" -i service_name="types"
 ```
 
 ### Publish `@budetbuddyde/utils`
@@ -195,17 +174,12 @@ fly -t ci set-pipeline \
     --team budgetbuddyde \
     -v repo_owner="budgetbuddyde" \
     -v repo_name="budgetbuddyde" \
-    -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-    -v github_pat="$(cat ./secrets/github/pat)" \
     -i repo_path="packages/utils" \
-    -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
     -i service="pck_utils" \
-    -i service_name="utils" \
-    -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-    -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-    -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-    -v npm_token="$(cat ./secrets/npmjs/npm_token)" \
-    -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+    -i service_name="utils"
+
+# or
+fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/utils" -i service="pck_utils" -i service_name="utils"
 ```
 
 ### Publish `auth-service`
@@ -213,21 +187,15 @@ fly -t ci set-pipeline \
 ```bash
 fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-auth-service.pipeline.yml \
   --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
   -v repo_path="services/auth-service" \
   -v docker_image="ghcr.io/budgetbuddyde/auth-service" \
-  -v docker_username="tklein1801" \
-  -v docker_password="$(cat ./secrets/github/pat)" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
   -v service="bb_auth_service" \
-  -v service_name="auth-service" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+  -v service_name="auth-service"
+
+# or
+fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-auth-service.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/auth-service" -v docker_image="ghcr.io/budgetbuddyde/auth-service" -v service="bb_auth_service" -v service_name="auth-service"
 ```
 
 ### Publish `backend`
@@ -235,19 +203,13 @@ fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-auth-service.pipel
 ```bash
 fly -t ci set-pipeline -p backend -c ./pipelines/publish-backend.pipeline.yml \
   --team budgetbuddyde \
-  -v github_pat="$(cat ./secrets/github/pat)" \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
   -v repo_path="services/backend" \
   -v docker_image="ghcr.io/budgetbuddyde/backend" \
-  -v docker_username="tklein1801" \
-  -v docker_password="$(cat ./secrets/github/pat)" \
-  -v version_bucket="$(cat ./secrets/aws/bucket.txt | sed -n '3p')" \
   -v service="bb_backend" \
-  -v service_name="backend" \
-  -v version_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v version_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v version_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v discord_webhook="$(cat ./secrets/discord-webhook.txt)"
+  -v service_name="backend"
+
+# or
+fly -t ci set-pipeline -p backend -c ./pipelines/publish-backend.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/backend" -v docker_image="ghcr.io/budgetbuddyde/backend" -v service="bb_backend" -v service_name="backend"
 ```

@@ -21,17 +21,17 @@ resources:
     icon: git
     source:
       uri: git@github.com:((repo_owner))/((repo_name)).git
-      private_key: ((repo_private_key))
+      private_key: ((github.private_key))
       branch: main
       paths: [((repo_path))/drizzle/**]
   - name: db-bucket
     type: s3
     icon: database-import
     source:
-      bucket: ((db_backup_bucket))
-      region_name: ((db_bucket_region))
-      access_key_id: ((db_bucket_access_key))
-      secret_access_key: ((db_bucket_secret))
+      bucket: ((s3-db-backup.bucket))
+      region_name: ((s3-db-backup.region))
+      access_key_id: ((s3-db-backup.access_key_id))
+      secret_access_key: ((s3-db-backup.access_key_secret))
       regexp: backup_(.*).dump
   - name: daily-timer
     type: time
@@ -58,7 +58,7 @@ jobs:
           params:
             CI: 'true'
             FORCE_COLOR: 1
-            DATABASE_URL: ((database_url))
+            DATABASE_URL: ((manage-database.prod-database-url))
           run:
             path: sh
             args:
@@ -89,7 +89,7 @@ jobs:
           params:
             CI: 'true'
             FORCE_COLOR: 1
-            DATABASE_URL: ((test_database_url))
+            DATABASE_URL: ((manage-database.test-database-url))
           run:
             path: sh
             args:

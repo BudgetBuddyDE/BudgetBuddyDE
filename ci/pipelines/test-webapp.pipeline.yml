@@ -26,7 +26,7 @@ resources:
     type: discord-alert
     icon: bell-ring
     source:
-      url: ((discord_webhook))
+      url: ((discord.webhook_url))
 
   - name: node-image
     type: registry-image
@@ -40,7 +40,7 @@ resources:
     icon: git
     source:
       uri: git@github.com:((repo_owner))/((repo_name)).git
-      private_key: ((repo_private_key))
+      private_key: ((github.private_key))
       branch: ((repo_branch))
       paths: [((repo_path))/**]
 
@@ -51,7 +51,7 @@ resources:
     source:
       owner: ((repo_owner))
       repo: ((repo_name))
-      access_token: ((github_pat))
+      access_token: ((github.pat))
 
   - name: version
     type: semver
@@ -59,11 +59,11 @@ resources:
     source:
       driver: s3
       initial_version: 3.0.0-rc.0
-      bucket: ((version_bucket))
+      bucket: ((s3-versions.bucket))
       key: ((service))/version
-      region_name: ((version_bucket_region))
-      access_key_id: ((version_bucket_access_key))
-      secret_access_key: ((version_bucket_secret))
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
 
   - name: version-prod
     type: semver
@@ -71,11 +71,11 @@ resources:
     source:
       driver: s3
       initial_version: 3.0.0-rc.0
-      bucket: ((version_bucket))
+      bucket: ((s3-versions.bucket))
       key: ((service))/prod
-      region_name: ((version_bucket_region))
-      access_key_id: ((version_bucket_access_key))
-      secret_access_key: ((version_bucket_secret))
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
 
 meta:
   gh-status-handlers: &gh-status-handlers
@@ -106,6 +106,7 @@ task-config: &task-release
     CI: 'true'
     FORCE_COLOR: 1
     TURBO_TELEMETRY_DISABLED: 1
+    NEXT_TELEMETRY_DISABLED: 1
   inputs:
     - name: repository
     - name: version
@@ -137,10 +138,10 @@ jobs:
           - get: repository
             trigger: true
           - get: version
-            params: { pre: rc }
+            params: {pre: rc}
           - get: container-version
             resource: version
-            params: { bump: final }
+            params: {bump: final}
       - put: status
         inputs: [repository]
         params: {state: pending}
@@ -156,6 +157,7 @@ jobs:
             CI: 'true'
             FORCE_COLOR: 1
             TURBO_TELEMETRY_DISABLED: 1
+            NEXT_TELEMETRY_DISABLED: 1
           run:
             path: sh
             args:
@@ -170,7 +172,7 @@ jobs:
                 cd ((repo_path))
                 npm version "$NEW_VERSION" --no-git-tag-version
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
 
   - name: release-patch
     on_failure:
@@ -185,15 +187,15 @@ jobs:
           - get: repository
           - get: version
             passed: [build-((service_name))]
-            params: { bump: patch }
+            params: {bump: patch}
       - task: build
         image: node-image
         config:
           <<: *task-release
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: version-prod
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository
@@ -212,15 +214,15 @@ jobs:
           - get: repository
           - get: version
             passed: [build-((service_name))]
-            params: { bump: minor }
+            params: {bump: minor}
       - task: build
         image: node-image
         config:
           <<: *task-release
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: version-prod
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository
@@ -239,15 +241,15 @@ jobs:
           - get: repository
           - get: version
             passed: [build-((service_name))]
-            params: { bump: major }
+            params: {bump: major}
       - task: build
         image: node-image
         config:
           <<: *task-release
       - put: version
-        params: { file: version/version }
+        params: {file: version/version}
       - put: version-prod
-        params: { file: version/version }
+        params: {file: version/version}
       - put: repository
         params:
           repository: repository
