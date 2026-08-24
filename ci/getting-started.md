@@ -185,7 +185,7 @@ fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-pack
 ### Publish `auth-service`
 
 ```bash
-fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-auth-service.pipeline.yml \
+fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-service.pipeline.yml \
   --team budgetbuddyde \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
@@ -195,13 +195,13 @@ fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-auth-service.pipel
   -v service_name="auth-service"
 
 # or
-fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-auth-service.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/auth-service" -v docker_image="ghcr.io/budgetbuddyde/auth-service" -v service="bb_auth_service" -v service_name="auth-service"
+fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-service.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/auth-service" -v docker_image="ghcr.io/budgetbuddyde/auth-service" -v service="bb_auth_service" -v service_name="auth-service"
 ```
 
 ### Publish `backend`
 
 ```bash
-fly -t ci set-pipeline -p backend -c ./pipelines/publish-backend.pipeline.yml \
+fly -t ci set-pipeline -p backend -c ./pipelines/publish-service.pipeline.yml \
   --team budgetbuddyde \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
@@ -211,5 +211,21 @@ fly -t ci set-pipeline -p backend -c ./pipelines/publish-backend.pipeline.yml \
   -v service_name="backend"
 
 # or
-fly -t ci set-pipeline -p backend -c ./pipelines/publish-backend.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/backend" -v docker_image="ghcr.io/budgetbuddyde/backend" -v service="bb_backend" -v service_name="backend"
+fly -t ci set-pipeline -p backend -c ./pipelines/publish-service.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/backend" -v docker_image="ghcr.io/budgetbuddyde/backend" -v service="bb_backend" -v service_name="backend"
+```
+
+### Publish `mcp`
+
+```bash
+fly -t ci set-pipeline -p mcp -c ./pipelines/publish-service.pipeline.yml \
+  --team budgetbuddyde \
+  -v repo_owner="budgetbuddyde" \
+  -v repo_name="budgetbuddyde" \
+  -v repo_path="services/mcp" \
+  -v docker_image="ghcr.io/budgetbuddyde/mcp" \
+  -v service="bb_mcp" \
+  -v service_name="mcp"
+
+# or
+fly -t ci set-pipeline -p mcp -c ./pipelines/publish-service.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/mcp" -v docker_image="ghcr.io/budgetbuddyde/mcp" -v service="bb_mcp" -v service_name="mcp"
 ```
