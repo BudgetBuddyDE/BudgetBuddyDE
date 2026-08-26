@@ -1,8 +1,0 @@
-.DS_Store
-.turbo/
-ci/secrets/**
-!ci/secrets/
-node_modules/
-.env
-build/
-local-docs/

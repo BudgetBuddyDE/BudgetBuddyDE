@@ -1,2 +1,0 @@
-# Keep Husky hooks executable by POSIX shells on every checkout.
-.husky/** text eol=lf
