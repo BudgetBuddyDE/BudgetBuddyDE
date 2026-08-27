@@ -11,7 +11,7 @@ import {
 } from './tables';
 import {createTableSchemas} from '../utils/createTableSchemas';
 
-export {budgetType} from './enums';
+export {budgetType, executionPlanType} from './enums';
 
 export const CategorySchemas = createTableSchemas(categories);
 

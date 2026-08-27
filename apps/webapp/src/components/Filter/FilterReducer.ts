@@ -7,8 +7,6 @@ export type Filters<C = TCategoryVH, P = TPaymentMethodVH> = {
   keywords: string | null;
   dateRange: DateRangeState;
   paused: boolean | null;
-  executeFrom: string;
-  executeTo: string;
   categories: C[];
   paymentMethods: P[];
 };
@@ -21,8 +19,6 @@ export function getInitialFilterState(): FilterState {
     keywords: null,
     dateRange: {startDate: null, endDate: null},
     paused: null,
-    executeFrom: '',
-    executeTo: '',
     categories: [],
     paymentMethods: [],
   };
@@ -34,8 +30,6 @@ export type FilterAction =
   | {action: 'SET_START_DATE'; startDate: Date | null}
   | {action: 'SET_END_DATE'; endDate: Date | null}
   | {action: 'SET_PAUSED'; paused: boolean | null}
-  | {action: 'SET_EXECUTE_FROM'; executeFrom: string}
-  | {action: 'SET_EXECUTE_TO'; executeTo: string}
   | {action: 'SET_CATEGORIES'; categories: TCategoryVH[]}
   | {action: 'SET_PAYMENT_METHODS'; paymentMethods: TPaymentMethodVH[]}
   | {action: 'RESET_ALL'};
@@ -67,12 +61,6 @@ export function FilterReducer(state: FilterState, action: FilterAction): FilterS
     case 'SET_PAUSED':
       updatedState = {...state, paused: action.paused};
       return {...updatedState, hasActiveFilters: determineHasActiveFilters(updatedState)};
-    case 'SET_EXECUTE_FROM':
-      updatedState = {...state, executeFrom: action.executeFrom};
-      return {...updatedState, hasActiveFilters: determineHasActiveFilters(updatedState)};
-    case 'SET_EXECUTE_TO':
-      updatedState = {...state, executeTo: action.executeTo};
-      return {...updatedState, hasActiveFilters: determineHasActiveFilters(updatedState)};
     case 'SET_CATEGORIES':
       updatedState = {...state, categories: action.categories};
       return {...updatedState, hasActiveFilters: determineHasActiveFilters(updatedState)};
@@ -92,8 +80,6 @@ function determineHasActiveFilters(state: FilterState): boolean {
     state.dateRange.startDate ||
     state.dateRange.endDate ||
     state.paused !== null ||
-    state.executeFrom ||
-    state.executeTo ||
     state.categories.length > 0 ||
     state.paymentMethods.length > 0
   );

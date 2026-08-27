@@ -1,17 +1,21 @@
 import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TResult} from '../types/common';
-import type {IGetAllRecurringPaymentsQuery} from '../types/interfaces/recurringPayment.interface';
+import type {
+  IGetAllRecurringPaymentsQuery,
+  IGetRecurringPaymentOccurrencesQuery,
+} from '../types/interfaces/recurringPayment.interface';
 import type {
   TCreateOrUpdateRecurringPaymentPayload,
   TExecuteRecurringPaymentResponse,
-  TExpandedRecurringPayment,
+  TGetRecurringPaymentOccurrencesResponse,
 } from '../types/recurringPayment.type';
 import {
   CreateRecurringPaymentResponse,
   DeleteRecurringPaymentResponse,
   ExecuteRecurringPaymentResponse,
   GetAllRecurringPaymentsResponse,
+  GetRecurringPaymentOccurrencesResponse,
   GetRecurringPaymentResponse,
   UpdateRecurringPaymentResponse,
 } from '../types/schemas/recurringPayment.schema';
@@ -40,11 +44,40 @@ export class RecurringPaymentService extends EntityService<
     return super.getAll(query, requestConfig);
   }
 
-  determineNextExecutionDate(executeAt: TExpandedRecurringPayment['executeAt']): Date {
-    const today = new Date();
-    return today.getDate() < executeAt
-      ? new Date(today.getFullYear(), today.getMonth(), executeAt)
-      : new Date(today.getFullYear(), today.getMonth() + 1, executeAt);
+  @log
+  async getOccurrences(
+    query: IGetRecurringPaymentOccurrencesQuery,
+    requestConfig?: RequestInit,
+  ): Promise<TResult<TGetRecurringPaymentOccurrencesResponse>> {
+    try {
+      const params = this.reqQueryObjToURLSearchParams(query);
+      const response = await this.request(
+        `${this.getBaseRequestPath()}/occurrences?${params.toString()}`,
+        this.mergeRequestConfig(
+          {
+            method: 'GET',
+            headers: new Headers(requestConfig?.headers || {}),
+            credentials: 'include',
+          },
+          requestConfig,
+        ),
+      );
+      if (!response.ok) {
+        throw new BackendError(response.status, response.statusText);
+      }
+      if (!this.isJsonResponse(response)) {
+        throw new ResponseNotJsonError();
+      }
+
+      const parsingResult = GetRecurringPaymentOccurrencesResponse.safeParse(await response.json());
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+
+      return [parsingResult.data, null];
+    } catch (error) {
+      return this.handleError(error);
+    }
   }
 
   @log

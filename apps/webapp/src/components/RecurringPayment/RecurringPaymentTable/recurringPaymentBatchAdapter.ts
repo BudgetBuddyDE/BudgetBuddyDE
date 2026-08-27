@@ -5,13 +5,17 @@ import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {
   CreateOrUpdateRecurringPaymentPayload,
   type TCreateOrUpdateRecurringPaymentPayload,
+  type TExecutionPlan,
   type TExpandedRecurringPayment,
 } from '@budgetbuddyde/api/recurringPayment';
 import type {GridColDef} from '@mui/x-data-grid';
+import {formatLocalDateOnly, parseLocalDateOnly} from '@/components/RecurringPayment/dateOnly';
+import {executionPlanOptions} from '@/components/RecurringPayment/executionPlan';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 export type RecurringPaymentDraftRow = {
   id: string;
-  executeAt: number;
+  executionPlan: TExecutionPlan;
+  startsOn: Date;
   paused: boolean;
   categoryId: string;
   paymentMethodId: string;
@@ -23,7 +27,6 @@ export type RecurringPaymentDraftRow = {
 export type DraftRow = RecurringPaymentDraftRow;
 
 const recurringPaymentDraftSchema = CreateOrUpdateRecurringPaymentPayload.extend({
-  executeAt: CreateOrUpdateRecurringPaymentPayload.shape.executeAt.int().min(1).max(31),
   categoryId: CreateOrUpdateRecurringPaymentPayload.shape.categoryId,
   paymentMethodId: CreateOrUpdateRecurringPaymentPayload.shape.paymentMethodId,
   receiver: CreateOrUpdateRecurringPaymentPayload.shape.receiver.min(1).max(100),
@@ -39,7 +42,8 @@ const createDraftId = (): string => {
 
 export const createEmptyRow = (): DraftRow => ({
   id: createDraftId(),
-  executeAt: new Date().getDate(),
+  executionPlan: 'monthly',
+  startsOn: new Date(),
   paused: false,
   categoryId: '',
   paymentMethodId: '',
@@ -50,7 +54,8 @@ export const createEmptyRow = (): DraftRow => ({
 
 export const fromEntity = (entity: TExpandedRecurringPayment): DraftRow => ({
   id: entity.id,
-  executeAt: entity.executeAt,
+  executionPlan: entity.executionPlan,
+  startsOn: parseLocalDateOnly(entity.startsOn),
   paused: entity.paused,
   categoryId: entity.category.id,
   paymentMethodId: entity.paymentMethod.id,
@@ -66,11 +71,20 @@ export type RecurringPaymentBatchColumnOptions = {
 
 export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef<DraftRow>[] => [
   {
-    field: 'executeAt',
-    headerName: 'Day',
-    type: 'number',
+    field: 'executionPlan',
+    headerName: 'Plan',
+    type: 'singleSelect',
+    valueOptions: executionPlanOptions,
     flex: 1,
-    minWidth: 120,
+    minWidth: 160,
+    editable: true,
+  },
+  {
+    field: 'startsOn',
+    headerName: 'First execution date',
+    type: 'date',
+    flex: 1,
+    minWidth: 180,
     editable: true,
   },
   {
@@ -134,8 +148,13 @@ export const mapRowsToPayload: BatchEntityDialogProps<
   const payload: TCreateOrUpdateRecurringPaymentPayload[] = [];
 
   for (const row of rows) {
+    if (!(row.startsOn instanceof Date) || Number.isNaN(row.startsOn.getTime())) {
+      issues.push({rowId: row.id, message: 'First execution date is required'});
+      continue;
+    }
     const parsed = recurringPaymentDraftSchema.safeParse({
-      executeAt: row.executeAt,
+      executionPlan: row.executionPlan,
+      startsOn: formatLocalDateOnly(row.startsOn),
       paused: row.paused,
       categoryId: row.categoryId,
       paymentMethodId: row.paymentMethodId,

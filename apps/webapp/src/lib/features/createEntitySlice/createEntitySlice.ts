@@ -23,10 +23,6 @@ export type EntityFilters = {
   excl_paymentMethods?: string[];
   /** RecurringPayment-specific: paused state */
   paused?: boolean | null;
-  /** RecurringPayment-specific: execute day >= this value (1–31) */
-  executeFrom?: number | null;
-  /** RecurringPayment-specific: execute day <= this value (1–31) */
-  executeTo?: number | null;
 };
 
 export type EntitySliceState<T> = {

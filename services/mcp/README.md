@@ -16,12 +16,12 @@ npm run dev
 
 ## Environment Variables
 
-| Variable                | Required | Description                                              | Default       |
-|:------------------------|:--------:|:---------------------------------------------------------|:--------------|
-| `BUDGETBUDDY_BACKEND_URL` | ✓       | Base URL of the BudgetBuddyDE backend service            | –             |
-| `PORT`                  | –        | HTTP port the service listens on                         | `8070`        |
-| `NODE_ENV`              | –        | Runtime environment                                      | `development` |
-| `LOG_LEVEL`             | –        | Winston log level                                        | `info`        |
+| Variable                  | Required | Description                                   | Default       |
+| :------------------------ | :------: | :-------------------------------------------- | :------------ |
+| `BUDGETBUDDY_BACKEND_URL` |    ✓     | Base URL of the BudgetBuddyDE backend service | –             |
+| `PORT`                    |    –     | HTTP port the service listens on              | `8070`        |
+| `NODE_ENV`                |    –     | Runtime environment                           | `development` |
+| `LOG_LEVEL`               |    –     | Winston log level                             | `info`        |
 
 Authentication for `/mcp` must be provided per request via either:
 
@@ -55,35 +55,36 @@ DELETE /mcp (close session)
 
 ## Available Tools
 
-| Tool | Description |
-|:-----|:------------|
-| `list_categories` | List all categories |
-| `get_category` | Get a category by ID |
-| `create_category` | Create a new category |
-| `update_category` | Update a category |
-| `delete_category` | Delete a category |
-| `list_payment_methods` | List all payment methods |
-| `get_payment_method` | Get a payment method by ID |
-| `create_payment_method` | Create a new payment method |
-| `update_payment_method` | Update a payment method |
-| `delete_payment_method` | Delete a payment method |
-| `list_transactions` | List transactions (paginated) |
-| `get_transaction` | Get a transaction by ID |
-| `create_transaction` | Create a new transaction |
-| `update_transaction` | Update a transaction |
-| `delete_transaction` | Delete a transaction |
-| `list_recurring_payments` | List recurring payments |
-| `get_recurring_payment` | Get a recurring payment by ID |
-| `create_recurring_payment` | Create a new recurring payment |
-| `update_recurring_payment` | Update a recurring payment |
-| `delete_recurring_payment` | Delete a recurring payment |
-| `list_budgets` | List all budgets |
-| `get_budget` | Get a budget by ID |
-| `create_budget` | Create a new budget |
-| `update_budget` | Update a budget |
-| `delete_budget` | Delete a budget |
-| `get_attachment` | Get a single attachment with signed URL |
-| `list_transaction_attachments` | List attachments for a transaction |
+| Tool                                 | Description                                            |
+| :----------------------------------- | :----------------------------------------------------- |
+| `list_categories`                    | List all categories                                    |
+| `get_category`                       | Get a category by ID                                   |
+| `create_category`                    | Create a new category                                  |
+| `update_category`                    | Update a category                                      |
+| `delete_category`                    | Delete a category                                      |
+| `list_payment_methods`               | List all payment methods                               |
+| `get_payment_method`                 | Get a payment method by ID                             |
+| `create_payment_method`              | Create a new payment method                            |
+| `update_payment_method`              | Update a payment method                                |
+| `delete_payment_method`              | Delete a payment method                                |
+| `list_transactions`                  | List transactions (paginated)                          |
+| `get_transaction`                    | Get a transaction by ID                                |
+| `create_transaction`                 | Create a new transaction                               |
+| `update_transaction`                 | Update a transaction                                   |
+| `delete_transaction`                 | Delete a transaction                                   |
+| `list_recurring_payments`            | List recurring payments                                |
+| `get_recurring_payment`              | Get a recurring payment by ID                          |
+| `list_recurring_payment_occurrences` | Project recurring payment occurrences for a date range |
+| `create_recurring_payment`           | Create a new recurring payment                         |
+| `update_recurring_payment`           | Update a recurring payment                             |
+| `delete_recurring_payment`           | Delete a recurring payment                             |
+| `list_budgets`                       | List all budgets                                       |
+| `get_budget`                         | Get a budget by ID                                     |
+| `create_budget`                      | Create a new budget                                    |
+| `update_budget`                      | Update a budget                                        |
+| `delete_budget`                      | Delete a budget                                        |
+| `get_attachment`                     | Get a single attachment with signed URL                |
+| `list_transaction_attachments`       | List attachments for a transaction                     |
 
 ## Development
 

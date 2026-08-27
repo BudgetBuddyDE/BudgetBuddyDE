@@ -1,9 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
-  getRecurringPaymentExecutionQuickFilter,
   getRecurringPaymentStatusQuickFilter,
   getTransactionDateQuickFilterRange,
-  isRecurringPaymentExecutionQuickFilterActive,
   isTransactionDateQuickFilterActive,
 } from './quickFilters';
 
@@ -34,17 +32,6 @@ describe('quickFilters', () => {
     expect(getRecurringPaymentStatusQuickFilter('inactive')).toEqual({paused: true});
   });
 
-  it('maps executed recurring payments to days before today in the current month', () => {
-    expect(getRecurringPaymentExecutionQuickFilter('executed', referenceDate)).toEqual({executeFrom: 1, executeTo: 14});
-  });
-
-  it('maps scheduled recurring payments to the remaining days of the current month', () => {
-    expect(getRecurringPaymentExecutionQuickFilter('scheduled', referenceDate)).toEqual({
-      executeFrom: 15,
-      executeTo: 30,
-    });
-  });
-
   it('recognizes an active transaction date quick filter regardless of its time', () => {
     expect(
       isTransactionDateQuickFilterActive(
@@ -68,15 +55,6 @@ describe('quickFilters', () => {
         },
         referenceDate,
       ),
-    ).toBe(false);
-  });
-
-  it('recognizes the active recurring payment execution quick filter', () => {
-    expect(
-      isRecurringPaymentExecutionQuickFilterActive('scheduled', {executeFrom: 15, executeTo: 30}, referenceDate),
-    ).toBe(true);
-    expect(
-      isRecurringPaymentExecutionQuickFilterActive('executed', {executeFrom: 15, executeTo: 30}, referenceDate),
     ).toBe(false);
   });
 });

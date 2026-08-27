@@ -1,3 +1,4 @@
+import {listOccurrenceDates} from '@budgetbuddyde/api/recurringPayment';
 import {
   BudgetWithCategoriesSchema,
   budgetCategories,
@@ -6,10 +7,13 @@ import {
   transactionHistoryView,
   transactions,
 } from '@budgetbuddyde/db/backend';
+import {endOfMonth, format, startOfMonth} from 'date-fns';
+import {fromZonedTime, toZonedTime} from 'date-fns-tz';
 import {and, eq, gt, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
+import {config} from '../config';
 import {db} from '../db';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
@@ -24,16 +28,18 @@ budgetRouter.get('/estimated', async (req, res) => {
     return;
   }
 
-  const today = new Date();
-  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const now = new Date();
+  const zonedToday = toZonedTime(now, config.timezone);
+  const today = format(zonedToday, 'yyyy-MM-dd');
+  const monthEnd = format(endOfMonth(zonedToday), 'yyyy-MM-dd');
+  const firstOfMonthInstant = fromZonedTime(startOfMonth(zonedToday), config.timezone);
+  const endOfMonthInstant = fromZonedTime(endOfMonth(zonedToday), config.timezone);
   const [
     paidExpensesResult,
     upcomingTransactionsExpensesResult,
-    upcomingRecurringExpensesResult,
     receivedIncomeResult,
     upcomingTransactionIncomeResult,
-    upcomingRecurringIncomeResult,
+    activeRecurringPayments,
   ] = await Promise.all([
     db
       .select({
@@ -44,8 +50,8 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(transactions.ownerId, userId),
           lte(transactions.transferAmount, 0),
-          gte(transactions.processedAt, firstOfMonth),
-          lte(transactions.processedAt, today),
+          gte(transactions.processedAt, firstOfMonthInstant),
+          lte(transactions.processedAt, now),
         ),
       ),
     db
@@ -57,21 +63,8 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(transactions.ownerId, userId),
           lte(transactions.transferAmount, 0),
-          gt(transactions.processedAt, today),
-          lte(transactions.processedAt, endOfMonth),
-        ),
-      ),
-    db
-      .select({
-        expenses: sql<number>`COALESCE(SUM(ABS(${recurringPayments.transferAmount})), 0)`.as('expenses'),
-      })
-      .from(recurringPayments)
-      .where(
-        and(
-          eq(recurringPayments.ownerId, userId),
-          lte(recurringPayments.transferAmount, 0),
-          gt(recurringPayments.executeAt, today.getDate()),
-          lte(recurringPayments.executeAt, 31),
+          gt(transactions.processedAt, now),
+          lte(transactions.processedAt, endOfMonthInstant),
         ),
       ),
     db
@@ -83,8 +76,8 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(transactions.ownerId, userId),
           gte(transactions.transferAmount, 0),
-          gte(transactions.processedAt, firstOfMonth),
-          lte(transactions.processedAt, today),
+          gte(transactions.processedAt, firstOfMonthInstant),
+          lte(transactions.processedAt, now),
         ),
       ),
     db
@@ -96,29 +89,31 @@ budgetRouter.get('/estimated', async (req, res) => {
         and(
           eq(transactions.ownerId, userId),
           gte(transactions.transferAmount, 0),
-          gt(transactions.processedAt, today),
-          lte(transactions.processedAt, endOfMonth),
+          gt(transactions.processedAt, now),
+          lte(transactions.processedAt, endOfMonthInstant),
         ),
       ),
-    db
-      .select({
-        expenses: sql<number>`COALESCE(SUM(ABS(${recurringPayments.transferAmount})), 0)`.as('expenses'),
-      })
-      .from(recurringPayments)
-      .where(
-        and(
-          eq(recurringPayments.ownerId, userId),
-          gte(recurringPayments.transferAmount, 0),
-          gt(recurringPayments.executeAt, today.getDate()),
-          lte(recurringPayments.executeAt, 31),
-        ),
+    db.query.recurringPayments.findMany({
+      where: and(
+        eq(recurringPayments.ownerId, userId),
+        eq(recurringPayments.paused, false),
+        lte(recurringPayments.startsOn, monthEnd),
       ),
+    }),
   ]);
 
+  let upcomingRecurringExpenses = 0;
+  let upcomingRecurringIncome = 0;
+  for (const payment of activeRecurringPayments) {
+    const occurrenceCount = listOccurrenceDates(payment, today, monthEnd).filter(date => date > today).length;
+    if (payment.transferAmount < 0) upcomingRecurringExpenses += Math.abs(payment.transferAmount) * occurrenceCount;
+    else upcomingRecurringIncome += payment.transferAmount * occurrenceCount;
+  }
+
   const paidExpenses = paidExpensesResult[0].expenses;
-  const upcomingExpenses = upcomingTransactionsExpensesResult[0].expenses + upcomingRecurringExpensesResult[0].expenses;
+  const upcomingExpenses = upcomingTransactionsExpensesResult[0].expenses + upcomingRecurringExpenses;
   const receivedIncome = receivedIncomeResult[0].income;
-  const upcomingIncome = upcomingTransactionIncomeResult[0].income + upcomingRecurringIncomeResult[0].expenses;
+  const upcomingIncome = upcomingTransactionIncomeResult[0].income + upcomingRecurringIncome;
   const freeAmount = receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses);
   ApiResponse.builder()
     .withData({

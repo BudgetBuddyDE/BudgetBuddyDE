@@ -4,7 +4,7 @@ import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {parseRecurringPaymentFiltersFromParams} from '@/components/Filter';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {CircularProgress} from '@/components/Loading';
-import {RecurringPaymentTable} from '@/components/RecurringPayment/RecurringPaymentTable';
+import {parseOccurrenceRangeParams, RecurringPaymentsView} from '@/components/RecurringPayment/OccurrenceTable';
 
 export default async function RecurringPaymentsPage({
   searchParams,
@@ -13,13 +13,14 @@ export default async function RecurringPaymentsPage({
 }) {
   const params = await searchParams;
   const initialFilters = parseRecurringPaymentFiltersFromParams(params);
+  const initialRange = parseOccurrenceRangeParams(params);
 
   return (
     <ContentGrid title="Recurring Payments">
       <Grid size="grow">
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>
-            <RecurringPaymentTable initialFilters={initialFilters} />
+            <RecurringPaymentsView initialFilters={initialFilters} initialRange={initialRange} />
           </React.Suspense>
         </PathnameErrorBoundary>
       </Grid>

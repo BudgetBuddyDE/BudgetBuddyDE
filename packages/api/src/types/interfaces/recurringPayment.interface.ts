@@ -4,8 +4,16 @@ import type {IBaseGetAllQuery} from './query.interface';
 
 export interface IGetAllRecurringPaymentsQuery extends IBaseGetAllQuery {
   $paused?: boolean;
-  $executeFrom?: number;
-  $executeTo?: number;
+  $categories?: TCategory['id'][];
+  $excl_categories?: TCategory['id'][];
+  $paymentMethods?: TPaymentMethod['id'][];
+  $excl_paymentMethods?: TPaymentMethod['id'][];
+}
+
+export interface IGetRecurringPaymentOccurrencesQuery extends IBaseGetAllQuery {
+  $dateFrom: string | Date;
+  $dateTo: string | Date;
+  $includePaused?: boolean;
   $categories?: TCategory['id'][];
   $excl_categories?: TCategory['id'][];
   $paymentMethods?: TPaymentMethod['id'][];

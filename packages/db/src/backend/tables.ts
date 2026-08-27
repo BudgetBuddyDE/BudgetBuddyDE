@@ -1,7 +1,7 @@
-import {boolean, doublePrecision, integer, primaryKey, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core';
+import {boolean, date, doublePrecision, index, primaryKey, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core';
 import {uuidv7} from 'uuidv7';
 import {user} from '../auth';
-import {budgetType} from './enums';
+import {budgetType, executionPlanType} from './enums';
 import {backendSchema} from './schema';
 
 export const paymentMethods = backendSchema.table('payment_method', {
@@ -56,28 +56,33 @@ export const transactions = backendSchema.table('transaction', {
     .notNull(),
 });
 
-export const recurringPayments = backendSchema.table('recurring_payment', {
-  id: uuid('recurring_payment_id').primaryKey().defaultRandom(),
-  ownerId: varchar('owner_id')
-    .notNull()
-    .references(() => user.id, {onDelete: 'cascade'}),
-  categoryId: uuid('category_id')
-    .references(() => categories.id, {onDelete: 'cascade'})
-    .notNull(),
-  paymentMethodId: uuid('payment_method_id')
-    .references(() => paymentMethods.id, {onDelete: 'cascade'})
-    .notNull(),
-  executeAt: integer('execute_at').notNull(),
-  paused: boolean().default(false).notNull(),
-  receiver: varchar({length: 100}).notNull(),
-  transferAmount: doublePrecision('transfer_amount').notNull(),
-  information: text(),
-  createdAt: timestamp('created_at', {withTimezone: true}).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', {withTimezone: true})
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const recurringPayments = backendSchema.table(
+  'recurring_payment',
+  {
+    id: uuid('recurring_payment_id').primaryKey().defaultRandom(),
+    ownerId: varchar('owner_id')
+      .notNull()
+      .references(() => user.id, {onDelete: 'cascade'}),
+    categoryId: uuid('category_id')
+      .references(() => categories.id, {onDelete: 'cascade'})
+      .notNull(),
+    paymentMethodId: uuid('payment_method_id')
+      .references(() => paymentMethods.id, {onDelete: 'cascade'})
+      .notNull(),
+    executionPlan: executionPlanType('execution_plan').default('monthly').notNull(),
+    startsOn: date('starts_on', {mode: 'string'}).notNull(),
+    paused: boolean().default(false).notNull(),
+    receiver: varchar({length: 100}).notNull(),
+    transferAmount: doublePrecision('transfer_amount').notNull(),
+    information: text(),
+    createdAt: timestamp('created_at', {withTimezone: true}).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', {withTimezone: true})
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  table => [index('recurring_payment_recurrence_idx').on(table.ownerId, table.paused, table.startsOn)],
+);
 
 export const budgets = backendSchema.table('budget', {
   id: uuid('budget_id').primaryKey().defaultRandom(),

@@ -98,12 +98,6 @@ suite('Filter - URL utils', () => {
       expect(result.paymentMethods).toEqual(['p1']);
       expect(result.excl_paymentMethods).toEqual(['p2']);
     });
-
-    it('does not include executeFrom or executeTo fields', () => {
-      const result = parseTransactionFiltersFromParams({execFrom: '5', execTo: '20'});
-      expect(result).not.toHaveProperty('executeFrom');
-      expect(result).not.toHaveProperty('executeTo');
-    });
   });
 
   describe('parseRecurringPaymentFiltersFromParams', () => {
@@ -118,22 +112,6 @@ suite('Filter - URL utils', () => {
     it('parses paused state as boolean', () => {
       expect(parseRecurringPaymentFiltersFromParams({paused: 'true'})).toEqual({paused: true});
       expect(parseRecurringPaymentFiltersFromParams({paused: 'false'})).toEqual({paused: false});
-    });
-
-    it('parses executeFrom as integer', () => {
-      expect(parseRecurringPaymentFiltersFromParams({execFrom: '5'})).toEqual({executeFrom: 5});
-    });
-
-    it('parses executeTo as integer', () => {
-      expect(parseRecurringPaymentFiltersFromParams({execTo: '28'})).toEqual({executeTo: 28});
-    });
-
-    it('ignores non-numeric executeFrom', () => {
-      expect(parseRecurringPaymentFiltersFromParams({execFrom: 'abc'})).toEqual({});
-    });
-
-    it('ignores non-numeric executeTo', () => {
-      expect(parseRecurringPaymentFiltersFromParams({execTo: 'xyz'})).toEqual({});
     });
 
     it('parses categories and payment methods', () => {
@@ -231,12 +209,6 @@ suite('Filter - URL utils', () => {
       expect(p.has('cat')).toBe(false);
       expect(p.has('pm')).toBe(false);
     });
-
-    it('does not serialize executeFrom or executeTo', () => {
-      const p = serializeTransactionFilters({...emptyFilters, executeFrom: 5, executeTo: 20});
-      expect(p.has('execFrom')).toBe(false);
-      expect(p.has('execTo')).toBe(false);
-    });
   });
 
   describe('serializeRecurringPaymentFilters', () => {
@@ -254,21 +226,6 @@ suite('Filter - URL utils', () => {
     it('serializes paused state as boolean string', () => {
       const p = serializeRecurringPaymentFilters({...emptyFilters, paused: false});
       expect(p.get('paused')).toBe('false');
-    });
-
-    it('serializes executeFrom as string number', () => {
-      const p = serializeRecurringPaymentFilters({...emptyFilters, executeFrom: 1});
-      expect(p.get('execFrom')).toBe('1');
-    });
-
-    it('serializes executeTo as string number', () => {
-      const p = serializeRecurringPaymentFilters({...emptyFilters, executeTo: 31});
-      expect(p.get('execTo')).toBe('31');
-    });
-
-    it('serializes executeFrom=0 (falsy but valid)', () => {
-      const p = serializeRecurringPaymentFilters({...emptyFilters, executeFrom: 0});
-      expect(p.get('execFrom')).toBe('0');
     });
 
     it('serializes categories, paymentMethods', () => {
@@ -346,8 +303,7 @@ suite('Filter - URL utils', () => {
     it('serialized params can be parsed back to the same filters', () => {
       const original = {
         keyword: 'netflix',
-        executeFrom: 1,
-        executeTo: 15,
+        paused: false,
         categories: ['c1'],
         excl_categories: ['c2'],
         paymentMethods: ['p1'],
@@ -359,8 +315,7 @@ suite('Filter - URL utils', () => {
       const parsed = parseRecurringPaymentFiltersFromParams(paramsObj);
 
       expect(parsed.keyword).toBe(original.keyword);
-      expect(parsed.executeFrom).toBe(original.executeFrom);
-      expect(parsed.executeTo).toBe(original.executeTo);
+      expect(parsed.paused).toBe(original.paused);
       expect(parsed.categories).toEqual(original.categories);
       expect(parsed.excl_categories).toEqual(original.excl_categories);
       expect(parsed.paymentMethods).toEqual(original.paymentMethods);

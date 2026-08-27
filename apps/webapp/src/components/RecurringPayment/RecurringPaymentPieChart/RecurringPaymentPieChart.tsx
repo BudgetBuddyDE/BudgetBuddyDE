@@ -1,7 +1,7 @@
 'use client';
 
 import type {TCategory} from '@budgetbuddyde/api/category';
-import type {TExpandedRecurringPayment} from '@budgetbuddyde/api/recurringPayment';
+import type {TRecurringPaymentOccurrence} from '@budgetbuddyde/api/recurringPayment';
 import {Box, Button, Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import NextLink from 'next/link';
 import React from 'react';
@@ -12,6 +12,7 @@ import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
 import {Formatter} from '@/utils/Formatter';
+import {endOfLocalMonthDateOnly, formatLocalDateOnly} from '../dateOnly';
 
 export type RecurringPaymentType = 'INCOME' | 'EXPENSE';
 
@@ -86,6 +87,10 @@ export type RecurringPaymentPieChartProps = {
 export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> = ({withViewMore = false}) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [recurringPaymentType, setRecurringPaymentType] = React.useState<RecurringPaymentType>('INCOME');
+  const today = new Date();
+  const occurrenceViewHref = `/recurringPayments?view=occurrences&dateFrom=${formatLocalDateOnly(
+    new Date(today.getFullYear(), today.getMonth(), 1),
+  )}&dateTo=${endOfLocalMonthDateOnly(today)}`;
 
   const fetchData = React.useCallback(
     async (type: RecurringPaymentType) => {
@@ -95,15 +100,29 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
       dispatch({type: 'start', paymentType: type});
 
       try {
-        const [recurringPaymentResponse, err] = await apiClient.backend.recurringPayment.getAll(undefined, {
-          credentials: 'include',
-        });
+        const today = new Date();
+        const dateFrom = formatLocalDateOnly(new Date(today.getFullYear(), today.getMonth(), 1));
+        const dateTo = endOfLocalMonthDateOnly(today);
+        const [recurringPaymentResponse, err] = await apiClient.backend.recurringPayment.getOccurrences(
+          {$dateFrom: dateFrom, $dateTo: dateTo, from: 0, to: 100},
+          {credentials: 'include'},
+        );
         if (err) throw err;
         if (!recurringPaymentResponse) {
           throw new Error('No recurring payments received');
         }
-        const recurringPayments = (recurringPaymentResponse.data ?? []).filter(
-          payment => payment.transferAmount >= 0 === (type === 'INCOME'),
+        const occurrences = [...(recurringPaymentResponse.data ?? [])];
+        const totalCount = recurringPaymentResponse.totalCount ?? occurrences.length;
+        for (let from = 100; from < totalCount; from += 100) {
+          const [page, pageError] = await apiClient.backend.recurringPayment.getOccurrences(
+            {$dateFrom: dateFrom, $dateTo: dateTo, from, to: from + 100},
+            {credentials: 'include'},
+          );
+          if (pageError) throw pageError;
+          occurrences.push(...(page?.data ?? []));
+        }
+        const recurringPayments = occurrences.filter(
+          occurrence => occurrence.recurringPayment.transferAmount >= 0 === (type === 'INCOME'),
         );
         const categoryStats = groupRecurringPaymentsByCategory(recurringPayments);
         dispatch({
@@ -161,7 +180,7 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
       <Card.Header>
         <Box>
           <Card.Title>Recurring Payments</Card.Title>
-          <Card.Subtitle>Monthly recurring payments</Card.Subtitle>
+          <Card.Subtitle>Scheduled occurrences this month</Card.Subtitle>
         </Box>
         <Card.HeaderActions sx={{display: 'flex', flexDirection: 'row'}}>
           <ToggleButtonGroup
@@ -186,7 +205,7 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
       {!state.isLoading && withViewMore && (
         <Card.Footer>
           <Stack direction="row" justifyContent="flex-end">
-            <Button LinkComponent={NextLink} href="/subscriptions" aria-label="View more subscriptions">
+            <Button LinkComponent={NextLink} href={occurrenceViewHref} aria-label="View more recurring payments">
               View more...
             </Button>
           </Stack>
@@ -196,12 +215,10 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
   );
 };
 
-function groupRecurringPaymentsByCategory(recurringPayments: TExpandedRecurringPayment[]): RecurringPaymentStats[] {
+function groupRecurringPaymentsByCategory(recurringPayments: TRecurringPaymentOccurrence[]): RecurringPaymentStats[] {
   const grouped = new Map<string, RecurringPaymentStats>();
 
-  for (const payment of recurringPayments) {
-    if (payment.paused) continue;
-
+  for (const {recurringPayment: payment} of recurringPayments) {
     const absTransferAmount = Math.abs(payment.transferAmount);
     const {id, name} = payment.category;
 

@@ -13,8 +13,6 @@ const PARAM = {
   paymentMethods: 'pm',
   excl_paymentMethods: 'excl_pm',
   paused: 'paused',
-  executeFrom: 'execFrom',
-  executeTo: 'execTo',
 } as const;
 
 /**
@@ -81,18 +79,6 @@ export function parseRecurringPaymentFiltersFromParams(
   const paused = params[PARAM.paused];
   if (typeof paused === 'string' && paused) filters.paused = paused === 'true';
 
-  const execFrom = params[PARAM.executeFrom];
-  if (typeof execFrom === 'string' && execFrom) {
-    const n = parseInt(execFrom, 10);
-    if (!Number.isNaN(n)) filters.executeFrom = n;
-  }
-
-  const execTo = params[PARAM.executeTo];
-  if (typeof execTo === 'string' && execTo) {
-    const n = parseInt(execTo, 10);
-    if (!Number.isNaN(n)) filters.executeTo = n;
-  }
-
   const cat = params[PARAM.categories];
   const catIds = parseIds(Array.isArray(cat) ? cat.join(',') : (cat ?? ''));
   if (catIds.length) filters.categories = catIds;
@@ -145,8 +131,6 @@ export function serializeRecurringPaymentFilters(filters: EntityFilters): URLSea
   const p = new URLSearchParams();
   if (filters.keyword) p.set(PARAM.keyword, filters.keyword);
   if (filters.paused != null) p.set(PARAM.paused, String(filters.paused));
-  if (filters.executeFrom != null) p.set(PARAM.executeFrom, String(filters.executeFrom));
-  if (filters.executeTo != null) p.set(PARAM.executeTo, String(filters.executeTo));
   if (filters.categories?.length) p.set(PARAM.categories, filters.categories.join(','));
   if (filters.excl_categories?.length) p.set(PARAM.excl_categories, filters.excl_categories.join(','));
   if (filters.paymentMethods?.length) p.set(PARAM.paymentMethods, filters.paymentMethods.join(','));

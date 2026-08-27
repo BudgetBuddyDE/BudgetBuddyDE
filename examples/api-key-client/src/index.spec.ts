@@ -3,7 +3,6 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   EnvironmentVariableNotSetError,
   createApiKeyRequestConfig,
-  determineNextExecutionDate,
   fetchBudgetBuddyOverview,
   formatPaymentDetails,
   readConfigFromEnv,
@@ -54,7 +53,8 @@ const recurringPaymentFixture = {
   category,
   paymentMethod,
   paused: false,
-  executeAt: 15,
+  executionPlan: 'monthly',
+  startsOn: '2026-01-31',
 } as unknown as TExpandedRecurringPayment;
 
 function jsonResponse(body: unknown) {
@@ -95,18 +95,15 @@ describe('api-key-client example', () => {
     expect(formatPaymentDetails(transactionFixture)).toBe('date 2026-06-28; note Weekly shop');
   });
 
-  it('determines the next recurring payment execution date', () => {
-    expect(determineNextExecutionDate(15, new Date('2026-06-28T12:00:00.000Z')).toISOString()).toBe(
-      '2026-07-15T00:00:00.000Z',
-    );
-    expect(determineNextExecutionDate(30, new Date('2026-06-28T12:00:00.000Z')).toISOString()).toBe(
-      '2026-06-30T00:00:00.000Z',
+  it('formats recurring payment details with execution information', () => {
+    expect(formatPaymentDetails(recurringPaymentFixture, new Date('2026-06-28T12:00:00.000Z'))).toBe(
+      'plan monthly; first execution 2026-01-31; next execution 2026-06-30',
     );
   });
 
-  it('formats recurring payment details with execution information', () => {
-    expect(formatPaymentDetails(recurringPaymentFixture, new Date('2026-06-28T12:00:00.000Z'))).toBe(
-      'execution day 15; next execution 2026-07-15',
+  it('does not calculate an execution date for paused recurring payments', () => {
+    expect(formatPaymentDetails({...recurringPaymentFixture, paused: true}, new Date('2026-06-28T12:00:00.000Z'))).toBe(
+      'plan monthly; first execution 2026-01-31; paused',
     );
   });
 
@@ -147,7 +144,8 @@ describe('api-key-client example', () => {
               category,
               paymentMethod,
               paused: false,
-              executeAt: 15,
+              executionPlan: 'monthly',
+              startsOn: '2026-01-31',
             },
           ],
         }),

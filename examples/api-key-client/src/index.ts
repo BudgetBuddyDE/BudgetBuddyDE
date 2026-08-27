@@ -1,4 +1,5 @@
 import {Api} from '@budgetbuddyde/api';
+import {nextOccurrenceOnOrAfter} from '@budgetbuddyde/api/recurringPayment';
 import type {TExpandedRecurringPayment, TExpandedTransaction} from '@budgetbuddyde/api/types';
 import {config as loadEnv} from 'dotenv';
 
@@ -34,18 +35,6 @@ function formatDate(value: Date | string) {
   return date.toISOString().slice(0, 10);
 }
 
-export function determineNextExecutionDate(executeAt: number, referenceDate = new Date()) {
-  const currentMonthExecutionDate = new Date(
-    Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth(), executeAt),
-  );
-
-  if (referenceDate.getUTCDate() < executeAt) {
-    return currentMonthExecutionDate;
-  }
-
-  return new Date(Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth() + 1, executeAt));
-}
-
 export function formatPaymentDetails(
   payment: TExpandedTransaction | TExpandedRecurringPayment,
   referenceDate = new Date(),
@@ -56,13 +45,14 @@ export function formatPaymentDetails(
     details.push(`date ${formatDate(payment.processedAt)}`);
   }
 
-  if ('executeAt' in payment) {
-    details.push(`execution day ${payment.executeAt}`);
+  if ('executionPlan' in payment) {
+    details.push(`plan ${payment.executionPlan}`);
+    details.push(`first execution ${payment.startsOn}`);
 
     if (payment.paused) {
       details.push('paused');
     } else {
-      details.push(`next execution ${formatDate(determineNextExecutionDate(payment.executeAt, referenceDate))}`);
+      details.push(`next execution ${nextOccurrenceOnOrAfter(payment, formatDate(referenceDate))}`);
     }
   }
 

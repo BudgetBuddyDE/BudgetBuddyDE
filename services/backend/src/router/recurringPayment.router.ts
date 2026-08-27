@@ -1,7 +1,8 @@
 import {Category} from '@budgetbuddyde/api/category';
 import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
+import {listOccurrenceDates} from '@budgetbuddyde/api/recurringPayment';
 import {RecurringPaymentSchemas, recurringPayments} from '@budgetbuddyde/db/backend';
-import {and, eq, sql} from 'drizzle-orm';
+import {and, eq, inArray, lte, notInArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -13,36 +14,102 @@ import {createTransactionFromRecurringPayment} from '../utils/createTransactionF
 
 export const recurringPaymentRouter = Router();
 
+const paginationSchema = {
+  from: z.coerce.number().int().nonnegative().optional(),
+  to: z.coerce.number().int().nonnegative().optional(),
+};
+const categoryAndPaymentMethodFilters = {
+  $categories: z
+    .array(Category.shape.id)
+    .or(Category.shape.id)
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  $excl_categories: z
+    .array(Category.shape.id)
+    .or(Category.shape.id)
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  $paymentMethods: z
+    .array(PaymentMethod.shape.id)
+    .or(PaymentMethod.shape.id)
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  $excl_paymentMethods: z
+    .array(PaymentMethod.shape.id)
+    .or(PaymentMethod.shape.id)
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+};
+
+const dateOnlySchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .pipe(z.iso.date());
+
+export const recurringPaymentOccurrencesQuerySchema = z
+  .object({
+    ...paginationSchema,
+    ...categoryAndPaymentMethodFilters,
+    $dateFrom: dateOnlySchema,
+    $dateTo: dateOnlySchema,
+    $includePaused: z.stringbool().default(false),
+  })
+  .superRefine((query, context) => {
+    const fromDay = Date.parse(`${query.$dateFrom}T00:00:00Z`) / 86_400_000;
+    const toDay = Date.parse(`${query.$dateTo}T00:00:00Z`) / 86_400_000;
+    if (fromDay > toDay) {
+      context.addIssue({code: 'custom', path: ['$dateTo'], message: '$dateTo must be on or after $dateFrom'});
+    } else if (toDay - fromDay > 365) {
+      context.addIssue({code: 'custom', path: ['$dateTo'], message: 'Date range must not exceed 366 days'});
+    }
+    if (query.to !== undefined && query.to < (query.from ?? 0)) {
+      context.addIssue({code: 'custom', path: ['to'], message: 'to must be greater than or equal to from'});
+    }
+    if (query.to !== undefined && query.to - (query.from ?? 0) > 100) {
+      context.addIssue({code: 'custom', path: ['to'], message: 'Occurrence page size must not exceed 100'});
+    }
+  });
+
+const createRecurringPaymentSchema = RecurringPaymentSchemas.insert.omit({
+  id: true,
+  ownerId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+const updateRecurringPaymentSchema = RecurringPaymentSchemas.update.omit({
+  id: true,
+  ownerId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export function expandRecurringPaymentOccurrences<T extends Parameters<typeof listOccurrenceDates>[0] & {id: string}>(
+  payments: readonly T[],
+  dateFrom: string,
+  dateTo: string,
+) {
+  return payments
+    .flatMap(recurringPayment =>
+      listOccurrenceDates(recurringPayment, dateFrom, dateTo).map(scheduledFor => ({
+        scheduledFor,
+        recurringPayment,
+      })),
+    )
+    .sort(
+      (left, right) =>
+        left.scheduledFor.localeCompare(right.scheduledFor) ||
+        left.recurringPayment.id.localeCompare(right.recurringPayment.id),
+    );
+}
+
 recurringPaymentRouter.get(
   '/',
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      from: z.coerce.number().optional(),
-      to: z.coerce.number().optional(),
-      $paused: z.coerce.boolean().optional(),
-      $executeFrom: z.coerce.number().min(1).max(31).optional(),
-      $executeTo: z.coerce.number().min(1).max(31).optional(),
-      $categories: z
-        .array(Category.shape.id)
-        .or(Category.shape.id)
-        .transform(value => (Array.isArray(value) ? value : [value]))
-        .optional(),
-      $excl_categories: z
-        .array(Category.shape.id)
-        .or(Category.shape.id)
-        .transform(value => (Array.isArray(value) ? value : [value]))
-        .optional(),
-      $paymentMethods: z
-        .array(PaymentMethod.shape.id)
-        .or(PaymentMethod.shape.id)
-        .transform(value => (Array.isArray(value) ? value : [value]))
-        .optional(),
-      $excl_paymentMethods: z
-        .array(PaymentMethod.shape.id)
-        .or(PaymentMethod.shape.id)
-        .transform(value => (Array.isArray(value) ? value : [value]))
-        .optional(),
+      ...paginationSchema,
+      ...categoryAndPaymentMethodFilters,
+      $paused: z.stringbool().optional(),
     }),
   }),
   async (req, res) => {
@@ -56,12 +123,6 @@ recurringPaymentRouter.get(
     const additionalFilters: TAdditionalFilter<(typeof recurringPayments)['_']['config']>[] = [];
     if (query.$paused !== undefined) {
       additionalFilters.push({columnName: 'paused', operator: 'eq', value: query.$paused});
-    }
-    if (query.$executeFrom) {
-      additionalFilters.push({columnName: 'executeAt', operator: 'gte', value: query.$executeFrom});
-    }
-    if (query.$executeTo) {
-      additionalFilters.push({columnName: 'executeAt', operator: 'lte', value: query.$executeTo});
     }
     if (query.$categories) {
       additionalFilters.push({columnName: 'categoryId', operator: 'in', value: query.$categories});
@@ -98,7 +159,7 @@ recurringPaymentRouter.get(
           return filter;
         },
         orderBy(fields, operators) {
-          return [operators.desc(fields.executeAt), operators.desc(fields.updatedAt)];
+          return [operators.asc(fields.startsOn), operators.desc(fields.updatedAt)];
         },
         offset: req.query.from,
         limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
@@ -119,14 +180,49 @@ recurringPaymentRouter.get(
   },
 );
 
+recurringPaymentRouter.get(
+  '/occurrences',
+  validateRequest({query: recurringPaymentOccurrencesQuerySchema}),
+  async (req, res) => {
+    const userId = req.context.user?.id;
+    if (!userId) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+      return;
+    }
+
+    const query = req.query;
+    const filters = [eq(recurringPayments.ownerId, userId), lte(recurringPayments.startsOn, query.$dateTo)];
+    if (!query.$includePaused) filters.push(eq(recurringPayments.paused, false));
+    if (query.$categories) filters.push(inArray(recurringPayments.categoryId, query.$categories));
+    if (query.$excl_categories) filters.push(notInArray(recurringPayments.categoryId, query.$excl_categories));
+    if (query.$paymentMethods) filters.push(inArray(recurringPayments.paymentMethodId, query.$paymentMethods));
+    if (query.$excl_paymentMethods) {
+      filters.push(notInArray(recurringPayments.paymentMethodId, query.$excl_paymentMethods));
+    }
+
+    const payments = await db.query.recurringPayments.findMany({
+      where: and(...filters),
+      with: {category: true, paymentMethod: true},
+    });
+    const occurrences = expandRecurringPaymentOccurrences(payments, query.$dateFrom, query.$dateTo);
+    const totalCount = occurrences.length;
+    const from = query.from ?? 0;
+    const records = occurrences.slice(from, query.to ?? from + 50);
+
+    ApiResponse.builder<typeof records>()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage("Fetched user's recurring payment occurrences successfully")
+      .withTotalCount(totalCount)
+      .withData(records)
+      .withFrom('db')
+      .buildAndSend(res);
+  },
+);
+
 recurringPaymentRouter.post(
   '/batch',
   validateRequest({
-    body: createBatchSchema(
-      RecurringPaymentSchemas.insert.omit({ownerId: true}).extend({
-        executeAt: z.coerce.number().int().min(1).max(31),
-      }),
-    ),
+    body: createBatchSchema(createRecurringPaymentSchema),
   }),
   async (req, res) => {
     const userId = req.context.user?.id;
@@ -190,12 +286,7 @@ recurringPaymentRouter.post(
 recurringPaymentRouter.put(
   '/batch',
   validateRequest({
-    body: updateBatchSchema(
-      RecurringPaymentSchemas.select.shape.id,
-      RecurringPaymentSchemas.update.omit({ownerId: true, id: true, createdAt: true, updatedAt: true}).extend({
-        executeAt: z.coerce.number().int().min(1).max(31).optional(),
-      }),
-    ),
+    body: updateBatchSchema(RecurringPaymentSchemas.select.shape.id, updateRecurringPaymentSchema),
   }),
   async (req, res) => {
     const userId = req.context.user?.id;
@@ -326,9 +417,7 @@ recurringPaymentRouter.get(
 recurringPaymentRouter.post(
   '/',
   validateRequest({
-    body: RecurringPaymentSchemas.insert.omit({ownerId: true}).extend({
-      ownerId: RecurringPaymentSchemas.insert.shape.ownerId.optional(),
-    }),
+    body: createRecurringPaymentSchema,
   }),
   async (req, res) => {
     const userId = req.context.user?.id;
@@ -336,13 +425,37 @@ recurringPaymentRouter.post(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const requestBody = [req.body].map(body => {
-      body.ownerId = userId;
-      return body as z.infer<typeof RecurringPaymentSchemas.insert>;
-    });
+    const [categoryOwned, paymentMethodOwned] = await Promise.all([
+      hasAllOwnedIds(userId, [req.body.categoryId], async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, [req.body.paymentMethodId], async (owner, ids) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+    ]);
+    if (!categoryOwned || !paymentMethodOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('Referenced category or payment method is invalid')
+        .buildAndSend(res);
+      return;
+    }
 
     try {
-      const createdRecords = await db.insert(recurringPayments).values(requestBody).returning();
+      const createdRecords = await db
+        .insert(recurringPayments)
+        .values({...req.body, ownerId: userId})
+        .returning();
       if (createdRecords.length === 0) {
         throw new Error('No recurring payment created');
       }
@@ -366,9 +479,7 @@ recurringPaymentRouter.put(
     params: z.object({
       id: RecurringPaymentSchemas.select.shape.id,
     }),
-    body: RecurringPaymentSchemas.update.omit({ownerId: true}).extend({
-      ownerId: RecurringPaymentSchemas.update.shape.ownerId.optional(),
-    }),
+    body: updateRecurringPaymentSchema,
   }),
 
   async (req, res) => {
@@ -377,13 +488,36 @@ recurringPaymentRouter.put(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const requestBody = req.body;
-    requestBody.ownerId = userId;
+    const [categoryOwned, paymentMethodOwned] = await Promise.all([
+      hasAllOwnedIds(userId, req.body.categoryId ? [req.body.categoryId] : [], async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, req.body.paymentMethodId ? [req.body.paymentMethodId] : [], async (owner, ids) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+    ]);
+    if (!categoryOwned || !paymentMethodOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('Referenced category or payment method is invalid')
+        .buildAndSend(res);
+      return;
+    }
 
     try {
       const updatedRecord = await db
         .update(recurringPayments)
-        .set(requestBody)
+        .set(req.body)
         .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, req.params.id)))
         .returning();
       if (updatedRecord.length === 0) {

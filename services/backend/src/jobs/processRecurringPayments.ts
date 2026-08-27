@@ -1,5 +1,8 @@
+import {isOccurrenceDate} from '@budgetbuddyde/api/recurringPayment';
+import {recurringPayments} from '@budgetbuddyde/db/backend';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
+import {and, eq, lte} from 'drizzle-orm';
 import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
@@ -10,48 +13,18 @@ import {createTransactionFromRecurringPayment} from '../utils/createTransactionF
  */
 export async function processRecurringPayments() {
   const today = toZonedTime(new Date(), config.jobs.recurringPayments.timezone);
+  const scheduledFor = format(today, 'yyyy-MM-dd');
   logger.info('Starting recurring payments processing job...', {
-    date: format(today, 'yyyy-MM-dd'),
+    scheduledFor,
     timezone: config.jobs.recurringPayments.timezone,
   });
 
-  let duePayments = await db.query.recurringPayments.findMany({
-    where(fields, operators) {
-      return operators.and(operators.eq(fields.paused, false), operators.eq(fields.executeAt, today.getDate()));
-    },
+  const candidatePayments = await db.query.recurringPayments.findMany({
+    where: and(eq(recurringPayments.paused, false), lte(recurringPayments.startsOn, scheduledFor)),
   });
+  const duePayments = candidatePayments.filter(payment => isOccurrenceDate(payment, scheduledFor));
 
-  logger.info(`Found ${duePayments.length} recurring payments to process.`);
-
-  // Determine how many days are in the current month
-  const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  if (daysInCurrentMonth < 31 && today.getDate() === daysInCurrentMonth) {
-    logger.info(
-      'Current month has less than 31 days, checking for payments scheduled on days that do not exist this month.',
-      {daysInCurrentMonth},
-    );
-    const extraPayments = await db.query.recurringPayments.findMany({
-      // Check if today is the last day of the month
-      // If this is the case, we want to process any payments scheduled for days that do not exist in this month
-      where(fields, operators) {
-        return operators.and(operators.eq(fields.paused, false), operators.gt(fields.executeAt, today.getDate()));
-      },
-    });
-
-    logger.info(
-      `Found ${extraPayments.length} additional recurring payments to process for non-existing days in this month.`,
-    );
-    extraPayments.forEach(payment => {
-      logger.debug(
-        `Including payment ID ${payment.id} scheduled for day ${payment.executeAt} in the current processing batch.`,
-        {
-          recurringPaymentId: payment.id,
-          scheduledDay: payment.executeAt,
-        },
-      );
-    });
-    duePayments = duePayments.concat(extraPayments);
-  }
+  logger.info(`Found ${duePayments.length} recurring payments scheduled for ${scheduledFor}.`, {scheduledFor});
 
   try {
     if (duePayments.length === 0) {
@@ -63,7 +36,12 @@ export async function processRecurringPayments() {
       duePayments.map(payment => createTransactionFromRecurringPayment(payment, today)),
     );
 
-    logger.info(`Successfully processed ${createdTransactions.length} recurring payments into transactions.`);
+    logger.info(
+      `Successfully processed ${createdTransactions.length} recurring payments scheduled for ${scheduledFor}.`,
+      {
+        scheduledFor,
+      },
+    );
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
     logger.error('Error processing recurring payments:', error);

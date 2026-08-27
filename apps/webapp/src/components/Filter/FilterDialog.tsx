@@ -10,7 +10,6 @@ import {
   type DialogProps,
   DialogTitle,
   Stack,
-  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
@@ -30,7 +29,6 @@ export type FilterDialogProps = Pick<DialogProps, 'open'> & {
   onApply?: () => void;
   withDateRange?: boolean;
   withRecurringPaymentStatus?: boolean;
-  withExecuteDay?: boolean;
   withCategories?: boolean;
   withPaymentMethods?: boolean;
   state: FilterState;
@@ -52,7 +50,6 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
   onApply,
   withDateRange,
   withRecurringPaymentStatus,
-  withExecuteDay,
   withCategories,
   withPaymentMethods,
   state,
@@ -133,32 +130,6 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
                 <ToggleButton value="active">Active</ToggleButton>
                 <ToggleButton value="inactive">Inactive</ToggleButton>
               </ToggleButtonGroup>
-            </Stack>
-          )}
-
-          {withExecuteDay && (
-            <Stack gap={1}>
-              <SectionLabel label="Execute Day (1–31)" />
-              <Stack direction="row" gap={2}>
-                <TextField
-                  label="From day"
-                  type="number"
-                  size="small"
-                  value={state.executeFrom}
-                  onChange={e => dispatch({action: 'SET_EXECUTE_FROM', executeFrom: e.target.value})}
-                  slotProps={{htmlInput: {min: 1, max: 31}}}
-                  sx={{width: 130}}
-                />
-                <TextField
-                  label="To day"
-                  type="number"
-                  size="small"
-                  value={state.executeTo}
-                  onChange={e => dispatch({action: 'SET_EXECUTE_TO', executeTo: e.target.value})}
-                  slotProps={{htmlInput: {min: 1, max: 31}}}
-                  sx={{width: 130}}
-                />
-              </Stack>
             </Stack>
           )}
 

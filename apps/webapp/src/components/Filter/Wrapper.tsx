@@ -12,22 +12,13 @@ import {FilterDialog, type FilterDialogProps} from './FilterDialog';
 import {FilterReducer, getInitialFilterState} from './FilterReducer';
 import {QuickFilterAutocomplete} from './QuickFilterAutocomplete';
 import {
-  getRecurringPaymentExecutionQuickFilter,
   getRecurringPaymentStatusQuickFilter,
   getTransactionDateQuickFilterRange,
-  isRecurringPaymentExecutionQuickFilterActive,
   isTransactionDateQuickFilterActive,
-  type RecurringPaymentExecutionQuickFilter,
   type RecurringPaymentStatusQuickFilter,
   type TransactionDateQuickFilter,
 } from './quickFilters';
 import {QuickFilterSelect} from './QuickFilterSelect';
-
-function clampDay(val: string): number | null {
-  const n = parseInt(val, 10);
-  if (Number.isNaN(n)) return null;
-  return Math.min(31, Math.max(1, n));
-}
 
 const transactionDateQuickFilterLabels: Record<TransactionDateQuickFilter, string> = {
   today: 'Today',
@@ -41,33 +32,25 @@ const recurringPaymentStatusQuickFilterLabels: Record<RecurringPaymentStatusQuic
   inactive: 'Inactive',
 };
 
-const recurringPaymentExecutionQuickFilterLabels: Record<RecurringPaymentExecutionQuickFilter, string> = {
-  executed: 'Executed',
-  scheduled: 'Planned',
-};
-
 export type FilterWrapperProps = Pick<
   FilterDialogProps,
-  'withCategories' | 'withRecurringPaymentStatus' | 'withExecuteDay' | 'withPaymentMethods' | 'withDateRange'
+  'withCategories' | 'withRecurringPaymentStatus' | 'withPaymentMethods' | 'withDateRange'
 > & {
   currentFilters: Partial<EntityFilters>;
   onApply: (filters: Partial<EntityFilters>) => void;
   transactionDateQuickFilters?: TransactionDateQuickFilter[];
   recurringPaymentStatusQuickFilters?: RecurringPaymentStatusQuickFilter[];
-  recurringPaymentExecutionQuickFilters?: RecurringPaymentExecutionQuickFilter[];
 };
 
 export const FilterWrapper: React.FC<FilterWrapperProps> = ({
   currentFilters,
   onApply,
   withRecurringPaymentStatus,
-  withExecuteDay,
   withCategories,
   withPaymentMethods,
   withDateRange,
   transactionDateQuickFilters = [],
   recurringPaymentStatusQuickFilters = [],
-  recurringPaymentExecutionQuickFilters = [],
 }) => {
   const [open, setOpen] = React.useState(false);
   const [dialogKey, setDialogKey] = React.useState(0);
@@ -87,14 +70,6 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
       endDate: currentFilters.dateTo ?? null,
     });
     dispatch({action: 'SET_PAUSED', paused: currentFilters.paused ?? null});
-    dispatch({
-      action: 'SET_EXECUTE_FROM',
-      executeFrom: currentFilters.executeFrom != null ? String(currentFilters.executeFrom) : '',
-    });
-    dispatch({
-      action: 'SET_EXECUTE_TO',
-      executeTo: currentFilters.executeTo != null ? String(currentFilters.executeTo) : '',
-    });
     setOpen(true);
   };
 
@@ -159,10 +134,6 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     if (withRecurringPaymentStatus) {
       result.paused = state.paused;
     }
-    if (withExecuteDay) {
-      result.executeFrom = clampDay(state.executeFrom);
-      result.executeTo = clampDay(state.executeTo);
-    }
     if (withCategories) {
       result.categories = state.categories.map(c => c.id);
     }
@@ -179,8 +150,6 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
       dateFrom: null,
       dateTo: null,
       paused: null,
-      executeFrom: null,
-      executeTo: null,
       categories: [],
       paymentMethods: [],
     });
@@ -190,11 +159,10 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
   const hasActiveFilters = React.useMemo(() => {
     const hasDateRange = withDateRange && (!!currentFilters.dateFrom || !!currentFilters.dateTo);
     const hasStatus = withRecurringPaymentStatus && currentFilters.paused != null;
-    const hasExecuteDay = withExecuteDay && (currentFilters.executeFrom != null || currentFilters.executeTo != null);
     const hasCategories = withCategories && (currentFilters.categories?.length ?? 0) > 0;
     const hasPaymentMethods = withPaymentMethods && (currentFilters.paymentMethods?.length ?? 0) > 0;
-    return hasDateRange || hasStatus || hasExecuteDay || hasCategories || hasPaymentMethods;
-  }, [currentFilters, withRecurringPaymentStatus, withExecuteDay, withDateRange, withCategories, withPaymentMethods]);
+    return hasDateRange || hasStatus || hasCategories || hasPaymentMethods;
+  }, [currentFilters, withRecurringPaymentStatus, withDateRange, withCategories, withPaymentMethods]);
 
   const applyQuickFilter = (filterValues: Partial<EntityFilters>) => {
     onApply(filterValues);
@@ -204,10 +172,6 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     transactionDateQuickFilters.find(filter => isTransactionDateQuickFilterActive(filter, currentFilters)) ?? '';
   const selectedRecurringPaymentStatusQuickFilter =
     recurringPaymentStatusQuickFilters.find(filter => currentFilters.paused === (filter === 'inactive')) ?? '';
-  const selectedRecurringPaymentExecutionQuickFilter =
-    recurringPaymentExecutionQuickFilters.find(filter =>
-      isRecurringPaymentExecutionQuickFilterActive(filter, currentFilters),
-    ) ?? '';
 
   return (
     <Stack
@@ -255,25 +219,6 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           }
         />
       )}
-      {recurringPaymentExecutionQuickFilters.length > 0 && (
-        <QuickFilterSelect
-          label="Execution"
-          resetLabel="All executions"
-          value={selectedRecurringPaymentExecutionQuickFilter}
-          options={recurringPaymentExecutionQuickFilters.map(filter => ({
-            value: filter,
-            label: recurringPaymentExecutionQuickFilterLabels[filter],
-          }))}
-          width={160}
-          onChange={filter =>
-            applyQuickFilter(
-              filter
-                ? getRecurringPaymentExecutionQuickFilter(filter as RecurringPaymentExecutionQuickFilter)
-                : {executeFrom: null, executeTo: null},
-            )
-          }
-        />
-      )}
       {withCategories && (
         <QuickFilterAutocomplete
           label="Category"
@@ -303,7 +248,6 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
         onApply={onApplyFilters}
         withDateRange={withDateRange}
         withRecurringPaymentStatus={withRecurringPaymentStatus}
-        withExecuteDay={withExecuteDay}
         withCategories={withCategories}
         withPaymentMethods={withPaymentMethods}
         state={state}

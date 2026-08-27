@@ -96,7 +96,8 @@ describe('EntityService batch transport', () => {
         payload: {
           categoryId: '00000000-0000-4000-8000-000000000001',
           paymentMethodId: '00000000-0000-4000-8000-000000000002',
-          executeAt: 1,
+          executionPlan: 'monthly',
+          startsOn: '2026-08-01',
           paused: false,
           receiver: 'Receiver',
           transferAmount: 1,
