@@ -3,7 +3,7 @@ import type {TExecutionPlan} from '@budgetbuddyde/api/recurringPayment';
 export const executionPlanOptions: Array<{value: TExecutionPlan; label: string}> = [
   {value: 'daily', label: 'Daily'},
   {value: 'weekly', label: 'Weekly'},
-  {value: 'biweekly', label: 'Every two weeks'},
+  {value: 'biweekly', label: 'BiWeekly'},
   {value: 'monthly', label: 'Monthly'},
   {value: 'quarterly', label: 'Quarterly'},
   {value: 'yearly', label: 'Yearly'},
