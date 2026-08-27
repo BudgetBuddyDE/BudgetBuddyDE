@@ -33,7 +33,6 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
   const updateUrl = React.useCallback(
     (nextFrom: string, nextTo: string, nextIncludePaused: boolean) => {
       const params = new URLSearchParams(searchParams.toString());
-      params.set('view', 'occurrences');
       params.set('dateFrom', nextFrom);
       params.set('dateTo', nextTo);
       if (nextIncludePaused) params.set('includePaused', 'true');

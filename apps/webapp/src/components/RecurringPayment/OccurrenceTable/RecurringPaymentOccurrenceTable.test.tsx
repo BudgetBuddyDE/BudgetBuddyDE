@@ -48,7 +48,6 @@ describe('RecurringPaymentOccurrenceTable', () => {
     render(
       <RecurringPaymentOccurrenceTable
         initialRange={{
-          view: 'occurrences',
           dateFrom: '2026-08-01',
           dateTo: '2026-08-31',
           includePaused: false,

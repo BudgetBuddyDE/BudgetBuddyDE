@@ -1,9 +1,6 @@
 import {endOfLocalMonthDateOnly, formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
 
-export type RecurringPaymentView = 'schedules' | 'occurrences';
-
 export type OccurrenceRange = {
-  view: RecurringPaymentView;
   dateFrom: string;
   dateTo: string;
   includePaused: boolean;
@@ -28,7 +25,6 @@ export function parseOccurrenceRangeParams(
   const dateTo = readDateOnly(params.dateTo) ?? endOfLocalMonthDateOnly(today);
 
   return {
-    view: params.view === 'occurrences' ? 'occurrences' : 'schedules',
     dateFrom,
     dateTo: dateTo < dateFrom ? dateFrom : dateTo,
     includePaused: params.includePaused === 'true',

@@ -1,2 +1,3 @@
 export * from './occurrenceRange';
-export * from './RecurringPaymentsView';
+export * from './RecurringPaymentOccurrenceTable';
+export * from './RecurringPaymentsNav';

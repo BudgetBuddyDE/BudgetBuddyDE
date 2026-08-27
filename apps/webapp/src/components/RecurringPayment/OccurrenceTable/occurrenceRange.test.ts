@@ -4,9 +4,8 @@ import {parseOccurrenceRangeParams} from './occurrenceRange';
 describe('parseOccurrenceRangeParams', () => {
   const today = new Date(2026, 7, 28, 23, 30);
 
-  it('defaults to schedules and the remaining local calendar month', () => {
+  it('defaults to the remaining local calendar month', () => {
     expect(parseOccurrenceRangeParams({}, today)).toEqual({
-      view: 'schedules',
       dateFrom: '2026-08-28',
       dateTo: '2026-08-31',
       includePaused: false,
@@ -15,11 +14,8 @@ describe('parseOccurrenceRangeParams', () => {
 
   it('parses occurrence deep links and optional paused schedules', () => {
     expect(
-      parseOccurrenceRangeParams(
-        {view: 'occurrences', dateFrom: '2026-09-01', dateTo: '2026-09-30', includePaused: 'true'},
-        today,
-      ),
-    ).toEqual({view: 'occurrences', dateFrom: '2026-09-01', dateTo: '2026-09-30', includePaused: true});
+      parseOccurrenceRangeParams({dateFrom: '2026-09-01', dateTo: '2026-09-30', includePaused: 'true'}, today),
+    ).toEqual({dateFrom: '2026-09-01', dateTo: '2026-09-30', includePaused: true});
   });
 
   it('replaces invalid and reversed ranges safely', () => {

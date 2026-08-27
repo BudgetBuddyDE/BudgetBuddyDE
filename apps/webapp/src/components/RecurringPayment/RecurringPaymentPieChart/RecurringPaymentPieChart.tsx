@@ -88,7 +88,7 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [recurringPaymentType, setRecurringPaymentType] = React.useState<RecurringPaymentType>('INCOME');
   const today = new Date();
-  const occurrenceViewHref = `/recurringPayments?view=occurrences&dateFrom=${formatLocalDateOnly(
+  const occurrenceViewHref = `/recurringPayments/occurrences?dateFrom=${formatLocalDateOnly(
     new Date(today.getFullYear(), today.getMonth(), 1),
   )}&dateTo=${endOfLocalMonthDateOnly(today)}`;
 
