@@ -1,0 +1,22 @@
+{
+  "name": "@budgetbuddyde/root",
+  "private": true,
+  "packageManager": "npm@11.4.2",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/budgetbuddyde/budgetbuddyde.git"
+  },
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "prepare": "node .husky/install.mjs"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "turbo": "^2.10.12"
+  }
+}
