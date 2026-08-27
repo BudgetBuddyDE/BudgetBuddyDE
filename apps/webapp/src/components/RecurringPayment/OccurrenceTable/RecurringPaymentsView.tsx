@@ -3,6 +3,7 @@
 import {Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import React from 'react';
+import {ActionPaper} from '@/components/ActionPaper';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {RecurringPaymentTable} from '../RecurringPaymentTable';
 import type {OccurrenceRange, RecurringPaymentView} from './occurrenceRange';
@@ -36,17 +37,31 @@ export const RecurringPaymentsView: React.FC<RecurringPaymentsViewProps> = ({ini
 
   return (
     <Stack gap={2} sx={{minWidth: 0}}>
-      <ToggleButtonGroup
-        value={view}
-        exclusive
-        size="small"
-        onChange={(_, nextView: RecurringPaymentView | null) => nextView && changeView(nextView)}
-        aria-label="Recurring payment view"
-        sx={{alignSelf: {xs: 'stretch', sm: 'flex-start'}, '& .MuiToggleButton-root': {flex: {xs: 1, sm: 'none'}}}}
+      <ActionPaper
+        sx={{
+          width: 'min-content',
+          maxWidth: '100%',
+          overflowX: 'scroll',
+          '::-webkit-scrollbar': {
+            display: 'none',
+          },
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+        }}
       >
-        <ToggleButton value="schedules">Schedules</ToggleButton>
-        <ToggleButton value="occurrences">Occurrences</ToggleButton>
-      </ToggleButtonGroup>
+        <ToggleButtonGroup
+          value={view}
+          exclusive
+          size="small"
+          color="primary"
+          onChange={(_, nextView: RecurringPaymentView | null) => nextView && changeView(nextView)}
+          aria-label="Recurring payment view"
+          sx={{alignSelf: {xs: 'stretch', sm: 'flex-start'}, '& .MuiToggleButton-root': {flex: {xs: 1, sm: 'none'}}}}
+        >
+          <ToggleButton value="schedules">Schedules</ToggleButton>
+          <ToggleButton value="occurrences">Occurrences</ToggleButton>
+        </ToggleButtonGroup>
+      </ActionPaper>
       {view === 'schedules' ? (
         <RecurringPaymentTable initialFilters={initialFilters} />
       ) : (
