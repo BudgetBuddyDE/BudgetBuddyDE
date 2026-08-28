@@ -1,3 +1,5 @@
+import type {TCategory} from '@budgetbuddyde/api/category';
+import type {TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import type {TRecurringPaymentOccurrence} from '@budgetbuddyde/api/recurringPayment';
 import {render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
@@ -10,6 +12,7 @@ vi.mock('@/apiClient', () => ({
 }));
 
 vi.mock('@/components/Form/DateRangePicker', () => ({DateRangePicker: () => <div>Date range</div>}));
+vi.mock('@/components/Filter', () => ({FilterWrapper: () => null}));
 vi.mock('@/components/Category/CategoryChip', () => ({CategoryChip: () => null}));
 vi.mock('@/components/PaymentMethod/PaymentMethodChip', () => ({PaymentMethodChip: () => null}));
 vi.mock('@/components/Table', () => ({
@@ -51,6 +54,8 @@ describe('RecurringPaymentOccurrenceTable', () => {
           dateFrom: '2026-08-01',
           dateTo: '2026-08-31',
           includePaused: false,
+          categories: ['category-1' as TCategory['id']],
+          paymentMethods: ['payment-method-1' as TPaymentMethod['id']],
         }}
       />,
     );
@@ -60,6 +65,8 @@ describe('RecurringPaymentOccurrenceTable', () => {
         $dateFrom: '2026-08-01',
         $dateTo: '2026-08-31',
         $includePaused: undefined,
+        $categories: ['category-1'],
+        $paymentMethods: ['payment-method-1'],
         from: 0,
         to: 15,
       }),

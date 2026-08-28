@@ -9,13 +9,30 @@ describe('parseOccurrenceRangeParams', () => {
       dateFrom: '2026-08-28',
       dateTo: '2026-08-31',
       includePaused: false,
+      categories: [],
+      paymentMethods: [],
     });
   });
 
   it('parses occurrence deep links and optional paused schedules', () => {
     expect(
-      parseOccurrenceRangeParams({dateFrom: '2026-09-01', dateTo: '2026-09-30', includePaused: 'true'}, today),
-    ).toEqual({dateFrom: '2026-09-01', dateTo: '2026-09-30', includePaused: true});
+      parseOccurrenceRangeParams(
+        {
+          dateFrom: '2026-09-01',
+          dateTo: '2026-09-30',
+          includePaused: 'true',
+          cat: 'category-1,category-2',
+          pm: 'payment-method-1',
+        },
+        today,
+      ),
+    ).toEqual({
+      dateFrom: '2026-09-01',
+      dateTo: '2026-09-30',
+      includePaused: true,
+      categories: ['category-1', 'category-2'],
+      paymentMethods: ['payment-method-1'],
+    });
   });
 
   it('replaces invalid and reversed ranges safely', () => {

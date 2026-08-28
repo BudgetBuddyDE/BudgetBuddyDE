@@ -1,9 +1,13 @@
+import type {TCategory} from '@budgetbuddyde/api/category';
+import type {TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import {endOfLocalMonthDateOnly, formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
 
 export type OccurrenceRange = {
   dateFrom: string;
   dateTo: string;
   includePaused: boolean;
+  categories: TCategory['id'][];
+  paymentMethods: TPaymentMethod['id'][];
 };
 
 function readDateOnly(value: string | string[] | undefined): string | null {
@@ -14,6 +18,11 @@ function readDateOnly(value: string | string[] | undefined): string | null {
   } catch {
     return null;
   }
+}
+
+function readIds<T extends string>(value: string | string[] | undefined): T[] {
+  if (typeof value !== 'string') return [];
+  return value.split(',').filter(Boolean) as T[];
 }
 
 export function parseOccurrenceRangeParams(
@@ -28,5 +37,7 @@ export function parseOccurrenceRangeParams(
     dateFrom,
     dateTo: dateTo < dateFrom ? dateFrom : dateTo,
     includePaused: params.includePaused === 'true',
+    categories: readIds<TCategory['id']>(params.cat),
+    paymentMethods: readIds<TPaymentMethod['id']>(params.pm),
   };
 }

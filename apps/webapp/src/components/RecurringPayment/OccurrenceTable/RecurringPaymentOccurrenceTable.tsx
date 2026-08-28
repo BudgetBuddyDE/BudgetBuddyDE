@@ -6,9 +6,11 @@ import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {CategoryChip} from '@/components/Category/CategoryChip';
+import {FilterWrapper} from '@/components/Filter';
 import {DateRangePicker} from '@/components/Form/DateRangePicker';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {EntityTable, type ColumnDefinition} from '@/components/Table';
+import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {Formatter} from '@/utils/Formatter';
 import {formatDateOnlyForDisplay, formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
 import {executionPlanLabels} from '../executionPlan';
@@ -23,6 +25,8 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
   const [dateFrom, setDateFrom] = React.useState(initialRange.dateFrom);
   const [dateTo, setDateTo] = React.useState(initialRange.dateTo);
   const [includePaused, setIncludePaused] = React.useState(initialRange.includePaused);
+  const [categories, setCategories] = React.useState(initialRange.categories);
+  const [paymentMethods, setPaymentMethods] = React.useState(initialRange.paymentMethods);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(15);
   const [rows, setRows] = React.useState<OccurrenceRow[]>([]);
@@ -31,12 +35,16 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
   const [error, setError] = React.useState<Error | null>(null);
 
   const updateUrl = React.useCallback(
-    (nextFrom: string, nextTo: string, nextIncludePaused: boolean) => {
+    (nextRange: OccurrenceRange) => {
       const params = new URLSearchParams(searchParams.toString());
-      params.set('dateFrom', nextFrom);
-      params.set('dateTo', nextTo);
-      if (nextIncludePaused) params.set('includePaused', 'true');
+      params.set('dateFrom', nextRange.dateFrom);
+      params.set('dateTo', nextRange.dateTo);
+      if (nextRange.includePaused) params.set('includePaused', 'true');
       else params.delete('includePaused');
+      if (nextRange.categories.length > 0) params.set('cat', nextRange.categories.join(','));
+      else params.delete('cat');
+      if (nextRange.paymentMethods.length > 0) params.set('pm', nextRange.paymentMethods.join(','));
+      else params.delete('pm');
       router.replace(`${pathname}?${params.toString()}`);
     },
     [pathname, router, searchParams],
@@ -51,6 +59,8 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
         $dateFrom: dateFrom,
         $dateTo: dateTo,
         $includePaused: includePaused || undefined,
+        $categories: categories.length > 0 ? categories : undefined,
+        $paymentMethods: paymentMethods.length > 0 ? paymentMethods : undefined,
         from: page * rowsPerPage,
         to: page * rowsPerPage + rowsPerPage,
       })
@@ -78,7 +88,27 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
     return () => {
       ignore = true;
     };
-  }, [dateFrom, dateTo, includePaused, page, rowsPerPage]);
+  }, [dateFrom, dateTo, includePaused, categories, paymentMethods, page, rowsPerPage]);
+
+  const occurrenceFilters = React.useMemo<Partial<EntityFilters>>(
+    () => ({categories, paymentMethods}),
+    [categories, paymentMethods],
+  );
+
+  const handleFilterApply = (filters: Partial<EntityFilters>) => {
+    const nextCategories = (filters.categories ?? categories) as typeof categories;
+    const nextPaymentMethods = (filters.paymentMethods ?? paymentMethods) as typeof paymentMethods;
+    setCategories(nextCategories);
+    setPaymentMethods(nextPaymentMethods);
+    setPage(0);
+    updateUrl({
+      dateFrom,
+      dateTo,
+      includePaused,
+      categories: nextCategories,
+      paymentMethods: nextPaymentMethods,
+    });
+  };
 
   const columns: ColumnDefinition<OccurrenceRow>[] = React.useMemo(
     () => [
@@ -148,7 +178,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
                 setDateFrom(nextFrom);
                 setDateTo(nextTo);
                 setPage(0);
-                updateUrl(nextFrom, nextTo, includePaused);
+                updateUrl({dateFrom: nextFrom, dateTo: nextTo, includePaused, categories, paymentMethods});
               }}
             />
             <FormControlLabel
@@ -159,12 +189,18 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
                     const checked = event.target.checked;
                     setIncludePaused(checked);
                     setPage(0);
-                    updateUrl(dateFrom, dateTo, checked);
+                    updateUrl({dateFrom, dateTo, includePaused: checked, categories, paymentMethods});
                   }}
                 />
               }
               label="Include paused"
               sx={{whiteSpace: 'nowrap'}}
+            />
+            <FilterWrapper
+              currentFilters={occurrenceFilters}
+              onApply={handleFilterApply}
+              withCategories
+              withPaymentMethods
             />
           </Stack>
         ),
