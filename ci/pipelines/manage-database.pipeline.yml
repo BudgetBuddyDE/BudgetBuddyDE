@@ -116,7 +116,7 @@ jobs:
           params:
             CI: 'true'
             FORCE_COLOR: 1
-            DATABASE_URL: ((database_url))
+            DATABASE_URL: ((manage-database.prod-database-url))
           run:
             path: sh
             args:
