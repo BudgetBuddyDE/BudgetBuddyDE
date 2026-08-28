@@ -32,8 +32,8 @@ export type AutocompleteProps<
     // REVISIT: Use an discriminated union type to enforce the correct usage of these props
     // Was implemented first but had some issues with linting
     searchAsYouType: boolean;
-    // Only required when searchAsYouType is true
-    filterOptions: (options: Value[]) => boolean;
+    // Only needed when searchAsYouType is true
+    filterOptions?: (options: Value[]) => boolean;
     // Only required when searchAsYouType is true
     debounceInMillis?: number;
     // keywords will only be provided when searchAsYouType is true
@@ -114,6 +114,8 @@ export const Autocomplete = <
   };
 
   useEnhancedEffect(() => {
+    if (!searchAsYouType) return;
+
     if (!inputValue) {
       logger.warn('Current inputValue is empty, skip fetching and returning empty options');
       setOptions([]);
@@ -122,7 +124,7 @@ export const Autocomplete = <
 
     logger.debug('Input value changed, fetching options with keywords: %s', inputValue);
     void fetchOptions();
-  }, [inputValue]);
+  }, [inputValue, searchAsYouType]);
 
   if (fetchError) {
     return <ErrorAlert error={fetchError} />;

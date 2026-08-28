@@ -136,7 +136,6 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           {withCategories && (
             <Stack gap={1}>
               <SectionLabel label="Categories" />
-              {/* @ts-expect-error filterOptions only required when searchAsYouType is true */}
               <Autocomplete<TCategoryVH, true>
                 name="filter-categories"
                 label="Categories"
@@ -156,7 +155,6 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           {withPaymentMethods && (
             <Stack gap={1}>
               <SectionLabel label="Payment Methods" />
-              {/* @ts-expect-error filterOptions only required when searchAsYouType is true */}
               <Autocomplete<TPaymentMethodVH, true>
                 name="filter-payment-methods"
                 label="Payment Methods"

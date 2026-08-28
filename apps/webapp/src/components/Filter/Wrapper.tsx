@@ -5,12 +5,12 @@ import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {Stack} from '@mui/material';
 import React from 'react';
 import {apiClient} from '@/apiClient';
+import {Autocomplete} from '@/components/Form/Autocomplete';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {logger} from '@/logger';
 import {FilterButton} from './FilterButton';
 import {FilterDialog, type FilterDialogProps} from './FilterDialog';
 import {FilterReducer, getInitialFilterState} from './FilterReducer';
-import {QuickFilterAutocomplete} from './QuickFilterAutocomplete';
 import {
   getRecurringPaymentStatusQuickFilter,
   getTransactionDateQuickFilterRange,
@@ -18,7 +18,6 @@ import {
   type RecurringPaymentStatusQuickFilter,
   type TransactionDateQuickFilter,
 } from './quickFilters';
-import {QuickFilterSelect} from './QuickFilterSelect';
 
 const transactionDateQuickFilterLabels: Record<TransactionDateQuickFilter, string> = {
   today: 'Today',
@@ -57,8 +56,6 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
   const [state, dispatch] = React.useReducer(FilterReducer, getInitialFilterState());
   const [categoryOptions, setCategoryOptions] = React.useState<TCategoryVH[]>([]);
   const [paymentMethodOptions, setPaymentMethodOptions] = React.useState<TPaymentMethodVH[]>([]);
-  const [categoryOptionsLoading, setCategoryOptionsLoading] = React.useState(false);
-  const [paymentMethodOptionsLoading, setPaymentMethodOptionsLoading] = React.useState(false);
 
   const handleOpen = () => {
     // Bump key so FilterDialog remounts fresh (DateRangePicker re-reads defaultValue)
@@ -77,10 +74,8 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     if (!withCategories) return;
 
     let ignoreResult = false;
-    setCategoryOptionsLoading(true);
     void apiClient.backend.category.getValueHelp().then(([categories, error]) => {
       if (ignoreResult) return;
-      setCategoryOptionsLoading(false);
       if (error) logger.error('Failed to fetch category options:', error);
       else setCategoryOptions(categories ?? []);
     });
@@ -94,10 +89,8 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     if (!withPaymentMethods) return;
 
     let ignoreResult = false;
-    setPaymentMethodOptionsLoading(true);
     void apiClient.backend.paymentMethod.getValueHelp().then(([paymentMethods, error]) => {
       if (ignoreResult) return;
-      setPaymentMethodOptionsLoading(false);
       if (error) logger.error('Failed to fetch payment method options:', error);
       else setPaymentMethodOptions(paymentMethods ?? []);
     });
@@ -182,61 +175,75 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
       sx={{py: 0.25, ml: 'auto', width: 'fit-content', maxWidth: '100%'}}
     >
       {transactionDateQuickFilters.length > 0 && (
-        <QuickFilterSelect
+        <Autocomplete<TransactionDateQuickFilter>
+          name="filter-date-range"
           label="Time period"
-          resetLabel="All dates"
-          value={selectedTransactionDateQuickFilter}
-          options={transactionDateQuickFilters.map(filter => ({
-            value: filter,
-            label: transactionDateQuickFilterLabels[filter],
-          }))}
-          width={176}
-          onChange={filter =>
-            applyQuickFilter(
-              filter
-                ? getTransactionDateQuickFilterRange(filter as TransactionDateQuickFilter)
-                : {dateFrom: null, dateTo: null},
-            )
+          size="small"
+          searchAsYouType={false}
+          retrieveOptionsFunc={() => transactionDateQuickFilters}
+          value={selectedTransactionDateQuickFilter || null}
+          onChange={(_, filter) =>
+            applyQuickFilter(filter ? getTransactionDateQuickFilterRange(filter) : {dateFrom: null, dateTo: null})
           }
+          getOptionLabel={filter => transactionDateQuickFilterLabels[filter]}
+          noOptionsText="No time periods found"
+          sx={{width: 176, minWidth: 0}}
         />
       )}
       {recurringPaymentStatusQuickFilters.length > 0 && (
-        <QuickFilterSelect
+        <Autocomplete<RecurringPaymentStatusQuickFilter>
+          name="filter-recurring-payment-status"
           label="Status"
-          resetLabel="All statuses"
-          value={selectedRecurringPaymentStatusQuickFilter}
-          options={recurringPaymentStatusQuickFilters.map(filter => ({
-            value: filter,
-            label: recurringPaymentStatusQuickFilterLabels[filter],
-          }))}
-          width={148}
-          onChange={filter =>
-            applyQuickFilter(
-              filter
-                ? getRecurringPaymentStatusQuickFilter(filter as RecurringPaymentStatusQuickFilter)
-                : {paused: null},
-            )
+          size="small"
+          searchAsYouType={false}
+          retrieveOptionsFunc={() => recurringPaymentStatusQuickFilters}
+          value={selectedRecurringPaymentStatusQuickFilter || null}
+          onChange={(_, filter) =>
+            applyQuickFilter(filter ? getRecurringPaymentStatusQuickFilter(filter) : {paused: null})
           }
+          getOptionLabel={filter => recurringPaymentStatusQuickFilterLabels[filter]}
+          noOptionsText="No statuses found"
+          sx={{width: 148, minWidth: 0}}
         />
       )}
       {withCategories && (
-        <QuickFilterAutocomplete
+        <Autocomplete<TCategoryVH, true>
+          name="filter-categories"
           label="Category"
-          value={currentFilters.categories ?? []}
-          options={categoryOptions.map(category => ({id: category.id, label: category.name}))}
-          loading={categoryOptionsLoading}
-          width={184}
-          onChange={categories => applyQuickFilter({categories})}
+          placeholder="Any category"
+          multiple
+          disableCloseOnSelect
+          size="small"
+          searchAsYouType={false}
+          retrieveOptionsFunc={() => categoryOptions}
+          value={categoryOptions.filter(category => currentFilters.categories?.includes(category.id))}
+          onChange={(_, categories) => applyQuickFilter({categories: categories.map(category => category.id)})}
+          getOptionLabel={category => category.name}
+          isOptionEqualToValue={(category, value) => category.id === value.id}
+          noOptionsText="No categories found"
+          sx={{width: 184, minWidth: 0}}
         />
       )}
       {withPaymentMethods && (
-        <QuickFilterAutocomplete
+        <Autocomplete<TPaymentMethodVH, true>
+          name="filter-payment-methods"
           label="Payment method"
-          value={currentFilters.paymentMethods ?? []}
-          options={paymentMethodOptions.map(paymentMethod => ({id: paymentMethod.id, label: paymentMethod.name}))}
-          loading={paymentMethodOptionsLoading}
-          width={216}
-          onChange={paymentMethods => applyQuickFilter({paymentMethods})}
+          placeholder="Any payment method"
+          multiple
+          disableCloseOnSelect
+          size="small"
+          searchAsYouType={false}
+          retrieveOptionsFunc={() => paymentMethodOptions}
+          value={paymentMethodOptions.filter(paymentMethod =>
+            currentFilters.paymentMethods?.includes(paymentMethod.id),
+          )}
+          onChange={(_, paymentMethods) =>
+            applyQuickFilter({paymentMethods: paymentMethods.map(paymentMethod => paymentMethod.id)})
+          }
+          getOptionLabel={paymentMethod => paymentMethod.name}
+          isOptionEqualToValue={(paymentMethod, value) => paymentMethod.id === value.id}
+          noOptionsText="No payment methods found"
+          sx={{width: 216, minWidth: 0}}
         />
       )}
       <FilterButton isActive={hasActiveFilters} onClick={handleOpen} />
