@@ -1,5 +1,13 @@
+import {Readable} from 'node:stream';
+import {gzipSync} from 'node:zlib';
 import {describe, expect, it} from 'vitest';
-import {applicationExportQuerySchema, createZipArchive, serializeCsv} from '../router/applicationExport';
+import {
+  applicationExportQuerySchema,
+  attachmentExportPath,
+  createZipArchive,
+  objectBodyToBuffer,
+  serializeCsv,
+} from '../router/applicationExport';
 
 describe('application export query validation', () => {
   it('accepts selected resources and removes duplicate selections', () => {
@@ -14,9 +22,26 @@ describe('application export query validation', () => {
   it.each([
     {format: 'xml', resources: 'categories'},
     {format: 'json', resources: []},
-    {format: 'json', resources: 'attachments'},
+    {format: 'json', resources: 'unknown-resource'},
   ])('rejects unsupported export requests: %o', query => {
     expect(applicationExportQuerySchema.safeParse(query).success).toBe(false);
+  });
+});
+
+describe('application attachment export helpers', () => {
+  it('restores gzip-compressed streamed object bodies', async () => {
+    const original = Buffer.from('receipt content');
+    const body = Readable.from([gzipSync(original)]);
+
+    await expect(objectBodyToBuffer(body, 'gzip')).resolves.toEqual(original);
+  });
+
+  it('creates safe, collision-free content paths while preserving file names', () => {
+    const firstPath = attachmentExportPath('../receipt', '../../receipt.pdf');
+    const secondPath = attachmentExportPath('receipt', 'receipt.pdf');
+
+    expect(firstPath).toMatch(/^attachments\/[A-Za-z0-9_-]+\/_.+\.pdf$/);
+    expect(firstPath).not.toBe(secondPath);
   });
 });
 

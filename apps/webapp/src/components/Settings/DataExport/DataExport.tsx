@@ -65,6 +65,7 @@ export const DataExport = () => {
   const [resources, setResources] = React.useState<ReadonlySet<TApplicationResource>>(
     () => new Set(applicationResources.map(([resource]) => resource)),
   );
+  const [includeAttachments, setIncludeAttachments] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
 
   const includeApplication = resources.size > 0;
@@ -103,6 +104,16 @@ export const DataExport = () => {
         applicationUrl.searchParams.set('format', format);
         resources.forEach(resource => applicationUrl.searchParams.append('resources', resource));
         downloads.push(downloadExport(applicationUrl, `budgetbuddy-application-export-${date}.zip`));
+      }
+
+      if (includeAttachments) {
+        const attachmentUrl = new URL(
+          '/api/application/export',
+          process.env.NEXT_PUBLIC_BACKEND_SERVICE_HOST || 'http://localhost:9000',
+        );
+        attachmentUrl.searchParams.set('format', format);
+        attachmentUrl.searchParams.set('resources', 'attachments');
+        downloads.push(downloadExport(attachmentUrl, `budgetbuddy-attachments-export-${date}.zip`));
       }
 
       await Promise.all(downloads);
@@ -199,7 +210,18 @@ export const DataExport = () => {
                   </FormGroup>
                 </Collapse>
 
-                <FormControlLabel control={<Checkbox disabled />} label="Attachments (not available yet)" />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={includeAttachments}
+                      onChange={event => setIncludeAttachments(event.target.checked)}
+                    />
+                  }
+                  label="Attachments"
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ml: 4.5}}>
+                  Uploaded files, attachment metadata and transaction assignments.
+                </Typography>
               </FormGroup>
             </Box>
 
@@ -215,7 +237,7 @@ export const DataExport = () => {
           </Button>
           <Button
             variant="contained"
-            disabled={isExporting || (!includeAuth && !includeApplication)}
+            disabled={isExporting || (!includeAuth && !includeApplication && !includeAttachments)}
             startIcon={isExporting ? <CircularProgress size={16} color="inherit" /> : <FileDownloadOutlined />}
             onClick={handleExport}
           >

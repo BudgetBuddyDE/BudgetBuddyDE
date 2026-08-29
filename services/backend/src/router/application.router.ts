@@ -1,12 +1,26 @@
-import {budgets, categories, paymentMethods, recurringPayments, transactions} from '@budgetbuddyde/db/backend';
+import {GetObjectCommand} from '@aws-sdk/client-s3';
+import {
+  attachments,
+  budgets,
+  categories,
+  paymentMethods,
+  recurringPayments,
+  transactionAttachments,
+  transactions,
+} from '@budgetbuddyde/db/backend';
 import {asc, eq} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
+import {getRequiredObjectStorageConfig} from '../config';
 import {db} from '../db';
+import {logger} from '../lib/logger';
+import {getS3Client} from '../lib/s3';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {
+  attachmentExportPath,
   applicationExportQuerySchema,
   createZipArchive,
+  objectBodyToBuffer,
   serializeCsv,
   type TApplicationExportResource,
   type TApplicationExportRow,
@@ -44,6 +58,16 @@ const exportColumns: Record<TApplicationExportResource, readonly string[]> = {
     'updatedAt',
   ],
   budgets: ['id', 'ownerId', 'type', 'name', 'budget', 'description', 'categoryIds', 'createdAt', 'updatedAt'],
+  attachments: [
+    'id',
+    'ownerId',
+    'transactionIds',
+    'fileName',
+    'fileExtension',
+    'contentType',
+    'createdAt',
+    'contentPath',
+  ],
 };
 
 function exportFileContent(format: 'csv' | 'json', rows: TApplicationExportRow[], columns: readonly string[]): Buffer {
@@ -60,30 +84,83 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
 
   const {format, resources} = req.query;
   const selectedResources = new Set(resources);
-  const [categoryRows, paymentMethodRows, transactionRows, recurringPaymentRows, budgetRows] = await Promise.all([
-    selectedResources.has('categories')
-      ? db.query.categories.findMany({where: eq(categories.ownerId, userId), orderBy: asc(categories.id)})
-      : Promise.resolve([]),
-    selectedResources.has('payment-methods')
-      ? db.query.paymentMethods.findMany({where: eq(paymentMethods.ownerId, userId), orderBy: asc(paymentMethods.id)})
-      : Promise.resolve([]),
-    selectedResources.has('transactions')
-      ? db.query.transactions.findMany({where: eq(transactions.ownerId, userId), orderBy: asc(transactions.id)})
-      : Promise.resolve([]),
-    selectedResources.has('recurring-payments')
-      ? db.query.recurringPayments.findMany({
-          where: eq(recurringPayments.ownerId, userId),
-          orderBy: asc(recurringPayments.id),
-        })
-      : Promise.resolve([]),
-    selectedResources.has('budgets')
-      ? db.query.budgets.findMany({
-          where: eq(budgets.ownerId, userId),
-          orderBy: asc(budgets.id),
-          with: {categories: {columns: {categoryId: true}}},
-        })
-      : Promise.resolve([]),
-  ]);
+  const [categoryRows, paymentMethodRows, transactionRows, recurringPaymentRows, budgetRows, attachmentRows] =
+    await Promise.all([
+      selectedResources.has('categories')
+        ? db.query.categories.findMany({where: eq(categories.ownerId, userId), orderBy: asc(categories.id)})
+        : Promise.resolve([]),
+      selectedResources.has('payment-methods')
+        ? db.query.paymentMethods.findMany({where: eq(paymentMethods.ownerId, userId), orderBy: asc(paymentMethods.id)})
+        : Promise.resolve([]),
+      selectedResources.has('transactions')
+        ? db.query.transactions.findMany({where: eq(transactions.ownerId, userId), orderBy: asc(transactions.id)})
+        : Promise.resolve([]),
+      selectedResources.has('recurring-payments')
+        ? db.query.recurringPayments.findMany({
+            where: eq(recurringPayments.ownerId, userId),
+            orderBy: asc(recurringPayments.id),
+          })
+        : Promise.resolve([]),
+      selectedResources.has('budgets')
+        ? db.query.budgets.findMany({
+            where: eq(budgets.ownerId, userId),
+            orderBy: asc(budgets.id),
+            with: {categories: {columns: {categoryId: true}}},
+          })
+        : Promise.resolve([]),
+      selectedResources.has('attachments')
+        ? db
+            .select({
+              id: attachments.id,
+              ownerId: attachments.ownerId,
+              fileName: attachments.fileName,
+              fileExtension: attachments.fileExtension,
+              contentType: attachments.contentType,
+              location: attachments.location,
+              createdAt: attachments.createdAt,
+              transactionId: transactionAttachments.transactionId,
+            })
+            .from(attachments)
+            .leftJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
+            .where(eq(attachments.ownerId, userId))
+            .orderBy(asc(attachments.id), asc(transactionAttachments.transactionId))
+        : Promise.resolve([]),
+    ]);
+
+  const attachmentExports = new Map<
+    string,
+    {
+      id: string;
+      ownerId: string;
+      fileName: string;
+      fileExtension: string;
+      contentType: string;
+      location: string;
+      createdAt: Date;
+      transactionIds: string[];
+      contentPath: string;
+    }
+  >();
+  for (const attachment of attachmentRows) {
+    const existing = attachmentExports.get(attachment.id);
+    if (existing) {
+      if (attachment.transactionId) existing.transactionIds.push(attachment.transactionId);
+      continue;
+    }
+
+    attachmentExports.set(attachment.id, {
+      id: attachment.id,
+      ownerId: attachment.ownerId,
+      fileName: attachment.fileName,
+      fileExtension: attachment.fileExtension,
+      contentType: attachment.contentType,
+      location: attachment.location,
+      createdAt: attachment.createdAt,
+      transactionIds: attachment.transactionId ? [attachment.transactionId] : [],
+      contentPath: attachmentExportPath(attachment.id, attachment.fileName),
+    });
+  }
+  const attachmentExportRows = [...attachmentExports.values()];
 
   const rowsByResource: Partial<Record<TApplicationExportResource, TApplicationExportRow[]>> = {
     categories: categoryRows,
@@ -94,6 +171,7 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
       ...budget,
       categoryIds: associations.map(association => association.categoryId),
     })),
+    attachments: attachmentExportRows.map(({location: _location, ...attachment}) => attachment),
   };
 
   const exportedAt = new Date().toISOString();
@@ -104,6 +182,27 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
       content: exportFileContent(format, rows, exportColumns[resource]),
     };
   });
+  if (selectedResources.has('attachments')) {
+    try {
+      const {bucketName} = getRequiredObjectStorageConfig();
+      const attachmentFiles = [];
+      for (const attachment of attachmentExportRows) {
+        const object = await getS3Client().send(new GetObjectCommand({Bucket: bucketName, Key: attachment.location}));
+        attachmentFiles.push({
+          name: attachment.contentPath,
+          content: await objectBodyToBuffer(object.Body, object.ContentEncoding),
+        });
+      }
+      files.push(...attachmentFiles);
+    } catch {
+      logger.error('Unable to read attachment objects for application export', {userId});
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+        .withMessage('Unable to export attachments')
+        .buildAndSend(res);
+      return;
+    }
+  }
   files.push({
     name: 'manifest.json',
     content: Buffer.from(
@@ -118,7 +217,7 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
             resource,
             rowCount: rowsByResource[resource]?.length ?? 0,
           })),
-          attachmentsIncluded: false,
+          attachmentsIncluded: selectedResources.has('attachments'),
         },
         null,
         2,

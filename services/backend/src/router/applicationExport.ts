@@ -1,3 +1,4 @@
+import {gunzipSync} from 'node:zlib';
 import z from 'zod';
 
 export const applicationExportResources = [
@@ -6,6 +7,7 @@ export const applicationExportResources = [
   'transactions',
   'recurring-payments',
   'budgets',
+  'attachments',
 ] as const;
 
 export type TApplicationExportResource = (typeof applicationExportResources)[number];
@@ -20,6 +22,49 @@ export const applicationExportQuerySchema = z.object({
 });
 
 export type TApplicationExportRow = Record<string, unknown>;
+
+type TransformableObjectBody = {
+  transformToByteArray: () => Promise<Uint8Array>;
+};
+
+function isTransformableObjectBody(body: unknown): body is TransformableObjectBody {
+  return typeof body === 'object' && body !== null && 'transformToByteArray' in body;
+}
+
+function isAsyncIterableObjectBody(body: unknown): body is AsyncIterable<Uint8Array | string> {
+  return typeof body === 'object' && body !== null && Symbol.asyncIterator in body;
+}
+
+/** Converts an S3 object body into its original uploaded bytes. */
+export async function objectBodyToBuffer(body: unknown, contentEncoding?: string): Promise<Buffer> {
+  let buffer: Buffer;
+
+  if (body instanceof Uint8Array) {
+    buffer = Buffer.from(body);
+  } else if (isTransformableObjectBody(body)) {
+    buffer = Buffer.from(await body.transformToByteArray());
+  } else if (isAsyncIterableObjectBody(body)) {
+    const chunks: Buffer[] = [];
+    for await (const chunk of body) chunks.push(Buffer.from(chunk));
+    buffer = Buffer.concat(chunks);
+  } else {
+    throw new Error('Attachment object body is unavailable');
+  }
+
+  return contentEncoding?.split(',').some(encoding => encoding.trim().toLowerCase() === 'gzip')
+    ? gunzipSync(buffer)
+    : buffer;
+}
+
+/** Keeps original file names readable while keeping archive paths independent of object-store keys. */
+export function attachmentExportPath(attachmentId: string, fileName: string): string {
+  const safeFileName =
+    [...fileName]
+      .map(character => (character === '/' || character === '\\' || character.charCodeAt(0) < 32 ? '_' : character))
+      .join('')
+      .replace(/^\.+/, '') || 'attachment';
+  return `attachments/${Buffer.from(attachmentId, 'utf8').toString('base64url')}/${safeFileName}`;
+}
 
 const csvFormulaPrefix = /^[\t\r\n ]*[=+\-@]/;
 
