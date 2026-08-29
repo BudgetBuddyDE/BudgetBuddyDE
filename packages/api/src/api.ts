@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: This class is used as as a wrapper */
 
+import {ApplicationImportService} from './services/applicationImport.service';
 import {AttachmentService} from './services/attachment.service';
 import {BudgetService} from './services/budget.service';
 import {CategoryService} from './services/category.service';
@@ -11,6 +12,7 @@ import {TransactionService} from './services/transaction.service';
 export class Api {
   protected backendHost: string;
   public backend: {
+    application: ApplicationImportService;
     attachment: AttachmentService;
     category: CategoryService;
     paymentMethod: PaymentMethodService;
@@ -23,6 +25,7 @@ export class Api {
   constructor(backendHost: string) {
     this.backendHost = backendHost;
     this.backend = {
+      application: new ApplicationImportService(backendHost),
       attachment: new AttachmentService(backendHost),
       category: new CategoryService(backendHost),
       paymentMethod: new PaymentMethodService(backendHost),

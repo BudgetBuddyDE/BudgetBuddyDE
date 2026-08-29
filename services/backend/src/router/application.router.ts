@@ -12,12 +12,14 @@ import {asc, eq} from 'drizzle-orm';
 import {Router} from 'express';
 import rateLimit from 'express-rate-limit';
 import validateRequest from 'express-zod-safe';
+import multer from 'multer';
 import RedisStore from 'rate-limit-redis';
 import {config, getRequiredObjectStorageConfig} from '../config';
 import {db} from '../db';
 import {getRedisClient} from '../db/redis';
 import {logger} from '../lib/logger';
 import {getS3Client} from '../lib/s3';
+import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {
   attachmentExportPath,
@@ -29,8 +31,13 @@ import {
   type TApplicationExportRow,
 } from './applicationExport';
 import {applicationExportRateLimitKey} from './applicationExportRateLimit';
+import {importApplicationArchive, type TApplicationImportMode} from './applicationImport';
 
 export const applicationRouter = Router();
+const importUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {fileSize: 20 * 1024 * 1024, files: 1},
+});
 
 if (config.exportRateLimit.enabled) {
   applicationRouter.use(
@@ -52,6 +59,53 @@ if (config.exportRateLimit.enabled) {
     }),
   );
 }
+
+applicationRouter.post('/import', importUpload.single('archive'), async (req, res) => {
+  const userId = req.context.user?.id;
+  if (!userId) {
+    ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+    return;
+  }
+  if (!req.file) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.BAD_REQUEST)
+      .withMessage('An export archive is required')
+      .buildAndSend(res);
+    return;
+  }
+  const mode = req.body.mode;
+  if (mode !== 'preview' && mode !== 'commit') {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.BAD_REQUEST)
+      .withMessage('Import mode must be preview or commit')
+      .buildAndSend(res);
+    return;
+  }
+  try {
+    const result = await importApplicationArchive(req.file.buffer, userId, mode as TApplicationImportMode);
+    if (mode === 'commit' && result.summary.created > 0) {
+      await invalidateUserCaches(userId, [
+        '/api/category',
+        '/api/paymentMethod',
+        '/api/transaction',
+        '/api/recurringPayment',
+        '/api/budget',
+        '/api/insights',
+      ]);
+    }
+    ApiResponse.builder<typeof result>()
+      .withStatus(HTTPStatusCode.OK)
+      .withMessage(mode === 'preview' ? 'Import preview created' : 'Import completed')
+      .withData(result)
+      .withFrom('db')
+      .buildAndSend(res);
+  } catch (error) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.BAD_REQUEST)
+      .withMessage(error instanceof Error ? error.message : 'The import archive is invalid')
+      .buildAndSend(res);
+  }
+});
 
 const exportColumns: Record<TApplicationExportResource, readonly string[]> = {
   categories: ['id', 'ownerId', 'name', 'description', 'createdAt', 'updatedAt'],

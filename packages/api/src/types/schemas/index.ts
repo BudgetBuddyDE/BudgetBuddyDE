@@ -1,4 +1,5 @@
 export * from './attachment.schema';
+export * from './applicationImport.schema';
 export * from './budget.schema';
 export * from './category.schema';
 export * from './common.schema';

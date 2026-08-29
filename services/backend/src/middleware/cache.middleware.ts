@@ -29,6 +29,36 @@ export function buildCacheKey(route: CacheRouteConfig, userId: string, originalU
   return `${config.cache.keyPrefix}:${prefix}:${userId}:${originalUrl}`;
 }
 
+/** Invalidates every cached GET response for the supplied routes and user. */
+export async function invalidateUserCaches(userId: string, routePaths: readonly string[]): Promise<void> {
+  if (!isCacheAvailable()) return;
+  try {
+    const redis = getRedisClient();
+    const routes = config.cache.routes.filter(route => routePaths.includes(route.path));
+    for (const route of routes) {
+      const prefix = route.cacheKeyPrefix ?? route.path;
+      const pattern = `${config.cache.keyPrefix}:${prefix}:${userId}:*`;
+      let cursor = '0';
+      do {
+        const [nextCursor, keys] = await redis.scan(
+          cursor,
+          'MATCH',
+          pattern,
+          'COUNT',
+          config.cache.invalidationScanCount,
+        );
+        cursor = nextCursor;
+        if (keys.length > 0) {
+          await redis.del(...keys);
+          cacheLogger.debug('Invalidated %d cache keys matching "%s"', keys.length, pattern, {keys});
+        }
+      } while (cursor !== '0');
+    }
+  } catch (err) {
+    cacheLogger.error('Cache invalidation failed', err);
+  }
+}
+
 /**
  * Middleware that serves GET responses from Redis when available.
  *
@@ -109,29 +139,7 @@ export async function invalidateCache(req: Request, res: Response, next: NextFun
   }
 
   res.on('finish', async () => {
-    try {
-      const redis = getRedisClient();
-      const prefix = route.cacheKeyPrefix ?? route.path;
-      const pattern = `${config.cache.keyPrefix}:${prefix}:${userId}:*`;
-
-      let cursor = '0';
-      do {
-        const [nextCursor, keys] = await redis.scan(
-          cursor,
-          'MATCH',
-          pattern,
-          'COUNT',
-          config.cache.invalidationScanCount,
-        );
-        cursor = nextCursor;
-        if (keys.length > 0) {
-          await redis.del(...keys);
-          cacheLogger.debug('Invalidated %d cache keys matching "%s"', keys.length, pattern, {keys});
-        }
-      } while (cursor !== '0');
-    } catch (err) {
-      cacheLogger.error('Cache invalidation failed', err);
-    }
+    await invalidateUserCaches(userId, [route.path]);
   });
 
   next();

@@ -113,6 +113,11 @@
       "dev-source": "./src/attachment.ts",
       "types": "./lib/attachment.d.ts",
       "default": "./lib/attachment.js"
+    },
+    "./applicationImport": {
+      "dev-source": "./src/types/schemas/applicationImport.schema.ts",
+      "types": "./lib/types/schemas/applicationImport.schema.d.ts",
+      "default": "./lib/types/schemas/applicationImport.schema.js"
     }
   },
   "typesVersions": {
@@ -161,6 +166,9 @@
       ],
       "attachment": [
         "./lib/attachment.d.ts"
+      ],
+      "applicationImport": [
+        "./lib/types/schemas/applicationImport.schema.d.ts"
       ]
     }
   }
