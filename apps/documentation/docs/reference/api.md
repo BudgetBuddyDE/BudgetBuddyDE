@@ -53,3 +53,9 @@ and uses `Cache-Control: no-store`.
 When `attachments` is selected, the archive also contains the uploaded file content. `attachments.json` or `attachments.csv`
 maps each attachment to its archive `contentPath` and associated transaction IDs. If an object cannot be retrieved from the
 configured object store, the request fails instead of producing an incomplete archive.
+
+### Rate Limit
+
+In production, this endpoint accepts up to four export requests per authenticated owner in a 15-minute window. Requests
+without an authenticated owner use an IPv6-safe IP-based fallback key. Exceeded requests receive `429 Too Many Requests` with
+standard rate-limit headers. The export is blocked when the Redis-backed limiter is unavailable rather than bypassing the limit.

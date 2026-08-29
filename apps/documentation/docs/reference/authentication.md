@@ -16,6 +16,9 @@ files for the user profile, session metadata, linked accounts, API-key metadata,
 The export deliberately excludes session tokens, OAuth access, refresh and ID tokens, password data, verification secrets,
 and API-key values or hashes. The response uses `Cache-Control: no-store` and must be handled as sensitive personal data.
 
+In production, this endpoint accepts up to two requests per IP address in a 15-minute window. Exceeded requests receive
+`429 Too Many Requests` with standard rate-limit headers. Redis errors block the export rather than bypassing the limit.
+
 ## API Key Clients
 
 Non-interactive clients can use API keys. A key must be kept only in secure secret stores and should be restricted to the least access required.
