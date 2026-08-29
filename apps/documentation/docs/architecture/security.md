@@ -15,6 +15,7 @@ BudgetBuddy processes highly sensitive financial data. Security is therefore a d
 - Enable rate limiting in production.
 - Restrict every entity query and mutation to the owner.
 - Limit upload size, file type, and access to attachments.
+- Treat generated data exports as sensitive downloads: scope them to the authenticated owner, disable caching, and never include credentials or tokens.
 - Review logs for personal and financial content.
 - Regularly update dependencies and security advisories.
 

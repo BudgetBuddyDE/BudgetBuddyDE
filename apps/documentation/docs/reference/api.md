@@ -10,16 +10,17 @@ The backend API is available under `/api`. The base URL is configured in the web
 
 ## Resources
 
-| Resource           | Path                    |
-| ------------------ | ----------------------- |
-| Categories         | `/api/category`         |
-| Payment methods    | `/api/paymentMethod`    |
-| Transactions       | `/api/transaction`      |
-| Recurring payments | `/api/recurringPayment` |
-| Budgets            | `/api/budget`           |
-| Insights           | `/api/insights`         |
-| Attachments        | `/api/attachment`       |
-| User context       | `/api/me`               |
+| Resource           | Path                      |
+| ------------------ | ------------------------- |
+| Categories         | `/api/category`           |
+| Payment methods    | `/api/paymentMethod`      |
+| Transactions       | `/api/transaction`        |
+| Recurring payments | `/api/recurringPayment`   |
+| Budgets            | `/api/budget`             |
+| Insights           | `/api/insights`           |
+| Attachments        | `/api/attachment`         |
+| Application export | `/api/application/export` |
+| User context       | `/api/me`                 |
 
 The specific methods and payloads are defined in `packages/api` and the backend routers. Prefer the typed client over manual HTTP calls.
 
@@ -30,3 +31,25 @@ The client uses `TResult`: either `[data, null]` or `[null, error]`. Do not intr
 ## Batch and Filters
 
 Batch operations are limited to 100 records. Query filters are serialized by the client; the backend service validates and interprets them.
+
+## Application Export
+
+`GET /api/application/export` creates a ZIP archive for the authenticated owner. The endpoint accepts these query parameters:
+
+| Parameter   | Values                                                                                          | Required         | Description                                        |
+| ----------- | ----------------------------------------------------------------------------------------------- | ---------------- | -------------------------------------------------- |
+| `format`    | `json`, `csv`                                                                                   | Yes              | Format of each resource file in the archive.       |
+| `resources` | `categories`, `payment-methods`, `transactions`, `recurring-payments`, `budgets`, `attachments` | Yes, one or more | Repeat the parameter for every resource to export. |
+
+For example:
+
+```text
+GET /api/application/export?format=json&resources=transactions&resources=categories
+```
+
+The response is an `application/zip` attachment containing each requested resource and a `manifest.json`. It is owner-scoped
+and uses `Cache-Control: no-store`.
+
+When `attachments` is selected, the archive also contains the uploaded file content. `attachments.json` or `attachments.csv`
+maps each attachment to its archive `contentPath` and associated transaction IDs. If an object cannot be retrieved from the
+configured object store, the request fails instead of producing an incomplete archive.
