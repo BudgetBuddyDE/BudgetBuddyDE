@@ -10,37 +10,37 @@ BudgetBuddy is an open-source personal finance manager for income, expenses, rec
 
 <div class="grid cards" markdown>
 
-- **use BudgetBuddy**
+-   Use BudgetBuddy
 
-  ***
+    ---
 
-  Learn about the application's main features.
+    Learn about the application's main features.
 
-  [:octicons-arrow-right-24: Open the user guide](user-guide/index.md)
+    [:octicons-arrow-right-24: Open the user guide](user-guide/index.md)
 
-- **Develop locally**
+-   Develop locally
 
-  ***
+    ---
 
-  Set up the monorepo and start the webapp, services, and infrastructure.
+    Set up the monorepo and start the webapp, services, and infrastructure.
 
-  [:octicons-arrow-right-24: Set up the development environment](getting-started/development.md)
+    [:octicons-arrow-right-24: Set up the development environment](getting-started/development.md)
 
-- **Self-host BudgetBuddy**
+-   Self-host BudgetBuddy
 
-  ***
+    ---
 
-  Prepare your own environment with PostgreSQL, Redis, and the BudgetBuddy services.
+    Prepare your own environment with PostgreSQL, Redis, and the BudgetBuddy services.
 
-  [:octicons-arrow-right-24: Self-hosting](administration/index.md)
+    [:octicons-arrow-right-24: Self-hosting](administration/index.md)
 
-- **Integrate**
+-   Integrate
 
-  ***
+    ---
 
-  Use the typed API client or the MCP interface.
+    Use the typed API client or the MCP interface.
 
-  [:octicons-arrow-right-24: API reference](reference/index.md)
+    [:octicons-arrow-right-24: API reference](reference/index.md)
 
 </div>
 
