@@ -13,6 +13,7 @@ import {logger} from './lib/logger';
 import {cacheResponse, handleError, invalidateCache, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 import {
+  ApplicationRouter,
   AttachmentRouter,
   BudgetRouter,
   CategoryRouter,
@@ -93,6 +94,7 @@ app.delete('/api/me', async (req, res) => {
   }
   ApiResponse.builder().withStatus(HTTPStatusCode.NOT_IMPLEMENTED).withMessage('Not implemented').buildAndSend(res);
 });
+app.use('/api/application', ApplicationRouter);
 app.use('/api/category', CategoryRouter);
 app.use('/api/paymentMethod', PaymentMethodRouter);
 app.use('/api/transaction', TransactionRouter);

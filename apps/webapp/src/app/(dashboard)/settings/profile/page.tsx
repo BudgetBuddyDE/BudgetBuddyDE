@@ -3,6 +3,7 @@ import React from 'react';
 import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
 import {AppInformation} from '@/components/Settings/AppInformation';
+import {DataExport} from '@/components/Settings/DataExport';
 import {EditUser} from '@/components/User/EditUser';
 import {UserAccounts} from '@/components/User/UserAccounts';
 import {UserSessions} from '@/components/User/UserSessions';
@@ -17,6 +18,10 @@ export default function SettingsProfilePage() {
               <AppInformation />
             </React.Suspense>
           </PathnameErrorBoundary>
+        </Grid>
+
+        <Grid size={{xs: 12}}>
+          <DataExport />
         </Grid>
       </Grid>
 

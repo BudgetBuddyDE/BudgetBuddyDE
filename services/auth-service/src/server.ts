@@ -4,6 +4,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import {auth} from './auth';
+import {authExportHandler} from './authExport';
 import {config} from './config';
 import {checkConnection} from './db';
 import {getRedisClient} from './db/redis';
@@ -68,6 +69,7 @@ app.get('/api/me', async (req, res) => {
   });
   res.json(session);
 });
+app.get('/api/export', authExportHandler);
 
 // Mount an global error handler
 app.use(handleError);

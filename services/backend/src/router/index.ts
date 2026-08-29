@@ -1,3 +1,4 @@
+export {applicationRouter as ApplicationRouter} from './application.router';
 export {attachmentRouter as AttachmentRouter} from './attachment.router';
 export {budgetRouter as BudgetRouter} from './budget.router';
 export {categoryRouter as CategoryRouter} from './category.router';
