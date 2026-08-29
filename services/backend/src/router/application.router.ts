@@ -10,9 +10,12 @@ import {
 } from '@budgetbuddyde/db/backend';
 import {asc, eq} from 'drizzle-orm';
 import {Router} from 'express';
+import rateLimit from 'express-rate-limit';
 import validateRequest from 'express-zod-safe';
-import {getRequiredObjectStorageConfig} from '../config';
+import RedisStore from 'rate-limit-redis';
+import {config, getRequiredObjectStorageConfig} from '../config';
 import {db} from '../db';
+import {getRedisClient} from '../db/redis';
 import {logger} from '../lib/logger';
 import {getS3Client} from '../lib/s3';
 import {ApiResponse, HTTPStatusCode} from '../models';
@@ -25,8 +28,30 @@ import {
   type TApplicationExportResource,
   type TApplicationExportRow,
 } from './applicationExport';
+import {applicationExportRateLimitKey} from './applicationExportRateLimit';
 
 export const applicationRouter = Router();
+
+if (config.exportRateLimit.enabled) {
+  applicationRouter.use(
+    '/export',
+    rateLimit({
+      ...config.exportRateLimit.options,
+      keyGenerator: applicationExportRateLimitKey,
+      store: new RedisStore({
+        prefix: config.exportRateLimit.keyPrefix,
+        // biome-ignore lint/suspicious/noExplicitAny: ioredis returns unknown, rate-limit-redis expects RedisReply
+        sendCommand: (...args: string[]) => getRedisClient().call(...(args as [string, ...string[]])) as any,
+      }),
+      handler: (_req, res) => {
+        ApiResponse.builder()
+          .withStatus(HTTPStatusCode.TOO_MANY_REQUESTS)
+          .withMessage('Too many export requests. Please try again later.')
+          .buildAndSend(res);
+      },
+    }),
+  );
+}
 
 const exportColumns: Record<TApplicationExportResource, readonly string[]> = {
   categories: ['id', 'ownerId', 'name', 'description', 'createdAt', 'updatedAt'],

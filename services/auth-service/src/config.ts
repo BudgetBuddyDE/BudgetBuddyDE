@@ -20,6 +20,10 @@ export type Config = {
   };
   cors: CorsOptions;
   rateLimit: Partial<RateLimitOptions>;
+  exportRateLimit: {
+    keyPrefix: string;
+    options: Partial<RateLimitOptions>;
+  };
   jobs: {
     timezone: string;
   };
@@ -64,11 +68,22 @@ export const config: Config = {
   },
   rateLimit: {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    limit: 500, // 300 requests per window per IP
+    limit: 500, // 500 requests per window per IP
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     passOnStoreError: true,
     statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
+  },
+  exportRateLimit: {
+    keyPrefix: `rate-limit:${SERVICE_NAME}:export:`,
+    options: {
+      windowMs: 15 * 60 * 1000,
+      limit: 2,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      passOnStoreError: false,
+      statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
+    },
   },
   jobs: {
     timezone: process.env.TIMEZONE || 'Europe/Berlin',

@@ -72,6 +72,11 @@ export type Config = {
     keyPrefix: string;
     options: Partial<RateLimitOptions>;
   };
+  exportRateLimit: {
+    enabled: boolean;
+    keyPrefix: string;
+    options: Partial<RateLimitOptions>;
+  };
   timezone: string;
   jobs: {
     recurringPayments: {
@@ -184,6 +189,18 @@ export const config: Config = {
       standardHeaders: 'draft-7',
       legacyHeaders: false,
       passOnStoreError: true,
+      statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
+    },
+  },
+  exportRateLimit: {
+    enabled: SERVICE_RUNTIME === 'production',
+    keyPrefix: `rate-limit:${SERVICE_NAME}:application-export:`,
+    options: {
+      windowMs: 15 * 60 * 1000,
+      limit: 4,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      passOnStoreError: false,
       statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
     },
   },

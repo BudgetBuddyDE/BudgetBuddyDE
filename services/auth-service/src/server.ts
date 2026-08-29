@@ -1,7 +1,7 @@
 import {fromNodeHeaders, toNodeHandler} from 'better-auth/node';
 import cors from 'cors';
 import express from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, {ipKeyGenerator} from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import {auth} from './auth';
 import {authExportHandler} from './authExport';
@@ -69,6 +69,26 @@ app.get('/api/me', async (req, res) => {
   });
   res.json(session);
 });
+if (config.runtime === 'production') {
+  app.use(
+    '/api/export',
+    rateLimit({
+      ...config.exportRateLimit.options,
+      keyGenerator: req => ipKeyGenerator(req.ip ?? 'unknown'),
+      store: new RedisStore({
+        prefix: config.exportRateLimit.keyPrefix,
+        // biome-ignore lint/suspicious/noExplicitAny: ioredis returns unknown, rate-limit-redis expects RedisReply
+        sendCommand: (...args: string[]) => getRedisClient().call(...(args as [string, ...string[]])) as any,
+      }),
+      handler: (_req, res) => {
+        ApiResponse.expressBuilder(res)
+          .withStatus(HTTPStatusCode.TOO_MANY_REQUESTS)
+          .withMessage('Too many export requests. Please try again later.')
+          .buildAndSend();
+      },
+    }),
+  );
+}
 app.get('/api/export', authExportHandler);
 
 // Mount an global error handler

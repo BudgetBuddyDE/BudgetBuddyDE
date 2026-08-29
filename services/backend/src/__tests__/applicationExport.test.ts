@@ -8,6 +8,7 @@ import {
   objectBodyToBuffer,
   serializeCsv,
 } from '../router/applicationExport';
+import {applicationExportRateLimitKey} from '../router/applicationExportRateLimit';
 
 describe('application export query validation', () => {
   it('accepts selected resources and removes duplicate selections', () => {
@@ -25,6 +26,16 @@ describe('application export query validation', () => {
     {format: 'json', resources: 'unknown-resource'},
   ])('rejects unsupported export requests: %o', query => {
     expect(applicationExportQuerySchema.safeParse(query).success).toBe(false);
+  });
+});
+
+describe('application export rate limit key', () => {
+  it('uses the authenticated owner instead of the client IP', () => {
+    expect(applicationExportRateLimitKey({context: {user: {id: 'user-1'}}, ip: '2001:db8::1'} as never)).toBe('user-1');
+  });
+
+  it('uses an IPv6-safe IP key when the request is not authenticated', () => {
+    expect(applicationExportRateLimitKey({context: {}, ip: '2001:db8::1'} as never)).toMatch(/2001:db8/);
   });
 });
 
