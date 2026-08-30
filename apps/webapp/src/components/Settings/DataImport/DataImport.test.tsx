@@ -50,10 +50,16 @@ const failedCommitResult: TApplicationImportResult = {
     ...previewResult.resources,
     categories: {
       ...resourceResult,
+      created: [{code: 'persistence', message: 'Category imported', row: 1, sourceId: 'category-1'}],
       failed: [{code: 'persistence', message: 'Category could not be saved', row: 1, sourceId: 'category-1'}],
     },
+    transactions: {
+      ...resourceResult,
+      failed: [{code: 'persistence', message: 'Transaction could not be saved', row: 1, sourceId: 'transaction-1'}],
+      skipped: [{code: 'duplicate', message: 'Transaction already exists', row: 1, sourceId: 'transaction-1'}],
+    },
   },
-  summary: {created: 0, failed: 1, received: 1, skipped: 0},
+  summary: {created: 1, failed: 2, received: 3, skipped: 1},
 };
 
 describe('DataImport', () => {
@@ -76,7 +82,7 @@ describe('DataImport', () => {
     expect(screen.getByText('Failed imports')).toBeInTheDocument();
   });
 
-  it('shows preview and failed import records in resource tables', async () => {
+  it('shows import records in resource tabs', async () => {
     importArchive.mockResolvedValueOnce([previewResult, null]).mockResolvedValueOnce([failedCommitResult, null]);
     render(
       <SnackbarProvider>
@@ -98,9 +104,17 @@ describe('DataImport', () => {
     expect(screen.getByText('Market')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', {name: 'Import 1 records'}));
+    expect(await screen.findByRole('table', {name: 'Successful imports Categories'})).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', {name: 'Transactions (1)'}));
+    expect(screen.getByRole('table', {name: 'Successful imports Transactions'})).toBeInTheDocument();
+    expect(screen.getByText('Transaction already exists')).toBeInTheDocument();
+
     fireEvent.click(await screen.findByRole('button', {name: 'Show failed imports'}));
 
     await waitFor(() => expect(screen.getByRole('table', {name: 'Failed imports Categories'})).toBeInTheDocument());
     expect(screen.getByText('Category could not be saved')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', {name: 'Transactions (1)'}));
+    expect(screen.getByRole('table', {name: 'Failed imports Transactions'})).toBeInTheDocument();
+    expect(screen.getByText('Transaction could not be saved')).toBeInTheDocument();
   });
 });

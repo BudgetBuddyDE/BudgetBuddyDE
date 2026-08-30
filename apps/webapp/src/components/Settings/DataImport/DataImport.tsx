@@ -143,22 +143,6 @@ function ResourceTable({resource, rows, title}: {resource: TResource; rows: TTab
   );
 }
 
-function ResourceTables({
-  title,
-  rowsForResource,
-}: {
-  title: string;
-  rowsForResource: (resource: TResource) => TTableRow[];
-}) {
-  return (
-    <Stack spacing={3}>
-      {(Object.keys(resourceLabels) as TResource[]).map(resource => (
-        <ResourceTable key={resource} resource={resource} rows={rowsForResource(resource)} title={title} />
-      ))}
-    </Stack>
-  );
-}
-
 function ResourceTabs({
   title,
   rowsForResource,
@@ -291,7 +275,7 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
             {result.summary.received} records found. {result.summary.created} are ready to import and{' '}
             {result.summary.failed} have validation or reference errors.
           </DismissableAlert>
-          <ResourceTabs title="Preview" rowsForResource={previewRows} />
+          <ResourceTabs key="preview" title="Preview" rowsForResource={previewRows} />
         </Stack>
       );
     }
@@ -301,7 +285,7 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
           <DismissableAlert severity="success">
             Imported: {result.summary.created}, skipped because they already exist: {result.summary.skipped}.
           </DismissableAlert>
-          <ResourceTables title="Successful imports" rowsForResource={successfulRows} />
+          <ResourceTabs key="successful-imports" title="Successful imports" rowsForResource={successfulRows} />
         </Stack>
       );
     }
@@ -312,7 +296,7 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
             Failed imports: {result.summary.failed}.
           </DismissableAlert>
           {result.summary.failed > 0 ? (
-            <ResourceTables title="Failed imports" rowsForResource={failedRows} />
+            <ResourceTabs key="failed-imports" title="Failed imports" rowsForResource={failedRows} />
           ) : (
             <Typography>No imports failed.</Typography>
           )}
