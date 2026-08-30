@@ -1,6 +1,7 @@
 import {Api} from '@budgetbuddyde/api';
 import {nextOccurrenceOnOrAfter} from '@budgetbuddyde/api/recurringPayment';
 import type {TExpandedRecurringPayment, TExpandedTransaction} from '@budgetbuddyde/api/types';
+import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSetError';
 import {config as loadEnv} from 'dotenv';
 
 loadEnv();
@@ -13,18 +14,11 @@ type ExampleConfig = {
   limit: number;
 };
 
-export class EnvironmentVariableNotSetError extends Error {
-  constructor(variableName: string) {
-    super(`${variableName} is required`);
-    this.name = 'EnvironmentVariableNotSetError';
-  }
-}
-
 function getRequiredEnv(env: NodeJS.ProcessEnv, variableName: string) {
   const value = env[variableName]?.trim();
 
   if (!value) {
-    throw new EnvironmentVariableNotSetError(variableName);
+    throw new EnvironmentNotSetError(variableName);
   }
 
   return value;

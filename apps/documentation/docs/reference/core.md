@@ -11,7 +11,7 @@ icon: lucide/box
 `Config` stores immutable metadata common to a service. `BackendConfig` extends it with the HTTP port.
 
 ```ts
-import {BackendConfig} from '@budgetbuddyde/core';
+import {BackendConfig} from '@budgetbuddyde/core/config';
 
 const config = new BackendConfig({
   service: 'backend',
@@ -28,7 +28,8 @@ Use `Config` as the base class when adding a configuration type for another serv
 `EnvironmentVariable` reads a required variable from `process.env`.
 
 ```ts
-import {EnvironmentVariable, EnvironmentNotSetError} from '@budgetbuddyde/core';
+import {EnvironmentNotSetError} from '@budgetbuddyde/core/error';
+import {EnvironmentVariable} from '@budgetbuddyde/core/environment';
 
 try {
   const databaseUrl = new EnvironmentVariable('DATABASE_URL').get();
@@ -43,7 +44,7 @@ The accessor returns an empty string unchanged. It throws only if the value is `
 
 ## Errors
 
-All core errors inherit from `CustomError`, which itself extends the native `Error` class.
+All core errors inherit from `CustomError`, which itself extends the native `Error` class and retains an optional `cause` for server-side logging.
 
 | Class                    | Purpose                                               |
 | ------------------------ | ----------------------------------------------------- |
@@ -54,12 +55,15 @@ All core errors inherit from `CustomError`, which itself extends the native `Err
 | `EnvironmentNotSetError` | Required environment variable is undefined.           |
 
 ```ts
-import {BackendError, CustomError} from '@budgetbuddyde/core';
+import {BackendError} from '@budgetbuddyde/core/error';
+import {CustomError} from '@budgetbuddyde/core/error';
 
 const error = new BackendError(502, 'Bad Gateway');
 
 console.log(error instanceof CustomError); // true
 console.log(error.statusCode); // 502
 ```
+
+Each class has an individual Core import path. `@budgetbuddyde/core`, `@budgetbuddyde/core/config`, `@budgetbuddyde/core/error`, and `@budgetbuddyde/core/environment` remain available as optional aggregate imports.
 
 `@budgetbuddyde/api/error` re-exports `CustomError`, `ApiClientError`, and `BackendError`. Its former `ApiError` export remains a deprecated alias for `ApiClientError`.

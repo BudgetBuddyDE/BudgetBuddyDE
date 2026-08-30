@@ -7,6 +7,5 @@ export function handleError(err: Error, _req: Request, res: Response, _next: Nex
   ApiResponse.expressBuilder(res)
     .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
     .withMessage('Internal Server Error')
-    .withError(err.message)
     .buildAndSend();
 }

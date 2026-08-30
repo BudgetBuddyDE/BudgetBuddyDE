@@ -1,12 +1,7 @@
 import type {TExpandedRecurringPayment, TExpandedTransaction} from '@budgetbuddyde/api/types';
+import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSetError';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {
-  EnvironmentVariableNotSetError,
-  createApiKeyRequestConfig,
-  fetchBudgetBuddyOverview,
-  formatPaymentDetails,
-  readConfigFromEnv,
-} from './index';
+import {createApiKeyRequestConfig, fetchBudgetBuddyOverview, formatPaymentDetails, readConfigFromEnv} from './index';
 
 const now = '2026-06-28T12:00:00.000Z';
 const ownerId = 'user_123';
@@ -72,13 +67,13 @@ describe('api-key-client example', () => {
 
   it('requires an API key', () => {
     expect(() => readConfigFromEnv({BUDGETBUDDY_BACKEND_URL: 'https://backend.example.test'})).toThrow(
-      new EnvironmentVariableNotSetError('BUDGETBUDDY_API_KEY'),
+      new EnvironmentNotSetError('BUDGETBUDDY_API_KEY'),
     );
   });
 
   it('requires a backend URL', () => {
     expect(() => readConfigFromEnv({BUDGETBUDDY_API_KEY: 'bb-test-key'})).toThrow(
-      new EnvironmentVariableNotSetError('BUDGETBUDDY_BACKEND_URL'),
+      new EnvironmentNotSetError('BUDGETBUDDY_BACKEND_URL'),
     );
   });
 

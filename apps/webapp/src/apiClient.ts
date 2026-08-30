@@ -1,6 +1,4 @@
 import {Api} from '@budgetbuddyde/api';
+import {webappConfig} from './config';
 
-export const apiClient = new Api(
-  process.env.NEXT_PUBLIC_BACKEND_SERVICE_HOST || 'http://localhost:9000',
-  process.env.NEXT_PUBLIC_AUTH_SERVICE_HOST || 'http://localhost:8080',
-);
+export const apiClient = new Api(webappConfig.backendServiceHost, webappConfig.authServiceHost);

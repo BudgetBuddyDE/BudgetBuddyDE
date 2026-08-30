@@ -1,3 +1,4 @@
+import {EnvironmentVariable} from '@budgetbuddyde/core/environment/EnvironmentVariable';
 import 'dotenv/config';
 import {defineConfig} from 'drizzle-kit';
 
@@ -6,6 +7,6 @@ export default defineConfig({
   schema: './src/index.ts',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL as string,
+    url: new EnvironmentVariable('DATABASE_URL').get(),
   },
 });

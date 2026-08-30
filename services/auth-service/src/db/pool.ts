@@ -1,12 +1,13 @@
 import 'dotenv/config';
+import {DatabaseError} from '@budgetbuddyde/core/error/DatabaseError';
 import pg from 'pg';
+import {config} from '../config';
 import {logger} from '../lib/logger';
 
 const {Pool} = pg;
-const {DATABASE_URL} = process.env;
 export const dbLogger = logger.child({label: 'pool'});
 export const pool = new Pool({
-  connectionString: DATABASE_URL as string,
+  connectionString: config.database.connectionString,
   connectionTimeoutMillis: 5000,
   max: 20,
 });
@@ -22,7 +23,7 @@ pool.on('remove', () => dbLogger.debug('Client removed'));
 // the pool will emit an error on behalf of any idle clients
 // it contains if a backend error or network partition happens
 pool.on('error', (err, _) => {
-  dbLogger.error('Unexpected error on idle client', err);
+  dbLogger.error('Unexpected error on idle client', new DatabaseError('Idle database client failed', {cause: err}));
   process.exit(-1);
 });
 
@@ -42,7 +43,7 @@ export async function checkConnection(): Promise<boolean> {
     client.release();
     return true;
   } catch (err) {
-    dbLogger.error('Connection to database failed', err);
+    dbLogger.error('Connection to database failed', new DatabaseError('Database connection failed', {cause: err}));
     return false;
   }
 }

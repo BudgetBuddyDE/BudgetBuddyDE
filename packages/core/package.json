@@ -27,19 +27,64 @@
       "default": "./lib/index.js"
     },
     "./config": {
-      "dev-source": "./src/config.ts",
-      "types": "./lib/config.d.ts",
-      "default": "./lib/config.js"
+      "dev-source": "./src/config/index.ts",
+      "types": "./lib/config/index.d.ts",
+      "default": "./lib/config/index.js"
     },
     "./error": {
-      "dev-source": "./src/error.ts",
-      "types": "./lib/error.d.ts",
-      "default": "./lib/error.js"
+      "dev-source": "./src/error/index.ts",
+      "types": "./lib/error/index.d.ts",
+      "default": "./lib/error/index.js"
     },
     "./environment": {
-      "dev-source": "./src/environmentVariable.ts",
-      "types": "./lib/environmentVariable.d.ts",
-      "default": "./lib/environmentVariable.js"
+      "dev-source": "./src/environment/index.ts",
+      "types": "./lib/environment/index.d.ts",
+      "default": "./lib/environment/index.js"
+    },
+    "./config/Config": {
+      "dev-source": "./src/config/Config.ts",
+      "types": "./lib/config/Config.d.ts",
+      "default": "./lib/config/Config.js"
+    },
+    "./config/BackendConfig": {
+      "dev-source": "./src/config/BackendConfig.ts",
+      "types": "./lib/config/BackendConfig.d.ts",
+      "default": "./lib/config/BackendConfig.js"
+    },
+    "./error/ApiClientError": {
+      "dev-source": "./src/error/ApiClientError.ts",
+      "types": "./lib/error/ApiClientError.d.ts",
+      "default": "./lib/error/ApiClientError.js"
+    },
+    "./error/BackendError": {
+      "dev-source": "./src/error/BackendError.ts",
+      "types": "./lib/error/BackendError.d.ts",
+      "default": "./lib/error/BackendError.js"
+    },
+    "./error/CacheError": {
+      "dev-source": "./src/error/CacheError.ts",
+      "types": "./lib/error/CacheError.d.ts",
+      "default": "./lib/error/CacheError.js"
+    },
+    "./error/CustomError": {
+      "dev-source": "./src/error/CustomError.ts",
+      "types": "./lib/error/CustomError.d.ts",
+      "default": "./lib/error/CustomError.js"
+    },
+    "./error/DatabaseError": {
+      "dev-source": "./src/error/DatabaseError.ts",
+      "types": "./lib/error/DatabaseError.d.ts",
+      "default": "./lib/error/DatabaseError.js"
+    },
+    "./error/EnvironmentNotSetError": {
+      "dev-source": "./src/error/EnvironmentNotSetError.ts",
+      "types": "./lib/error/EnvironmentNotSetError.d.ts",
+      "default": "./lib/error/EnvironmentNotSetError.js"
+    },
+    "./environment/EnvironmentVariable": {
+      "dev-source": "./src/environment/EnvironmentVariable.ts",
+      "types": "./lib/environment/EnvironmentVariable.d.ts",
+      "default": "./lib/environment/EnvironmentVariable.js"
     }
   },
   "typesVersions": {
@@ -48,13 +93,40 @@
         "./lib/index.d.ts"
       ],
       "config": [
-        "./lib/config.d.ts"
+        "./lib/config/index.d.ts"
       ],
       "error": [
-        "./lib/error.d.ts"
+        "./lib/error/index.d.ts"
       ],
       "environment": [
-        "./lib/environmentVariable.d.ts"
+        "./lib/environment/index.d.ts"
+      ],
+      "config/Config": [
+        "./lib/config/Config.d.ts"
+      ],
+      "config/BackendConfig": [
+        "./lib/config/BackendConfig.d.ts"
+      ],
+      "error/ApiClientError": [
+        "./lib/error/ApiClientError.d.ts"
+      ],
+      "error/BackendError": [
+        "./lib/error/BackendError.d.ts"
+      ],
+      "error/CacheError": [
+        "./lib/error/CacheError.d.ts"
+      ],
+      "error/CustomError": [
+        "./lib/error/CustomError.d.ts"
+      ],
+      "error/DatabaseError": [
+        "./lib/error/DatabaseError.d.ts"
+      ],
+      "error/EnvironmentNotSetError": [
+        "./lib/error/EnvironmentNotSetError.d.ts"
+      ],
+      "environment/EnvironmentVariable": [
+        "./lib/environment/EnvironmentVariable.d.ts"
       ]
     }
   },

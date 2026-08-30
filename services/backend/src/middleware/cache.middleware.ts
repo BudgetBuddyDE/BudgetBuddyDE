@@ -1,3 +1,4 @@
+import {CacheError} from '@budgetbuddyde/core/error/CacheError';
 import type {NextFunction, Request, Response} from 'express';
 import {type CacheRouteConfig, config} from '../config';
 import {getRedisClient} from '../db/redis';
@@ -60,7 +61,7 @@ export async function invalidateUserCaches(userId: string, routePaths: readonly 
       } while (cursor !== '0');
     }
   } catch (err) {
-    cacheLogger.error('Cache invalidation failed', err);
+    cacheLogger.error('Cache invalidation failed', new CacheError('Cache invalidation failed', {cause: err}));
   }
 }
 
@@ -106,7 +107,10 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
     res.json = (body: any) => {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         redis.setex(cacheKey, route.ttl, JSON.stringify(body)).catch(err => {
-          cacheLogger.error('Failed to store response in cache', {cacheKey, err});
+          cacheLogger.error('Failed to store response in cache', {
+            cacheKey,
+            err: new CacheError('Cache write failed', {cause: err}),
+          });
         });
       }
       res.setHeader('X-Cache', 'MISS');
@@ -115,7 +119,7 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
 
     next();
   } catch (err) {
-    cacheLogger.error('Cache lookup failed, skipping cache', err);
+    cacheLogger.error('Cache lookup failed, skipping cache', new CacheError('Cache lookup failed', {cause: err}));
     next();
   }
 }

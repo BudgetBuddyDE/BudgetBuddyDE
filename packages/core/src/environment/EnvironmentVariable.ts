@@ -1,4 +1,4 @@
-import {EnvironmentNotSetError} from './error';
+import {EnvironmentNotSetError} from '../error/EnvironmentNotSetError';
 
 /**
  * Provides access to a required process environment variable.

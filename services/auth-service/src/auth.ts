@@ -21,7 +21,7 @@ const options: BetterAuthOptions = {
     provider: 'pg',
     schema: authSchema,
   }),
-  secondaryStorage: process.env.REDIS_URL
+  secondaryStorage: config.redis.url
     ? {
         set(key, value, ttl) {
           const client = getRedisClient();

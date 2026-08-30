@@ -171,12 +171,9 @@ export class ApiResponseBuilder<T> {
     return this.responseBody;
   }
 
-  public fromError(error: Error, showStack = false): ApiResponseBuilder<T> {
+  public fromError(_error: Error, _showStack = false): ApiResponseBuilder<T> {
     this.withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR);
-    this.withMessage(error.message);
-    if (error.stack && showStack) {
-      this.withData(error.stack as T);
-    }
+    this.withMessage('Internal Server Error');
 
     return this;
   }

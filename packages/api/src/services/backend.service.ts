@@ -1,3 +1,4 @@
+import {ApiClientError} from '@budgetbuddyde/core/error/ApiClientError';
 import type {z} from 'zod';
 import {fetchWithCache, clearRequestCache} from './requestCache';
 import type {TResult} from '../types/common';
@@ -33,8 +34,15 @@ export class BackendService {
    * @returns A TResult tuple with null as data and the error
    */
   protected handleError<T>(e: unknown): TResult<T> {
-    const msg = e instanceof Error ? e.message : String(e);
-    return [null, e instanceof Error ? e : new Error(msg)];
+    if (
+      e instanceof ApiClientError ||
+      (e instanceof Error && ['ApiClientError', 'BackendError', 'ResponseNotJsonError'].includes(e.name))
+    ) {
+      return [null, e];
+    }
+
+    const message = e instanceof Error ? e.message : String(e);
+    return [null, new ApiClientError(message, {cause: e})];
   }
 
   /**
@@ -46,7 +54,7 @@ export class BackendService {
   protected handleZodError<T, S>(errors: z.ZodError<S>[] | z.ZodError<S>): TResult<T> {
     const msg = Array.isArray(errors) ? errors.map(e => e.message).join(', ') : errors.message;
     console.error(`ZodError in ${this.constructor.name}: %s`, msg);
-    return [null, new Error(msg)];
+    return [null, new ApiClientError(msg, {cause: errors})];
   }
 
   /**

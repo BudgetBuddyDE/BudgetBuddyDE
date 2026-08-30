@@ -1,3 +1,4 @@
+import {DatabaseError} from '@budgetbuddyde/core/error/DatabaseError';
 import pg from 'pg';
 import {config} from '../config';
 import {logger} from '../lib/logger';
@@ -21,7 +22,7 @@ pool.on('remove', () => dbLogger.debug('Client removed'));
 // the pool will emit an error on behalf of any idle clients
 // it contains if a backend error or network partition happens
 pool.on('error', (err, _) => {
-  dbLogger.error('Unexpected error on idle client', err);
+  dbLogger.error('Unexpected error on idle client', new DatabaseError('Idle database client failed', {cause: err}));
   process.exit(-1);
 });
 
@@ -41,7 +42,7 @@ export async function checkConnection(): Promise<boolean> {
     client.release();
     return true;
   } catch (err) {
-    dbLogger.error('Connection to database failed', err);
+    dbLogger.error('Connection to database failed', new DatabaseError('Database connection failed', {cause: err}));
     return false;
   }
 }

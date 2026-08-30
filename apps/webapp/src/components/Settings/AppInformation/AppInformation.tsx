@@ -6,6 +6,7 @@ import {Box, Link, Stack, Typography} from '@mui/material';
 import NextLink from 'next/link';
 
 import {Card} from '@/components/Card';
+import {webappConfig} from '@/config';
 
 export const AppInformation = () => {
   return (
@@ -42,7 +43,7 @@ export const AppInformation = () => {
 
         <Stack spacing={2} direction="row" alignItems="center" sx={{mt: 1}}>
           <AppSettingsAltRounded />
-          <Typography noWrap>Version {process.env.NEXT_PUBLIC_APP_VERSION}</Typography>
+          <Typography noWrap>Version {webappConfig.version}</Typography>
         </Stack>
       </Card.Body>
     </Card>

@@ -1,4 +1,5 @@
 import {Box, Link, Typography} from '@mui/material';
+import {webappConfig} from '@/config';
 
 export const Footer = () => {
   return (
@@ -8,7 +9,7 @@ export const Footer = () => {
         <Link color="inherit" href="https://budget-buddy.de">
           BudgetBuddyDE
         </Link>{' '}
-        {process.env.NEXT_PUBLIC_APP_VERSION}
+        {webappConfig.version}
       </Typography>
     </Box>
   );

@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import {config} from '../config';
 import {logger} from '../lib/logger';
 
 const redisLogger = logger.child({label: 'redis'});
@@ -7,8 +8,8 @@ let redis: Redis | null = null;
 
 export function getRedisClient(): Redis {
   if (!redis) {
-    redis = new Redis(process.env.REDIS_URL as string, {
-      db: Number(process.env.REDIS_DB) || 0,
+    redis = new Redis(config.redis.url, {
+      db: config.redis.database,
     });
 
     redis.on('connect', () => {

@@ -7,7 +7,7 @@ class ResendManager {
   private readonly fromMailAdress: string;
 
   constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY as string);
+    this.resend = new Resend(config.email.resendApiKey);
     this.fromMailAdress =
       config.runtime === 'production' ? 'System <auth@mail.budget-buddy.de>' : 'Acme <onboarding@resend.dev>';
   }
