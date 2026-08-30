@@ -49,3 +49,20 @@ Imports keep the IDs from the export so transactions, recurring payments, and bu
 Existing records with the same ID that belong to your account are skipped and can still satisfy references. IDs that belong
 to another account, duplicate IDs inside the archive, invalid records, and missing references fail individually. Valid,
 independent records continue importing even when other records fail.
+
+## Known Issues & Limitations
+
+The following reflects the current import and export behavior. It may change in a future release, but no fix or timeline is
+committed.
+
+- Only unchanged Application data ZIP archives created by BudgetBuddy can be imported. Individual JSON or CSV files,
+  manually modified archives, and normally compressed or repacked ZIP files are not supported.
+- An import accepts one archive of up to 20 MiB, with at most six files, 5 MiB per file, and 10,000 records per resource.
+- Only categories, payment methods, transactions, recurring payments, and budgets can be imported. Auth data and attachments
+  cannot be restored.
+- Imports add records only. Existing records with IDs owned by your account are skipped; records are not updated or deleted.
+  Individual record errors can result in a partially completed import.
+- Transactions and recurring payments require their categories and payment methods. Budgets require their categories. Include
+  these dependencies when exporting a subset of data, unless they already exist in the destination account.
+- Application data, auth data, and attachments are exported as separate downloads. Only the Application data archive can be
+  used for import.
