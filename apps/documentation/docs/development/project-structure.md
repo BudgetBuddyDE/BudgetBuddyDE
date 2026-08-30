@@ -27,7 +27,7 @@ The root uses npm workspaces for `packages/*`, `services/*`, `apps/webapp`, and 
 
 ## Dependency Direction
 
-Apps and services access shared packages by package name, such as `@budgetbuddyde/types`. Imports into the internal `src` directories of other workspaces are not intended.
+Apps and services access shared packages by package name, such as `@budgetbuddyde/api`. Imports into the internal `src` directories of other workspaces are not intended.
 
 ## Turbo
 

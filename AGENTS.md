@@ -9,7 +9,7 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `apps/webapp` is a Next.js 15 App Router application. Server route pages parse URL/search filters and prefetch data; client components handle interaction, forms, dialogs, tables, and local UI state.
 - `apps/webapp/src/apiClient.ts` creates the shared `@budgetbuddyde/api` client using `NEXT_PUBLIC_BACKEND_SERVICE_HOST` (default `http://localhost:9000`). Browser-authenticated requests use `credentials: 'include'`.
 - `packages/api` is the typed HTTP boundary. `BackendService` handles query serialization, GET caching, cache invalidation after mutations, HTTP/JSON errors, and `TResult`; `EntityService` validates responses with Zod. Preserve `[data, null] | [null, error]` rather than introducing another error convention.
-- `packages/types` contains shared types/schemas; `packages/db` contains Drizzle PostgreSQL tables, relations, enums, and views. Backend entities are owner-scoped through `ownerId`.
+- `packages/db` contains Drizzle PostgreSQL tables, relations, enums, and views. Backend entities are owner-scoped through `ownerId`.
 - `services/auth-service` provides authentication with Better Auth. `services/backend` is the Express/Drizzle domain API: request context and authentication middleware run before `/api/*` routers, which validate with Zod, enforce ownership, and return standardized `ApiResponse` values.
 - Backend batch and relational writes use transactions and ownership checks; batch operations are limited to 100 records. Cache lookup/invalidation is part of the backend request pipeline.
 - `services/mcp` exposes backend capabilities as authenticated MCP tools.
@@ -22,7 +22,6 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `apps/webapp/src/lib`: frontend utilities and intent-based navigation.
 - `packages/api/src`: typed API facade, backend/entity services, API schemas.
 - `packages/db/src`: Drizzle schema and database exports; import through package boundaries.
-- `packages/types/src`: shared domain types and validation schemas.
 - `packages/utils`, `packages/logger`: cross-cutting utilities and logging.
 - `services/backend/src/router`: authenticated, owner-scoped domain routers.
 - `services/backend/src/middleware`: request context, authentication, cache, and related middleware.

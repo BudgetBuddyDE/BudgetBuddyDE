@@ -34,7 +34,6 @@
     "@budgetbuddyde/api": "*",
     "@budgetbuddyde/db": "*",
     "@budgetbuddyde/logger": "0.1.1",
-    "@budgetbuddyde/types": "*",
     "@budgetbuddyde/utils": "1.3.4",
     "better-auth": "1.5.6",
     "body-parser": "^2.2.0",

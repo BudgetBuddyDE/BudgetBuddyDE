@@ -60,7 +60,6 @@ Monorepo powered by [Turbo](https://turbo.build/).
 - **[Api](./apps/documentation/docs/reference/api.md):** Type-safe API client for backend communication.
 - **[Logger](packages/logger):** (Deprecated) Shared logging utility.
 - **[Utils](packages/utils):** Shared utility functions.
-- **[Types](./apps/documentation/docs/architecture/overview.md):** Shared TypeScript types and schemas.
 
 ## Getting Started
 

@@ -21,7 +21,6 @@
   "dependencies": {
     "@better-auth/api-key": "1.5.6",
     "@budgetbuddyde/api": "*",
-    "@budgetbuddyde/types": "*",
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",

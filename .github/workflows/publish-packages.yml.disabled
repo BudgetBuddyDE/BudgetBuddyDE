@@ -46,7 +46,6 @@ jobs:
       - name: Publish package dry-run
         if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
         run: |
-          npm publish --workspace @budgetbuddyde/types --dry-run
           npm publish --workspace @budgetbuddyde/api --dry-run
           npm publish --workspace @budgetbuddyde/db --dry-run
         env:
@@ -55,7 +54,6 @@ jobs:
       - name: Publish package
         if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.dry_run == 'false')
         run: |
-          npm publish --workspace @budgetbuddyde/types --provenance
           npm publish --workspace @budgetbuddyde/api --provenance
           npm publish --workspace @budgetbuddyde/db --provenance
         env:

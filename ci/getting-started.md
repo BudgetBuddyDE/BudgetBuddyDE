@@ -148,23 +148,6 @@ fly -t ci set-pipeline \
 fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/logger" -i service="pck_logger" -i service_name="logger"
 ```
 
-### Publish `@budetbuddyde/types`
-
-```bash
-fly -t ci set-pipeline \
-    --pipeline packages \
-    --config ./pipelines/publish-npm-package.pipeline.yml \
-    --team budgetbuddyde \
-    -v repo_owner="budgetbuddyde" \
-    -v repo_name="budgetbuddyde" \
-    -i repo_path="packages/types" \
-    -i service="pck_types" \
-    -i service_name="types"
-
-# or
-fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/types" -i service="pck_types" -i service_name="types"
-```
-
 ### Publish `@budetbuddyde/utils`
 
 ```bash

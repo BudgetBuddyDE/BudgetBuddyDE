@@ -29,7 +29,6 @@ MCP-Client
 | MCP       | `services/mcp`          | MCP tools for external AI clients         |
 | API       | `packages/api`          | Typed client and HTTP/Zod boundary        |
 | Database  | `packages/db`           | Drizzle tables, relations, and views      |
-| Types     | `packages/types`        | Shared types and schemas                  |
 | Utilities | `packages/utils`        | Shared utility functions                  |
 
 The website and documentation site are independent deliverables and are not part of the root project's npm workspace list.

@@ -1,5 +1,4 @@
-import type {IBaseGetAllQuery} from '@budgetbuddyde/api/common';
-import type {ServiceResponse} from '@budgetbuddyde/types/';
+import type {IBaseGetAllQuery, TResult} from '@budgetbuddyde/api';
 import type {PayloadAction} from '@reduxjs/toolkit';
 import {appConfig} from '@/appConfig';
 import {createAppSlice} from '@/lib/createAppSlice';
@@ -51,7 +50,7 @@ type ResponseBody<T> = TApiResponse<T>;
 
 export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
   name: string,
-  getPageFunc: (query?: Q) => Promise<ServiceResponse<ResponseBody<T>>>,
+  getPageFunc: (query?: Q) => Promise<TResult<ResponseBody<T>>>,
   filterMapper?: (filters: EntityFilters) => Partial<Q>,
 ) {
   const initialState = createInitialState<T>();
