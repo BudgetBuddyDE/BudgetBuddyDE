@@ -16,7 +16,7 @@ icon: lucide/arrow-right-left
 
 ## Write Request
 
-After a mutation, affected cache entries are invalidated. Multiple dependent writes are executed in a transaction. Batch operations must check ownership of all affected records and are limited to 100 records.
+After a mutation, affected cache entries are invalidated. Deleting a category cascades to its transactions, recurring payments, and budget-category links. Deleting a payment method cascades to its transactions and recurring payments. Both operations also invalidate the transaction, recurring-payment, and budget caches for the same owner. Multiple dependent writes are executed in a transaction. Batch operations must check ownership of all affected records and are limited to 100 records.
 
 ## Frontend State
 

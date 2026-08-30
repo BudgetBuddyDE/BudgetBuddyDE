@@ -5,6 +5,11 @@ import {logger} from '../lib/logger';
 
 const cacheLogger = logger.child({label: 'cache', middleware: 'cache'});
 
+const invalidatedRoutePaths: Record<string, readonly string[]> = {
+  '/api/category': ['/api/category', '/api/transaction', '/api/recurringPayment', '/api/budget'],
+  '/api/paymentMethod': ['/api/paymentMethod', '/api/transaction', '/api/recurringPayment', '/api/budget'],
+};
+
 /**
  * Returns true when caching should be attempted (Redis URL is set and caching is globally enabled).
  */
@@ -139,7 +144,7 @@ export async function invalidateCache(req: Request, res: Response, next: NextFun
   }
 
   res.on('finish', async () => {
-    await invalidateUserCaches(userId, [route.path]);
+    await invalidateUserCaches(userId, invalidatedRoutePaths[route.path] ?? [route.path]);
   });
 
   next();

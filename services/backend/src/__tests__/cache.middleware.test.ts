@@ -21,7 +21,10 @@ const {mockConfig} = vi.hoisted(() => ({
       invalidationScanCount: 100,
       routes: [
         {path: '/api/category', ttl: 300},
+        {path: '/api/paymentMethod', ttl: 300},
         {path: '/api/transaction', ttl: 60, cacheKeyPrefix: 'txn'},
+        {path: '/api/recurringPayment', ttl: 300},
+        {path: '/api/budget', ttl: 300},
       ],
     },
   },
@@ -280,11 +283,12 @@ suite('Cache', () => {
       expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
     });
 
-    it('invalidates matching cache keys on finish', async () => {
+    it('invalidates category and dependent cache keys on finish', async () => {
       mockRedisScan.mockResolvedValueOnce([
         '0',
         ['cache:/api/category:user-1:/api/category', 'cache:/api/category:user-1:/api/category?from=0'],
       ]);
+      mockRedisScan.mockResolvedValue(['0', []]);
       mockRedisDel.mockResolvedValueOnce(2);
 
       const req = makeRequest({method: 'DELETE', path: '/api/category/123', originalUrl: '/api/category/123'});
@@ -307,6 +311,49 @@ suite('Cache', () => {
         'cache:/api/category:user-1:/api/category',
         'cache:/api/category:user-1:/api/category?from=0',
       );
+      expect(mockRedisScan).toHaveBeenNthCalledWith(1, '0', 'MATCH', 'cache:/api/category:user-1:*', 'COUNT', 100);
+      expect(mockRedisScan).toHaveBeenNthCalledWith(2, '0', 'MATCH', 'cache:txn:user-1:*', 'COUNT', 100);
+      expect(mockRedisScan).toHaveBeenNthCalledWith(
+        3,
+        '0',
+        'MATCH',
+        'cache:/api/recurringPayment:user-1:*',
+        'COUNT',
+        100,
+      );
+      expect(mockRedisScan).toHaveBeenNthCalledWith(4, '0', 'MATCH', 'cache:/api/budget:user-1:*', 'COUNT', 100);
+    });
+
+    it('invalidates payment method and dependent cache keys on finish', async () => {
+      mockRedisScan.mockResolvedValue(['0', []]);
+
+      const req = makeRequest({
+        method: 'DELETE',
+        path: '/api/paymentMethod/123',
+        originalUrl: '/api/paymentMethod/123',
+      });
+      const listeners: Record<string, () => void> = {};
+      const res = {
+        ...makeResponse(),
+        on: (event: string, cb: () => void) => {
+          listeners[event] = cb;
+        },
+      } as unknown as Response;
+
+      await invalidateCache(req, res, next);
+      await listeners.finish();
+
+      expect(mockRedisScan).toHaveBeenNthCalledWith(1, '0', 'MATCH', 'cache:/api/paymentMethod:user-1:*', 'COUNT', 100);
+      expect(mockRedisScan).toHaveBeenNthCalledWith(2, '0', 'MATCH', 'cache:txn:user-1:*', 'COUNT', 100);
+      expect(mockRedisScan).toHaveBeenNthCalledWith(
+        3,
+        '0',
+        'MATCH',
+        'cache:/api/recurringPayment:user-1:*',
+        'COUNT',
+        100,
+      );
+      expect(mockRedisScan).toHaveBeenNthCalledWith(4, '0', 'MATCH', 'cache:/api/budget:user-1:*', 'COUNT', 100);
     });
 
     it('uses cacheKeyPrefix in invalidation pattern', async () => {
