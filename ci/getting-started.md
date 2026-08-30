@@ -81,17 +81,9 @@ fly -t ci set-pipeline -p manage-database -c ./pipelines/manage-database.pipelin
   --team budgetbuddyde \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
-  -v repo_private_key="$(cat ./secrets/github/id_rsa)" \
-  -v github_pat="$(cat ./secrets/github/pat)" \
   -v repo_path="packages/db" \
   -v service="pck_db" \
-  -v service_name="db" \
-  -v db_bucket_region="$(cat ./secrets/aws/bucket.txt | sed -n '4p')" \
-  -v db_bucket_access_key="$(cat ./secrets/aws/bucket.txt | sed -n '1p')" \
-  -v db_bucket_secret="$(cat ./secrets/aws/bucket.txt | sed -n '2p')" \
-  -v db_backup_bucket="bb-railway-database-backups" \
-  -v test_database_url="$(cat ./secrets/database/credentials.txt | sed -n '2p')" \
-  -v database_url="$(cat ./secrets/database/credentials.txt | sed -n '4p')"
+  -v service_name="db"
 
 # or
 fly -t ci set-pipeline -p manage-database -c ./pipelines/manage-database.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="packages/db" -v service="pck_db" -v service_name="db"
@@ -129,6 +121,23 @@ fly -t ci set-pipeline \
 
 # or
 fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/api" -i service="pck_api" -i service_name="api"
+```
+
+### Publish `@budetbuddyde/core`
+
+```bash
+fly -t ci set-pipeline \
+    --pipeline packages \
+    --config ./pipelines/publish-npm-package.pipeline.yml \
+    --team budgetbuddyde \
+    -v repo_owner="budgetbuddyde" \
+    -v repo_name="budgetbuddyde" \
+    -i repo_path="packages/core" \
+    -i service="pck_core" \
+    -i service_name="core"
+
+# or
+fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/core" -i service="pck_core" -i service_name="core"
 ```
 
 ### Publish `@budetbuddyde/logger`
