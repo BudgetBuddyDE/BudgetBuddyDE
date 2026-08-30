@@ -3,8 +3,7 @@ import React from 'react';
 import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
 import {AppInformation} from '@/components/Settings/AppInformation';
-import {DataExport} from '@/components/Settings/DataExport';
-import {DataImport} from '@/components/Settings/DataImport';
+import {DataManagement} from '@/components/Settings/DataManagement';
 import {EditUser} from '@/components/User/EditUser';
 import {UserAccounts} from '@/components/User/UserAccounts';
 import {UserSessions} from '@/components/User/UserSessions';
@@ -22,10 +21,7 @@ export default function SettingsProfilePage() {
         </Grid>
 
         <Grid size={{xs: 12}}>
-          <DataExport />
-        </Grid>
-        <Grid size={{xs: 12}}>
-          <DataImport />
+          <DataManagement />
         </Grid>
       </Grid>
 

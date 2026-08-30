@@ -1,5 +1,6 @@
 'use client';
 
+import type {TResult} from '@budgetbuddyde/api';
 import FileDownloadOutlined from '@mui/icons-material/FileDownloadOutlined';
 import {
   Alert,
@@ -22,17 +23,20 @@ import {
   Typography,
 } from '@mui/material';
 import React from 'react';
+import {apiClient} from '@/apiClient';
+import {CloseIconButton, FullscreenIconButton} from '@/components/Button';
 import {Card} from '@/components/Card';
 import {useSnackbarContext} from '@/components/Snackbar';
 
 type TExportFormat = 'csv' | 'json';
 
+// Order matters here, as the order is used to determine the order of the checkboxes in the UI.
 const applicationResources = [
-  ['categories', 'Categories'],
-  ['payment-methods', 'Payment methods'],
   ['transactions', 'Transactions'],
   ['recurring-payments', 'Recurring payments'],
   ['budgets', 'Budgets'],
+  ['payment-methods', 'Payment methods'],
+  ['categories', 'Categories'],
 ] as const;
 
 type TApplicationResource = (typeof applicationResources)[number][0];
@@ -48,16 +52,17 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(objectUrl);
 }
 
-async function downloadExport(url: URL, filename: string) {
-  const response = await fetch(url, {credentials: 'include', cache: 'no-store'});
-  if (!response.ok) {
-    const error = await response.json().catch(() => null);
-    throw new Error(error?.message ?? error?.error ?? 'The export could not be created.');
-  }
-  downloadBlob(await response.blob(), filename);
+async function downloadExport(request: Promise<TResult<Blob>>, filename: string) {
+  const [blob, error] = await request;
+  if (error) throw error;
+  downloadBlob(blob, filename);
 }
 
-export const DataExport = () => {
+export type DataExportProps = {
+  asButton?: boolean;
+};
+
+export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
   const {showSnackbar} = useSnackbarContext();
   const [open, setOpen] = React.useState(false);
   const [format, setFormat] = React.useState<TExportFormat>('json');
@@ -67,6 +72,15 @@ export const DataExport = () => {
   );
   const [includeAttachments, setIncludeAttachments] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
+  const [isFullscreenActive, setIsFullscreenActive] = React.useState(false);
+
+  const toggleFullscreen = () => {
+    setIsFullscreenActive(prev => !prev);
+  };
+
+  const close = React.useCallback(() => {
+    return !isExporting && setOpen(false);
+  }, [isExporting]);
 
   const includeApplication = resources.size > 0;
   const allApplicationResourcesSelected = resources.size === applicationResources.length;
@@ -91,29 +105,27 @@ export const DataExport = () => {
       const downloads: Promise<void>[] = [];
 
       if (includeAuth) {
-        const authUrl = new URL('/api/export', process.env.NEXT_PUBLIC_AUTH_SERVICE_HOST || 'http://localhost:8080');
-        authUrl.searchParams.set('format', format);
-        downloads.push(downloadExport(authUrl, `budgetbuddy-auth-export-${date}.zip`));
+        downloads.push(
+          downloadExport(apiClient.auth.dataExport.exportArchive(format), `budgetbuddy-auth-export-${date}.zip`),
+        );
       }
 
       if (includeApplication) {
-        const applicationUrl = new URL(
-          '/api/application/export',
-          process.env.NEXT_PUBLIC_BACKEND_SERVICE_HOST || 'http://localhost:9000',
+        downloads.push(
+          downloadExport(
+            apiClient.backend.application.exportArchive({format, resources: Array.from(resources)}),
+            `budgetbuddy-application-export-${date}.zip`,
+          ),
         );
-        applicationUrl.searchParams.set('format', format);
-        resources.forEach(resource => applicationUrl.searchParams.append('resources', resource));
-        downloads.push(downloadExport(applicationUrl, `budgetbuddy-application-export-${date}.zip`));
       }
 
       if (includeAttachments) {
-        const attachmentUrl = new URL(
-          '/api/application/export',
-          process.env.NEXT_PUBLIC_BACKEND_SERVICE_HOST || 'http://localhost:9000',
+        downloads.push(
+          downloadExport(
+            apiClient.backend.application.exportArchive({format, resources: ['attachments']}),
+            `budgetbuddy-attachments-export-${date}.zip`,
+          ),
         );
-        attachmentUrl.searchParams.set('format', format);
-        attachmentUrl.searchParams.set('resources', 'attachments');
-        downloads.push(downloadExport(attachmentUrl, `budgetbuddy-attachments-export-${date}.zip`));
       }
 
       await Promise.all(downloads);
@@ -131,23 +143,30 @@ export const DataExport = () => {
 
   return (
     <React.Fragment>
-      <Card>
-        <Card.Header>
-          <Stack>
-            <Card.Title>Export data</Card.Title>
-            <Card.Subtitle>Download a copy of your account and application data</Card.Subtitle>
-          </Stack>
-        </Card.Header>
-        <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
-          <Button variant="contained" startIcon={<FileDownloadOutlined />} onClick={() => setOpen(true)}>
-            Export data
-          </Button>
-        </Card.Footer>
-      </Card>
+      {asButton ? (
+        <Button variant="contained" startIcon={<FileDownloadOutlined />} onClick={() => setOpen(true)}>
+          Export data
+        </Button>
+      ) : (
+        <Card>
+          <Card.Header>
+            <Stack>
+              <Card.Title>Export data</Card.Title>
+              <Card.Subtitle>Download a copy of your account and application data</Card.Subtitle>
+            </Stack>
+          </Card.Header>
+          <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
+            <Button variant="contained" startIcon={<FileDownloadOutlined />} onClick={() => setOpen(true)}>
+              Export data
+            </Button>
+          </Card.Footer>
+        </Card>
+      )}
 
       <Dialog
         open={open}
         onClose={() => !isExporting && setOpen(false)}
+        fullScreen={isFullscreenActive}
         fullWidth
         maxWidth="sm"
         slotProps={{
@@ -155,6 +174,10 @@ export const DataExport = () => {
         }}
       >
         <DialogTitle>Export data</DialogTitle>
+        <Box sx={theme => ({position: 'absolute', top: theme.spacing(1), right: theme.spacing(1)})}>
+          <FullscreenIconButton onClick={toggleFullscreen} isFullscreen={isFullscreenActive} />
+          <CloseIconButton onClick={close} />
+        </Box>
         <DialogContent>
           <Stack spacing={3} sx={{pt: 1}}>
             <FormControl>

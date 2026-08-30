@@ -28,6 +28,12 @@ export type TApplicationImportRecord = {
   message: string;
 };
 
+export type TApplicationImportPreviewRecord = {
+  data: Record<string, boolean | number | string | null>;
+  row: number;
+  sourceId?: string;
+};
+
 export type TApplicationImportResourceResult = {
   created: TApplicationImportRecord[];
   skipped: TApplicationImportRecord[];
@@ -36,6 +42,7 @@ export type TApplicationImportResourceResult = {
 
 export type TApplicationImportResult = {
   mode: TApplicationImportMode;
+  preview: Record<TApplicationImportResource, TApplicationImportPreviewRecord[]>;
   resources: Record<TApplicationImportResource, TApplicationImportResourceResult>;
   summary: {
     created: number;
@@ -110,6 +117,13 @@ function createResourceResult(): TApplicationImportResourceResult {
 function createResult(mode: TApplicationImportMode): TApplicationImportResult {
   return {
     mode,
+    preview: {
+      categories: [],
+      'payment-methods': [],
+      transactions: [],
+      'recurring-payments': [],
+      budgets: [],
+    },
     resources: {
       categories: createResourceResult(),
       'payment-methods': createResourceResult(),
@@ -119,6 +133,44 @@ function createResult(mode: TApplicationImportMode): TApplicationImportResult {
     },
     summary: {created: 0, failed: 0, received: 0, skipped: 0},
   };
+}
+
+const previewFields: Record<TApplicationImportResource, readonly string[]> = {
+  categories: ['id', 'name', 'description'],
+  'payment-methods': ['id', 'name', 'provider', 'address', 'description'],
+  transactions: ['id', 'categoryId', 'paymentMethodId', 'processedAt', 'receiver', 'transferAmount', 'information'],
+  'recurring-payments': [
+    'id',
+    'categoryId',
+    'paymentMethodId',
+    'executionPlan',
+    'startsOn',
+    'paused',
+    'receiver',
+    'transferAmount',
+    'information',
+  ],
+  budgets: ['id', 'type', 'name', 'budget', 'description', 'categoryIds'],
+};
+
+function previewData(
+  resource: TApplicationImportResource,
+  value: unknown,
+): Record<string, boolean | number | string | null> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return {};
+  const source = value as Record<string, unknown>;
+  const data: Record<string, boolean | number | string | null> = {};
+  for (const field of previewFields[resource]) {
+    const fieldValue = source[field];
+    if (fieldValue === undefined) continue;
+    data[field] =
+      fieldValue === null || typeof fieldValue === 'boolean' || typeof fieldValue === 'number'
+        ? fieldValue
+        : typeof fieldValue === 'string'
+          ? fieldValue
+          : JSON.stringify(fieldValue);
+  }
+  return data;
 }
 
 function addResult(
@@ -321,7 +373,15 @@ export async function importApplicationArchive(
     'recurring-payments': new Set(),
     budgets: new Set(),
   };
-  for (const resource of applicationImportResources) result.summary.received += archiveRows[resource]?.length ?? 0;
+  for (const resource of applicationImportResources) {
+    const entries = archiveRows[resource] ?? [];
+    result.summary.received += entries.length;
+    result.preview[resource] = entries.map(entry => ({
+      data: previewData(resource, entry.value),
+      row: entry.row,
+      sourceId: sourceId(entry.value),
+    }));
+  }
 
   for (const entry of archiveRows.categories ?? []) {
     const parsed = categorySchema.safeParse(entry.value);

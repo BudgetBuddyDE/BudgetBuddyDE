@@ -34,9 +34,16 @@ Open **Settings > Profile** and select **Import data**. Choose a ZIP archive cre
 import supports JSON and CSV archives containing categories, payment methods, transactions, recurring payments, and budgets.
 Auth data and attachments cannot be imported.
 
-BudgetBuddy first creates a preview without changing any data. Review the summary, then confirm the import. The summary
-shows records that are ready to import, skipped, and failed, both as totals and per resource. Failed records include their
-archive line, source ID when available, and the reason, for example a missing category or payment-method reference.
+BudgetBuddy guides the import through five steps:
+
+1. Upload the export archive.
+2. Preview every archive file in a separate table for its resource type.
+3. Review imported and skipped records in resource tables after confirming the import.
+4. Review failed records and their reasons in resource tables.
+5. Finish and correct failed records before trying again.
+
+The preview does not change any data. Failed records include their archive line, source ID when available, and the reason,
+for example a missing category or payment-method reference.
 
 Imports keep the IDs from the export so transactions, recurring payments, and budgets can retain their relationships.
 Existing records with the same ID that belong to your account are skipped and can still satisfy references. IDs that belong

@@ -1,2 +1,1 @@
-export * from './CloseIconButton';
 export * from './FullscreenButton';
