@@ -122,7 +122,7 @@ export const Autocomplete = <
       return;
     }
 
-    logger.debug('Input value changed, fetching options with keywords: %s', inputValue);
+    logger.debug('Input value changed, fetching options', {inputValue});
     void fetchOptions();
   }, [inputValue, searchAsYouType]);
 

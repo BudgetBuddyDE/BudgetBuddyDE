@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {BackendService} from './backend.service';
 import type {TResult, TypeOfSchema} from '../types';
@@ -6,8 +7,8 @@ import {GetHistoricalBalanceResponse, GetHistoricalCategoryBalanceResponse} from
 import {log} from '../utils/decorators/log.decorator';
 
 export class InsightsService extends BackendService {
-  constructor(host: string) {
-    super(host, '/api/insights');
+  constructor(host: string, logger?: Logger) {
+    super(host, '/api/insights', logger);
   }
 
   @log

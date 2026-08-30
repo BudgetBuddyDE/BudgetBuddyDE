@@ -1,9 +1,10 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import {describe, expect, it, vi} from 'vitest';
-import {createLogDecorator, log, type LogSink} from './log.decorator';
+import {createLogDecorator, log} from './log.decorator';
 
 const context = {name: 'loadData'} as ClassMethodDecoratorContext<object, (...args: unknown[]) => unknown>;
 
-function createSink(): LogSink {
+function createSink(): Pick<Logger, 'debug' | 'warn' | 'error'> {
   return {
     debug: vi.fn(),
     warn: vi.fn(),
@@ -49,6 +50,17 @@ describe('log decorator', () => {
     });
   });
 
+  it('uses the logger injected on the decorated instance', () => {
+    const logger = createSink();
+    const decorated = createLogDecorator()(function () {
+      return 'ok';
+    }, context);
+
+    decorated.call({constructor: {name: 'TestService'}, logger});
+
+    expect(logger.debug).toHaveBeenCalledWith('Method called', expect.objectContaining({className: 'TestService'}));
+  });
+
   it('stringifies non-Error object failures', () => {
     const logger = createSink();
     const failure = {reason: 'request failed', details: ['timeout']};
@@ -84,16 +96,11 @@ describe('log decorator', () => {
 
     await expect(decorated.call({constructor: {name: 'TestService'}})).rejects.toBe(expectedError);
 
-    expect(logger.error).toHaveBeenCalledWith('Method failed', {
+    expect(logger.error).toHaveBeenCalledWith('Method failed', expectedError, {
       className: 'TestService',
       methodName: 'loadData',
       status: 'error',
       durationMs: expect.any(Number),
-      error: {
-        name: 'Error',
-        message: 'request failed',
-        stack: expectedError.stack,
-      },
     });
   });
 
@@ -107,7 +114,8 @@ describe('log decorator', () => {
     expect(decorated.call({constructor: {name: 'TestService'}})).toEqual([null, expectedError]);
     expect(logger.error).toHaveBeenCalledWith(
       'Method returned an error result',
-      expect.objectContaining({status: 'error', error: expect.objectContaining({message: 'service error'})}),
+      expectedError,
+      expect.objectContaining({status: 'error'}),
     );
   });
 

@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import type {ZodType, z} from 'zod';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {BackendService} from './backend.service';
@@ -34,8 +35,9 @@ export class EntityService<
     host: string,
     basePath: string,
     schemas: TEntitySchemas<GetAllResult, GetResult, CreateResult, UpdateResult, DeleteResult>,
+    logger?: Logger,
   ) {
-    super(host, basePath);
+    super(host, basePath, logger);
     this.schemas = schemas;
   }
 

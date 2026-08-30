@@ -61,7 +61,8 @@ export const ApiKeyTable: React.FC = () => {
       setApiKeys((data?.apiKeys as ApiKey[]) ?? []);
       setTotalCount(data?.total ?? 0);
     } catch (err) {
-      logger.error('Error fetching API keys:', err);
+      if (err instanceof Error) logger.error('Error fetching API keys', err);
+      else logger.error('Error fetching API keys', {reason: String(err)});
       setError('An unexpected error occurred while loading API keys');
     } finally {
       setIsLoading(false);
@@ -132,7 +133,8 @@ export const ApiKeyTable: React.FC = () => {
       onSuccess?.();
       fetchApiKeys();
     } catch (err) {
-      logger.error('Error creating API key:', err);
+      if (err instanceof Error) logger.error('Error creating API key', err);
+      else logger.error('Error creating API key', {reason: String(err)});
       showSnackbar({message: 'An unexpected error occurred while creating the API key'});
     } finally {
       setIsCreating(false);
@@ -159,7 +161,8 @@ export const ApiKeyTable: React.FC = () => {
 
   const handleDeleteConfirm = (target: string | string[]) => {
     handleDeleteEntity(target).catch(err => {
-      logger.error('Error deleting API key:', err);
+      if (err instanceof Error) logger.error('Error deleting API key', err);
+      else logger.error('Error deleting API key', {reason: String(err)});
       showSnackbar({
         message: err instanceof Error ? err.message : 'An unexpected error occurred while deleting the API key',
         action: <Button onClick={() => handleDeleteConfirm(target)}>Retry</Button>,
@@ -175,7 +178,8 @@ export const ApiKeyTable: React.FC = () => {
         showSnackbar({message: 'API key copied to clipboard'});
       })
       .catch(err => {
-        logger.error('Error copying API key:', err);
+        if (err instanceof Error) logger.error('Error copying API key', err);
+        else logger.error('Error copying API key', {reason: String(err)});
         showSnackbar({message: 'Failed to copy API key'});
       });
   };

@@ -7,19 +7,10 @@ import {logger} from './logger';
 export const authClient = createAuthClient({
   baseURL: webappConfig.authServiceHost,
   fetchOptions: {
-    // onRequest(context) {
-    // 	logger.debug("onRequest", context);
-    // },
-    // onResponse(context) {
-    // 	logger.debug("onResponse", context);
-    // },
-    // onSuccess(context) {
-    // 	logger.debug("onSuccess", context);
-    // },
     onError(e) {
       if (e.error.status === 429) {
-        logger.warn('Too many requests made to the auth service!');
-      } else logger.error('An error occurred: %o', e.error);
+        logger.warn('Auth service rate limit reached', {status: e.error.status});
+      } else logger.error('Auth service request failed', {status: e.error.status});
     },
   },
   plugins: [apiKeyClient()],
@@ -33,8 +24,8 @@ export const signOut = (onSuccess?: () => void, onError?: () => void) =>
         onSuccess?.();
         redirect('/sign-in');
       },
-      onError: ctx => {
-        logger.error('Error signing out:', ctx.error);
+      onError: _ctx => {
+        logger.error('Sign-out request failed');
         onError?.();
       },
     },
@@ -50,7 +41,7 @@ export const revalidateSession = (onSuccess?: () => void, onError?: () => void) 
           redirect('/sign-in');
         }
 
-        logger.info('Session revalidated successfully:', context.data);
+        logger.info('Session revalidated successfully', {status: context.response.status});
         onSuccess?.();
       },
       onError() {

@@ -40,7 +40,8 @@ export const SocialAuthButton: React.FC<SocialAuthButton> = ({provider, ...butto
         message: `Authentication with ${NameMapping[provider]} successful! Redirecting...`,
       });
     } catch (error) {
-      logger.error('Something went wrong', error);
+      if (error instanceof Error) logger.error('Social authentication failed', error);
+      else logger.error('Social authentication failed', {reason: String(error)});
       showSnackbar({
         message: error instanceof Error ? error.message : 'Authentication failed',
       });

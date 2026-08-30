@@ -20,7 +20,7 @@ export const NumberFieldComponent = <T extends FieldValues>({
   const inputRequiredMessage = field.required ? `${field.label ?? field.name} is required` : undefined;
 
   const htmlInputMode = isRunningOnIOs() ? 'text' : 'numeric';
-  logger.debug("NumberFieldComponent: Using htmlInputMode '%s' for field '%s'", htmlInputMode, field.name);
+  logger.debug('Using number-field input mode', {htmlInputMode, field: field.name});
 
   return (
     <Grid key={field.name} size={wrapperSize}>

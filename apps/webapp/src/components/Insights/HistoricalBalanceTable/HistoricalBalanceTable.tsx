@@ -7,6 +7,7 @@ import {apiClient} from '@/apiClient';
 import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangePicker';
 import {DataTable, type DataTableColumn} from '@/components/Table';
 import {useFetch} from '@/hooks/useFetch';
+import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 
 export type HistoricalDataType = 'BASIC' | 'GROUPED_BY_CATEGORY';
@@ -47,9 +48,9 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
 
   const handleDateRangeChange = (start: Date | null, end: Date | null) => {
     if (!start || !end) {
-      console.warn(
-        'HistoricalBalanceLineChart: Both start and end dates must be provided. Reverting to default date range.',
-      );
+      logger.warn('Both dates are required; resetting historical balance date range', {
+        component: 'HistoricalBalanceTable',
+      });
       setDateRange(DEFAULT_DATE_RANGE);
       return;
     }

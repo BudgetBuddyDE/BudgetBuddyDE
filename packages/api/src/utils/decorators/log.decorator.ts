@@ -1,12 +1,9 @@
+import {createNoopLogger, type Logger} from '@budgetbuddyde/logger';
+
 /** Structured metadata attached to every decorator log entry. */
 export type LogMeta = Record<string, unknown>;
 
-/** Minimal logger contract required by the decorator. */
-export type LogSink = {
-  debug: (message: string, meta: LogMeta) => void;
-  warn: (message: string, meta: LogMeta) => void;
-  error: (message: string, meta: LogMeta) => void;
-};
+type DecoratorLogger = Pick<Logger, 'debug' | 'warn' | 'error'>;
 
 /**
  * Configures method-call logging.
@@ -23,8 +20,8 @@ export type LogOptions = {
   slowThresholdMs?: number;
   /** Case-insensitive property fragments that are replaced with `[Redacted]`. */
   redactKeys?: readonly string[];
-  /** Replaces the default console-based sink. */
-  logger?: LogSink;
+  /** Replaces the instance logger. Primarily useful for isolated decorator tests. */
+  logger?: DecoratorLogger;
 };
 
 const DEFAULT_REDACT_KEYS = ['authorization', 'cookie', 'password', 'secret', 'token', 'apiKey'];
@@ -35,11 +32,22 @@ const DEFAULT_OPTIONS: Required<Omit<LogOptions, 'logger'>> = {
   redactKeys: DEFAULT_REDACT_KEYS,
 };
 
-const consoleSink: LogSink = {
-  debug: (message, meta) => console.debug(message, meta),
-  warn: (message, meta) => console.warn(message, meta),
-  error: (message, meta) => console.error(message, meta),
-};
+const noopLogger = createNoopLogger();
+
+function isDecoratorLogger(value: unknown): value is DecoratorLogger {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as DecoratorLogger).debug === 'function' &&
+    typeof (value as DecoratorLogger).warn === 'function' &&
+    typeof (value as DecoratorLogger).error === 'function'
+  );
+}
+
+function getInstanceLogger(value: unknown): DecoratorLogger | undefined {
+  if (typeof value !== 'object' || value === null || !('logger' in value)) return undefined;
+  return isDecoratorLogger(value.logger) ? value.logger : undefined;
+}
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return typeof value === 'object' && value !== null && 'then' in value && typeof value.then === 'function';
@@ -140,19 +148,19 @@ function getDurationMs(startedAt: number) {
  */
 export function createLogDecorator(options: LogOptions = {}) {
   const config = {...DEFAULT_OPTIONS, ...options};
-  const sink = config.logger ?? consoleSink;
 
   return function <This, Args extends unknown[], Return>(
     originalMethod: (this: This, ...args: Args) => Return,
     context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Return>,
   ): (this: This, ...args: Args) => Return {
     return function (this: This, ...args: Args): Return {
+      const logger = config.logger ?? getInstanceLogger(this) ?? noopLogger;
       const className = this && typeof this === 'object' ? this.constructor?.name : 'UnknownClass';
       const methodName = String(context.name);
       const startedAt = Date.now();
       const baseMeta: LogMeta = {className, methodName};
 
-      sink.debug('Method called', {
+      logger.debug('Method called', {
         ...baseMeta,
         ...(config.logArgs
           ? {args: stringifyObjectOrArray(sanitizeValue(args, new WeakSet<object>(), config.redactKeys))}
@@ -169,19 +177,20 @@ export function createLogDecorator(options: LogOptions = {}) {
           ...(config.logResult ? {result: stringifyObjectOrArray(summarizeResult(value, config.redactKeys))} : {}),
           ...(returnedError ? {error: errorMeta(returnedError, config.redactKeys)} : {}),
         };
-        if (returnedError) sink.error('Method returned an error result', meta);
-        else if (durationMs >= config.slowThresholdMs) sink.warn('Slow method call', meta);
-        else sink.debug('Method finished', meta);
+        if (returnedError) logger.error('Method returned an error result', returnedError, meta);
+        else if (durationMs >= config.slowThresholdMs) logger.warn('Slow method call', meta);
+        else logger.debug('Method finished', meta);
         return value;
       };
 
       const handleFailure = (error: unknown): never => {
-        sink.error('Method failed', {
+        const meta: LogMeta = {
           ...baseMeta,
           status: 'error',
           durationMs: getDurationMs(startedAt),
-          error: errorMeta(error, config.redactKeys),
-        });
+        };
+        if (error instanceof Error) logger.error('Method failed', error, meta);
+        else logger.error('Method failed', {...meta, error: errorMeta(error, config.redactKeys)});
         throw error;
       };
 

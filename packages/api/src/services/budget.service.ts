@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TCreateOrUpdateBudgetPayload, TEstimatedBudget} from '../types/budget.type';
@@ -21,14 +22,19 @@ export class BudgetService extends EntityService<
   typeof UpdateBudgetResponse,
   typeof DeleteBudgetResponse
 > {
-  constructor(host: string, entityPath = '/api/budget') {
-    super(host, entityPath, {
-      getAll: GetAllBudgetsResponse,
-      get: GetBudgetResponse,
-      create: CreateBudgetResponse,
-      update: UpdateBudgetResponse,
-      delete: DeleteBudgetResponse,
-    });
+  constructor(host: string, entityPath = '/api/budget', logger?: Logger) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllBudgetsResponse,
+        get: GetBudgetResponse,
+        create: CreateBudgetResponse,
+        update: UpdateBudgetResponse,
+        delete: DeleteBudgetResponse,
+      },
+      logger,
+    );
   }
 
   @log

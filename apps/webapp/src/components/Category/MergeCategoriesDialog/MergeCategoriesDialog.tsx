@@ -54,7 +54,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
         async retrieveOptionsFunc(_keywords) {
           const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
-            logger.error('Failed to fetch category options:', error);
+            logger.error('Failed to fetch category options', error);
             return [];
           }
           return categories ?? [];
@@ -76,7 +76,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
         async retrieveOptionsFunc(_keywords) {
           const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
-            logger.error('Failed to fetch category options:', error);
+            logger.error('Failed to fetch category options', error);
             return [];
           }
           return categories ?? [];

@@ -2,7 +2,7 @@ import {type NextRequest, NextResponse} from 'next/server';
 import {authClient} from './authClient';
 import {logger} from './logger';
 
-const middlewareLogger = logger.child({scope: 'middleware'});
+const middlewareLogger = logger.child({module: 'middleware'});
 
 export async function middleware(request: NextRequest) {
   const SIGN_IN_ROUTE = '/sign-in';
@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
     },
   });
   if (error) {
-    middlewareLogger.error('Error retrieving the session: %o', error);
+    middlewareLogger.error('Error retrieving the session', error, meta);
     return NextResponse.redirect(new URL(SIGN_IN_ROUTE, request.url));
   }
 

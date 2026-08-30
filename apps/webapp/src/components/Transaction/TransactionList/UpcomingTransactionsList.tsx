@@ -17,7 +17,7 @@ export const UpcomingTransactionsList = async ({onAddEntity}: UpcomingTransactio
     {headers: await headers()},
   );
   if (error) {
-    logger.error(error.message);
+    logger.error('Failed to fetch upcoming transactions', error);
     throw error;
   }
   return (

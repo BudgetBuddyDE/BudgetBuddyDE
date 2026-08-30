@@ -28,7 +28,8 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
       showSnackbar({message: 'The session was revoked!'});
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      logger.error('Error revoking session: %s', msg);
+      if (e instanceof Error) logger.error('Error revoking session', e);
+      else logger.error('Error revoking session', {reason: msg});
       showSnackbar({
         message: msg,
         action: <Button onClick={() => handleRevokeSession(token)}>Retry</Button>,

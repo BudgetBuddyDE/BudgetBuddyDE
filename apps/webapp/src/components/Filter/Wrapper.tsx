@@ -76,7 +76,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     let ignoreResult = false;
     void apiClient.backend.category.getValueHelp().then(([categories, error]) => {
       if (ignoreResult) return;
-      if (error) logger.error('Failed to fetch category options:', error);
+      if (error) logger.error('Failed to fetch category options', error);
       else setCategoryOptions(categories ?? []);
     });
 
@@ -91,7 +91,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     let ignoreResult = false;
     void apiClient.backend.paymentMethod.getValueHelp().then(([paymentMethods, error]) => {
       if (ignoreResult) return;
-      if (error) logger.error('Failed to fetch payment method options:', error);
+      if (error) logger.error('Failed to fetch payment method options', error);
       else setPaymentMethodOptions(paymentMethods ?? []);
     });
 

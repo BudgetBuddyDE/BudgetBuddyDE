@@ -17,7 +17,7 @@ export const LatestTransactionsList = async ({onAddEntity}: LatestTransactionsLi
     {headers: clientHeaders},
   );
   if (error) {
-    logger.error(error.message);
+    logger.error('Failed to fetch latest transactions', error);
     throw error;
   }
   return (

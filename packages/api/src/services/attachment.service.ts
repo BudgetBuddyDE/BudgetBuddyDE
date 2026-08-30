@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import type {z} from 'zod';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {BackendService} from './backend.service';
@@ -7,8 +8,8 @@ import {GetAttachmentResponse} from '../types/schemas/attachment.schema';
 import {log} from '../utils/decorators/log.decorator';
 
 export class AttachmentService extends BackendService {
-  constructor(host: string, attachmentPath = '/api/attachment') {
-    super(host, attachmentPath);
+  constructor(host: string, attachmentPath = '/api/attachment', logger?: Logger) {
+    super(host, attachmentPath, logger);
   }
 
   /**

@@ -422,7 +422,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.category.getValueHelp();
             if (error) {
-              logger.error('Failed to fetch receiver options:', error);
+              logger.error('Failed to fetch category options', error);
               return [];
             }
             return categories ?? [];
@@ -445,7 +445,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           retrieveOptionsFunc: async () => {
             const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
             if (error) {
-              logger.error('Failed to fetch payment method options:', error);
+              logger.error('Failed to fetch payment method options', error);
               return [];
             }
             return paymentMethods ?? [];
@@ -467,7 +467,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.transaction.getReceiverVH();
             if (error) {
-              logger.error('Failed to fetch receiver options:', error);
+              logger.error('Failed to fetch receiver options', error);
               return [];
             }
             return categories ?? [];

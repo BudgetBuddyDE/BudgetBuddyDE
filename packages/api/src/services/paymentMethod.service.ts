@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import z from 'zod';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
@@ -23,14 +24,19 @@ export class PaymentMethodService extends EntityService<
   typeof UpdatePaymentMethodResponse,
   typeof DeletePaymentMethodResponse
 > {
-  constructor(host: string, entityPath = '/api/paymentMethod') {
-    super(host, entityPath, {
-      getAll: GetAllPaymentMethodsResponse,
-      get: GetPaymentMethodResponse,
-      create: CreatePaymentMethodResponse,
-      update: UpdatePaymentMethodResponse,
-      delete: DeletePaymentMethodResponse,
-    });
+  constructor(host: string, entityPath = '/api/paymentMethod', logger?: Logger) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllPaymentMethodsResponse,
+        get: GetPaymentMethodResponse,
+        create: CreatePaymentMethodResponse,
+        update: UpdatePaymentMethodResponse,
+        delete: DeletePaymentMethodResponse,
+      },
+      logger,
+    );
   }
 
   @log

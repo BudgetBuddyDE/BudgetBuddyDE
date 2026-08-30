@@ -17,17 +17,11 @@ export default function GlobalError({error, reset}: {error: Error & {digest?: st
   const errorMessage = error.message || 'An unexpected error occurred.';
 
   useEffect(() => {
-    const payload = {
-      name: errorName,
-      message: errorMessage,
+    logger.error('Global error boundary triggered', error, {
       digest: error.digest,
       occurredAt,
-      stack: error.stack,
-    };
-
-    console.error('[GlobalErrorBoundary] Application render failed', payload);
-    logger.error('Global error boundary triggered: %o', payload);
-  }, [error, errorName, errorMessage, occurredAt]);
+    });
+  }, [error, occurredAt]);
 
   return (
     // global-error must include html and body tags

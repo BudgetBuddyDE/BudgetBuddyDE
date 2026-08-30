@@ -42,7 +42,7 @@ export const EditUser = () => {
       }
 
       if (email && email !== sessionData.user.email) {
-        logger.info('Changing user email from %s to %s', sessionData.user.email, email);
+        logger.info('Changing user email', {from: sessionData.user.email, to: email});
         const result = await authClient.changeEmail({
           newEmail: email as string,
           callbackURL: `${window.location.origin}/email/changed`,
@@ -60,7 +60,8 @@ export const EditUser = () => {
       setFormEditable(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      logger.error('Error while updating user profile: %s', msg);
+      if (e instanceof Error) logger.error('Error while updating user profile', e);
+      else logger.error('Error while updating user profile', {reason: msg});
       showSnackbar({
         message: msg,
         action: <Button onClick={() => onSubmit(formData)}>Try again</Button>,
@@ -91,7 +92,7 @@ export const EditUser = () => {
         callbackURL: `${window.location.origin}/user/confirm-deletion`,
       });
       if (error) {
-        logger.error('Error while deleting user account: %o', error);
+        logger.error('Error while deleting user account', {reason: error.message});
         showSnackbar({
           message: error.message ?? 'Error while deleting your account',
           action: <Button onClick={accountDeletionHandler.onClickDelete}>Try again</Button>,
@@ -126,7 +127,7 @@ export const EditUser = () => {
     });
 
     if (error) {
-      logger.error('Error while sending verification email: %o', error);
+      logger.error('Error while sending verification email', {reason: error.message});
       showSnackbar({
         message: `Error while sending verification email: ${error.message}`,
       });

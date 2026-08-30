@@ -1,4 +1,5 @@
 import {ApiClientError} from '@budgetbuddyde/core/error/ApiClientError';
+import {createNoopLogger, type Logger} from '@budgetbuddyde/logger';
 import type {z} from 'zod';
 import {fetchWithCache, clearRequestCache} from './requestCache';
 import type {TResult} from '../types/common';
@@ -14,10 +15,12 @@ export class BackendService {
    * @example `/attachment/v1`
    */
   protected basePath: string;
+  protected readonly logger: Logger;
 
-  constructor(host: string, basePath: string) {
+  constructor(host: string, basePath: string, logger: Logger = createNoopLogger()) {
     this.host = host;
     this.basePath = basePath;
+    this.logger = logger;
   }
 
   /**
@@ -47,14 +50,17 @@ export class BackendService {
 
   /**
    * Handles Zod validation errors and converts them into TResult format.
-   * Logs the error to the console.
    * @param errors - A single or multiple Zod errors
    * @returns A TResult tuple with null as data and the error
    */
   protected handleZodError<T, S>(errors: z.ZodError<S>[] | z.ZodError<S>): TResult<T> {
     const msg = Array.isArray(errors) ? errors.map(e => e.message).join(', ') : errors.message;
-    console.error(`ZodError in ${this.constructor.name}: %s`, msg);
-    return [null, new ApiClientError(msg, {cause: errors})];
+    const error = new ApiClientError(msg, {cause: errors});
+    this.logger.error('Zod validation failed', error, {
+      service: this.constructor.name,
+      errorCount: Array.isArray(errors) ? errors.length : 1,
+    });
+    return [null, error];
   }
 
   /**

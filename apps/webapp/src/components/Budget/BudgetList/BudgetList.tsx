@@ -328,7 +328,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         retrieveOptionsFunc: async () => {
           const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
-            logger.error('Failed to fetch category options:', error);
+            logger.error('Failed to fetch category options', error);
             return [];
           }
           return categories ?? [];

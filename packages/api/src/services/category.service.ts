@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import z from 'zod';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
@@ -24,14 +25,19 @@ export class CategoryService extends EntityService<
   typeof UpdateCategoryResponse,
   typeof DeleteCategoryResponse
 > {
-  constructor(host: string, entityPath = '/api/category') {
-    super(host, entityPath, {
-      getAll: GetAllCategoriesResponse,
-      get: GetCategoryResponse,
-      create: CreateCategoryResponse,
-      update: UpdateCategoryResponse,
-      delete: DeleteCategoryResponse,
-    });
+  constructor(host: string, entityPath = '/api/category', logger?: Logger) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllCategoriesResponse,
+        get: GetCategoryResponse,
+        create: CreateCategoryResponse,
+        update: UpdateCategoryResponse,
+        delete: DeleteCategoryResponse,
+      },
+      logger,
+    );
   }
 
   @log

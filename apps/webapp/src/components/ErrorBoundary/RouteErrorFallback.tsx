@@ -19,10 +19,8 @@ export function RouteErrorFallback({
   const router = useRouter();
 
   useEffect(() => {
-    logger.error('Route error boundary triggered: %o', {
-      message: error.message,
+    logger.error('Route error boundary triggered', error, {
       digest: error.digest,
-      stack: error.stack,
     });
   }, [error]);
 

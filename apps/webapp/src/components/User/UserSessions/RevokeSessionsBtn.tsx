@@ -20,7 +20,7 @@ export const RevokeSessionsButton: React.FC<RevokeSessionsButtonProps> = props =
   const handleSessionRevoke = async () => {
     const {error} = await authClient.revokeSessions();
     if (error) {
-      logger.error('Error revoking all sessions: %s', error.message);
+      logger.error('Error revoking all sessions', {reason: error.message});
       showSnackbar({
         message: error.message || 'Failed to revoke all sessions',
       });

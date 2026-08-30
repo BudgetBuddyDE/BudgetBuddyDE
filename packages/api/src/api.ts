@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: This class is used as as a wrapper */
 
+import {createNoopLogger, type Logger} from '@budgetbuddyde/logger';
 import {ApplicationDataService} from './services/applicationData.service';
 import {AttachmentService} from './services/attachment.service';
 import {AuthDataExportService} from './services/authDataExport.service';
@@ -26,20 +27,36 @@ export class Api {
     insights: InsightsService;
   };
 
-  constructor(backendHost: string, authHost = backendHost) {
+  constructor(backendHost: string, authHost = backendHost, logger: Logger = createNoopLogger()) {
     this.backendHost = backendHost;
     this.auth = {
-      dataExport: new AuthDataExportService(authHost),
+      dataExport: new AuthDataExportService(authHost, '/api', logger.child({module: 'AuthDataExportService'})),
     };
     this.backend = {
-      application: new ApplicationDataService(backendHost),
-      attachment: new AttachmentService(backendHost),
-      category: new CategoryService(backendHost),
-      paymentMethod: new PaymentMethodService(backendHost),
-      transaction: new TransactionService(backendHost),
-      recurringPayment: new RecurringPaymentService(backendHost),
-      budget: new BudgetService(backendHost),
-      insights: new InsightsService(backendHost),
+      application: new ApplicationDataService(
+        backendHost,
+        '/api/application',
+        logger.child({module: 'ApplicationDataService'}),
+      ),
+      attachment: new AttachmentService(backendHost, '/api/attachment', logger.child({module: 'AttachmentService'})),
+      category: new CategoryService(backendHost, '/api/category', logger.child({module: 'CategoryService'})),
+      paymentMethod: new PaymentMethodService(
+        backendHost,
+        '/api/paymentMethod',
+        logger.child({module: 'PaymentMethodService'}),
+      ),
+      transaction: new TransactionService(
+        backendHost,
+        '/api/transaction',
+        logger.child({module: 'TransactionService'}),
+      ),
+      recurringPayment: new RecurringPaymentService(
+        backendHost,
+        '/api/recurringPayment',
+        logger.child({module: 'RecurringPaymentService'}),
+      ),
+      budget: new BudgetService(backendHost, '/api/budget', logger.child({module: 'BudgetService'})),
+      insights: new InsightsService(backendHost, logger.child({module: 'InsightsService'})),
     };
   }
 }

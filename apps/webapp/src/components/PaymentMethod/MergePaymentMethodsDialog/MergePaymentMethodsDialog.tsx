@@ -54,7 +54,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
-            logger.error('Failed to fetch payment method options:', error);
+            logger.error('Failed to fetch payment method options', error);
             return [];
           }
           return paymentMethods ?? [];
@@ -76,7 +76,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
-            logger.error('Failed to fetch payment method options:', error);
+            logger.error('Failed to fetch payment method options', error);
             return [];
           }
           return paymentMethods ?? [];

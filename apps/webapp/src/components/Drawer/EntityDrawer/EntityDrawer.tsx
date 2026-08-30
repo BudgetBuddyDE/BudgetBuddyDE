@@ -89,10 +89,8 @@ export const EntityDrawer = <T extends FieldValues>({
       handleFormReset: () => {
         if (onResetForm) {
           const newValues = onResetForm();
-          console.log('Handler - onResetForm provided, resetting to:', newValues);
           form.reset(newValues);
         } else {
-          console.log('Handler - No onResetForm, using defaultValues:', defaultValues);
           form.reset(defaultValues);
         }
       },
@@ -103,7 +101,6 @@ export const EntityDrawer = <T extends FieldValues>({
   // Only reset form when drawer is opened or defaultValues change
   React.useEffect(() => {
     if (open && defaultValues) {
-      console.log('Resetting form to default values:', defaultValues);
       form.reset(defaultValues);
     }
   }, [open, defaultValues, form]);

@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import {BackendService} from './backend.service';
 import {BackendError, ResponseNotJsonError} from '../error';
 import type {TResult} from '../types/common';
@@ -16,8 +17,8 @@ export type TApplicationExportResource = (typeof applicationExportResources)[num
 export type TApplicationExportFormat = 'csv' | 'json';
 
 export class ApplicationDataService extends BackendService {
-  constructor(host: string, entityPath = '/api/application') {
-    super(host, entityPath);
+  constructor(host: string, entityPath = '/api/application', logger?: Logger) {
+    super(host, entityPath, logger);
   }
 
   async importArchive(file: File, mode: 'preview' | 'commit'): Promise<TResult<TApplicationImportResult>> {

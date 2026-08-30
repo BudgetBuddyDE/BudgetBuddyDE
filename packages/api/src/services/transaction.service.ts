@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import type {z} from 'zod';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
@@ -30,14 +31,19 @@ export class TransactionService extends EntityService<
   typeof UpdateTransactionResponse,
   typeof DeleteTransactionResponse
 > {
-  constructor(host: string, entityPath = '/api/transaction') {
-    super(host, entityPath, {
-      getAll: GetAllTransactionsResponse,
-      get: GetTransactionResponse,
-      create: CreateTransactionResponse,
-      update: UpdateTransactionResponse,
-      delete: DeleteTransactionResponse,
-    });
+  constructor(host: string, entityPath = '/api/transaction', logger?: Logger) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllTransactionsResponse,
+        get: GetTransactionResponse,
+        create: CreateTransactionResponse,
+        update: UpdateTransactionResponse,
+        delete: DeleteTransactionResponse,
+      },
+      logger,
+    );
   }
 
   async getAll(query?: IGetAllTransactionsQuery, requestConfig?: RequestInit) {

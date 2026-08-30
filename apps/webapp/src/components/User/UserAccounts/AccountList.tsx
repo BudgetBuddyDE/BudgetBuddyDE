@@ -46,7 +46,8 @@ export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      logger.error('Error unlinking account: %s', msg);
+      if (e instanceof Error) logger.error('Error unlinking account', e);
+      else logger.error('Error unlinking account', {reason: msg});
       showSnackbar({
         message: msg,
         action: <Button onClick={() => handleAccountUnlink(providerId, accountId)}>Retry</Button>,

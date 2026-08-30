@@ -1,3 +1,4 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TResult} from '../types/common';
@@ -30,14 +31,19 @@ export class RecurringPaymentService extends EntityService<
   typeof UpdateRecurringPaymentResponse,
   typeof DeleteRecurringPaymentResponse
 > {
-  constructor(host: string, entityPath = '/api/recurringPayment') {
-    super(host, entityPath, {
-      getAll: GetAllRecurringPaymentsResponse,
-      get: GetRecurringPaymentResponse,
-      create: CreateRecurringPaymentResponse,
-      update: UpdateRecurringPaymentResponse,
-      delete: DeleteRecurringPaymentResponse,
-    });
+  constructor(host: string, entityPath = '/api/recurringPayment', logger?: Logger) {
+    super(
+      host,
+      entityPath,
+      {
+        getAll: GetAllRecurringPaymentsResponse,
+        get: GetRecurringPaymentResponse,
+        create: CreateRecurringPaymentResponse,
+        update: UpdateRecurringPaymentResponse,
+        delete: DeleteRecurringPaymentResponse,
+      },
+      logger,
+    );
   }
 
   async getAll(query?: IGetAllRecurringPaymentsQuery, requestConfig?: RequestInit) {

@@ -20,7 +20,7 @@ export const UpcomingRecurringPaymentList = async ({onAddEntity}: UpcomingRecurr
     {headers: await headers()},
   );
   if (error) {
-    logger.error(error.message);
+    logger.error('Failed to fetch upcoming recurring payments', error);
     throw error;
   }
   return (

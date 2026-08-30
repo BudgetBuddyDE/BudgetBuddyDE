@@ -1,11 +1,12 @@
+import type {Logger} from '@budgetbuddyde/logger';
 import type {TApplicationExportFormat} from './applicationData.service';
 import {BackendService} from './backend.service';
 import {BackendError} from '../error';
 import type {TResult} from '../types/common';
 
 export class AuthDataExportService extends BackendService {
-  constructor(host: string, entityPath = '/api') {
-    super(host, entityPath);
+  constructor(host: string, entityPath = '/api', logger?: Logger) {
+    super(host, entityPath, logger);
   }
 
   async exportArchive(format: TApplicationExportFormat): Promise<TResult<Blob>> {
