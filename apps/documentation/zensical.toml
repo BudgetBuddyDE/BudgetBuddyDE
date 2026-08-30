@@ -109,6 +109,7 @@ nav = [
         "reference/api.md",
         "reference/authentication.md",
         "reference/api-errors.md",
+        "reference/core.md",
         "reference/environment-variables.md",
         "reference/cli-commands.md",
         "reference/mcp.md"

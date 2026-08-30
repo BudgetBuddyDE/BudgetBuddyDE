@@ -16,3 +16,15 @@ Typical HTTP situations include:
 | `500`  | Unexpected server error           |
 
 The backend service responds with `ApiResponse`. The client converts the response to the `TResult` tuple form. Frontends should show the error message, offer retries only for suitable errors, and avoid exposing sensitive server details.
+
+Client errors derive from [`CustomError`](core.md). A failed HTTP response is a `BackendError`, which is also an `ApiClientError`.
+
+```ts
+import {BackendError} from '@budgetbuddyde/api/error';
+
+const [data, error] = await api.backend.transaction.getAll();
+
+if (error instanceof BackendError) {
+  console.error(error.statusCode, error.message);
+}
+```

@@ -54,3 +54,5 @@ icon: lucide/sliders-horizontal
 | `LOG_LEVEL`               | Log level           |
 
 Example files are the authoritative list of currently supported variables. Values in this documentation are not production-safe defaults.
+
+Services can retrieve required values through [`EnvironmentVariable`](core.md#environment-variables). The accessor throws `EnvironmentNotSetError` only when `process.env` has no value for the requested name.

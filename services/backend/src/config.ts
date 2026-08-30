@@ -1,4 +1,5 @@
 import {ATTACHMENT_CONTENT_TYPES} from '@budgetbuddyde/api/attachment';
+import {EnvironmentNotSetError} from '@budgetbuddyde/core';
 import {getLogLevel} from '@budgetbuddyde/logger';
 import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd, type Runtime} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
@@ -8,7 +9,6 @@ import {type Logger, transports} from 'winston';
 import LokiTransport from 'winston-loki';
 import {name, version} from '../package.json';
 import {HTTPStatusCode} from './models';
-import {EnvironmentVariableNotSetError} from './types/error';
 
 export type CacheRouteConfig = {
   /** Express path prefix to match, e.g. '/api/category' */
@@ -271,7 +271,7 @@ export function getRequiredObjectStorageConfig(): RequiredObjectStorageConfig {
     .map(([environmentVariable]) => environmentVariable);
 
   if (missingEnvironmentVariables.length > 0) {
-    throw new EnvironmentVariableNotSetError(missingEnvironmentVariables.join(', '));
+    throw new EnvironmentNotSetError(missingEnvironmentVariables.join(', '));
   }
 
   return {
@@ -287,7 +287,7 @@ export function getRequiredObjectStorageConfig(): RequiredObjectStorageConfig {
 /** Returns the Redis configuration or reports the missing connection URL. */
 export function getRequiredRedisConfig(): RequiredRedisConfig {
   if (!config.redis.url) {
-    throw new EnvironmentVariableNotSetError('REDIS_URL');
+    throw new EnvironmentNotSetError('REDIS_URL');
   }
 
   return {

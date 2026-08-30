@@ -30,6 +30,9 @@
   "peerDependencies": {
     "zod": "^4.1.12"
   },
+  "dependencies": {
+    "@budgetbuddyde/core": "0.1.0"
+  },
   "devDependencies": {
     "@vitest/ui": "^3.2.4",
     "rimraf": "^6.0.1",
