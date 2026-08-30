@@ -3,7 +3,7 @@ import {authClient, logger as mainLogger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import type {RequestContext} from '../types';
 
-const logger = mainLogger.child({label: 'auth', middleware: 'setRequestContext'});
+const logger = mainLogger.child({module: 'auth', middleware: 'setRequestContext'});
 
 export async function setRequestContext(req: Request, res: Response, next: NextFunction) {
   const headers = new Headers(

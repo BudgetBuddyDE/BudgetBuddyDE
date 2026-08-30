@@ -3,7 +3,7 @@ import {drizzle} from 'drizzle-orm/node-postgres';
 import {config} from '../config';
 import {dbLogger, pool} from './pool';
 
-const drizzleLogger = dbLogger.child({label: 'drizzle'});
+const drizzleLogger = dbLogger.child({module: 'drizzle'});
 
 export const db = drizzle({
   client: pool,

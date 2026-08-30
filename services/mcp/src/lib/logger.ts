@@ -1,7 +1,6 @@
 import {createLogger} from '@budgetbuddyde/logger';
 import {createWinstonLogEventWriter} from '@budgetbuddyde/logger/winston';
 import {createLogger as createWinstonLogger, format, transports} from 'winston';
-import LokiTransport from 'winston-loki';
 import {config} from '../config';
 
 const levels = {
@@ -16,17 +15,7 @@ const winstonLogger = createWinstonLogger({
   levels,
   level: config.log.threshold === 'silent' ? 'error' : config.log.threshold,
   format: format.combine(format.timestamp(), format.json()),
-  transports: [
-    ...(config.runtime === 'production' && process.env.LOKI_URL
-      ? [
-          new LokiTransport({
-            host: process.env.LOKI_URL,
-            useWinstonMetaAsLabels: false,
-          }),
-        ]
-      : []),
-    new transports.Console(),
-  ],
+  transports: [new transports.Console()],
 });
 
 export const logger = createLogger(createWinstonLogEventWriter(winstonLogger), {

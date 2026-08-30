@@ -4,7 +4,7 @@ import {config} from '../config';
 import {logger} from '../lib/logger';
 
 const {Pool} = pg;
-export const dbLogger = logger.child({label: 'pool'});
+export const dbLogger = logger.child({module: 'pool'});
 export const pool = new Pool({
   connectionString: config.database.connectionString,
   connectionTimeoutMillis: config.database.connectionTimeoutMillis,

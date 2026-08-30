@@ -4,7 +4,7 @@ import {type CacheRouteConfig, config} from '../config';
 import {getRedisClient} from '../db/redis';
 import {logger} from '../lib/logger';
 
-const cacheLogger = logger.child({label: 'cache', middleware: 'cache'});
+const cacheLogger = logger.child({module: 'cache', middleware: 'cache'});
 
 const invalidatedRoutePaths: Record<string, readonly string[]> = {
   '/api/category': ['/api/category', '/api/transaction', '/api/recurringPayment', '/api/budget'],
@@ -107,9 +107,8 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
     res.json = (body: any) => {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         redis.setex(cacheKey, route.ttl, JSON.stringify(body)).catch(err => {
-          cacheLogger.error('Failed to store response in cache', {
+          cacheLogger.error('Failed to store response in cache', new CacheError('Cache write failed', {cause: err}), {
             cacheKey,
-            err: new CacheError('Cache write failed', {cause: err}),
           });
         });
       }

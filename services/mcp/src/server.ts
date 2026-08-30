@@ -5,8 +5,9 @@ import cors from 'cors';
 import express from 'express';
 import {config} from './config';
 import {getHealthStatus} from './lib/health';
+import {logger} from './lib/logger';
 import {runWithRequestAuthContext, type RequestAuthContext} from './lib/requestAuth';
-import {apiKeyMiddleware, handleError, logger, logRequest, rateLimitMiddleware} from './middleware';
+import {apiKeyMiddleware, handleError, logRequest, rateLimitMiddleware} from './middleware';
 import {registerAllTools} from './tools';
 
 export const app = express();
@@ -56,14 +57,11 @@ app.all('/mcp', apiKeyMiddleware, async (req, res) => {
 app.use(handleError);
 
 export const server = app.listen(config.port, () => {
-  const options = {
-    'Application Name': config.service,
-    'Application Version': config.version,
-    'Runtime Environment': config.runtime,
-    'Node Version': process.version,
-    'Server Port': config.port,
-    'Backend URL': config.backendUrl,
-    'Auth Headers': 'Authorization, X-Api-Key',
-  };
-  console.table(options);
+  logger.info('Service started', {
+    port: config.port,
+    backendUrl: config.backendUrl,
+    nodeVersion: process.version,
+    logThreshold: config.log.threshold,
+    authHeaders: ['Authorization', 'X-Api-Key'],
+  });
 });

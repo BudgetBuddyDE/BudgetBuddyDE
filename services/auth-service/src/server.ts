@@ -95,15 +95,11 @@ app.get('/api/export', authExportHandler);
 app.use(handleError);
 
 export const server = app.listen(config.port, () => {
-  const options = {
-    'Application Name': config.service,
-    'Application Version': config.version,
-    'Runtime Environment': config.runtime,
-    'Node Version': process.version,
-    'Log Level': logger.level,
-    'Server Port': config.port,
-    'Trusted Origins': JSON.stringify(config.cors.origin),
-  };
-  console.table(options);
-  logger.info('%s is available under http://localhost:%d', config.service, config.port, options);
+  logger.info('Service started', {
+    port: config.port,
+    url: `http://localhost:${config.port}`,
+    nodeVersion: process.version,
+    logThreshold: config.log.threshold,
+    trustedOrigins: config.cors.origin,
+  });
 });

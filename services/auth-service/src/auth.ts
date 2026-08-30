@@ -12,7 +12,7 @@ import {isCSRFCheckDisabled} from './utils';
 
 const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET} = process.env;
 
-const authLogger = logger.child({label: 'auth'});
+const authLogger = logger.child({module: 'auth'});
 
 const options: BetterAuthOptions = {
   baseURL: config.runtime === 'production' ? config.baseUrl : `${config.baseUrl}:${config.port}`,
@@ -39,17 +39,17 @@ const options: BetterAuthOptions = {
     : undefined,
   logger: {
     disabled: false,
-    level: mapLogLevelForBetterAuth(config.log.level),
-    log: (level, message, args) => {
+    level: mapLogLevelForBetterAuth(config.log.threshold),
+    log: (level, message, ...args) => {
       switch (level) {
         case 'debug':
-          return authLogger.debug(message, args);
+          return authLogger.debug(message, ...args);
         case 'warn':
-          return authLogger.warn(message, args);
+          return authLogger.warn(message, ...args);
         case 'error':
-          return authLogger.error(message, args);
+          return authLogger.error(message, ...args);
         default:
-          return authLogger.info(message, args);
+          return authLogger.info(message, ...args);
       }
     },
   },
@@ -84,11 +84,11 @@ const options: BetterAuthOptions = {
 
       const [result, error] = await resendManager.sendPasswordReset(email, name, url);
       if (error) {
-        authLogger.error('Error while sending password reset email to %s: %o', email, error);
+        authLogger.error('Error while sending password reset email to %s', email, error);
         return;
       }
 
-      authLogger.info('Password reset email (%s) sent to %s: %o', result.id, email);
+      authLogger.info('Password reset email (%s) sent to %s', result.id, email);
     },
   },
   user: {
@@ -100,11 +100,11 @@ const options: BetterAuthOptions = {
         authLogger.info(`Change email verification requested for user: ${email}`, {userId: id});
         const [result, error] = await resendManager.sendChangeEmailRequest(email, newEmail, url);
         if (error) {
-          authLogger.error('Error while sending verification email to %s: %o', email, error);
+          authLogger.error('Error while sending verification email to %s', email, error);
           return;
         }
 
-        authLogger.info('Verification email (%s) sent to %s: %o', result.id, email);
+        authLogger.info('Verification email (%s) sent to %s', result.id, email);
       },
     },
     deleteUser: {
@@ -140,11 +140,11 @@ const options: BetterAuthOptions = {
 
         const [result, error] = await resendManager.sendAccountDeletionVerification(email, url);
         if (error) {
-          authLogger.error('Error while sending account deletion verification email to %s: %o', email, error);
+          authLogger.error('Error while sending account deletion verification email to %s', email, error);
           return;
         }
 
-        authLogger.info('Account deletion verification email (%s) sent to %s: %o', result.id, email);
+        authLogger.info('Account deletion verification email (%s) sent to %s', result.id, email);
       },
       async afterDelete(user) {
         authLogger.info(`User deleted: ${user.email}`);
@@ -166,11 +166,11 @@ const options: BetterAuthOptions = {
       authLogger.info(`Email verification requested for user: ${email}`);
       const [result, error] = await resendManager.sendVerificationEmail(email, url);
       if (error) {
-        authLogger.error('Error while sending verification email to %s: %o', email, error);
+        authLogger.error('Error while sending verification email to %s', email, error);
         return;
       }
 
-      authLogger.info('Verification email (%s) sent to %s: %o', result.id, email);
+      authLogger.info('Verification email (%s) sent to %s', result.id, email);
     },
   },
   account: {
@@ -219,8 +219,9 @@ const options: BetterAuthOptions = {
 
 export const auth = betterAuth(options);
 
-export function mapLogLevelForBetterAuth(level: typeof config.log.level): Logger['level'] {
+export function mapLogLevelForBetterAuth(level: typeof config.log.threshold): Logger['level'] {
   switch (level) {
+    case 'trace':
     case 'debug':
       return 'debug';
     case 'info':
@@ -228,7 +229,7 @@ export function mapLogLevelForBetterAuth(level: typeof config.log.level): Logger
     case 'warn':
       return 'warn';
     case 'error':
-    case 'fatal':
+    case 'silent':
       return 'error';
     default:
       return undefined;

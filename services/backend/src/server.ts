@@ -112,11 +112,10 @@ export const server = app.listen(config.port, () => {
     'Application Version': config.version,
     'Runtime Environment': config.runtime,
     'Node Version': process.version,
-    'Log Level': logger.level,
+    'Log Level': config.log.level,
     'Server Port': config.port,
     'Trusted Origins': JSON.stringify(config.cors.origin),
   };
-  console.table(options);
   logger.info('%s is available under http://localhost:%d', config.service, config.port, {...options});
 
   const recurringPaymentsJob = config.jobs.recurringPayments;

@@ -1,28 +1,15 @@
-import {buildConsoleFormat, LevelConfig} from '@budgetbuddyde/logger';
 import type {NextFunction, Request, Response} from 'express';
-import {createLogger, format, transports} from 'winston';
-import {config} from '../config';
+import {logger} from '../lib/logger';
 import {extractRequestAuth} from '../lib/requestAuth';
 
-export const logger = createLogger({
-  levels: LevelConfig.levels,
-  level: config.logLevel,
-  defaultMeta: {service: config.service, version: config.version},
-  format: format.combine(
-    format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
-    format.splat(),
-    format.colorize({level: config.runtime === 'development', colors: LevelConfig.colors}),
-    buildConsoleFormat(config.service),
-  ),
-  transports: [new transports.Console()],
-});
+const requestLogger = logger.child({module: 'request'});
 
 export function logRequest(req: Request, res: Response, next: NextFunction): void {
   const startedAt = Date.now();
   const requestAuth = extractRequestAuth(req);
   const action = getAction(req);
 
-  logger.info('Request started', {
+  requestLogger.info('Request started', {
     actor: requestAuth?.actor ?? 'anonymous',
     authMethod: requestAuth?.authMethod ?? 'none',
     action,
@@ -46,9 +33,9 @@ export function logRequest(req: Request, res: Response, next: NextFunction): voi
       durationMs: Date.now() - startedAt,
       ip: req.ip,
     };
-    if (status >= 500) logger.error(msg, meta);
-    else if (status >= 400) logger.warn(msg, meta);
-    else logger.info(msg, meta);
+    if (status >= 500) requestLogger.error(msg, meta);
+    else if (status >= 400) requestLogger.warn(msg, meta);
+    else requestLogger.info(msg, meta);
   });
   next();
 }

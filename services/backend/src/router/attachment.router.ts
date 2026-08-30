@@ -10,7 +10,7 @@ import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const attachmentRouter = Router();
-const attachmentLogger = logger.child({label: 'attachment.router'});
+const attachmentLogger = logger.child({module: 'attachment.router'});
 const attachmentService = new TransactionAttachmentHandler(getRequiredObjectStorageConfig().bucketName);
 
 /**
@@ -64,7 +64,7 @@ attachmentRouter.get(
         })
         .buildAndSend(res);
     } catch (error) {
-      attachmentLogger.error("Couldn't retrieve attachment: %o", error);
+      attachmentLogger.error("Couldn't retrieve attachment", error instanceof Error ? error : new Error(String(error)));
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
         .withMessage('Failed to retrieve attachment')
@@ -105,7 +105,7 @@ attachmentRouter.delete(
 
       ApiResponse.builder().withMessage('Attachment deleted successfully').buildAndSend(res);
     } catch (error) {
-      attachmentLogger.error("Couldn't delete attachment: %o", error);
+      attachmentLogger.error("Couldn't delete attachment", error instanceof Error ? error : new Error(String(error)));
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
         .withMessage('Failed to delete attachment')

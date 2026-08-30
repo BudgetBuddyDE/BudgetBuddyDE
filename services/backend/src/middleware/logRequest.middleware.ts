@@ -3,7 +3,7 @@ import type {NextFunction, Request, Response} from 'express';
 import {config} from '../config';
 import {logger} from '../lib/logger';
 
-export const requestLogger = logger.child({label: 'request'});
+export const requestLogger = logger.child({module: 'request'});
 
 export function logRequest(req: Request, res: Response, next: NextFunction): void {
   res.on('finish', () => {

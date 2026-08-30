@@ -1,5 +1,5 @@
 import type Redis from 'ioredis';
-import type {Logger} from 'winston';
+import type {Logger} from '@budgetbuddyde/logger';
 import {getRedisClient} from '../../db/redis';
 import {logger} from '../logger';
 
@@ -9,7 +9,7 @@ export class Cache {
   protected namespace: string;
 
   constructor(namespace: string) {
-    this.logger = logger.child({label: 'Cache'});
+    this.logger = logger.child({module: 'Cache'});
     this.redisClient = getRedisClient();
     this.namespace = namespace;
   }
@@ -27,7 +27,7 @@ export class Cache {
       this.logger.debug(`Value set for '${key}'`);
       return result;
     } catch (error) {
-      this.logger.error('SetCacheError', error);
+      this.logger.error('SetCacheError', error instanceof Error ? error : new Error(String(error)));
       return 'ERROR';
     }
   }
@@ -39,7 +39,7 @@ export class Cache {
       this.logger.debug(result ? `Retrieved value for '${key}'` : `No value found for '${key}'`);
       return result as Result | null;
     } catch (error) {
-      this.logger.error('GetCacheError', error);
+      this.logger.error('GetCacheError', error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   }
@@ -51,7 +51,7 @@ export class Cache {
       this.logger.debug(`Deleted value for '${key}'`);
       return result;
     } catch (error) {
-      this.logger.error('DeleteCacheError', error);
+      this.logger.error('DeleteCacheError', error instanceof Error ? error : new Error(String(error)));
       return 0;
     }
   }

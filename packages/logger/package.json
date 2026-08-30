@@ -1,7 +1,7 @@
 {
   "name": "@budgetbuddyde/logger",
   "version": "0.1.1",
-  "description": "",
+  "description": "Runtime-neutral structured logging facade for BudgetBuddyDE.",
   "keywords": [
     "logger.js",
     "logging",
@@ -35,10 +35,16 @@
     "@vitest/ui": "^3.0.9",
     "rimraf": "^6.0.1",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.9"
+    "vitest": "^3.0.9",
+    "winston": "^3.19.0"
   },
   "peerDependencies": {
     "winston": "^3.19.0"
+  },
+  "peerDependenciesMeta": {
+    "winston": {
+      "optional": true
+    }
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -48,19 +54,35 @@
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
-    "./utils": {
-      "dev-source": "./src/utils.ts",
-      "types": "./lib/utils.d.ts",
-      "default": "./lib/utils.js"
+    "./console": {
+      "dev-source": "./src/console.ts",
+      "types": "./lib/console.d.ts",
+      "default": "./lib/console.js"
+    },
+    "./winston": {
+      "dev-source": "./src/winston.ts",
+      "types": "./lib/winston.d.ts",
+      "default": "./lib/winston.js"
+    },
+    "./testing": {
+      "dev-source": "./src/testing.ts",
+      "types": "./lib/testing.d.ts",
+      "default": "./lib/testing.js"
     }
   },
   "typesVersions": {
     "*": {
       "*": [
-        "./lib/index.d.js"
+        "./lib/index.d.ts"
       ],
-      "utils": [
-        "./lib/utils.d.js"
+      "console": [
+        "./lib/console.d.ts"
+      ],
+      "winston": [
+        "./lib/winston.d.ts"
+      ],
+      "testing": [
+        "./lib/testing.d.ts"
       ]
     }
   },

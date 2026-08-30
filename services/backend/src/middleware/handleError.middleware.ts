@@ -5,7 +5,7 @@ import {requestLogger} from './logRequest.middleware';
 const logger = requestLogger.child({middleware: 'handleError'});
 
 export function handleError(err: Error, _req: Request, res: Response, _next: NextFunction): void {
-  logger.error('Error occurred: %s %o', err.name, err);
+  logger.error('Error occurred: %s', err.name, err);
   ApiResponse.builder()
     .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
     .withMessage('Internal Server Error')

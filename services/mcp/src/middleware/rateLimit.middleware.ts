@@ -1,5 +1,5 @@
 import type {NextFunction, Request, Response} from 'express';
-import {logger} from './logRequest.middleware';
+import {logger} from '../lib/logger';
 
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 120;
@@ -10,6 +10,7 @@ type Counter = {
 };
 
 const requestCounts = new Map<string, Counter>();
+const rateLimitLogger = logger.child({module: 'rateLimit'});
 
 function getClientKey(req: Request): string {
   return req.ip || 'unknown';
@@ -34,7 +35,7 @@ export function rateLimitMiddleware(req: Request, res: Response, next: NextFunct
 
   const retryAfterSeconds = Math.ceil((WINDOW_MS - (now - existingCounter.startedAt)) / 1000);
   res.setHeader('Retry-After', String(retryAfterSeconds));
-  logger.warn('Request rate-limited', {
+  rateLimitLogger.warn('Request rate-limited', {
     ip: req.ip,
     method: req.method,
     url: req.originalUrl,

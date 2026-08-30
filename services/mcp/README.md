@@ -21,7 +21,7 @@ npm run dev
 | `BUDGETBUDDY_BACKEND_URL` |    ✓     | Base URL of the BudgetBuddyDE backend service | –             |
 | `PORT`                    |    –     | HTTP port the service listens on              | `8070`        |
 | `NODE_ENV`                |    –     | Runtime environment                           | `development` |
-| `LOG_LEVEL`               |    –     | Winston log level                             | `info`        |
+| `LOG_LEVEL`               |    –     | Logging threshold                             | `info`        |
 
 Authentication for `/mcp` must be provided per request via either:
 

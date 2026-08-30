@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 import {getRequiredRedisConfig} from '../config';
 import {logger} from '../lib/logger';
 
-const redisLogger = logger.child({label: 'redis'});
+const redisLogger = logger.child({module: 'redis'});
 
 let redis: Redis | null = null;
 

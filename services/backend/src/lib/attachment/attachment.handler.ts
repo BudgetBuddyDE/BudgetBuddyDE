@@ -6,9 +6,9 @@ import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
 import type {TypeOfSchema} from '@budgetbuddyde/api';
 import type {IGetAllAttachmentsQuery, TAttachment, TSignedAttachmentUrl} from '@budgetbuddyde/api/attachment';
 import {type AttachmentSchemas, attachments} from '@budgetbuddyde/db/backend';
+import type {Logger} from '@budgetbuddyde/logger';
 import {and, eq, inArray} from 'drizzle-orm';
 import sharp from 'sharp';
-import type winston from 'winston';
 import {config} from '../../config';
 import {db} from '../../db';
 import {AttachmentCache} from '../cache/attachment.cache';
@@ -38,14 +38,14 @@ export type AttachmentHandlerOptions = {
 
 export abstract class AttachmentHandler {
   protected readonly s3Client: S3Client;
-  protected readonly logger: winston.Logger;
+  protected readonly logger: Logger;
   protected readonly bucketName: string;
   protected readonly cache: AttachmentCache;
   protected readonly defaultTtl: number = config.attachments.signedUrlTtlSeconds;
 
   constructor(bucket: string, options?: Partial<AttachmentHandlerOptions>) {
     this.s3Client = getS3Client();
-    this.logger = logger.child({label: this.constructor.name});
+    this.logger = logger.child({module: this.constructor.name});
     this.bucketName = bucket;
     this.cache = new AttachmentCache();
     if (options?.ttl) this.defaultTtl = options.ttl;

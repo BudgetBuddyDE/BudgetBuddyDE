@@ -1,13 +1,11 @@
 import {ATTACHMENT_CONTENT_TYPES} from '@budgetbuddyde/api/attachment';
 import {BackendConfig} from '@budgetbuddyde/core/config/BackendConfig';
 import {EnvironmentVariable} from '@budgetbuddyde/core/environment/EnvironmentVariable';
-import {getLogLevel} from '@budgetbuddyde/logger';
+import {getLogLevel, type LogThreshold} from '@budgetbuddyde/logger';
 import {getCurrentRuntime, getPort, getTrustedOrigins, isRunningInProd} from '@budgetbuddyde/utils';
 import type {CorsOptions} from 'cors';
 import 'dotenv/config';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
-import {type Logger, transports} from 'winston';
-import LokiTransport from 'winston-loki';
 import {name, version} from '../package.json';
 import {HTTPStatusCode} from './models';
 
@@ -58,10 +56,8 @@ export type Config = BackendConfig & {
     database: number;
   };
   objectStorage: RequiredObjectStorageConfig;
-  log: Pick<Logger, 'level' | 'transports'> & {
-    defaultMeta?: Record<string, string | number | boolean>;
-    hideMeta?: boolean;
-    timestampFormat: string;
+  log: {
+    level: LogThreshold;
   };
   cors: CorsOptions;
   rateLimit: {
@@ -155,25 +151,6 @@ export const config: Config = Object.assign(
     objectStorage: OBJECT_STORAGE,
     log: {
       level: getLogLevel(process.env.LOG_LEVEL),
-      defaultMeta: {
-        service: SERVICE_NAME,
-        version: SERVICE_VERSION,
-        runtime: SERVICE_RUNTIME,
-      },
-      hideMeta: process.env.LOG_HIDE_META === 'true',
-      timestampFormat: 'YYYY-MM-DD HH:mm:ss',
-      transports: [
-        ...(SERVICE_RUNTIME === 'production' && Boolean(process.env.LOKI_URL)
-          ? [
-              new LokiTransport({
-                host: process.env.LOKI_URL || 'http://loki:3100',
-                // In production, we want to use metadata as labels for better filtering
-                useWinstonMetaAsLabels: true,
-              }),
-            ]
-          : []),
-        new transports.Console(),
-      ],
     },
     cors: {
       origin: isRunningInProd() ? getTrustedOrigins() : [/^(http|https):\/\/localhost(:\d+)?$/],

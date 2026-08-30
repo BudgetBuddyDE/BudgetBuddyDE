@@ -31,7 +31,7 @@ const upload = multer({
     fileSize: config.attachments.upload.maxFileSizeBytes,
   },
 });
-const attachmentLogger = logger.child({label: 'transactions.attachments'});
+const attachmentLogger = logger.child({module: 'transactions.attachments'});
 const attachmentService = new TransactionAttachmentHandler(getRequiredObjectStorageConfig().bucketName);
 
 const isAllowedAttachmentFile = (file: Express.Multer.File): boolean => {
@@ -302,7 +302,10 @@ transactionRouter.get(
         .withData(foundAttachments.map(a => mapAttachmentWithUrl(a)))
         .buildAndSend(res);
     } catch (err) {
-      attachmentLogger.error("Couldn't fetch transaction attachments: %o", err);
+      attachmentLogger.error(
+        "Couldn't fetch transaction attachments",
+        err instanceof Error ? err : new Error(String(err)),
+      );
       ApiResponse.builder()
         .fromError(err instanceof Error ? err : new Error(String(err)))
         .buildAndSend(res);
@@ -360,7 +363,11 @@ transactionRouter.get(
         .withFrom('db')
         .buildAndSend(res);
     } catch (err) {
-      attachmentLogger.error("Couldn't fetch attachments for transaction %s: %o", entityId, err);
+      attachmentLogger.error(
+        "Couldn't fetch attachments for transaction %s",
+        entityId,
+        err instanceof Error ? err : new Error(String(err)),
+      );
       // Respond with transaction data but without attachments on error
       const fallback = {...record, attachmentCount: 0, attachments: []};
       ApiResponse.builder<typeof fallback>()
@@ -407,7 +414,11 @@ transactionRouter.get(
         .withData(foundAttachments.map(a => mapAttachmentWithUrl(a)))
         .buildAndSend(res);
     } catch (err) {
-      attachmentLogger.error("Couldn't fetch attachments for transaction %s: %o", req.params.id, err);
+      attachmentLogger.error(
+        "Couldn't fetch attachments for transaction %s",
+        req.params.id,
+        err instanceof Error ? err : new Error(String(err)),
+      );
       ApiResponse.builder()
         .fromError(err instanceof Error ? err : new Error(String(err)))
         .buildAndSend(res);
@@ -659,7 +670,7 @@ transactionRouter.post(
         .buildAndSend(res);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      attachmentLogger.error("Couldn't process attachments for transaction %s: %o", req.params.id, error);
+      attachmentLogger.error("Couldn't process attachments for transaction %s", req.params.id, error);
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
         .withMessage('Failed to upload files')
@@ -783,7 +794,11 @@ transactionRouter.delete(
         .withMessage(`${deletedCount} attachment(s) deleted successfully`)
         .buildAndSend(res);
     } catch (err) {
-      attachmentLogger.error("Couldn't delete attachments for transaction %s: %o", req.params.id, err);
+      attachmentLogger.error(
+        "Couldn't delete attachments for transaction %s",
+        req.params.id,
+        err instanceof Error ? err : new Error(String(err)),
+      );
       ApiResponse.builder()
         .fromError(err instanceof Error ? err : new Error(String(err)))
         .buildAndSend(res);
