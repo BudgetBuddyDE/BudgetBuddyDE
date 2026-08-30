@@ -13,12 +13,6 @@ function shouldWrite(level: LogLevel, threshold: LogThreshold): boolean {
   return threshold !== 'silent' && levelPriority[level] >= levelPriority[threshold];
 }
 
-function isLoggerOptions(value: LogContext | LoggerOptions): value is LoggerOptions {
-  return (
-    Object.prototype.hasOwnProperty.call(value, 'context') || Object.prototype.hasOwnProperty.call(value, 'threshold')
-  );
-}
-
 class EventLogger implements Logger {
   constructor(
     private readonly writer: LogEventWriter,
@@ -61,14 +55,7 @@ class EventLogger implements Logger {
 }
 
 /** Creates a runtime-neutral logger that sends normalized events to a writer. */
-export function createLogger(writer: LogEventWriter, options?: LoggerOptions): Logger;
-export function createLogger(writer: LogEventWriter, context?: LogContext, threshold?: LogThreshold): Logger;
-export function createLogger(
-  writer: LogEventWriter,
-  optionsOrContext: LoggerOptions | LogContext = {},
-  threshold?: LogThreshold,
-): Logger {
-  const options = isLoggerOptions(optionsOrContext) ? optionsOrContext : {context: optionsOrContext, threshold};
+export function createLogger(writer: LogEventWriter, options: LoggerOptions = {}): Logger {
   return new EventLogger(writer, options.context ?? {}, {}, options.threshold ?? 'trace');
 }
 

@@ -1,21 +1,15 @@
-import {createLogger, LogLevel} from '../src/logger';
-import {ConsoleTransport} from '../src/transport';
+import {createLogger, type Logger} from '../src/logger';
+import {createConsoleLogEventWriter} from '../src/console';
 
-const logger = createLogger({
-  label: 'MyApp',
-  level: LogLevel.DEBUG,
-  defaultMeta: {
-    service: 'MyApp',
-    version: '1.0.0',
-    environment: 'production',
-  },
-  transports: [
-    new ConsoleTransport({}),
-    new ConsoleTransport({label: 'Disabled', enabled: false}),
-    new ConsoleTransport({label: 'Demo', level: LogLevel.ERROR}),
-  ],
+function reportStartup(logger: Logger): void {
+  logger.info('Application started');
+}
+
+const logger = createLogger(createConsoleLogEventWriter(), {
+  context: {service: 'injection-example', version: '1.0.0'},
+  threshold: 'debug',
 });
 
-logger.debug("This is a debug message that won't be shown by default");
-logger.info('This is an info message');
+reportStartup(logger);
+logger.debug('This is a debug message');
 logger.error('This is an error message with meta', {errorCode: 123, detail: 'Something went wrong'});
