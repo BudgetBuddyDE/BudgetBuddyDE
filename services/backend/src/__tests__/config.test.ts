@@ -74,10 +74,7 @@ describe('AppConfig', () => {
     });
   });
 
-  it('rejects blank required environment values and centralizes the Loki URL', () => {
+  it('rejects blank required environment values', () => {
     expect(() => createConfig({DATABASE_URL: '  '})).toThrow(EnvironmentNotSetError);
-    expect(createConfig({LOKI_URL: ' http://loki:3100 '})).toMatchObject({
-      log: {lokiUrl: 'http://loki:3100'},
-    });
   });
 });

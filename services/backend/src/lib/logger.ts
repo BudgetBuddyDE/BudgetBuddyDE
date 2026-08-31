@@ -1,34 +1,9 @@
 import {createLogger, type Logger} from '@budgetbuddyde/logger';
-import {createWinstonSink} from '@budgetbuddyde/logger/winston';
-import {createLogger as createWinstonLogger, format, transports} from 'winston';
-import LokiTransport from 'winston-loki';
+import {createConsoleSink, formatConsoleEvent} from '@budgetbuddyde/logger/console';
 import {config} from '../config';
 
-const winstonLogger = createWinstonLogger({
-  levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    debug: 3,
-    trace: 4,
-  },
-  level: config.log.level === 'silent' ? 'error' : config.log.level,
-  format: format.combine(format.timestamp(), format.json()),
-  transports: [
-    ...(config.runtime === 'production' && config.log.lokiUrl
-      ? [
-          new LokiTransport({
-            host: config.log.lokiUrl,
-            useWinstonMetaAsLabels: false,
-          }),
-        ]
-      : []),
-    new transports.Console(),
-  ],
-});
-
 export const logger: Logger = createLogger({
-  sinks: [createWinstonSink(winstonLogger)],
+  sinks: [createConsoleSink({formatter: formatConsoleEvent})],
   context: {
     service: config.service,
     version: config.version,

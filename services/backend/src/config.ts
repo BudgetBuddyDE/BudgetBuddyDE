@@ -33,7 +33,6 @@ export class AppConfig extends BackendConfig {
   };
   public readonly log: {
     level: LogThreshold;
-    lokiUrl?: string;
   };
   public readonly cors: CorsOptions;
   public readonly rateLimit: {
@@ -174,7 +173,6 @@ export class AppConfig extends BackendConfig {
       },
       log: {
         level: getLogLevel(environment.LOG_LEVEL),
-        lokiUrl: AppConfig.getOptionalEnvironmentValue(environment, 'LOKI_URL'),
       },
       cors: {
         origin:
