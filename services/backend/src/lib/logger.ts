@@ -1,5 +1,5 @@
 import {createLogger, type Logger} from '@budgetbuddyde/logger';
-import {createWinstonLogEventWriter} from '@budgetbuddyde/logger/winston';
+import {createWinstonSink} from '@budgetbuddyde/logger/winston';
 import {createLogger as createWinstonLogger, format, transports} from 'winston';
 import LokiTransport from 'winston-loki';
 import {config} from '../config';
@@ -27,7 +27,8 @@ const winstonLogger = createWinstonLogger({
   ],
 });
 
-export const logger: Logger = createLogger(createWinstonLogEventWriter(winstonLogger), {
+export const logger: Logger = createLogger({
+  sinks: [createWinstonSink(winstonLogger)],
   context: {
     service: config.service,
     version: config.version,
