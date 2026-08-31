@@ -28,6 +28,8 @@ Turborepo builds dependent packages before apps and services. Deploy the generat
 - Webapp: Next.js with `npm run start` in the `apps/webapp` workspace
 - Services: Node.js with `npm run start` in the respective service workspace
 
+Set the webapp's `NEXT_PUBLIC_*` environment values before `next build`. They are embedded in browser bundles and cannot be changed by the runtime deployment environment.
+
 The documentation site is built separately with Zensical. See [Contributing to the documentation](../contributing/documentation.md) for details.
 
 ## Production Checklist

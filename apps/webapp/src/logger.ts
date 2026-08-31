@@ -8,5 +8,5 @@ export const logger = createLogger(createConsoleLogEventWriter(), {
     version: webappConfig.version,
     runtime: webappConfig.runtime,
   },
-  threshold: webappConfig.logLevel,
+  threshold: webappConfig.log.level,
 });

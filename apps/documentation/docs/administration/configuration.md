@@ -8,7 +8,7 @@ The complete variable list is in the [environment variable reference](../referen
 
 ## Connect Services
 
-- The webapp requires `NEXT_PUBLIC_AUTH_SERVICE_HOST` and `NEXT_PUBLIC_BACKEND_SERVICE_HOST`.
+- The webapp defaults to local `NEXT_PUBLIC_AUTH_SERVICE_HOST` and `NEXT_PUBLIC_BACKEND_SERVICE_HOST` values. Set both explicitly for production before building because public values are embedded in browser bundles.
 - The backend requires `AUTH_SERVICE_HOST`, `DATABASE_URL`, `REDIS_URL`, and `TRUSTED_ORIGINS`.
 - The auth service requires `DATABASE_URL`, `AUTH_SECRET`, and `RESEND_API_KEY`. `TRUSTED_ORIGINS` is required in production; Redis enables rate limiting and Better Auth secondary storage.
 - The MCP service requires `BUDGETBUDDY_BACKEND_URL`.

@@ -55,7 +55,8 @@
         "ATTACHMENT_STORAGE_HOST",
         "NEXT_PUBLIC_APP_VERSION",
         "NEXT_PUBLIC_AUTH_SERVICE_HOST",
-        "NEXT_PUBLIC_BACKEND_SERVICE_HOST"
+        "NEXT_PUBLIC_BACKEND_SERVICE_HOST",
+        "NEXT_PUBLIC_LOG_LEVEL"
       ],
       "outputs": ["lib/**", "build/**", ".next/**", "!.next/cache/**"]
     }

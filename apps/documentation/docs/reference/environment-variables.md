@@ -6,10 +6,14 @@ icon: lucide/sliders-horizontal
 
 ## Webapp
 
-| Variable                           | Purpose                        |
-| ---------------------------------- | ------------------------------ |
-| `NEXT_PUBLIC_AUTH_SERVICE_HOST`    | Public URL of the auth service |
-| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Public URL of the backend      |
+| Variable                           | Purpose                                                  |
+| ---------------------------------- | -------------------------------------------------------- |
+| `NEXT_PUBLIC_AUTH_SERVICE_HOST`    | Public auth-service URL, default `http://localhost:8080` |
+| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Public backend URL, default `http://localhost:9000`      |
+| `NEXT_PUBLIC_LOG_LEVEL`            | Browser logging threshold, default `info`                |
+| `NEXT_PUBLIC_APP_VERSION`          | Optional displayed package-version override              |
+
+`NEXT_PUBLIC_*` values are browser-visible and embedded at `next build`; changing them requires rebuilding the webapp.
 
 ## Backend
 
