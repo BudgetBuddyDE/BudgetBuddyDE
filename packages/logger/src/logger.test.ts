@@ -4,7 +4,7 @@ import {formatLogMessage, normalizeLogEvent} from './normalizer';
 describe('logger facade', () => {
   it('writes every supported level and observes the threshold', () => {
     const events: unknown[] = [];
-    const logger = createLogger(event => events.push(event), {threshold: 'info'});
+    const logger = createLogger({sinks: [event => events.push(event)], threshold: 'info'});
 
     logger.trace('trace');
     logger.debug('debug');
@@ -17,7 +17,8 @@ describe('logger facade', () => {
 
   it('merges root, child, and call context in precedence order without allowing reserved fields', () => {
     const events: unknown[] = [];
-    const logger = createLogger(event => events.push(event), {
+    const logger = createLogger({
+      sinks: [event => events.push(event)],
       context: {service: 'root', shared: 'root', level: 'bad'},
     });
 
@@ -37,6 +38,26 @@ describe('logger facade', () => {
         message: 'Saved',
       },
     ]);
+  });
+
+  it('forwards each normalized event to every sink in declaration order', () => {
+    const received: string[] = [];
+    const logger = createLogger({
+      sinks: [event => received.push(`first:${event.message}`), event => received.push(`second:${event.message}`)],
+    });
+
+    logger.info('Saved', {entityId: 'entity'});
+
+    expect(received).toEqual(['first:Saved', 'second:Saved']);
+  });
+
+  it('does not invoke sinks below the configured threshold', () => {
+    const sink = vi.fn();
+    const logger = createLogger({sinks: [sink], threshold: 'silent'});
+
+    logger.error('Ignored');
+
+    expect(sink).not.toHaveBeenCalled();
   });
 
   it('creates a no-op logger whose children remain no-op', () => {

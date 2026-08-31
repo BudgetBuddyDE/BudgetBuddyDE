@@ -1,5 +1,5 @@
 import type {Logger as WinstonLogger} from 'winston';
-import type {LogEvent, LogEventWriter} from './types';
+import type {LogEvent, LogSink} from './types';
 
 export interface SerializedError {
   name: string;
@@ -66,11 +66,14 @@ export function toWinstonLogEvent(event: LogEvent): WinstonLogEvent {
   return error ? ({...eventData, error: serializeError(error)} as WinstonLogEvent) : (eventData as WinstonLogEvent);
 }
 
-/** Creates a writer for an existing Winston logger. Import this module only where Winston is installed. */
-export function createWinstonLogEventWriter(logger: WinstonLogger): LogEventWriter {
+/** Creates a sink for an existing Winston logger. Import this module only where Winston is installed. */
+export function createWinstonSink(logger: WinstonLogger): LogSink {
   return event => {
     logger.log(toWinstonLogEvent(event));
   };
 }
 
-export const createWinstonWriter = createWinstonLogEventWriter;
+/** @deprecated Use {@link createWinstonSink}. */
+export const createWinstonLogEventWriter = createWinstonSink;
+/** @deprecated Use {@link createWinstonSink}. */
+export const createWinstonWriter = createWinstonSink;

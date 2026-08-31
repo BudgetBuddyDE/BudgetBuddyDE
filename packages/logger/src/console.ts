@@ -1,4 +1,4 @@
-import type {LogEventWriter} from './types';
+import type {LogSink} from './types';
 
 export interface ConsoleLike {
   trace?: (...data: unknown[]) => void;
@@ -9,12 +9,15 @@ export interface ConsoleLike {
   log?: (...data: unknown[]) => void;
 }
 
-/** Creates a browser-safe writer that forwards complete events to the matching console method. */
-export function createConsoleLogEventWriter(target: ConsoleLike | undefined = globalThis.console): LogEventWriter {
+/** Creates a browser-safe sink that forwards complete events to the matching console method. */
+export function createConsoleSink(target: ConsoleLike | undefined = globalThis.console): LogSink {
   return event => {
     const method = target?.[event.level] ?? target?.log;
     if (typeof method === 'function') method.call(target, event);
   };
 }
 
-export const createConsoleWriter = createConsoleLogEventWriter;
+/** @deprecated Use {@link createConsoleSink}. */
+export const createConsoleLogEventWriter = createConsoleSink;
+/** @deprecated Use {@link createConsoleSink}. */
+export const createConsoleWriter = createConsoleSink;

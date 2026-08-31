@@ -7,7 +7,10 @@ export class MemoryLogger implements Logger {
   private readonly logger: Logger;
 
   constructor(options: LoggerOptions = {}) {
-    this.logger = createLogger(event => this.events.push(event), options);
+    this.logger = createLogger({
+      ...options,
+      sinks: [event => this.events.push(event), ...(options.sinks ?? [])],
+    });
   }
 
   trace(message: string | Error, ...args: unknown[]): void {

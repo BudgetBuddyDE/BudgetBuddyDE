@@ -1,14 +1,14 @@
-import {createConsoleLogEventWriter} from './console';
+import {createConsoleSink} from './console';
 import {MemoryLogger} from './testing';
-import {createWinstonLogEventWriter, serializeError, toWinstonLogEvent} from './winston';
+import {createWinstonSink, serializeError, toWinstonLogEvent} from './winston';
 
 describe('adapters', () => {
   it('forwards complete events through the matching console method', () => {
     const info = vi.fn();
-    const writer = createConsoleLogEventWriter({info});
+    const sink = createConsoleSink({info});
     const event = {level: 'info' as const, message: 'Started'};
 
-    writer(event);
+    sink(event);
 
     expect(info).toHaveBeenCalledWith(event);
   });
@@ -45,9 +45,9 @@ describe('adapters', () => {
 
   it('writes object events directly to Winston', () => {
     const log = vi.fn();
-    const writer = createWinstonLogEventWriter({log} as never);
+    const sink = createWinstonSink({log} as never);
 
-    writer({level: 'warn', message: 'Slow request', duration: 200});
+    sink({level: 'warn', message: 'Slow request', duration: 200});
 
     expect(log).toHaveBeenCalledWith({level: 'warn', message: 'Slow request', duration: 200});
   });

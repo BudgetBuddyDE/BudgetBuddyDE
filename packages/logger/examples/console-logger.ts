@@ -1,7 +1,8 @@
 import {createLogger} from '../src/logger';
-import {createConsoleLogEventWriter} from '../src/console';
+import {createConsoleSink} from '../src/console';
 
-const logger = createLogger(createConsoleLogEventWriter(), {
+const logger = createLogger({
+  sinks: [createConsoleSink()],
   context: {service: 'console-example'},
   threshold: 'info',
 });

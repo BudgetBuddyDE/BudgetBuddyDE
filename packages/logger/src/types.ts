@@ -11,7 +11,11 @@ export interface LogEvent {
   [key: string]: unknown;
 }
 
-export type LogEventWriter = (event: LogEvent) => void;
+/** Receives one normalized log event. Configure one or more sinks on a logger client. */
+export type LogSink = (event: LogEvent) => void;
+
+/** @deprecated Use {@link LogSink}. */
+export type LogEventWriter = LogSink;
 
 export interface Logger {
   trace(message: string | Error, ...args: unknown[]): void;
@@ -23,6 +27,8 @@ export interface Logger {
 }
 
 export interface LoggerOptions {
+  /** Destinations that receive normalized events in declaration order. */
+  sinks?: readonly LogSink[];
   context?: LogContext;
   threshold?: LogThreshold;
 }

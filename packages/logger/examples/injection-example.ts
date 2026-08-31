@@ -1,11 +1,12 @@
 import {createLogger, type Logger} from '../src/logger';
-import {createConsoleLogEventWriter} from '../src/console';
+import {createConsoleSink} from '../src/console';
 
 function reportStartup(logger: Logger): void {
   logger.info('Application started');
 }
 
-const logger = createLogger(createConsoleLogEventWriter(), {
+const logger = createLogger({
+  sinks: [createConsoleSink()],
   context: {service: 'injection-example', version: '1.0.0'},
   threshold: 'debug',
 });
