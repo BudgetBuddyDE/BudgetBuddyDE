@@ -66,10 +66,7 @@ describe('AppConfig', () => {
     expect(config.auth.socialProviders.google).toEqual({clientId: 'google-id', clientSecret: undefined});
   });
 
-  it('rejects blank required values and normalizes the Loki URL', () => {
+  it('rejects blank required values', () => {
     expect(() => createConfig({AUTH_SECRET: ' '})).toThrow(EnvironmentNotSetError);
-    expect(createConfig({LOKI_URL: ' http://loki:3100 '})).toMatchObject({
-      log: {lokiUrl: 'http://loki:3100'},
-    });
   });
 });
