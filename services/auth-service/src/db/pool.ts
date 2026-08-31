@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import {DatabaseError} from '@budgetbuddyde/core/error/DatabaseError';
 import pg from 'pg';
 import {config} from '../config';

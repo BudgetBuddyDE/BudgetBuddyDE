@@ -15,40 +15,37 @@ import {ApiResponse, HTTPStatusCode} from './models';
 export const app = express();
 
 app.use(cors(config.cors));
-if (config.runtime === 'production') {
+if (config.rateLimit.enabled) {
   app.use(
     rateLimit({
-      ...config.rateLimit,
+      ...config.rateLimit.options,
       store: new RedisStore({
-        prefix: `rate-limit:${config.service}:`,
+        prefix: config.rateLimit.keyPrefix,
         // biome-ignore lint/suspicious/noExplicitAny: ioredis returns unknown, rate-limit-redis expects RedisReply
         sendCommand: (...args: string[]) => getRedisClient().call(...(args as [string, ...string[]])) as any,
       }),
     }),
   );
-  logger.info('Rate limiting is enabled in production environment.');
-} else
-  logger.warn(
-    'Rate limiting is disabled in non-production environments. Make sure to enable it in production to prevent abuse.',
-  );
+  logger.info('Rate limiting is enabled.');
+} else logger.warn('Rate limiting is disabled. Make sure to enable it in production to prevent abuse.');
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
   const isDatabaseConnected = await checkConnection();
-  const redisStatus = getRedisClient().status;
-  const isRedisReachable = redisStatus === 'ready';
-  const isServiceDegraded = isDatabaseConnected && isRedisReachable;
+  const redisStatus = config.redis.url ? getRedisClient().status : 'not configured';
+  const isRedisReachable = config.redis.url ? redisStatus === 'ready' : undefined;
+  const isServiceHealthy = isDatabaseConnected && (isRedisReachable ?? true);
 
   return ApiResponse.expressBuilder<{
     status: string;
     database: boolean;
     redis: {
-      status: ReturnType<typeof getRedisClient>['status'];
-      isReachable: boolean;
+      status: string;
+      isReachable?: boolean;
     };
   }>(res)
     .withMessage('Status of the application')
-    .withStatus(isServiceDegraded ? HTTPStatusCode.OK : HTTPStatusCode.INTERNAL_SERVER_ERROR)
+    .withStatus(isServiceHealthy ? HTTPStatusCode.OK : HTTPStatusCode.INTERNAL_SERVER_ERROR)
     .withData({
-      status: isServiceDegraded ? 'ok' : 'degraded',
+      status: isServiceHealthy ? 'ok' : 'degraded',
       database: isDatabaseConnected,
       redis: {
         status: redisStatus,
@@ -69,7 +66,7 @@ app.get('/api/me', async (req, res) => {
   });
   res.json(session);
 });
-if (config.runtime === 'production') {
+if (config.exportRateLimit.enabled) {
   app.use(
     '/api/export',
     rateLimit({
@@ -99,7 +96,7 @@ export const server = app.listen(config.port, () => {
     port: config.port,
     url: `http://localhost:${config.port}`,
     nodeVersion: process.version,
-    logThreshold: config.log.threshold,
+    logLevel: config.log.level,
     trustedOrigins: config.cors.origin,
   });
 });

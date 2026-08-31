@@ -9,7 +9,7 @@ export const db = drizzle({
   client: pool,
   schema: schema,
   logger:
-    config.log.threshold === 'debug'
+    config.log.level === 'debug'
       ? {
           logQuery(query, params) {
             drizzleLogger.debug('Query "%s" with params %s executed', query, params.join(', '));

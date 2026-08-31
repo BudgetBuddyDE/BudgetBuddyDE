@@ -10,7 +10,7 @@ The complete variable list is in the [environment variable reference](../referen
 
 - The webapp requires `NEXT_PUBLIC_AUTH_SERVICE_HOST` and `NEXT_PUBLIC_BACKEND_SERVICE_HOST`.
 - The backend requires `AUTH_SERVICE_HOST`, `DATABASE_URL`, `REDIS_URL`, and `TRUSTED_ORIGINS`.
-- The auth service requires `DATABASE_URL`, `AUTH_SECRET`, `TRUSTED_ORIGINS`, and the backend URL.
+- The auth service requires `DATABASE_URL`, `AUTH_SECRET`, and `RESEND_API_KEY`. `TRUSTED_ORIGINS` is required in production; Redis enables rate limiting and Better Auth secondary storage.
 - The MCP service requires `BUDGETBUDDY_BACKEND_URL`.
 
 ## Recurring Payments

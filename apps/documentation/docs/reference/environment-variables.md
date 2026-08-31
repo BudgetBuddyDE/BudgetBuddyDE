@@ -37,12 +37,13 @@ icon: lucide/sliders-horizontal
 | `AUTH_SECRET`                               | Secret for Better Auth         |
 | `TRUSTED_ORIGINS`                           | Allowed origins                |
 | `RESEND_API_KEY`                            | Required email delivery key    |
-| `BACKEND_HOST_URL`                          | Backend URL                    |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | Optional GitHub OAuth          |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional Google OAuth          |
-| `REDIS_URL`                                 | Required Redis connection      |
-| `BASE_URL`                                  | Service base URL               |
-| `LOG_LEVEL`, `LOG_HIDE_META`, `TIMEZONE`    | Runtime and logging options    |
+| `REDIS_URL`, `REDIS_DB`                     | Optional Redis connection      |
+| `BASE_URL`, `PORT`, `NODE_ENV`              | Service URL and runtime        |
+| `LOG_LEVEL`, `LOKI_URL`, `TIMEZONE`         | Logging and timezone options   |
+| `DISABLE_SIGNUP`                            | Disable new email sign-ups     |
+| `DISABLE_CSRF_CHECK`                        | Disable Better Auth CSRF check |
 
 ## MCP Service
 
@@ -55,4 +56,4 @@ icon: lucide/sliders-horizontal
 
 Example files are the authoritative list of currently supported variables. Values in this documentation are not production-safe defaults.
 
-Backend, auth service, database tooling, and the API-key example retrieve required values through [`EnvironmentVariable`](core.md#environment-variables). The accessor throws `EnvironmentNotSetError` only when `process.env` has no value for the requested name.
+Backend and auth service validate their required environment variables during central `AppConfig` construction. Blank required values are rejected.

@@ -14,13 +14,13 @@ const levels = {
 
 const winstonLogger = createWinstonLogger({
   levels,
-  level: config.log.threshold === 'silent' ? 'error' : config.log.threshold,
+  level: config.log.level === 'silent' ? 'error' : config.log.level,
   format: format.combine(format.timestamp(), format.json()),
   transports: [
-    ...(config.runtime === 'production' && process.env.LOKI_URL
+    ...(config.runtime === 'production' && config.log.lokiUrl
       ? [
           new LokiTransport({
-            host: process.env.LOKI_URL,
+            host: config.log.lokiUrl,
             useWinstonMetaAsLabels: false,
           }),
         ]
@@ -35,5 +35,5 @@ export const logger = createLogger(createWinstonLogEventWriter(winstonLogger), {
     version: config.version,
     runtime: config.runtime,
   },
-  threshold: config.log.threshold,
+  threshold: config.log.level,
 });

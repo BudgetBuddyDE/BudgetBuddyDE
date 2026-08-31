@@ -8,8 +8,9 @@ let redis: Redis | null = null;
 
 export function getRedisClient(): Redis {
   if (!redis) {
-    redis = new Redis(config.redis.url, {
-      db: config.redis.database,
+    const redisConfig = config.getRequiredRedisConfig();
+    redis = new Redis(redisConfig.url, {
+      db: redisConfig.database,
     });
 
     redis.on('connect', () => {

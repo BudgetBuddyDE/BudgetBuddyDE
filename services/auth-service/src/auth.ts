@@ -8,13 +8,11 @@ import {db} from './db';
 import {getRedisClient} from './db/redis';
 import {logger} from './lib/logger';
 import {resendManager} from './lib/resend';
-import {isCSRFCheckDisabled} from './utils';
-
-const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET} = process.env;
 
 const authLogger = logger.child({module: 'auth'});
 
 const options: BetterAuthOptions = {
+  secret: config.auth.secret,
   baseURL: config.runtime === 'production' ? config.baseUrl : `${config.baseUrl}:${config.port}`,
   appName: config.service,
   database: drizzleAdapter(db, {
@@ -39,7 +37,7 @@ const options: BetterAuthOptions = {
     : undefined,
   logger: {
     disabled: false,
-    level: mapLogLevelForBetterAuth(config.log.threshold),
+    level: mapLogLevelForBetterAuth(config.log.level),
     log: (level, message, ...args) => {
       switch (level) {
         case 'debug':
@@ -53,7 +51,7 @@ const options: BetterAuthOptions = {
       }
     },
   },
-  trustedOrigins: process.env.TRUSTED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  trustedOrigins: config.auth.trustedOrigins,
   session: {
     cookieCache: {
       enabled: true,
@@ -61,7 +59,7 @@ const options: BetterAuthOptions = {
     },
   },
   advanced: {
-    disableCSRFCheck: isCSRFCheckDisabled(),
+    disableCSRFCheck: config.auth.disableCsrfCheck,
     useSecureCookies: config.runtime === 'production',
     cookiePrefix: 'budget-buddy',
     crossSubDomainCookies: {
@@ -78,7 +76,7 @@ const options: BetterAuthOptions = {
     autoSignIn: true,
     requireEmailVerification: false,
     revokeSessionsOnPasswordReset: true,
-    disableSignUp: process.env.DISABLE_SIGNUP === 'true',
+    disableSignUp: config.auth.disableSignUp,
     async sendResetPassword({user: {id, email, name}, url}) {
       authLogger.info(`Password reset requested for user: ${email}`, {userId: id});
 
@@ -109,32 +107,6 @@ const options: BetterAuthOptions = {
     },
     deleteUser: {
       enabled: true,
-      async beforeDelete(_user, _request) {
-        // Temporarily disabled because there is no need to manually delete user data
-        // authLogger.info(`User deletion requested for user: ${user.email}`);
-        // const BACKEND_HOST_URL = process.env.BACKEND_HOST_URL;
-        // if (!BACKEND_HOST_URL) {
-        //   const err = new EnvironmentVariableNotSetError('BACKEND_HOST_URL');
-        //   throw new APIError('INTERNAL_SERVER_ERROR', {
-        //     message: err.message,
-        //     cause: err.cause,
-        //   });
-        // }
-        //
-        // const response = await fetch(`${process.env.BACKEND_HOST_URL}/api/me`, {
-        //   method: 'DELETE',
-        //   credentials: request?.credentials,
-        //   headers: request?.headers,
-        // });
-        // if (!response.ok) {
-        //   authLogger.error(`Failed to delete backend user data for user: ${user.email}, status: ${response.status}`);
-        //   throw new APIError('INTERNAL_SERVER_ERROR', {
-        //     message: 'Failed to delete backend user data',
-        //     cause: await response.text(),
-        //   });
-        // }
-        // authLogger.info(`Successfully deleted backend user data for user: ${user.email}`);
-      },
       async sendDeleteAccountVerification({user: {id, email}, url}) {
         authLogger.info(`Delete account requested for user: ${email}`, {userId: id});
 
@@ -184,14 +156,18 @@ const options: BetterAuthOptions = {
   },
   socialProviders: {
     github: {
-      enabled: Boolean(GITHUB_CLIENT_ID) && Boolean(GITHUB_CLIENT_SECRET),
-      clientId: GITHUB_CLIENT_ID as string,
-      clientSecret: GITHUB_CLIENT_SECRET as string,
+      enabled:
+        Boolean(config.auth.socialProviders.github.clientId) &&
+        Boolean(config.auth.socialProviders.github.clientSecret),
+      clientId: config.auth.socialProviders.github.clientId as string,
+      clientSecret: config.auth.socialProviders.github.clientSecret as string,
     },
     google: {
-      enabled: Boolean(GOOGLE_CLIENT_ID) && Boolean(GOOGLE_CLIENT_SECRET),
-      clientId: GOOGLE_CLIENT_ID as string,
-      clientSecret: GOOGLE_CLIENT_SECRET as string,
+      enabled:
+        Boolean(config.auth.socialProviders.google.clientId) &&
+        Boolean(config.auth.socialProviders.google.clientSecret),
+      clientId: config.auth.socialProviders.google.clientId as string,
+      clientSecret: config.auth.socialProviders.google.clientSecret as string,
     },
   },
   plugins: [
@@ -201,8 +177,8 @@ const options: BetterAuthOptions = {
       requireName: true,
       rateLimit: {
         enabled: true,
-        maxRequests: (config.rateLimit.limit as number) / 2,
-        timeWindow: config.rateLimit.windowMs,
+        maxRequests: (config.rateLimit.options.limit as number) / 2,
+        timeWindow: config.rateLimit.options.windowMs,
       },
       permissions: {
         // TODO: Implement proper permissions for API keys, e.g. by allowing users to select permissions when creating an API key and storing them in the database
@@ -219,7 +195,7 @@ const options: BetterAuthOptions = {
 
 export const auth = betterAuth(options);
 
-export function mapLogLevelForBetterAuth(level: typeof config.log.threshold): Logger['level'] {
+export function mapLogLevelForBetterAuth(level: typeof config.log.level): Logger['level'] {
   switch (level) {
     case 'trace':
     case 'debug':
