@@ -13,7 +13,7 @@ const levels = {
 
 const winstonLogger = createWinstonLogger({
   levels,
-  level: config.log.threshold === 'silent' ? 'error' : config.log.threshold,
+  level: config.log.level === 'silent' ? 'error' : config.log.level,
   format: format.combine(format.timestamp(), format.json()),
   transports: [new transports.Console()],
 });
@@ -24,5 +24,5 @@ export const logger = createLogger(createWinstonLogEventWriter(winstonLogger), {
     version: config.version,
     runtime: config.runtime,
   },
-  threshold: config.log.threshold,
+  threshold: config.log.level,
 });

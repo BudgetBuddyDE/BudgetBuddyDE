@@ -1,8 +1,6 @@
 import type {NextFunction, Request, Response} from 'express';
+import {config} from '../config';
 import {logger} from '../lib/logger';
-
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS_PER_WINDOW = 120;
 
 type Counter = {
   startedAt: number;
@@ -21,26 +19,26 @@ export function rateLimitMiddleware(req: Request, res: Response, next: NextFunct
   const key = getClientKey(req);
   const existingCounter = requestCounts.get(key);
 
-  if (!existingCounter || now - existingCounter.startedAt >= WINDOW_MS) {
+  if (!existingCounter || now - existingCounter.startedAt >= config.rateLimit.windowMs) {
     requestCounts.set(key, {startedAt: now, count: 1});
     next();
     return;
   }
 
   existingCounter.count += 1;
-  if (existingCounter.count <= MAX_REQUESTS_PER_WINDOW) {
+  if (existingCounter.count <= config.rateLimit.limit) {
     next();
     return;
   }
 
-  const retryAfterSeconds = Math.ceil((WINDOW_MS - (now - existingCounter.startedAt)) / 1000);
+  const retryAfterSeconds = Math.ceil((config.rateLimit.windowMs - (now - existingCounter.startedAt)) / 1000);
   res.setHeader('Retry-After', String(retryAfterSeconds));
   rateLimitLogger.warn('Request rate-limited', {
     ip: req.ip,
     method: req.method,
     url: req.originalUrl,
-    maxRequestsPerWindow: MAX_REQUESTS_PER_WINDOW,
-    windowMs: WINDOW_MS,
+    maxRequestsPerWindow: config.rateLimit.limit,
+    windowMs: config.rateLimit.windowMs,
   });
   res.status(429).json({error: 'Too many requests. Please try again later.'});
 }

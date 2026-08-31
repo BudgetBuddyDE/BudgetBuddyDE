@@ -14,13 +14,10 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(logRequest);
-if (config.runtime === 'production') {
+if (config.rateLimit.enabled) {
   app.use(rateLimitMiddleware);
-  logger.info('Rate limiting is enabled in production environment.');
-} else
-  logger.warn(
-    'Rate limiting is disabled in non-production environments. Make sure to enable it in production to prevent abuse.',
-  );
+  logger.info('Rate limiting is enabled.');
+} else logger.warn('Rate limiting is disabled. Make sure to enable it in production to prevent abuse.');
 
 // Health / status
 app.all(/^\/(api\/)?(status|health)\/?$/, async (_req, res) => {
@@ -61,7 +58,7 @@ export const server = app.listen(config.port, () => {
     port: config.port,
     backendUrl: config.backendUrl,
     nodeVersion: process.version,
-    logThreshold: config.log.threshold,
+    logLevel: config.log.level,
     authHeaders: ['Authorization', 'X-Api-Key'],
   });
 });
