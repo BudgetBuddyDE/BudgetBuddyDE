@@ -6,10 +6,10 @@ Runtime-neutral structured logging for BudgetBuddyDE. The root package has no No
 
 ```typescript
 import {createLogger, getLogLevel} from '@budgetbuddyde/logger';
-import {createConsoleSink} from '@budgetbuddyde/logger/console';
+import {createConsoleSink, formatConsoleEvent} from '@budgetbuddyde/logger/console';
 
 const logger = createLogger({
-  sinks: [createConsoleSink()],
+  sinks: [createConsoleSink({formatter: formatConsoleEvent})],
   context: {service: 'backend'},
   threshold: getLogLevel(process.env.LOG_LEVEL),
 });
@@ -24,14 +24,16 @@ Messages support `%s`, `%d`, `%j`, and `%%` without Node's `util.format`. Errors
 
 Use `createNoopLogger()` for a logger that drops events.
 
-## Sinks
+## Console Sink
 
 ```typescript
-import {createConsoleSink} from '@budgetbuddyde/logger/console';
+import {createConsoleSink, formatConsoleEvent} from '@budgetbuddyde/logger/console';
 import {createLogger} from '@budgetbuddyde/logger';
 
-const logger = createLogger({sinks: [createConsoleSink()]});
+const logger = createLogger({sinks: [createConsoleSink({formatter: formatConsoleEvent})]});
 ```
+
+`formatConsoleEvent` writes `DATE [LEVEL] MESSAGE - ATTRIBUTES`, where attributes are JSON data from the event context. Raw `Error` objects are passed as a second console argument so browser and Node.js consoles retain the stack trace. Omit `formatter` to receive the complete structured event object, or provide a custom formatter that returns the console arguments to write.
 
 Winston is an optional peer dependency and is isolated to the Winston subpath:
 
