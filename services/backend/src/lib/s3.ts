@@ -1,5 +1,5 @@
 import {S3Client} from '@aws-sdk/client-s3';
-import {getRequiredObjectStorageConfig} from '../config';
+import {config} from '../config';
 
 let s3Client: S3Client | null = null;
 
@@ -8,7 +8,7 @@ export function getS3Client() {
     return s3Client;
   }
 
-  const objectStorage = getRequiredObjectStorageConfig();
+  const objectStorage = config.getRequiredObjectStorageConfig();
 
   s3Client = new S3Client({
     region: objectStorage.region,

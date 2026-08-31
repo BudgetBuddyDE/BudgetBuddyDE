@@ -14,7 +14,7 @@ import rateLimit from 'express-rate-limit';
 import validateRequest from 'express-zod-safe';
 import multer from 'multer';
 import RedisStore from 'rate-limit-redis';
-import {config, getRequiredObjectStorageConfig} from '../config';
+import {config} from '../config';
 import {db} from '../db';
 import {getRedisClient} from '../db/redis';
 import {logger} from '../lib/logger';
@@ -263,7 +263,7 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
   });
   if (selectedResources.has('attachments')) {
     try {
-      const {bucketName} = getRequiredObjectStorageConfig();
+      const {bucketName} = config.getRequiredObjectStorageConfig();
       const attachmentFiles = [];
       for (const attachment of attachmentExportRows) {
         const object = await getS3Client().send(new GetObjectCommand({Bucket: bucketName, Key: attachment.location}));

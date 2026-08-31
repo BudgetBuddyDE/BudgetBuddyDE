@@ -4,14 +4,19 @@ import {AttachmentSchemas} from '@budgetbuddyde/db/backend';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
-import {getRequiredObjectStorageConfig} from '../config';
+import {config} from '../config';
 import {logger} from '../lib';
 import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const attachmentRouter = Router();
 const attachmentLogger = logger.child({module: 'attachment.router'});
-const attachmentService = new TransactionAttachmentHandler(getRequiredObjectStorageConfig().bucketName);
+let attachmentService: TransactionAttachmentHandler | undefined;
+
+function getAttachmentService(): TransactionAttachmentHandler {
+  attachmentService ??= new TransactionAttachmentHandler(config.getRequiredObjectStorageConfig().bucketName);
+  return attachmentService;
+}
 
 /**
  * GET /api/attachment/:attachmentId
@@ -38,7 +43,7 @@ attachmentRouter.get(
 
     try {
       const attachmentId = req.params.attachmentId;
-      const targetAttachment = await attachmentService.verifyOwnership(attachmentId, userId);
+      const targetAttachment = await getAttachmentService().verifyOwnership(attachmentId, userId);
 
       if (!targetAttachment) {
         return ApiResponse.builder()
@@ -47,7 +52,7 @@ attachmentRouter.get(
           .buildAndSend(res);
       }
 
-      const signedUrl = await attachmentService.generateSignedUrl(targetAttachment, {ttl: req.query.ttl});
+      const signedUrl = await getAttachmentService().generateSignedUrl(targetAttachment, {ttl: req.query.ttl});
 
       ApiResponse.builder<TAttachmentWithUrl>()
         .withStatus(HTTPStatusCode.OK)
@@ -94,7 +99,7 @@ attachmentRouter.delete(
     }
 
     try {
-      const deletedCount = await attachmentService.deleteAttachments(userId, [req.params.attachmentId]);
+      const deletedCount = await getAttachmentService().deleteAttachments(userId, [req.params.attachmentId]);
 
       if (deletedCount === 0) {
         return ApiResponse.builder()

@@ -15,10 +15,10 @@ const winstonLogger = createWinstonLogger({
   level: config.log.level === 'silent' ? 'error' : config.log.level,
   format: format.combine(format.timestamp(), format.json()),
   transports: [
-    ...(config.runtime === 'production' && Boolean(process.env.LOKI_URL)
+    ...(config.runtime === 'production' && config.log.lokiUrl
       ? [
           new LokiTransport({
-            host: process.env.LOKI_URL || 'http://loki:3100',
+            host: config.log.lokiUrl,
             useWinstonMetaAsLabels: false,
           }),
         ]

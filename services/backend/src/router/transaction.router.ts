@@ -15,7 +15,7 @@ import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import multer from 'multer';
 import z from 'zod';
-import {config, getRequiredObjectStorageConfig} from '../config';
+import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {TransactionAttachmentHandler} from '../lib/attachment';
@@ -32,7 +32,12 @@ const upload = multer({
   },
 });
 const attachmentLogger = logger.child({module: 'transactions.attachments'});
-const attachmentService = new TransactionAttachmentHandler(getRequiredObjectStorageConfig().bucketName);
+let attachmentService: TransactionAttachmentHandler | undefined;
+
+function getAttachmentService(): TransactionAttachmentHandler {
+  attachmentService ??= new TransactionAttachmentHandler(config.getRequiredObjectStorageConfig().bucketName);
+  return attachmentService;
+}
 
 const isAllowedAttachmentFile = (file: Express.Multer.File): boolean => {
   if (config.attachments.allowedContentTypes.has(file.mimetype)) return true;
@@ -236,7 +241,7 @@ transactionRouter.get(
     }
 
     const previewRows = Array.from(previewRowsByTransactionId.values()).flat();
-    const {signedUrls} = await attachmentService.generateSignedUrls(
+    const {signedUrls} = await getAttachmentService().generateSignedUrls(
       previewRows.map(previewRow => ({
         attachmentId: previewRow.id as TAttachment['id'],
         objectStoreLocation: previewRow.location,
@@ -290,10 +295,12 @@ transactionRouter.get(
     }
 
     try {
-      const {attachments: foundAttachments, totalCount} = await attachmentService.findTransactionAttachmentsByOwner(
-        userId,
-        {from: req.query.from, to: req.query.to, ttl: req.query.ttl},
-      );
+      const {attachments: foundAttachments, totalCount} =
+        await getAttachmentService().findTransactionAttachmentsByOwner(userId, {
+          from: req.query.from,
+          to: req.query.to,
+          ttl: req.query.ttl,
+        });
 
       ApiResponse.builder<TAttachmentWithUrl[]>()
         .withStatus(HTTPStatusCode.OK)
@@ -347,7 +354,10 @@ transactionRouter.get(
     }
 
     try {
-      const {attachments: foundAttachments} = await attachmentService.findAttachmentsByTransactionId(userId, entityId);
+      const {attachments: foundAttachments} = await getAttachmentService().findAttachmentsByTransactionId(
+        userId,
+        entityId,
+      );
       const attachmentsWithUrl = foundAttachments.map(a => mapAttachmentWithUrl(a));
 
       const enrichedRecord = {
@@ -401,7 +411,7 @@ transactionRouter.get(
 
     try {
       const transactionId = req.params.id;
-      const {attachments: foundAttachments, totalCount} = await attachmentService.findAttachmentsByTransactionId(
+      const {attachments: foundAttachments, totalCount} = await getAttachmentService().findAttachmentsByTransactionId(
         userId,
         transactionId,
         {from: req.query.from, to: req.query.to, ttl: req.query.ttl},
@@ -661,7 +671,11 @@ transactionRouter.post(
 
     try {
       const transactionId = req.params.id as string;
-      const uploadedAttachments = await attachmentService.uploadTransactionAttachments(userId, transactionId, files);
+      const uploadedAttachments = await getAttachmentService().uploadTransactionAttachments(
+        userId,
+        transactionId,
+        files,
+      );
 
       ApiResponse.builder<TAttachmentWithUrl[]>()
         .withStatus(HTTPStatusCode.CREATED)
@@ -780,7 +794,11 @@ transactionRouter.delete(
     try {
       const transactionId = req.params.id;
       const attachmentIds = req.body?.attachmentIds;
-      const deletedCount = await attachmentService.deleteTransactionAttachments(userId, transactionId, attachmentIds);
+      const deletedCount = await getAttachmentService().deleteTransactionAttachments(
+        userId,
+        transactionId,
+        attachmentIds,
+      );
 
       if (deletedCount === 0) {
         return ApiResponse.builder()

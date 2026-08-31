@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import {getRequiredRedisConfig} from '../config';
+import {config} from '../config';
 import {logger} from '../lib/logger';
 
 const redisLogger = logger.child({module: 'redis'});
@@ -8,7 +8,7 @@ let redis: Redis | null = null;
 
 export function getRedisClient(): Redis {
   if (!redis) {
-    const redisConfig = getRequiredRedisConfig();
+    const redisConfig = config.getRequiredRedisConfig();
     redis = new Redis(redisConfig.url, {
       db: redisConfig.database,
     });
