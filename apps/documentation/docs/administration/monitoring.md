@@ -14,7 +14,7 @@ A service can report the `degraded` status when a dependency is unreachable. Mon
 
 The services log startup parameters, requests, errors, and scheduled tasks. Secrets, session data, and financial content must not be written to logs.
 
-Configurable variables include `LOG_LEVEL` and `LOG_HIDE_META`. For centralized logging systems, the project supports existing Winston/Loki integrations.
+Set `LOG_LEVEL` to control structured Console output. Services write formatted log lines to stdout, where the deployment platform can collect them.
 
 ## Important Alerts
 

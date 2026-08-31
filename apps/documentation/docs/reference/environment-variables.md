@@ -45,7 +45,7 @@ icon: lucide/sliders-horizontal
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional Google OAuth          |
 | `REDIS_URL`, `REDIS_DB`                     | Optional Redis connection      |
 | `BASE_URL`, `PORT`, `NODE_ENV`              | Service URL and runtime        |
-| `LOG_LEVEL`, `LOKI_URL`, `TIMEZONE`         | Logging and timezone options   |
+| `LOG_LEVEL`, `TIMEZONE`                     | Logging and timezone options   |
 | `DISABLE_SIGNUP`                            | Disable new email sign-ups     |
 | `DISABLE_CSRF_CHECK`                        | Disable Better Auth CSRF check |
 

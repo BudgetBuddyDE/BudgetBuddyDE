@@ -39,7 +39,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "winston": "^3.19.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

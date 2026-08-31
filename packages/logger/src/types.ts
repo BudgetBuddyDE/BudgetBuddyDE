@@ -14,9 +14,6 @@ export interface LogEvent {
 /** Receives one normalized log event. Configure one or more sinks on a logger client. */
 export type LogSink = (event: LogEvent) => void;
 
-/** @deprecated Use {@link LogSink}. */
-export type LogEventWriter = LogSink;
-
 export interface Logger {
   trace(message: string | Error, ...args: unknown[]): void;
   debug(message: string | Error, ...args: unknown[]): void;

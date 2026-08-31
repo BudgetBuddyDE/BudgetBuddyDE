@@ -1,6 +1,5 @@
 import {createConsoleSink, formatConsoleEvent} from './console';
 import {MemoryLogger} from './testing';
-import {createWinstonSink, serializeError, toWinstonLogEvent} from './winston';
 
 describe('adapters', () => {
   it('forwards complete events through the matching console method', () => {
@@ -37,34 +36,5 @@ describe('adapters', () => {
     expect(logger.events).toEqual([
       {service: 'test', requestId: 'request', entityId: 'entity', level: 'debug', message: 'Processed'},
     ]);
-  });
-
-  it('serializes error details for Winston without adding splat metadata', () => {
-    const cause = new Error('database unavailable');
-    const error = Object.assign(new Error('request failed', {cause}), {code: 'DATABASE_UNAVAILABLE'});
-    Object.defineProperty(error, 'retryable', {value: true});
-    const event = {level: 'error' as const, message: 'Failed', error, requestId: 'request'};
-
-    expect(serializeError(error)).toMatchObject({
-      name: 'Error',
-      message: 'request failed',
-      stack: expect.any(String),
-      code: 'DATABASE_UNAVAILABLE',
-      retryable: true,
-      cause: expect.objectContaining({message: 'database unavailable'}),
-    });
-    expect(toWinstonLogEvent(event)).toEqual(
-      expect.objectContaining({level: 'error', message: 'Failed', requestId: 'request'}),
-    );
-    expect(Object.getOwnPropertySymbols(toWinstonLogEvent(event))).not.toContain(Symbol.for('splat'));
-  });
-
-  it('writes object events directly to Winston', () => {
-    const log = vi.fn();
-    const sink = createWinstonSink({log} as never);
-
-    sink({level: 'warn', message: 'Slow request', duration: 200});
-
-    expect(log).toHaveBeenCalledWith({level: 'warn', message: 'Slow request', duration: 200});
   });
 });

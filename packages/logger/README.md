@@ -1,6 +1,6 @@
 # `@budgetbuddyde/logger`
 
-Runtime-neutral structured logging for BudgetBuddyDE. The root package has no Node.js or Winston runtime dependency and is safe to use in browsers.
+Runtime-neutral structured logging for BudgetBuddyDE with browser-safe Console sinks.
 
 ## Logger And Sinks
 
@@ -35,19 +35,7 @@ const logger = createLogger({sinks: [createConsoleSink({formatter: formatConsole
 
 `formatConsoleEvent` writes `DATE [LEVEL] MESSAGE - ATTRIBUTES`, where attributes are JSON data from the event context. Raw `Error` objects are passed as a second console argument so browser and Node.js consoles retain the stack trace. Omit `formatter` to receive the complete structured event object, or provide a custom formatter that returns the console arguments to write.
 
-Winston is an optional peer dependency and is isolated to the Winston subpath:
-
-```typescript
-import {createWinstonSink} from '@budgetbuddyde/logger/winston';
-import {createLogger} from '@budgetbuddyde/logger';
-import winston from 'winston';
-
-const logger = createLogger({
-  sinks: [createWinstonSink(winston.createLogger())],
-});
-```
-
-Sinks receive each event in declaration order. The Console sink is browser-safe. The Winston sink writes event objects directly without `format.splat()` and serializes errors with their name, message, stack, cause, and own properties.
+Sinks receive each event in declaration order. The Console sink is browser-safe and can forward either a formatted line or the complete structured event.
 
 ## Testing
 

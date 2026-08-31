@@ -42,8 +42,3 @@ export function createConsoleSink({
     if (typeof method === 'function') method.call(target, ...formatter(event));
   };
 }
-
-/** @deprecated Use {@link createConsoleSink}. */
-export const createConsoleLogEventWriter = createConsoleSink;
-/** @deprecated Use {@link createConsoleSink}. */
-export const createConsoleWriter = createConsoleSink;

@@ -57,14 +57,7 @@ class EventLogger implements Logger {
 }
 
 /** Creates a runtime-neutral logger that sends normalized events to configured sinks. */
-export function createLogger(options?: LoggerOptions): Logger;
-/** @deprecated Pass `sinks` through a {@link LoggerOptions} object instead. */
-export function createLogger(sink: LogSink, options?: Omit<LoggerOptions, 'sinks'>): Logger;
-export function createLogger(
-  optionsOrSink: LoggerOptions | LogSink = {},
-  legacyOptions: Omit<LoggerOptions, 'sinks'> = {},
-): Logger {
-  const options = typeof optionsOrSink === 'function' ? {...legacyOptions, sinks: [optionsOrSink]} : optionsOrSink;
+export function createLogger(options: LoggerOptions = {}): Logger {
   return new EventLogger(options.sinks ?? [], options.context ?? {}, {}, options.threshold ?? 'trace');
 }
 
