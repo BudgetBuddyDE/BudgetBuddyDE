@@ -24,4 +24,16 @@ describe('EnvironmentVariable', () => {
 
     expect(() => new EnvironmentVariable(variableName).get()).toThrow(new EnvironmentNotSetError(variableName));
   });
+
+  it('returns a configured optional environment value unchanged', () => {
+    process.env[variableName] = '';
+
+    expect(new EnvironmentVariable(variableName).getOptional()).toBe('');
+  });
+
+  it('returns undefined when an optional environment value is not set', () => {
+    delete process.env[variableName];
+
+    expect(new EnvironmentVariable(variableName).getOptional()).toBeUndefined();
+  });
 });

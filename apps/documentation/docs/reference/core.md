@@ -25,7 +25,7 @@ Use `Config` as the base class when adding a configuration type for another serv
 
 ## Environment Variables
 
-`EnvironmentVariable` reads a required variable from `process.env`.
+`EnvironmentVariable` reads required and optional variables from `process.env`.
 
 ```ts
 import {EnvironmentNotSetError} from '@budgetbuddyde/core/error';
@@ -38,9 +38,12 @@ try {
     // Add the missing variable before starting the service.
   }
 }
+
+const redisUrl = new EnvironmentVariable('REDIS_URL').getOptional();
 ```
 
-The accessor returns an empty string unchanged. It throws only if the value is `undefined`; it does not load `.env` files itself.
+Both accessors return an empty string unchanged. `get()` throws if the value is `undefined`, while `getOptional()`
+returns `undefined`; neither accessor loads `.env` files itself.
 
 ## Errors
 
