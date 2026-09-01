@@ -1,3 +1,4 @@
+import {resolve} from 'node:path';
 import dotenv from 'dotenv';
 
-dotenv.config({path: '.env.test'});
+dotenv.config({path: resolve(__dirname, '../../.env.test'), override: true});
