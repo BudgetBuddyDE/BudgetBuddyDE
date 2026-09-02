@@ -9,9 +9,8 @@ import {
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import type React from 'react';
 
-export type DateTickerProps<TEnableAccessibleFieldDOMStructure extends boolean = true> =
-  MuiDatePickerProps<TEnableAccessibleFieldDOMStructure>;
-export const DatePicker: React.FC<DateTickerProps<false>> = props => {
+export type DateTickerProps = MuiDatePickerProps;
+export const DatePicker: React.FC<DateTickerProps> = props => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <MuiDatePicker format="dd.MM.yyyy" {...props} />

@@ -1,10 +1,12 @@
 import type {Components, Theme} from '@mui/material/styles';
-import {axisClasses, chartsGridClasses, legendClasses} from '@mui/x-charts';
+import {axisClasses, chartsGridClasses, legendClasses, type PieChartProps} from '@mui/x-charts';
 import type {ChartsComponents} from '@mui/x-charts/themeAugmentation';
 import {shape} from './shape';
 import {colors} from '../DarkTheme/colors';
 
-const ChartOptions: ChartsComponents<Theme> = {
+const ChartOptions: ChartsComponents<Theme> & {
+  MuiPieChart?: {defaultProps?: Partial<PieChartProps>};
+} = {
   MuiBarChart: {
     defaultProps: {
       skipAnimation: true,
@@ -15,7 +17,6 @@ const ChartOptions: ChartsComponents<Theme> = {
       skipAnimation: true,
     },
   },
-  // @ts-expect-error
   MuiPieChart: {
     defaultProps: {
       skipAnimation: true,

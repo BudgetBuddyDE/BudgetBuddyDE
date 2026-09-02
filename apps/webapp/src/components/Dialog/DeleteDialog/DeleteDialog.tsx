@@ -47,7 +47,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
         transition: withTransition ? SlideTransition : undefined,
       }}
     >
-      <DialogTitle variant="h2" textAlign="center">
+      <DialogTitle variant="h2" sx={{textAlign: 'center'}}>
         {text?.title || 'Attention'}
       </DialogTitle>
       <DialogContent>

@@ -43,8 +43,9 @@ export const DateFieldComponent = <T extends FieldValues>({
                 helperText: error?.message,
                 required: field.required,
                 fullWidth: true,
-                placeholder: field.placeholder,
-                ...field.slotProps,
+                slotProps: {
+                  htmlInput: {placeholder: field.placeholder},
+                },
               },
             }}
           />
