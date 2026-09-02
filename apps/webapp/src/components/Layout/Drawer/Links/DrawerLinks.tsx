@@ -6,7 +6,6 @@ export const DrawerLinks = [
     text: 'Dashboard',
     path: '/dashboard',
     icon: DashboardViewIconMapping['/dashboard'],
-    prefetch: true,
   },
   {
     text: 'Transactions',

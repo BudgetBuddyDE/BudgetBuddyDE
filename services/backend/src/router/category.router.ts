@@ -5,12 +5,10 @@ import {
   recurringPayments,
   transactions,
 } from '@budgetbuddyde/db/backend';
-import {fromZonedTime} from 'date-fns-tz';
-import {and, eq, gte, inArray, lt, sql} from 'drizzle-orm';
+import {and, eq, gte, inArray, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
-import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
@@ -139,10 +137,6 @@ categoryRouter.get(
   }),
   async (req, res) => {
     const {from, to} = req.query;
-    const fromDateOnly = from.toISOString().slice(0, 10);
-    const nextDateOnly = new Date(to.getTime() + 86_400_000).toISOString().slice(0, 10);
-    const rangeStart = fromZonedTime(`${fromDateOnly}T00:00:00`, config.timezone);
-    const rangeEnd = fromZonedTime(`${nextDateOnly}T00:00:00`, config.timezone);
     const userId = req.context.user?.id;
     if (!userId) {
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
@@ -167,11 +161,7 @@ categoryRouter.get(
       .from(transactions)
       .leftJoin(categories, eq(transactions.categoryId, categories.id))
       .where(
-        and(
-          eq(transactions.ownerId, userId),
-          gte(transactions.processedAt, rangeStart),
-          lt(transactions.processedAt, rangeEnd),
-        ),
+        and(eq(transactions.ownerId, userId), gte(transactions.processedAt, from), lte(transactions.processedAt, to)),
       )
       .groupBy(transactions.ownerId, transactions.categoryId, categories.name, categories.description);
 

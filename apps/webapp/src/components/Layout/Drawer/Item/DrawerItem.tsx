@@ -11,17 +11,9 @@ export type DrawerItemProps = {
   path: string;
   icon: React.ReactNode;
   closeOnClick?: boolean;
-  prefetch?: boolean;
 };
 
-export const DrawerItem: React.FC<DrawerItemProps> = ({
-  open,
-  text,
-  path,
-  icon,
-  closeOnClick = false,
-  prefetch = false,
-}) => {
+export const DrawerItem: React.FC<DrawerItemProps> = ({open, text, path, icon, closeOnClick = false}) => {
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
@@ -37,9 +29,6 @@ export const DrawerItem: React.FC<DrawerItemProps> = ({
         toggleVisibility();
       }
       router.push(path);
-    },
-    onPrefetch: () => {
-      if (prefetch) router.prefetch(path);
     },
   };
 
@@ -61,8 +50,6 @@ export const DrawerItem: React.FC<DrawerItemProps> = ({
             },
           }}
           onClick={handler.onClick}
-          onMouseEnter={handler.onPrefetch}
-          onFocus={handler.onPrefetch}
         >
           <ListItemIcon
             sx={{

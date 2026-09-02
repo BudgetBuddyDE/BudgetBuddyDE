@@ -2,7 +2,6 @@ import type {Action, ThunkAction} from '@reduxjs/toolkit';
 import {combineSlices, configureStore} from '@reduxjs/toolkit';
 import {budgetSlice} from './features/budgets/budgetSlice';
 import {categorySlice} from './features/categories/categorySlice';
-import {dashboardSlice} from './features/dashboard/dashboardSlice';
 import {paymentMethodSlice} from './features/paymentMethods/paymentMethodSlice';
 import {recurringPaymentSlice} from './features/recurringPayments/recurringPaymentSlice';
 import {transactionSlice} from './features/transactions/transactionSlice';
@@ -15,7 +14,6 @@ const rootReducer = combineSlices(
   transactionSlice,
   recurringPaymentSlice,
   budgetSlice,
-  dashboardSlice,
 );
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof rootReducer>;
