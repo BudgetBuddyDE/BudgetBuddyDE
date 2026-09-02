@@ -1,8 +1,7 @@
-import type {ReadonlyHeaders} from 'next/dist/server/web/spec-extension/adapters/headers';
 import {headers as NextHeaders} from 'next/headers';
 import {logger} from '@/logger';
 
-export async function headers(): Promise<ReadonlyHeaders | Headers> {
+export async function headers() {
   const nextHeaders = await NextHeaders();
   const HOST_DOMAIN = process.env.RAILWAY_PUBLIC_DOMAIN;
   if (!nextHeaders.has('origin') && HOST_DOMAIN) {

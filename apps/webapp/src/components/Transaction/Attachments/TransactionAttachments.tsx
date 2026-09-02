@@ -80,7 +80,7 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
               <Grid key={attachment.id} size={{xs: 6, sm: 4}}>
                 <AttachmentThumbnail
                   attachment={attachment}
-                  priority={index < 6}
+                  preload={index < 6}
                   onView={a => dispatch({type: 'VIEW_OPEN', attachment: a})}
                   onDownload={handleDownload}
                   onDelete={a => dispatch({type: 'DELETE_OPEN', attachmentId: a.id})}

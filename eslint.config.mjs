@@ -1,7 +1,7 @@
 import js from '@eslint/js';
+import nextPlugin from '@next/eslint-plugin-next';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
-import reactHooks from 'eslint-plugin-react-hooks';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -16,12 +16,15 @@ const tsProjects = [
 
 const sourceFiles = [
   'vitest.config.ts',
+  'apps/webapp/next.config.mjs',
   'apps/webapp/src/**/*.{js,jsx,ts,tsx}',
   'examples/*/src/**/*.{js,jsx,ts,tsx}',
   'packages/*/src/**/*.{js,jsx,ts,tsx}',
   'services/*/src/**/*.{js,jsx,ts,tsx}',
   'services/*/instrumentation.ts',
 ];
+
+const webappSourceFiles = ['apps/webapp/src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}'];
 
 const testGlobals = {
   afterAll: 'readonly',
@@ -54,6 +57,22 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: webappSourceFiles,
+    plugins: {
+      '@next/next': nextPlugin,
+    },
+    settings: {
+      next: {
+        rootDir: 'apps/webapp/',
+      },
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      '@next/next/no-html-link-for-pages': 'off',
+    },
+  },
+  {
     files: sourceFiles,
     languageOptions: {
       ecmaVersion: 'latest',
@@ -70,7 +89,6 @@ export default tseslint.config(
     },
     plugins: {
       import: importPlugin,
-      'react-hooks': reactHooks,
       'unused-imports': unusedImports,
     },
     settings: {

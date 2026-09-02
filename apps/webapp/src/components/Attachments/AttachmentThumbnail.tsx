@@ -51,7 +51,7 @@ export type AttachmentThumbnailProps = {
    * When true the image is fetched with high priority (no lazy loading + preload link).
    * Pass this for items in the first visible row.
    */
-  priority?: boolean;
+  preload?: boolean;
 };
 
 /**
@@ -60,10 +60,12 @@ export type AttachmentThumbnailProps = {
  * Falls back to a placeholder when the image cannot be loaded.
  */
 export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
-  ({attachment, onView, onDownload, onDelete, priority = false}) => {
+  ({attachment, onView, onDownload, onDelete, preload = false}) => {
     const theme = useTheme();
     const [imgError, setImgError] = useState(false);
     const [imgLoaded, setImgLoaded] = useState(false);
+    const imageHostname = new URL(attachment.signedUrl).hostname;
+    const isLocalImage = imageHostname === 'localhost' || imageHostname === '127.0.0.1';
 
     return (
       <Card
@@ -98,9 +100,9 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
                 src={attachment.signedUrl}
                 alt={attachment.fileName}
                 fill
-                priority={priority}
+                preload={preload}
+                unoptimized={isLocalImage}
                 sizes="(max-width: 600px) 50vw, (max-width: 960px) 33vw, 25vw"
-                loading={priority ? 'eager' : 'lazy'}
                 onLoad={() => setImgLoaded(true)}
                 onError={() => setImgError(true)}
                 style={{

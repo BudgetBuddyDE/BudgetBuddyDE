@@ -1,6 +1,6 @@
-import {Box, Button, Grid, Typography} from '@mui/material';
-import NextLink from 'next/link';
+import {Box, Grid, Typography} from '@mui/material';
 import {ActionPaper} from '@/components/ActionPaper';
+import {LinkButton} from '@/components/Button';
 import {Footer} from '@/components/Layout/Footer';
 import {UnauthenticatedMain} from '@/components/Layout/Main/UnauthenticatedMain';
 
@@ -24,19 +24,19 @@ export default function NotFoundPage() {
 
         <Grid container spacing={2}>
           <Grid size={{xs: 12, md: 4}}>
-            <Button LinkComponent={NextLink} href="/" fullWidth>
+            <LinkButton href="/" fullWidth>
               Home
-            </Button>
+            </LinkButton>
           </Grid>
           <Grid size={{xs: 12, md: 4}}>
-            <Button LinkComponent={NextLink} href="/sign-in" fullWidth>
+            <LinkButton href="/sign-in" fullWidth>
               Sign in
-            </Button>
+            </LinkButton>
           </Grid>
           <Grid size={{xs: 12, md: 4}}>
-            <Button LinkComponent={NextLink} href="/sign-up" fullWidth>
+            <LinkButton href="/sign-up" fullWidth>
               Sign up
-            </Button>
+            </LinkButton>
           </Grid>
         </Grid>
       </ActionPaper>

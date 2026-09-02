@@ -14,7 +14,7 @@ vi.mock('next/image', () => ({
       height: _height,
       unoptimized: _unoptimized,
       sizes: _sizes,
-      priority: _priority,
+      preload: _preload,
       quality: _quality,
       onLoadingComplete: _onLoadingComplete,
       blurDataURL: _blurDataURL,
@@ -27,6 +27,15 @@ vi.mock('next/image', () => ({
     ref: any,
   ) {
     return React.createElement('img', {src, alt, ref, ...rest});
+  }),
+}));
+
+vi.mock('next/link', () => ({
+  default: React.forwardRef(function NextLinkMock(
+    {children, ...props}: React.PropsWithChildren<React.AnchorHTMLAttributes<HTMLAnchorElement>>,
+    ref: React.ForwardedRef<HTMLAnchorElement>,
+  ) {
+    return React.createElement('a', {...props, ref}, children);
   }),
 }));
 

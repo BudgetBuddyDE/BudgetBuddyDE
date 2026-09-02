@@ -1,8 +1,8 @@
-import {Box, Button, Card, Divider, Grid, Typography} from '@mui/material';
+import {Box, Card, Divider, Grid, Typography} from '@mui/material';
 import {headers} from 'next/headers';
-import NextLink from 'next/link';
 import {authClient} from '@/authClient';
 import {AppLogo} from '@/components/AppLogo';
+import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
 
 export default async function MailVerifiedPage() {
@@ -71,14 +71,14 @@ export default async function MailVerifiedPage() {
           <Divider sx={{my: 2}}>Not signed in?</Divider>
 
           {isSignedIn && (
-            <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
+            <LinkButton href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
               Sign in first...
-            </Button>
+            </LinkButton>
           )}
 
-          <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
+          <LinkButton href="/sign-up" variant="contained" fullWidth>
             Create an account
-          </Button>
+          </LinkButton>
         </Card>
       </Grid>
     </Grid>

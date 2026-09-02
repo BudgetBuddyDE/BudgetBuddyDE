@@ -3,7 +3,6 @@ import AppSettingsAltRounded from '@mui/icons-material/AppSettingsAltRounded';
 import CodeRounded from '@mui/icons-material/CodeRounded';
 import LanguageRounded from '@mui/icons-material/LanguageRounded';
 import {Box, Link, Stack, Typography} from '@mui/material';
-import NextLink from 'next/link';
 
 import {Card} from '@/components/Card';
 import {webappConfig} from '@/config';
@@ -29,7 +28,7 @@ export const AppInformation = () => {
           }}
         >
           <LanguageRounded />
-          <Link component={NextLink} href="https://budget-buddy.de" target="_blank">
+          <Link href="https://budget-buddy.de" target="_blank">
             Website
           </Link>
         </Stack>
@@ -43,9 +42,7 @@ export const AppInformation = () => {
           }}
         >
           <AlternateEmailRounded />
-          <Link component={NextLink} href="mailto:contact@budget-buddy.de">
-            Contact
-          </Link>
+          <Link href="mailto:contact@budget-buddy.de">Contact</Link>
         </Stack>
 
         <Stack
@@ -57,7 +54,7 @@ export const AppInformation = () => {
           }}
         >
           <CodeRounded />
-          <Link component={NextLink} href="https://github.com/BudgetBuddyDE/BudgetBuddyDE" target="_blank">
+          <Link href="https://github.com/BudgetBuddyDE/BudgetBuddyDE" target="_blank">
             Source Code
           </Link>
         </Stack>

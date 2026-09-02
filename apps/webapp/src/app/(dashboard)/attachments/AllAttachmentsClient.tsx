@@ -147,7 +147,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
                 onView={handleView}
                 onDownload={handleDownload}
                 onDelete={handleRequestDelete}
-                priority={index < 4}
+                preload={index < 4}
               />
             </Grid>
           ))}
