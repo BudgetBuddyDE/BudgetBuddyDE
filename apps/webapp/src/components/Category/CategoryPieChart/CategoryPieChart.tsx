@@ -23,6 +23,7 @@ export type CategoryPieChartProps = {
   defaultTimeframe?: CategoryPieChartTimeframe;
   transactionsType: CategoryPieChartTransactionType;
   withViewMore?: boolean;
+  initialData?: Stats[];
 };
 
 /**
@@ -109,8 +110,12 @@ export function CategoryPieChart({
   defaultTimeframe = 'MONTH',
   transactionsType,
   withViewMore = false,
+  initialData,
 }: CategoryPieChartProps) {
-  const [state, dispatch] = React.useReducer(reducer, initialState);
+  const [state, dispatch] = React.useReducer(reducer, {
+    ...initialState,
+    data: initialData ? {[defaultTimeframe]: initialData} : {},
+  });
   const [currentTimeframe, setCurrentTimeframe] = React.useState<CategoryPieChartTimeframe>(defaultTimeframe);
 
   // Track mount status to avoid setState on unmounted component
@@ -151,6 +156,10 @@ export function CategoryPieChart({
   );
 
   // Initial load + when default timeframe changes
+  React.useEffect(() => {
+    if (initialData) dispatch({type: 'success', tf: defaultTimeframe, payload: initialData});
+  }, [defaultTimeframe, initialData]);
+
   React.useEffect(() => {
     void fetchData(currentTimeframe);
   }, [currentTimeframe, fetchData]);

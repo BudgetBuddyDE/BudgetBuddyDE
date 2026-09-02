@@ -9,6 +9,7 @@ type CachedResponse = {
 const responseCache = new Map<string, CachedResponse>();
 const inFlightRequests = new Map<string, Promise<Response>>();
 const DEFAULT_TTL_MS = 30_000;
+let cacheGeneration = 0;
 
 function isBrowser() {
   return typeof window !== 'undefined';
@@ -16,7 +17,12 @@ function isBrowser() {
 
 function cacheKey(input: RequestInfo | URL, init?: RequestInit) {
   const headers = new Headers(init?.headers);
-  return `${typeof input === 'string' ? input : input.toString()}|${headers.get('accept') ?? ''}`;
+  return [
+    typeof input === 'string' ? input : input.toString(),
+    headers.get('accept') ?? '',
+    headers.get('authorization') ?? '',
+    headers.get('x-api-key') ?? '',
+  ].join('|');
 }
 
 function toResponse(cached: CachedResponse) {
@@ -37,7 +43,7 @@ export async function fetchWithCache(
 
   if (!canCache) {
     const response = await fetch(input, init);
-    if (method !== 'GET') responseCache.clear();
+    if (method !== 'GET') clearRequestCache();
     return response;
   }
 
@@ -47,6 +53,7 @@ export async function fetchWithCache(
   responseCache.delete(key);
 
   let request = inFlightRequests.get(key);
+  const requestGeneration = cacheGeneration;
   if (!request) {
     request = fetch(input, init);
     inFlightRequests.set(key, request);
@@ -54,7 +61,11 @@ export async function fetchWithCache(
 
   try {
     const response = await request;
-    if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+    if (
+      requestGeneration === cacheGeneration &&
+      response.ok &&
+      response.headers.get('content-type')?.includes('application/json')
+    ) {
       const body = await response.clone().text();
       responseCache.set(key, {
         body,
@@ -71,10 +82,13 @@ export async function fetchWithCache(
 }
 
 export function clearRequestCache() {
+  cacheGeneration += 1;
   responseCache.clear();
+  inFlightRequests.clear();
 }
 
 export function resetRequestCacheForTests() {
+  cacheGeneration = 0;
   responseCache.clear();
   inFlightRequests.clear();
 }

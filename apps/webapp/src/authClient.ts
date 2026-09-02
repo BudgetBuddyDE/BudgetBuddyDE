@@ -22,7 +22,7 @@ export const signOut = (onSuccess?: () => void, onError?: () => void) =>
       onSuccess: () => {
         logger.info('User signed out successfully! Redirecting to sign-in page...');
         onSuccess?.();
-        redirect('/sign-in');
+        window.location.assign('/sign-in');
       },
       onError: _ctx => {
         logger.error('Sign-out request failed');

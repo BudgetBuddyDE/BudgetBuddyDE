@@ -6,22 +6,24 @@ import {Grid} from '@mui/material';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
 import {Formatter} from '@/utils/Formatter';
 
-export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}) => {
-  const currentBalance = estimated.income.received - estimated.expenses.paid;
+export const DashboardStatsWrapper = ({estimated}: {estimated?: TEstimatedBudget}) => {
+  const currentBalance = (estimated?.income.received ?? 0) - (estimated?.expenses.paid ?? 0);
   const estimatedBalance =
-    estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);
+    (estimated?.income.received ?? 0) +
+    (estimated?.income.upcoming ?? 0) -
+    ((estimated?.expenses.paid ?? 0) + (estimated?.expenses.upcoming ?? 0));
   const stats: TStatsCardProps[] = [
     {
       icon: <AddRounded />,
       label: 'Income',
-      value: Formatter.currency.formatBalance(estimated.income.received),
-      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.income.upcoming)}`,
+      value: Formatter.currency.formatBalance(estimated?.income.received ?? 0),
+      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated?.income.upcoming ?? 0)}`,
     },
     {
       icon: <RemoveRounded />,
       label: 'Spendings',
-      value: Formatter.currency.formatBalance(estimated.expenses.paid),
-      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.expenses.upcoming)}`,
+      value: Formatter.currency.formatBalance(estimated?.expenses.paid ?? 0),
+      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated?.expenses.upcoming ?? 0)}`,
     },
     {
       icon: <BalanceRounded />,
@@ -39,7 +41,7 @@ export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}
           size={{xs: idx === list.length - 1 ? 12 : 6, md: 4}}
           sx={{height: 'unset'}}
         >
-          <StatsCard isLoading={false} {...props} />
+          <StatsCard isLoading={!estimated} {...props} />
         </Grid>
       ))}
     </Grid>

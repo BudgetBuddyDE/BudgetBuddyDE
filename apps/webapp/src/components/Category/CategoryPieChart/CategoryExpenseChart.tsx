@@ -2,7 +2,7 @@ import type React from 'react';
 
 import {CategoryPieChart, type CategoryPieChartProps} from '../CategoryPieChart';
 
-export type CategoryExpenseChartProps = Pick<CategoryPieChartProps, 'withViewMore'>;
+export type CategoryExpenseChartProps = Pick<CategoryPieChartProps, 'withViewMore' | 'initialData'>;
 
 /**
  * REVISIT: Rework this component
@@ -10,13 +10,14 @@ export type CategoryExpenseChartProps = Pick<CategoryPieChartProps, 'withViewMor
  *
  * @returns The CategoryExpenseChart component.
  */
-export const CategoryExpenseChart: React.FC<CategoryExpenseChartProps> = ({withViewMore = false}) => {
+export const CategoryExpenseChart: React.FC<CategoryExpenseChartProps> = ({withViewMore = false, initialData}) => {
   return (
     <CategoryPieChart
       title={'Category Expenses'}
       subtitle={'Expenses per category'}
       transactionsType={'EXPENSE'}
       withViewMore={withViewMore}
+      initialData={initialData}
     />
   );
 };
