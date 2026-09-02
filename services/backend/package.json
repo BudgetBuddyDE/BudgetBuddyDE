@@ -45,7 +45,7 @@
     "drizzle-orm": "0.44.7",
     "drizzle-zod": "0.8.3",
     "express": "^5.1.0",
-    "express-rate-limit": "^8.2.2",
+    "express-rate-limit": "^8.7.0",
     "express-zod-safe": "^3.1.0",
     "ioredis": "^5.8.2",
     "multer": "^2.2.0",
