@@ -194,7 +194,12 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
             </FormControl>
 
             <Box>
-              <Typography variant="subtitle2" fontWeight="bold">
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Include
               </Typography>
               <FormGroup>
@@ -202,7 +207,13 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                   control={<Checkbox checked={includeAuth} onChange={event => setIncludeAuth(event.target.checked)} />}
                   label="Auth data"
                 />
-                <Typography variant="caption" color="text.secondary" sx={{ml: 4.5}}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    ml: 4.5,
+                  }}
+                >
                   Profile, sessions, linked accounts and API-key metadata. Secrets are never exported.
                 </Typography>
 
@@ -242,7 +253,13 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                   }
                   label="Attachments"
                 />
-                <Typography variant="caption" color="text.secondary" sx={{ml: 4.5}}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    ml: 4.5,
+                  }}
+                >
                   Uploaded files, attachment metadata and transaction assignments.
                 </Typography>
               </FormGroup>

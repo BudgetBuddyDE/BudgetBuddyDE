@@ -23,7 +23,12 @@ export const ProfileHeader = () => {
   if (isPending || !data) return null;
   return (
     <Box className={styles.profileHeader} sx={{borderRadius: theme => `${theme.shape.borderRadius}px`}}>
-      <Stack flexDirection={'row'} gap={2}>
+      <Stack
+        sx={{
+          flexDirection: 'row',
+          gap: 2,
+        }}
+      >
         <Box sx={{ml: 4, my: 4}}>
           <Avatar
             sx={{
@@ -34,10 +39,20 @@ export const ProfileHeader = () => {
         </Box>
         <Stack sx={{mt: 4}}>
           <Box sx={{mt: 'auto'}}>
-            <Typography variant="h5" fontWeight="bolder">
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 'bolder',
+              }}
+            >
               {data.user.name}
             </Typography>
-            <Typography variant="body2" fontWeight="bolder">
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bolder',
+              }}
+            >
               {data.user.email}
             </Typography>
           </Box>

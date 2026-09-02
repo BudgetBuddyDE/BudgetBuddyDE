@@ -164,7 +164,13 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
         subtitle: 'Concrete recurring payment dates',
         showCount: true,
         children: (
-          <Stack direction={{xs: 'column', md: 'row'}} gap={1} alignItems={{xs: 'stretch', md: 'center'}}>
+          <Stack
+            direction={{xs: 'column', md: 'row'}}
+            sx={{
+              gap: 1,
+              alignItems: {xs: 'stretch', md: 'center'},
+            }}
+          >
             <DateRangePicker
               key={`${dateFrom}-${dateTo}`}
               defaultValue={{startDate: parseLocalDateOnly(dateFrom), endDate: parseLocalDateOnly(dateTo)}}

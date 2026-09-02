@@ -39,7 +39,6 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
       open={Boolean(apiKey)}
       maxWidth="sm"
       fullWidth
-      disableEscapeKeyDown
       slotProps={{
         paper: {elevation: 0},
       }}
@@ -53,15 +52,17 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
         <TextField
           fullWidth
           value={apiKey ?? ''}
-          InputProps={{
-            readOnly: true,
-            endAdornment: apiKey ? (
-              <Tooltip title="Copy API key">
-                <IconButton onClick={() => onCopy(apiKey)} edge="end" aria-label="Copy API key">
-                  <ContentCopyRounded />
-                </IconButton>
-              </Tooltip>
-            ) : undefined,
+          slotProps={{
+            input: {
+              readOnly: true,
+              endAdornment: apiKey ? (
+                <Tooltip title="Copy API key">
+                  <IconButton onClick={() => onCopy(apiKey)} edge="end" aria-label="Copy API key">
+                    <ContentCopyRounded />
+                  </IconButton>
+                </Tooltip>
+              ) : undefined,
+            },
           }}
         />
         <Box sx={{mt: 2}}>

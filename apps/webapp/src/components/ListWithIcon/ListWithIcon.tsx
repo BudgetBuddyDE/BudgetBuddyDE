@@ -45,7 +45,13 @@ export const ListWithIcon: React.FC<TListWithIconProps> = ({icon, imageUrl, titl
         <Icon icon={icon} sx={{mr: 1}} />
       )}
       <Box>
-        <Typography fontWeight="bold">{title}</Typography>
+        <Typography
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
+          {title}
+        </Typography>
         {typeof subtitle === 'string' && <Typography>{subtitle}</Typography>}
         {subtitle &&
           Array.isArray(subtitle) &&
@@ -63,7 +69,11 @@ export const ListWithIcon: React.FC<TListWithIconProps> = ({icon, imageUrl, titl
       </Box>
       {amount && (
         <Box sx={{ml: 'auto'}}>
-          <Typography fontWeight="bold">
+          <Typography
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             {typeof amount === 'string'
               ? amount
               : typeof amount === 'object'

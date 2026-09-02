@@ -384,7 +384,11 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
           {status === 'loading' ? (
             <CircularProgress />
           ) : budgets !== null && budgets.length > 0 ? (
-            <Stack rowGap={1}>
+            <Stack
+              sx={{
+                rowGap: 1,
+              }}
+            >
               {budgets.map(budget => {
                 return (
                   <BudgetItem

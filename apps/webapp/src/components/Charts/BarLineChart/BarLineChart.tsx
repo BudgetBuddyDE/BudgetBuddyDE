@@ -2,14 +2,14 @@
 
 import {ChartsTooltip} from '@mui/x-charts';
 import {BarPlot} from '@mui/x-charts/BarChart';
-import {ChartContainer, type ChartContainerProps} from '@mui/x-charts/ChartContainer';
 import {ChartsAxisHighlight} from '@mui/x-charts/ChartsAxisHighlight';
+import {ChartsContainer, type ChartsContainerProps} from '@mui/x-charts/ChartsContainer';
 import {ChartsXAxis} from '@mui/x-charts/ChartsXAxis';
 import {ChartsYAxis} from '@mui/x-charts/ChartsYAxis';
 import {LinePlot, MarkPlot} from '@mui/x-charts/LineChart';
 import type React from 'react';
 
-export type BarLineChartProps = ChartContainerProps;
+export type BarLineChartProps = ChartsContainerProps;
 
 export const BarLineChart: React.FC<BarLineChartProps> = ({...props}) => {
   const defaultProps: Partial<BarLineChartProps> = {
@@ -17,7 +17,7 @@ export const BarLineChart: React.FC<BarLineChartProps> = ({...props}) => {
   };
 
   return (
-    <ChartContainer {...defaultProps} {...props}>
+    <ChartsContainer {...defaultProps} {...props}>
       <ChartsTooltip trigger="axis" />
       <ChartsAxisHighlight x="band" />
       <BarPlot />
@@ -25,6 +25,6 @@ export const BarLineChart: React.FC<BarLineChartProps> = ({...props}) => {
       <MarkPlot />
       <ChartsXAxis />
       <ChartsYAxis />
-    </ChartContainer>
+    </ChartsContainer>
   );
 };

@@ -26,7 +26,12 @@ export function RouteErrorFallback({
 
   return (
     <Stack spacing={1.5} sx={{my: 2}}>
-      <Typography variant="h6" fontWeight={700}>
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 700,
+        }}
+      >
         {title}
       </Typography>
       <Alert severity="error">
@@ -34,7 +39,12 @@ export function RouteErrorFallback({
         Please try again. Your other page sections remain available.
       </Alert>
       {error.digest ? (
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Error reference: {error.digest}
         </Typography>
       ) : null}

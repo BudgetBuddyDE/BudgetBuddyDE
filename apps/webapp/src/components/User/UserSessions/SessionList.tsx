@@ -77,20 +77,52 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
                 </React.Fragment>
               }
               secondary={
-                <Stack flexDirection={'row'}>
-                  <Stack flex={1}>
-                    <Typography variant="body1" color="text.primary">
+                <Stack
+                  sx={{
+                    flexDirection: 'row',
+                  }}
+                >
+                  <Stack
+                    sx={{
+                      flex: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: 'text.primary',
+                      }}
+                    >
                       Created at
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {createdAt}
                     </Typography>
                   </Stack>
-                  <Stack flex={1}>
-                    <Typography variant="body1" color="text.primary">
+                  <Stack
+                    sx={{
+                      flex: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: 'text.primary',
+                      }}
+                    >
                       Expires at
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {expiresAt}
                     </Typography>
                   </Stack>

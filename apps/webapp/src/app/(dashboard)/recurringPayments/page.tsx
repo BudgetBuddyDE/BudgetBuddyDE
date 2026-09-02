@@ -20,7 +20,12 @@ export default async function RecurringPaymentsPage({
       <Grid size="grow">
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>
-            <Stack gap={2} sx={{minWidth: 0}}>
+            <Stack
+              sx={{
+                gap: 2,
+                minWidth: 0,
+              }}
+            >
               <RecurringPaymentsNav view="schedules" />
               <RecurringPaymentTable initialFilters={initialFilters} />
             </Stack>

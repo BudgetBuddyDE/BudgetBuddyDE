@@ -47,15 +47,30 @@ export default function GlobalError({error, reset}: {error: Error & {digest?: st
               </Alert>
 
               <Box sx={{mb: 2, textAlign: 'left'}}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Error type: {errorName}
                 </Typography>
                 {error.digest ? (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     Reference: {error.digest}
                   </Typography>
                 ) : null}
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Occurred at: {occurredAt}
                 </Typography>
                 {process.env.NODE_ENV !== 'production' && error.stack ? (

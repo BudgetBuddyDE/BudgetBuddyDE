@@ -15,10 +15,7 @@ import {Controller, useForm} from 'react-hook-form';
 import {PasswordInput} from '@/components/Form/PasswordInput';
 import {ZoomTransition} from '@/components/Transition';
 
-export type DeleteDialogProps = Pick<
-  MuiDialogProps,
-  'open' | 'onClose' | 'maxWidth' | 'TransitionComponent' | 'TransitionProps' | 'transitionDuration'
-> & {
+export type DeleteDialogProps = Pick<MuiDialogProps, 'open' | 'onClose' | 'maxWidth' | 'transitionDuration'> & {
   onCancel: () => void;
   onConfirm: (password?: string) => void;
   withTransition?: boolean;
@@ -31,7 +28,7 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
   onCancel,
   onConfirm,
   withTransition = false,
-  ...transitionProps
+  transitionDuration,
 }) => {
   const form = useForm<{password: string}>({mode: 'onBlur'});
 
@@ -48,15 +45,10 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
       slotProps={{
         paper: {elevation: 0},
       }}
-      {...transitionProps}
-      // FIXME: Don't use deprecated TransitionComponent prop
-      TransitionComponent={
-        withTransition
-          ? !transitionProps.TransitionComponent
-            ? ZoomTransition
-            : transitionProps.TransitionComponent
-          : undefined
-      }
+      transitionDuration={transitionDuration}
+      slots={{
+        transition: withTransition ? ZoomTransition : undefined,
+      }}
     >
       <DialogTitle variant="h4" sx={{display: 'flex', flexDirection: 'column', textAlign: 'center'}}>
         <WarningRounded fontSize="large" sx={{mx: 'auto'}} />
@@ -70,7 +62,12 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
         noValidate
       >
         <DialogContent>
-          <DialogContentText variant="inherit" textAlign="center">
+          <DialogContentText
+            variant="inherit"
+            sx={{
+              textAlign: 'center',
+            }}
+          >
             Are you sure you want to delete your account? This action is irreversible and will remove all your data
             permanently.
           </DialogContentText>

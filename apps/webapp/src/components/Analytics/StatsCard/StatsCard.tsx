@@ -26,11 +26,22 @@ export const StatsIconStyle: SxProps<Theme> = {
 export const StatsCard: React.FC<TStatsCardProps> = ({label, value, valueInformation, icon, isLoading = false}) => {
   return (
     <Card sx={{position: 'relative', height: '100%', px: 2, py: 1.25}}>
-      <Typography variant="body2" fontWeight={'bold'}>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 'bold',
+        }}
+      >
         {label}
       </Typography>
       {
-        <Typography variant="h5" fontWeight={'bold'} noWrap>
+        <Typography
+          variant="h5"
+          noWrap
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           {isLoading ? <Skeleton width={150} /> : value}
         </Typography>
       }

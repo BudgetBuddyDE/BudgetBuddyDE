@@ -182,11 +182,27 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
             borderBottom: `1px solid ${theme.palette.divider}`,
           })}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Typography variant="body2" fontWeight={'bolder'}>
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bolder',
+              }}
+            >
               {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
             </Typography>
-            <Stack direction="row" gap={1}>
+            <Stack
+              direction="row"
+              sx={{
+                gap: 1,
+              }}
+            >
               <Button
                 size="small"
                 onClick={() => setSelectedIds(new Set())}
@@ -262,7 +278,12 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                       {col.renderHeader ? (
                         col.renderHeader()
                       ) : (
-                        <Typography variant="body1" fontWeight="bolder">
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 'bolder',
+                          }}
+                        >
                           {col.label}
                         </Typography>
                       )}

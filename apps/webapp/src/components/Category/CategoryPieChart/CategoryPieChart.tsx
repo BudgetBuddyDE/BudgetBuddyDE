@@ -236,7 +236,12 @@ export function CategoryPieChart({
       </Card.Body>
       {!isLoading && withViewMore && (
         <Card.Footer>
-          <Stack direction="row" justifyContent="flex-end">
+          <Stack
+            direction="row"
+            sx={{
+              justifyContent: 'flex-end',
+            }}
+          >
             <Button LinkComponent={NextLink} href="/transactions" aria-label="View more transactions">
               View more...
             </Button>

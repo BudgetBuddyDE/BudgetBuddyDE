@@ -79,7 +79,13 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
         >
           <Avatar />
           <Box sx={{ml: '.5rem'}}>
-            <Typography fontWeight="bold">{sessionData.user.name}</Typography>
+            <Typography
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
+              {sessionData.user.name}
+            </Typography>
             <Chip label={'Basic'} variant="outlined" size="small" />
           </Box>
         </Box>

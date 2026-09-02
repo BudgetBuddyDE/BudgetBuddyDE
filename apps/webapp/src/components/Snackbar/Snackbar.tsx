@@ -85,8 +85,9 @@ export const SnackbarProvider: React.FC<React.PropsWithChildren> = ({children}) 
         autoHideDuration={messageInfo?.autoHideDuration || 2000}
         onClose={handleClose}
         message={messageInfo?.message}
-        // REVISIT: Update TransitionProps before production
-        TransitionProps={{onExited: handleExited}}
+        slotProps={{
+          transition: {onExited: handleExited},
+        }}
       />
     </SnackbarContext.Provider>
   );

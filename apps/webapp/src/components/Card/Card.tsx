@@ -7,7 +7,12 @@ export type CardProps = React.PropsWithChildren<PaperProps>;
 export type CardSectionProps = React.PropsWithChildren<PaperProps>;
 
 const Card = forwardRef<HTMLDivElement, CardProps>(({children, sx, ...props}, ref) => (
-  <Paper ref={ref} elevation={3} sx={{p: 2, borderRadius: 2, boxShadow: 'unset', ...sx}} {...props}>
+  <Paper
+    ref={ref}
+    elevation={3}
+    sx={[{p: 2, borderRadius: 2, boxShadow: 'unset'}, ...(Array.isArray(sx) ? sx : [sx])]}
+    {...props}
+  >
     {children}
   </Paper>
 ));
@@ -16,12 +21,17 @@ Card.displayName = 'Card';
 const Header = forwardRef<HTMLDivElement, CardSectionProps>(({children, sx, ...props}, ref) => (
   <Box
     ref={ref}
-    display="flex"
-    alignItems="center"
-    justifyContent="space-between"
-    flexWrap="wrap"
-    sx={{mb: 1, ...sx}}
     {...props}
+    sx={[
+      {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        mb: 1,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
   >
     {children}
   </Box>
@@ -33,7 +43,7 @@ export interface HeaderActionsProps extends CardSectionProps {
 }
 const HeaderActions = forwardRef<HTMLDivElement, HeaderActionsProps>(
   ({children, sx, actionPaperProps, ...props}, ref) => (
-    <Box ref={ref} display="flex" flexDirection="row" sx={sx} {...props}>
+    <Box ref={ref} {...props} sx={[{display: 'flex', flexDirection: 'row'}, ...(Array.isArray(sx) ? sx : [sx])]}>
       <ActionPaper {...actionPaperProps}>{children}</ActionPaper>
     </Box>
   ),
@@ -41,14 +51,19 @@ const HeaderActions = forwardRef<HTMLDivElement, HeaderActionsProps>(
 HeaderActions.displayName = 'CardHeaderActions';
 
 const Title = forwardRef<HTMLSpanElement, CardSectionProps>(({children, sx, ...props}, ref) => (
-  <Typography {...props} ref={ref} variant="subtitle1" sx={sx} fontWeight={'bold'}>
+  <Typography {...props} ref={ref} variant="subtitle1" sx={[{fontWeight: 'bold'}, ...(Array.isArray(sx) ? sx : [sx])]}>
     {children}
   </Typography>
 ));
 Title.displayName = 'CardTitle';
 
 const Subtitle = forwardRef<HTMLSpanElement, CardSectionProps>(({children, sx, ...props}, ref) => (
-  <Typography {...props} ref={ref} variant="subtitle2" color="text.secondary" sx={sx}>
+  <Typography
+    {...props}
+    ref={ref}
+    variant="subtitle2"
+    sx={[{color: 'text.secondary'}, ...(Array.isArray(sx) ? sx : [sx])]}
+  >
     {children}
   </Typography>
 ));

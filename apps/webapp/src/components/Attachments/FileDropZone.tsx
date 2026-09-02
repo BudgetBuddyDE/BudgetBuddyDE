@@ -85,7 +85,12 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
       ) : (
         <CloudUploadRounded fontSize="small" sx={{color: 'text.secondary'}} />
       )}
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        variant="body2"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {isUploading ? 'Uploading…' : 'Click or drag & drop files to upload'}
       </Typography>
       <input

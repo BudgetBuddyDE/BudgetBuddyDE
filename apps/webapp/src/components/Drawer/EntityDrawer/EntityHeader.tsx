@@ -11,13 +11,31 @@ export type EntityHeaderProps = {
 
 export const EntityHeader: React.FC<EntityHeaderProps> = ({title, subtitle, onClose}) => {
   return (
-    <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} sx={{p: 2, pb: 0}}>
+    <Stack
+      direction={'row'}
+      sx={{
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        p: 2,
+        pb: 0,
+      }}
+    >
       <Stack>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           {title}
         </Typography>
         {Boolean(subtitle) && (
-          <Typography variant="subtitle2" fontWeight="bold">
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             {subtitle}
           </Typography>
         )}

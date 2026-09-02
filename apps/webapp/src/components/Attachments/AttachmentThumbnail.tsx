@@ -127,15 +127,36 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
           )}
         </Box>
 
-        <Stack direction="row" alignItems="center" spacing={1.25} sx={{px: 1.5, py: 1.25, minWidth: 0}}>
+        <Stack
+          direction="row"
+          spacing={1.25}
+          sx={{
+            alignItems: 'center',
+            px: 1.5,
+            py: 1.25,
+            minWidth: 0,
+          }}
+        >
           <Icon icon={<ImageRounded />} sx={{flex: '0 0 auto'}} />
           <Stack spacing={0.25} sx={{minWidth: 0, flex: 1}}>
             <Tooltip title={attachment.fileName}>
-              <Typography variant="body2" fontWeight={700} noWrap>
+              <Typography
+                variant="body2"
+                noWrap
+                sx={{
+                  fontWeight: 700,
+                }}
+              >
                 {attachment.fileName}
               </Typography>
             </Tooltip>
-            <Typography variant="caption" color="text.secondary" noWrap>
+            <Typography
+              variant="caption"
+              noWrap
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {Formatter.date.format(attachment.createdAt, true)}
             </Typography>
           </Stack>

@@ -33,7 +33,13 @@ export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) =
       }}
     >
       <VisibilityRounded fontSize="small" />
-      <Typography component="span" variant="body2" fontWeight={600}>
+      <Typography
+        component="span"
+        variant="body2"
+        sx={{
+          fontWeight: 600,
+        }}
+      >
         Preview
       </Typography>
     </Box>

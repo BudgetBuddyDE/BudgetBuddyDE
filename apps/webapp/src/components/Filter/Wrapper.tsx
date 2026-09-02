@@ -169,10 +169,15 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
   return (
     <Stack
       direction="row"
-      gap={1}
-      flexWrap="wrap"
-      alignItems="center"
-      sx={{py: 0.25, ml: 'auto', width: 'fit-content', maxWidth: '100%'}}
+      sx={{
+        gap: 1,
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        py: 0.25,
+        ml: 'auto',
+        width: 'fit-content',
+        maxWidth: '100%',
+      }}
     >
       {transactionDateQuickFilters.length > 0 && (
         <Autocomplete<TransactionDateQuickFilter>

@@ -38,7 +38,12 @@ export type FilterDialogProps = Pick<DialogProps, 'open'> & {
 };
 
 const SectionLabel: React.FC<{label: string}> = ({label}) => (
-  <Typography variant="subtitle2" color="text.secondary">
+  <Typography
+    variant="subtitle2"
+    sx={{
+      color: 'text.secondary',
+    }}
+  >
     {label}
   </Typography>
 );
@@ -82,9 +87,17 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
       />
 
       <DialogContent dividers>
-        <Stack gap={3}>
+        <Stack
+          sx={{
+            gap: 3,
+          }}
+        >
           {withDateRange && (
-            <Stack gap={1}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}
+            >
               <SectionLabel label="Date Range" />
               <DateRangePicker
                 defaultValue={{startDate: state.dateRange.startDate, endDate: state.dateRange.endDate}}
@@ -115,7 +128,11 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           )}
 
           {withRecurringPaymentStatus && (
-            <Stack gap={1}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}
+            >
               <SectionLabel label="Status" />
               <ToggleButtonGroup
                 size="small"
@@ -134,7 +151,11 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           )}
 
           {withCategories && (
-            <Stack gap={1}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}
+            >
               <SectionLabel label="Categories" />
               <Autocomplete<TCategoryVH, true>
                 name="filter-categories"
@@ -153,7 +174,11 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           )}
 
           {withPaymentMethods && (
-            <Stack gap={1}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}
+            >
               <SectionLabel label="Payment Methods" />
               <Autocomplete<TPaymentMethodVH, true>
                 name="filter-payment-methods"

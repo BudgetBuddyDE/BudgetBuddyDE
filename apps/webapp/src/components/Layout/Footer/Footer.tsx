@@ -4,7 +4,13 @@ import {webappConfig} from '@/config';
 export const Footer = () => {
   return (
     <Box sx={{py: 3}}>
-      <Typography variant="body2" color="text.secondary" align="center">
+      <Typography
+        variant="body2"
+        align="center"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {'© '} {new Date().getFullYear()}{' '}
         <Link color="inherit" href="https://budget-buddy.de">
           BudgetBuddyDE

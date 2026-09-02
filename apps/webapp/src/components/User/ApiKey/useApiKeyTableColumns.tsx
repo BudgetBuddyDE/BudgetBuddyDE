@@ -32,7 +32,12 @@ export const useApiKeyTableColumns = (onDeleteApiKey: (apiKeyId: ApiKey['id']) =
         key: 'name',
         label: 'Name',
         renderCell: value => (
-          <Typography variant="body2" fontWeight="medium">
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 'medium',
+            }}
+          >
             {(value as string | null) || 'Unnamed'}
           </Typography>
         ),
@@ -41,7 +46,12 @@ export const useApiKeyTableColumns = (onDeleteApiKey: (apiKeyId: ApiKey['id']) =
         key: 'prefix',
         label: 'Key',
         renderCell: (_value, row) => (
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {row.start ? `${row.start}...` : 'Hidden'}
           </Typography>
         ),
@@ -71,7 +81,12 @@ export const useApiKeyTableColumns = (onDeleteApiKey: (apiKeyId: ApiKey['id']) =
         renderCell: (_value, row) => (
           <Stack spacing={0.25}>
             <Typography variant="body2">{row.requestCount} requests</Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {row.remaining === null ? 'Unlimited remaining' : `${row.remaining} remaining`}
             </Typography>
           </Stack>

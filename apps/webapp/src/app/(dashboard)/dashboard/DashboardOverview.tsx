@@ -92,7 +92,12 @@ export function DashboardOverview() {
         <DashboardStatsWrapper />
       )}
 
-      <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
+      <Grid
+        size={{xs: 12, md: 6, lg: 4}}
+        sx={{
+          order: {xs: 3, md: 1},
+        }}
+      >
         {recurringPaymentOccurrences.data ? (
           <RecurringPaymentList
             title="Upcoming recurring payments"
@@ -120,7 +125,12 @@ export function DashboardOverview() {
         )}
       </Grid>
 
-      <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 1, md: 2}}>
+      <Grid
+        size={{xs: 12, md: 6, lg: 4}}
+        sx={{
+          order: {xs: 1, md: 2},
+        }}
+      >
         <Stack spacing={2}>
           {categoryExpenses.data ? (
             <CategoryExpenseChart initialData={categoryExpenses.data} />
@@ -146,7 +156,12 @@ export function DashboardOverview() {
         </Stack>
       </Grid>
 
-      <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 2, md: 3}}>
+      <Grid
+        size={{xs: 12, md: 6, lg: 4}}
+        sx={{
+          order: {xs: 2, md: 3},
+        }}
+      >
         <Stack spacing={2}>
           {latestTransactions.data ? (
             <TransactionList

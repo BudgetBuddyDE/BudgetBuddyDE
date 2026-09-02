@@ -12,10 +12,7 @@ import {
 import type React from 'react';
 import {SlideTransition} from '@/components/Transition';
 
-export type DeleteDialogProps = Pick<
-  MuiDialogProps,
-  'open' | 'onClose' | 'maxWidth' | 'TransitionComponent' | 'TransitionProps' | 'transitionDuration'
-> & {
+export type DeleteDialogProps = Pick<MuiDialogProps, 'open' | 'onClose' | 'maxWidth' | 'transitionDuration'> & {
   onCancel: () => void;
   onConfirm: () => void;
   withTransition?: boolean;
@@ -33,7 +30,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
   onConfirm,
   withTransition = false,
   text,
-  ...transitionProps
+  transitionDuration,
 }) => {
   return (
     <Dialog
@@ -45,20 +42,21 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
       slotProps={{
         paper: {elevation: 0},
       }}
-      {...transitionProps}
-      TransitionComponent={
-        withTransition
-          ? !transitionProps.TransitionComponent
-            ? SlideTransition
-            : transitionProps.TransitionComponent
-          : undefined
-      }
+      transitionDuration={transitionDuration}
+      slots={{
+        transition: withTransition ? SlideTransition : undefined,
+      }}
     >
       <DialogTitle variant="h2" textAlign="center">
         {text?.title || 'Attention'}
       </DialogTitle>
       <DialogContent>
-        <DialogContentText variant="inherit" textAlign="center">
+        <DialogContentText
+          variant="inherit"
+          sx={{
+            textAlign: 'center',
+          }}
+        >
           {text?.content || 'Are you sure you want to delete these entries?'}
         </DialogContentText>
       </DialogContent>

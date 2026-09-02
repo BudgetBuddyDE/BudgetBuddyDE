@@ -18,7 +18,12 @@ export const PageHeader: React.FC<TPageHeaderProps> = ({
 }) => {
   return (
     <Grid size={{xs: 12}} {...gridProps}>
-      <Stack flexDirection={'row'} columnGap={2}>
+      <Stack
+        sx={{
+          flexDirection: 'row',
+          columnGap: 2,
+        }}
+      >
         {withNavigateBack && (
           <GoBack
             withNavigation
@@ -27,11 +32,23 @@ export const PageHeader: React.FC<TPageHeaderProps> = ({
           />
         )}
         <Stack>
-          <Typography variant="h5" fontWeight="bold" sx={{m: 0}}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 'bold',
+              m: 0,
+            }}
+          >
             {title}
           </Typography>
           {description && (
-            <Typography variant="h6" fontWeight="bold" sx={{m: 0}}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 'bold',
+                m: 0,
+              }}
+            >
               {description}
             </Typography>
           )}

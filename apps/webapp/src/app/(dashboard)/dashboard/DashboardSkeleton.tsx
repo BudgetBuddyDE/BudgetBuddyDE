@@ -39,16 +39,31 @@ export function DashboardSkeleton() {
     <>
       <Grid size={{xs: 12}} sx={{height: 2}} />
       <DashboardStatsWrapper />
-      <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 3, md: 1}}>
+      <Grid
+        size={{xs: 12, md: 6, lg: 4}}
+        sx={{
+          order: {xs: 3, md: 1},
+        }}
+      >
         <DashboardCardSkeleton title="Upcoming recurring payments" subtitle="Your upcoming recurring payments" />
       </Grid>
-      <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 1, md: 2}}>
+      <Grid
+        size={{xs: 12, md: 6, lg: 4}}
+        sx={{
+          order: {xs: 1, md: 2},
+        }}
+      >
         <Stack spacing={2}>
           <DashboardCardSkeleton title="Category Expenses" subtitle="Expenses per category" chart />
           <DashboardCardSkeleton title="Budget" subtitle="How much can you spend?" chart />
         </Stack>
       </Grid>
-      <Grid size={{xs: 12, md: 6, lg: 4}} order={{xs: 2, md: 3}}>
+      <Grid
+        size={{xs: 12, md: 6, lg: 4}}
+        sx={{
+          order: {xs: 2, md: 3},
+        }}
+      >
         <Stack spacing={2}>
           <DashboardCardSkeleton title="Transactions" subtitle="Your latest transactions" />
           <DashboardCardSkeleton title="Transactions" subtitle="Your upcoming transactions" />

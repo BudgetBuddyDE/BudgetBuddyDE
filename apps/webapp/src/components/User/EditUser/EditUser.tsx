@@ -223,7 +223,13 @@ export const EditUser = () => {
               </Grid>
             </Grid>
 
-            <Stack direction={'row'} justifyContent={'space-between'} sx={{mt: 2}}>
+            <Stack
+              direction={'row'}
+              sx={{
+                justifyContent: 'space-between',
+                mt: 2,
+              }}
+            >
               <Button startIcon={<DeleteRounded />} color="error" onClick={accountDeletionHandler.onClickDelete}>
                 Delete account
               </Button>

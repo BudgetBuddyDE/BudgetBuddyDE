@@ -98,7 +98,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       </SearchIconWrapper>
       <StyledInputBase
         placeholder={placeholder}
-        inputProps={{'aria-label': 'search'}}
+        slotProps={{input: {'aria-label': 'search'}}}
         {...props}
         value={value}
         onChange={handleChange}

@@ -31,7 +31,13 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
   const isOverBudget: boolean = (budget.balance ?? 0) > budget.budget;
 
   return (
-    <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'}>
+    <Stack
+      sx={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+    >
       <Stack
         sx={{
           flex: 1,
@@ -58,13 +64,28 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
           sx={{mr: 1}}
         />
         <Box sx={{mr: 1}}>
-          <Stack flexDirection={'row'} gap={1}>
-            <Typography variant="body1" fontWeight="bolder">
+          <Stack
+            sx={{
+              flexDirection: 'row',
+              gap: 1,
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{
+                fontWeight: 'bolder',
+              }}
+            >
               {budget.name}
             </Typography>
             <Chip label={budget.type === 'i' ? 'Include' : 'Exclude'} variant="outlined" />
           </Stack>
-          <Stack flexDirection={'row'} columnGap={1}>
+          <Stack
+            sx={{
+              flexDirection: 'row',
+              columnGap: 1,
+            }}
+          >
             {budget.categories.map(({id, name}) => (
               <Chip key={id} label={name} variant="outlined" />
             ))}
@@ -79,7 +100,11 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
             columnGap: 0.5,
           }}
         >
-          <Typography fontWeight="bold">
+          <Typography
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             {Formatter.currency.formatBalance(budget.balance <= 0 ? 0 : budget.balance)} /{' '}
             {Formatter.currency.formatBalance(budget.budget)}
           </Typography>

@@ -112,7 +112,12 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
                       {col.renderHeader ? (
                         col.renderHeader()
                       ) : (
-                        <Typography variant="body1" fontWeight="bolder">
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 'bolder',
+                          }}
+                        >
                           {col.label}
                         </Typography>
                       )}

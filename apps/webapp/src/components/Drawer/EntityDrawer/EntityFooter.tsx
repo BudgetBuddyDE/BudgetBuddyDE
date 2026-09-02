@@ -8,7 +8,15 @@ export type EntityFooterProps = {
 
 export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProps>(({isLoading, onClose}, ref) => {
   return (
-    <Stack direction={'row'} justifyContent={'flex-end'} sx={{mt: 'auto', p: 2, pt: 0}}>
+    <Stack
+      direction={'row'}
+      sx={{
+        justifyContent: 'flex-end',
+        mt: 'auto',
+        p: 2,
+        pt: 0,
+      }}
+    >
       <Button sx={{mr: 2}} onClick={onClose}>
         Close
       </Button>

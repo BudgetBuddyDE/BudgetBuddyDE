@@ -204,7 +204,12 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
       <Card.Body sx={{pt: 1}}>{renderContent()}</Card.Body>
       {!state.isLoading && withViewMore && (
         <Card.Footer>
-          <Stack direction="row" justifyContent="flex-end">
+          <Stack
+            direction="row"
+            sx={{
+              justifyContent: 'flex-end',
+            }}
+          >
             <Button LinkComponent={NextLink} href={occurrenceViewHref} aria-label="View more recurring payments">
               View more...
             </Button>

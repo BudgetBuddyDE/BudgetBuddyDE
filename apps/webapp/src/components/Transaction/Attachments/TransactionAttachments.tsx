@@ -66,7 +66,13 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
         </Grid>
       ) : attachments.length > 0 ? (
         <>
-          <Typography variant="body2" color="text.secondary" sx={{mb: 1}}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+              mb: 1,
+            }}
+          >
             Showing {attachments.length} of {totalCount} attachments
           </Typography>
           <Grid container spacing={1}>

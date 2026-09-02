@@ -37,7 +37,14 @@ export const TransactionAttachmentsDialog: React.FC<TransactionAttachmentsDialog
       <DialogTitle>
         Attachments
         {transaction && (
-          <Typography variant="body2" color="text.secondary" component="span" sx={{ml: 1}}>
+          <Typography
+            variant="body2"
+            component="span"
+            sx={{
+              color: 'text.secondary',
+              ml: 1,
+            }}
+          >
             — {transaction.receiver}
           </Typography>
         )}

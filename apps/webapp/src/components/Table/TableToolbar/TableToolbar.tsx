@@ -73,12 +73,22 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
       {(hasTitle || hasSubtitle) && (
         <Box>
           {hasTitle && (
-            <Typography variant="subtitle1" fontWeight="bold">
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               {title}
             </Typography>
           )}
           {hasSubtitle && (
-            <Typography variant="subtitle2" color="text.secondary">
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {subtitle}
             </Typography>
           )}

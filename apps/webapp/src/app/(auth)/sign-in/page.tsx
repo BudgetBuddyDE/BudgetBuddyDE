@@ -47,10 +47,20 @@ export default function SignInPage() {
   }
 
   return (
-    <Grid container justifyContent={'center'}>
+    <Grid
+      container
+      sx={{
+        justifyContent: 'center',
+      }}
+    >
       <Grid size={{xs: 12, md: 4, xl: 3.5}}>
         <Card sx={{py: 3, px: 4}}>
-          <Box display="flex" flexDirection="column">
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             <AppLogo
               style={{
                 marginLeft: 'auto',
@@ -61,7 +71,14 @@ export default function SignInPage() {
               height={96}
             />
 
-            <Typography variant={'h5'} textAlign={'center'} fontWeight={'bolder'} sx={{mt: 2}}>
+            <Typography
+              variant={'h5'}
+              sx={{
+                textAlign: 'center',
+                fontWeight: 'bolder',
+                mt: 2,
+              }}
+            >
               Sign in
             </Typography>
           </Box>
