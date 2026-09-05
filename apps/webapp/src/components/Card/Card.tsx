@@ -1,20 +1,31 @@
-import {Box, Paper, type PaperProps, Typography} from '@mui/material';
-import type React from 'react';
+import {
+  Box,
+  type BoxProps,
+  Card as MuiCard,
+  CardActions,
+  type CardActionsProps,
+  CardContent,
+  type CardContentProps,
+  type CardProps as MuiCardProps,
+  type PaperProps,
+  Typography,
+  type TypographyProps,
+} from '@mui/material';
 import {forwardRef} from 'react';
 import {ActionPaper} from '../ActionPaper';
 
-export type CardProps = React.PropsWithChildren<PaperProps>;
-export type CardSectionProps = React.PropsWithChildren<PaperProps>;
+export type CardProps = MuiCardProps;
+export type CardSectionProps = BoxProps;
 
 const Card = forwardRef<HTMLDivElement, CardProps>(({children, sx, ...props}, ref) => (
-  <Paper
+  <MuiCard
     ref={ref}
     elevation={3}
     sx={[{p: 2, borderRadius: 2, boxShadow: 'unset'}, ...(Array.isArray(sx) ? sx : [sx])]}
     {...props}
   >
     {children}
-  </Paper>
+  </MuiCard>
 ));
 Card.displayName = 'Card';
 
@@ -50,14 +61,14 @@ const HeaderActions = forwardRef<HTMLDivElement, HeaderActionsProps>(
 );
 HeaderActions.displayName = 'CardHeaderActions';
 
-const Title = forwardRef<HTMLSpanElement, CardSectionProps>(({children, sx, ...props}, ref) => (
+const Title = forwardRef<HTMLSpanElement, TypographyProps>(({children, sx, ...props}, ref) => (
   <Typography {...props} ref={ref} variant="subtitle1" sx={[{fontWeight: 'bold'}, ...(Array.isArray(sx) ? sx : [sx])]}>
     {children}
   </Typography>
 ));
 Title.displayName = 'CardTitle';
 
-const Subtitle = forwardRef<HTMLSpanElement, CardSectionProps>(({children, sx, ...props}, ref) => (
+const Subtitle = forwardRef<HTMLSpanElement, TypographyProps>(({children, sx, ...props}, ref) => (
   <Typography
     {...props}
     ref={ref}
@@ -69,17 +80,17 @@ const Subtitle = forwardRef<HTMLSpanElement, CardSectionProps>(({children, sx, .
 ));
 Subtitle.displayName = 'CardSubtitle';
 
-const Body = forwardRef<HTMLDivElement, CardSectionProps>(({children, sx, ...props}, ref) => (
-  <Box ref={ref} sx={sx} {...props}>
+const Body = forwardRef<HTMLDivElement, CardContentProps>(({children, sx, ...props}, ref) => (
+  <CardContent ref={ref} sx={[{p: 0, '&:last-child': {pb: 0}}, ...(Array.isArray(sx) ? sx : [sx])]} {...props}>
     {children}
-  </Box>
+  </CardContent>
 ));
 Body.displayName = 'CardBody';
 
-const Footer = forwardRef<HTMLDivElement, CardSectionProps>(({children, sx, ...props}, ref) => (
-  <Box ref={ref} sx={sx} {...props}>
+const Footer = forwardRef<HTMLDivElement, CardActionsProps>(({children, sx, ...props}, ref) => (
+  <CardActions ref={ref} disableSpacing sx={[{p: 0}, ...(Array.isArray(sx) ? sx : [sx])]} {...props}>
     {children}
-  </Box>
+  </CardActions>
 ));
 Footer.displayName = 'CardFooter';
 
