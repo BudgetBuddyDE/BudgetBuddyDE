@@ -710,6 +710,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     }),
     [recurringPayments, status, error, totalEntityCount],
   );
+  const hasActiveFilters = serializeRecurringPaymentFilters(filters).toString().length > 0;
 
   // Initialize filters from URL params on mount — always dispatch to clear any stale Redux state
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
@@ -768,6 +769,17 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         }}
         emptyMessage={
           filters.keyword ? `No recurring payments found for "${filters.keyword}"` : 'No recurring payments found'
+        }
+        emptyState={
+          recurringPayments !== null && totalEntityCount === 0 && !hasActiveFilters
+            ? {
+                variant: 'create',
+                title: 'Create your first recurring payment',
+                description: 'Add a recurring income or expense to keep your schedule accurate.',
+                createLabel: 'Create recurring payment',
+                onCreate: handleCreateEntity,
+              }
+            : undefined
         }
         withSelection
         onDeleteSelectedEntities={entities => {

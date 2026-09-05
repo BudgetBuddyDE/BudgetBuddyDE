@@ -23,7 +23,7 @@ import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
-import {NoResults} from '@/components/NoResults';
+import {NoResults, type NoResultsProps} from '@/components/NoResults';
 import type {BasicTableProps, ColumnDefinition} from '../BasicTable';
 import {Pagination, type PaginationProps} from '../Pagination';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
@@ -51,6 +51,7 @@ export type EntityTableProps<T, K extends keyof T = keyof T> = {
   };
   pagination?: Omit<PaginationProps, 'count'>;
   emptyMessage?: string;
+  emptyState?: Omit<NoResultsProps, 'sx' | 'text'>;
   stickyHeader?: boolean;
   maxHeight?: number | string;
   rowHeight?: number;
@@ -71,6 +72,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
   toolbar,
   pagination,
   emptyMessage = 'No items found',
+  emptyState,
   stickyHeader = true,
   maxHeight,
   rowHeight = 52,
@@ -243,7 +245,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
       )}
 
       <Box sx={{px: 0}}>
-        {!isLoading && !hasError && data.length === 0 && <NoResults text={emptyMessage} sx={{m: 2}} />}
+        {!isLoading && !hasError && data.length === 0 && <NoResults text={emptyMessage} sx={{m: 2}} {...emptyState} />}
 
         {hasError && <ErrorAlert error={errorMessage} sx={{m: 2}} />}
 

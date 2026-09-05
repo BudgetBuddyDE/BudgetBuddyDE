@@ -407,7 +407,14 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
               })}
             </Stack>
           ) : (
-            <NoResults text={"You haven't created any budgets yet! Create one..."} />
+            <NoResults
+              variant="create"
+              title="Create your first budget"
+              description="Set a spending limit to keep your finances on track."
+              createLabel="Create budget"
+              onCreate={handleCreateEntity}
+              sx={{borderStyle: 'solid'}}
+            />
           )}
         </Card.Body>
         <Card.Footer>

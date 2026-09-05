@@ -351,6 +351,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     }),
     [categories, status, error, totalEntityCount],
   );
+  const hasActiveFilters = serializeKeywordFilter(filters).toString().length > 0;
 
   const selectionActions: SelectionAction<TCategory>[] = React.useMemo(() => {
     return [
@@ -422,6 +423,17 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         }}
         onRowClick={handleClickEntity}
         emptyMessage={filters.keyword ? `No categories found for "${filters.keyword}"` : 'No categories found'}
+        emptyState={
+          categories !== null && totalEntityCount === 0 && !hasActiveFilters
+            ? {
+                variant: 'create',
+                title: 'Create your first category',
+                description: 'Organize your transactions with categories that match your spending.',
+                createLabel: 'Create category',
+                onCreate: handleCreateEntity,
+              }
+            : undefined
+        }
         withSelection
         onDeleteSelectedEntities={entities => {
           dispatchDeleteDialogAction({action: 'OPEN', target: entities});

@@ -662,6 +662,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     }),
     [transactions, status, error, totalEntityCount],
   );
+  const hasActiveFilters = serializeTransactionFilters(filters).toString().length > 0;
 
   // Initialize filters from URL params on mount — always dispatch to clear any stale Redux state
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
@@ -719,6 +720,17 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           ),
         }}
         emptyMessage={filters.keyword ? `No transactions found for "${filters.keyword}"` : 'No transactions found'}
+        emptyState={
+          transactions !== null && totalEntityCount === 0 && !hasActiveFilters
+            ? {
+                variant: 'create',
+                title: 'Create your first transaction',
+                description: 'Add an income or expense to keep your finances up to date.',
+                createLabel: 'Create transaction',
+                onCreate: handleCreateEntity,
+              }
+            : undefined
+        }
         withSelection
         onDeleteSelectedEntities={entities => {
           dispatchDeleteDialogAction({action: 'OPEN', target: entities});

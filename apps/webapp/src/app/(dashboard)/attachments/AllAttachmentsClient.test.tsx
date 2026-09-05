@@ -5,6 +5,9 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 
 import {apiClient} from '@/apiClient';
+
+const {noResultsMock} = vi.hoisted(() => ({noResultsMock: vi.fn()}));
+
 vi.mock('@mui/icons-material', () => ({
   AttachFileRounded: () => null,
 }));
@@ -36,7 +39,7 @@ vi.mock('@/components/Dialog', () => ({
 }));
 
 vi.mock('@/components/NoResults', () => ({
-  NoResults: () => null,
+  NoResults: noResultsMock,
 }));
 
 import {AllAttachmentsClient} from './AllAttachmentsClient';
@@ -53,6 +56,12 @@ const makeAttachment = (id: number): TAttachmentWithUrl => ({
 });
 
 describe('AllAttachmentsClient', () => {
+  it('elevates the empty state above the page background', () => {
+    render(<AllAttachmentsClient initialAttachments={[]} />);
+
+    expect(noResultsMock).toHaveBeenCalledWith(expect.objectContaining({sx: {boxShadow: 6}}), undefined);
+  });
+
   it('loads the next server page when Load more is clicked', async () => {
     const initialAttachments = Array.from({length: 20}, (_, index) => makeAttachment(index));
     const nextAttachments = Array.from({length: 5}, (_, index) => makeAttachment(index + 20));

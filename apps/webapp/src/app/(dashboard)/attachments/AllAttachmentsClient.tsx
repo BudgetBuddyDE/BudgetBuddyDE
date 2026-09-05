@@ -137,7 +137,11 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
   return (
     <>
       {attachments.length === 0 ? (
-        <NoResults icon={<EntityIcon entity="attachment" />} text="No attachments have been added yet" />
+        <NoResults
+          icon={<EntityIcon entity="attachment" />}
+          text="No attachments have been added yet"
+          sx={{boxShadow: 6}}
+        />
       ) : (
         <Grid container spacing={2}>
           {visibleAttachments.map((attachment, index) => (

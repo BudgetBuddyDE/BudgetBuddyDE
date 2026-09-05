@@ -70,6 +70,28 @@ describe('EntityTable', () => {
     expect(screen.getByText('No users available')).toBeInTheDocument();
   });
 
+  it('renders and invokes the empty-state create action', () => {
+    const onCreate = vi.fn();
+    const slice: EntitySlice<User> = {
+      data: [],
+      isLoading: false,
+      error: null,
+    };
+
+    render(
+      <EntityTable
+        slice={slice}
+        dataKey="id"
+        columns={mockColumns}
+        emptyState={{variant: 'create', createLabel: 'Create user', onCreate}}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', {name: 'Create user'}));
+
+    expect(onCreate).toHaveBeenCalledOnce();
+  });
+
   it('shows count in toolbar title when showCount is true', () => {
     const slice: EntitySlice<User> = {
       data: mockUsers,

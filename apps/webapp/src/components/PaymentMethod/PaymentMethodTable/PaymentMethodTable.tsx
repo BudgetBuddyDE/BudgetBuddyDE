@@ -343,6 +343,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     }),
     [paymentMethods, status, error, totalEntityCount],
   );
+  const hasActiveFilters = serializeKeywordFilter(filters).toString().length > 0;
 
   const selectionActions: SelectionAction<TPaymentMethod>[] = React.useMemo(() => {
     return [
@@ -414,6 +415,17 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         }}
         emptyMessage={
           filters.keyword ? `No payment methods found for "${filters.keyword}"` : 'No payment methods found'
+        }
+        emptyState={
+          paymentMethods !== null && totalEntityCount === 0 && !hasActiveFilters
+            ? {
+                variant: 'create',
+                title: 'Create your first payment method',
+                description: 'Add the accounts, cards, or services you use to pay.',
+                createLabel: 'Create payment method',
+                onCreate: handleCreateEntity,
+              }
+            : undefined
         }
         withSelection
         onDeleteSelectedEntities={entities => {
