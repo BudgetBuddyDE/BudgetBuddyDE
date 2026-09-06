@@ -1,7 +1,7 @@
 ---
 title: Frequently Asked Questions
 description: Short answers about installation, data, and development.
-icon: CircleQuestionMark
+icon: CircleHelp
 ---
 
 ## Where Is Local Data Stored?

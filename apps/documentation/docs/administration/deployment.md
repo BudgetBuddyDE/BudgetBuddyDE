@@ -32,10 +32,11 @@ Set the webapp's `NEXT_PUBLIC_*` environment values before `next build`. They ar
 
 The documentation site is built separately with Fumapress in static mode. See [Contributing to the documentation](/contributing/documentation) for details.
 
-The Docker build uses the repository root as its context because the documentation is an npm workspace:
+Build the documentation image from the documentation directory:
 
 ```bash
-docker build -f apps/documentation/Dockerfile -t budgetbuddy-documentation .
+cd apps/documentation
+docker build -f Dockerfile -t budgetbuddy-documentation .
 ```
 
 The resulting NGINX image serves the generated files from `dist/public` and does not require a Node.js runtime.

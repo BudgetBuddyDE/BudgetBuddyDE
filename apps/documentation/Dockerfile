@@ -1,23 +1,24 @@
 # Build stage
 FROM node:24-alpine AS builder
 
-WORKDIR /repo
+WORKDIR /app
 
-# The documentation is an npm workspace, so the repository root is the build context.
+# The documentation can be built independently from this directory.
+COPY package.json ./
+
+# No workspace lockfile is needed because the repository keeps a single root lockfile.
+RUN npm install --ignore-scripts --no-package-lock
 COPY . .
-
-# Install from the single repository lockfile and build only the documentation workspace.
-RUN npm ci --ignore-scripts
-RUN npm run build --workspace=@budgetbuddyde/documentation
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
 # Copy built documentation from builder
-COPY --from=builder /repo/apps/documentation/dist/public /usr/share/nginx/html
+COPY --from=builder /app/dist/public /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY apps/documentation/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
 EXPOSE 80
