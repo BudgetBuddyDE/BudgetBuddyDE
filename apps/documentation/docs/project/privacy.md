@@ -1,7 +1,7 @@
 ---
 title: Privacy
 description: Guidance for handling personal financial data.
-icon: lucide/shield
+icon: Shield
 ---
 
 BudgetBuddy processes account data, transactions, categories, payment information, and potentially receipts. Operators of their own instance are responsible for its specific privacy configuration and legal obligations.

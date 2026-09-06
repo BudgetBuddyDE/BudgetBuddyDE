@@ -1,0 +1,15 @@
+{
+  "title": "Development",
+  "pages": [
+    "index",
+    "setup",
+    "project-structure",
+    "coding-conventions",
+    "testing",
+    "database",
+    "frontend",
+    "backend",
+    "add-package",
+    "add-service"
+  ]
+}

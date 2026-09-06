@@ -1,7 +1,7 @@
 ---
 title: Backend Development
 description: Extend authenticated Express routes, services, and jobs.
-icon: lucide/server
+icon: Server
 ---
 
 The backend is an Express service. Middleware for request context, logging, caching, authentication, and error handling runs before the domain routers.

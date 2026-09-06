@@ -1,7 +1,7 @@
 ---
 title: Add a New Service
 description: Integrate a deployable Node.js service into the monorepo.
-icon: lucide/server
+icon: Server
 ---
 
 ## Workflow

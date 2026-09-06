@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "---Home---",
+    "index",
+    "getting-started",
+    "---User Guide---",
+    "user-guide",
+    "---Self-Hosting---",
+    "administration",
+    "---Architecture---",
+    "architecture",
+    "---Development---",
+    "development",
+    "---Reference---",
+    "reference",
+    "---Contributing---",
+    "contributing",
+    "---Project---",
+    "project"
+  ]
+}

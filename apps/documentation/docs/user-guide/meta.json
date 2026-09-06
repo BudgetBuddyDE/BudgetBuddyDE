@@ -1,0 +1,15 @@
+{
+  "title": "User Guide",
+  "pages": [
+    "index",
+    "dashboard",
+    "transactions",
+    "recurring-payments",
+    "budgets",
+    "categories",
+    "payment-methods",
+    "analytics",
+    "attachments",
+    "data-management"
+  ]
+}

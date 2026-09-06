@@ -1,15 +1,15 @@
 ---
 title: Contributing
 description: Contribute code, documentation, and ideas to BudgetBuddy.
-icon: lucide/hand-helping
+icon: HandHelping
 ---
 
 BudgetBuddy relies on understandable changes and reproducible contributions.
 
-- [Contribution guide](guide.md)
-- [Git workflow](git-workflow.md)
-- [Pull Requests](pull-requests.md)
-- [Releases](releases.md)
-- [Edit the documentation](documentation.md)
+- [Contribution guide](/contributing/guide)
+- [Git workflow](/contributing/git-workflow)
+- [Pull Requests](/contributing/pull-requests)
+- [Releases](/contributing/releases)
+- [Edit the documentation](/contributing/documentation)
 
 For bugs and suggestions, use the [GitHub repository](https://github.com/BudgetBuddyDE/BudgetBuddyDE).

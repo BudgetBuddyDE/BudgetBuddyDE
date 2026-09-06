@@ -1,21 +1,21 @@
 ---
 title: Development
 description: Extend, test, and maintain BudgetBuddy.
-icon: lucide/code-2
+icon: Code
 ---
 
 ## Development Workflow
 
-1. [Set up the environment](setup.md)
-2. [Understand the monorepo](project-structure.md)
-3. [Follow the conventions](coding-conventions.md)
-4. [Test the change](testing.md)
-5. Create an appropriate [pull request](../contributing/pull-requests.md)
+1. [Set up the environment](/development/setup)
+2. [Understand the monorepo](/development/project-structure)
+3. [Follow the conventions](/development/coding-conventions)
+4. [Test the change](/development/testing)
+5. Create an appropriate [pull request](/contributing/pull-requests)
 
 ## By Area
 
-- [Frontend development](frontend.md)
-- [Backend development](backend.md)
-- [Database development](database.md)
-- [Add a new package](add-package.md)
-- [Add a new service](add-service.md)
+- [Frontend development](/development/frontend)
+- [Backend development](/development/backend)
+- [Database development](/development/database)
+- [Add a new package](/development/add-package)
+- [Add a new service](/development/add-service)

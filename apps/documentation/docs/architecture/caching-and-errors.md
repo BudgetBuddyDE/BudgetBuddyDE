@@ -1,7 +1,7 @@
 ---
 title: Caching and Error Handling
 description: Cache lifecycle and standardized error responses.
-icon: lucide/layers-2
+icon: Layers2
 ---
 
 ## Cache

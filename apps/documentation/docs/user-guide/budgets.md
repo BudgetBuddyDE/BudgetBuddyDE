@@ -1,7 +1,7 @@
 ---
 title: Budgets
 description: Set and monitor financial goals for categories.
-icon: lucide/target
+icon: Target
 ---
 
 Budgets assign a target amount to a category and a time period. Progress is calculated from the associated transactions.

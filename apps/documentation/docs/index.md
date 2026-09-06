@@ -1,48 +1,17 @@
 ---
 title: BudgetBuddy Documentation
 description: Understand, run, use, and extend BudgetBuddy.
-icon: lucide/house
+icon: House
 ---
 
 BudgetBuddy is an open-source personal finance manager for income, expenses, recurring payments, budgets, and analytics.
 
 ## Quick Start
 
-<div class="grid cards" markdown>
-
--   Use BudgetBuddy
-
-    ---
-
-    Learn about the application's main features.
-
-    [:octicons-arrow-right-24: Open the user guide](user-guide/index.md)
-
--   Develop locally
-
-    ---
-
-    Set up the monorepo and start the webapp, services, and infrastructure.
-
-    [:octicons-arrow-right-24: Set up the development environment](getting-started/development.md)
-
--   Self-host BudgetBuddy
-
-    ---
-
-    Prepare your own environment with PostgreSQL, Redis, and the BudgetBuddy services.
-
-    [:octicons-arrow-right-24: Self-hosting](administration/index.md)
-
--   Integrate
-
-    ---
-
-    Use the typed API client or the MCP interface.
-
-    [:octicons-arrow-right-24: API reference](reference/index.md)
-
-</div>
+- **Use BudgetBuddy:** Learn about the application's main features in the [user guide](/user-guide).
+- **Develop locally:** Set up the monorepo and start the webapp, services, and infrastructure with the [development guide](/getting-started/development).
+- **Self-host BudgetBuddy:** Prepare your own environment with PostgreSQL, Redis, and the BudgetBuddy services using the [self-hosting guide](/administration).
+- **Integrate:** Use the typed API client or the MCP interface through the [API reference](/reference).
 
 ## Project At A Glance
 
@@ -54,7 +23,7 @@ BudgetBuddy is an open-source personal finance manager for income, expenses, rec
 - Attachments such as receipts through S3-compatible storage
 - API key and MCP integration for external clients
 
-BudgetBuddy is under active development. The [project status](project/roadmap.md) describes which features are stable, in progress, or planned.
+BudgetBuddy is under active development. The [project status](/project/roadmap) describes which features are stable, in progress, or planned.
 
 ## Links
 

@@ -1,7 +1,7 @@
 ---
 title: Deployment
 description: Build and deploy BudgetBuddy to your own environment.
-icon: lucide/rocket
+icon: Rocket
 ---
 
 ## Components
@@ -30,7 +30,15 @@ Turborepo builds dependent packages before apps and services. Deploy the generat
 
 Set the webapp's `NEXT_PUBLIC_*` environment values before `next build`. They are embedded in browser bundles and cannot be changed by the runtime deployment environment.
 
-The documentation site is built separately with Zensical. See [Contributing to the documentation](../contributing/documentation.md) for details.
+The documentation site is built separately with Fumapress in static mode. See [Contributing to the documentation](/contributing/documentation) for details.
+
+The Docker build uses the repository root as its context because the documentation is an npm workspace:
+
+```bash
+docker build -f apps/documentation/Dockerfile -t budgetbuddy-documentation .
+```
+
+The resulting NGINX image serves the generated files from `dist/public` and does not require a Node.js runtime.
 
 ## Production Checklist
 

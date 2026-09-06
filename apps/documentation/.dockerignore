@@ -1,20 +1,14 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-.venv
+# Build and dependency output
+node_modules/
+dist/
+build/
+.turbo/
 
-# MkDocs
-site/
-
-# Git
+# Git and local configuration
 .git/
 .gitignore
+.env
+.env.*
 
 # IDEs
 .vscode/
@@ -32,4 +26,3 @@ Thumbs.db
 
 # Documentation build artifacts
 .cache/
-

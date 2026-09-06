@@ -1,7 +1,7 @@
 ---
 title: Testing and Quality Assurance
 description: Run tests, formatting, linting, type checks, and builds locally.
-icon: lucide/test-tube-2
+icon: TestTube
 ---
 
 ## Full Check

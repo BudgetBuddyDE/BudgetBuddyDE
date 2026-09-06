@@ -1,29 +1,23 @@
 # Build stage
-FROM python:3.12-slim AS builder
+FROM node:24-alpine AS builder
 
-WORKDIR /docs
+WORKDIR /repo
 
-ENV GIT_PYTHON_REFRESH=none
+# The documentation is an npm workspace, so the repository root is the build context.
+COPY . .
 
-# Copy requirements and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy documentation files
-COPY zensical.toml .
-COPY docs/ ./docs/
-
-# Build the documentation
-RUN zensical build
+# Install from the single repository lockfile and build only the documentation workspace.
+RUN npm ci --ignore-scripts
+RUN npm run build --workspace=@budgetbuddyde/documentation
 
 # Production stage
 FROM nginx:alpine
 
 # Copy built documentation from builder
-COPY --from=builder /docs/site /usr/share/nginx/html
+COPY --from=builder /repo/apps/documentation/dist/public /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/documentation/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
 EXPOSE 80
@@ -34,5 +28,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
-
-

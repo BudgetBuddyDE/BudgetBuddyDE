@@ -1,7 +1,7 @@
 ---
 title: Recurring Payments
 description: Manage subscriptions, regular bills, and scheduled payments.
-icon: lucide/calendar-clock
+icon: CalendarClock
 ---
 
 Recurring payments describe regularly occurring income or expenses, such as rent, subscriptions, or salary payments.
@@ -21,4 +21,4 @@ The typed API client can project scheduled dates with `recurringPayment.getOccur
 3. Regularly review generated transactions.
 4. Pause or change entries when the contract changes.
 
-With self-hosting, the scheduled job must be enabled and monitored. See [Backend operations](../administration/configuration.md).
+With self-hosting, the scheduled job must be enabled and monitored. See [Backend operations](/administration/configuration).

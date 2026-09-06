@@ -1,7 +1,7 @@
 ---
 title: Database
 description: Operate PostgreSQL, the Drizzle schema, and migrations.
-icon: lucide/database
+icon: Database
 ---
 
 BudgetBuddy uses PostgreSQL 16. The schema is managed with Drizzle ORM and Drizzle Kit. The `@budgetbuddyde/db` package contains separate areas for authentication and domain data.

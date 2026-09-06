@@ -1,12 +1,12 @@
 ---
 title: Set Up the Development Environment
 description: Install and start BudgetBuddy locally.
-icon: lucide/terminal
+icon: Terminal
 ---
 
 ## Prerequisites
 
-- Node.js 22 or later
+- Node.js 24 or later for the documentation workspace
 - npm 11.x, matching `packageManager` in `package.json`
 - Git
 - Docker with a running Docker daemon
@@ -42,7 +42,7 @@ services/mcp/.env.example -> services/mcp/.env
 packages/db/.env.example -> packages/db/.env
 ```
 
-The variables are documented in the [environment variable reference](../reference/environment-variables.md). Secrets do not belong in Git.
+The variables are documented in the [environment variable reference](/reference/environment-variables). Secrets do not belong in Git.
 
 ## Start
 
@@ -66,4 +66,4 @@ npm test
 npm run build
 ```
 
-If you encounter problems, see [Troubleshooting](../administration/troubleshooting.md).
+If you encounter problems, see [Troubleshooting](/administration/troubleshooting).

@@ -1,12 +1,12 @@
 ---
 title: Frequently Asked Questions
 description: Short answers about installation, data, and development.
-icon: lucide/circle-help
+icon: CircleQuestionMark
 ---
 
 ## Where Is Local Data Stored?
 
-The local development environment uses PostgreSQL. The Docker Compose stack persists data in Docker volumes. For production backups, see [Backups and restoration](../administration/backups.md).
+The local development environment uses PostgreSQL. The Docker Compose stack persists data in Docker volumes. For production backups, see [Backups and restoration](/administration/backups).
 
 ## Do I Need to Publish Packages Before Starting the Webapp?
 

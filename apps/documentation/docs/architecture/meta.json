@@ -1,0 +1,13 @@
+{
+  "title": "Architecture",
+  "pages": [
+    "index",
+    "overview",
+    "data-flow",
+    "authentication",
+    "data-model",
+    "caching-and-errors",
+    "security",
+    "decisions"
+  ]
+}

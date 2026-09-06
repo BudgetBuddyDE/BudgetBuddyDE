@@ -1,7 +1,7 @@
 ---
 title: Security
 description: Security requirements for development and operations.
-icon: lucide/lock-keyhole
+icon: LockKeyhole
 ---
 
 BudgetBuddy processes highly sensitive financial data. Security is therefore a domain requirement, not an optional operational feature.

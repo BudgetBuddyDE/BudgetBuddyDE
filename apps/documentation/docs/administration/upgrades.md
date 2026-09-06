@@ -1,7 +1,7 @@
 ---
 title: Updates and Rollbacks
 description: Roll out new versions in a controlled manner.
-icon: lucide/refresh-cw
+icon: RefreshCw
 ---
 
 ## Update Process

@@ -1,7 +1,7 @@
 ---
 title: Categories
 description: Organize income and expenses with custom categories.
-icon: lucide/tags
+icon: Tags
 ---
 
 Categories structure transactions and form the basis for budgets and analytics.

@@ -1,7 +1,7 @@
 ---
 title: Data Management
 description: Data quality, export, deletion, and privacy in everyday use.
-icon: lucide/database
+icon: Database
 ---
 
 BudgetBuddy stores personal financial data. Review entries regularly, keep categories consistent, and back up your production instance.
@@ -14,7 +14,7 @@ BudgetBuddy stores personal financial data. Review entries regularly, keep categ
 - Before deleting, check whether dependent analytics are affected.
 - Create a backup before migrations and major changes.
 
-Specific export and deletion features depend on the deployed release. The legal basis is described in [Privacy](../project/privacy.md).
+Specific export and deletion features depend on the deployed release. The legal basis is described in [Privacy](/project/privacy).
 
 ## Export Data
 

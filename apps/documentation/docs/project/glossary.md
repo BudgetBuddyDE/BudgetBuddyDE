@@ -1,7 +1,7 @@
 ---
 title: Glossary
 description: Shared terms in the product and codebase.
-icon: lucide/book-type
+icon: BookType
 ---
 
 | Term              | Meaning                                               |

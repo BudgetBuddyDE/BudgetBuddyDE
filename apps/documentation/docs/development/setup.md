@@ -1,10 +1,10 @@
 ---
 title: Development Setup
 description: Local development, quality checks, and workspace commands.
-icon: lucide/terminal-square
+icon: SquareTerminal
 ---
 
-The complete initial installation is described in [Set up the development environment](../getting-started/development.md). This page is the daily reference.
+The complete initial installation is described in [Set up the development environment](/getting-started/development). This page is the daily reference.
 
 ## Common Commands
 

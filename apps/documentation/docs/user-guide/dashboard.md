@@ -1,7 +1,7 @@
 ---
 title: Dashboard
 description: An overview of financial status, current transactions, and upcoming payments.
-icon: lucide/layout-dashboard
+icon: LayoutDashboard
 ---
 
 The dashboard brings the most important information together on one page:

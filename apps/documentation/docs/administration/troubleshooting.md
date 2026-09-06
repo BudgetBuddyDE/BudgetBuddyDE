@@ -1,7 +1,7 @@
 ---
 title: Troubleshooting
 description: Resolve common problems in local and production environments.
-icon: lucide/wrench
+icon: Wrench
 ---
 
 ## Webapp Cannot Reach Services

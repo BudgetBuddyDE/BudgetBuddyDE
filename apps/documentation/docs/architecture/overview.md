@@ -1,7 +1,7 @@
 ---
 title: System Overview
 description: Components and responsibilities of the BudgetBuddy system.
-icon: lucide/network
+icon: Network
 ---
 
 ```text

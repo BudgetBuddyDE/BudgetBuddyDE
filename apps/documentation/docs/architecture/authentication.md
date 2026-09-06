@@ -1,7 +1,7 @@
 ---
 title: Authentication and Authorization
 description: Sessions, API access, and owner isolation.
-icon: lucide/shield-check
+icon: ShieldCheck
 ---
 
 The auth service is based on Better Auth. The webapp uses browser credentials for authenticated requests. The backend receives the user context before the `/api/*` routers.
@@ -15,7 +15,7 @@ The auth service is based on Better Auth. The webapp uses browser credentials fo
 
 ## API Keys
 
-API keys are intended for non-interactive clients. Treat keys like passwords, use them with minimal permissions, and revoke them immediately if compromised. Usage is described in the [API reference](../reference/authentication.md).
+API keys are intended for non-interactive clients. Treat keys like passwords, use them with minimal permissions, and revoke them immediately if compromised. Usage is described in the [API reference](/reference/authentication).
 
 ## Authorization
 

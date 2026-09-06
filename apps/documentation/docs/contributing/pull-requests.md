@@ -1,7 +1,7 @@
 ---
 title: Pull Requests
 description: Present changes clearly and verifiably for review.
-icon: lucide/git-merge
+icon: GitMerge
 ---
 
 A pull request should include:

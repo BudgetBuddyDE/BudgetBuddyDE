@@ -91,7 +91,7 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - Use `npm ci` in CI and update dependencies with npm. When an internal package version changes, update consumers and refresh the root lockfile with `npm install --package-lock-only --ignore-scripts`.
 - Use `tsx`/the existing service scripts for backend development and Next.js with Turbopack for webapp development. Do not introduce another package-resolution or API-client pattern.
 - Local runtime dependencies are PostgreSQL, Redis, and the Drizzle gateway from `docker-compose.yml`. Keep secrets in ignored `.env` files.
-- Documentation uses Python 3.12 and the pinned `zensical` tool; follow `apps/documentation/requirements.txt` and the Dockerfile rather than the older spelling in prose.
+- Documentation uses the `@budgetbuddyde/documentation` npm workspace and Fumapress; follow its `package.json`, configuration, and Dockerfile. Fumapress currently requires Node.js 24 or later.
 
 ## Testing & QA
 

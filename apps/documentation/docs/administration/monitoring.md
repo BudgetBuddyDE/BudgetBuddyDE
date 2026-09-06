@@ -1,7 +1,7 @@
 ---
 title: Monitoring
 description: Monitor health, logs, and runtime behavior.
-icon: lucide/activity
+icon: Activity
 ---
 
 ## Health Checks

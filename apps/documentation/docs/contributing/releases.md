@@ -1,7 +1,7 @@
 ---
 title: Releases
 description: Versions, migrations, and publishable packages.
-icon: lucide/tag
+icon: Tag
 ---
 
 Before a release, review the changelog, build, tests, and migration notes. Changes to public packages must account for API compatibility and consumers.

@@ -1,7 +1,7 @@
 ---
 title: Changelog
 description: Traceable changes between versions.
-icon: lucide/history
+icon: Clock3
 ---
 
 Release-related changes are added here. An entry should include:

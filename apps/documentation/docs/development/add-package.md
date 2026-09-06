@@ -1,7 +1,7 @@
 ---
 title: Add a New Package
 description: Create an internal or publishable workspace package.
-icon: lucide/package-plus
+icon: PackagePlus
 ---
 
 ## Workflow

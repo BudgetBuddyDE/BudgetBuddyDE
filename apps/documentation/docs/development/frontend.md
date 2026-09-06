@@ -1,7 +1,7 @@
 ---
 title: Frontend Development
 description: Extend the Next.js webapp, data access, and UI state.
-icon: lucide/panels-top-left
+icon: PanelsTopLeft
 ---
 
 The webapp under `apps/webapp` uses the Next.js 15 App Router, React 19, Material UI, Redux Toolkit, and the shared API client.

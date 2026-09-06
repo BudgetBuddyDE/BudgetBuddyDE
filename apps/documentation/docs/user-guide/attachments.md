@@ -1,7 +1,7 @@
 ---
 title: Attachments
 description: Attach receipts and other documents to financial data.
-icon: lucide/paperclip
+icon: Paperclip
 ---
 
 Attachments can be linked to supported entities such as transactions. The backend service uses S3-compatible object storage for storage.
@@ -13,4 +13,4 @@ Attachments can be linked to supported entities such as transactions. The backen
 - Database backups do not automatically include objects in S3 storage.
 - Bucket access must be restricted to the application.
 
-See [Configure attachments](../administration/configuration.md) and [Backups](../administration/backups.md).
+See [Configure attachments](/administration/configuration) and [Backups](/administration/backups).

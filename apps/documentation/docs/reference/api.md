@@ -1,7 +1,7 @@
 ---
 title: API Overview
 description: Backend API resources, URLs, filters, and response format.
-icon: lucide/terminal
+icon: Terminal
 ---
 
 ## Basics

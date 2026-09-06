@@ -1,0 +1,12 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["dist/**"]
+    },
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$"]
+    }
+  }
+}

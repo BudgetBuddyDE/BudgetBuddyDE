@@ -1,7 +1,7 @@
 ---
 title: Data Model
 description: Domain entities and their relationships.
-icon: lucide/git-branch
+icon: GitBranch
 ---
 
 The database schema is in `packages/db/src`. The main domain entities are:

@@ -1,7 +1,7 @@
 ---
 title: CLI and npm Commands
 description: Core commands for development, quality, and the database.
-icon: lucide/command
+icon: Command
 ---
 
 | Command                  | Purpose                                   |
@@ -18,4 +18,4 @@ icon: lucide/command
 | `npm run check`          | Run workspace checks                      |
 | `docker compose up -d`   | Start local infrastructure                |
 
-Database commands are described in [Database development](../development/database.md).
+Database commands are described in [Database development](/development/database).

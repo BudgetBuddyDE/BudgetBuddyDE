@@ -1,7 +1,7 @@
 ---
 title: Git-Workflow
 description: Branches, commits, and local checks.
-icon: lucide/git-pull-request
+icon: GitPullRequest
 ---
 
 ## Workflow

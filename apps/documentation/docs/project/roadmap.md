@@ -1,7 +1,7 @@
 ---
 title: Roadmap and Feature Status
 description: Planned, active, and already available features.
-icon: lucide/map
+icon: Map
 ---
 
 ## Available

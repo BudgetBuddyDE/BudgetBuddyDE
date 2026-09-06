@@ -1,20 +1,20 @@
 ---
 title: Architecture
 description: BudgetBuddy's system boundaries, data flows, and technical decisions.
-icon: lucide/boxes
+icon: Boxes
 ---
 
 BudgetBuddy is a TypeScript monorepo. Domain data is processed through an authenticated backend; the webapp does not access PostgreSQL directly.
 
 ## Topics
 
-- [System overview](overview.md)
-- [Data flow](data-flow.md)
-- [Authentication and authorization](authentication.md)
-- [Data model](data-model.md)
-- [Caching and error handling](caching-and-errors.md)
-- [Security](security.md)
-- [Architecture decisions](decisions/index.md)
+- [System overview](/architecture/overview)
+- [Data flow](/architecture/data-flow)
+- [Authentication and authorization](/architecture/authentication)
+- [Data model](/architecture/data-model)
+- [Caching and error handling](/architecture/caching-and-errors)
+- [Security](/architecture/security)
+- [Architecture decisions](/architecture/decisions)
 
 ## Architecture Principles
 

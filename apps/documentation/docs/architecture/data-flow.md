@@ -1,7 +1,7 @@
 ---
 title: Data Flow
 description: How an authenticated request moves through BudgetBuddy.
-icon: lucide/arrow-right-left
+icon: ArrowRightLeft
 ---
 
 ## Read Request

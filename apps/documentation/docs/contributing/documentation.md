@@ -1,25 +1,21 @@
 ---
 title: Edit the Documentation
-description: Maintain and locally check the Zensical documentation.
-icon: lucide/book-marked
+description: Maintain and locally check the Fumapress documentation.
+icon: BookMarked
 ---
 
-The source files are under `apps/documentation/docs`. Zensical generates the site from Markdown and `apps/documentation/zensical.toml`.
+The source files are under `apps/documentation/docs`. Fumapress generates the site from Markdown and the Fumapress configuration.
 
 ## Work Locally
 
 ```bash
-cd apps/documentation
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-zensical serve
+npm run dev --workspace=@budgetbuddyde/documentation
 ```
 
 For a production build:
 
 ```bash
-zensical build
+npm run build --workspace=@budgetbuddyde/documentation
 ```
 
 ## Writing Rules
@@ -31,4 +27,4 @@ zensical build
 - Update affected reference pages when code changes.
 - Link to source files, tests, and further reading.
 
-Do not edit the generated output under `apps/documentation/site` manually.
+Do not edit the generated output under `apps/documentation/dist` manually.

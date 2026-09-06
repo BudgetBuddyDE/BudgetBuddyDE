@@ -1,14 +1,14 @@
 ---
 title: Understand the Monorepo
 description: Directories, workspaces, and build dependencies.
-icon: lucide/folder-tree
+icon: FolderTree
 ---
 
 ```text
 apps/
   webapp/          Next.js main application
   website/         public landing page
-  documentation/   Zensical documentation
+  documentation/   Fumapress documentation
 services/
   auth-service/    Better Auth service
   backend/         domain Express API
@@ -23,7 +23,7 @@ examples/
   api-key-client/  API key example
 ```
 
-The root uses npm workspaces for `packages/*`, `services/*`, `apps/webapp`, and `examples/*`. The documentation and website projects have their own build configurations.
+The root uses npm workspaces for `packages/*`, `services/*`, `apps/webapp`, `apps/documentation`, and `examples/*`. The website remains a standalone static project.
 
 ## Dependency Direction
 
@@ -31,4 +31,4 @@ Apps and services access shared packages by package name, such as `@budgetbuddyd
 
 ## Turbo
 
-Builds use `dependsOn: ["^build"]`. Package output is typically under `lib/`, service output under `build/`, and Next output under `.next/`.
+Builds use `dependsOn: ["^build"]`. Package output is typically under `lib/`, service output under `build/`, documentation output under `dist/`, and Next output under `.next/`.

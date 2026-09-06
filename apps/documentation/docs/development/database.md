@@ -1,7 +1,7 @@
 ---
 title: Database Development
 description: Develop and migrate schema changes with Drizzle.
-icon: lucide/database-zap
+icon: DatabaseZap
 ---
 
 The database package provides the schema, relations, and migrations. Tables are under `packages/db/src/backend` and `packages/db/src/auth`.

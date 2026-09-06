@@ -1,7 +1,7 @@
 ---
 title: Coding Conventions
 description: Shared rules for TypeScript, the backend, and the webapp.
-icon: lucide/ruler
+icon: Ruler
 ---
 
 - Use strict TypeScript.

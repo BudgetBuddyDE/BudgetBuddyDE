@@ -1,7 +1,7 @@
 ---
 title: Environment Variables
 description: Configuration for all BudgetBuddy components.
-icon: lucide/sliders-horizontal
+icon: SlidersHorizontal
 ---
 
 ## Webapp

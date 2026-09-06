@@ -1,7 +1,7 @@
 ---
 title: Backups and Restoration
 description: Protect financial data and attachments against data loss.
-icon: lucide/hard-drive
+icon: HardDrive
 ---
 
 A complete BudgetBuddy backup consists of at least two parts:

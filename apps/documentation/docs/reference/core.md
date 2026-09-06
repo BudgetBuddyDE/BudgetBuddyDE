@@ -1,7 +1,7 @@
 ---
 title: Core Primitives
 description: Shared configuration, environment, and error classes.
-icon: lucide/box
+icon: Box
 ---
 
 `@budgetbuddyde/core` provides dependency-free primitives that can be shared by services and packages.

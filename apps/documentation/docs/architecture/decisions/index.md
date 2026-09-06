@@ -1,7 +1,7 @@
 ---
 title: Architecture Decisions
 description: Rationale decisions about the system's structure and operation.
-icon: lucide/scroll-text
+icon: ScrollText
 ---
 
 Architecture decisions are recorded as short ADRs (Architecture Decision Records). A decision should remain understandable even if the implementation changes later.

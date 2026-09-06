@@ -1,7 +1,7 @@
 ---
 title: Analytics and Insights
 description: Analyze financial data and identify trends.
-icon: lucide/chart-no-axes-combined
+icon: ChartNoAxesCombined
 ---
 
 Analytics visualize income, expenses, categories, and budget allocation. Filters from the tables can be used to narrow down time periods or payment sources.

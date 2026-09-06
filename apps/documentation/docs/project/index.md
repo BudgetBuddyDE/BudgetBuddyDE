@@ -1,11 +1,11 @@
 ---
 title: Project
 description: Status, terminology, privacy, and legal foundations.
-icon: lucide/info
+icon: Info
 ---
 
-- [Roadmap and feature status](roadmap.md)
-- [Changelog](changelog.md)
-- [Privacy](privacy.md)
-- [License](license.md)
-- [Glossary](glossary.md)
+- [Roadmap and feature status](/project/roadmap)
+- [Changelog](/project/changelog)
+- [Privacy](/project/privacy)
+- [License](/project/license)
+- [Glossary](/project/glossary)

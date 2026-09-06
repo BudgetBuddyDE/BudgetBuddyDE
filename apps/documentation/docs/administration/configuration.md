@@ -1,10 +1,10 @@
 ---
 title: Configuration
 description: Configure the runtime behavior of BudgetBuddy components.
-icon: lucide/settings-2
+icon: Settings2
 ---
 
-The complete variable list is in the [environment variable reference](../reference/environment-variables.md). This page describes the most important relationships.
+The complete variable list is in the [environment variable reference](/reference/environment-variables). This page describes the most important relationships.
 
 ## Connect Services
 

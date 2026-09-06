@@ -1,7 +1,7 @@
 ---
 title: Contribution Guide
 description: From an idea to a reviewed change.
-icon: lucide/list-checks
+icon: ListChecks
 ---
 
 ## Before You Start

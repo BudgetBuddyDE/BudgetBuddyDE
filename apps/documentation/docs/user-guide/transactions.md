@@ -1,7 +1,7 @@
 ---
 title: Transactions
 description: Record, filter, and manage income and expenses.
-icon: lucide/arrow-left-right
+icon: ArrowLeftRight
 ---
 
 A transaction describes a single income or expense. Typical fields include amount, date, description, category, and payment method.

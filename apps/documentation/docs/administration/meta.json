@@ -1,0 +1,4 @@
+{
+  "title": "Self-Hosting",
+  "pages": ["index", "deployment", "configuration", "database", "backups", "monitoring", "upgrades", "troubleshooting"]
+}

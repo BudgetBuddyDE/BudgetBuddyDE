@@ -1,7 +1,7 @@
 ---
 title: MCP Integration
 description: Connect BudgetBuddy through the Model Context Protocol.
-icon: lucide/bot
+icon: Bot
 ---
 
 The MCP service under `services/mcp` provides BudgetBuddy features as MCP tools for compatible AI clients. It uses the typed API client and communicates with the backend.

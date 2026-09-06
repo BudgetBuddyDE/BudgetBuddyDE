@@ -1,7 +1,7 @@
 ---
 title: Authentication and API Keys
 description: Access the auth service, backend, and MCP service.
-icon: lucide/key-round
+icon: KeyRound
 ---
 
 ## Browser

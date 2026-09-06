@@ -1,0 +1,13 @@
+.git/
+.github/
+.turbo/
+**/node_modules/
+**/dist/
+**/build/
+**/.next/
+**/.cache/
+**/.venv/
+**/__pycache__/
+*.log
+.env
+.env.*
