@@ -4,6 +4,9 @@ import {defineDocs} from 'fumadocs-mdx/macro';
 import {fumadocsMdx} from 'fumapress/adapters/mdx';
 import {linkValidationPlugin} from 'fumapress/plugins/link-validation';
 import {robotsPlugin} from 'fumapress/plugins/robots';
+import { llmsPlugin } from "fumapress/plugins/llms.txt";
+import { sitemapPlugin } from "fumapress/plugins/sitemap";
+import { takumiPlugin } from "fumapress/plugins/takumi";
 
 const docs = defineDocs({
   dir: 'docs',
@@ -15,7 +18,7 @@ const docs = defineDocs({
 
 export default defineConfig({
   site: {
-    name: 'BudgetBuddy Documentation',
+    name: 'BudgetBuddyDE',
     baseUrl: 'https://docs.budget-buddy.de',
     git: {
       user: 'BudgetBuddyDE',
@@ -32,6 +35,8 @@ export default defineConfig({
   .adapters(fumadocsMdx())
   .plugins(
     linkValidationPlugin(),
+    llmsPlugin({ routes: "all" }),
+    sitemapPlugin({ path: "/sitemap.xml"}),
     robotsPlugin({
       rules: [
         {userAgent: 'Amazonbot', disallow: '/'},
@@ -39,4 +44,5 @@ export default defineConfig({
         {userAgent: 'UptimeRobot', disallow: '/'},
       ],
     }),
+    takumiPlugin()
   );
