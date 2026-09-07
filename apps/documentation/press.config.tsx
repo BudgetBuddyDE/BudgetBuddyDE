@@ -37,12 +37,6 @@ export default defineConfig({
     linkValidationPlugin(),
     llmsPlugin({ routes: "all" }),
     sitemapPlugin({ path: "/sitemap.xml"}),
-    robotsPlugin({
-      rules: [
-        {userAgent: 'Amazonbot', disallow: '/'},
-        {userAgent: 'Amzn-SearchBot', disallow: '/'},
-        {userAgent: 'UptimeRobot', disallow: '/'},
-      ],
-    }),
+    robotsPlugin(),
     takumiPlugin()
   );
