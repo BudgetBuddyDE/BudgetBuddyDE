@@ -2,20 +2,20 @@
   "pages": [
     "---Home---",
     "index",
-    "getting-started",
+    "...getting-started",
     "---User Guide---",
-    "user-guide",
+    "...user-guide",
     "---Self-Hosting---",
-    "administration",
+    "...administration",
     "---Architecture---",
-    "architecture",
+    "...architecture",
     "---Development---",
-    "development",
+    "...development",
     "---Reference---",
-    "reference",
+    "...reference",
     "---Contributing---",
-    "contributing",
+    "...contributing",
     "---Project---",
-    "project"
+    "...project"
   ]
 }
