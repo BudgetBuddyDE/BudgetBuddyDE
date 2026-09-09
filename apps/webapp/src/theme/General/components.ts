@@ -85,6 +85,20 @@ const ChartOptions: ChartsComponents<Theme> & {
 
 export const components: Components<Theme> = {
   ...ChartOptions,
+  MuiPaper: {
+    styleOverrides: {
+      root: {
+        cornerShape: 'squircle',
+      },
+    },
+  },
+  MuiCard: {
+    styleOverrides: {
+      root: {
+        cornerShape: 'squircle',
+      },
+    },
+  },
   MuiGrid: {
     styleOverrides: {
       root: {
