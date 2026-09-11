@@ -45,9 +45,5 @@
     "turbo": "^2.9.14",
     "typescript-eslint": "^8.61.0",
     "vite": "^8.2.2"
-  },
-  "dependencies": {
-    "@dicebear/core": "^9.4.3",
-    "@dicebear/thumbs": "^9.4.2"
   }
 }
