@@ -223,7 +223,7 @@ budgetRouter.get(
       return;
     }
     const entityId = req.params.id;
-    const record = await db.query.budgets.findMany({
+    const record = await db.query.budgets.findFirst({
       where(fields, operators) {
         return operators.and(eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
       },
@@ -245,12 +245,12 @@ budgetRouter.get(
       return;
     }
 
-    const budgetWithBalance: (typeof record)[number] & {balance: number} = {
-      ...record[0],
+    const budgetWithBalance: typeof record & {balance: number} = {
+      ...record,
       balance: await calculateBudgetBalance(
-        record[0].id,
-        record[0].type,
-        record[0].categories.map(c => c.categoryId),
+        userId,
+        record.type,
+        record.categories.map(c => c.categoryId),
       ),
     };
 
