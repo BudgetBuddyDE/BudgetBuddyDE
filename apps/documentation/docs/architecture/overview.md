@@ -21,14 +21,13 @@ MCP-Client
 
 ## Components
 
-| Area      | Workspace               | Responsibility                            |
-| --------- | ----------------------- | ----------------------------------------- |
-| Webapp    | `apps/webapp`           | Next.js app, UI, Redux, and interaction   |
-| Auth      | `services/auth-service` | Better Auth, sessions, sign-in, and OAuth |
-| Backend   | `services/backend`      | Authenticated domain API and jobs         |
-| MCP       | `services/mcp`          | MCP tools for external AI clients         |
-| API       | `packages/api`          | Typed client and HTTP/Zod boundary        |
-| Database  | `packages/db`           | Drizzle tables, relations, and views      |
-| Utilities | `packages/utils`        | Shared utility functions                  |
+| Area     | Workspace               | Responsibility                            |
+| -------- | ----------------------- | ----------------------------------------- |
+| Webapp   | `apps/webapp`           | Next.js app, UI, Redux, and interaction   |
+| Auth     | `services/auth-service` | Better Auth, sessions, sign-in, and OAuth |
+| Backend  | `services/backend`      | Authenticated domain API and jobs         |
+| MCP      | `services/mcp`          | MCP tools for external AI clients         |
+| API      | `packages/api`          | Typed client and HTTP/Zod boundary        |
+| Database | `packages/db`           | Drizzle tables, relations, and views      |
 
 The website and documentation site are independent deliverables and are not part of the root project's npm workspace list.

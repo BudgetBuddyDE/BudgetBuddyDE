@@ -22,7 +22,7 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `apps/webapp/src/lib`: frontend utilities and intent-based navigation.
 - `packages/api/src`: typed API facade, backend/entity services, API schemas.
 - `packages/db/src`: Drizzle schema and database exports; import through package boundaries.
-- `packages/utils`, `packages/logger`: cross-cutting utilities and logging.
+- `packages/logger`: cross-cutting logging.
 - `services/backend/src/router`: authenticated, owner-scoped domain routers.
 - `services/backend/src/middleware`: request context, authentication, cache, and related middleware.
 - `services/auth-service/src`: authentication service.
