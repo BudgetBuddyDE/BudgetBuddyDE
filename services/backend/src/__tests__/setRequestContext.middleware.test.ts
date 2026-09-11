@@ -21,7 +21,7 @@ vi.mock('../lib', () => ({
 import {setRequestContext} from '../middleware/setRequestContext.middleware';
 
 function createRequest(headers: Request['headers']): Request {
-  return {headers, requestId: 'request-id'} as Request;
+  return {headers} as Request;
 }
 
 function createResponse(): Response {
@@ -49,7 +49,6 @@ describe('setRequestContext', () => {
 
     expect(req.context.authenticationMethod).toBe('session-cookie');
     expect(loggerFunctions.debug).toHaveBeenCalledWith('Request context set', {
-      requestId: 'request-id',
       userId: 'user-id',
       authenticationMethod: 'session-cookie',
     });
@@ -66,7 +65,6 @@ describe('setRequestContext', () => {
 
     expect(req.context.authenticationMethod).toBe('api-key');
     expect(loggerFunctions.debug).toHaveBeenCalledWith('Request context set', {
-      requestId: 'request-id',
       userId: 'user-id',
       authenticationMethod: 'api-key',
     });

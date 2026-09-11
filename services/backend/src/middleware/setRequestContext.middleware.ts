@@ -20,7 +20,6 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
     ),
   );
 
-  logger.debug('Retrieving session data for request', {requestId: req.requestId});
   const {data: sessionData, error} = await authClient.getSession({
     fetchOptions: {
       headers: headers,
@@ -28,7 +27,6 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   });
 
   logger.debug('Session data retrieved', {
-    requestId: req.requestId,
     userId: sessionData?.user?.id,
     sessionId: sessionData?.session?.id,
     error,
@@ -53,16 +51,14 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
   const context: RequestContext = {
     user: sessionData.user,
     session: sessionData.session,
-    permissions: {},
     authenticationMethod: headers.get('x-api-key')?.trim() ? 'api-key' : 'session-cookie',
   };
-  logger.debug('Session data retrieved', {requestId: req.requestId, userId: context.user?.id});
+  logger.debug('Session data retrieved', {userId: context.user?.id});
 
   req.context = context;
   res.locals.context = context;
 
   logger.debug('Request context set', {
-    requestId: req.requestId,
     userId: req.context.user?.id,
     authenticationMethod: req.context.authenticationMethod,
   });
