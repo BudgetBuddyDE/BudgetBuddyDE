@@ -1,6 +1,7 @@
 import {ApiClientError} from '@budgetbuddyde/core/error/ApiClientError';
 import {createNoopLogger, type Logger} from '@budgetbuddyde/logger';
 import type {z} from 'zod';
+import {BackendError, ResponseNotJsonError} from '../error';
 import {fetchWithCache, clearRequestCache} from './requestCache';
 import type {TResult} from '../types/common';
 
@@ -94,6 +95,38 @@ export class BackendService {
   protected isJsonResponse(response: Response): boolean {
     const contentType = response.headers.get('content-type');
     return contentType?.includes('application/json') || false;
+  }
+
+  /**
+   * Sends a request and parses the JSON body against the given schema.
+   * @param path - The request path (appended to host + basePath)
+   * @param init - The base request configuration
+   * @param schema - The Zod schema used to validate the response body
+   * @param requestConfig - Optional override configuration
+   * @returns A TResult tuple with the parsed data or the error
+   */
+  protected async requestJson<T extends z.ZodType>(
+    path: string,
+    init: RequestInit,
+    schema: T,
+    requestConfig?: RequestInit,
+  ): Promise<TResult<z.output<T>>> {
+    try {
+      const response = await this.request(path, this.mergeRequestConfig(init, requestConfig));
+      if (!response.ok) {
+        throw new BackendError(response.status, response.statusText);
+      }
+      if (!this.isJsonResponse(response)) {
+        throw new ResponseNotJsonError();
+      }
+      const parsingResult = schema.safeParse(await response.json());
+      if (!parsingResult.success) {
+        return this.handleZodError(parsingResult.error);
+      }
+      return [parsingResult.data, null];
+    } catch (error) {
+      return this.handleError(error);
+    }
   }
 
   /**

@@ -1,6 +1,5 @@
 import type {Logger} from '@budgetbuddyde/logger';
 import type {ZodType, z} from 'zod';
-import {BackendError, ResponseNotJsonError} from '../error';
 import {BackendService} from './backend.service';
 import type {TResult} from '../types/common';
 import type {IBaseGetAllQuery} from '../types/interfaces/query.interface';
@@ -41,150 +40,79 @@ export class EntityService<
     this.schemas = schemas;
   }
 
+  protected async fetchValueHelp<T extends ZodType>(
+    schema: T,
+    requestConfig?: RequestInit,
+  ): Promise<TResult<z.output<T>>> {
+    const [response, error] = await this.getAll(undefined, requestConfig);
+    if (error) return [null, error];
+
+    const parsed = schema.safeParse((response as {data?: unknown} | null)?.data ?? []);
+    if (!parsed.success) {
+      return this.handleZodError(parsed.error);
+    }
+    return [parsed.data, null];
+  }
+
   @log
   async getAll<Query extends IBaseGetAllQuery>(
     query?: Query,
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<GetAllResult>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}?${this.reqQueryObjToURLSearchParams(query).toString()}`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = this.schemas.getAll.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}?${this.reqQueryObjToURLSearchParams(query).toString()}`,
+      {
+        method: 'GET',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      this.schemas.getAll,
+      requestConfig,
+    );
   }
 
   @log
   async getById(entityId: string, requestConfig?: RequestInit): Promise<TResult<z.output<GetResult>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${entityId}`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = this.schemas.get.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${entityId}`,
+      {
+        method: 'GET',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      this.schemas.get,
+      requestConfig,
+    );
   }
 
   @log
   async create(payload: CreatePayload, requestConfig?: RequestInit): Promise<TResult<z.output<CreateResult>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}`,
-        this.mergeRequestConfig(
-          {
-            method: 'POST',
-            headers: new Headers(
-              requestConfig?.headers || {
-                'Content-Type': 'application/json',
-              },
-            ),
-            credentials: 'include',
-            body: JSON.stringify(payload),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = this.schemas.create.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}`,
+      {
+        method: 'POST',
+        headers: new Headers(requestConfig?.headers || {'Content-Type': 'application/json'}),
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      },
+      this.schemas.create,
+      requestConfig,
+    );
   }
 
   @log
   async createMany(payload: CreatePayload[], requestConfig?: RequestInit): Promise<TResult<z.output<CreateResult>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/batch`,
-        this.mergeRequestConfig(
-          {
-            method: 'POST',
-            headers: new Headers(
-              requestConfig?.headers || {
-                'Content-Type': 'application/json',
-              },
-            ),
-            credentials: 'include',
-            body: JSON.stringify(payload),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = this.schemas.create.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/batch`,
+      {
+        method: 'POST',
+        headers: new Headers(requestConfig?.headers || {'Content-Type': 'application/json'}),
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      },
+      this.schemas.create,
+      requestConfig,
+    );
   }
 
   @log
@@ -193,40 +121,17 @@ export class EntityService<
     payload: UpdatePayload,
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<UpdateResult>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${entityId}`,
-        this.mergeRequestConfig(
-          {
-            method: 'PUT',
-            headers: new Headers(
-              requestConfig?.headers || {
-                'Content-Type': 'application/json',
-              },
-            ),
-            credentials: 'include',
-            body: JSON.stringify(payload),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = this.schemas.update.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${entityId}`,
+      {
+        method: 'PUT',
+        headers: new Headers(requestConfig?.headers || {'Content-Type': 'application/json'}),
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      },
+      this.schemas.update,
+      requestConfig,
+    );
   }
 
   @log
@@ -234,72 +139,30 @@ export class EntityService<
     updates: Array<{id: string; data: UpdatePayload}>,
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<UpdateResult>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/batch`,
-        this.mergeRequestConfig(
-          {
-            method: 'PUT',
-            headers: new Headers(
-              requestConfig?.headers || {
-                'Content-Type': 'application/json',
-              },
-            ),
-            credentials: 'include',
-            body: JSON.stringify({updates}),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = this.schemas.update.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/batch`,
+      {
+        method: 'PUT',
+        headers: new Headers(requestConfig?.headers || {'Content-Type': 'application/json'}),
+        credentials: 'include',
+        body: JSON.stringify({updates}),
+      },
+      this.schemas.update,
+      requestConfig,
+    );
   }
 
   @log
   async deleteById(entityId: string, requestConfig?: RequestInit): Promise<TResult<z.output<DeleteResult>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${entityId}`,
-        this.mergeRequestConfig(
-          {
-            method: 'DELETE',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = this.schemas.delete.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${entityId}`,
+      {
+        method: 'DELETE',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      this.schemas.delete,
+      requestConfig,
+    );
   }
 }
