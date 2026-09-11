@@ -1,7 +1,7 @@
 import path from 'node:path';
 import {gzipSync} from 'node:zlib';
 import type {S3Client} from '@aws-sdk/client-s3';
-import {DeleteObjectsCommand, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
+import {DeleteObjectsCommand, GetObjectCommand} from '@aws-sdk/client-s3';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
 import type {TypeOfSchema} from '@budgetbuddyde/api';
 import type {IGetAllAttachmentsQuery, TAttachment, TSignedAttachmentUrl} from '@budgetbuddyde/api/attachment';
@@ -26,13 +26,6 @@ type PreparedAttachmentBuffer = {
 };
 
 const STORAGE_CLEANUP_ATTEMPTS = 3;
-
-type UploadFileOptions = Pick<
-  TAttachment,
-  'id' | 'ownerId' | 'fileName' | 'fileExtension' | 'contentType' | 'location'
-> & {
-  fileBuffer: Buffer;
-};
 
 export type AttachmentHandlerOptions = {
   ttl: number;
@@ -311,44 +304,6 @@ export abstract class AttachmentHandler {
         this.logger.warn('Retrying attachment object cleanup', {attempt, locations});
       }
     }
-  }
-
-  /**
-   * Upload file to S3 and create database record
-   */
-  public async uploadFile(options: UploadFileOptions): Promise<void> {
-    const preparedBuffer = await AttachmentHandler.prepareAttachmentBuffer(
-      options.fileBuffer,
-      options.contentType as string,
-    );
-
-    // Upload to S3
-    const command = new PutObjectCommand({
-      Bucket: this.bucketName,
-      Key: options.location,
-      Body: preparedBuffer.buffer,
-      ContentType: options.contentType as string,
-      ContentEncoding: preparedBuffer.contentEncoding,
-    });
-
-    this.logger.debug('Uploading file %s to S3 at %s', options.id, options.location);
-    await this.s3Client.send(command);
-
-    try {
-      await db.insert(attachments).values({
-        id: options.id,
-        ownerId: options.ownerId,
-        fileName: options.fileName,
-        fileExtension: options.fileExtension,
-        contentType: options.contentType as string,
-        location: options.location,
-      });
-    } catch (error) {
-      await this.cleanupStorageObjects([options.location]);
-      throw error;
-    }
-
-    this.logger.info('File uploaded successfully', {attachmentId: options.id});
   }
 
   /**
