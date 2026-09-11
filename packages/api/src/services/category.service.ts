@@ -1,6 +1,5 @@
 import type {Logger} from '@budgetbuddyde/logger';
 import z from 'zod';
-import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TCategory, TCategoryStats, TCategoryVH, TCreateOrUpdateCategoryPayload} from '../types/category.type';
 import type {TResult} from '../types/common';
@@ -42,16 +41,7 @@ export class CategoryService extends EntityService<
 
   @log
   async getValueHelp(requestConfig?: RequestInit): Promise<TResult<TCategoryVH[]>> {
-    const [categories, error] = await this.getAll(undefined, requestConfig);
-    if (error) {
-      this.handleError(error);
-    }
-
-    const valueHelpValues = z.array(CategoryVH).safeParse(categories?.data ?? []);
-    if (!valueHelpValues.success) {
-      return this.handleZodError(valueHelpValues.error);
-    }
-    return [valueHelpValues.data, null];
+    return this.fetchValueHelp(z.array(CategoryVH), requestConfig);
   }
 
   /**
@@ -70,40 +60,23 @@ export class CategoryService extends EntityService<
     },
     requestConfig?: RequestInit,
   ): Promise<TResult<TCategoryStats>> {
-    try {
-      const query = new URLSearchParams();
-      // en-CA format yields YYYY-MM-DD which is ISO 8601 compliant
-      query.append('from', from.toLocaleDateString('en-CA'));
-      query.append('to', to.toLocaleDateString('en-CA'));
+    const query = new URLSearchParams();
+    // en-CA format yields YYYY-MM-DD which is ISO 8601 compliant
+    query.append('from', from.toLocaleDateString('en-CA'));
+    query.append('to', to.toLocaleDateString('en-CA'));
 
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/stats?${query.toString()}`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            credentials: 'include',
-            headers: new Headers(requestConfig?.headers || {}),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = CategoryStatsResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data.data ?? [], null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const [result, error] = await this.requestJson(
+      `${this.getBaseRequestPath()}/stats?${query.toString()}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: new Headers(requestConfig?.headers || {}),
+      },
+      CategoryStatsResponse,
+      requestConfig,
+    );
+    if (error) return [null, error];
+    return [result.data ?? [], null];
   }
 
   @log
@@ -122,38 +95,21 @@ export class CategoryService extends EntityService<
       target: TCategory['id'];
     }>
   > {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/merge`,
-        this.mergeRequestConfig(
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: new Headers({
-              'Content-Type': 'application/json',
-              ...(requestConfig?.headers || {}),
-            }),
-            body: JSON.stringify({source, target}),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = MergeCategoriesResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const [result, error] = await this.requestJson(
+      `${this.getBaseRequestPath()}/merge`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          ...(requestConfig?.headers || {}),
+        }),
+        body: JSON.stringify({source, target}),
+      },
+      MergeCategoriesResponse,
+      requestConfig,
+    );
+    if (error) return [null, error];
+    return [result.data, null];
   }
 }

@@ -1,6 +1,5 @@
 import type {Logger} from '@budgetbuddyde/logger';
 import z from 'zod';
-import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TResult} from '../types/common';
 import type {TCreateOrUpdatePaymentMethodPayload, TPaymentMethod, TPaymentMethodVH} from '../types/paymentMethod.type';
@@ -41,16 +40,7 @@ export class PaymentMethodService extends EntityService<
 
   @log
   async getValueHelp(requestConfig?: RequestInit): Promise<TResult<TPaymentMethodVH[]>> {
-    const [paymentMethods, error] = await this.getAll(undefined, requestConfig);
-    if (error) {
-      this.handleError(error);
-    }
-
-    const valueHelpValues = z.array(PaymentMethodVH).safeParse(paymentMethods?.data ?? []);
-    if (!valueHelpValues.success) {
-      return this.handleZodError(valueHelpValues.error);
-    }
-    return [valueHelpValues.data, null];
+    return this.fetchValueHelp(z.array(PaymentMethodVH), requestConfig);
   }
 
   @log
@@ -69,38 +59,21 @@ export class PaymentMethodService extends EntityService<
       target: TPaymentMethod['id'];
     }>
   > {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/merge`,
-        this.mergeRequestConfig(
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: new Headers({
-              'Content-Type': 'application/json',
-              ...(requestConfig?.headers || {}),
-            }),
-            body: JSON.stringify({source, target}),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = MergePaymentMethodsResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const [result, error] = await this.requestJson(
+      `${this.getBaseRequestPath()}/merge`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          ...(requestConfig?.headers || {}),
+        }),
+        body: JSON.stringify({source, target}),
+      },
+      MergePaymentMethodsResponse,
+      requestConfig,
+    );
+    if (error) return [null, error];
+    return [result.data, null];
   }
 }

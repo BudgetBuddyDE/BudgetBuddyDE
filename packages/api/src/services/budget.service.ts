@@ -1,5 +1,4 @@
 import type {Logger} from '@budgetbuddyde/logger';
-import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TCreateOrUpdateBudgetPayload, TEstimatedBudget} from '../types/budget.type';
 import type {TResult} from '../types/common';
@@ -39,34 +38,17 @@ export class BudgetService extends EntityService<
 
   @log
   async getEstimatedBudget(requestConfig?: RequestInit): Promise<TResult<TEstimatedBudget>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/estimated`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            credentials: 'include',
-            headers: new Headers(requestConfig?.headers || {}),
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = EstimatedBudgetResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data.data ?? [], null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const [result, error] = await this.requestJson(
+      `${this.getBaseRequestPath()}/estimated`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: new Headers(requestConfig?.headers || {}),
+      },
+      EstimatedBudgetResponse,
+      requestConfig,
+    );
+    if (error) return [null, error];
+    return [result.data ?? [], null];
   }
 }
