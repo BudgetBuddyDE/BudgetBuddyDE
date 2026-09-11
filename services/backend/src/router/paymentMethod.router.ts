@@ -62,13 +62,15 @@ paymentMethodRouter.post(
     }
 
     await db.transaction(async tx => {
+      const sourceArray = Array.from(source);
+
       // Update transactions to point to the target payment method
       const updatedTransactions = await tx
         .update(transactions)
         .set({
           paymentMethodId: target,
         })
-        .where(and(eq(transactions.ownerId, userId), inArray(transactions.categoryId, Array.from(source))))
+        .where(and(eq(transactions.ownerId, userId), inArray(transactions.paymentMethodId, sourceArray)))
         .returning();
 
       logger.info(`Updated ${updatedTransactions.length} transactions to point to payment method ${target}`);
@@ -79,16 +81,14 @@ paymentMethodRouter.post(
         .set({
           paymentMethodId: target,
         })
-        .where(
-          and(eq(recurringPayments.ownerId, userId), inArray(recurringPayments.paymentMethodId, Array.from(source))),
-        )
+        .where(and(eq(recurringPayments.ownerId, userId), inArray(recurringPayments.paymentMethodId, sourceArray)))
         .returning();
       logger.info(`Updated ${updatedRecurringPayments.length} recurring payments to point to payment method ${target}`);
 
       // Delete source payment methods
       const deletedPaymentMethods = await tx
         .delete(paymentMethods)
-        .where(and(eq(paymentMethods.ownerId, userId), inArray(paymentMethods.id, Array.from(source))))
+        .where(and(eq(paymentMethods.ownerId, userId), inArray(paymentMethods.id, sourceArray)))
         .returning();
       logger.info(`Deleted ${deletedPaymentMethods.length} source payment methods`);
     });
