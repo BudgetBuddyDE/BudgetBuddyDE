@@ -1,6 +1,6 @@
 import type {Logger} from '@budgetbuddyde/logger';
 import {describe, expect, it, vi} from 'vitest';
-import {createLogDecorator, log} from './log.decorator';
+import {log} from './log.decorator';
 
 const context = {name: 'loadData'} as ClassMethodDecoratorContext<object, (...args: unknown[]) => unknown>;
 
@@ -13,33 +13,17 @@ function createSink(): Pick<Logger, 'debug' | 'warn' | 'error'> {
 }
 
 describe('log decorator', () => {
-  it('accepts options through the log decorator factory syntax', () => {
+  it('logs structured success metadata and a bounded result summary', () => {
     const logger = createSink();
-    const decorated = log({logArgs: true, logResult: false, logger})(function () {
-      return 'ok';
-    }, context);
-
-    decorated.call({constructor: {name: 'TestService'}}, {visible: 'ok'});
-
-    expect(logger.debug).toHaveBeenCalledWith(
-      'Method called',
-      expect.objectContaining({args: '{"type":"array","length":1,"items":[{"visible":"ok"}]}'}),
-    );
-    expect(logger.debug).toHaveBeenCalledWith('Method finished', expect.objectContaining({status: 'success'}));
-  });
-
-  it('logs structured success metadata and redacts sensitive arguments', () => {
-    const logger = createSink();
-    const decorated = createLogDecorator({logArgs: true, logResult: true, logger})(function () {
+    const decorated = log(function () {
       return {id: 'result-1', data: [{id: 'item-1'}]};
     }, context);
 
-    decorated.call({constructor: {name: 'TestService'}}, {token: 'secret-value', visible: 'ok'});
+    decorated.call({constructor: {name: 'TestService'}, logger}, {visible: 'ok'});
 
     expect(logger.debug).toHaveBeenCalledWith('Method called', {
       className: 'TestService',
       methodName: 'loadData',
-      args: '{"type":"array","length":1,"items":[{"token":"[Redacted]","visible":"ok"}]}',
     });
     expect(logger.debug).toHaveBeenCalledWith('Method finished', {
       className: 'TestService',
@@ -52,7 +36,7 @@ describe('log decorator', () => {
 
   it('uses the logger injected on the decorated instance', () => {
     const logger = createSink();
-    const decorated = createLogDecorator()(function () {
+    const decorated = log(function () {
       return 'ok';
     }, context);
 
@@ -61,16 +45,16 @@ describe('log decorator', () => {
     expect(logger.debug).toHaveBeenCalledWith('Method called', expect.objectContaining({className: 'TestService'}));
   });
 
-  it('stringifies non-Error object failures', () => {
+  it('stringifies and redacts non-Error object failures', () => {
     const logger = createSink();
-    const failure = {reason: 'request failed', details: ['timeout']};
-    const decorated = createLogDecorator({logger})(function () {
+    const failure = {token: 'secret-value', reason: 'request failed', details: ['timeout']};
+    const decorated = log(function () {
       throw failure;
     }, context);
 
     let thrown: unknown;
     try {
-      decorated.call({constructor: {name: 'TestService'}});
+      decorated.call({constructor: {name: 'TestService'}, logger});
     } catch (error) {
       thrown = error;
     }
@@ -82,7 +66,8 @@ describe('log decorator', () => {
       status: 'error',
       durationMs: expect.any(Number),
       error: {
-        value: '{"reason":"request failed","details":{"type":"array","length":1,"items":["timeout"]}}',
+        value:
+          '{"token":"[Redacted]","reason":"request failed","details":{"type":"array","length":1,"items":["timeout"]}}',
       },
     });
   });
@@ -90,11 +75,11 @@ describe('log decorator', () => {
   it('logs rejected promises and preserves the original error', async () => {
     const logger = createSink();
     const expectedError = new Error('request failed');
-    const decorated = createLogDecorator({logger})(async function () {
+    const decorated = log(async function () {
       throw expectedError;
     }, context);
 
-    await expect(decorated.call({constructor: {name: 'TestService'}})).rejects.toBe(expectedError);
+    await expect(decorated.call({constructor: {name: 'TestService'}, logger})).rejects.toBe(expectedError);
 
     expect(logger.error).toHaveBeenCalledWith('Method failed', expectedError, {
       className: 'TestService',
@@ -107,11 +92,11 @@ describe('log decorator', () => {
   it('logs tuple-based service errors without changing the return value', () => {
     const logger = createSink();
     const expectedError = new Error('service error');
-    const decorated = createLogDecorator({logger})(function () {
+    const decorated = log(function () {
       return [null, expectedError] as const;
     }, context);
 
-    expect(decorated.call({constructor: {name: 'TestService'}})).toEqual([null, expectedError]);
+    expect(decorated.call({constructor: {name: 'TestService'}, logger})).toEqual([null, expectedError]);
     expect(logger.error).toHaveBeenCalledWith(
       'Method returned an error result',
       expectedError,
@@ -122,11 +107,11 @@ describe('log decorator', () => {
   it('marks calls over the threshold as slow', () => {
     const logger = createSink();
     const now = vi.spyOn(Date, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(1801);
-    const decorated = createLogDecorator({slowThresholdMs: 500, logger})(function () {
+    const decorated = log(function () {
       return true;
     }, context);
 
-    decorated.call({constructor: {name: 'TestService'}});
+    decorated.call({constructor: {name: 'TestService'}, logger});
 
     expect(logger.warn).toHaveBeenCalledWith(
       'Slow method call',
