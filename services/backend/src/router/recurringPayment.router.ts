@@ -7,9 +7,10 @@ import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
-import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
+import {invalidateUserCaches} from '../middleware/cache.middleware';
+import {ApiResponse, HTTPStatusCode} from '../models';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
 export const recurringPaymentRouter = Router();
@@ -569,6 +570,7 @@ recurringPaymentRouter.post(
 
     try {
       const createdTransaction = await createTransactionFromRecurringPayment(payment);
+      await invalidateUserCaches(userId, ['/api/transaction', '/api/budget', '/api/insights']);
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Transaction created successfully')

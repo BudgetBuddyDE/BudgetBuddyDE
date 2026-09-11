@@ -6,6 +6,7 @@ import {and, eq, lte} from 'drizzle-orm';
 import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
+import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
 const RECURRING_PAYMENT_BATCH_SIZE = 10;
@@ -41,10 +42,12 @@ export async function processRecurringPayments() {
       const results = await Promise.allSettled(
         batch.map(payment => createTransactionFromRecurringPayment(payment, today)),
       );
+      const affectedUserIds = new Set<string>();
 
       results.forEach((result, index) => {
         if (result.status === 'fulfilled') {
           processedCount += 1;
+          affectedUserIds.add(batch[index].ownerId);
           return;
         }
 
@@ -55,6 +58,12 @@ export async function processRecurringPayments() {
           scheduledFor,
         });
       });
+
+      await Promise.all(
+        [...affectedUserIds].map(userId =>
+          invalidateUserCaches(userId, ['/api/transaction', '/api/budget', '/api/insights']),
+        ),
+      );
     }
 
     logger.info(
