@@ -8,7 +8,7 @@ import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
-import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
+import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
 import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
@@ -235,22 +235,8 @@ recurringPaymentRouter.post(
     const categoryIds = [...new Set(req.body.map(body => body.categoryId))];
     const paymentMethodIds = [...new Set(req.body.map(body => body.paymentMethodId))];
     const [categoriesOwned, paymentMethodsOwned] = await Promise.all([
-      hasAllOwnedIds(userId, categoryIds, async (owner, ids) =>
-        db.query.categories.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
-          },
-        }),
-      ),
-      hasAllOwnedIds(userId, paymentMethodIds, async (owner, ids) =>
-        db.query.paymentMethods.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
-          },
-        }),
-      ),
+      hasAllOwnedIds(userId, categoryIds, ownedIdsFinder(db.query.categories)),
+      hasAllOwnedIds(userId, paymentMethodIds, ownedIdsFinder(db.query.paymentMethods)),
     ]);
     if (!categoriesOwned || !paymentMethodsOwned) {
       ApiResponse.builder()
@@ -305,30 +291,9 @@ recurringPaymentRouter.put(
       ...new Set(updates.flatMap(update => (update.data.paymentMethodId ? [update.data.paymentMethodId] : []))),
     ];
     const [owned, categoriesOwned, paymentMethodsOwned] = await Promise.all([
-      hasAllOwnedIds(userId, ids, async (owner, targetIds) =>
-        db.query.recurringPayments.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
-          },
-        }),
-      ),
-      hasAllOwnedIds(userId, categoryIds, async (owner, targetIds) =>
-        db.query.categories.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
-          },
-        }),
-      ),
-      hasAllOwnedIds(userId, paymentMethodIds, async (owner, targetIds) =>
-        db.query.paymentMethods.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
-          },
-        }),
-      ),
+      hasAllOwnedIds(userId, ids, ownedIdsFinder(db.query.recurringPayments)),
+      hasAllOwnedIds(userId, categoryIds, ownedIdsFinder(db.query.categories)),
+      hasAllOwnedIds(userId, paymentMethodIds, ownedIdsFinder(db.query.paymentMethods)),
     ]);
     if (!owned) {
       ApiResponse.builder()
@@ -427,22 +392,8 @@ recurringPaymentRouter.post(
       return;
     }
     const [categoryOwned, paymentMethodOwned] = await Promise.all([
-      hasAllOwnedIds(userId, [req.body.categoryId], async (owner, ids) =>
-        db.query.categories.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
-          },
-        }),
-      ),
-      hasAllOwnedIds(userId, [req.body.paymentMethodId], async (owner, ids) =>
-        db.query.paymentMethods.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
-          },
-        }),
-      ),
+      hasAllOwnedIds(userId, [req.body.categoryId], ownedIdsFinder(db.query.categories)),
+      hasAllOwnedIds(userId, [req.body.paymentMethodId], ownedIdsFinder(db.query.paymentMethods)),
     ]);
     if (!categoryOwned || !paymentMethodOwned) {
       ApiResponse.builder()
@@ -490,21 +441,11 @@ recurringPaymentRouter.put(
       return;
     }
     const [categoryOwned, paymentMethodOwned] = await Promise.all([
-      hasAllOwnedIds(userId, req.body.categoryId ? [req.body.categoryId] : [], async (owner, ids) =>
-        db.query.categories.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
-          },
-        }),
-      ),
-      hasAllOwnedIds(userId, req.body.paymentMethodId ? [req.body.paymentMethodId] : [], async (owner, ids) =>
-        db.query.paymentMethods.findMany({
-          columns: {id: true},
-          where(fields, operators) {
-            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
-          },
-        }),
+      hasAllOwnedIds(userId, req.body.categoryId ? [req.body.categoryId] : [], ownedIdsFinder(db.query.categories)),
+      hasAllOwnedIds(
+        userId,
+        req.body.paymentMethodId ? [req.body.paymentMethodId] : [],
+        ownedIdsFinder(db.query.paymentMethods),
       ),
     ]);
     if (!categoryOwned || !paymentMethodOwned) {

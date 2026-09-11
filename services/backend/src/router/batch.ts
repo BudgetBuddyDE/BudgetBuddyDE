@@ -33,6 +33,20 @@ export async function hasAllOwnedIds(
   return owned.length === uniqueIds.length;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: drizzle relational query builders share this call shape
+type OwnedIdRelation = {findMany: (args: any) => Promise<readonly {id: string}[]>};
+
+/** Builds the `findOwned` callback that checks `id`/`ownerId` ownership for a relation. */
+export function ownedIdsFinder(relation: OwnedIdRelation) {
+  return (owner: string, ids: readonly string[]) =>
+    relation.findMany({
+      columns: {id: true},
+      // biome-ignore lint/suspicious/noExplicitAny: drizzle field/operator helpers are structurally typed
+      where: (fields: any, operators: any) =>
+        operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids)),
+    });
+}
+
 export async function applyBatchUpdates<Tx, Update, Result>(
   tx: Tx,
   updates: readonly Update[],

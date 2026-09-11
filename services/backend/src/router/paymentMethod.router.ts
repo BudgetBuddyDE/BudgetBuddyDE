@@ -7,7 +7,7 @@ import {db} from '../db';
 import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
-import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
+import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
 
 export const paymentMethodRouter = Router();
 
@@ -216,14 +216,7 @@ paymentMethodRouter.put(
 
     const updates = req.body.updates as Array<{id: string; data: z.infer<typeof PaymentMethodSchemas.update>}>;
     const ids = updates.map(update => update.id);
-    const owned = await hasAllOwnedIds(userId, ids, async (owner, targetIds) =>
-      db.query.paymentMethods.findMany({
-        columns: {id: true},
-        where(fields, operators) {
-          return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, targetIds));
-        },
-      }),
-    );
+    const owned = await hasAllOwnedIds(userId, ids, ownedIdsFinder(db.query.paymentMethods));
     if (!owned) {
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.NOT_FOUND)
