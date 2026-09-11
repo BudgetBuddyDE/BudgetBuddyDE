@@ -26,10 +26,13 @@ export async function requestRouter(
   const {port} = server.address() as AddressInfo;
 
   try {
+    const isFormData = options.body instanceof FormData;
+    const body =
+      options.body === undefined ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body);
     const response = await fetch(`http://127.0.0.1:${port}${path}`, {
       method: options.method,
-      headers: options.body === undefined ? undefined : {'content-type': 'application/json'},
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      headers: options.body === undefined || isFormData ? undefined : {'content-type': 'application/json'},
+      body,
     });
 
     return {status: response.status, body: await response.json()};

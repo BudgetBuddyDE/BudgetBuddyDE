@@ -213,7 +213,7 @@ transactionRouter.get(
         })
         .from(transactionAttachments)
         .innerJoin(attachments, eq(transactionAttachments.attachmentId, attachments.id))
-        .where(inArray(transactionAttachments.transactionId, transactionIds))
+        .where(and(eq(attachments.ownerId, userId), inArray(transactionAttachments.transactionId, transactionIds)))
         .orderBy(desc(attachments.createdAt));
 
       for (const attachmentRow of attachmentRows) {
@@ -694,6 +694,21 @@ transactionRouter.post(
         .withStatus(HTTPStatusCode.BAD_REQUEST)
         .withMessage('Unsupported attachment file type')
         .buildAndSend(res);
+    }
+
+    const transaction = await db.query.transactions.findFirst({
+      columns: {id: true},
+      where(fields, operators) {
+        return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, req.params.id));
+      },
+    });
+    if (!transaction) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.NOT_FOUND)
+        .withMessage(`Transaction ${req.params.id} not found`)
+        .withFrom('db')
+        .buildAndSend(res);
+      return;
     }
 
     try {
