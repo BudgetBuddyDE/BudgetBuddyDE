@@ -1,14 +1,6 @@
 import {createInsertSchema, createSelectSchema, createUpdateSchema} from 'drizzle-zod';
 import {z} from 'zod';
-import {
-  attachments,
-  budgetCategories,
-  budgets,
-  categories,
-  paymentMethods,
-  recurringPayments,
-  transactions,
-} from './tables';
+import {attachments, budgets, categories, paymentMethods, recurringPayments, transactions} from './tables';
 import {createTableSchemas} from '../utils/createTableSchemas';
 
 export {budgetType, executionPlanType} from './enums';
@@ -23,14 +15,6 @@ export const RecurringPaymentSchemas = createTableSchemas(recurringPayments);
 
 export const AttachmentSchemas = createTableSchemas(attachments);
 
-/**
- * @deprecated
- */
-export const BudgetSchemas = createTableSchemas(budgets);
-/**
- * @deprecated
- */
-export const BudgetCategorySchemas = createTableSchemas(budgetCategories);
 // REVISIT:
 export const BudgetWithCategoriesSchema = {
   select: createSelectSchema(budgets),
