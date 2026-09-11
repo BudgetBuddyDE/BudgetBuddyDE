@@ -66,10 +66,10 @@ describe('logger facade', () => {
     expect(() => logger.child({requestId: 'request'}).error('Ignored', new Error('failure'))).not.toThrow();
   });
 
-  it('parses thresholds including the legacy crit value', () => {
+  it('parses thresholds and falls back for unknown values', () => {
     expect(getLogLevel(' TRACE ')).toBe('trace');
     expect(getLogLevel('silent')).toBe('silent');
-    expect(getLogLevel('crit')).toBe('error');
+    expect(getLogLevel('crit')).toBe('info');
     expect(getLogLevel('unknown')).toBe('info');
   });
 });
