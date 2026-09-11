@@ -51,4 +51,56 @@ describe('processRecurringPayments', () => {
 
     expect(createTransaction).not.toHaveBeenCalled();
   });
+
+  it('logs candidate query failures without rejecting the job', async () => {
+    const databaseError = new Error('database unavailable');
+    findMany.mockRejectedValueOnce(databaseError);
+
+    await expect(processRecurringPayments()).resolves.toBeUndefined();
+
+    expect(createTransaction).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith('Error processing recurring payments:', databaseError);
+  });
+
+  it('limits concurrent recurring payment processing to one batch', async () => {
+    const payments = Array.from({length: 25}, (_, index) => ({
+      id: `daily-${index}`,
+      executionPlan: 'daily',
+      startsOn: '2026-08-01',
+    }));
+    let active = 0;
+    let maximumActive = 0;
+    findMany.mockResolvedValueOnce(payments);
+    createTransaction.mockImplementation(async () => {
+      active += 1;
+      maximumActive = Math.max(maximumActive, active);
+      await Promise.resolve();
+      active -= 1;
+      return {id: 'transaction'};
+    });
+
+    await processRecurringPayments();
+
+    expect(maximumActive).toBe(10);
+    expect(createTransaction).toHaveBeenCalledTimes(25);
+  });
+
+  it('continues with later payments when one payment fails', async () => {
+    const payments = Array.from({length: 11}, (_, index) => ({
+      id: `daily-${index}`,
+      executionPlan: 'daily',
+      startsOn: '2026-08-01',
+    }));
+    findMany.mockResolvedValueOnce(payments);
+    createTransaction.mockRejectedValueOnce(new Error('insert failed'));
+
+    await processRecurringPayments();
+
+    expect(createTransaction).toHaveBeenCalledTimes(11);
+    expect(error).toHaveBeenCalledWith(
+      'Failed to process recurring payment',
+      expect.any(Error),
+      expect.objectContaining({recurringPaymentId: 'daily-0', scheduledFor: '2026-08-28'}),
+    );
+  });
 });
