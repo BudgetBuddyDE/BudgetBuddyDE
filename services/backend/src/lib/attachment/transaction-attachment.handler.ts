@@ -58,26 +58,8 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
       return {attachmentId, fileExtension, mimeType, location, file};
     });
 
-    // Insert all attachment records and junction table entries in a single transaction
-    await db.transaction(async tx => {
-      await tx.insert(attachments).values(
-        prepared.map(({attachmentId, fileExtension, mimeType, location, file}) => ({
-          id: attachmentId,
-          ownerId: userId,
-          fileName: file.originalname,
-          fileExtension,
-          contentType: mimeType,
-          location,
-        })),
-      );
-      await tx.insert(transactionAttachments).values(prepared.map(({attachmentId}) => ({transactionId, attachmentId})));
-      this.logger.debug('Registered %d attachments for transaction %s', prepared.length, transactionId, {
-        transactionId,
-      });
-    });
-
-    // Upload all files to S3 in parallel
-    await Promise.all(
+    // Upload all files to S3 before registering metadata so failed DB writes cannot leave broken records.
+    const uploadResults = await Promise.allSettled(
       prepared.map(async ({attachmentId, mimeType, location, file}) => {
         const preparedBuffer = await AttachmentHandler.prepareAttachmentBuffer(file.buffer, mimeType);
         this.logger.debug('Uploading attachment %s to S3 at %s', attachmentId, location, {attachmentId, location});
@@ -92,6 +74,40 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
         );
       }),
     );
+
+    const uploadedLocations = uploadResults.flatMap((result, index) =>
+      result.status === 'fulfilled' ? [prepared[index].location] : [],
+    );
+    const failedUpload = uploadResults.find(result => result.status === 'rejected');
+    if (failedUpload) {
+      await this.cleanupStorageObjects(uploadedLocations);
+      throw failedUpload.reason instanceof Error ? failedUpload.reason : new Error(String(failedUpload.reason));
+    }
+
+    try {
+      await db.transaction(async tx => {
+        await tx.insert(attachments).values(
+          prepared.map(({attachmentId, fileExtension, mimeType, location, file}) => ({
+            id: attachmentId,
+            ownerId: userId,
+            fileName: file.originalname,
+            fileExtension,
+            contentType: mimeType,
+            location,
+          })),
+        );
+        await tx
+          .insert(transactionAttachments)
+          .values(prepared.map(({attachmentId}) => ({transactionId, attachmentId})));
+        this.logger.debug('Registered %d attachments for transaction %s', prepared.length, transactionId, {
+          transactionId,
+        });
+      });
+    } catch (error) {
+      await this.cleanupStorageObjects(uploadedLocations);
+      throw error;
+    }
+
     this.logger.info('Uploaded %d attachments for transaction %s', prepared.length, transactionId, {transactionId});
 
     // Generate signed URLs for all uploaded files
