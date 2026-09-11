@@ -9,13 +9,7 @@ export class CustomError extends Error {
 
   constructor(message: string, options?: {cause?: unknown}) {
     super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
     this.name = new.target.name;
     this.cause = options?.cause;
-
-    const errorConstructor = Error as ErrorConstructor & {
-      captureStackTrace?: (targetObject: object, constructorOpt?: typeof CustomError) => void;
-    };
-    errorConstructor.captureStackTrace?.(this, new.target);
   }
 }

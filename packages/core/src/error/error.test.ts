@@ -26,6 +26,5 @@ describe('CustomError', () => {
     expect(error.statusCode).toBe(502);
     expect(error.backendResponseText).toBe('Bad Gateway');
     expect(error.cause).toBe(cause);
-    expect(error.getMessage()).toBe('Backend failed the request with status 502: Bad Gateway');
   });
 });

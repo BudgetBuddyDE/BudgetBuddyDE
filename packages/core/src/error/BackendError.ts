@@ -14,9 +14,4 @@ export class BackendError extends ApiClientError {
     this.statusCode = statusCode;
     this.backendResponseText = backendResponseText;
   }
-
-  /** Returns a descriptive message containing the HTTP status and backend response. */
-  getMessage(): string {
-    return `Backend failed the request with status ${this.statusCode}: ${this.backendResponseText}`;
-  }
 }
