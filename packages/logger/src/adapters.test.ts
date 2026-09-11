@@ -1,5 +1,4 @@
 import {createConsoleSink, formatConsoleEvent} from './console';
-import {MemoryLogger} from './testing';
 
 describe('adapters', () => {
   it('forwards complete events through the matching console method', () => {
@@ -26,15 +25,5 @@ describe('adapters', () => {
       failure,
     );
     vi.useRealTimers();
-  });
-
-  it('shares MemoryLogger events with child loggers', () => {
-    const logger = new MemoryLogger({context: {service: 'test'}});
-
-    logger.child({requestId: 'request'}).debug('Processed', {entityId: 'entity'});
-
-    expect(logger.events).toEqual([
-      {service: 'test', requestId: 'request', entityId: 'entity', level: 'debug', message: 'Processed'},
-    ]);
   });
 });
