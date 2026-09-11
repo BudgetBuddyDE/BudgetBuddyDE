@@ -17,6 +17,7 @@ import {config} from '../config';
 import {db} from '../db';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
+import {hasAllOwnedIds} from './batch';
 
 export const budgetRouter = Router();
 
@@ -279,6 +280,23 @@ budgetRouter.post(
     const {categories: categoryIds, ...budgetData} = req.body;
     const newBudget = {...budgetData, ownerId: userId};
 
+    if (
+      !(await hasAllOwnedIds(userId, categoryIds, async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ))
+    ) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories are invalid')
+        .buildAndSend(res);
+      return;
+    }
+
     try {
       const result = await db.transaction(async tx => {
         const [createdBudget] = await tx.insert(budgets).values(newBudget).returning();
@@ -351,6 +369,24 @@ budgetRouter.put(
 
     const budgetId = req.params.id;
     const {categories: newCategoryIds, ...budgetData} = req.body;
+
+    if (
+      newCategoryIds !== undefined &&
+      !(await hasAllOwnedIds(userId, newCategoryIds, async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ))
+    ) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories are invalid')
+        .buildAndSend(res);
+      return;
+    }
 
     try {
       const result = await db.transaction(async tx => {

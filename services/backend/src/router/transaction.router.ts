@@ -18,9 +18,9 @@ import z from 'zod';
 import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
+import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
-import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, updateBatchSchema} from './batch';
 
 export const transactionRouter = Router();
@@ -450,6 +450,33 @@ transactionRouter.post(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
+
+    const [categoryOwned, paymentMethodOwned] = await Promise.all([
+      hasAllOwnedIds(userId, [req.body.categoryId], async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, [req.body.paymentMethodId], async (owner, ids) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+    ]);
+    if (!categoryOwned || !paymentMethodOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('Referenced category or payment method is invalid')
+        .buildAndSend(res);
+      return;
+    }
+
     const requestBody = [req.body].map(body => {
       body.ownerId = userId;
       return body as z.infer<typeof TransactionSchemas.insert>;
@@ -710,6 +737,33 @@ transactionRouter.put(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
+
+    const [categoryOwned, paymentMethodOwned] = await Promise.all([
+      hasAllOwnedIds(userId, req.body.categoryId ? [req.body.categoryId] : [], async (owner, ids) =>
+        db.query.categories.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+      hasAllOwnedIds(userId, req.body.paymentMethodId ? [req.body.paymentMethodId] : [], async (owner, ids) =>
+        db.query.paymentMethods.findMany({
+          columns: {id: true},
+          where(fields, operators) {
+            return operators.and(operators.eq(fields.ownerId, owner), operators.inArray(fields.id, ids));
+          },
+        }),
+      ),
+    ]);
+    if (!categoryOwned || !paymentMethodOwned) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('Referenced category or payment method is invalid')
+        .buildAndSend(res);
+      return;
+    }
+
     const requestBody = req.body;
     requestBody.ownerId = userId;
 
