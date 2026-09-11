@@ -4,9 +4,9 @@ import {defineDocs} from 'fumadocs-mdx/macro';
 import {fumadocsMdx} from 'fumapress/adapters/mdx';
 import {linkValidationPlugin} from 'fumapress/plugins/link-validation';
 import {robotsPlugin} from 'fumapress/plugins/robots';
-import { llmsPlugin } from "fumapress/plugins/llms.txt";
-import { sitemapPlugin } from "fumapress/plugins/sitemap";
-import { takumiPlugin } from "fumapress/plugins/takumi";
+import {llmsPlugin} from 'fumapress/plugins/llms.txt';
+import {sitemapPlugin} from 'fumapress/plugins/sitemap';
+import {takumiPlugin} from 'fumapress/plugins/takumi';
 
 const docs = defineDocs({
   dir: 'docs',
@@ -35,8 +35,8 @@ export default defineConfig({
   .adapters(fumadocsMdx())
   .plugins(
     linkValidationPlugin(),
-    llmsPlugin({ routes: "all" }),
-    sitemapPlugin({ path: "/sitemap.xml"}),
+    llmsPlugin({routes: 'all'}),
+    sitemapPlugin({path: '/sitemap.xml'}),
     robotsPlugin(),
-    takumiPlugin()
+    takumiPlugin(),
   );
