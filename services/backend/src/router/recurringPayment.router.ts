@@ -11,7 +11,7 @@ import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
 import {paginationFields, paginationWindow, refinePagination} from './pagination';
 import {invalidateUserCaches} from '../middleware/cache.middleware';
-import {ApiResponse, HTTPStatusCode} from '../models';
+import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
 export const recurringPaymentRouter = Router();
@@ -454,7 +454,7 @@ recurringPaymentRouter.put(
         .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, req.params.id)))
         .returning();
       if (updatedRecord.length === 0) {
-        throw new Error('No recurring payment updated');
+        throw new NotFoundError('Recurring payment not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
@@ -537,7 +537,7 @@ recurringPaymentRouter.delete(
         .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, entityId)))
         .returning();
       if (deletedRecord.length === 0) {
-        throw new Error('No recurring payment deleted');
+        throw new NotFoundError('Recurring payment not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)

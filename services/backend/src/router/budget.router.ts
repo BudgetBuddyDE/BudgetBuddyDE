@@ -15,7 +15,7 @@ import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {config} from '../config';
 import {db} from '../db';
-import {ApiResponse, HTTPStatusCode} from '../models';
+import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {assembleFilter} from './assembleFilter';
 import {hasAllOwnedIds, ownedIdsFinder} from './batch';
 import {paginationFields, paginationWindow} from './pagination';
@@ -333,7 +333,7 @@ budgetRouter.put(
           .returning();
 
         if (!updatedBudget) {
-          throw new Error('Budget not found or access denied');
+          throw new NotFoundError('Budget not found');
         }
 
         if (newCategoryIds !== undefined) {
@@ -419,7 +419,7 @@ budgetRouter.delete(
         .returning();
 
       if (deletedRecord.length === 0) {
-        throw new Error('No budget deleted');
+        throw new NotFoundError('Budget not found');
       }
 
       ApiResponse.builder()

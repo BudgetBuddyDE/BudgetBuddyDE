@@ -6,7 +6,7 @@ import type {CorsOptions} from 'cors';
 import 'dotenv/config';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
 import {name, version} from '../package.json';
-import {HTTPStatusCode} from './models';
+import {HTTPStatusCode} from './models/HttpStatusCode';
 
 /** Complete, centrally constructed runtime configuration for the backend service. */
 export class AppConfig extends BackendConfig {
