@@ -151,7 +151,7 @@ export const attachments = backendSchema.table(
       .$defaultFn(() => uuidv7()),
     ownerId: varchar('owner_id')
       .notNull()
-      .references(() => user.id, {onDelete: 'set null'}),
+      .references(() => user.id, {onDelete: 'cascade'}),
     fileName: varchar({length: 255}).notNull(), // Original file name with extension
     fileExtension: varchar({length: 16}).notNull(), // File extension only
     contentType: varchar({length: 128}).notNull(), // MIME type
