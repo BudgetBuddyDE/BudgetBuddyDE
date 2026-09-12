@@ -11,7 +11,6 @@ import {
 import debounce from 'lodash.debounce';
 import React from 'react';
 import {ErrorAlert} from '@/components/ErrorAlert';
-import {useEnhancedEffect} from '@/hooks/useEnhancedEffect';
 import {logger} from '@/logger';
 
 export type AutocompleteProps<
@@ -113,7 +112,7 @@ export const Autocomplete = <
     setOptions([]);
   };
 
-  useEnhancedEffect(() => {
+  React.useEffect(() => {
     if (!searchAsYouType) return;
 
     if (!inputValue) {

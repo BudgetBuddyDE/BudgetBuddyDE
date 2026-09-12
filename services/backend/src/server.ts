@@ -1,4 +1,3 @@
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -67,7 +66,7 @@ app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
 });
 app.use(setRequestContext);
 app.use(logRequest);
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(servedBy);
 app.use(cacheResponse);
 app.use(invalidateCache);

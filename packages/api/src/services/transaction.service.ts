@@ -1,6 +1,5 @@
 import type {Logger} from '@budgetbuddyde/logger';
 import type {z} from 'zod';
-import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TResult} from '../types/common';
 import type {IGetAllTransactionsQuery} from '../types/interfaces/transaction.interface';
@@ -52,35 +51,18 @@ export class TransactionService extends EntityService<
 
   @log
   async getReceiverVH(requestConfig?: RequestInit): Promise<TResult<TReceiverVH[]>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/receiver`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = ReceiverVHResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data.data ?? [], null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const [result, error] = await this.requestJson(
+      `${this.getBaseRequestPath()}/receiver`,
+      {
+        method: 'GET',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      ReceiverVHResponse,
+      requestConfig,
+    );
+    if (error) return [null, error];
+    return [result.data ?? [], null];
   }
 
   /**
@@ -91,36 +73,17 @@ export class TransactionService extends EntityService<
     query?: TGetTransactionAttachmentsQuery,
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<typeof GetTransactionAttachmentsResponse>>> {
-    try {
-      const params = this.reqQueryObjToURLSearchParams(query);
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/attachments?${params.toString()}`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = GetTransactionAttachmentsResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const params = this.reqQueryObjToURLSearchParams(query);
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/attachments?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      GetTransactionAttachmentsResponse,
+      requestConfig,
+    );
   }
 
   /**
@@ -132,36 +95,17 @@ export class TransactionService extends EntityService<
     query?: TGetTransactionAttachmentsQuery,
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<typeof GetTransactionAttachmentsResponse>>> {
-    try {
-      const params = this.reqQueryObjToURLSearchParams(query);
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${transactionId}/attachments?${params.toString()}`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = GetTransactionAttachmentsResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const params = this.reqQueryObjToURLSearchParams(query);
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${transactionId}/attachments?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      GetTransactionAttachmentsResponse,
+      requestConfig,
+    );
   }
 
   /**
@@ -173,40 +117,21 @@ export class TransactionService extends EntityService<
     files: File[],
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<typeof UploadTransactionAttachmentsResponse>>> {
-    try {
-      const formData = new FormData();
-      for (const file of files) {
-        formData.append('files', file);
-      }
-
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${transactionId}/attachments`,
-        this.mergeRequestConfig(
-          {
-            method: 'POST',
-            credentials: 'include',
-            body: formData,
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = UploadTransactionAttachmentsResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('files', file);
     }
+
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${transactionId}/attachments`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      },
+      UploadTransactionAttachmentsResponse,
+      requestConfig,
+    );
   }
 
   /**
@@ -219,39 +144,16 @@ export class TransactionService extends EntityService<
     payload?: TDeleteTransactionAttachmentsPayload,
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<typeof DeleteTransactionResponse>>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${transactionId}/attachments`,
-        this.mergeRequestConfig(
-          {
-            method: 'DELETE',
-            headers: new Headers(
-              requestConfig?.headers || {
-                'Content-Type': 'application/json',
-              },
-            ),
-            credentials: 'include',
-            body: payload ? JSON.stringify(payload) : undefined,
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = DeleteTransactionResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${transactionId}/attachments`,
+      {
+        method: 'DELETE',
+        headers: new Headers(requestConfig?.headers || {'Content-Type': 'application/json'}),
+        credentials: 'include',
+        body: payload ? JSON.stringify(payload) : undefined,
+      },
+      DeleteTransactionResponse,
+      requestConfig,
+    );
   }
 }

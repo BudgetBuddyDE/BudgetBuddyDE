@@ -1,4 +1,4 @@
-import {and, eq, gt, gte, ilike, inArray, like, lt, lte, ne, notInArray, or} from 'drizzle-orm';
+import {and, eq, gte, ilike, inArray, lte, notInArray, or} from 'drizzle-orm';
 import type {PgTableWithColumns, TableConfig} from 'drizzle-orm/pg-core';
 
 export type TOwnerFilter<Table extends TableConfig> = {
@@ -16,7 +16,7 @@ type TBaseValue = string | number | boolean | Date;
 export type TAdditionalFilter<Table extends TableConfig> =
   | {
       columnName: keyof Table['columns'];
-      operator: 'eq' | 'ne' | 'lt' | 'lte' | 'gt' | 'gte' | 'like' | 'ilike' | 'in' | 'notIn';
+      operator: 'eq' | 'lte' | 'gte' | 'in' | 'notIn';
       value: TBaseValue;
     }
   | {
@@ -56,26 +56,11 @@ export function assembleFilter<Table extends TableConfig>(
         case 'eq':
           conditions.push(eq(col, filter.value));
           break;
-        case 'ne':
-          conditions.push(ne(col, filter.value));
-          break;
-        case 'lt':
-          conditions.push(lt(col, filter.value));
-          break;
         case 'lte':
           conditions.push(lte(col, filter.value));
           break;
-        case 'gt':
-          conditions.push(gt(col, filter.value));
-          break;
         case 'gte':
           conditions.push(gte(col, filter.value));
-          break;
-        case 'like':
-          conditions.push(like(col, filter.value as string));
-          break;
-        case 'ilike':
-          conditions.push(ilike(col, filter.value as string));
           break;
         case 'in':
           conditions.push(inArray(col, filter.value as Array<TBaseValue>));

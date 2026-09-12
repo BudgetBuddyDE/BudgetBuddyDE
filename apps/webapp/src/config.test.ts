@@ -43,7 +43,7 @@ describe('WebappConfig', () => {
       NODE_ENV: 'preview',
       NEXT_PUBLIC_AUTH_SERVICE_HOST: ' ',
       NEXT_PUBLIC_BACKEND_SERVICE_HOST: '',
-      NEXT_PUBLIC_LOG_LEVEL: 'crit',
+      NEXT_PUBLIC_LOG_LEVEL: 'error',
     });
 
     expect(config.runtime).toBe('development');

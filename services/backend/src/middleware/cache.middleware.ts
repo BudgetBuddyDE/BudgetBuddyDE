@@ -7,8 +7,11 @@ import {logger} from '../lib/logger';
 const cacheLogger = logger.child({module: 'cache', middleware: 'cache'});
 
 const invalidatedRoutePaths: Record<string, readonly string[]> = {
-  '/api/category': ['/api/category', '/api/transaction', '/api/recurringPayment', '/api/budget'],
+  '/api/category': ['/api/category', '/api/transaction', '/api/recurringPayment', '/api/budget', '/api/insights'],
   '/api/paymentMethod': ['/api/paymentMethod', '/api/transaction', '/api/recurringPayment', '/api/budget'],
+  '/api/transaction': ['/api/transaction', '/api/budget', '/api/insights'],
+  '/api/recurringPayment': ['/api/recurringPayment', '/api/budget'],
+  '/api/budget': ['/api/budget'],
 };
 
 /**
@@ -30,36 +33,35 @@ export function findMatchingRoute(requestPath: string): CacheRouteConfig | undef
 /**
  * Builds a per-user cache key that includes the full URL (path + query string).
  */
-export function buildCacheKey(route: CacheRouteConfig, userId: string, originalUrl: string): string {
+export function buildCacheKey(route: CacheRouteConfig, userId: string, originalUrl: string, generation = 0): string {
   const prefix = route.cacheKeyPrefix ?? route.path;
-  return `${config.cache.keyPrefix}:${prefix}:${userId}:${originalUrl}`;
+  return `${config.cache.keyPrefix}:${prefix}:${userId}:v${generation}:${originalUrl}`;
 }
 
-/** Invalidates every cached GET response for the supplied routes and user. */
+function buildGenerationKey(route: CacheRouteConfig, userId: string): string {
+  const prefix = route.cacheKeyPrefix ?? route.path;
+  return `${config.cache.keyPrefix}:generation:${prefix}:${userId}`;
+}
+
+async function getCacheGeneration(route: CacheRouteConfig, userId: string): Promise<number> {
+  const value = await getRedisClient().get(buildGenerationKey(route, userId));
+  const generation = Number(value);
+  return Number.isSafeInteger(generation) && generation >= 0 ? generation : 0;
+}
+
+/** Advances cache generations for the supplied routes and user. */
 export async function invalidateUserCaches(userId: string, routePaths: readonly string[]): Promise<void> {
   if (!isCacheAvailable()) return;
   try {
     const redis = getRedisClient();
     const routes = config.cache.routes.filter(route => routePaths.includes(route.path));
-    for (const route of routes) {
-      const prefix = route.cacheKeyPrefix ?? route.path;
-      const pattern = `${config.cache.keyPrefix}:${prefix}:${userId}:*`;
-      let cursor = '0';
-      do {
-        const [nextCursor, keys] = await redis.scan(
-          cursor,
-          'MATCH',
-          pattern,
-          'COUNT',
-          config.cache.invalidationScanCount,
-        );
-        cursor = nextCursor;
-        if (keys.length > 0) {
-          await redis.del(...keys);
-          cacheLogger.debug('Invalidated %d cache keys matching "%s"', keys.length, pattern, {keys});
-        }
-      } while (cursor !== '0');
-    }
+    await Promise.all(
+      routes.map(async route => {
+        const key = buildGenerationKey(route, userId);
+        const generation = await redis.incr(key);
+        cacheLogger.debug('Advanced cache generation for %s to %d', route.path, generation, {userId, key});
+      }),
+    );
   } catch (err) {
     cacheLogger.error('Cache invalidation failed', new CacheError('Cache invalidation failed', {cause: err}));
   }
@@ -92,7 +94,8 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
 
   try {
     const redis = getRedisClient();
-    const cacheKey = buildCacheKey(route, userId, req.originalUrl);
+    const generation = await getCacheGeneration(route, userId);
+    const cacheKey = buildCacheKey(route, userId, req.originalUrl, generation);
 
     const cached = await redis.get(cacheKey);
     if (cached !== null) {
@@ -146,8 +149,10 @@ export async function invalidateCache(req: Request, res: Response, next: NextFun
     return;
   }
 
-  res.on('finish', async () => {
-    await invalidateUserCaches(userId, invalidatedRoutePaths[route.path] ?? [route.path]);
+  res.on('finish', () => {
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      void invalidateUserCaches(userId, invalidatedRoutePaths[route.path] ?? [route.path]);
+    }
   });
 
   next();

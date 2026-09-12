@@ -33,7 +33,7 @@ resources:
     icon: nodejs
     source:
       repository: node
-      tag: 22
+      tag: lts
 
   - name: repository
     type: git

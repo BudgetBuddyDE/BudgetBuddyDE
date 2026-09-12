@@ -1,5 +1,4 @@
 import type {Logger} from '@budgetbuddyde/logger';
-import {BackendError, ResponseNotJsonError} from '../error';
 import {EntityService} from './entity.service';
 import type {TResult} from '../types/common';
 import type {
@@ -55,35 +54,17 @@ export class RecurringPaymentService extends EntityService<
     query: IGetRecurringPaymentOccurrencesQuery,
     requestConfig?: RequestInit,
   ): Promise<TResult<TGetRecurringPaymentOccurrencesResponse>> {
-    try {
-      const params = this.reqQueryObjToURLSearchParams(query);
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/occurrences?${params.toString()}`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-
-      const parsingResult = GetRecurringPaymentOccurrencesResponse.safeParse(await response.json());
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const params = this.reqQueryObjToURLSearchParams(query);
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/occurrences?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      GetRecurringPaymentOccurrencesResponse,
+      requestConfig,
+    );
   }
 
   @log
@@ -91,34 +72,15 @@ export class RecurringPaymentService extends EntityService<
     recurringPaymentId: string,
     requestConfig?: RequestInit,
   ): Promise<TResult<TExecuteRecurringPaymentResponse>> {
-    try {
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${recurringPaymentId}/execute`,
-        this.mergeRequestConfig(
-          {
-            method: 'POST',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-
-      const parsingResult = ExecuteRecurringPaymentResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${recurringPaymentId}/execute`,
+      {
+        method: 'POST',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      ExecuteRecurringPaymentResponse,
+      requestConfig,
+    );
   }
 }

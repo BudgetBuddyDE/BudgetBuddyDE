@@ -18,29 +18,7 @@
   "bugs": {
     "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues"
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "exports": {
-    ".": {
-      "dev-source": "./src/index.ts",
-      "types": "./lib/index.d.ts",
-      "default": "./lib/index.js"
-    },
-    "./config": {
-      "dev-source": "./src/config/index.ts",
-      "types": "./lib/config/index.d.ts",
-      "default": "./lib/config/index.js"
-    },
-    "./error": {
-      "dev-source": "./src/error/index.ts",
-      "types": "./lib/error/index.d.ts",
-      "default": "./lib/error/index.js"
-    },
-    "./environment": {
-      "dev-source": "./src/environment/index.ts",
-      "types": "./lib/environment/index.d.ts",
-      "default": "./lib/environment/index.js"
-    },
     "./config/Config": {
       "dev-source": "./src/config/Config.ts",
       "types": "./lib/config/Config.d.ts",
@@ -80,27 +58,10 @@
       "dev-source": "./src/error/EnvironmentNotSetError.ts",
       "types": "./lib/error/EnvironmentNotSetError.d.ts",
       "default": "./lib/error/EnvironmentNotSetError.js"
-    },
-    "./environment/EnvironmentVariable": {
-      "dev-source": "./src/environment/EnvironmentVariable.ts",
-      "types": "./lib/environment/EnvironmentVariable.d.ts",
-      "default": "./lib/environment/EnvironmentVariable.js"
     }
   },
   "typesVersions": {
     "*": {
-      "*": [
-        "./lib/index.d.ts"
-      ],
-      "config": [
-        "./lib/config/index.d.ts"
-      ],
-      "error": [
-        "./lib/error/index.d.ts"
-      ],
-      "environment": [
-        "./lib/environment/index.d.ts"
-      ],
       "config/Config": [
         "./lib/config/Config.d.ts"
       ],
@@ -124,9 +85,6 @@
       ],
       "error/EnvironmentNotSetError": [
         "./lib/error/EnvironmentNotSetError.d.ts"
-      ],
-      "environment/EnvironmentVariable": [
-        "./lib/environment/EnvironmentVariable.d.ts"
       ]
     }
   },

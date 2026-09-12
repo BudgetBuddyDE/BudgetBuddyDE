@@ -59,7 +59,6 @@ Monorepo powered by [Turbo](https://turbo.build/).
 - **[Database](./apps/documentation/docs/architecture/data-model.md):** DrizzleORM database schema definitions.
 - **[Api](./apps/documentation/docs/reference/api.md):** Type-safe API client for backend communication.
 - **[Logger](packages/logger):** (Deprecated) Shared logging utility.
-- **[Utils](packages/utils):** Shared utility functions.
 
 ## Getting Started
 

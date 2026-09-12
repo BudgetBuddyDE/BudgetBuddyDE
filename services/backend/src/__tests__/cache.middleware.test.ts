@@ -7,8 +7,7 @@ import {beforeEach, describe, expect, it, suite, vi} from 'vitest';
 
 const mockRedisGet = vi.fn();
 const mockRedisSetex = vi.fn();
-const mockRedisScan = vi.fn();
-const mockRedisDel = vi.fn();
+const mockRedisIncr = vi.fn();
 
 const {mockConfig} = vi.hoisted(() => ({
   mockConfig: {
@@ -25,6 +24,7 @@ const {mockConfig} = vi.hoisted(() => ({
         {path: '/api/transaction', ttl: 60, cacheKeyPrefix: 'txn'},
         {path: '/api/recurringPayment', ttl: 300},
         {path: '/api/budget', ttl: 300},
+        {path: '/api/insights', ttl: 120},
       ],
     },
   },
@@ -34,8 +34,7 @@ vi.mock('../db/redis', () => ({
   getRedisClient: () => ({
     get: mockRedisGet,
     setex: mockRedisSetex,
-    scan: mockRedisScan,
-    del: mockRedisDel,
+    incr: mockRedisIncr,
   }),
 }));
 
@@ -134,12 +133,12 @@ suite('Cache', () => {
   describe('buildCacheKey', () => {
     it('uses route path as default prefix', () => {
       const key = buildCacheKey({path: '/api/category', ttl: 300}, 'u1', '/api/category?from=0');
-      expect(key).toBe('cache:/api/category:u1:/api/category?from=0');
+      expect(key).toBe('cache:/api/category:u1:v0:/api/category?from=0');
     });
 
     it('uses cacheKeyPrefix when provided', () => {
       const key = buildCacheKey({path: '/api/transaction', ttl: 60, cacheKeyPrefix: 'txn'}, 'u1', '/api/transaction');
-      expect(key).toBe('cache:txn:u1:/api/transaction');
+      expect(key).toBe('cache:txn:u1:v0:/api/transaction');
     });
   });
 
@@ -186,7 +185,7 @@ suite('Cache', () => {
 
     it('returns cached response on cache HIT and sets X-Cache: HIT header', async () => {
       const payload = {status: 200, data: [{id: 1}]};
-      mockRedisGet.mockResolvedValueOnce(JSON.stringify(payload));
+      mockRedisGet.mockResolvedValueOnce(null).mockResolvedValueOnce(JSON.stringify(payload));
 
       const req = makeRequest();
       const res = makeResponse();
@@ -198,7 +197,7 @@ suite('Cache', () => {
     });
 
     it('on cache MISS: calls next(), caches response via setex, sets X-Cache: MISS header', async () => {
-      mockRedisGet.mockResolvedValueOnce(null);
+      mockRedisGet.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       mockRedisSetex.mockResolvedValueOnce('OK');
 
       const req = makeRequest();
@@ -213,7 +212,7 @@ suite('Cache', () => {
       res.json(responseBody);
 
       expect(mockRedisSetex).toHaveBeenCalledWith(
-        expect.stringContaining('cache:/api/category:user-1:'),
+        expect.stringContaining('cache:/api/category:user-1:v0:'),
         300,
         JSON.stringify(responseBody),
       );
@@ -283,13 +282,8 @@ suite('Cache', () => {
       expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
     });
 
-    it('invalidates category and dependent cache keys on finish', async () => {
-      mockRedisScan.mockResolvedValueOnce([
-        '0',
-        ['cache:/api/category:user-1:/api/category', 'cache:/api/category:user-1:/api/category?from=0'],
-      ]);
-      mockRedisScan.mockResolvedValue(['0', []]);
-      mockRedisDel.mockResolvedValueOnce(2);
+    it('advances category and dependent cache generations on successful finish', async () => {
+      mockRedisIncr.mockResolvedValue(1);
 
       const req = makeRequest({method: 'DELETE', path: '/api/category/123', originalUrl: '/api/category/123'});
       // Use a real event emitter so we can trigger 'finish'
@@ -306,26 +300,18 @@ suite('Cache', () => {
       // Trigger the finish event
       await listeners.finish();
 
-      expect(mockRedisScan).toHaveBeenCalledWith('0', 'MATCH', 'cache:/api/category:user-1:*', 'COUNT', 100);
-      expect(mockRedisDel).toHaveBeenCalledWith(
-        'cache:/api/category:user-1:/api/category',
-        'cache:/api/category:user-1:/api/category?from=0',
-      );
-      expect(mockRedisScan).toHaveBeenNthCalledWith(1, '0', 'MATCH', 'cache:/api/category:user-1:*', 'COUNT', 100);
-      expect(mockRedisScan).toHaveBeenNthCalledWith(2, '0', 'MATCH', 'cache:txn:user-1:*', 'COUNT', 100);
-      expect(mockRedisScan).toHaveBeenNthCalledWith(
-        3,
-        '0',
-        'MATCH',
-        'cache:/api/recurringPayment:user-1:*',
-        'COUNT',
-        100,
-      );
-      expect(mockRedisScan).toHaveBeenNthCalledWith(4, '0', 'MATCH', 'cache:/api/budget:user-1:*', 'COUNT', 100);
+      expect(mockRedisIncr).toHaveBeenCalledTimes(5);
+      expect(mockRedisIncr.mock.calls.map(([key]) => key)).toEqual([
+        'cache:generation:/api/category:user-1',
+        'cache:generation:txn:user-1',
+        'cache:generation:/api/recurringPayment:user-1',
+        'cache:generation:/api/budget:user-1',
+        'cache:generation:/api/insights:user-1',
+      ]);
     });
 
-    it('invalidates payment method and dependent cache keys on finish', async () => {
-      mockRedisScan.mockResolvedValue(['0', []]);
+    it('advances payment method and dependent cache generations on successful finish', async () => {
+      mockRedisIncr.mockResolvedValue(1);
 
       const req = makeRequest({
         method: 'DELETE',
@@ -343,21 +329,11 @@ suite('Cache', () => {
       await invalidateCache(req, res, next);
       await listeners.finish();
 
-      expect(mockRedisScan).toHaveBeenNthCalledWith(1, '0', 'MATCH', 'cache:/api/paymentMethod:user-1:*', 'COUNT', 100);
-      expect(mockRedisScan).toHaveBeenNthCalledWith(2, '0', 'MATCH', 'cache:txn:user-1:*', 'COUNT', 100);
-      expect(mockRedisScan).toHaveBeenNthCalledWith(
-        3,
-        '0',
-        'MATCH',
-        'cache:/api/recurringPayment:user-1:*',
-        'COUNT',
-        100,
-      );
-      expect(mockRedisScan).toHaveBeenNthCalledWith(4, '0', 'MATCH', 'cache:/api/budget:user-1:*', 'COUNT', 100);
+      expect(mockRedisIncr).toHaveBeenCalledTimes(4);
     });
 
-    it('uses cacheKeyPrefix in invalidation pattern', async () => {
-      mockRedisScan.mockResolvedValueOnce(['0', []]);
+    it('does not invalidate caches for failed mutations', async () => {
+      mockRedisIncr.mockResolvedValue(1);
 
       const req = makeRequest({method: 'PUT', path: '/api/transaction/5', originalUrl: '/api/transaction/5'});
       const listeners: Record<string, () => void> = {};
@@ -369,10 +345,10 @@ suite('Cache', () => {
       } as unknown as Response;
 
       await invalidateCache(req, res, next);
+      res.statusCode = 500;
       await listeners.finish();
 
-      // cacheKeyPrefix is 'txn' for transaction route
-      expect(mockRedisScan).toHaveBeenCalledWith('0', 'MATCH', 'cache:txn:user-1:*', 'COUNT', 100);
+      expect(mockRedisIncr).not.toHaveBeenCalled();
     });
   });
 });

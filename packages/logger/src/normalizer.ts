@@ -21,20 +21,7 @@ function stringifyJson(value: unknown): string {
 function stringifyValue(value: unknown): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'object' && value !== null) return stringifyJson(value);
-
-  try {
-    return String(value);
-  } catch {
-    return '[Unserializable]';
-  }
-}
-
-function toNumber(value: unknown): number {
-  try {
-    return Number(value);
-  } catch {
-    return Number.NaN;
-  }
+  return String(value);
 }
 
 function consumingPlaceholderCount(template: string): number {
@@ -66,7 +53,7 @@ export function formatLogMessage(template: string, args: readonly unknown[]): st
       case '%s':
         return stringifyValue(value);
       case '%d':
-        return String(toNumber(value));
+        return String(Number(value));
       case '%j':
         return stringifyJson(value);
       default:

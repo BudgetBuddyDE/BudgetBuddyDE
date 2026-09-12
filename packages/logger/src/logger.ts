@@ -76,8 +76,6 @@ export function getLogLevel(value: string | undefined): LogThreshold {
     case 'error':
     case 'silent':
       return value.trim().toLowerCase() as LogThreshold;
-    case 'crit':
-      return 'error';
     default:
       return 'info';
   }

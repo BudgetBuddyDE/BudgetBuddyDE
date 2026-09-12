@@ -323,6 +323,22 @@ suite('AttachmentHandler.deleteAttachments', () => {
     expect(mockDbDelete).toHaveBeenCalledOnce();
     expect(mockRedisDel).toHaveBeenCalledOnce();
   });
+
+  it('retries storage cleanup when S3 deletion fails after database deletion', async () => {
+    const target = {id: 'id-1', location: 'path/to/file.png'};
+    mockDbQuery.attachments.findMany.mockResolvedValueOnce([target]);
+    mockDbDelete.mockReturnValueOnce({where: vi.fn().mockResolvedValueOnce([])});
+    mockS3Send.mockRejectedValueOnce(new Error('temporary failure')).mockRejectedValueOnce(new Error('retry failure'));
+    mockS3Send.mockResolvedValueOnce({});
+    mockRedisDel.mockResolvedValueOnce(1);
+
+    const count = await handler.deleteAttachments(USER_ID, ['id-1']);
+
+    expect(count).toBe(1);
+    expect(mockDbDelete.mock.invocationCallOrder[0]).toBeLessThan(mockS3Send.mock.invocationCallOrder[0]);
+    expect(mockS3Send).toHaveBeenCalledTimes(3);
+    expect(mockRedisDel).toHaveBeenCalledOnce();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -424,6 +440,36 @@ suite('TransactionAttachmentHandler.uploadTransactionAttachments', () => {
     const results = await handler.uploadTransactionAttachments(USER_ID, TX_ID, [file]);
 
     expect(results[0].location).toMatch(new RegExp(`^${USER_ID}/transactions/${TX_ID}/[0-9a-f-]+\\.jpg$`));
+  });
+
+  it('cleans up uploaded objects when one file fails before database registration', async () => {
+    mockS3Send.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('upload failed')).mockResolvedValueOnce({});
+
+    const files = [
+      makeMulFile({originalname: 'first.pdf', mimetype: 'application/pdf', buffer: Buffer.from('first')}),
+      makeMulFile({originalname: 'second.pdf', mimetype: 'application/pdf', buffer: Buffer.from('second')}),
+    ];
+
+    await expect(handler.uploadTransactionAttachments(USER_ID, TX_ID, files)).rejects.toThrow('upload failed');
+
+    expect(mockDbTransaction).not.toHaveBeenCalled();
+    expect(mockS3Send).toHaveBeenCalledTimes(3);
+    expect(mockS3Send.mock.calls[2][0].input.Delete.Objects).toHaveLength(1);
+  });
+
+  it('cleans up uploaded objects when database registration fails', async () => {
+    const databaseError = new Error('database registration failed');
+    mockS3Send.mockResolvedValueOnce({}).mockResolvedValueOnce({});
+    mockDbTransaction.mockRejectedValueOnce(databaseError);
+
+    await expect(
+      handler.uploadTransactionAttachments(USER_ID, TX_ID, [
+        makeMulFile({originalname: 'receipt.pdf', mimetype: 'application/pdf', buffer: Buffer.from('receipt')}),
+      ]),
+    ).rejects.toThrow(databaseError);
+
+    expect(mockS3Send).toHaveBeenCalledTimes(2);
+    expect(mockS3Send.mock.calls[1][0].input.Delete.Objects).toHaveLength(1);
   });
 });
 

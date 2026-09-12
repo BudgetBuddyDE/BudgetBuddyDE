@@ -28,12 +28,11 @@ export type TApiResponse<T> = (BaseProperties<T> & {
  * ```typescript
  * app.get('/test', (req, res) => {
  *   ApiResponse.builder<string>()
- *     .withExpressResponse(res)
  *     .withStatus(HTTPStatusCode.OK)
  *     .withMessage('Hello World')
  *     .withData('Hello World')
  *     .withFrom('db')
- *     .buildAndSend();
+ *     .buildAndSend(res);
  * });
  *
  * // or
@@ -81,16 +80,6 @@ export class ApiResponseBuilder<T> {
 
   public constructor(res?: Response) {
     this.res = res || null;
-  }
-
-  /**
-   * Sets the ExpressJS response object.
-   * @param res - The ExpressJS response object.
-   * @returns The ApiResponseBuilder instance.
-   */
-  public withExpressResponse(res: Response): ApiResponseBuilder<T> {
-    this.res = res;
-    return this;
   }
 
   /**
@@ -151,15 +140,6 @@ export class ApiResponseBuilder<T> {
   public withFrom(from: TApiResponse<T>['from']): ApiResponseBuilder<T> {
     this.responseBody.from = from;
     return this;
-  }
-
-  /**
-   * Retrieves the response body of the API.
-   *
-   * @returns {ApiResponse<T>} The response body of the API.
-   */
-  public getResponseBody(): ApiResponse<T> {
-    return this.responseBody;
   }
 
   /**

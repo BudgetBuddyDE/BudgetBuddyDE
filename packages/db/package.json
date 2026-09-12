@@ -47,14 +47,14 @@
       "default": "./lib/index.js"
     },
     "./backend": {
-      "dev-source": "./src/backend.ts",
-      "types": "./lib/backend.d.ts",
-      "default": "./lib/backend.js"
+      "dev-source": "./src/backend/index.ts",
+      "types": "./lib/backend/index.d.ts",
+      "default": "./lib/backend/index.js"
     },
     "./auth": {
-      "dev-source": "./src/auth.ts",
-      "types": "./lib/auth.d.ts",
-      "default": "./lib/auth.js"
+      "dev-source": "./src/auth/index.ts",
+      "types": "./lib/auth/index.d.ts",
+      "default": "./lib/auth/index.js"
     }
   },
   "typesVersions": {
@@ -63,10 +63,10 @@
         "./lib/index.d.js"
       ],
       "backend": [
-        "./lib/backend.d.js"
+        "./lib/backend/index.d.ts"
       ],
       "auth": [
-        "./lib/auth.d.js"
+        "./lib/auth/index.d.ts"
       ]
     }
   },

@@ -49,11 +49,6 @@
       "dev-source": "./src/console.ts",
       "types": "./lib/console.d.ts",
       "default": "./lib/console.js"
-    },
-    "./testing": {
-      "dev-source": "./src/testing.ts",
-      "types": "./lib/testing.d.ts",
-      "default": "./lib/testing.js"
     }
   },
   "typesVersions": {
@@ -63,9 +58,6 @@
       ],
       "console": [
         "./lib/console.d.ts"
-      ],
-      "testing": [
-        "./lib/testing.d.ts"
       ]
     }
   },

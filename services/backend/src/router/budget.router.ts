@@ -17,6 +17,7 @@ import {config} from '../config';
 import {db} from '../db';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
+import {hasAllOwnedIds, ownedIdsFinder} from './batch';
 
 export const budgetRouter = Router();
 
@@ -222,7 +223,7 @@ budgetRouter.get(
       return;
     }
     const entityId = req.params.id;
-    const record = await db.query.budgets.findMany({
+    const record = await db.query.budgets.findFirst({
       where(fields, operators) {
         return operators.and(eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
       },
@@ -244,12 +245,12 @@ budgetRouter.get(
       return;
     }
 
-    const budgetWithBalance: (typeof record)[number] & {balance: number} = {
-      ...record[0],
+    const budgetWithBalance: typeof record & {balance: number} = {
+      ...record,
       balance: await calculateBudgetBalance(
-        record[0].id,
-        record[0].type,
-        record[0].categories.map(c => c.categoryId),
+        userId,
+        record.type,
+        record.categories.map(c => c.categoryId),
       ),
     };
 
@@ -278,6 +279,14 @@ budgetRouter.post(
 
     const {categories: categoryIds, ...budgetData} = req.body;
     const newBudget = {...budgetData, ownerId: userId};
+
+    if (!(await hasAllOwnedIds(userId, categoryIds, ownedIdsFinder(db.query.categories)))) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories are invalid')
+        .buildAndSend(res);
+      return;
+    }
 
     try {
       const result = await db.transaction(async tx => {
@@ -351,6 +360,17 @@ budgetRouter.put(
 
     const budgetId = req.params.id;
     const {categories: newCategoryIds, ...budgetData} = req.body;
+
+    if (
+      newCategoryIds !== undefined &&
+      !(await hasAllOwnedIds(userId, newCategoryIds, ownedIdsFinder(db.query.categories)))
+    ) {
+      ApiResponse.builder()
+        .withStatus(HTTPStatusCode.BAD_REQUEST)
+        .withMessage('One or more referenced categories are invalid')
+        .buildAndSend(res);
+      return;
+    }
 
     try {
       const result = await db.transaction(async tx => {

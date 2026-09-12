@@ -1,6 +1,6 @@
 import type {Logger} from '@budgetbuddyde/logger';
 import type {z} from 'zod';
-import {BackendError, ResponseNotJsonError} from '../error';
+import {BackendError} from '../error';
 import {BackendService} from './backend.service';
 import type {TAttachment, TGetAttachmentsQuery} from '../types/attachment.type';
 import type {TResult} from '../types/common';
@@ -21,34 +21,17 @@ export class AttachmentService extends BackendService {
     query?: TGetAttachmentsQuery,
     requestConfig?: RequestInit,
   ): Promise<TResult<z.output<typeof GetAttachmentResponse>>> {
-    try {
-      const params = this.reqQueryObjToURLSearchParams(query);
-      const response = await this.request(
-        `${this.getBaseRequestPath()}/${attachmentId}?${params.toString()}`,
-        this.mergeRequestConfig(
-          {
-            method: 'GET',
-            headers: new Headers(requestConfig?.headers || {}),
-            credentials: 'include',
-          },
-          requestConfig,
-        ),
-      );
-      if (!response.ok) {
-        throw new BackendError(response.status, response.statusText);
-      }
-      if (!this.isJsonResponse(response)) {
-        throw new ResponseNotJsonError();
-      }
-      const data = await response.json();
-      const parsingResult = GetAttachmentResponse.safeParse(data);
-      if (!parsingResult.success) {
-        return this.handleZodError(parsingResult.error);
-      }
-      return [parsingResult.data, null];
-    } catch (error) {
-      return this.handleError(error);
-    }
+    const params = this.reqQueryObjToURLSearchParams(query);
+    return this.requestJson(
+      `${this.getBaseRequestPath()}/${attachmentId}?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: new Headers(requestConfig?.headers || {}),
+        credentials: 'include',
+      },
+      GetAttachmentResponse,
+      requestConfig,
+    );
   }
 
   /**
