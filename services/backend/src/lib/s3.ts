@@ -22,3 +22,9 @@ export function getS3Client() {
 
   return s3Client;
 }
+
+/** Destroys the shared S3 client during graceful shutdown. */
+export function destroyS3Client(): void {
+  s3Client?.destroy();
+  s3Client = null;
+}
