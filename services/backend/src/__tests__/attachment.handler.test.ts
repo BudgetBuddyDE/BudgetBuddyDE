@@ -155,6 +155,18 @@ suite('AttachmentHandler', () => {
     });
   });
 
+  describe('hasValidImageSignature', () => {
+    it('accepts matching image signatures and rejects mismatches', () => {
+      const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+      const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0]);
+
+      expect(AttachmentHandler.hasValidImageSignature(png, 'image/png')).toBe(true);
+      expect(AttachmentHandler.hasValidImageSignature(jpeg, 'image/jpeg')).toBe(true);
+      expect(AttachmentHandler.hasValidImageSignature(Buffer.from('not-an-image'), 'image/png')).toBe(false);
+      expect(AttachmentHandler.hasValidImageSignature(Buffer.from('anything'), 'application/pdf')).toBe(true);
+    });
+  });
+
   describe('getFileExtension', () => {
     it('returns lowercase extension without leading dot', () => {
       const file = makeMulFile({originalname: 'photo.PNG'});
