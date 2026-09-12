@@ -332,7 +332,7 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
     ),
   });
 
-  const archive = createZipArchive(files, new Date(exportedAt));
+  const archive = await createZipArchive(files, new Date(exportedAt));
   res.status(HTTPStatusCode.OK);
   res.setHeader('Content-Type', 'application/zip');
   res.setHeader(

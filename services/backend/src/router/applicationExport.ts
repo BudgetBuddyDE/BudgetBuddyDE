@@ -117,11 +117,23 @@ export function serializeCsv(rows: TApplicationExportRow[], columns: readonly st
   return `${[header, ...records].join('\r\n')}\r\n`;
 }
 
-function calculateCrc32(content: Buffer): number {
-  let crc = 0xffffffff;
-  for (const byte of content) {
-    crc ^= byte;
+const CRC_CHUNK_SIZE = 64 * 1024;
+
+function crc32Update(crc: number, content: Buffer, start: number, end: number): number {
+  for (let index = start; index < end; index += 1) {
+    crc ^= content[index];
     for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return crc;
+}
+
+/** Computes CRC32 in chunks, yielding so large exports do not block the event loop. */
+async function calculateCrc32(content: Buffer): Promise<number> {
+  let crc = 0xffffffff;
+  for (let offset = 0; offset < content.length; offset += CRC_CHUNK_SIZE) {
+    const end = Math.min(offset + CRC_CHUNK_SIZE, content.length);
+    crc = crc32Update(crc, content, offset, end);
+    if (end < content.length) await new Promise(resolve => setImmediate(resolve));
   }
   return (crc ^ 0xffffffff) >>> 0;
 }
@@ -140,7 +152,7 @@ interface IZipEntry {
 }
 
 /** Creates a ZIP with stored entries, avoiding an undeclared archive dependency. */
-export function createZipArchive(entries: IZipEntry[], createdAt = new Date()): Buffer {
+export async function createZipArchive(entries: IZipEntry[], createdAt = new Date()): Promise<Buffer> {
   if (entries.length > 0xffff) throw new Error('ZIP archive contains too many files');
 
   const {date, time} = dosDateTime(createdAt);
@@ -154,7 +166,7 @@ export function createZipArchive(entries: IZipEntry[], createdAt = new Date()): 
       throw new Error('ZIP archive entry is too large');
     }
 
-    const crc = calculateCrc32(entry.content);
+    const crc = await calculateCrc32(entry.content);
     const localHeader = Buffer.alloc(30);
     localHeader.writeUInt32LE(0x04034b50, 0);
     localHeader.writeUInt16LE(20, 4);
