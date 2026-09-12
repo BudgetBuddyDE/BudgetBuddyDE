@@ -1,7 +1,5 @@
 import type {Session as AuthSession, User as AuthUser} from 'better-auth';
 
-export type AuthenticationMethod = 'session-cookie' | 'api-key';
-
 export interface RequestContext<User = AuthUser, Session = AuthSession> {
   /**
    * Authenticated user context if available, otherwise null.
@@ -11,8 +9,4 @@ export interface RequestContext<User = AuthUser, Session = AuthSession> {
    * Authenticated session context if available, otherwise null.
    */
   session: Session | null;
-  /**
-   * Credential used to authenticate the request.
-   */
-  authenticationMethod: AuthenticationMethod;
 }

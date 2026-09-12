@@ -25,7 +25,12 @@ function createRequest(headers: Request['headers']): Request {
 }
 
 function createResponse(): Response {
-  return {locals: {}} as Response;
+  return {
+    locals: {},
+    status: vi.fn().mockReturnThis(),
+    json: vi.fn().mockReturnThis(),
+    end: vi.fn().mockReturnThis(),
+  } as unknown as Response;
 }
 
 describe('setRequestContext', () => {
@@ -40,60 +45,64 @@ describe('setRequestContext', () => {
     });
   });
 
-  it('marks requests authenticated with a session cookie', async () => {
+  it('sets the request context from the returned session', async () => {
     const req = createRequest({cookie: 'better-auth.session_token=session-token'});
     const res = createResponse();
     const next = vi.fn() as NextFunction;
 
     await setRequestContext(req, res, next);
 
-    expect(req.context.authenticationMethod).toBe('session-cookie');
-    expect(loggerFunctions.debug).toHaveBeenCalledWith('Request context set', {
-      userId: 'user-id',
-      authenticationMethod: 'session-cookie',
-    });
+    expect(req.context.user).toMatchObject({id: 'user-id'});
+    expect(req.context.session).toMatchObject({id: 'session-id'});
     expect(res.locals.context).toBe(req.context);
     expect(next).toHaveBeenCalledOnce();
   });
 
-  it('marks requests authenticated with an API key', async () => {
-    const req = createRequest({'x-api-key': 'bb-api-key'});
-    const res = createResponse();
-    const next = vi.fn() as NextFunction;
-
-    await setRequestContext(req, res, next);
-
-    expect(req.context.authenticationMethod).toBe('api-key');
-    expect(loggerFunctions.debug).toHaveBeenCalledWith('Request context set', {
-      userId: 'user-id',
-      authenticationMethod: 'api-key',
-    });
-    expect(next).toHaveBeenCalledOnce();
-  });
-
-  it('prefers the API key when both credential types are present', async () => {
+  it('forwards only the required authentication headers upstream', async () => {
     const req = createRequest({
       cookie: 'better-auth.session_token=session-token',
+      authorization: 'Bearer token',
       'x-api-key': 'bb-api-key',
+      'x-unrelated': 'should-not-be-forwarded',
     });
-    const res = createResponse();
-    const next = vi.fn() as NextFunction;
 
-    await setRequestContext(req, res, next);
+    await setRequestContext(req, createResponse(), vi.fn() as NextFunction);
 
-    expect(req.context.authenticationMethod).toBe('api-key');
+    const headers = getSession.mock.calls[0][0].fetchOptions.headers as Headers;
+    expect(headers.get('cookie')).toBe('better-auth.session_token=session-token');
+    expect(headers.get('authorization')).toBe('Bearer token');
+    expect(headers.get('x-api-key')).toBe('bb-api-key');
+    expect(headers.get('x-unrelated')).toBeNull();
   });
 
-  it('ignores an empty API key header when a session cookie is used', async () => {
-    const req = createRequest({
-      cookie: 'better-auth.session_token=session-token',
-      'x-api-key': ' ',
-    });
+  it('bounds the auth-service request with an abort signal', async () => {
+    await setRequestContext(createRequest({}), createResponse(), vi.fn() as NextFunction);
+
+    const signal = getSession.mock.calls[0][0].fetchOptions.signal;
+    expect(signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('returns 401 when no session is returned', async () => {
+    getSession.mockResolvedValueOnce({data: null, error: null});
     const res = createResponse();
     const next = vi.fn() as NextFunction;
 
-    await setRequestContext(req, res, next);
+    await setRequestContext(createRequest({}), res, next);
 
-    expect(req.context.authenticationMethod).toBe('session-cookie');
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('returns a generic 503 and logs upstream errors server-side', async () => {
+    const upstreamError = new Error('upstream failure');
+    getSession.mockRejectedValueOnce(upstreamError);
+    const res = createResponse();
+    const next = vi.fn() as NextFunction;
+
+    await setRequestContext(createRequest({}), res, next);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(loggerFunctions.error).toHaveBeenCalledWith('Authentication service request failed', upstreamError);
+    expect(next).not.toHaveBeenCalled();
   });
 });

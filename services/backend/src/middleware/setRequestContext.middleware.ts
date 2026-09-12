@@ -1,67 +1,65 @@
 import type {NextFunction, Request, Response} from 'express';
+import {config} from '../config';
 import {authClient, logger as mainLogger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import type {RequestContext} from '../types';
 
 const logger = mainLogger.child({module: 'auth', middleware: 'setRequestContext'});
 
+/** Only credentials the auth service needs are forwarded upstream. */
+const FORWARDED_AUTH_HEADERS = ['cookie', 'authorization', 'x-api-key'] as const;
+
+function buildAuthHeaders(req: Request): Headers {
+  const headers = new Headers();
+  for (const name of FORWARDED_AUTH_HEADERS) {
+    const value = req.headers[name];
+    if (Array.isArray(value)) headers.set(name, value.join(', '));
+    else if (value !== undefined) headers.set(name, value);
+  }
+  return headers;
+}
+
 export async function setRequestContext(req: Request, res: Response, next: NextFunction) {
-  const headers = new Headers(
-    Object.entries(req.headers).reduce(
-      (acc, [key, value]) => {
-        if (Array.isArray(value)) {
-          acc[key] = value.join(', ');
-        } else if (value !== undefined) {
-          acc[key] = value;
-        }
-        return acc;
+  const session = await authClient
+    .getSession({
+      fetchOptions: {
+        headers: buildAuthHeaders(req),
+        signal: AbortSignal.timeout(config.auth.requestTimeoutMs),
       },
-      {} as Record<string, string>,
-    ),
-  );
+    })
+    .catch((error: unknown) => {
+      logger.error('Authentication service request failed', error instanceof Error ? error : new Error(String(error)));
+      return null;
+    });
 
-  const {data: sessionData, error} = await authClient.getSession({
-    fetchOptions: {
-      headers: headers,
-    },
-  });
-
-  logger.debug('Session data retrieved', {
-    userId: sessionData?.user?.id,
-    sessionId: sessionData?.session?.id,
-    error,
-  });
-
-  if (error) {
-    logger.error('Error retrieving session', error);
+  if (session === null) {
     return ApiResponse.builder()
-      .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
-      .withMessage(error.message || 'Failed to authenticate request')
+      .withStatus(HTTPStatusCode.SERVICE_UNAVAILABLE)
+      .withMessage('Authentication failed')
       .buildAndSend(res);
   }
 
-  if (!sessionData) {
-    logger.warn('No session data found');
+  if (session.error) {
+    logger.error('Authentication service returned an error', session.error);
     return ApiResponse.builder()
-      .withStatus(HTTPStatusCode.UNAUTHORIZED)
-      .withMessage('No session data found')
+      .withStatus(HTTPStatusCode.SERVICE_UNAVAILABLE)
+      .withMessage('Authentication failed')
       .buildAndSend(res);
+  }
+
+  if (!session.data) {
+    logger.warn('No session data found');
+    return ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
   }
 
   const context: RequestContext = {
-    user: sessionData.user,
-    session: sessionData.session,
-    authenticationMethod: headers.get('x-api-key')?.trim() ? 'api-key' : 'session-cookie',
+    user: session.data.user,
+    session: session.data.session,
   };
-  logger.debug('Session data retrieved', {userId: context.user?.id});
+  logger.debug('Request context set', {userId: context.user?.id});
 
   req.context = context;
   res.locals.context = context;
-
-  logger.debug('Request context set', {
-    userId: req.context.user?.id,
-    authenticationMethod: req.context.authenticationMethod,
-  });
 
   next();
 }
