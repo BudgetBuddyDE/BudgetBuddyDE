@@ -43,6 +43,13 @@
       "when": 1787868634373,
       "tag": "0005_bitter_moondragon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789215414730,
+      "tag": "0006_strong_rage",
+      "breakpoints": true
     }
   ]
 }
