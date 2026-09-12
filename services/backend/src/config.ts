@@ -89,6 +89,8 @@ export class AppConfig extends BackendConfig {
     upload: {
       maxFilesPerRequest: number;
       maxFileSizeBytes: number;
+      /** Maximum combined size in bytes of a single multipart upload request. */
+      maxRequestSizeBytes: number;
     };
     pagination: {
       defaultPageSize: number;
@@ -265,6 +267,7 @@ export class AppConfig extends BackendConfig {
         upload: {
           maxFilesPerRequest: 10,
           maxFileSizeBytes: 20 * 1024 * 1024,
+          maxRequestSizeBytes: 50 * 1024 * 1024,
         },
         pagination: {
           defaultPageSize: 24,
