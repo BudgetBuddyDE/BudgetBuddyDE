@@ -9,7 +9,7 @@ import {
 } from '@budgetbuddyde/db/backend';
 import {endOfMonth, format, startOfMonth} from 'date-fns';
 import {fromZonedTime, toZonedTime} from 'date-fns-tz';
-import {and, eq, gt, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
+import {and, eq, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -22,7 +22,7 @@ import {paginationFields, paginationWindow} from './pagination';
 
 export const budgetRouter = Router();
 
-// REVISIT: Optimize the queries below for performance and cache the results where possibleg
+// REVISIT: Cache the estimated budget result where possible.
 budgetRouter.get('/estimated', async (req, res) => {
   const userId = req.context.user?.id;
   if (!userId) {
@@ -36,62 +36,31 @@ budgetRouter.get('/estimated', async (req, res) => {
   const monthEnd = format(endOfMonth(zonedToday), 'yyyy-MM-dd');
   const firstOfMonthInstant = fromZonedTime(startOfMonth(zonedToday), config.timezone);
   const endOfMonthInstant = fromZonedTime(endOfMonth(zonedToday), config.timezone);
-  const [
-    paidExpensesResult,
-    upcomingTransactionsExpensesResult,
-    receivedIncomeResult,
-    upcomingTransactionIncomeResult,
-    activeRecurringPayments,
-  ] = await Promise.all([
+  const [transactionTotals, activeRecurringPayments] = await Promise.all([
     db
       .select({
-        expenses: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('expenses'),
+        paidExpenses:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} <= 0 AND ${transactions.processedAt} <= ${now} THEN ABS(${transactions.transferAmount}) ELSE 0 END), 0)`.as(
+            'paid_expenses',
+          ),
+        upcomingExpenses:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} <= 0 AND ${transactions.processedAt} > ${now} THEN ABS(${transactions.transferAmount}) ELSE 0 END), 0)`.as(
+            'upcoming_expenses',
+          ),
+        receivedIncome:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} >= 0 AND ${transactions.processedAt} <= ${now} THEN ${transactions.transferAmount} ELSE 0 END), 0)`.as(
+            'received_income',
+          ),
+        upcomingIncome:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} >= 0 AND ${transactions.processedAt} > ${now} THEN ${transactions.transferAmount} ELSE 0 END), 0)`.as(
+            'upcoming_income',
+          ),
       })
       .from(transactions)
       .where(
         and(
           eq(transactions.ownerId, userId),
-          lte(transactions.transferAmount, 0),
           gte(transactions.processedAt, firstOfMonthInstant),
-          lte(transactions.processedAt, now),
-        ),
-      ),
-    db
-      .select({
-        expenses: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('expenses'),
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.ownerId, userId),
-          lte(transactions.transferAmount, 0),
-          gt(transactions.processedAt, now),
-          lte(transactions.processedAt, endOfMonthInstant),
-        ),
-      ),
-    db
-      .select({
-        income: sql<number>`COALESCE(SUM(${transactions.transferAmount}), 0)`.as('income'),
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.ownerId, userId),
-          gte(transactions.transferAmount, 0),
-          gte(transactions.processedAt, firstOfMonthInstant),
-          lte(transactions.processedAt, now),
-        ),
-      ),
-    db
-      .select({
-        income: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('income'),
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.ownerId, userId),
-          gte(transactions.transferAmount, 0),
-          gt(transactions.processedAt, now),
           lte(transactions.processedAt, endOfMonthInstant),
         ),
       ),
@@ -112,10 +81,10 @@ budgetRouter.get('/estimated', async (req, res) => {
     else upcomingRecurringIncome += payment.transferAmount * occurrenceCount;
   }
 
-  const paidExpenses = paidExpensesResult[0].expenses;
-  const upcomingExpenses = upcomingTransactionsExpensesResult[0].expenses + upcomingRecurringExpenses;
-  const receivedIncome = receivedIncomeResult[0].income;
-  const upcomingIncome = upcomingTransactionIncomeResult[0].income + upcomingRecurringIncome;
+  const paidExpenses = transactionTotals[0].paidExpenses;
+  const upcomingExpenses = transactionTotals[0].upcomingExpenses + upcomingRecurringExpenses;
+  const receivedIncome = transactionTotals[0].receivedIncome;
+  const upcomingIncome = transactionTotals[0].upcomingIncome + upcomingRecurringIncome;
   const freeAmount = receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses);
   ApiResponse.builder()
     .withData({
