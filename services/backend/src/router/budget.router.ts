@@ -9,7 +9,7 @@ import {
 } from '@budgetbuddyde/db/backend';
 import {endOfMonth, format, startOfMonth} from 'date-fns';
 import {fromZonedTime, toZonedTime} from 'date-fns-tz';
-import {and, eq, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
+import {and, eq, gte, inArray, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
@@ -101,7 +101,7 @@ budgetRouter.get('/estimated', async (req, res) => {
     .buildAndSend(res);
 });
 
-// REVISIT: Optimize the queries below for performance and cache the results where possible
+// REVISIT: Cache budget responses where possible.
 budgetRouter.get(
   '/',
   validateRequest({
@@ -152,20 +152,11 @@ budgetRouter.get(
       }),
     ]);
 
-    // Calculate balances for each budget
-    const updatedBudgets = [] as ((typeof records)[number] & {balance: number})[];
-    for await (const budget of records) {
-      const budgetBalance = await calculateBudgetBalance(
-        budget.ownerId,
-        budget.type,
-        budget.categories.map(c => c.categoryId),
-      );
-
-      updatedBudgets.push({
-        ...budget,
-        balance: budgetBalance,
-      });
-    }
+    const balances = await calculateBudgetBalances(userId, records);
+    const updatedBudgets = records.map((budget, index) => ({
+      ...budget,
+      balance: balances[index],
+    }));
 
     ApiResponse.builder<typeof updatedBudgets>()
       .withStatus(HTTPStatusCode.OK)
@@ -213,13 +204,10 @@ budgetRouter.get(
       return;
     }
 
+    const [balance] = await calculateBudgetBalances(userId, [record]);
     const budgetWithBalance: typeof record & {balance: number} = {
       ...record,
-      balance: await calculateBudgetBalance(
-        userId,
-        record.type,
-        record.categories.map(c => c.categoryId),
-      ),
+      balance,
     };
 
     ApiResponse.builder<typeof budgetWithBalance>()
@@ -287,11 +275,7 @@ budgetRouter.post(
           .withFrom('db')
           .buildAndSend(res);
       }
-      const budgetBalance = await calculateBudgetBalance(
-        userId,
-        result.type,
-        result.categories.map(c => c.categoryId),
-      );
+      const [budgetBalance] = await calculateBudgetBalances(userId, [result]);
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Budget created successfully')
@@ -395,11 +379,7 @@ budgetRouter.put(
           .withFrom('db')
           .buildAndSend(res);
       }
-      const budgetBalance = await calculateBudgetBalance(
-        userId,
-        result.type,
-        result.categories.map(c => c.categoryId),
-      );
+      const [budgetBalance] = await calculateBudgetBalances(userId, [result]);
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Budget updated successfully')
@@ -455,23 +435,31 @@ budgetRouter.delete(
   },
 );
 
-async function calculateBudgetBalance(
+type TBudgetBalanceTarget = {
+  type: 'i' | 'e';
+  categories: readonly {categoryId: string}[];
+};
+
+/**
+ * Computes monthly balances for multiple budgets with a single grouped query.
+ *
+ * Type `i` sums expenses of the assigned categories; type `e` sums all other
+ * categories. Budgets without categories keep their previous zero balance.
+ */
+async function calculateBudgetBalances(
   ownerId: string,
-  budgetType: 'i' | 'e',
-  categories: string[],
+  budgets: readonly TBudgetBalanceTarget[],
   time: Date = new Date(),
-): Promise<number> {
-  if (categories.length === 0) {
-    return 0;
-  }
+): Promise<number[]> {
+  if (budgets.length === 0) return [];
 
   const currentMonth = time.getMonth() + 1;
   const currentYear = time.getFullYear();
 
-  // Use transactionHistoryView for aggregated data by category
-  const result = await db
+  const rows = await db
     .select({
-      total: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('total'),
+      categoryId: transactionHistoryView.categoryId,
+      expenses: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('expenses'),
     })
     .from(transactionHistoryView)
     .where(
@@ -479,11 +467,22 @@ async function calculateBudgetBalance(
         eq(transactionHistoryView.ownerId, ownerId),
         eq(transactionHistoryView.month, currentMonth),
         eq(transactionHistoryView.year, currentYear),
-        budgetType === 'i'
-          ? inArray(transactionHistoryView.categoryId, categories)
-          : notInArray(transactionHistoryView.categoryId, categories),
       ),
-    );
+    )
+    .groupBy(transactionHistoryView.categoryId);
 
-  return result[0]?.total || 0;
+  const expensesByCategory = new Map<string, number>();
+  let totalExpenses = 0;
+  for (const row of rows) {
+    if (row.categoryId === null) continue;
+    expensesByCategory.set(row.categoryId, row.expenses);
+    totalExpenses += row.expenses;
+  }
+
+  return budgets.map(budget => {
+    const categories = budget.categories.map(category => category.categoryId);
+    if (categories.length === 0) return 0;
+    const assignedExpenses = categories.reduce((sum, categoryId) => sum + (expensesByCategory.get(categoryId) ?? 0), 0);
+    return budget.type === 'i' ? assignedExpenses : totalExpenses - assignedExpenses;
+  });
 }
