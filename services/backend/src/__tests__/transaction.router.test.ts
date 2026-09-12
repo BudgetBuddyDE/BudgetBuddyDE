@@ -198,19 +198,33 @@ describe('transaction attachment isolation', () => {
       where: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue([{count: 1}]),
     };
-    const previewWhere = vi.fn().mockReturnThis();
-    const previewChain = {
+    const rankedWhere = vi.fn().mockReturnThis();
+    const rankedTable = {};
+    const rankedBuilder = {
       from: vi.fn().mockReturnThis(),
       innerJoin: vi.fn().mockReturnThis(),
-      where: previewWhere,
-      orderBy: vi.fn().mockResolvedValue([]),
+      where: rankedWhere,
+      as: vi.fn().mockReturnValue(rankedTable),
     };
-    select.mockReturnValueOnce(countChain).mockReturnValueOnce(previewChain);
+    const attachmentCountChain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnValue({groupBy: vi.fn().mockResolvedValue([])}),
+    };
+    const previewChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([]),
+    };
+    select
+      .mockReturnValueOnce(countChain)
+      .mockReturnValueOnce(rankedBuilder)
+      .mockReturnValueOnce(attachmentCountChain)
+      .mockReturnValueOnce(previewChain);
 
     const response = await requestRouter(transactionRouter, USER_ID, '/', {method: 'GET'});
 
     expect(response.status).toBe(200);
-    const query = new PgDialect().sqlToQuery(previewWhere.mock.calls[0][0].getSQL());
+    const query = new PgDialect().sqlToQuery(rankedWhere.mock.calls[0][0].getSQL());
     expect(query.sql).toContain('owner_id');
     expect(query.params).toContain(USER_ID);
     expect(query.sql).toContain('transaction_id');
