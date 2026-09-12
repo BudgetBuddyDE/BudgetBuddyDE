@@ -20,7 +20,7 @@ import {db} from '../db';
 import {logger} from '../lib';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {AttachmentHandler, TransactionAttachmentHandler} from '../lib/attachment';
-import {ApiResponse, HTTPStatusCode} from '../models';
+import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
 import {paginationFields, paginationWindow} from './pagination';
 
@@ -787,7 +787,7 @@ transactionRouter.put(
         .where(and(eq(transactions.ownerId, userId), eq(transactions.id, req.params.id)))
         .returning();
       if (updatedRecord.length === 0) {
-        throw new Error('No transaction updated');
+        throw new NotFoundError('Transaction not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
@@ -824,7 +824,7 @@ transactionRouter.delete(
         .where(and(eq(transactions.ownerId, userId), eq(transactions.id, entityId)))
         .returning();
       if (deletedRecord.length === 0) {
-        throw new Error('No transaction deleted');
+        throw new NotFoundError('Transaction not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)

@@ -11,7 +11,7 @@ import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
 import {logger} from '../lib';
-import {ApiResponse, HTTPStatusCode} from '../models';
+import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {assembleFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
 import {paginationFields, paginationWindow} from './pagination';
@@ -436,7 +436,7 @@ categoryRouter.put(
         .returning();
 
       if (updatedRecords.length === 0) {
-        throw new Error('No category updated');
+        throw new NotFoundError('Category not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
@@ -474,7 +474,7 @@ categoryRouter.delete(
         .returning();
 
       if (deletedRecord.length === 0) {
-        throw new Error('No category deleted');
+        throw new NotFoundError('Category not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)

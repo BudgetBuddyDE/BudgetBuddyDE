@@ -116,6 +116,11 @@ export function createApp(): Express {
   app.use('/api/insights', InsightsRouter);
   app.use('/api/attachment', AttachmentRouter);
 
+  // Final 404 for unmatched API routes
+  app.use('/api', (_req, res) => {
+    ApiResponse.builder().withStatus(HTTPStatusCode.NOT_FOUND).withMessage('Not Found').buildAndSend(res);
+  });
+
   // Mount an global error handler
   app.use(handleError);
 

@@ -9,5 +9,5 @@ export const logger: Logger = createLogger({
     version: config.version,
     runtime: config.runtime,
   },
-  threshold: config.log.level,
+  threshold: config.log?.level ?? 'info',
 });
