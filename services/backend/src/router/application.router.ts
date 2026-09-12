@@ -25,6 +25,8 @@ import {
   attachmentExportPath,
   applicationExportQuerySchema,
   createZipArchive,
+  ExportSizeLimitExceededError,
+  mapWithConcurrency,
   objectBodyToBuffer,
   serializeCsv,
   type TApplicationExportResource,
@@ -266,19 +268,39 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
       content: exportFileContent(format, rows, exportColumns[resource]),
     };
   });
+
+  const exportedMetadataBytes = files.reduce((total, file) => total + file.content.length, 0);
+  if (exportedMetadataBytes > config.export.maxBytes) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE)
+      .withMessage('The export exceeds the maximum size')
+      .buildAndSend(res);
+    return;
+  }
+
   if (selectedResources.has('attachments')) {
     try {
       const {bucketName} = config.getRequiredObjectStorageConfig();
-      const attachmentFiles = [];
-      for (const attachment of attachmentExportRows) {
-        const object = await getS3Client().send(new GetObjectCommand({Bucket: bucketName, Key: attachment.location}));
-        attachmentFiles.push({
-          name: attachment.contentPath,
-          content: await objectBodyToBuffer(object.Body, object.ContentEncoding),
-        });
-      }
+      let attachmentBytes = 0;
+      const attachmentFiles = await mapWithConcurrency(
+        attachmentExportRows,
+        config.export.attachmentConcurrency,
+        async attachment => {
+          const object = await getS3Client().send(new GetObjectCommand({Bucket: bucketName, Key: attachment.location}));
+          const content = await objectBodyToBuffer(object.Body, object.ContentEncoding);
+          attachmentBytes += content.length;
+          if (exportedMetadataBytes + attachmentBytes > config.export.maxBytes) {
+            throw new ExportSizeLimitExceededError();
+          }
+          return {name: attachment.contentPath, content};
+        },
+      );
       files.push(...attachmentFiles);
-    } catch {
+    } catch (error) {
+      if (error instanceof ExportSizeLimitExceededError) {
+        ApiResponse.builder().withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE).withMessage(error.message).buildAndSend(res);
+        return;
+      }
       logger.error('Unable to read attachment objects for application export', {userId});
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
