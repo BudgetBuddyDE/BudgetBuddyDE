@@ -19,7 +19,7 @@ import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
-import {TransactionAttachmentHandler} from '../lib/attachment';
+import {AttachmentHandler, TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
 import {paginationFields, paginationWindow} from './pagination';
@@ -72,12 +72,11 @@ function getAttachmentService(): TransactionAttachmentHandler {
 }
 
 const isAllowedAttachmentFile = (file: Express.Multer.File): boolean => {
-  if (config.attachments.allowedContentTypes.has(file.mimetype)) return true;
-  if (file.mimetype === 'application/octet-stream') {
-    const extension = file.originalname.split('.').pop()?.toLowerCase() ?? '';
-    return config.attachments.octetStreamAllowedExtensions.has(extension);
-  }
-  return false;
+  const isAllowed =
+    config.attachments.allowedContentTypes.has(file.mimetype) ||
+    (file.mimetype === 'application/octet-stream' &&
+      config.attachments.octetStreamAllowedExtensions.has(file.originalname.split('.').pop()?.toLowerCase() ?? ''));
+  return isAllowed && AttachmentHandler.hasValidImageSignature(file.buffer, AttachmentHandler.resolveMimeType(file));
 };
 
 const mapAttachmentWithUrl = (attachment: {

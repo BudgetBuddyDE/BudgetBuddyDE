@@ -91,6 +91,8 @@ export class AppConfig extends BackendConfig {
       maxFileSizeBytes: number;
       /** Maximum combined size in bytes of a single multipart upload request. */
       maxRequestSizeBytes: number;
+      /** Maximum number of files processed and uploaded concurrently. */
+      processingConcurrency: number;
     };
     pagination: {
       defaultPageSize: number;
@@ -98,6 +100,8 @@ export class AppConfig extends BackendConfig {
     };
     imageOptimization: {
       maxDimensionPx: number;
+      /** Rejects decoded images above this pixel count to prevent decompression bombs. */
+      maxInputPixels: number;
       mimeTypes: ReadonlySet<string>;
       jpegQuality: number;
       pngCompressionLevel: number;
@@ -268,6 +272,7 @@ export class AppConfig extends BackendConfig {
           maxFilesPerRequest: 10,
           maxFileSizeBytes: 20 * 1024 * 1024,
           maxRequestSizeBytes: 50 * 1024 * 1024,
+          processingConcurrency: 4,
         },
         pagination: {
           defaultPageSize: 24,
@@ -275,6 +280,7 @@ export class AppConfig extends BackendConfig {
         },
         imageOptimization: {
           maxDimensionPx: 1920,
+          maxInputPixels: 100_000_000,
           mimeTypes: new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']),
           jpegQuality: 82,
           pngCompressionLevel: 9,

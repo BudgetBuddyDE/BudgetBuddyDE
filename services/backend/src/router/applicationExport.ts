@@ -31,27 +31,6 @@ export class ExportSizeLimitExceededError extends Error {
   }
 }
 
-/** Runs `mapper` over `items` with at most `concurrency` promises in flight. */
-export async function mapWithConcurrency<T, R>(
-  items: readonly T[],
-  concurrency: number,
-  mapper: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  const results = new Array<R>(items.length);
-  let nextIndex = 0;
-  const workerCount = Math.max(1, Math.min(concurrency, items.length));
-  await Promise.all(
-    Array.from({length: workerCount}, async () => {
-      while (nextIndex < items.length) {
-        const index = nextIndex;
-        nextIndex += 1;
-        results[index] = await mapper(items[index], index);
-      }
-    }),
-  );
-  return results;
-}
-
 type TransformableObjectBody = {
   transformToByteArray: () => Promise<Uint8Array>;
 };

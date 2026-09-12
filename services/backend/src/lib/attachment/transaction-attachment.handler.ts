@@ -5,6 +5,7 @@ import {and, count, eq, inArray} from 'drizzle-orm';
 import {uuidv7} from 'uuidv7';
 import {config} from '../../config';
 import {db} from '../../db';
+import {mapWithConcurrencySettled} from '../concurrency';
 import {AttachmentHandler} from './attachment.handler';
 
 type AttachmentWithSignedUrl = {
@@ -59,8 +60,10 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
     });
 
     // Upload all files to S3 before registering metadata so failed DB writes cannot leave broken records.
-    const uploadResults = await Promise.allSettled(
-      prepared.map(async ({attachmentId, mimeType, location, file}) => {
+    const uploadResults = await mapWithConcurrencySettled(
+      prepared,
+      config.attachments.upload.processingConcurrency,
+      async ({attachmentId, mimeType, location, file}) => {
         const preparedBuffer = await AttachmentHandler.prepareAttachmentBuffer(file.buffer, mimeType);
         this.logger.debug('Uploading attachment %s to S3 at %s', attachmentId, location, {attachmentId, location});
         return this.s3Client.send(
@@ -72,7 +75,7 @@ export class TransactionAttachmentHandler extends AttachmentHandler {
             ContentEncoding: preparedBuffer.contentEncoding,
           }),
         );
-      }),
+      },
     );
 
     const uploadedLocations = uploadResults.flatMap((result, index) =>
