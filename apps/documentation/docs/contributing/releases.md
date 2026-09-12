@@ -15,4 +15,5 @@ Before a release, review the changelog, build, tests, and migration notes. Chang
 - `npm run ci` completed successfully
 - Deployment and rollback prepared
 
-The specific release process is defined by repository automation and the maintainers.
+The specific release process is documented in [CI/CD](/contributing/ci): patch releases are created
+automatically on `main`, while minor and major releases are triggered manually.

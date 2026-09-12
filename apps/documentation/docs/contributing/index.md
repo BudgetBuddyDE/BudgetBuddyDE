@@ -9,6 +9,7 @@ BudgetBuddy relies on understandable changes and reproducible contributions.
 - [Contribution guide](/contributing/guide)
 - [Git workflow](/contributing/git-workflow)
 - [Pull Requests](/contributing/pull-requests)
+- [CI/CD pipeline](/contributing/ci)
 - [Releases](/contributing/releases)
 - [Edit the documentation](/contributing/documentation)
 

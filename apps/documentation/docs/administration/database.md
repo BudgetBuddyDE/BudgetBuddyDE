@@ -24,6 +24,8 @@ npm run db:studio --workspace @budgetbuddyde/db
 
 After schema changes, migrations must be reviewed, versioned, and tested before production deployment. `db:full-generate` is also available for changes to the Better Auth schema.
 
+The Concourse pipeline applies migrations to the test database first and then to production; see [CI/CD](/contributing/ci).
+
 ## Principles
 
 - Never try migrations against the only production copy.

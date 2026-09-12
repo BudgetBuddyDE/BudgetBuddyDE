@@ -19,4 +19,6 @@ Redis contains cache and rate-limit state and is normally not the source of pers
 - Test restoration regularly in an isolated environment.
 - After restoration, check health checks, sign-in, API access, and attachments.
 
+In this repository, the Concourse pipeline creates a daily production dump and stores it in S3; see [CI/CD](/contributing/ci).
+
 The specific backup commands depend on the PostgreSQL and S3 providers and should be versioned as part of the deployment system.

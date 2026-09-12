@@ -1,4 +1,4 @@
 {
   "title": "Contributing",
-  "pages": ["index", "guide", "git-workflow", "pull-requests", "releases", "documentation"]
+  "pages": ["index", "guide", "git-workflow", "pull-requests", "ci", "releases", "documentation"]
 }
