@@ -59,6 +59,7 @@ async function healthHandler(_req: Request, res: Response) {
 export function createApp(): Express {
   const app = express();
 
+  app.set('trust proxy', config.trustProxy);
   app.use(cors(config.cors));
   if (config.rateLimit.enabled) {
     app.use(
@@ -79,8 +80,8 @@ export function createApp(): Express {
     res.status(HTTPStatusCode.OK).end();
   });
 
-  app.use(setRequestContext);
   app.use(logRequest);
+  app.use(setRequestContext);
   app.use(express.json());
   app.use(servedBy);
   app.use(cacheResponse);

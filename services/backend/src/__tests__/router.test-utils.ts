@@ -14,7 +14,6 @@ export async function requestRouter(
     req.context = {
       user: {id: userId} as RequestContext['user'],
       session: null,
-      authenticationMethod: 'session-cookie',
     };
     next();
   });

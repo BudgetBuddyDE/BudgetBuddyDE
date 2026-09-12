@@ -13,6 +13,8 @@ export class AppConfig extends BackendConfig {
   public readonly auth: {
     baseUrl: string;
     credentials: RequestCredentials;
+    /** Timeout in milliseconds for the auth-service session lookup. */
+    requestTimeoutMs: number;
   };
   public readonly database: {
     connectionString: string;
@@ -35,6 +37,8 @@ export class AppConfig extends BackendConfig {
     level: LogThreshold;
   };
   public readonly cors: CorsOptions;
+  /** Express `trust proxy` setting for the deployment topology. */
+  public readonly trustProxy: boolean | number | string;
   public readonly rateLimit: {
     enabled: boolean;
     keyPrefix: string;
@@ -116,6 +120,7 @@ export class AppConfig extends BackendConfig {
     objectStorage,
     log,
     cors,
+    trustProxy,
     rateLimit,
     exportRateLimit,
     export: exportConfig,
@@ -134,6 +139,7 @@ export class AppConfig extends BackendConfig {
       | 'objectStorage'
       | 'log'
       | 'cors'
+      | 'trustProxy'
       | 'rateLimit'
       | 'exportRateLimit'
       | 'export'
@@ -150,6 +156,7 @@ export class AppConfig extends BackendConfig {
     this.objectStorage = objectStorage;
     this.log = log;
     this.cors = cors;
+    this.trustProxy = trustProxy;
     this.rateLimit = rateLimit;
     this.exportRateLimit = exportRateLimit;
     this.export = exportConfig;
@@ -175,6 +182,7 @@ export class AppConfig extends BackendConfig {
       auth: {
         baseUrl: AppConfig.getOptionalEnvironmentValue(environment, 'AUTH_SERVICE_HOST') ?? 'http://localhost:8080',
         credentials: 'include',
+        requestTimeoutMs: 5000,
       },
       database: {
         connectionString: AppConfig.getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
@@ -205,6 +213,7 @@ export class AppConfig extends BackendConfig {
         allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
         credentials: true,
       },
+      trustProxy: AppConfig.getTrustProxy(environment.TRUST_PROXY, runtime),
       rateLimit: {
         enabled: runtime === 'production' && redisUrl !== undefined,
         keyPrefix: `rate-limit:${service}:`,
@@ -369,6 +378,19 @@ export class AppConfig extends BackendConfig {
         .map(origin => origin.trim())
         .filter(Boolean) ?? []
     );
+  }
+
+  /** Parses the `trust proxy` setting; production defaults to a single reverse proxy. */
+  private static getTrustProxy(
+    value: string | undefined,
+    runtime: 'production' | 'development' | 'test',
+  ): boolean | number | string {
+    const trimmed = value?.trim();
+    if (trimmed === undefined || trimmed === '') return runtime === 'production' ? 1 : false;
+    if (trimmed === 'true') return true;
+    if (trimmed === 'false') return false;
+    const numeric = Number(trimmed);
+    return Number.isFinite(numeric) ? numeric : trimmed;
   }
 }
 
