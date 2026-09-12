@@ -50,6 +50,13 @@
       "when": 1789215414730,
       "tag": "0006_strong_rage",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789215426314,
+      "tag": "0007_loud_sauron",
+      "breakpoints": true
     }
   ]
 }
