@@ -1,12 +1,12 @@
 import {and, eq, gte, ilike, inArray, lte, notInArray, or} from 'drizzle-orm';
 import type {PgTableWithColumns, TableConfig} from 'drizzle-orm/pg-core';
 
-export type TOwnerFilter<Table extends TableConfig> = {
+type TOwnerFilter<Table extends TableConfig> = {
   ownerColumnName: keyof Table['columns'];
   ownerValue: string;
 };
 
-export type TSearchFilter<Table extends TableConfig> = {
+type TSearchFilter<Table extends TableConfig> = {
   searchTerm?: string;
   searchableColumnName?: (keyof Table['columns'])[];
 };
