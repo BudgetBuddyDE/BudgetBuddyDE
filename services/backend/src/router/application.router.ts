@@ -31,7 +31,7 @@ import {
   type TApplicationExportRow,
 } from './applicationExport';
 import {applicationExportRateLimitKey} from './applicationExportRateLimit';
-import {importApplicationArchive, type TApplicationImportMode} from './applicationImport';
+import {ApplicationImportFormatError, importApplicationArchive, type TApplicationImportMode} from './applicationImport';
 
 export const applicationRouter = Router();
 const importUpload = multer({
@@ -100,9 +100,14 @@ applicationRouter.post('/import', importUpload.single('archive'), async (req, re
       .withFrom('db')
       .buildAndSend(res);
   } catch (error) {
+    if (error instanceof ApplicationImportFormatError) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.BAD_REQUEST).withMessage(error.message).buildAndSend(res);
+      return;
+    }
+    logger.error('Application import failed', error instanceof Error ? error : new Error(String(error)), {userId});
     ApiResponse.builder()
-      .withStatus(HTTPStatusCode.BAD_REQUEST)
-      .withMessage(error instanceof Error ? error.message : 'The import archive is invalid')
+      .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+      .withMessage('The import could not be completed')
       .buildAndSend(res);
   }
 });
