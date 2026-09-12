@@ -188,15 +188,17 @@ export abstract class AttachmentHandler {
    */
   public async generateSignedUrl(attachment: AttachmentRecord, options: SignedUrlOptions = {}): Promise<string> {
     const ttl = options.ttl || this.defaultTtl;
+    // Only the default TTL is cached; custom TTLs would otherwise collide on the same key.
+    const cacheable = ttl === this.defaultTtl;
 
-    // Check cache first
-    const cachedUrl = await this.cache.retrieveSignedAttachmentUrl(attachment.id);
-    if (cachedUrl) {
-      this.logger.debug('Serving signed URL for attachment %s from cache', attachment.id);
-      return cachedUrl;
+    if (cacheable) {
+      const cachedUrl = await this.cache.retrieveSignedAttachmentUrl(attachment.id);
+      if (cachedUrl) {
+        this.logger.debug('Serving signed URL for attachment %s from cache', attachment.id);
+        return cachedUrl;
+      }
     }
 
-    // Generate new signed URL
     const command = new GetObjectCommand({
       Bucket: this.bucketName,
       Key: attachment.location,
@@ -204,9 +206,10 @@ export abstract class AttachmentHandler {
 
     const signedUrl = await getSignedUrl(this.s3Client, command, {expiresIn: ttl});
 
-    // Cache the URL
-    await this.cache.writeSignedAttachmentUrl(attachment.id, signedUrl, ttl);
-    this.logger.debug('Generated signed URL for attachment %s and cached with TTL %d', attachment.id, ttl);
+    if (cacheable) {
+      await this.cache.writeSignedAttachmentUrl(attachment.id, signedUrl, ttl);
+      this.logger.debug('Generated signed URL for attachment %s and cached with TTL %d', attachment.id, ttl);
+    }
 
     return signedUrl;
   }
@@ -226,27 +229,25 @@ export abstract class AttachmentHandler {
     }
 
     const ttl = options.ttl || this.defaultTtl;
+    const cacheable = ttl === this.defaultTtl;
 
-    // Check cache for all attachments in parallel
-    const cachedResults = await Promise.all(
-      attachments.map(async attachment => ({
-        attachment,
-        cachedUrl: await this.cache.retrieveSignedAttachmentUrl(attachment.attachmentId),
-      })),
-    );
+    // Bulk-read cached URLs for the default TTL only.
+    const cachedUrls = cacheable
+      ? await this.cache.retrieveSignedAttachmentUrls(attachments.map(attachment => attachment.attachmentId))
+      : new Map<string, string>();
 
-    // Separate cached from non-cached attachments
     const attachmentsWithCache: {attachmentId: TAttachment['id']; signedUrl: TSignedAttachmentUrl}[] = [];
     const attachmentsToGenerate: typeof attachments = [];
 
-    for (const {attachment, cachedUrl} of cachedResults) {
+    for (const attachment of attachments) {
+      const cachedUrl = cachedUrls.get(attachment.attachmentId);
       if (cachedUrl) {
-        attachmentsWithCache.push({attachmentId: attachment.attachmentId, signedUrl: cachedUrl});
-      } else {
-        attachmentsToGenerate.push({
+        attachmentsWithCache.push({
           attachmentId: attachment.attachmentId,
-          objectStoreLocation: attachment.objectStoreLocation,
+          signedUrl: cachedUrl as TSignedAttachmentUrl,
         });
+      } else {
+        attachmentsToGenerate.push(attachment);
       }
     }
 
@@ -279,12 +280,15 @@ export abstract class AttachmentHandler {
         }),
       );
 
-      // Cache newly generated URLs in parallel
-      await Promise.all(
-        newlyGeneratedResults.map(({attachmentId, signedUrl: url}) =>
-          this.cache.writeSignedAttachmentUrl(attachmentId, url, ttl),
-        ),
-      );
+      if (cacheable) {
+        await this.cache.writeSignedAttachmentUrls(
+          newlyGeneratedResults.map(({attachmentId, signedUrl}) => ({
+            attachmentId,
+            signedUrl,
+            ttlSeconds: ttl,
+          })),
+        );
+      }
 
       this.logger.debug('Successfully cached %d newly generated signed URLs', newlyGeneratedResults.length);
     }
