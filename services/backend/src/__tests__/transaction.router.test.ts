@@ -48,7 +48,7 @@ vi.mock('../config', () => ({
       octetStreamAllowedExtensions: new Set(['heic']),
       mimeTypeOverrides: {},
       transactionPreviewLimit: 3,
-      upload: {maxFilesPerRequest: 10, maxFileSizeBytes: 20 * 1024 * 1024},
+      upload: {maxFilesPerRequest: 10, maxFileSizeBytes: 20 * 1024 * 1024, maxRequestSizeBytes: 50 * 1024 * 1024},
       signedUrlTtlSeconds: 900,
     },
     getRequiredObjectStorageConfig: vi.fn(() => ({bucketName: 'test-bucket'})),

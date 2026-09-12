@@ -11,7 +11,7 @@ import {
 } from '@budgetbuddyde/db/backend';
 import {toZonedTime} from 'date-fns-tz';
 import {and, eq, inArray, sql} from 'drizzle-orm';
-import {Router} from 'express';
+import {Router, type NextFunction, type Request, type RequestHandler, type Response} from 'express';
 import validateRequest from 'express-zod-safe';
 import multer from 'multer';
 import z from 'zod';
@@ -32,6 +32,37 @@ const upload = multer({
     fileSize: config.attachments.upload.maxFileSizeBytes,
   },
 });
+
+const enforceUploadRequestSize = (req: Request, res: Response, next: NextFunction): void => {
+  const contentLength = Number(req.headers['content-length']);
+  if (Number.isFinite(contentLength) && contentLength > config.attachments.upload.maxRequestSizeBytes) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE)
+      .withMessage('Upload exceeds the maximum request size')
+      .buildAndSend(res);
+    return;
+  }
+  next();
+};
+
+const verifyUploadedFilesSize = (req: Request, res: Response, next: NextFunction): void => {
+  const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+  const totalSize = files.reduce((total, file) => total + file.size, 0);
+  if (totalSize > config.attachments.upload.maxRequestSizeBytes) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE)
+      .withMessage('Upload exceeds the maximum request size')
+      .buildAndSend(res);
+    return;
+  }
+  next();
+};
+
+const uploadTransactionFiles: RequestHandler[] = [
+  enforceUploadRequestSize,
+  upload.array('files', config.attachments.upload.maxFilesPerRequest),
+  verifyUploadedFilesSize,
+];
 const attachmentLogger = logger.child({module: 'transactions.attachments'});
 let attachmentService: TransactionAttachmentHandler | undefined;
 
@@ -643,7 +674,7 @@ transactionRouter.put(
 
 transactionRouter.post(
   '/:id/attachments',
-  upload.array('files', config.attachments.upload.maxFilesPerRequest),
+  ...uploadTransactionFiles,
   validateRequest({
     params: z.object({
       id: TransactionSchemas.select.shape.id,
