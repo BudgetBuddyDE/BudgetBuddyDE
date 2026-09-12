@@ -81,7 +81,8 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - `services/backend/src/router/index.ts`: domain router mounts.
 - `vitest.config.ts` and workspace `vitest.config.*`: shared and workspace test settings.
 - `eslint.config.mjs`, `.prettierrc.json`, `.lintstagedrc.json`: quality tooling.
-- `.github/workflows/ci.yml`: Node 22 CI quality and build jobs; runs on pushes and pull requests.
+- `ci/pipelines/budgetbuddyde.pipeline.yml`: single Concourse pipeline for PR validation (GitHub status), automatic patch releases on `main`, and database migrations/backups.
+- `ci/tasks/release-unit.yml` and `ci/tasks/release-unit.sh`: shared Concourse task that validates a unit and releases it (npm publish, semantic version, git tag).
 - `.husky/pre-commit`: lint-staged and pre-commit checks.
 
 ## Runtime/Tooling Preferences
@@ -101,4 +102,4 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - Prefer deterministic inline fixtures and mocks (`vi.mock`, `vi.fn`, `vi.hoisted`), semantic Testing Library queries, interaction assertions, and `waitFor` for async UI behavior. Restore environment variables, spies, and mock state in `afterEach`.
 - Test boundaries and observable behavior: Zod validation, query serialization, API error tuples, auth headers/context, owner isolation, transaction/error paths, cache hit/miss/invalidation, and UI state transitions. Do not test incidental implementation details.
 - Coverage is disabled by default and no threshold is enforced. `packages/logger`, `packages/db`, and `packages/api` allow no-test passes where configured; do not infer coverage from that setting.
-- Before submitting a permanent change, run the narrow workspace test, then relevant `npm run format:check`, `npm run lint:check`, `npm run typecheck`, and build. CI runs formatting, linting, typechecking, tests, then builds on Node 22.
+- Before submitting a permanent change, run the narrow workspace test, then relevant `npm run format:check`, `npm run lint:check`, `npm run typecheck`, and build. The Concourse pipeline runs `npm run ci` on `node:lts` for pull requests and releases.

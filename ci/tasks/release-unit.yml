@@ -1,0 +1,20 @@
+---
+platform: linux
+
+inputs:
+  - name: repository
+  - name: version
+
+outputs:
+  - name: release-meta
+
+params:
+  CI: 'true'
+  FORCE_COLOR: 1
+  TURBO_TELEMETRY_DISABLED: 1
+  NEXT_TELEMETRY_DISABLED: 1
+
+run:
+  path: sh
+  args:
+    - repository/ci/tasks/release-unit.sh

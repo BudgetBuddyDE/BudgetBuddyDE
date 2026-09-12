@@ -1,0 +1,1300 @@
+groups:
+  - name: all
+    jobs:
+      - '*'
+  - name: pull-requests
+    jobs:
+      - pull-request-check
+  - name: releases
+    jobs:
+      - 'release-*'
+  - name: packages
+    jobs:
+      - 'release-api-*'
+      - 'release-core-*'
+      - 'release-db-*'
+      - 'release-logger-*'
+  - name: apps
+    jobs:
+      - 'release-webapp-*'
+  - name: services
+    jobs:
+      - 'release-auth-service-*'
+      - 'release-backend-*'
+      - 'release-mcp-*'
+  - name: database
+    jobs:
+      - 'database-*'
+      - 'update-*-database'
+
+resource_types:
+  - name: discord-alert
+    type: registry-image
+    source:
+      repository: ghcr.io/tklein1801/concourse-discord-alert-resource
+
+  - name: cogito
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: pix4d/cogito
+
+  - name: pull-request
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: teliaoss/github-pr-resource
+
+resources:
+  - name: node-image
+    type: registry-image
+    icon: nodejs
+    source:
+      repository: node
+      tag: lts
+
+  - name: github-pr
+    type: pull-request
+    icon: source-pull
+    check_every: 1m
+    source:
+      repository: ((repo_owner))/((repo_name))
+      access_token: ((github.pat))
+      base_branch: main
+
+  - name: github-status
+    type: cogito
+    icon: github
+    check_every: never
+    source:
+      owner: ((repo_owner))
+      repo: ((repo_name))
+      access_token: ((github.pat))
+      context_prefix: concourse
+
+  - name: notification
+    type: discord-alert
+    icon: bell-ring
+    source:
+      url: ((discord.webhook_url))
+
+  - name: repo-webapp
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - apps/webapp/**
+        - packages/api/**
+        - packages/core/**
+        - packages/logger/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: repo-mcp
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - services/mcp/**
+        - packages/api/**
+        - packages/core/**
+        - packages/logger/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: repo-backend
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - services/backend/**
+        - packages/api/**
+        - packages/core/**
+        - packages/db/**
+        - packages/logger/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: repo-auth-service
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - services/auth-service/**
+        - packages/core/**
+        - packages/db/**
+        - packages/logger/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: repo-api
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - packages/api/**
+        - packages/core/**
+        - packages/logger/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: repo-db
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - packages/db/**
+        - packages/core/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: repo-core
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - packages/core/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: repo-logger
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - packages/logger/**
+        - package.json
+        - package-lock.json
+        - turbo.json
+        - tsconfig.json
+
+  - name: version-webapp
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 3.5.2
+      bucket: ((s3-versions.bucket))
+      key: app_webapp/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: version-mcp
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.1.0
+      bucket: ((s3-versions.bucket))
+      key: bb_mcp/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: version-backend
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.5.1
+      bucket: ((s3-versions.bucket))
+      key: bb_backend/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: version-auth-service
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.0.5
+      bucket: ((s3-versions.bucket))
+      key: bb_auth_service/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: version-api
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 1.6.0
+      bucket: ((s3-versions.bucket))
+      key: pck_api/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: version-db
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.3.0
+      bucket: ((s3-versions.bucket))
+      key: pck_db/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: version-core
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.1.0
+      bucket: ((s3-versions.bucket))
+      key: pck_core/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: version-logger
+    type: semver
+    icon: tag-outline
+    source:
+      driver: s3
+      initial_version: 0.1.1
+      bucket: ((s3-versions.bucket))
+      key: pck_logger/version
+      region_name: ((s3-versions.region))
+      access_key_id: ((s3-versions.access_key_id))
+      secret_access_key: ((s3-versions.access_key_secret))
+
+  - name: repository-database
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo_owner))/((repo_name)).git
+      private_key: ((github.private_key))
+      branch: main
+      paths:
+        - packages/db/drizzle/**
+        - packages/db/package.json
+        - package.json
+        - package-lock.json
+
+  - name: db-bucket
+    type: s3
+    icon: database-import
+    source:
+      bucket: ((s3-db-backup.bucket))
+      region_name: ((s3-db-backup.region))
+      access_key_id: ((s3-db-backup.access_key_id))
+      secret_access_key: ((s3-db-backup.access_key_secret))
+      regexp: backup_(.*).dump
+
+  - name: daily-timer
+    type: time
+    icon: clock
+    source:
+      interval: 24h
+
+meta:
+  gh-status-handlers: &gh-status-handlers
+    on_success:
+      put: github-status
+      inputs: [repository]
+      params: {state: success}
+    on_failure:
+      do:
+        - put: github-status
+          inputs: [repository]
+          params: {state: failure}
+        - put: notification
+          params:
+            alert_type: failed
+            message: 'Release failed in pipeline budgetbuddyde'
+            role: '1342563020215291936'
+    on_error:
+      do:
+        - put: github-status
+          inputs: [repository]
+          params: {state: error}
+        - put: notification
+          params:
+            alert_type: failed
+            message: 'Release errored in pipeline budgetbuddyde'
+            role: '1342563020215291936'
+    on_abort:
+      put: github-status
+      inputs: [repository]
+      params: {state: abort}
+
+  pr-status-handlers: &pr-status-handlers
+    on_success:
+      put: github-pr
+      inputs: [pull-request]
+      params:
+        path: pull-request
+        status: success
+        base_context: concourse
+        context: validate
+    on_failure:
+      put: github-pr
+      inputs: [pull-request]
+      params:
+        path: pull-request
+        status: failure
+        base_context: concourse
+        context: validate
+    on_error:
+      put: github-pr
+      inputs: [pull-request]
+      params:
+        path: pull-request
+        status: error
+        base_context: concourse
+        context: validate
+    on_abort:
+      put: github-pr
+      inputs: [pull-request]
+      params:
+        path: pull-request
+        status: error
+        base_context: concourse
+        context: validate
+
+  release-task: &release-task
+    task: release
+    file: repository/ci/tasks/release-unit.yml
+    image: node-image
+
+jobs:
+  - name: pull-request-check
+    public: true
+    <<: *pr-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: pull-request
+            resource: github-pr
+            trigger: true
+            version: every
+      - put: github-pr
+        inputs: [pull-request]
+        get_params: {skip_download: true}
+        params:
+          path: pull-request
+          status: pending
+          base_context: concourse
+          context: validate
+      - task: check
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: pull-request
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
+            NEXT_TELEMETRY_DISABLED: 1
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd pull-request
+                npm ci
+                npm run ci
+
+  - name: release-webapp-patch
+    public: true
+    serial_groups: [release-webapp]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-webapp
+            trigger: true
+          - get: version
+            resource: version-webapp
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: webapp
+          UNIT_PATH: apps/webapp
+          NPM_PACKAGE: '@budgetbuddyde/webapp'
+          UNIT_TYPE: app
+      - put: repo-webapp
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-webapp
+        params: {file: version/version}
+
+  - name: release-webapp-minor
+    public: true
+    serial_groups: [release-webapp]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-webapp
+          - get: version
+            resource: version-webapp
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: webapp
+          UNIT_PATH: apps/webapp
+          NPM_PACKAGE: '@budgetbuddyde/webapp'
+          UNIT_TYPE: app
+      - put: repo-webapp
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-webapp
+        params: {file: version/version}
+
+  - name: release-webapp-major
+    public: true
+    serial_groups: [release-webapp]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-webapp
+          - get: version
+            resource: version-webapp
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: webapp
+          UNIT_PATH: apps/webapp
+          NPM_PACKAGE: '@budgetbuddyde/webapp'
+          UNIT_TYPE: app
+      - put: repo-webapp
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-webapp
+        params: {file: version/version}
+
+  - name: release-mcp-patch
+    public: true
+    serial_groups: [release-mcp]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-mcp
+            trigger: true
+          - get: version
+            resource: version-mcp
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: mcp
+          UNIT_PATH: services/mcp
+          NPM_PACKAGE: '@budgetbuddyde/mcp'
+          UNIT_TYPE: app
+      - put: repo-mcp
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-mcp
+        params: {file: version/version}
+
+  - name: release-mcp-minor
+    public: true
+    serial_groups: [release-mcp]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-mcp
+          - get: version
+            resource: version-mcp
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: mcp
+          UNIT_PATH: services/mcp
+          NPM_PACKAGE: '@budgetbuddyde/mcp'
+          UNIT_TYPE: app
+      - put: repo-mcp
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-mcp
+        params: {file: version/version}
+
+  - name: release-mcp-major
+    public: true
+    serial_groups: [release-mcp]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-mcp
+          - get: version
+            resource: version-mcp
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: mcp
+          UNIT_PATH: services/mcp
+          NPM_PACKAGE: '@budgetbuddyde/mcp'
+          UNIT_TYPE: app
+      - put: repo-mcp
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-mcp
+        params: {file: version/version}
+
+  - name: release-backend-patch
+    public: true
+    serial_groups: [release-backend]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-backend
+            trigger: true
+          - get: version
+            resource: version-backend
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: backend
+          UNIT_PATH: services/backend
+          NPM_PACKAGE: '@budgetbuddyde/backend'
+          UNIT_TYPE: app
+      - put: repo-backend
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-backend
+        params: {file: version/version}
+
+  - name: release-backend-minor
+    public: true
+    serial_groups: [release-backend]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-backend
+          - get: version
+            resource: version-backend
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: backend
+          UNIT_PATH: services/backend
+          NPM_PACKAGE: '@budgetbuddyde/backend'
+          UNIT_TYPE: app
+      - put: repo-backend
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-backend
+        params: {file: version/version}
+
+  - name: release-backend-major
+    public: true
+    serial_groups: [release-backend]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-backend
+          - get: version
+            resource: version-backend
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: backend
+          UNIT_PATH: services/backend
+          NPM_PACKAGE: '@budgetbuddyde/backend'
+          UNIT_TYPE: app
+      - put: repo-backend
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-backend
+        params: {file: version/version}
+
+  - name: release-auth-service-patch
+    public: true
+    serial_groups: [release-auth-service]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-auth-service
+            trigger: true
+          - get: version
+            resource: version-auth-service
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: auth-service
+          UNIT_PATH: services/auth-service
+          NPM_PACKAGE: '@budgetbuddyde/auth-service'
+          UNIT_TYPE: app
+      - put: repo-auth-service
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-auth-service
+        params: {file: version/version}
+
+  - name: release-auth-service-minor
+    public: true
+    serial_groups: [release-auth-service]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-auth-service
+          - get: version
+            resource: version-auth-service
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: auth-service
+          UNIT_PATH: services/auth-service
+          NPM_PACKAGE: '@budgetbuddyde/auth-service'
+          UNIT_TYPE: app
+      - put: repo-auth-service
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-auth-service
+        params: {file: version/version}
+
+  - name: release-auth-service-major
+    public: true
+    serial_groups: [release-auth-service]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-auth-service
+          - get: version
+            resource: version-auth-service
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: auth-service
+          UNIT_PATH: services/auth-service
+          NPM_PACKAGE: '@budgetbuddyde/auth-service'
+          UNIT_TYPE: app
+      - put: repo-auth-service
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-auth-service
+        params: {file: version/version}
+
+  - name: release-api-patch
+    public: true
+    serial_groups: [release-api]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-api
+            trigger: true
+          - get: version
+            resource: version-api
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: api
+          UNIT_PATH: packages/api
+          NPM_PACKAGE: '@budgetbuddyde/api'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-api
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-api
+        params: {file: version/version}
+
+  - name: release-api-minor
+    public: true
+    serial_groups: [release-api]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-api
+          - get: version
+            resource: version-api
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: api
+          UNIT_PATH: packages/api
+          NPM_PACKAGE: '@budgetbuddyde/api'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-api
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-api
+        params: {file: version/version}
+
+  - name: release-api-major
+    public: true
+    serial_groups: [release-api]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-api
+          - get: version
+            resource: version-api
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: api
+          UNIT_PATH: packages/api
+          NPM_PACKAGE: '@budgetbuddyde/api'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-api
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-api
+        params: {file: version/version}
+
+  - name: release-db-patch
+    public: true
+    serial_groups: [release-db]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-db
+            trigger: true
+          - get: version
+            resource: version-db
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: db
+          UNIT_PATH: packages/db
+          NPM_PACKAGE: '@budgetbuddyde/db'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-db
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-db
+        params: {file: version/version}
+
+  - name: release-db-minor
+    public: true
+    serial_groups: [release-db]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-db
+          - get: version
+            resource: version-db
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: db
+          UNIT_PATH: packages/db
+          NPM_PACKAGE: '@budgetbuddyde/db'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-db
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-db
+        params: {file: version/version}
+
+  - name: release-db-major
+    public: true
+    serial_groups: [release-db]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-db
+          - get: version
+            resource: version-db
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: db
+          UNIT_PATH: packages/db
+          NPM_PACKAGE: '@budgetbuddyde/db'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-db
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-db
+        params: {file: version/version}
+
+  - name: release-core-patch
+    public: true
+    serial_groups: [release-core]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-core
+            trigger: true
+          - get: version
+            resource: version-core
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: core
+          UNIT_PATH: packages/core
+          NPM_PACKAGE: '@budgetbuddyde/core'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-core
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-core
+        params: {file: version/version}
+
+  - name: release-core-minor
+    public: true
+    serial_groups: [release-core]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-core
+          - get: version
+            resource: version-core
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: core
+          UNIT_PATH: packages/core
+          NPM_PACKAGE: '@budgetbuddyde/core'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-core
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-core
+        params: {file: version/version}
+
+  - name: release-core-major
+    public: true
+    serial_groups: [release-core]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-core
+          - get: version
+            resource: version-core
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: core
+          UNIT_PATH: packages/core
+          NPM_PACKAGE: '@budgetbuddyde/core'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-core
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-core
+        params: {file: version/version}
+
+  - name: release-logger-patch
+    public: true
+    serial_groups: [release-logger]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-logger
+            trigger: true
+          - get: version
+            resource: version-logger
+            params: {bump: patch}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: logger
+          UNIT_PATH: packages/logger
+          NPM_PACKAGE: '@budgetbuddyde/logger'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-logger
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-logger
+        params: {file: version/version}
+
+  - name: release-logger-minor
+    public: true
+    serial_groups: [release-logger]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-logger
+          - get: version
+            resource: version-logger
+            params: {bump: minor}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: logger
+          UNIT_PATH: packages/logger
+          NPM_PACKAGE: '@budgetbuddyde/logger'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-logger
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-logger
+        params: {file: version/version}
+
+  - name: release-logger-major
+    public: true
+    serial_groups: [release-logger]
+    <<: *gh-status-handlers
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repo-logger
+          - get: version
+            resource: version-logger
+            params: {bump: major}
+      - put: github-status
+        inputs: [repository]
+        params: {state: pending}
+      - <<: *release-task
+        params:
+          UNIT_NAME: logger
+          UNIT_PATH: packages/logger
+          NPM_PACKAGE: '@budgetbuddyde/logger'
+          UNIT_TYPE: npm
+          NPM_TOKEN: ((npm_token))
+      - put: repo-logger
+        inputs: [repository, release-meta]
+        params:
+          repository: repository
+          only_tag: true
+          tag: release-meta/tag
+          annotate: release-meta/annotate
+      - put: version-logger
+        params: {file: version/version}
+
+  - name: database-backup
+    public: false
+    plan:
+      - get: daily-timer
+        trigger: true
+      - task: dump-database
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: postgres
+              tag: 17
+          outputs:
+            - name: backup
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((manage-database.prod-database-url))
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+                FILE="backup_${TIMESTAMP}.dump"
+                echo "Creating PostgreSQL dump..."
+                pg_dump "$DATABASE_URL" -Fc -f "backup/$FILE" >> /dev/null
+                echo "Backup created!"
+      - put: db-bucket
+        params:
+          file: backup/*.dump
+
+  - name: update-test-database
+    public: false
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repository-database
+            trigger: true
+      - task: apply-migrations
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
+            DATABASE_URL: ((manage-database.test-database-url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository
+                npm ci
+                npx turbo run build --filter=@budgetbuddyde/db
+                cd packages/db
+                npx drizzle-kit check
+                npm run db:migrate
+
+  - name: update-prod-database
+    public: false
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            resource: repository-database
+            passed: [update-test-database]
+      - task: apply-migrations
+        image: node-image
+        config:
+          platform: linux
+          inputs:
+            - name: repository
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            TURBO_TELEMETRY_DISABLED: 1
+            DATABASE_URL: ((manage-database.prod-database-url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd repository
+                npm ci
+                npx turbo run build --filter=@budgetbuddyde/db
+                cd packages/db
+                npx drizzle-kit check
+                npm run db:migrate
