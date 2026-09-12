@@ -21,7 +21,7 @@ vi.mock('../db', () => ({
   },
 }));
 
-function categoriesArchive(categories: Array<{id: string; name: string; description: null}>) {
+async function categoriesArchive(categories: Array<{id: string; name: string; description: null}>) {
   return createZipArchive([
     {name: 'categories.json', content: Buffer.from(JSON.stringify(categories))},
     {
@@ -40,8 +40,8 @@ function categoriesArchive(categories: Array<{id: string; name: string; descript
 }
 
 describe('application import archive parsing', () => {
-  it('reads the JSON archive format emitted by application export', () => {
-    const archive = createZipArchive([
+  it('reads the JSON archive format emitted by application export', async () => {
+    const archive = await createZipArchive([
       {
         name: 'categories.json',
         content: Buffer.from('[{"id":"0199d24e-aa34-7f5a-8a9f-5c1bcd4b9e53","name":"Food","description":null}]\n'),
@@ -70,8 +70,8 @@ describe('application import archive parsing', () => {
     });
   });
 
-  it('rejects archive entries that are not declared by the manifest', () => {
-    const archive = createZipArchive([
+  it('rejects archive entries that are not declared by the manifest', async () => {
+    const archive = await createZipArchive([
       {name: 'unexpected.json', content: Buffer.from('[]')},
       {
         name: 'manifest.json',
@@ -90,8 +90,8 @@ describe('application import archive parsing', () => {
     expect(() => parseApplicationImportArchive(archive)).toThrow('unexpected files');
   });
 
-  it('restores CSV values escaped by the exporter', () => {
-    const archive = createZipArchive([
+  it('restores CSV values escaped by the exporter', async () => {
+    const archive = await createZipArchive([
       {
         name: 'categories.csv',
         content: Buffer.from('"id","ownerId","name","description"\r\n"id-1","owner","\'=SUM(A1:A2)",""\r\n'),
@@ -130,7 +130,7 @@ describe('application import commit', () => {
     );
 
     const result = await importApplicationArchive(
-      categoriesArchive([{id: '0199d24e-aa34-7f5a-8a9f-5c1bcd4b9e53', name: 'Food', description: null}]),
+      await categoriesArchive([{id: '0199d24e-aa34-7f5a-8a9f-5c1bcd4b9e53', name: 'Food', description: null}]),
       'user-1',
       'commit',
     );
@@ -147,7 +147,7 @@ describe('application import commit', () => {
 
     await expect(
       importApplicationArchive(
-        categoriesArchive([{id: '0199d24e-aa34-7f5a-8a9f-5c1bcd4b9e53', name: 'Food', description: null}]),
+        await categoriesArchive([{id: '0199d24e-aa34-7f5a-8a9f-5c1bcd4b9e53', name: 'Food', description: null}]),
         'user-1',
         'commit',
       ),
@@ -167,7 +167,7 @@ describe('application import commit', () => {
       description: null,
     }));
 
-    await importApplicationArchive(categoriesArchive(categories), 'user-1', 'commit');
+    await importApplicationArchive(await categoriesArchive(categories), 'user-1', 'commit');
 
     expect(txInsert).toHaveBeenCalledTimes(2);
     expect(insertValues).toHaveBeenCalledTimes(2);
