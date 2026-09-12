@@ -10,7 +10,7 @@ import {
   transactions,
 } from '@budgetbuddyde/db/backend';
 import {toZonedTime} from 'date-fns-tz';
-import {and, desc, eq, inArray, sql} from 'drizzle-orm';
+import {and, eq, inArray, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import multer from 'multer';
@@ -199,7 +199,7 @@ transactionRouter.get(
     >();
 
     if (transactionIds.length > 0) {
-      const attachmentRows = await db
+      const rankedAttachments = db
         .select({
           transactionId: transactionAttachments.transactionId,
           id: attachments.id,
@@ -209,11 +209,43 @@ transactionRouter.get(
           contentType: attachments.contentType,
           location: attachments.location,
           createdAt: attachments.createdAt,
+          rank: sql<number>`row_number() over (partition by ${transactionAttachments.transactionId} order by ${attachments.createdAt} desc, ${attachments.id} desc)`.as(
+            'rank',
+          ),
         })
         .from(transactionAttachments)
         .innerJoin(attachments, eq(transactionAttachments.attachmentId, attachments.id))
         .where(and(eq(attachments.ownerId, userId), inArray(transactionAttachments.transactionId, transactionIds)))
-        .orderBy(desc(attachments.createdAt));
+        .as('ranked_attachments');
+
+      const [attachmentCounts, attachmentRows] = await Promise.all([
+        db
+          .select({
+            transactionId: transactionAttachments.transactionId,
+            count: sql<number>`count(*)`.as('count'),
+          })
+          .from(transactionAttachments)
+          .innerJoin(attachments, eq(transactionAttachments.attachmentId, attachments.id))
+          .where(and(eq(attachments.ownerId, userId), inArray(transactionAttachments.transactionId, transactionIds)))
+          .groupBy(transactionAttachments.transactionId),
+        db
+          .select({
+            transactionId: rankedAttachments.transactionId,
+            id: rankedAttachments.id,
+            ownerId: rankedAttachments.ownerId,
+            fileName: rankedAttachments.fileName,
+            fileExtension: rankedAttachments.fileExtension,
+            contentType: rankedAttachments.contentType,
+            location: rankedAttachments.location,
+            createdAt: rankedAttachments.createdAt,
+          })
+          .from(rankedAttachments)
+          .where(sql`${rankedAttachments.rank} <= ${config.attachments.transactionPreviewLimit}`),
+      ]);
+
+      for (const {transactionId, count} of attachmentCounts) {
+        if (transactionId) attachmentCountByTransactionId.set(transactionId, Number(count));
+      }
 
       for (const attachmentRow of attachmentRows) {
         const transactionId = attachmentRow.transactionId;
@@ -221,21 +253,17 @@ transactionRouter.get(
           continue;
         }
 
-        attachmentCountByTransactionId.set(transactionId, (attachmentCountByTransactionId.get(transactionId) ?? 0) + 1);
-
         const previewRows = previewRowsByTransactionId.get(transactionId) ?? [];
-        if (previewRows.length < config.attachments.transactionPreviewLimit) {
-          previewRows.push({
-            id: attachmentRow.id,
-            ownerId: attachmentRow.ownerId,
-            fileName: attachmentRow.fileName,
-            fileExtension: attachmentRow.fileExtension,
-            contentType: attachmentRow.contentType,
-            location: attachmentRow.location,
-            createdAt: attachmentRow.createdAt,
-          });
-          previewRowsByTransactionId.set(transactionId, previewRows);
-        }
+        previewRows.push({
+          id: attachmentRow.id,
+          ownerId: attachmentRow.ownerId,
+          fileName: attachmentRow.fileName,
+          fileExtension: attachmentRow.fileExtension,
+          contentType: attachmentRow.contentType,
+          location: attachmentRow.location,
+          createdAt: attachmentRow.createdAt,
+        });
+        previewRowsByTransactionId.set(transactionId, previewRows);
       }
     }
 
