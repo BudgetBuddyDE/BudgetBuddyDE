@@ -22,6 +22,7 @@ import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
+import {paginationFields, paginationWindow} from './pagination';
 
 export const transactionRouter = Router();
 const upload = multer({
@@ -93,8 +94,7 @@ transactionRouter.get(
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      from: z.coerce.number().optional(),
-      to: z.coerce.number().optional(),
+      ...paginationFields,
       $dateFrom: z.coerce.date().optional(),
       $dateTo: z.coerce.date().optional(),
       $categories: z
@@ -175,8 +175,7 @@ transactionRouter.get(
         orderBy(fields, operators) {
           return [operators.desc(fields.processedAt), operators.desc(fields.updatedAt)];
         },
-        offset: req.query.from,
-        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        ...paginationWindow(req.query),
         with: {
           category: true,
           paymentMethod: true,

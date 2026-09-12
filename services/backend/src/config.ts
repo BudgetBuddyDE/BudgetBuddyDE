@@ -45,6 +45,10 @@ export class AppConfig extends BackendConfig {
     keyPrefix: string;
     options: Partial<RateLimitOptions>;
   };
+  public readonly pagination: {
+    /** Upper bound for the `to - from` window accepted by list endpoints. */
+    maxPageSize: number;
+  };
   public readonly timezone: string;
   public readonly jobs: {
     recurringPayments: {
@@ -102,6 +106,7 @@ export class AppConfig extends BackendConfig {
     cors,
     rateLimit,
     exportRateLimit,
+    pagination,
     timezone,
     jobs,
     cache,
@@ -118,6 +123,7 @@ export class AppConfig extends BackendConfig {
       | 'cors'
       | 'rateLimit'
       | 'exportRateLimit'
+      | 'pagination'
       | 'timezone'
       | 'jobs'
       | 'cache'
@@ -132,6 +138,7 @@ export class AppConfig extends BackendConfig {
     this.cors = cors;
     this.rateLimit = rateLimit;
     this.exportRateLimit = exportRateLimit;
+    this.pagination = pagination;
     this.timezone = timezone;
     this.jobs = jobs;
     this.cache = cache;
@@ -206,6 +213,9 @@ export class AppConfig extends BackendConfig {
           passOnStoreError: false,
           statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
         },
+      },
+      pagination: {
+        maxPageSize: 100,
       },
       timezone,
       jobs: {

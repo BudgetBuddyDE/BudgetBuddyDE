@@ -8,6 +8,7 @@ import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
+import {paginationFields, paginationWindow} from './pagination';
 
 export const paymentMethodRouter = Router();
 
@@ -113,8 +114,7 @@ paymentMethodRouter.get(
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      from: z.coerce.number().optional(),
-      to: z.coerce.number().optional(),
+      ...paginationFields,
     }),
   }),
   async (req, res) => {
@@ -148,8 +148,7 @@ paymentMethodRouter.get(
         orderBy(fields, operators) {
           return [operators.desc(fields.updatedAt)];
         },
-        offset: req.query.from,
-        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        ...paginationWindow(req.query),
       }),
     ]);
 
