@@ -395,9 +395,9 @@ export class AppConfig extends BackendConfig {
 }
 
 export type CacheRouteConfig = AppConfig['cache']['routes'][number];
-export type ObjectStorageConfig = AppConfig['objectStorage'];
-export type RequiredObjectStorageConfig = Required<ObjectStorageConfig>;
-export type RedisConfig = AppConfig['redis'];
-export type RequiredRedisConfig = Required<RedisConfig>;
+type ObjectStorageConfig = AppConfig['objectStorage'];
+type RequiredObjectStorageConfig = Required<ObjectStorageConfig>;
+type RedisConfig = AppConfig['redis'];
+type RequiredRedisConfig = Required<RedisConfig>;
 
 export const config = AppConfig.fromEnvironment();

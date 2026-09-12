@@ -45,7 +45,7 @@ function isIsoBmffImage(buffer: Buffer): boolean {
   return buffer.length >= 12 && buffer.toString('ascii', 4, 8) === 'ftyp';
 }
 
-export type AttachmentHandlerOptions = {
+type AttachmentHandlerOptions = {
   ttl: number;
 };
 
