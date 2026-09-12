@@ -45,6 +45,12 @@ export class AppConfig extends BackendConfig {
     keyPrefix: string;
     options: Partial<RateLimitOptions>;
   };
+  public readonly export: {
+    /** Maximum size in bytes of a generated application export archive. */
+    maxBytes: number;
+    /** Maximum number of attachment objects downloaded from storage concurrently. */
+    attachmentConcurrency: number;
+  };
   public readonly pagination: {
     /** Upper bound for the `to - from` window accepted by list endpoints. */
     maxPageSize: number;
@@ -106,6 +112,7 @@ export class AppConfig extends BackendConfig {
     cors,
     rateLimit,
     exportRateLimit,
+    export: exportConfig,
     pagination,
     timezone,
     jobs,
@@ -123,6 +130,7 @@ export class AppConfig extends BackendConfig {
       | 'cors'
       | 'rateLimit'
       | 'exportRateLimit'
+      | 'export'
       | 'pagination'
       | 'timezone'
       | 'jobs'
@@ -138,6 +146,7 @@ export class AppConfig extends BackendConfig {
     this.cors = cors;
     this.rateLimit = rateLimit;
     this.exportRateLimit = exportRateLimit;
+    this.export = exportConfig;
     this.pagination = pagination;
     this.timezone = timezone;
     this.jobs = jobs;
@@ -216,6 +225,10 @@ export class AppConfig extends BackendConfig {
       },
       pagination: {
         maxPageSize: 100,
+      },
+      export: {
+        maxBytes: 100 * 1024 * 1024,
+        attachmentConcurrency: 4,
       },
       timezone,
       jobs: {
