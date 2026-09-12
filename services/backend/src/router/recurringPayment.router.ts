@@ -9,16 +9,13 @@ import z from 'zod';
 import {db} from '../db';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
+import {paginationFields, paginationWindow, refinePagination} from './pagination';
 import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
 export const recurringPaymentRouter = Router();
 
-const paginationSchema = {
-  from: z.coerce.number().int().nonnegative().optional(),
-  to: z.coerce.number().int().nonnegative().optional(),
-};
 const categoryAndPaymentMethodFilters = {
   $categories: z
     .array(Category.shape.id)
@@ -49,25 +46,20 @@ const dateOnlySchema = z
 
 export const recurringPaymentOccurrencesQuerySchema = z
   .object({
-    ...paginationSchema,
+    ...paginationFields,
     ...categoryAndPaymentMethodFilters,
     $dateFrom: dateOnlySchema,
     $dateTo: dateOnlySchema,
     $includePaused: z.stringbool().default(false),
   })
   .superRefine((query, context) => {
+    refinePagination(query, context);
     const fromDay = Date.parse(`${query.$dateFrom}T00:00:00Z`) / 86_400_000;
     const toDay = Date.parse(`${query.$dateTo}T00:00:00Z`) / 86_400_000;
     if (fromDay > toDay) {
       context.addIssue({code: 'custom', path: ['$dateTo'], message: '$dateTo must be on or after $dateFrom'});
     } else if (toDay - fromDay > 365) {
       context.addIssue({code: 'custom', path: ['$dateTo'], message: 'Date range must not exceed 366 days'});
-    }
-    if (query.to !== undefined && query.to < (query.from ?? 0)) {
-      context.addIssue({code: 'custom', path: ['to'], message: 'to must be greater than or equal to from'});
-    }
-    if (query.to !== undefined && query.to - (query.from ?? 0) > 100) {
-      context.addIssue({code: 'custom', path: ['to'], message: 'Occurrence page size must not exceed 100'});
     }
   });
 
@@ -108,7 +100,7 @@ recurringPaymentRouter.get(
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      ...paginationSchema,
+      ...paginationFields,
       ...categoryAndPaymentMethodFilters,
       $paused: z.stringbool().optional(),
     }),
@@ -162,8 +154,7 @@ recurringPaymentRouter.get(
         orderBy(fields, operators) {
           return [operators.asc(fields.startsOn), operators.desc(fields.updatedAt)];
         },
-        offset: req.query.from,
-        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        ...paginationWindow(req.query),
         with: {
           category: true,
           paymentMethod: true,

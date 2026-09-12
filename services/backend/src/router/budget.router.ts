@@ -18,6 +18,7 @@ import {db} from '../db';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {assembleFilter} from './assembleFilter';
 import {hasAllOwnedIds, ownedIdsFinder} from './batch';
+import {paginationFields, paginationWindow} from './pagination';
 
 export const budgetRouter = Router();
 
@@ -137,8 +138,7 @@ budgetRouter.get(
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      from: z.coerce.number().optional(),
-      to: z.coerce.number().optional(),
+      ...paginationFields,
     }),
   }),
   async (req, res) => {
@@ -172,8 +172,7 @@ budgetRouter.get(
         orderBy(fields, operators) {
           return [operators.desc(fields.updatedAt)];
         },
-        offset: req.query.from,
-        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        ...paginationWindow(req.query),
         with: {
           categories: {
             with: {
