@@ -16,6 +16,8 @@ const {
   mockRedisGet,
   mockRedisSet,
   mockRedisDel,
+  mockRedisMget,
+  mockRedisPipeline,
   mockGetSignedUrl,
 } = vi.hoisted(() => ({
   mockS3Send: vi.fn(),
@@ -32,6 +34,8 @@ const {
   mockRedisGet: vi.fn(),
   mockRedisSet: vi.fn(),
   mockRedisDel: vi.fn(),
+  mockRedisMget: vi.fn(),
+  mockRedisPipeline: vi.fn(),
   mockGetSignedUrl: vi.fn(),
 }));
 
@@ -60,6 +64,8 @@ vi.mock('../db/redis', () => ({
     get: mockRedisGet,
     set: mockRedisSet,
     del: mockRedisDel,
+    mget: mockRedisMget,
+    pipeline: mockRedisPipeline,
     status: 'ready',
   }),
 }));
@@ -81,6 +87,14 @@ vi.mock('@aws-sdk/s3-request-presigner', () => ({
 
 import {AttachmentHandler} from '../lib/attachment/attachment.handler';
 import {TransactionAttachmentHandler} from '../lib/attachment/transaction-attachment.handler';
+
+beforeEach(() => {
+  mockRedisMget.mockResolvedValue([]);
+  mockRedisPipeline.mockReturnValue({
+    set: vi.fn().mockReturnThis(),
+    exec: vi.fn().mockResolvedValue([]),
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -231,10 +245,29 @@ suite('AttachmentHandler.generateSignedUrl', () => {
       createdAt: new Date(),
     };
 
-    const url = await handler.generateSignedUrl(record, {ttl: 300});
+    const url = await handler.generateSignedUrl(record);
     expect(url).toBe('https://s3.example.com/signed?fresh');
     expect(mockGetSignedUrl).toHaveBeenCalledOnce();
     expect(mockRedisSet).toHaveBeenCalledOnce();
+  });
+
+  it('does not cache signed URLs generated for a custom TTL', async () => {
+    mockGetSignedUrl.mockResolvedValueOnce('https://s3.example.com/signed?custom');
+
+    const record = {
+      id: ATTACHMENT_ID,
+      location: `transactions/${USER_ID}/${TX_ID}/${ATTACHMENT_ID}.png`,
+      ownerId: USER_ID,
+      fileName: 'test.png',
+      fileExtension: 'png',
+      contentType: 'image/png',
+      createdAt: new Date(),
+    };
+
+    const url = await handler.generateSignedUrl(record, {ttl: 300});
+    expect(url).toBe('https://s3.example.com/signed?custom');
+    expect(mockRedisGet).not.toHaveBeenCalled();
+    expect(mockRedisSet).not.toHaveBeenCalled();
   });
 });
 
@@ -257,7 +290,7 @@ suite('AttachmentHandler.generateSignedUrls', () => {
   });
 
   it('serves all from cache when all URLs are cached', async () => {
-    mockRedisGet.mockResolvedValue('https://cached.example.com/url');
+    mockRedisMget.mockResolvedValue(['https://cached.example.com/url', 'https://cached.example.com/url']);
 
     const attachmentList = [
       {attachmentId: 'id-1' as never, objectStoreLocation: 'path/1'},
@@ -271,7 +304,7 @@ suite('AttachmentHandler.generateSignedUrls', () => {
   });
 
   it('generates signed URLs for cache misses', async () => {
-    mockRedisGet.mockResolvedValue(null);
+    mockRedisMget.mockResolvedValue([null]);
     mockGetSignedUrl.mockResolvedValue('https://fresh.example.com/url');
     mockRedisSet.mockResolvedValue('OK');
 
@@ -284,9 +317,7 @@ suite('AttachmentHandler.generateSignedUrls', () => {
   });
 
   it('returns undefined source when mix of cached and fresh', async () => {
-    mockRedisGet
-      .mockResolvedValueOnce('https://cached.example.com/url') // first from cache
-      .mockResolvedValueOnce(null); // second not cached
+    mockRedisMget.mockResolvedValue(['https://cached.example.com/url', null]);
     mockGetSignedUrl.mockResolvedValue('https://fresh.example.com/url');
     mockRedisSet.mockResolvedValue('OK');
 
