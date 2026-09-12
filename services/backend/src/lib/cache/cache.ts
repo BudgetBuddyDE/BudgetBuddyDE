@@ -1,16 +1,18 @@
 import type Redis from 'ioredis';
 import type {Logger} from '@budgetbuddyde/logger';
+import {config} from '../../config';
 import {getRedisClient} from '../../db/redis';
 import {logger} from '../logger';
 
+/** Redis-backed cache that degrades to a no-op when Redis is not configured. */
 export class Cache {
   protected readonly logger: Logger;
-  protected redisClient: Redis;
+  protected redisClient: Redis | null;
   protected namespace: string;
 
   constructor(namespace: string) {
     this.logger = logger.child({module: 'Cache'});
-    this.redisClient = getRedisClient();
+    this.redisClient = config.redis.url ? getRedisClient() : null;
     this.namespace = namespace;
   }
 
@@ -19,6 +21,7 @@ export class Cache {
   }
 
   async setValue(key: string, value: string, options?: {ttl: number}) {
+    if (!this.redisClient) return 'ERROR';
     try {
       key = this.getKey(key);
       const result = options?.ttl
@@ -33,6 +36,7 @@ export class Cache {
   }
 
   async getValue<Result extends string = string>(key: string) {
+    if (!this.redisClient) return null;
     try {
       key = this.getKey(key);
       const result = await this.redisClient.get(key);
@@ -45,6 +49,7 @@ export class Cache {
   }
 
   async deleteValue(key: string) {
+    if (!this.redisClient) return 0;
     try {
       key = this.getKey(key);
       const result = await this.redisClient.del(key);

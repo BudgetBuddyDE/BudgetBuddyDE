@@ -28,7 +28,7 @@ export class AttachmentCache extends Cache {
 
   /** Bulk read for the default signed-URL cache keys. */
   async retrieveSignedAttachmentUrls(attachmentIds: readonly string[]): Promise<Map<string, string>> {
-    if (attachmentIds.length === 0) return new Map();
+    if (!this.redisClient || attachmentIds.length === 0) return new Map();
     try {
       const values = await this.redisClient.mget(...attachmentIds.map(attachmentId => this.getKey(attachmentId)));
       const result = new Map<string, string>();
@@ -47,7 +47,7 @@ export class AttachmentCache extends Cache {
   async writeSignedAttachmentUrls(
     entries: readonly {attachmentId: string; signedUrl: string; ttlSeconds: number}[],
   ): Promise<void> {
-    if (entries.length === 0) return;
+    if (!this.redisClient || entries.length === 0) return;
     try {
       const pipeline = this.redisClient.pipeline();
       for (const entry of entries) {
