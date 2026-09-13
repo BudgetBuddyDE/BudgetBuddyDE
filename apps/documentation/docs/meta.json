@@ -2,20 +2,13 @@
   "pages": [
     "---Home---",
     "index",
-    "...getting-started",
-    "---User Guide---",
-    "...user-guide",
+    "---For Users---",
+    "...users",
     "---Self-Hosting---",
-    "...administration",
-    "---Architecture---",
-    "...architecture",
-    "---Development---",
-    "...development",
-    "---Reference---",
-    "...reference",
-    "---Contributing---",
-    "...contributing",
-    "---Project---",
-    "...project"
+    "...self-hosting",
+    "---For Developers---",
+    "...developers",
+    "---CI & Pipelines---",
+    "...ci"
   ]
 }

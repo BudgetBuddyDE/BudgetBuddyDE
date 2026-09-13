@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "getting-started",
+    "transactions",
+    "categories",
+    "payment-methods",
+    "recurring-payments",
+    "budgets",
+    "dashboard",
+    "attachments",
+    "data-management",
+    "account",
+    "api-keys"
+  ]
+}
