@@ -1,4 +1,5 @@
-import type {LogEvent, LogSink} from './types';
+import {createLogger} from './logger';
+import type {LogContext, LogEvent, Logger, LogSink, LogThreshold} from './types';
 
 export interface ConsoleLike {
   trace?: (...data: unknown[]) => void;
@@ -41,4 +42,13 @@ export function createConsoleSink({
     const method = target?.[event.level] ?? target?.log;
     if (typeof method === 'function') method.call(target, ...formatter(event));
   };
+}
+
+/** Creates a logger that writes formatted console events for a service. */
+export function createServiceLogger(context: LogContext, threshold: LogThreshold): Logger {
+  return createLogger({
+    sinks: [createConsoleSink({formatter: formatConsoleEvent})],
+    context,
+    threshold,
+  });
 }

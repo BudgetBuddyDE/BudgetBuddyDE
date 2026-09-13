@@ -1,4 +1,12 @@
-import {BackendConfig, type BackendConfigOptions} from '@budgetbuddyde/core/config/BackendConfig';
+import {
+  BackendConfig,
+  type BackendConfigOptions,
+  getOptionalEnvironmentValue,
+  getPort,
+  getRedisDatabase,
+  getRuntime,
+  getTrustedOrigins,
+} from '@budgetbuddyde/core/config/BackendConfig';
 import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSetError';
 import {getLogLevel, type LogThreshold} from '@budgetbuddyde/logger';
 import type {CorsOptions} from 'cors';
@@ -6,6 +14,12 @@ import 'dotenv/config';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
 import {name, version} from '../package.json';
 import {HTTPStatusCode} from './models';
+
+function getRequiredEnvironmentValue(environment: NodeJS.ProcessEnv, name: string): string {
+  const value = getOptionalEnvironmentValue(environment, name);
+  if (value === undefined) throw new EnvironmentNotSetError(name);
+  return value;
+}
 
 /** Complete, centrally constructed runtime configuration for the auth service. */
 export class AppConfig extends BackendConfig {
@@ -86,10 +100,10 @@ export class AppConfig extends BackendConfig {
 
   /** Builds the auth-service configuration from a process environment. */
   static fromEnvironment(environment: NodeJS.ProcessEnv = process.env): AppConfig {
-    const runtime = AppConfig.getRuntime(environment.NODE_ENV);
+    const runtime = getRuntime(environment.NODE_ENV);
     const service = name;
-    const redisUrl = AppConfig.getOptionalEnvironmentValue(environment, 'REDIS_URL');
-    const trustedOrigins = AppConfig.getTrustedOrigins(environment.TRUSTED_ORIGINS);
+    const redisUrl = getOptionalEnvironmentValue(environment, 'REDIS_URL');
+    const trustedOrigins = getTrustedOrigins(environment.TRUSTED_ORIGINS);
 
     if (runtime === 'production' && trustedOrigins.length === 0) {
       throw new EnvironmentNotSetError('TRUSTED_ORIGINS');
@@ -98,32 +112,32 @@ export class AppConfig extends BackendConfig {
     return new AppConfig({
       service,
       version,
-      port: AppConfig.getPort(environment.PORT, 8080),
+      port: getPort(environment.PORT, 8080),
       runtime,
-      baseUrl: AppConfig.getOptionalEnvironmentValue(environment, 'BASE_URL') ?? 'http://localhost',
+      baseUrl: getOptionalEnvironmentValue(environment, 'BASE_URL') ?? 'http://localhost',
       database: {
-        connectionString: AppConfig.getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
+        connectionString: getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
       },
       redis: {
         url: redisUrl,
-        database: AppConfig.getRedisDatabase(environment.REDIS_DB),
+        database: getRedisDatabase(environment.REDIS_DB, 0),
       },
       email: {
-        resendApiKey: AppConfig.getRequiredEnvironmentValue(environment, 'RESEND_API_KEY'),
+        resendApiKey: getRequiredEnvironmentValue(environment, 'RESEND_API_KEY'),
       },
       auth: {
-        secret: AppConfig.getRequiredEnvironmentValue(environment, 'AUTH_SECRET'),
+        secret: getRequiredEnvironmentValue(environment, 'AUTH_SECRET'),
         trustedOrigins: trustedOrigins.length > 0 ? trustedOrigins : ['http://localhost:3000'],
         disableCsrfCheck: environment.DISABLE_CSRF_CHECK === 'true',
         disableSignUp: environment.DISABLE_SIGNUP === 'true',
         socialProviders: {
           github: {
-            clientId: AppConfig.getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_ID'),
-            clientSecret: AppConfig.getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_SECRET'),
+            clientId: getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_ID'),
+            clientSecret: getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_SECRET'),
           },
           google: {
-            clientId: AppConfig.getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_ID'),
-            clientSecret: AppConfig.getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_SECRET'),
+            clientId: getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_ID'),
+            clientSecret: getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_SECRET'),
           },
         },
       },
@@ -161,7 +175,7 @@ export class AppConfig extends BackendConfig {
         },
       },
       jobs: {
-        timezone: AppConfig.getOptionalEnvironmentValue(environment, 'TIMEZONE') ?? 'Europe/Berlin',
+        timezone: getOptionalEnvironmentValue(environment, 'TIMEZONE') ?? 'Europe/Berlin',
       },
     });
   }
@@ -173,51 +187,6 @@ export class AppConfig extends BackendConfig {
     }
 
     return {url: this.redis.url, database: this.redis.database};
-  }
-
-  private static getOptionalEnvironmentValue(environment: NodeJS.ProcessEnv, name: string): string | undefined {
-    const value = environment[name]?.trim();
-    return value === '' || value === undefined ? undefined : value;
-  }
-
-  private static getRequiredEnvironmentValue(environment: NodeJS.ProcessEnv, name: string): string {
-    const value = AppConfig.getOptionalEnvironmentValue(environment, name);
-    if (value === undefined) throw new EnvironmentNotSetError(name);
-    return value;
-  }
-
-  private static getRuntime(value: string | undefined): 'production' | 'development' | 'test' {
-    switch (value?.toLowerCase()) {
-      case 'production':
-        return 'production';
-      case 'test':
-        return 'test';
-      case 'development':
-        return 'development';
-      default:
-        return 'development';
-    }
-  }
-
-  private static getPort(value: string | undefined, fallbackPort: number): number {
-    const port = Number.parseInt(value ?? '', 10);
-    return Number.isNaN(port) ? fallbackPort : port;
-  }
-
-  private static getRedisDatabase(value: string | undefined): number {
-    if (value === undefined || value.trim() === '') return 0;
-
-    const database = Number(value);
-    return Number.isFinite(database) ? database : 0;
-  }
-
-  private static getTrustedOrigins(value: string | undefined): string[] {
-    return (
-      value
-        ?.split(',')
-        .map(origin => origin.trim())
-        .filter(Boolean) ?? []
-    );
   }
 }
 

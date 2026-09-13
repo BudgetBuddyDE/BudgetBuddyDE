@@ -19,7 +19,7 @@ import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
-import {AttachmentHandler, TransactionAttachmentHandler} from '../lib/attachment';
+import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
 import {paginationFields, paginationWindow} from './pagination';
@@ -76,7 +76,10 @@ const isAllowedAttachmentFile = (file: Express.Multer.File): boolean => {
     config.attachments.allowedContentTypes.has(file.mimetype) ||
     (file.mimetype === 'application/octet-stream' &&
       config.attachments.octetStreamAllowedExtensions.has(file.originalname.split('.').pop()?.toLowerCase() ?? ''));
-  return isAllowed && AttachmentHandler.hasValidImageSignature(file.buffer, AttachmentHandler.resolveMimeType(file));
+  return (
+    isAllowed &&
+    TransactionAttachmentHandler.hasValidImageSignature(file.buffer, TransactionAttachmentHandler.resolveMimeType(file))
+  );
 };
 
 const mapAttachmentWithUrl = (attachment: {
