@@ -34,7 +34,7 @@ const BUDGET_ID = '00000000-0000-4000-8000-000000000003';
 const budgetRecord = {
   id: BUDGET_ID,
   ownerId: USER_ID,
-  type: 'e' as const,
+  type: 'i' as const,
   name: 'Monthly budget',
   budget: 100,
   description: null,
@@ -80,7 +80,9 @@ describe('budget lookup by id', () => {
     vi.clearAllMocks();
     select.mockReturnValue({
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([{total: 42}]),
+      where: vi.fn().mockReturnValue({
+        groupBy: vi.fn().mockResolvedValue([{categoryId: OWNED_CATEGORY_ID, expenses: 42}]),
+      }),
     });
   });
 

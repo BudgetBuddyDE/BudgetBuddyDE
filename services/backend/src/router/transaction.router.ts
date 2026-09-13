@@ -10,8 +10,8 @@ import {
   transactions,
 } from '@budgetbuddyde/db/backend';
 import {toZonedTime} from 'date-fns-tz';
-import {and, desc, eq, inArray, sql} from 'drizzle-orm';
-import {Router} from 'express';
+import {and, eq, inArray, sql} from 'drizzle-orm';
+import {Router, type NextFunction, type Request, type RequestHandler, type Response} from 'express';
 import validateRequest from 'express-zod-safe';
 import multer from 'multer';
 import z from 'zod';
@@ -19,9 +19,10 @@ import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
-import {TransactionAttachmentHandler} from '../lib/attachment';
-import {ApiResponse, HTTPStatusCode} from '../models';
+import {AttachmentHandler, TransactionAttachmentHandler} from '../lib/attachment';
+import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
+import {paginationFields, paginationWindow} from './pagination';
 
 export const transactionRouter = Router();
 const upload = multer({
@@ -31,6 +32,37 @@ const upload = multer({
     fileSize: config.attachments.upload.maxFileSizeBytes,
   },
 });
+
+const enforceUploadRequestSize = (req: Request, res: Response, next: NextFunction): void => {
+  const contentLength = Number(req.headers['content-length']);
+  if (Number.isFinite(contentLength) && contentLength > config.attachments.upload.maxRequestSizeBytes) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE)
+      .withMessage('Upload exceeds the maximum request size')
+      .buildAndSend(res);
+    return;
+  }
+  next();
+};
+
+const verifyUploadedFilesSize = (req: Request, res: Response, next: NextFunction): void => {
+  const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+  const totalSize = files.reduce((total, file) => total + file.size, 0);
+  if (totalSize > config.attachments.upload.maxRequestSizeBytes) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE)
+      .withMessage('Upload exceeds the maximum request size')
+      .buildAndSend(res);
+    return;
+  }
+  next();
+};
+
+const uploadTransactionFiles: RequestHandler[] = [
+  enforceUploadRequestSize,
+  upload.array('files', config.attachments.upload.maxFilesPerRequest),
+  verifyUploadedFilesSize,
+];
 const attachmentLogger = logger.child({module: 'transactions.attachments'});
 let attachmentService: TransactionAttachmentHandler | undefined;
 
@@ -40,12 +72,11 @@ function getAttachmentService(): TransactionAttachmentHandler {
 }
 
 const isAllowedAttachmentFile = (file: Express.Multer.File): boolean => {
-  if (config.attachments.allowedContentTypes.has(file.mimetype)) return true;
-  if (file.mimetype === 'application/octet-stream') {
-    const extension = file.originalname.split('.').pop()?.toLowerCase() ?? '';
-    return config.attachments.octetStreamAllowedExtensions.has(extension);
-  }
-  return false;
+  const isAllowed =
+    config.attachments.allowedContentTypes.has(file.mimetype) ||
+    (file.mimetype === 'application/octet-stream' &&
+      config.attachments.octetStreamAllowedExtensions.has(file.originalname.split('.').pop()?.toLowerCase() ?? ''));
+  return isAllowed && AttachmentHandler.hasValidImageSignature(file.buffer, AttachmentHandler.resolveMimeType(file));
 };
 
 const mapAttachmentWithUrl = (attachment: {
@@ -93,8 +124,7 @@ transactionRouter.get(
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      from: z.coerce.number().optional(),
-      to: z.coerce.number().optional(),
+      ...paginationFields,
       $dateFrom: z.coerce.date().optional(),
       $dateTo: z.coerce.date().optional(),
       $categories: z
@@ -175,8 +205,7 @@ transactionRouter.get(
         orderBy(fields, operators) {
           return [operators.desc(fields.processedAt), operators.desc(fields.updatedAt)];
         },
-        offset: req.query.from,
-        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        ...paginationWindow(req.query),
         with: {
           category: true,
           paymentMethod: true,
@@ -200,7 +229,7 @@ transactionRouter.get(
     >();
 
     if (transactionIds.length > 0) {
-      const attachmentRows = await db
+      const rankedAttachments = db
         .select({
           transactionId: transactionAttachments.transactionId,
           id: attachments.id,
@@ -210,11 +239,43 @@ transactionRouter.get(
           contentType: attachments.contentType,
           location: attachments.location,
           createdAt: attachments.createdAt,
+          rank: sql<number>`row_number() over (partition by ${transactionAttachments.transactionId} order by ${attachments.createdAt} desc, ${attachments.id} desc)`.as(
+            'rank',
+          ),
         })
         .from(transactionAttachments)
         .innerJoin(attachments, eq(transactionAttachments.attachmentId, attachments.id))
         .where(and(eq(attachments.ownerId, userId), inArray(transactionAttachments.transactionId, transactionIds)))
-        .orderBy(desc(attachments.createdAt));
+        .as('ranked_attachments');
+
+      const [attachmentCounts, attachmentRows] = await Promise.all([
+        db
+          .select({
+            transactionId: transactionAttachments.transactionId,
+            count: sql<number>`count(*)`.as('count'),
+          })
+          .from(transactionAttachments)
+          .innerJoin(attachments, eq(transactionAttachments.attachmentId, attachments.id))
+          .where(and(eq(attachments.ownerId, userId), inArray(transactionAttachments.transactionId, transactionIds)))
+          .groupBy(transactionAttachments.transactionId),
+        db
+          .select({
+            transactionId: rankedAttachments.transactionId,
+            id: rankedAttachments.id,
+            ownerId: rankedAttachments.ownerId,
+            fileName: rankedAttachments.fileName,
+            fileExtension: rankedAttachments.fileExtension,
+            contentType: rankedAttachments.contentType,
+            location: rankedAttachments.location,
+            createdAt: rankedAttachments.createdAt,
+          })
+          .from(rankedAttachments)
+          .where(sql`${rankedAttachments.rank} <= ${config.attachments.transactionPreviewLimit}`),
+      ]);
+
+      for (const {transactionId, count} of attachmentCounts) {
+        if (transactionId) attachmentCountByTransactionId.set(transactionId, Number(count));
+      }
 
       for (const attachmentRow of attachmentRows) {
         const transactionId = attachmentRow.transactionId;
@@ -222,21 +283,17 @@ transactionRouter.get(
           continue;
         }
 
-        attachmentCountByTransactionId.set(transactionId, (attachmentCountByTransactionId.get(transactionId) ?? 0) + 1);
-
         const previewRows = previewRowsByTransactionId.get(transactionId) ?? [];
-        if (previewRows.length < config.attachments.transactionPreviewLimit) {
-          previewRows.push({
-            id: attachmentRow.id,
-            ownerId: attachmentRow.ownerId,
-            fileName: attachmentRow.fileName,
-            fileExtension: attachmentRow.fileExtension,
-            contentType: attachmentRow.contentType,
-            location: attachmentRow.location,
-            createdAt: attachmentRow.createdAt,
-          });
-          previewRowsByTransactionId.set(transactionId, previewRows);
-        }
+        previewRows.push({
+          id: attachmentRow.id,
+          ownerId: attachmentRow.ownerId,
+          fileName: attachmentRow.fileName,
+          fileExtension: attachmentRow.fileExtension,
+          contentType: attachmentRow.contentType,
+          location: attachmentRow.location,
+          createdAt: attachmentRow.createdAt,
+        });
+        previewRowsByTransactionId.set(transactionId, previewRows);
       }
     }
 
@@ -616,7 +673,7 @@ transactionRouter.put(
 
 transactionRouter.post(
   '/:id/attachments',
-  upload.array('files', config.attachments.upload.maxFilesPerRequest),
+  ...uploadTransactionFiles,
   validateRequest({
     params: z.object({
       id: TransactionSchemas.select.shape.id,
@@ -730,7 +787,7 @@ transactionRouter.put(
         .where(and(eq(transactions.ownerId, userId), eq(transactions.id, req.params.id)))
         .returning();
       if (updatedRecord.length === 0) {
-        throw new Error('No transaction updated');
+        throw new NotFoundError('Transaction not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
@@ -767,7 +824,7 @@ transactionRouter.delete(
         .where(and(eq(transactions.ownerId, userId), eq(transactions.id, entityId)))
         .returning();
       if (deletedRecord.length === 0) {
-        throw new Error('No transaction deleted');
+        throw new NotFoundError('Transaction not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)

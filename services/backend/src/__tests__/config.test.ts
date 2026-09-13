@@ -15,7 +15,7 @@ describe('AppConfig', () => {
     expect(config.port).toBe(9010);
     expect(config.timezone).toBe('UTC');
     expect(config.jobs.recurringPayments.timezone).toBe('UTC');
-    expect(config.auth).toEqual({baseUrl: 'http://localhost:8080', credentials: 'include'});
+    expect(config.auth).toEqual({baseUrl: 'http://localhost:8080', credentials: 'include', requestTimeoutMs: 5000});
   });
 
   it('builds production CORS origins from trimmed environment values', () => {

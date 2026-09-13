@@ -1,5 +1,7 @@
 import type {Response} from 'express';
+import {ConflictError, NotFoundError} from './errors';
 import {HTTPStatusCode} from './HttpStatusCode';
+import {logger} from '../lib/logger';
 
 type BaseProperties<T> = {
   totalCount?: number;
@@ -151,10 +153,20 @@ export class ApiResponseBuilder<T> {
     return this.responseBody;
   }
 
-  public fromError(_error: Error, _showStack = false): ApiResponseBuilder<T> {
+  public fromError(error: Error): ApiResponseBuilder<T> {
+    logger.error('Request failed', error);
+
+    if (error instanceof NotFoundError) {
+      return this.withStatus(HTTPStatusCode.NOT_FOUND).withMessage(error.message);
+    }
+    if (error instanceof ConflictError || isUniqueViolation(error)) {
+      return this.withStatus(HTTPStatusCode.CONFLICT).withMessage(
+        error instanceof ConflictError ? error.message : 'Resource already exists',
+      );
+    }
+
     this.withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR);
     this.withMessage('Internal Server Error');
-
     return this;
   }
 
@@ -180,4 +192,10 @@ export class ApiResponseBuilder<T> {
       throw new Error('ExpressJS response object is not set.');
     }
   }
+}
+
+/** Detects PostgreSQL unique-constraint violations, including wrapped causes. */
+function isUniqueViolation(error: Error): boolean {
+  const code = (error as {code?: unknown}).code ?? (error.cause as {code?: unknown} | undefined)?.code;
+  return code === '23505';
 }

@@ -6,13 +6,15 @@ import type {CorsOptions} from 'cors';
 import 'dotenv/config';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
 import {name, version} from '../package.json';
-import {HTTPStatusCode} from './models';
+import {HTTPStatusCode} from './models/HttpStatusCode';
 
 /** Complete, centrally constructed runtime configuration for the backend service. */
 export class AppConfig extends BackendConfig {
   public readonly auth: {
     baseUrl: string;
     credentials: RequestCredentials;
+    /** Timeout in milliseconds for the auth-service session lookup. */
+    requestTimeoutMs: number;
   };
   public readonly database: {
     connectionString: string;
@@ -35,6 +37,8 @@ export class AppConfig extends BackendConfig {
     level: LogThreshold;
   };
   public readonly cors: CorsOptions;
+  /** Express `trust proxy` setting for the deployment topology. */
+  public readonly trustProxy: boolean | number | string;
   public readonly rateLimit: {
     enabled: boolean;
     keyPrefix: string;
@@ -44,6 +48,16 @@ export class AppConfig extends BackendConfig {
     enabled: boolean;
     keyPrefix: string;
     options: Partial<RateLimitOptions>;
+  };
+  public readonly export: {
+    /** Maximum size in bytes of a generated application export archive. */
+    maxBytes: number;
+    /** Maximum number of attachment objects downloaded from storage concurrently. */
+    attachmentConcurrency: number;
+  };
+  public readonly pagination: {
+    /** Upper bound for the `to - from` window accepted by list endpoints. */
+    maxPageSize: number;
   };
   public readonly timezone: string;
   public readonly jobs: {
@@ -79,6 +93,10 @@ export class AppConfig extends BackendConfig {
     upload: {
       maxFilesPerRequest: number;
       maxFileSizeBytes: number;
+      /** Maximum combined size in bytes of a single multipart upload request. */
+      maxRequestSizeBytes: number;
+      /** Maximum number of files processed and uploaded concurrently. */
+      processingConcurrency: number;
     };
     pagination: {
       defaultPageSize: number;
@@ -86,6 +104,8 @@ export class AppConfig extends BackendConfig {
     };
     imageOptimization: {
       maxDimensionPx: number;
+      /** Rejects decoded images above this pixel count to prevent decompression bombs. */
+      maxInputPixels: number;
       mimeTypes: ReadonlySet<string>;
       jpegQuality: number;
       pngCompressionLevel: number;
@@ -100,8 +120,11 @@ export class AppConfig extends BackendConfig {
     objectStorage,
     log,
     cors,
+    trustProxy,
     rateLimit,
     exportRateLimit,
+    export: exportConfig,
+    pagination,
     timezone,
     jobs,
     cache,
@@ -116,8 +139,11 @@ export class AppConfig extends BackendConfig {
       | 'objectStorage'
       | 'log'
       | 'cors'
+      | 'trustProxy'
       | 'rateLimit'
       | 'exportRateLimit'
+      | 'export'
+      | 'pagination'
       | 'timezone'
       | 'jobs'
       | 'cache'
@@ -130,8 +156,11 @@ export class AppConfig extends BackendConfig {
     this.objectStorage = objectStorage;
     this.log = log;
     this.cors = cors;
+    this.trustProxy = trustProxy;
     this.rateLimit = rateLimit;
     this.exportRateLimit = exportRateLimit;
+    this.export = exportConfig;
+    this.pagination = pagination;
     this.timezone = timezone;
     this.jobs = jobs;
     this.cache = cache;
@@ -153,6 +182,7 @@ export class AppConfig extends BackendConfig {
       auth: {
         baseUrl: AppConfig.getOptionalEnvironmentValue(environment, 'AUTH_SERVICE_HOST') ?? 'http://localhost:8080',
         credentials: 'include',
+        requestTimeoutMs: 5000,
       },
       database: {
         connectionString: AppConfig.getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
@@ -183,6 +213,7 @@ export class AppConfig extends BackendConfig {
         allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
         credentials: true,
       },
+      trustProxy: AppConfig.getTrustProxy(environment.TRUST_PROXY, runtime),
       rateLimit: {
         enabled: runtime === 'production' && redisUrl !== undefined,
         keyPrefix: `rate-limit:${service}:`,
@@ -206,6 +237,13 @@ export class AppConfig extends BackendConfig {
           passOnStoreError: false,
           statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
         },
+      },
+      pagination: {
+        maxPageSize: 100,
+      },
+      export: {
+        maxBytes: 100 * 1024 * 1024,
+        attachmentConcurrency: 4,
       },
       timezone,
       jobs: {
@@ -242,6 +280,8 @@ export class AppConfig extends BackendConfig {
         upload: {
           maxFilesPerRequest: 10,
           maxFileSizeBytes: 20 * 1024 * 1024,
+          maxRequestSizeBytes: 50 * 1024 * 1024,
+          processingConcurrency: 4,
         },
         pagination: {
           defaultPageSize: 24,
@@ -249,6 +289,7 @@ export class AppConfig extends BackendConfig {
         },
         imageOptimization: {
           maxDimensionPx: 1920,
+          maxInputPixels: 100_000_000,
           mimeTypes: new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']),
           jpegQuality: 82,
           pngCompressionLevel: 9,
@@ -338,12 +379,25 @@ export class AppConfig extends BackendConfig {
         .filter(Boolean) ?? []
     );
   }
+
+  /** Parses the `trust proxy` setting; production defaults to a single reverse proxy. */
+  private static getTrustProxy(
+    value: string | undefined,
+    runtime: 'production' | 'development' | 'test',
+  ): boolean | number | string {
+    const trimmed = value?.trim();
+    if (trimmed === undefined || trimmed === '') return runtime === 'production' ? 1 : false;
+    if (trimmed === 'true') return true;
+    if (trimmed === 'false') return false;
+    const numeric = Number(trimmed);
+    return Number.isFinite(numeric) ? numeric : trimmed;
+  }
 }
 
 export type CacheRouteConfig = AppConfig['cache']['routes'][number];
-export type ObjectStorageConfig = AppConfig['objectStorage'];
-export type RequiredObjectStorageConfig = Required<ObjectStorageConfig>;
-export type RedisConfig = AppConfig['redis'];
-export type RequiredRedisConfig = Required<RedisConfig>;
+type ObjectStorageConfig = AppConfig['objectStorage'];
+type RequiredObjectStorageConfig = Required<ObjectStorageConfig>;
+type RedisConfig = AppConfig['redis'];
+type RequiredRedisConfig = Required<RedisConfig>;
 
 export const config = AppConfig.fromEnvironment();

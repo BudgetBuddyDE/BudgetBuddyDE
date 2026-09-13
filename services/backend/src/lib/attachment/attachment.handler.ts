@@ -1,5 +1,6 @@
 import path from 'node:path';
-import {gzipSync} from 'node:zlib';
+import {promisify} from 'node:util';
+import {gzip} from 'node:zlib';
 import type {S3Client} from '@aws-sdk/client-s3';
 import {DeleteObjectsCommand, GetObjectCommand} from '@aws-sdk/client-s3';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -26,8 +27,25 @@ type PreparedAttachmentBuffer = {
 };
 
 const STORAGE_CLEANUP_ATTEMPTS = 3;
+const gzipAsync = promisify(gzip);
 
-export type AttachmentHandlerOptions = {
+/** Magic-byte checks for the image types the API accepts. */
+const IMAGE_SIGNATURES: Record<string, (buffer: Buffer) => boolean> = {
+  'image/png': buffer =>
+    buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  'image/jpeg': buffer => buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
+  'image/jpg': buffer => buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
+  'image/webp': buffer =>
+    buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP',
+  'image/heic': buffer => isIsoBmffImage(buffer),
+  'image/heif': buffer => isIsoBmffImage(buffer),
+};
+
+function isIsoBmffImage(buffer: Buffer): boolean {
+  return buffer.length >= 12 && buffer.toString('ascii', 4, 8) === 'ftyp';
+}
+
+type AttachmentHandlerOptions = {
   ttl: number;
 };
 
@@ -70,13 +88,33 @@ export abstract class AttachmentHandler {
     return config.attachments.imageOptimization.mimeTypes.has(contentType);
   }
 
+  /**
+   * Returns whether the buffer matches the declared image type. Unknown or
+   * non-image content types are not signature-checked here.
+   */
+  static hasValidImageSignature(fileBuffer: Buffer, contentType: string): boolean {
+    const signature = IMAGE_SIGNATURES[contentType];
+    return signature ? signature(fileBuffer) : true;
+  }
+
+  private static assertValidImageSignature(fileBuffer: Buffer, contentType: string): void {
+    if (!AttachmentHandler.hasValidImageSignature(fileBuffer, contentType)) {
+      throw new Error('Attachment content does not match its declared image type');
+    }
+  }
+
   private static async optimizeImageBuffer(fileBuffer: Buffer, contentType: string): Promise<Buffer> {
-    const image = sharp(fileBuffer, {failOn: 'none'}).rotate().resize({
-      width: config.attachments.imageOptimization.maxDimensionPx,
-      height: config.attachments.imageOptimization.maxDimensionPx,
-      fit: 'inside',
-      withoutEnlargement: true,
-    });
+    const image = sharp(fileBuffer, {
+      failOn: 'none',
+      limitInputPixels: config.attachments.imageOptimization.maxInputPixels,
+    })
+      .rotate()
+      .resize({
+        width: config.attachments.imageOptimization.maxDimensionPx,
+        height: config.attachments.imageOptimization.maxDimensionPx,
+        fit: 'inside',
+        withoutEnlargement: true,
+      });
 
     switch (contentType) {
       case 'image/jpeg':
@@ -100,6 +138,8 @@ export abstract class AttachmentHandler {
    * the payload size.
    */
   static async prepareAttachmentBuffer(fileBuffer: Buffer, contentType: string): Promise<PreparedAttachmentBuffer> {
+    AttachmentHandler.assertValidImageSignature(fileBuffer, contentType);
+
     if (AttachmentHandler.isOptimizableImage(contentType)) {
       try {
         const optimizedImageBuffer = await AttachmentHandler.optimizeImageBuffer(fileBuffer, contentType);
@@ -114,7 +154,7 @@ export abstract class AttachmentHandler {
       return {buffer: fileBuffer, optimization: 'none'};
     }
 
-    const compressedBuffer = gzipSync(fileBuffer);
+    const compressedBuffer = await gzipAsync(fileBuffer);
 
     if (compressedBuffer.length >= fileBuffer.length) {
       return {buffer: fileBuffer, optimization: 'none'};
@@ -148,15 +188,17 @@ export abstract class AttachmentHandler {
    */
   public async generateSignedUrl(attachment: AttachmentRecord, options: SignedUrlOptions = {}): Promise<string> {
     const ttl = options.ttl || this.defaultTtl;
+    // Only the default TTL is cached; custom TTLs would otherwise collide on the same key.
+    const cacheable = ttl === this.defaultTtl;
 
-    // Check cache first
-    const cachedUrl = await this.cache.retrieveSignedAttachmentUrl(attachment.id);
-    if (cachedUrl) {
-      this.logger.debug('Serving signed URL for attachment %s from cache', attachment.id);
-      return cachedUrl;
+    if (cacheable) {
+      const cachedUrl = await this.cache.retrieveSignedAttachmentUrl(attachment.id);
+      if (cachedUrl) {
+        this.logger.debug('Serving signed URL for attachment %s from cache', attachment.id);
+        return cachedUrl;
+      }
     }
 
-    // Generate new signed URL
     const command = new GetObjectCommand({
       Bucket: this.bucketName,
       Key: attachment.location,
@@ -164,9 +206,10 @@ export abstract class AttachmentHandler {
 
     const signedUrl = await getSignedUrl(this.s3Client, command, {expiresIn: ttl});
 
-    // Cache the URL
-    await this.cache.writeSignedAttachmentUrl(attachment.id, signedUrl, ttl);
-    this.logger.debug('Generated signed URL for attachment %s and cached with TTL %d', attachment.id, ttl);
+    if (cacheable) {
+      await this.cache.writeSignedAttachmentUrl(attachment.id, signedUrl, ttl);
+      this.logger.debug('Generated signed URL for attachment %s and cached with TTL %d', attachment.id, ttl);
+    }
 
     return signedUrl;
   }
@@ -186,27 +229,25 @@ export abstract class AttachmentHandler {
     }
 
     const ttl = options.ttl || this.defaultTtl;
+    const cacheable = ttl === this.defaultTtl;
 
-    // Check cache for all attachments in parallel
-    const cachedResults = await Promise.all(
-      attachments.map(async attachment => ({
-        attachment,
-        cachedUrl: await this.cache.retrieveSignedAttachmentUrl(attachment.attachmentId),
-      })),
-    );
+    // Bulk-read cached URLs for the default TTL only.
+    const cachedUrls = cacheable
+      ? await this.cache.retrieveSignedAttachmentUrls(attachments.map(attachment => attachment.attachmentId))
+      : new Map<string, string>();
 
-    // Separate cached from non-cached attachments
     const attachmentsWithCache: {attachmentId: TAttachment['id']; signedUrl: TSignedAttachmentUrl}[] = [];
     const attachmentsToGenerate: typeof attachments = [];
 
-    for (const {attachment, cachedUrl} of cachedResults) {
+    for (const attachment of attachments) {
+      const cachedUrl = cachedUrls.get(attachment.attachmentId);
       if (cachedUrl) {
-        attachmentsWithCache.push({attachmentId: attachment.attachmentId, signedUrl: cachedUrl});
-      } else {
-        attachmentsToGenerate.push({
+        attachmentsWithCache.push({
           attachmentId: attachment.attachmentId,
-          objectStoreLocation: attachment.objectStoreLocation,
+          signedUrl: cachedUrl as TSignedAttachmentUrl,
         });
+      } else {
+        attachmentsToGenerate.push(attachment);
       }
     }
 
@@ -239,12 +280,15 @@ export abstract class AttachmentHandler {
         }),
       );
 
-      // Cache newly generated URLs in parallel
-      await Promise.all(
-        newlyGeneratedResults.map(({attachmentId, signedUrl: url}) =>
-          this.cache.writeSignedAttachmentUrl(attachmentId, url, ttl),
-        ),
-      );
+      if (cacheable) {
+        await this.cache.writeSignedAttachmentUrls(
+          newlyGeneratedResults.map(({attachmentId, signedUrl}) => ({
+            attachmentId,
+            signedUrl,
+            ttlSeconds: ttl,
+          })),
+        );
+      }
 
       this.logger.debug('Successfully cached %d newly generated signed URLs', newlyGeneratedResults.length);
     }

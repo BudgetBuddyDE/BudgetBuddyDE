@@ -16,6 +16,8 @@ import multer from 'multer';
 import RedisStore from 'rate-limit-redis';
 import {config} from '../config';
 import {db} from '../db';
+import {applicationExportRateLimitKey} from './applicationExportRateLimit';
+import {ApplicationImportFormatError, importApplicationArchive, type TApplicationImportMode} from './applicationImport';
 import {getRedisClient} from '../db/redis';
 import {logger} from '../lib/logger';
 import {getS3Client} from '../lib/s3';
@@ -25,13 +27,13 @@ import {
   attachmentExportPath,
   applicationExportQuerySchema,
   createZipArchive,
+  ExportSizeLimitExceededError,
   objectBodyToBuffer,
   serializeCsv,
   type TApplicationExportResource,
   type TApplicationExportRow,
 } from './applicationExport';
-import {applicationExportRateLimitKey} from './applicationExportRateLimit';
-import {importApplicationArchive, type TApplicationImportMode} from './applicationImport';
+import {mapWithConcurrency} from '../lib/concurrency';
 
 export const applicationRouter = Router();
 const importUpload = multer({
@@ -100,9 +102,14 @@ applicationRouter.post('/import', importUpload.single('archive'), async (req, re
       .withFrom('db')
       .buildAndSend(res);
   } catch (error) {
+    if (error instanceof ApplicationImportFormatError) {
+      ApiResponse.builder().withStatus(HTTPStatusCode.BAD_REQUEST).withMessage(error.message).buildAndSend(res);
+      return;
+    }
+    logger.error('Application import failed', error instanceof Error ? error : new Error(String(error)), {userId});
     ApiResponse.builder()
-      .withStatus(HTTPStatusCode.BAD_REQUEST)
-      .withMessage(error instanceof Error ? error.message : 'The import archive is invalid')
+      .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+      .withMessage('The import could not be completed')
       .buildAndSend(res);
   }
 });
@@ -261,19 +268,39 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
       content: exportFileContent(format, rows, exportColumns[resource]),
     };
   });
+
+  const exportedMetadataBytes = files.reduce((total, file) => total + file.content.length, 0);
+  if (exportedMetadataBytes > config.export.maxBytes) {
+    ApiResponse.builder()
+      .withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE)
+      .withMessage('The export exceeds the maximum size')
+      .buildAndSend(res);
+    return;
+  }
+
   if (selectedResources.has('attachments')) {
     try {
       const {bucketName} = config.getRequiredObjectStorageConfig();
-      const attachmentFiles = [];
-      for (const attachment of attachmentExportRows) {
-        const object = await getS3Client().send(new GetObjectCommand({Bucket: bucketName, Key: attachment.location}));
-        attachmentFiles.push({
-          name: attachment.contentPath,
-          content: await objectBodyToBuffer(object.Body, object.ContentEncoding),
-        });
-      }
+      let attachmentBytes = 0;
+      const attachmentFiles = await mapWithConcurrency(
+        attachmentExportRows,
+        config.export.attachmentConcurrency,
+        async attachment => {
+          const object = await getS3Client().send(new GetObjectCommand({Bucket: bucketName, Key: attachment.location}));
+          const content = await objectBodyToBuffer(object.Body, object.ContentEncoding);
+          attachmentBytes += content.length;
+          if (exportedMetadataBytes + attachmentBytes > config.export.maxBytes) {
+            throw new ExportSizeLimitExceededError();
+          }
+          return {name: attachment.contentPath, content};
+        },
+      );
       files.push(...attachmentFiles);
-    } catch {
+    } catch (error) {
+      if (error instanceof ExportSizeLimitExceededError) {
+        ApiResponse.builder().withStatus(HTTPStatusCode.PAYLOAD_TOO_LARGE).withMessage(error.message).buildAndSend(res);
+        return;
+      }
       logger.error('Unable to read attachment objects for application export', {userId});
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
@@ -305,7 +332,7 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
     ),
   });
 
-  const archive = createZipArchive(files, new Date(exportedAt));
+  const archive = await createZipArchive(files, new Date(exportedAt));
   res.status(HTTPStatusCode.OK);
   res.setHeader('Content-Type', 'application/zip');
   res.setHeader(
