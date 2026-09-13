@@ -1,16 +1,20 @@
 import {Box, Card, Divider, Grid, Typography} from '@mui/material';
 import {headers} from 'next/headers';
-import {authClient} from '@/authClient';
 import {AppLogo} from '@/components/AppLogo';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
+import {getAuth} from '@/lib/auth';
+
+type AuthSession = ReturnType<typeof getAuth>['$Infer']['Session'];
 
 export default async function MailVerifiedPage() {
-  const {data: session, error} = await authClient.getSession({
-    fetchOptions: {
-      headers: await headers(),
-    },
-  });
+  let session: AuthSession | null = null;
+  let error: Error | null = null;
+  try {
+    session = await getAuth().api.getSession({headers: await headers()});
+  } catch (cause) {
+    error = cause instanceof Error ? cause : new Error(String(cause));
+  }
 
   const isSignedIn = session !== null;
   const isEmailVerified = session?.user.emailVerified === true;
@@ -52,7 +56,7 @@ export default async function MailVerifiedPage() {
             </Typography>
           </Box>
 
-          {error && <ErrorAlert error={new Error(error.message)} />}
+          {error && <ErrorAlert error={error} />}
 
           {!isSignedIn && (
             <Typography variant="body1" gutterBottom>

@@ -79,15 +79,6 @@ const exportData: TAuthExportData = {
   ],
 };
 
-function createResponse() {
-  return {
-    status: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    json: vi.fn().mockReturnThis(),
-    send: vi.fn().mockReturnThis(),
-  };
-}
-
 describe('auth export', () => {
   it('creates a JSON archive containing only the selected safe fields and manifest', () => {
     const archive = createAuthExportArchive(exportData, 'json', new Date('2026-03-01T00:00:00.000Z'));
@@ -123,24 +114,22 @@ describe('auth export', () => {
     const getSession = vi.fn().mockResolvedValue({user: {id: 'user-1'}});
     const getData = vi.fn().mockResolvedValue(exportData);
     const handler = createAuthExportHandler({getSession, getData});
-    const response = createResponse();
 
-    await handler(
-      {headers: {cookie: 'budget-buddy.session_token=valid'}, query: {format: 'csv'}} as never,
-      response as never,
-      vi.fn(),
+    const response = await handler(
+      new Request('http://localhost/api/export?format=csv', {
+        headers: {cookie: 'budget-buddy.session_token=valid'},
+      }),
     );
 
     expect(getSession).toHaveBeenCalledWith(expect.any(Headers));
     expect(getData).toHaveBeenCalledWith('user-1');
-    expect(response.set).toHaveBeenCalledWith({'Cache-Control': 'no-store', Pragma: 'no-cache'});
-    expect(response.set).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        'Content-Type': 'application/zip',
-        'Content-Disposition': expect.stringContaining('attachment; filename='),
-      }),
-    );
-    const entries = readStoredZipEntries(response.send.mock.calls[0]![0]);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(response.headers.get('Pragma')).toBe('no-cache');
+    expect(response.headers.get('Content-Type')).toBe('application/zip');
+    expect(response.headers.get('Content-Disposition')).toContain('attachment; filename=');
+
+    const entries = readStoredZipEntries(Buffer.from(await response.arrayBuffer()));
     expect(entries['user.csv']).toContain('id,name,email,emailVerified,image,createdAt,updatedAt');
     expect(entries['sessions.csv']).not.toContain('session-token-must-not-export');
   });
@@ -157,12 +146,22 @@ describe('auth export', () => {
   it('rejects unauthenticated export requests', async () => {
     const getData = vi.fn();
     const handler = createAuthExportHandler({getSession: vi.fn().mockResolvedValue(null), getData});
-    const response = createResponse();
 
-    await handler({headers: {}, query: {}} as never, response as never, vi.fn());
+    const response = await handler(new Request('http://localhost/api/export'));
 
-    expect(response.status).toHaveBeenCalledWith(401);
-    expect(response.json).toHaveBeenCalledWith({error: 'Unauthorized'});
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({error: 'Unauthorized'});
+    expect(getData).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unsupported export format', async () => {
+    const getData = vi.fn();
+    const handler = createAuthExportHandler({getSession: vi.fn().mockResolvedValue({user: {id: 'user-1'}}), getData});
+
+    const response = await handler(new Request('http://localhost/api/export?format=xml'));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({error: "format must be either 'json' or 'csv'"});
     expect(getData).not.toHaveBeenCalled();
   });
 });

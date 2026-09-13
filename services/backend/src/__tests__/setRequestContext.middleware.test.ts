@@ -75,7 +75,7 @@ describe('setRequestContext', () => {
     expect(headers.get('x-unrelated')).toBeNull();
   });
 
-  it('bounds the auth-service request with an abort signal', async () => {
+  it('bounds the auth request with an abort signal', async () => {
     await setRequestContext(createRequest({}), createResponse(), vi.fn() as NextFunction);
 
     const signal = getSession.mock.calls[0][0].fetchOptions.signal;
@@ -102,7 +102,7 @@ describe('setRequestContext', () => {
     await setRequestContext(createRequest({}), res, next);
 
     expect(res.status).toHaveBeenCalledWith(503);
-    expect(loggerFunctions.error).toHaveBeenCalledWith('Authentication service request failed', upstreamError);
+    expect(loggerFunctions.error).toHaveBeenCalledWith('Authentication request failed', upstreamError);
     expect(next).not.toHaveBeenCalled();
   });
 });

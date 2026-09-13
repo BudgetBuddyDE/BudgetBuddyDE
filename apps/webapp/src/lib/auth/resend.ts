@@ -1,14 +1,16 @@
 import {type CreateEmailResponseSuccess, Resend} from 'resend';
-import {config} from '../config';
-import type {ServiceResponse} from '../types';
+import type {AuthConfig} from './config';
 
-class ResendManager {
-  private resend: Resend;
-  private readonly fromMailAdress: string;
+/** Result tuple matching the shared `[value, null] | [null, error]` convention. */
+export type ServiceResponse<T> = [T, null] | [null, Error];
 
-  constructor() {
-    this.resend = new Resend(config.email.resendApiKey);
-    this.fromMailAdress =
+export class ResendManager {
+  private readonly resend: Resend;
+  private readonly fromMailAddress: string;
+
+  constructor(config: AuthConfig) {
+    this.resend = new Resend(config.resendApiKey);
+    this.fromMailAddress =
       config.runtime === 'production' ? 'System <auth@mail.budget-buddy.de>' : 'Acme <onboarding@resend.dev>';
   }
 
@@ -17,7 +19,7 @@ class ResendManager {
     verificationLink: string,
   ): Promise<ServiceResponse<CreateEmailResponseSuccess>> {
     const {data, error} = await this.resend.emails.send({
-      from: this.fromMailAdress,
+      from: this.fromMailAddress,
       to: [to],
       subject: 'Verify your email address',
       html: `<strong>Please click the following link to verify your email address:</strong> <a href="${verificationLink}">Confirm address</a>`,
@@ -36,7 +38,7 @@ class ResendManager {
     changeEmailLink: string,
   ): Promise<ServiceResponse<CreateEmailResponseSuccess>> {
     const {data, error} = await this.resend.emails.send({
-      from: this.fromMailAdress,
+      from: this.fromMailAddress,
       to: [previousEmail],
       subject: 'Confirm change of your email address',
       html: `<strong>Please click the following link to verify the change of your email address from ${previousEmail} to ${newMail}:</strong> <a href="${changeEmailLink}">Confirm change of my mail address</a>`,
@@ -55,7 +57,7 @@ class ResendManager {
     resetLink: string,
   ): Promise<ServiceResponse<CreateEmailResponseSuccess>> {
     const {data, error} = await this.resend.emails.send({
-      from: this.fromMailAdress,
+      from: this.fromMailAddress,
       to: [to],
       subject: 'Reset your password',
       html: `
@@ -78,7 +80,7 @@ class ResendManager {
     resetLink: string,
   ): Promise<ServiceResponse<CreateEmailResponseSuccess>> {
     const {data, error} = await this.resend.emails.send({
-      from: this.fromMailAdress,
+      from: this.fromMailAddress,
       to: [to],
       subject: 'Deletion of your account',
       html: `
@@ -96,5 +98,3 @@ class ResendManager {
     return [data, null];
   }
 }
-
-export const resendManager = new ResendManager();

@@ -2,8 +2,5 @@ import {Api} from '@budgetbuddyde/api';
 import {webappConfig} from './config';
 import {logger} from './logger';
 
-export const apiClient = new Api(
-  webappConfig.backendServiceHost,
-  webappConfig.authServiceHost,
-  logger.child({module: 'apiClient'}),
-);
+// The auth data-export endpoint is served by this app, so the auth host is same-origin.
+export const apiClient = new Api(webappConfig.backendServiceHost, '', logger.child({module: 'apiClient'}));

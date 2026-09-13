@@ -12,9 +12,9 @@ The local development environment uses PostgreSQL. The Docker Compose stack pers
 
 No. npm workspaces link internal packages locally. Run `npm run build-packages` after changing packages.
 
-## Why Does the Webapp Not Work Without the Auth Service?
+## Why Does the Webapp Need a Database?
 
-The webapp uses the auth service for sessions and sign-in. The backend and auth service also require access to the database.
+The webapp hosts Better Auth and stores users, sessions, accounts, and API keys in PostgreSQL. The backend uses the same database for domain data, so both require a reachable database.
 
 ## Where Do I Report a Bug?
 

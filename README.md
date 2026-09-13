@@ -50,7 +50,6 @@ Monorepo powered by [Turbo](https://turbo.build/).
 
 ### Services
 
-- **[Auth Service](./apps/documentation/docs/architecture/authentication.md):** Handles user authentication and authorization.
 - **[Backend](./apps/documentation/docs/architecture/overview.md):** The main backend service providing the API.
 - **[MCP](./apps/documentation/docs/reference/mcp.md):** MCP service for interacting with the backend in combination with LLMs.
 

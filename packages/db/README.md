@@ -238,7 +238,7 @@ The database schema is defined using Drizzle ORM. To modify the schema:
 
 ### Auth Schema Generation
 
-The database schema required for the Better-Auth auth service can be generated using the @better-auth/cli:
+The database schema required for Better Auth can be generated using the @better-auth/cli:
 
 ```bash
 npm run ba:schema-generate
@@ -334,7 +334,7 @@ const db = drizzle(process.env.DATABASE_URL);
 const userCategories = await db.select().from(categories).where(eq(categories.ownerId, userId));
 ```
 
-### Auth Service
+### Webapp
 
 ```typescript
 import {drizzle} from 'drizzle-orm/node-postgres';
@@ -350,7 +350,7 @@ const foundUser = await db.select().from(user).where(eq(user.email, email)).limi
 ## Important Notes
 
 > [!IMPORTANT]
-> This package is a shared library used across all BudgetBuddy services (backend, auth-service) to ensure a consistent database schema and to avoid code duplication. The schema is defined using Drizzle ORM and can be generated and applied using the @better-auth/cli and Drizzle Kit.
+> This package is a shared library used across all BudgetBuddy services (webapp, backend, MCP) to ensure a consistent database schema and to avoid code duplication. The schema is defined using Drizzle ORM and can be generated and applied using the @better-auth/cli and Drizzle Kit.
 
 > [!WARNING]
 > When making schema changes, ensure that:

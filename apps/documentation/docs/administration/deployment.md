@@ -6,15 +6,14 @@ icon: Rocket
 
 ## Components
 
-| Component             | Purpose                             |
-| --------------------- | ----------------------------------- |
-| Webapp                | Next.js user interface              |
-| Auth-Service          | Sign-in, sessions, and OAuth        |
-| Backend               | Domain API and scheduled processing |
-| MCP-Service           | MCP interface for AI clients        |
-| PostgreSQL            | Auth and domain data                |
-| Redis                 | Cache and rate-limit state          |
-| S3-compatible storage | Attachments                         |
+| Component             | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| Webapp                | Next.js UI, Better Auth, sessions, and OAuth |
+| Backend               | Domain API and scheduled processing          |
+| MCP-Service           | MCP interface for AI clients                 |
+| PostgreSQL            | Auth and domain data                         |
+| Redis                 | Cache and rate-limit state                   |
+| S3-compatible storage | Attachments                                  |
 
 ## Build
 
@@ -28,7 +27,7 @@ Turborepo builds dependent packages before apps and services. Deploy the generat
 - Webapp: Next.js with `npm run start` in the `apps/webapp` workspace
 - Services: Node.js with `npm run start` in the respective service workspace
 
-Set the webapp's `NEXT_PUBLIC_*` environment values before `next build`. They are embedded in browser bundles and cannot be changed by the runtime deployment environment.
+Set the webapp's `NEXT_PUBLIC_*` environment values before `next build`. They are embedded in browser bundles and cannot be changed by the runtime deployment environment. The webapp also reads its server-side Better Auth variables (`DATABASE_URL`, `AUTH_SECRET`, `RESEND_API_KEY`, OAuth credentials) at runtime.
 
 The documentation site is built separately with Fumapress in static mode. See [Contributing to the documentation](/contributing/documentation) for details.
 

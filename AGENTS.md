@@ -10,7 +10,7 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `apps/webapp/src/apiClient.ts` creates the shared `@budgetbuddyde/api` client using `NEXT_PUBLIC_BACKEND_SERVICE_HOST` (default `http://localhost:9000`). Browser-authenticated requests use `credentials: 'include'`.
 - `packages/api` is the typed HTTP boundary. `BackendService` handles query serialization, GET caching, cache invalidation after mutations, HTTP/JSON errors, and `TResult`; `EntityService` validates responses with Zod. Preserve `[data, null] | [null, error]` rather than introducing another error convention.
 - `packages/db` contains Drizzle PostgreSQL tables, relations, enums, and views. Backend entities are owner-scoped through `ownerId`.
-- `services/auth-service` provides authentication with Better Auth. `services/backend` is the Express/Drizzle domain API: request context and authentication middleware run before `/api/*` routers, which validate with Zod, enforce ownership, and return standardized `ApiResponse` values.
+- `apps/webapp` hosts Better Auth (configuration under `apps/webapp/src/lib/auth`, API at `/api/auth/*`, auth data export at `/api/export`). `services/backend` is the Express/Drizzle domain API: request context and authentication middleware run before `/api/*` routers, which validate with Zod, enforce ownership, and return standardized `ApiResponse` values.
 - Backend batch and relational writes use transactions and ownership checks; batch operations are limited to 100 records. Cache lookup/invalidation is part of the backend request pipeline.
 - `services/mcp` exposes backend capabilities as authenticated MCP tools.
 - Frontend mutations refresh Redux entity state; component-only dialog/batch state stays local. Use `Promise.all` for independent lookups and Snackbar retry flows for surfaced request failures.
@@ -25,7 +25,6 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `packages/logger`: cross-cutting logging.
 - `services/backend/src/router`: authenticated, owner-scoped domain routers.
 - `services/backend/src/middleware`: request context, authentication, cache, and related middleware.
-- `services/auth-service/src`: authentication service.
 - `services/mcp/src`: MCP server/tools and request authentication.
 - `examples/api-key-client`: runnable API-key client example.
 - `apps/documentation`: project and development documentation.

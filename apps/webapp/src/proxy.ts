@@ -1,5 +1,5 @@
 import {type NextRequest, NextResponse} from 'next/server';
-import {authClient} from './authClient';
+import {getAuth} from '@/lib/auth';
 import {logger} from './logger';
 
 const proxyLogger = logger.child({module: 'proxy'});
@@ -14,17 +14,15 @@ export async function proxy(request: NextRequest) {
   };
 
   proxyLogger.debug('Processing incoming request...', meta);
-  const {data, error} = await authClient.getSession({
-    fetchOptions: {
-      headers: request.headers,
-    },
-  });
-  if (error) {
-    proxyLogger.error('Error retrieving the session', error, meta);
-    return NextResponse.redirect(new URL(SIGN_IN_ROUTE, request.url));
-  }
 
-  if (!data) {
+  const session = await getAuth()
+    .api.getSession({headers: request.headers})
+    .catch(error => {
+      proxyLogger.error('Error retrieving the session', error, meta);
+      return null;
+    });
+
+  if (!session) {
     proxyLogger.info('No valid session found, redirecting to sign-in page', meta);
     return NextResponse.redirect(new URL(SIGN_IN_ROUTE, request.url));
   }

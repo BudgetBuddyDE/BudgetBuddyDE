@@ -8,9 +8,9 @@ The complete variable list is in the [environment variable reference](/reference
 
 ## Connect Services
 
-- The webapp defaults to local `NEXT_PUBLIC_AUTH_SERVICE_HOST` and `NEXT_PUBLIC_BACKEND_SERVICE_HOST` values. Set both explicitly for production before building because public values are embedded in browser bundles.
-- The backend requires `AUTH_SERVICE_HOST`, `DATABASE_URL`, `REDIS_URL`, and `TRUSTED_ORIGINS`.
-- The auth service requires `DATABASE_URL`, `AUTH_SECRET`, and `RESEND_API_KEY`. `TRUSTED_ORIGINS` is required in production; Redis enables rate limiting and Better Auth secondary storage.
+- The webapp defaults to a local `NEXT_PUBLIC_BACKEND_SERVICE_HOST` value. Set it explicitly for production before building because public values are embedded in browser bundles.
+- The webapp hosts Better Auth and requires `DATABASE_URL`, `AUTH_SECRET`, and `RESEND_API_KEY` at runtime. `TRUSTED_ORIGINS` is required in production; `BASE_URL` sets the Better Auth base URL.
+- The backend requires `AUTH_URL` (the webapp's Better Auth endpoint), `DATABASE_URL`, `REDIS_URL`, and `TRUSTED_ORIGINS`.
 - The MCP service requires `BUDGETBUDDY_BACKEND_URL`.
 
 ## Recurring Payments
@@ -32,4 +32,4 @@ For the backend service, set `AWS_ENDPOINT_URL`, `AWS_S3_BUCKET_NAME`, `AWS_DEFA
 - Use a random value for `AUTH_SECRET` in production.
 - Restrict `TRUSTED_ORIGINS` to known frontend and service origins.
 - Do not use the example passwords from `docker-compose.yml` in a public environment.
-- Enable rate limiting in the backend and auth service.
+- Enable rate limiting in the webapp (Better Auth) and backend.

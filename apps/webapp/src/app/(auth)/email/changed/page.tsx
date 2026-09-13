@@ -1,16 +1,20 @@
 import {Box, Card, Divider, Grid, Typography} from '@mui/material';
 import {headers} from 'next/headers';
-import {authClient} from '@/authClient';
 import {AppLogo} from '@/components/AppLogo';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
+import {getAuth} from '@/lib/auth';
+
+type AuthSession = ReturnType<typeof getAuth>['$Infer']['Session'];
 
 export default async function MailChangedPage() {
-  const {data: session, error} = await authClient.getSession({
-    fetchOptions: {
-      headers: await headers(),
-    },
-  });
+  let session: AuthSession | null = null;
+  let error: Error | null = null;
+  try {
+    session = await getAuth().api.getSession({headers: await headers()});
+  } catch (cause) {
+    error = cause instanceof Error ? cause : new Error(String(cause));
+  }
 
   const isSignedIn = session !== null;
 
@@ -51,7 +55,7 @@ export default async function MailChangedPage() {
             </Typography>
           </Box>
 
-          {error && <ErrorAlert error={new Error(error.message)} />}
+          {error && <ErrorAlert error={error} />}
 
           {!isSignedIn && (
             <Typography variant="body1" gutterBottom>
@@ -59,7 +63,7 @@ export default async function MailChangedPage() {
             </Typography>
           )}
 
-          {isSignedIn && (
+          {session && (
             <Typography variant="body1" gutterBottom>
               You have successfully changed your email address to {session.user.email}.
             </Typography>

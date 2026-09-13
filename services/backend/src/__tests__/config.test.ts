@@ -15,7 +15,13 @@ describe('AppConfig', () => {
     expect(config.port).toBe(9010);
     expect(config.timezone).toBe('UTC');
     expect(config.jobs.recurringPayments.timezone).toBe('UTC');
-    expect(config.auth).toEqual({baseUrl: 'http://localhost:8080', credentials: 'include', requestTimeoutMs: 5000});
+    expect(config.auth).toEqual({baseUrl: 'http://localhost:3000', credentials: 'include', requestTimeoutMs: 5000});
+  });
+
+  it('reads the webapp auth URL from the environment', () => {
+    const config = createConfig({AUTH_URL: ' https://app.budget-buddy.de '});
+
+    expect(config.auth.baseUrl).toBe('https://app.budget-buddy.de');
   });
 
   it('builds production CORS origins from trimmed environment values', () => {

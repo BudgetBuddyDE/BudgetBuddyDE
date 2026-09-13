@@ -1,23 +1,23 @@
 ---
 title: Authentication and API Keys
-description: Access the auth service, backend, and MCP service.
+description: Access the webapp auth endpoints, backend, and MCP service.
 icon: KeyRound
 ---
 
 ## Browser
 
-Browser requests use session credentials. The webapp gets the hosts of the auth service and backend through public environment variables.
+Browser requests use session credentials. The webapp serves the Better Auth endpoints and gets the backend host through a public environment variable.
 
 ### Auth Data Export
 
-`GET /api/export?format=json|csv` on the auth service creates a ZIP archive for the current session user. It contains separate
+`GET /api/export?format=json|csv` on the webapp creates a ZIP archive for the current session user. It contains separate
 files for the user profile, session metadata, linked accounts, API-key metadata, and a `manifest.json`.
 
 The export deliberately excludes session tokens, OAuth access, refresh and ID tokens, password data, verification secrets,
 and API-key values or hashes. The response uses `Cache-Control: no-store` and must be handled as sensitive personal data.
 
 In production, this endpoint accepts up to two requests per IP address in a 15-minute window. Exceeded requests receive
-`429 Too Many Requests` with standard rate-limit headers. Redis errors block the export rather than bypassing the limit.
+`429 Too Many Requests`. The limiter is per webapp instance; use a shared store if you run multiple replicas.
 
 ## API Key Clients
 

@@ -1,10 +1,10 @@
 import {account, apikey, session, user} from '@budgetbuddyde/db/auth';
 import {eq} from 'drizzle-orm';
-import {auth} from './auth';
-import {createAuthExportHandler, type TAuthExportData} from './dataExport';
-import {db} from './db';
+import type {TAuthExportData} from './dataExport';
+import {getAuthDatabase} from './db';
 
-async function getAuthExportData(userId: string): Promise<TAuthExportData> {
+export async function getAuthExportData(userId: string): Promise<TAuthExportData> {
+  const {db} = getAuthDatabase();
   const [[exportedUser], sessions, accounts, apiKeys] = await Promise.all([
     db
       .select({
@@ -67,8 +67,3 @@ async function getAuthExportData(userId: string): Promise<TAuthExportData> {
   if (!exportedUser) throw new Error('Authenticated user no longer exists.');
   return {user: exportedUser, sessions, accounts, apiKeys};
 }
-
-export const authExportHandler = createAuthExportHandler({
-  getSession: headers => auth.api.getSession({headers}),
-  getData: getAuthExportData,
-});

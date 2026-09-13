@@ -6,8 +6,8 @@ icon: Wrench
 
 ## Webapp Cannot Reach Services
 
-- Check `NEXT_PUBLIC_AUTH_SERVICE_HOST` and `NEXT_PUBLIC_BACKEND_SERVICE_HOST`.
-- Check whether the auth service and backend are running.
+- Check `NEXT_PUBLIC_BACKEND_SERVICE_HOST`.
+- Check the webapp's Better Auth database variables (`DATABASE_URL`, `AUTH_SECRET`) and whether the backend is running.
 - Check the CORS and `TRUSTED_ORIGINS` configuration.
 - Check the browser console and service logs.
 

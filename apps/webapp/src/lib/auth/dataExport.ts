@@ -1,7 +1,4 @@
 import {crc32} from 'node:zlib';
-import {fromNodeHeaders} from 'better-auth/node';
-import type {RequestHandler} from 'express';
-import {HTTPStatusCode} from './models';
 
 type TExportValue = string | number | boolean | Date | null;
 export type TExportRecord = Record<string, TExportValue>;
@@ -161,32 +158,38 @@ export function createAuthExportArchive(data: TAuthExportData, format: TExportFo
   return createZip([...files, {name: 'manifest.json', content: `${JSON.stringify(manifest, null, 2)}\n`}]);
 }
 
-export function createAuthExportHandler({getSession, getData}: TExportDependencies): RequestHandler {
-  return async (req, res) => {
-    res.set({'Cache-Control': 'no-store', Pragma: 'no-cache'});
-    const authenticatedSession = await getSession(fromNodeHeaders(req.headers));
+/** Builds the Web `GET /api/export` handler from its session and data dependencies. */
+export function createAuthExportHandler({
+  getSession,
+  getData,
+}: TExportDependencies): (request: Request) => Promise<Response> {
+  return async request => {
+    const authenticatedSession = await getSession(request.headers);
     if (!authenticatedSession) {
-      res.status(HTTPStatusCode.UNAUTHORIZED).json({error: 'Unauthorized'});
-      return;
+      return Response.json({error: 'Unauthorized'}, {status: 401, headers: {'Cache-Control': 'no-store'}});
     }
 
-    const format = req.query.format;
-    if (format !== undefined && format !== 'json' && format !== 'csv') {
-      res.status(HTTPStatusCode.BAD_REQUEST).json({error: "format must be either 'json' or 'csv'"});
-      return;
+    const format = new URL(request.url).searchParams.get('format');
+    if (format !== null && format !== 'json' && format !== 'csv') {
+      return Response.json(
+        {error: "format must be either 'json' or 'csv'"},
+        {status: 400, headers: {'Cache-Control': 'no-store'}},
+      );
     }
 
     const selectedFormat: TExportFormat = format ?? 'json';
     const archive = createAuthExportArchive(await getData(authenticatedSession.user.id), selectedFormat);
     const date = new Date().toISOString().slice(0, 10);
 
-    res
-      .status(HTTPStatusCode.OK)
-      .set({
+    return new Response(new Uint8Array(archive), {
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store',
+        Pragma: 'no-cache',
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="budgetbuddy-auth-export-${date}.zip"`,
         'X-Content-Type-Options': 'nosniff',
-      })
-      .send(archive);
+      },
+    });
   };
 }
