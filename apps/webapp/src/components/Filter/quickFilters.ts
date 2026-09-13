@@ -1,4 +1,4 @@
-import {endOfMonth, endOfWeek, startOfMonth, startOfWeek, subMonths} from 'date-fns';
+import {endOfMonth, endOfWeek, isSameDay, startOfMonth, startOfWeek, subMonths} from 'date-fns';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 
 export type TransactionDateQuickFilter = 'today' | 'thisWeek' | 'thisMonth' | 'lastMonth';
@@ -33,11 +33,7 @@ export function getRecurringPaymentStatusQuickFilter(
 
 function isSameCalendarDate(left: Date | null | undefined, right: Date | null | undefined): boolean {
   if (!left || !right) return left === right;
-  return (
-    left.getFullYear() === right.getFullYear() &&
-    left.getMonth() === right.getMonth() &&
-    left.getDate() === right.getDate()
-  );
+  return isSameDay(left, right);
 }
 
 export function isTransactionDateQuickFilterActive(

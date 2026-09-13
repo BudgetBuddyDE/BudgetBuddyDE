@@ -1,4 +1,4 @@
-import {gunzipSync} from 'node:zlib';
+import {crc32, gunzipSync} from 'node:zlib';
 import z from 'zod';
 
 export const applicationExportResources = [
@@ -96,27 +96,6 @@ export function serializeCsv(rows: TApplicationExportRow[], columns: readonly st
   return `${[header, ...records].join('\r\n')}\r\n`;
 }
 
-const CRC_CHUNK_SIZE = 64 * 1024;
-
-function crc32Update(crc: number, content: Buffer, start: number, end: number): number {
-  for (let index = start; index < end; index += 1) {
-    crc ^= content[index];
-    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
-  }
-  return crc;
-}
-
-/** Computes CRC32 in chunks, yielding so large exports do not block the event loop. */
-async function calculateCrc32(content: Buffer): Promise<number> {
-  let crc = 0xffffffff;
-  for (let offset = 0; offset < content.length; offset += CRC_CHUNK_SIZE) {
-    const end = Math.min(offset + CRC_CHUNK_SIZE, content.length);
-    crc = crc32Update(crc, content, offset, end);
-    if (end < content.length) await new Promise(resolve => setImmediate(resolve));
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
 function dosDateTime(date: Date): {date: number; time: number} {
   const year = Math.min(Math.max(date.getFullYear(), 1980), 2107);
   return {
@@ -145,7 +124,7 @@ export async function createZipArchive(entries: IZipEntry[], createdAt = new Dat
       throw new Error('ZIP archive entry is too large');
     }
 
-    const crc = await calculateCrc32(entry.content);
+    const crc = crc32(entry.content);
     const localHeader = Buffer.alloc(30);
     localHeader.writeUInt32LE(0x04034b50, 0);
     localHeader.writeUInt16LE(20, 4);
