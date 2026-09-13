@@ -1,0 +1,44 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    commit-message:
+      prefix: chore(deps)
+      include: scope
+    labels:
+      - dependencies
+    groups:
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+      mui:
+        patterns:
+          - '@mui/*'
+          - '@emotion/*'
+      vitest:
+        patterns:
+          - vitest
+          - '@vitest/*'
+      drizzle:
+        patterns:
+          - drizzle-*
+      auth:
+        patterns:
+          - better-auth
+          - '@better-auth/*'
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
