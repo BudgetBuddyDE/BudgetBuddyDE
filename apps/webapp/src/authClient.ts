@@ -1,11 +1,10 @@
 import {apiKeyClient} from '@better-auth/api-key/client';
 import {createAuthClient} from 'better-auth/react';
 import {redirect} from 'next/navigation';
-import {webappConfig} from './config';
 import {logger} from './logger';
 
+// The Better Auth handler is served by this app, so the client defaults to the current origin.
 export const authClient = createAuthClient({
-  baseURL: webappConfig.authServiceHost,
   fetchOptions: {
     onError(e) {
       if (e.error.status === 429) {

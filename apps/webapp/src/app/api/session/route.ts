@@ -1,13 +1,8 @@
-import {headers} from 'next/headers';
 import {type NextRequest, NextResponse} from 'next/server';
-import {authClient} from '@/authClient';
+import {getAuth} from '@/lib/auth';
 
-export async function GET(_request: NextRequest) {
-  const session = await authClient.getSession({
-    fetchOptions: {
-      headers: await headers(),
-    },
-  });
+export async function GET(request: NextRequest) {
+  const session = await getAuth().api.getSession({headers: request.headers});
 
   return NextResponse.json(session);
 }
