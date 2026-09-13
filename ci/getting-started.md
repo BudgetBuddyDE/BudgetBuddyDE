@@ -174,22 +174,6 @@ fly -t ci set-pipeline \
 fly -t ci set-pipeline --pipeline packages --config ./pipelines/publish-npm-package.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -i repo_path="packages/utils" -i service="pck_utils" -i service_name="utils"
 ```
 
-### Publish `auth-service`
-
-```bash
-fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-service.pipeline.yml \
-  --team budgetbuddyde \
-  -v repo_owner="budgetbuddyde" \
-  -v repo_name="budgetbuddyde" \
-  -v repo_path="services/auth-service" \
-  -v docker_image="ghcr.io/budgetbuddyde/auth-service" \
-  -v service="bb_auth_service" \
-  -v service_name="auth-service"
-
-# or
-fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-service.pipeline.yml --team budgetbuddyde -v repo_owner="budgetbuddyde" -v repo_name="budgetbuddyde" -v repo_path="services/auth-service" -v docker_image="ghcr.io/budgetbuddyde/auth-service" -v service="bb_auth_service" -v service_name="auth-service"
-```
-
 ### Publish `backend`
 
 ```bash
