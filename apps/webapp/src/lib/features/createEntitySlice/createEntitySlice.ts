@@ -212,25 +212,6 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
       getState: state => {
         return state;
       },
-      getTotalEntityCount: state => {
-        return state.count;
-      },
-      getStatus: state => {
-        return {
-          status: state.status,
-          error: state.error,
-        };
-      },
-      getData: state => state.data,
-      getPagination: state => {
-        return {
-          currentPage: state.currentPage,
-          rowsPerPage: state.rowsPerPage,
-        };
-      },
-      getFilter: state => {
-        return state.filter;
-      },
     },
   });
 

@@ -42,28 +42,6 @@ export const UploadTransactionAttachmentsResponse = ApiResponse.extend({
   data: z.array(AttachmentWithUrl).nullable(),
 });
 
-// export const CreateTransactionPayload = Transaction.pick({
-// 	categoryId: true,
-// 	paymentMethodId: true,
-// 	processedAt: true,
-// 	receiver: true,
-// 	transferAmount: true,
-// 	information: true,
-// }).extend({
-// 	information: Transaction.shape.information.optional(),
-// });
-
-// export const UpdateTransactionPayload = Transaction.pick({
-// 	categoryId: true,
-// 	paymentMethodId: true,
-// 	processedAt: true,
-// 	receiver: true,
-// 	transferAmount: true,
-// 	information: true,
-// }).extend({
-// 	information: Transaction.shape.information.optional(),
-// });
-
 export const CreateOrUpdateTransactionPayload = Transaction.pick({
   categoryId: true,
   paymentMethodId: true,

@@ -12,20 +12,6 @@ export const PaymentMethod = z.object({
   updatedAt: z.iso.datetime(),
 });
 
-// export const CreatePaymentMethodPayload = PaymentMethod.pick({
-// 	name: true,
-// 	provider: true,
-// 	address: true,
-// 	description: true,
-// });
-
-// export const UpdatePaymentMethodPayload = z.object({
-// 	name: PaymentMethod.shape.name.optional(),
-// 	provider: PaymentMethod.shape.provider.optional(),
-// 	address: PaymentMethod.shape.address.optional(),
-// 	description: PaymentMethod.shape.description.optional(),
-// });
-
 export const CreateOrUpdatePaymentMethodPayload = PaymentMethod.pick({
   name: true,
   provider: true,

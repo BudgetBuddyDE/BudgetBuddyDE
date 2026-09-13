@@ -101,16 +101,6 @@ export class ApiResponseBuilder<T> {
   }
 
   /**
-   * Sets the error message of the API response.
-   * @param error - The error message.
-   * @returns The ApiResponseBuilder instance.
-   */
-  public withError(error: string | null): ApiResponseBuilder<T> {
-    this.responseBody.error = error;
-    return this;
-  }
-
-  /**
    * Sets the data of the API response.
    * @param data - The data.
    * @returns The ApiResponseBuilder instance.

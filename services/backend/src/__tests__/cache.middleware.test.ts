@@ -17,7 +17,6 @@ const {mockConfig} = vi.hoisted(() => ({
     cache: {
       enabled: true,
       keyPrefix: 'cache',
-      invalidationScanCount: 100,
       routes: [
         {path: '/api/category', ttl: 300},
         {path: '/api/paymentMethod', ttl: 300},

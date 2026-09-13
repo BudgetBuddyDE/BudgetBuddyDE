@@ -17,4 +17,3 @@ export const db = drizzle({
         }
       : undefined,
 });
-export type DrizzleDatabaseClient = typeof db;

@@ -7,7 +7,6 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const tsProjects = [
-  './tsconfig.json',
   './apps/webapp/tsconfig.json',
   './examples/*/tsconfig.json',
   './packages/*/tsconfig.json',
@@ -21,7 +20,6 @@ const sourceFiles = [
   'examples/*/src/**/*.{js,jsx,ts,tsx}',
   'packages/*/src/**/*.{js,jsx,ts,tsx}',
   'services/*/src/**/*.{js,jsx,ts,tsx}',
-  'services/*/instrumentation.ts',
 ];
 
 const webappSourceFiles = ['apps/webapp/src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}'];

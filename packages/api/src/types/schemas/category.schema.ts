@@ -10,16 +10,6 @@ export const Category = z.object({
   updatedAt: z.iso.datetime(),
 });
 
-// export const CreateCategoryPayload = Category.pick({
-// 	name: true,
-// 	description: true,
-// });
-
-// export const UpdateCategoryPayload = z.object({
-// 	name: Category.shape.name.optional(),
-// 	description: Category.shape.description.optional(),
-// });
-
 export const CreateOrUpdateCategoryPayload = Category.pick({
   name: true,
   description: true,

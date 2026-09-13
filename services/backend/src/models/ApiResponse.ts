@@ -105,16 +105,6 @@ export class ApiResponseBuilder<T> {
   }
 
   /**
-   * Sets the error message of the API response.
-   * @param error - The error message.
-   * @returns The ApiResponseBuilder instance.
-   */
-  public withError(error: TApiResponse<T>['error']): ApiResponseBuilder<T> {
-    this.responseBody.error = error;
-    return this;
-  }
-
-  /**
    * Sets the data of the API response.
    * @param data - The data.
    * @returns The ApiResponseBuilder instance.
@@ -179,18 +169,11 @@ export class ApiResponseBuilder<T> {
     }
 
     this.res = (this.res || response) as Response;
-    this.responseObjIsSet(this.res);
 
     if (!this.responseBody.from) delete this.responseBody.from;
     if (!this.responseBody.message) delete this.responseBody.message;
     if (!this.responseBody.error) delete this.responseBody.error;
     this.res.status(this.responseBody.status).json(this.build()).end();
-  }
-
-  private responseObjIsSet(response: Response | undefined | null): asserts response is Response {
-    if (!this.res && !response) {
-      throw new Error('ExpressJS response object is not set.');
-    }
   }
 }
 
