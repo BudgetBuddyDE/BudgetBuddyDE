@@ -6,7 +6,7 @@ import type {RequestContext} from '../types';
 
 const logger = mainLogger.child({module: 'auth', middleware: 'setRequestContext'});
 
-/** Only credentials the auth service needs are forwarded upstream. */
+/** Only credentials the auth endpoint needs are forwarded upstream. */
 const FORWARDED_AUTH_HEADERS = ['cookie', 'authorization', 'x-api-key'] as const;
 
 function buildAuthHeaders(req: Request): Headers {
@@ -28,7 +28,7 @@ export async function setRequestContext(req: Request, res: Response, next: NextF
       },
     })
     .catch((error: unknown) => {
-      logger.error('Authentication service request failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Authentication request failed', error instanceof Error ? error : new Error(String(error)));
       return null;
     });
 

@@ -28,7 +28,7 @@ export class AppConfig extends BackendConfig {
   public readonly auth: {
     baseUrl: string;
     credentials: RequestCredentials;
-    /** Timeout in milliseconds for the auth-service session lookup. */
+    /** Timeout in milliseconds for the webapp auth session lookup. */
     requestTimeoutMs: number;
   };
   public readonly database: {
@@ -193,7 +193,7 @@ export class AppConfig extends BackendConfig {
       port: getPort(environment.PORT, 9000),
       runtime,
       auth: {
-        baseUrl: getOptionalEnvironmentValue(environment, 'AUTH_SERVICE_HOST') ?? 'http://localhost:8080',
+        baseUrl: getOptionalEnvironmentValue(environment, 'AUTH_URL') ?? 'http://localhost:3000',
         credentials: 'include',
         requestTimeoutMs: 5000,
       },
