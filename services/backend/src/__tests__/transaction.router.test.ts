@@ -48,7 +48,7 @@ vi.mock('../config', () => ({
       octetStreamAllowedExtensions: new Set(['heic']),
       mimeTypeOverrides: {},
       transactionPreviewLimit: 3,
-      upload: {maxFilesPerRequest: 10, maxFileSizeBytes: 20 * 1024 * 1024},
+      upload: {maxFilesPerRequest: 10, maxFileSizeBytes: 20 * 1024 * 1024, maxRequestSizeBytes: 50 * 1024 * 1024},
       signedUrlTtlSeconds: 900,
     },
     getRequiredObjectStorageConfig: vi.fn(() => ({bucketName: 'test-bucket'})),
@@ -57,6 +57,10 @@ vi.mock('../config', () => ({
 
 vi.mock('../lib', () => ({logger: {...attachmentLogger, child: vi.fn(() => attachmentLogger)}}));
 vi.mock('../lib/attachment', () => ({
+  AttachmentHandler: {
+    resolveMimeType: (file: Express.Multer.File) => file.mimetype,
+    hasValidImageSignature: () => true,
+  },
   TransactionAttachmentHandler: vi.fn(() => ({
     generateSignedUrls: vi.fn().mockResolvedValue({signedUrls: new Map()}),
     uploadTransactionAttachments,
@@ -198,19 +202,33 @@ describe('transaction attachment isolation', () => {
       where: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue([{count: 1}]),
     };
-    const previewWhere = vi.fn().mockReturnThis();
-    const previewChain = {
+    const rankedWhere = vi.fn().mockReturnThis();
+    const rankedTable = {};
+    const rankedBuilder = {
       from: vi.fn().mockReturnThis(),
       innerJoin: vi.fn().mockReturnThis(),
-      where: previewWhere,
-      orderBy: vi.fn().mockResolvedValue([]),
+      where: rankedWhere,
+      as: vi.fn().mockReturnValue(rankedTable),
     };
-    select.mockReturnValueOnce(countChain).mockReturnValueOnce(previewChain);
+    const attachmentCountChain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnValue({groupBy: vi.fn().mockResolvedValue([])}),
+    };
+    const previewChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([]),
+    };
+    select
+      .mockReturnValueOnce(countChain)
+      .mockReturnValueOnce(rankedBuilder)
+      .mockReturnValueOnce(attachmentCountChain)
+      .mockReturnValueOnce(previewChain);
 
     const response = await requestRouter(transactionRouter, USER_ID, '/', {method: 'GET'});
 
     expect(response.status).toBe(200);
-    const query = new PgDialect().sqlToQuery(previewWhere.mock.calls[0][0].getSQL());
+    const query = new PgDialect().sqlToQuery(rankedWhere.mock.calls[0][0].getSQL());
     expect(query.sql).toContain('owner_id');
     expect(query.params).toContain(USER_ID);
     expect(query.sql).toContain('transaction_id');

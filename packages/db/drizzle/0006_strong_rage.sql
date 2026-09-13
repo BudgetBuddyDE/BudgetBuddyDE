@@ -1,0 +1,1 @@
+DROP VIEW "budgetbuddy_backend"."spending_goal_view";

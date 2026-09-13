@@ -9,19 +9,20 @@ import {
 } from '@budgetbuddyde/db/backend';
 import {endOfMonth, format, startOfMonth} from 'date-fns';
 import {fromZonedTime, toZonedTime} from 'date-fns-tz';
-import {and, eq, gt, gte, inArray, lte, notInArray, sql} from 'drizzle-orm';
+import {and, eq, gte, inArray, lte, sql} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {config} from '../config';
 import {db} from '../db';
-import {ApiResponse, HTTPStatusCode} from '../models';
+import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {assembleFilter} from './assembleFilter';
 import {hasAllOwnedIds, ownedIdsFinder} from './batch';
+import {paginationFields, paginationWindow} from './pagination';
 
 export const budgetRouter = Router();
 
-// REVISIT: Optimize the queries below for performance and cache the results where possibleg
+// REVISIT: Cache the estimated budget result where possible.
 budgetRouter.get('/estimated', async (req, res) => {
   const userId = req.context.user?.id;
   if (!userId) {
@@ -35,62 +36,31 @@ budgetRouter.get('/estimated', async (req, res) => {
   const monthEnd = format(endOfMonth(zonedToday), 'yyyy-MM-dd');
   const firstOfMonthInstant = fromZonedTime(startOfMonth(zonedToday), config.timezone);
   const endOfMonthInstant = fromZonedTime(endOfMonth(zonedToday), config.timezone);
-  const [
-    paidExpensesResult,
-    upcomingTransactionsExpensesResult,
-    receivedIncomeResult,
-    upcomingTransactionIncomeResult,
-    activeRecurringPayments,
-  ] = await Promise.all([
+  const [transactionTotals, activeRecurringPayments] = await Promise.all([
     db
       .select({
-        expenses: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('expenses'),
+        paidExpenses:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} <= 0 AND ${transactions.processedAt} <= ${now} THEN ABS(${transactions.transferAmount}) ELSE 0 END), 0)`.as(
+            'paid_expenses',
+          ),
+        upcomingExpenses:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} <= 0 AND ${transactions.processedAt} > ${now} THEN ABS(${transactions.transferAmount}) ELSE 0 END), 0)`.as(
+            'upcoming_expenses',
+          ),
+        receivedIncome:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} >= 0 AND ${transactions.processedAt} <= ${now} THEN ${transactions.transferAmount} ELSE 0 END), 0)`.as(
+            'received_income',
+          ),
+        upcomingIncome:
+          sql<number>`COALESCE(SUM(CASE WHEN ${transactions.transferAmount} >= 0 AND ${transactions.processedAt} > ${now} THEN ${transactions.transferAmount} ELSE 0 END), 0)`.as(
+            'upcoming_income',
+          ),
       })
       .from(transactions)
       .where(
         and(
           eq(transactions.ownerId, userId),
-          lte(transactions.transferAmount, 0),
           gte(transactions.processedAt, firstOfMonthInstant),
-          lte(transactions.processedAt, now),
-        ),
-      ),
-    db
-      .select({
-        expenses: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('expenses'),
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.ownerId, userId),
-          lte(transactions.transferAmount, 0),
-          gt(transactions.processedAt, now),
-          lte(transactions.processedAt, endOfMonthInstant),
-        ),
-      ),
-    db
-      .select({
-        income: sql<number>`COALESCE(SUM(${transactions.transferAmount}), 0)`.as('income'),
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.ownerId, userId),
-          gte(transactions.transferAmount, 0),
-          gte(transactions.processedAt, firstOfMonthInstant),
-          lte(transactions.processedAt, now),
-        ),
-      ),
-    db
-      .select({
-        income: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('income'),
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.ownerId, userId),
-          gte(transactions.transferAmount, 0),
-          gt(transactions.processedAt, now),
           lte(transactions.processedAt, endOfMonthInstant),
         ),
       ),
@@ -111,10 +81,10 @@ budgetRouter.get('/estimated', async (req, res) => {
     else upcomingRecurringIncome += payment.transferAmount * occurrenceCount;
   }
 
-  const paidExpenses = paidExpensesResult[0].expenses;
-  const upcomingExpenses = upcomingTransactionsExpensesResult[0].expenses + upcomingRecurringExpenses;
-  const receivedIncome = receivedIncomeResult[0].income;
-  const upcomingIncome = upcomingTransactionIncomeResult[0].income + upcomingRecurringIncome;
+  const paidExpenses = transactionTotals[0].paidExpenses;
+  const upcomingExpenses = transactionTotals[0].upcomingExpenses + upcomingRecurringExpenses;
+  const receivedIncome = transactionTotals[0].receivedIncome;
+  const upcomingIncome = transactionTotals[0].upcomingIncome + upcomingRecurringIncome;
   const freeAmount = receivedIncome + upcomingIncome - (paidExpenses + upcomingExpenses);
   ApiResponse.builder()
     .withData({
@@ -131,14 +101,13 @@ budgetRouter.get('/estimated', async (req, res) => {
     .buildAndSend(res);
 });
 
-// REVISIT: Optimize the queries below for performance and cache the results where possible
+// REVISIT: Cache budget responses where possible.
 budgetRouter.get(
   '/',
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      from: z.coerce.number().optional(),
-      to: z.coerce.number().optional(),
+      ...paginationFields,
     }),
   }),
   async (req, res) => {
@@ -172,8 +141,7 @@ budgetRouter.get(
         orderBy(fields, operators) {
           return [operators.desc(fields.updatedAt)];
         },
-        offset: req.query.from,
-        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        ...paginationWindow(req.query),
         with: {
           categories: {
             with: {
@@ -184,20 +152,11 @@ budgetRouter.get(
       }),
     ]);
 
-    // Calculate balances for each budget
-    const updatedBudgets = [] as ((typeof records)[number] & {balance: number})[];
-    for await (const budget of records) {
-      const budgetBalance = await calculateBudgetBalance(
-        budget.ownerId,
-        budget.type,
-        budget.categories.map(c => c.categoryId),
-      );
-
-      updatedBudgets.push({
-        ...budget,
-        balance: budgetBalance,
-      });
-    }
+    const balances = await calculateBudgetBalances(userId, records);
+    const updatedBudgets = records.map((budget, index) => ({
+      ...budget,
+      balance: balances[index],
+    }));
 
     ApiResponse.builder<typeof updatedBudgets>()
       .withStatus(HTTPStatusCode.OK)
@@ -245,13 +204,10 @@ budgetRouter.get(
       return;
     }
 
+    const [balance] = await calculateBudgetBalances(userId, [record]);
     const budgetWithBalance: typeof record & {balance: number} = {
       ...record,
-      balance: await calculateBudgetBalance(
-        userId,
-        record.type,
-        record.categories.map(c => c.categoryId),
-      ),
+      balance,
     };
 
     ApiResponse.builder<typeof budgetWithBalance>()
@@ -319,11 +275,7 @@ budgetRouter.post(
           .withFrom('db')
           .buildAndSend(res);
       }
-      const budgetBalance = await calculateBudgetBalance(
-        userId,
-        result.type,
-        result.categories.map(c => c.categoryId),
-      );
+      const [budgetBalance] = await calculateBudgetBalances(userId, [result]);
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Budget created successfully')
@@ -381,7 +333,7 @@ budgetRouter.put(
           .returning();
 
         if (!updatedBudget) {
-          throw new Error('Budget not found or access denied');
+          throw new NotFoundError('Budget not found');
         }
 
         if (newCategoryIds !== undefined) {
@@ -427,11 +379,7 @@ budgetRouter.put(
           .withFrom('db')
           .buildAndSend(res);
       }
-      const budgetBalance = await calculateBudgetBalance(
-        userId,
-        result.type,
-        result.categories.map(c => c.categoryId),
-      );
+      const [budgetBalance] = await calculateBudgetBalances(userId, [result]);
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Budget updated successfully')
@@ -471,7 +419,7 @@ budgetRouter.delete(
         .returning();
 
       if (deletedRecord.length === 0) {
-        throw new Error('No budget deleted');
+        throw new NotFoundError('Budget not found');
       }
 
       ApiResponse.builder()
@@ -487,23 +435,31 @@ budgetRouter.delete(
   },
 );
 
-async function calculateBudgetBalance(
+type TBudgetBalanceTarget = {
+  type: 'i' | 'e';
+  categories: readonly {categoryId: string}[];
+};
+
+/**
+ * Computes monthly balances for multiple budgets with a single grouped query.
+ *
+ * Type `i` sums expenses of the assigned categories; type `e` sums all other
+ * categories. Budgets without categories keep their previous zero balance.
+ */
+async function calculateBudgetBalances(
   ownerId: string,
-  budgetType: 'i' | 'e',
-  categories: string[],
+  budgets: readonly TBudgetBalanceTarget[],
   time: Date = new Date(),
-): Promise<number> {
-  if (categories.length === 0) {
-    return 0;
-  }
+): Promise<number[]> {
+  if (budgets.length === 0) return [];
 
   const currentMonth = time.getMonth() + 1;
   const currentYear = time.getFullYear();
 
-  // Use transactionHistoryView for aggregated data by category
-  const result = await db
+  const rows = await db
     .select({
-      total: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('total'),
+      categoryId: transactionHistoryView.categoryId,
+      expenses: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('expenses'),
     })
     .from(transactionHistoryView)
     .where(
@@ -511,11 +467,22 @@ async function calculateBudgetBalance(
         eq(transactionHistoryView.ownerId, ownerId),
         eq(transactionHistoryView.month, currentMonth),
         eq(transactionHistoryView.year, currentYear),
-        budgetType === 'i'
-          ? inArray(transactionHistoryView.categoryId, categories)
-          : notInArray(transactionHistoryView.categoryId, categories),
       ),
-    );
+    )
+    .groupBy(transactionHistoryView.categoryId);
 
-  return result[0]?.total || 0;
+  const expensesByCategory = new Map<string, number>();
+  let totalExpenses = 0;
+  for (const row of rows) {
+    if (row.categoryId === null) continue;
+    expensesByCategory.set(row.categoryId, row.expenses);
+    totalExpenses += row.expenses;
+  }
+
+  return budgets.map(budget => {
+    const categories = budget.categories.map(category => category.categoryId);
+    if (categories.length === 0) return 0;
+    const assignedExpenses = categories.reduce((sum, categoryId) => sum + (expensesByCategory.get(categoryId) ?? 0), 0);
+    return budget.type === 'i' ? assignedExpenses : totalExpenses - assignedExpenses;
+  });
 }

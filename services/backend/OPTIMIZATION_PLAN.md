@@ -93,15 +93,18 @@ Primary files:
 
 ## Phase 3: Query Performance
 
-Status: **open**
+Status: **completed**
 
 ### Pagination
 
-- [ ] Introduce one shared pagination schema for list endpoints.
-- [ ] Require non-negative integer offsets.
-- [ ] Apply a default page size and maximum page size.
-- [ ] Reject ranges where `to < from`.
-- [ ] Preserve the current exclusive `to` range semantics.
+- [x] Introduce one shared pagination schema for list endpoints.
+- [x] Require non-negative integer offsets.
+- [x] Apply a default page size and maximum page size.
+- [x] Reject ranges where `to < from`.
+- [x] Preserve the current exclusive `to` range semantics.
+
+The maximum window is enforced only when `to` is supplied; omitting `to` keeps the previous unbounded behavior so
+existing callers are not truncated.
 
 Affected routers:
 
@@ -113,9 +116,12 @@ Affected routers:
 
 ### Budget and insight queries
 
-- [ ] Replace per-budget balance queries with one grouped query.
-- [ ] Collapse the four transaction scans in `/api/budget/estimated` into one conditional aggregate query.
+- [x] Replace per-budget balance queries with one grouped query.
+- [x] Collapse the four transaction scans in `/api/budget/estimated` into one conditional aggregate query.
 - [ ] Measure the result with `EXPLAIN (ANALYZE, BUFFERS)`.
+
+Query-plan measurement is deferred because no PostgreSQL instance was available; the changes were verified with mocked
+tests only.
 
 Primary files:
 
@@ -124,10 +130,10 @@ Primary files:
 
 ### Attachment previews
 
-- [ ] Return only the configured preview rows per transaction at database level.
-- [ ] Keep the full attachment count without loading all attachment rows into application memory.
-- [ ] Add deterministic ordering by `createdAt` and `id`.
-- [ ] Add an index supporting transaction-attachment lookup.
+- [x] Return only the configured preview rows per transaction at database level.
+- [x] Keep the full attachment count without loading all attachment rows into application memory.
+- [x] Add deterministic ordering by `createdAt` and `id`.
+- [x] Add an index supporting transaction-attachment lookup.
 
 Primary file:
 
@@ -136,11 +142,14 @@ Primary file:
 ### Database indexes
 
 - [ ] Capture representative query plans before adding indexes.
-- [ ] Evaluate transaction indexes for owner, date, category, and payment-method filters.
-- [ ] Evaluate owner and update-date indexes for categories, payment methods, and budgets.
-- [ ] Evaluate attachment junction lookup indexes.
-- [ ] Evaluate an index aligned with the global recurring-payment job query.
+- [x] Evaluate transaction indexes for owner, date, category, and payment-method filters.
+- [x] Evaluate owner and update-date indexes for categories, payment methods, and budgets.
+- [x] Evaluate attachment junction lookup indexes.
+- [x] Evaluate an index aligned with the global recurring-payment job query.
 - [ ] Consider PostgreSQL trigram indexes for search filters only after measurement.
+
+Indexes were added from the known query shapes; plan capture and trigram evaluation are deferred until a representative
+database is available.
 
 Primary file:
 
@@ -148,17 +157,17 @@ Primary file:
 
 ## Phase 4: Import, Export, and Resource Limits
 
-Status: **open**
+Status: **completed**
 
 ### Import
 
-- [ ] Parse and validate the complete archive before writing.
-- [ ] Load existing and owned records with bulk `IN` queries.
-- [ ] Resolve references in memory.
-- [ ] Persist commit-mode imports in one database transaction.
-- [ ] Use bounded insert chunks where required by PostgreSQL parameter limits.
-- [ ] Distinguish malformed input errors from infrastructure errors.
-- [ ] Add atomicity and large-import tests.
+- [x] Parse and validate the complete archive before writing.
+- [x] Load existing and owned records with bulk `IN` queries.
+- [x] Resolve references in memory.
+- [x] Persist commit-mode imports in one database transaction.
+- [x] Use bounded insert chunks where required by PostgreSQL parameter limits.
+- [x] Distinguish malformed input errors from infrastructure errors.
+- [x] Add atomicity and large-import tests.
 
 Primary files:
 
@@ -167,11 +176,14 @@ Primary files:
 
 ### Export
 
-- [ ] Add an explicit export size limit.
-- [ ] Bound attachment-download concurrency.
+- [x] Add an explicit export size limit.
+- [x] Bound attachment-download concurrency.
 - [ ] Stream database records and archive output where practical.
-- [ ] Avoid synchronous ZIP work on the request event loop for large exports.
+- [x] Avoid synchronous ZIP work on the request event loop for large exports.
 - [ ] Consider asynchronous export jobs for large archives.
+
+ZIP assembly is asynchronous and yields between CRC chunks; true streaming and asynchronous export jobs are deferred as
+future enhancements.
 
 Primary files:
 
@@ -180,11 +192,13 @@ Primary files:
 
 ### Upload processing
 
-- [ ] Add a total request-size limit in addition to the per-file limit.
-- [ ] Bound image processing and S3 upload concurrency.
-- [ ] Replace synchronous `gzipSync` with asynchronous or streaming compression.
-- [ ] Validate file signatures and decoded image dimensions.
+- [x] Add a total request-size limit in addition to the per-file limit.
+- [x] Bound image processing and S3 upload concurrency.
+- [x] Replace synchronous `gzipSync` with asynchronous or streaming compression.
+- [x] Validate file signatures and decoded image dimensions.
 - [ ] Consider temporary-file-backed or streaming uploads for larger workloads.
+
+Temporary-file-backed uploads are deferred; uploads remain memory-backed and are bounded by the request-size limit.
 
 Primary files:
 
@@ -193,9 +207,12 @@ Primary files:
 
 ### Signed URL cache
 
-- [ ] Include TTL in signed URL cache keys or cache only the default TTL.
-- [ ] Use Redis bulk reads and pipelined writes for attachment URL generation.
-- [ ] Cache URLs for less than their actual expiration time.
+- [x] Include TTL in signed URL cache keys or cache only the default TTL.
+- [x] Use Redis bulk reads and pipelined writes for attachment URL generation.
+- [x] Cache URLs for less than their actual expiration time.
+
+Only the default TTL is cached; custom TTLs bypass the cache. Signed URLs are cached 60 seconds below their actual
+expiration.
 
 Primary files:
 
@@ -204,15 +221,18 @@ Primary files:
 
 ## Phase 5: Operations and Maintainability
 
-Status: **open**
+Status: **completed**
 
 ### Application lifecycle
 
-- [ ] Separate `createApp()` from `startServer()`.
-- [ ] Add graceful shutdown for HTTP, PostgreSQL, Redis, S3, and scheduled jobs.
-- [ ] Use lightweight bounded health checks.
-- [ ] Restrict health endpoints to `GET` and `HEAD`.
-- [ ] Decide whether Redis is optional or mandatory and align configuration, health, and attachment behavior.
+- [x] Separate `createApp()` from `startServer()`.
+- [x] Add graceful shutdown for HTTP, PostgreSQL, Redis, S3, and scheduled jobs.
+- [x] Use lightweight bounded health checks.
+- [x] Restrict health endpoints to `GET` and `HEAD`.
+- [x] Decide whether Redis is optional or mandatory and align configuration, health, and attachment behavior.
+
+Redis is optional: caching, rate limiting, health reporting, and the attachment cache all degrade when `REDIS_URL` is
+unset.
 
 Primary files:
 
@@ -222,13 +242,16 @@ Primary files:
 
 ### Authentication and request observability
 
-- [ ] Add a timeout to the auth-service request.
-- [ ] Forward only required authentication headers.
-- [ ] Return generic authentication failures to clients and log upstream details server-side.
-- [ ] Move basic request logging before authentication.
-- [ ] Record request duration, request ID, user ID, and authentication method.
-- [ ] Configure `trust proxy` for the deployment topology.
-- [ ] Either implement API-key permission checks or remove the unused permission context.
+- [x] Add a timeout to the auth-service request.
+- [x] Forward only required authentication headers.
+- [x] Return generic authentication failures to clients and log upstream details server-side.
+- [x] Move basic request logging before authentication.
+- [x] Record request duration, request ID, user ID, and authentication method.
+- [x] Configure `trust proxy` for the deployment topology.
+- [x] Either implement API-key permission checks or remove the unused permission context.
+
+The unused `authenticationMethod`/permission context was removed; requests now log a request ID, duration, and user ID.
+`trust proxy` defaults to `1` in production and can be overridden with `TRUST_PROXY`.
 
 Primary files:
 
@@ -239,13 +262,13 @@ Primary files:
 
 ### Error handling and cleanup
 
-- [ ] Preserve server-side error diagnostics while returning safe client messages.
-- [ ] Return explicit `404` and `409` responses for known outcomes.
-- [ ] Add a final API `404` handler.
-- [ ] Remove redundant `body-parser` usage in favor of Express JSON parsing.
-- [ ] Remove confirmed unused exports and helpers.
-- [ ] Correct the backend Vitest project name from `auth-service`.
-- [ ] Resolve the attachment owner foreign-key mismatch between `NOT NULL` and `ON DELETE SET NULL`.
+- [x] Preserve server-side error diagnostics while returning safe client messages.
+- [x] Return explicit `404` and `409` responses for known outcomes.
+- [x] Add a final API `404` handler.
+- [x] Remove redundant `body-parser` usage in favor of Express JSON parsing.
+- [x] Remove confirmed unused exports and helpers.
+- [x] Correct the backend Vitest project name from `auth-service`.
+- [x] Resolve the attachment owner foreign-key mismatch between `NOT NULL` and `ON DELETE SET NULL`.
 
 Primary files:
 
@@ -268,3 +291,7 @@ npm run build --workspace services/backend
 
 Database changes additionally require migration validation, owner-isolation tests, and query-plan comparisons with
 representative data.
+
+Phase 3–5 were implemented without a running PostgreSQL/Redis instance. Migrations were generated with
+`drizzle-kit generate` and all checks ran against the mocked test suite; live migration validation and query-plan
+comparisons remain outstanding.

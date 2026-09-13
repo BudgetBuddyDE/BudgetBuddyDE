@@ -5,9 +5,10 @@ import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
 import {logger} from '../lib';
-import {ApiResponse, HTTPStatusCode} from '../models';
+import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {assembleFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
+import {paginationFields, paginationWindow} from './pagination';
 
 export const paymentMethodRouter = Router();
 
@@ -113,8 +114,7 @@ paymentMethodRouter.get(
   validateRequest({
     query: z.object({
       search: z.string().optional(),
-      from: z.coerce.number().optional(),
-      to: z.coerce.number().optional(),
+      ...paginationFields,
     }),
   }),
   async (req, res) => {
@@ -148,8 +148,7 @@ paymentMethodRouter.get(
         orderBy(fields, operators) {
           return [operators.desc(fields.updatedAt)];
         },
-        offset: req.query.from,
-        limit: req.query.to ? req.query.to - (req.query.from || 0) : undefined,
+        ...paginationWindow(req.query),
       }),
     ]);
 
@@ -356,7 +355,7 @@ paymentMethodRouter.put(
         .where(and(eq(paymentMethods.ownerId, userId), eq(paymentMethods.id, req.params.id)))
         .returning();
       if (updatedRecord.length === 0) {
-        throw new Error('No payment method updated');
+        throw new NotFoundError('Payment method not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
@@ -392,7 +391,7 @@ paymentMethodRouter.delete(
         .where(and(eq(paymentMethods.ownerId, userId), eq(paymentMethods.id, entityId)))
         .returning();
       if (deletedRecord.length === 0) {
-        throw new Error('No payment method deleted');
+        throw new NotFoundError('Payment method not found');
       }
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)

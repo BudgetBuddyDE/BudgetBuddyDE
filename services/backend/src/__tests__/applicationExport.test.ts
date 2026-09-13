@@ -63,8 +63,8 @@ describe('application export serialization', () => {
     );
   });
 
-  it('creates a ZIP archive containing local entries and a central directory', () => {
-    const archive = createZipArchive([
+  it('creates a ZIP archive containing local entries and a central directory', async () => {
+    const archive = await createZipArchive([
       {name: 'manifest.json', content: Buffer.from('{"attachmentsIncluded":false}\n')},
     ]);
 
