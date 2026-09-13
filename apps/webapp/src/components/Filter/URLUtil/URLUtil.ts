@@ -15,6 +15,14 @@ const PARAM = {
   paused: 'paused',
 } as const;
 
+/** ID-list filter fields shared by every entity page, in serialization order. */
+const ID_FILTER_PARAMS = [
+  [PARAM.categories, 'categories'],
+  [PARAM.excl_categories, 'excl_categories'],
+  [PARAM.paymentMethods, 'paymentMethods'],
+  [PARAM.excl_paymentMethods, 'excl_paymentMethods'],
+] as const satisfies ReadonlyArray<readonly [string, keyof EntityFilters]>;
+
 /**
  * Parse comma-separated IDs from a URL param value
  */
@@ -23,13 +31,36 @@ function parseIds(value: string | null): string[] {
   return value.split(',').filter(Boolean);
 }
 
+function paramToString(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value.join(',') : (value ?? '');
+}
+
+function parseIdFilters(
+  params: Record<string, string | string[] | undefined>,
+  filters: Partial<EntityFilters>,
+): Partial<EntityFilters> {
+  for (const [param, key] of ID_FILTER_PARAMS) {
+    const ids = parseIds(paramToString(params[param]));
+    if (ids.length) filters[key] = ids;
+  }
+  return filters;
+}
+
+function serializeIdFilters(filters: EntityFilters, params: URLSearchParams): URLSearchParams {
+  for (const [param, key] of ID_FILTER_PARAMS) {
+    const value = filters[key];
+    if (value?.length) params.set(param, value.join(','));
+  }
+  return params;
+}
+
 /**
- * Serialize transaction-style filters from plain URL search params object
+ * Parse transaction-style filters from plain URL search params object
  */
 export function parseTransactionFiltersFromParams(
   params: Record<string, string | string[] | undefined>,
 ): Partial<EntityFilters> {
-  const filters: Partial<EntityFilters> = {};
+  const filters = parseIdFilters(params, {});
 
   const q = params[PARAM.keyword];
   if (typeof q === 'string' && q) filters.keyword = q;
@@ -46,22 +77,6 @@ export function parseTransactionFiltersFromParams(
     if (!Number.isNaN(d.getTime())) filters.dateTo = d;
   }
 
-  const cat = params[PARAM.categories];
-  const catIds = parseIds(Array.isArray(cat) ? cat.join(',') : (cat ?? ''));
-  if (catIds.length) filters.categories = catIds;
-
-  const exclCat = params[PARAM.excl_categories];
-  const exclCatIds = parseIds(Array.isArray(exclCat) ? exclCat.join(',') : (exclCat ?? ''));
-  if (exclCatIds.length) filters.excl_categories = exclCatIds;
-
-  const pm = params[PARAM.paymentMethods];
-  const pmIds = parseIds(Array.isArray(pm) ? pm.join(',') : (pm ?? ''));
-  if (pmIds.length) filters.paymentMethods = pmIds;
-
-  const exclPm = params[PARAM.excl_paymentMethods];
-  const exclPmIds = parseIds(Array.isArray(exclPm) ? exclPm.join(',') : (exclPm ?? ''));
-  if (exclPmIds.length) filters.excl_paymentMethods = exclPmIds;
-
   return filters;
 }
 
@@ -71,29 +86,13 @@ export function parseTransactionFiltersFromParams(
 export function parseRecurringPaymentFiltersFromParams(
   params: Record<string, string | string[] | undefined>,
 ): Partial<EntityFilters> {
-  const filters: Partial<EntityFilters> = {};
+  const filters = parseIdFilters(params, {});
 
   const q = params[PARAM.keyword];
   if (typeof q === 'string' && q) filters.keyword = q;
 
   const paused = params[PARAM.paused];
   if (typeof paused === 'string' && paused) filters.paused = paused === 'true';
-
-  const cat = params[PARAM.categories];
-  const catIds = parseIds(Array.isArray(cat) ? cat.join(',') : (cat ?? ''));
-  if (catIds.length) filters.categories = catIds;
-
-  const exclCat = params[PARAM.excl_categories];
-  const exclCatIds = parseIds(Array.isArray(exclCat) ? exclCat.join(',') : (exclCat ?? ''));
-  if (exclCatIds.length) filters.excl_categories = exclCatIds;
-
-  const pm = params[PARAM.paymentMethods];
-  const pmIds = parseIds(Array.isArray(pm) ? pm.join(',') : (pm ?? ''));
-  if (pmIds.length) filters.paymentMethods = pmIds;
-
-  const exclPm = params[PARAM.excl_paymentMethods];
-  const exclPmIds = parseIds(Array.isArray(exclPm) ? exclPm.join(',') : (exclPm ?? ''));
-  if (exclPmIds.length) filters.excl_paymentMethods = exclPmIds;
 
   return filters;
 }
@@ -113,36 +112,28 @@ export function parseKeywordFilterFromParams(
  * Serialize EntityFilters to URLSearchParams for transaction pages
  */
 export function serializeTransactionFilters(filters: EntityFilters): URLSearchParams {
-  const p = new URLSearchParams();
-  if (filters.keyword) p.set(PARAM.keyword, filters.keyword);
-  if (filters.dateFrom) p.set(PARAM.dateFrom, Formatter.date.formatWithPattern(filters.dateFrom, 'yyyy-MM-dd'));
-  if (filters.dateTo) p.set(PARAM.dateTo, Formatter.date.formatWithPattern(filters.dateTo, 'yyyy-MM-dd'));
-  if (filters.categories?.length) p.set(PARAM.categories, filters.categories.join(','));
-  if (filters.excl_categories?.length) p.set(PARAM.excl_categories, filters.excl_categories.join(','));
-  if (filters.paymentMethods?.length) p.set(PARAM.paymentMethods, filters.paymentMethods.join(','));
-  if (filters.excl_paymentMethods?.length) p.set(PARAM.excl_paymentMethods, filters.excl_paymentMethods.join(','));
-  return p;
+  const params = new URLSearchParams();
+  if (filters.keyword) params.set(PARAM.keyword, filters.keyword);
+  if (filters.dateFrom) params.set(PARAM.dateFrom, Formatter.date.formatWithPattern(filters.dateFrom, 'yyyy-MM-dd'));
+  if (filters.dateTo) params.set(PARAM.dateTo, Formatter.date.formatWithPattern(filters.dateTo, 'yyyy-MM-dd'));
+  return serializeIdFilters(filters, params);
 }
 
 /**
  * Serialize EntityFilters to URLSearchParams for recurring payment pages
  */
 export function serializeRecurringPaymentFilters(filters: EntityFilters): URLSearchParams {
-  const p = new URLSearchParams();
-  if (filters.keyword) p.set(PARAM.keyword, filters.keyword);
-  if (filters.paused != null) p.set(PARAM.paused, String(filters.paused));
-  if (filters.categories?.length) p.set(PARAM.categories, filters.categories.join(','));
-  if (filters.excl_categories?.length) p.set(PARAM.excl_categories, filters.excl_categories.join(','));
-  if (filters.paymentMethods?.length) p.set(PARAM.paymentMethods, filters.paymentMethods.join(','));
-  if (filters.excl_paymentMethods?.length) p.set(PARAM.excl_paymentMethods, filters.excl_paymentMethods.join(','));
-  return p;
+  const params = new URLSearchParams();
+  if (filters.keyword) params.set(PARAM.keyword, filters.keyword);
+  if (filters.paused != null) params.set(PARAM.paused, String(filters.paused));
+  return serializeIdFilters(filters, params);
 }
 
 /**
  * Serialize keyword-only filter to URLSearchParams
  */
 export function serializeKeywordFilter(filters: EntityFilters): URLSearchParams {
-  const p = new URLSearchParams();
-  if (filters.keyword) p.set(PARAM.keyword, filters.keyword);
-  return p;
+  const params = new URLSearchParams();
+  if (filters.keyword) params.set(PARAM.keyword, filters.keyword);
+  return params;
 }

@@ -12,6 +12,7 @@ import type {GridColDef} from '@mui/x-data-grid';
 import {formatLocalDateOnly, parseLocalDateOnly} from '@/components/RecurringPayment/dateOnly';
 import {executionPlanOptions} from '@/components/RecurringPayment/executionPlan';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
+import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
 export type RecurringPaymentDraftRow = {
   id: string;
   executionPlan: TExecutionPlan;
@@ -33,15 +34,8 @@ const recurringPaymentDraftSchema = CreateOrUpdateRecurringPaymentPayload.extend
   transferAmount: CreateOrUpdateRecurringPaymentPayload.shape.transferAmount.finite(),
 });
 
-const createDraftId = (): string => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `recurring-payment-draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-};
-
 export const createEmptyRow = (): DraftRow => ({
-  id: createDraftId(),
+  id: crypto.randomUUID(),
   executionPlan: 'monthly',
   startsOn: new Date(),
   paused: false,
@@ -143,16 +137,11 @@ export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef
 export const mapRowsToPayload: BatchEntityDialogProps<
   DraftRow,
   TCreateOrUpdateRecurringPaymentPayload
->['mapRowsToPayload'] = rows => {
-  const issues: Array<{rowId: DraftRow['id']; message: string}> = [];
-  const payload: TCreateOrUpdateRecurringPaymentPayload[] = [];
-
-  for (const row of rows) {
-    if (!(row.startsOn instanceof Date) || Number.isNaN(row.startsOn.getTime())) {
-      issues.push({rowId: row.id, message: 'First execution date is required'});
-      continue;
-    }
-    const parsed = recurringPaymentDraftSchema.safeParse({
+>['mapRowsToPayload'] = rows =>
+  mapDraftRowsToPayload(
+    rows,
+    recurringPaymentDraftSchema,
+    row => ({
       executionPlan: row.executionPlan,
       startsOn: formatLocalDateOnly(row.startsOn),
       paused: row.paused,
@@ -161,18 +150,9 @@ export const mapRowsToPayload: BatchEntityDialogProps<
       receiver: row.receiver,
       transferAmount: row.transferAmount,
       information: row.information && row.information.length > 0 ? row.information : null,
-    });
-
-    if (!parsed.success) {
-      issues.push({
-        rowId: row.id,
-        message: parsed.error.issues.map(issue => issue.message).join(', '),
-      });
-      continue;
-    }
-
-    payload.push(parsed.data);
-  }
-
-  return issues.length > 0 ? {success: false, issues} : {success: true, payload};
-};
+    }),
+    row =>
+      !(row.startsOn instanceof Date) || Number.isNaN(row.startsOn.getTime())
+        ? 'First execution date is required'
+        : undefined,
+  );
