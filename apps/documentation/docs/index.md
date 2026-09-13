@@ -4,26 +4,24 @@ description: Understand, run, use, and extend BudgetBuddy.
 icon: House
 ---
 
-BudgetBuddy is an open-source personal finance manager for income, expenses, recurring payments, budgets, and analytics.
+BudgetBuddyDE is an open-source personal finance manager for transactions, recurring payments, budgets, categories, payment methods, attachments, and analytics. This documentation is split into three guides, one for each audience.
 
-## Quick Start
+## Choose your path
 
-- **Use BudgetBuddy:** Learn about the application's main features in the [user guide](/user-guide).
-- **Develop locally:** Set up the monorepo and start the webapp, services, and infrastructure with the [development guide](/getting-started/development).
-- **Self-host BudgetBuddy:** Prepare your own environment with PostgreSQL, Redis, and the BudgetBuddy services using the [self-hosting guide](/administration).
-- **Integrate:** Use the typed API client or the MCP interface through the [API reference](/reference).
+- **Use BudgetBuddy** — [Getting started](/users/getting-started) explains accounts, transactions, budgets, and every feature in the web app. The guide applies to the hosted service at [app.budget-buddy.de](https://app.budget-buddy.de) and to a self-hosted instance alike, because the interface is identical.
+- **Self-host BudgetBuddy** — [Self-hosting overview](/self-hosting/overview) covers architecture, deployment, configuration, and operations for running your own instance with PostgreSQL, Redis, and S3-compatible storage.
+- **Develop or extend** — [Developer setup](/developers/getting-started) explains the monorepo, the request flow, the database, and how to add features.
 
-## Project At A Glance
+## What BudgetBuddy offers
 
-- Dashboard with current financial overviews
+- Dashboard with your current financial overview, paid and upcoming payments
 - Transactions for income and expenses
-- Recurring payments and automatic processing
-- Budgets and analytics
+- Recurring payments with automatic transaction creation
+- Budgets with monthly goals across categories
 - Custom categories and payment methods
-- Attachments such as receipts through S3-compatible storage
-- API key and MCP integration for external clients
-
-BudgetBuddy is under active development. The [project status](/project/roadmap) describes which features are stable, in progress, or planned.
+- Attachments such as receipts stored in S3-compatible object storage
+- Data export and import for backup and migration
+- API keys and an MCP integration for external clients and LLM assistants
 
 ## Links
 

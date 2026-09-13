@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "getting-started",
+    "architecture",
+    "workspaces",
+    "database",
+    "authentication",
+    "api-and-mcp",
+    "adding-a-feature"
+  ]
+}
