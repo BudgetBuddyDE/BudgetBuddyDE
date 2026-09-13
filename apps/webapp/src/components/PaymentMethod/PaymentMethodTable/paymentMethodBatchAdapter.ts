@@ -7,6 +7,7 @@ import {
 } from '@budgetbuddyde/api/paymentMethod';
 import type {GridColDef} from '@mui/x-data-grid';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
+import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
 
 export type PaymentMethodDraftRow = {
   id: string;
@@ -26,15 +27,8 @@ const paymentMethodDraftSchema = CreateOrUpdatePaymentMethodPayload.extend({
   address: CreateOrUpdatePaymentMethodPayload.shape.address.min(1).max(32),
 });
 
-const createDraftId = (): string => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `payment-method-draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-};
-
 export const createEmptyRow = (): DraftRow => ({
-  id: createDraftId(),
+  id: crypto.randomUUID(),
   name: '',
   provider: '',
   address: '',
@@ -85,28 +79,10 @@ export const columns = (_options?: PaymentMethodBatchColumnOptions): GridColDef<
 export const mapRowsToPayload: BatchEntityDialogProps<
   DraftRow,
   TCreateOrUpdatePaymentMethodPayload
->['mapRowsToPayload'] = rows => {
-  const issues: Array<{rowId: DraftRow['id']; message: string}> = [];
-  const payload: TCreateOrUpdatePaymentMethodPayload[] = [];
-
-  for (const row of rows) {
-    const parsed = paymentMethodDraftSchema.safeParse({
-      name: row.name,
-      provider: row.provider,
-      address: row.address,
-      description: row.description && row.description.length > 0 ? row.description : null,
-    });
-
-    if (!parsed.success) {
-      issues.push({
-        rowId: row.id,
-        message: parsed.error.issues.map(issue => issue.message).join(', '),
-      });
-      continue;
-    }
-
-    payload.push(parsed.data);
-  }
-
-  return issues.length > 0 ? {success: false, issues} : {success: true, payload};
-};
+>['mapRowsToPayload'] = rows =>
+  mapDraftRowsToPayload(rows, paymentMethodDraftSchema, row => ({
+    name: row.name,
+    provider: row.provider,
+    address: row.address,
+    description: row.description && row.description.length > 0 ? row.description : null,
+  }));

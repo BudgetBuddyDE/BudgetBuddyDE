@@ -10,6 +10,7 @@ import {
 import type {GridColDef} from '@mui/x-data-grid';
 import {z} from 'zod';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
+import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
 
 export type TransactionDraftRow = {
   id: string;
@@ -31,15 +32,8 @@ const transactionDraftSchema = CreateOrUpdateTransactionPayload.extend({
   transferAmount: CreateOrUpdateTransactionPayload.shape.transferAmount.finite(),
 });
 
-const createDraftId = (): string => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `transaction-draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-};
-
 export const createEmptyRow = (): DraftRow => ({
-  id: createDraftId(),
+  id: crypto.randomUUID(),
   processedAt: new Date(),
   categoryId: '',
   paymentMethodId: '',
@@ -120,30 +114,12 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
 export const mapRowsToPayload: BatchEntityDialogProps<
   DraftRow,
   TCreateOrUpdateTransactionPayload
->['mapRowsToPayload'] = rows => {
-  const issues: Array<{rowId: DraftRow['id']; message: string}> = [];
-  const payload: TCreateOrUpdateTransactionPayload[] = [];
-
-  for (const row of rows) {
-    const parsed = transactionDraftSchema.safeParse({
-      processedAt: row.processedAt,
-      categoryId: row.categoryId,
-      paymentMethodId: row.paymentMethodId,
-      receiver: row.receiver,
-      transferAmount: row.transferAmount,
-      information: row.information && row.information.length > 0 ? row.information : null,
-    });
-
-    if (!parsed.success) {
-      issues.push({
-        rowId: row.id,
-        message: parsed.error.issues.map(issue => issue.message).join(', '),
-      });
-      continue;
-    }
-
-    payload.push(parsed.data);
-  }
-
-  return issues.length > 0 ? {success: false, issues} : {success: true, payload};
-};
+>['mapRowsToPayload'] = rows =>
+  mapDraftRowsToPayload(rows, transactionDraftSchema, row => ({
+    processedAt: row.processedAt,
+    categoryId: row.categoryId,
+    paymentMethodId: row.paymentMethodId,
+    receiver: row.receiver,
+    transferAmount: row.transferAmount,
+    information: row.information && row.information.length > 0 ? row.information : null,
+  }));
