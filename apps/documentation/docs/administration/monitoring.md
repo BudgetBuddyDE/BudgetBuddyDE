@@ -6,7 +6,7 @@ icon: Activity
 
 ## Health Checks
 
-The auth service and backend provide status endpoints at `/health` and `/status`. The response contains the service status and the reachability of the database and Redis.
+The backend provides status endpoints at `/health` and `/status`. Its response contains the service status and the reachability of the database and Redis. The webapp exposes a lightweight `/api/health` endpoint for its own health check.
 
 A service can report the `degraded` status when a dependency is unreachable. Monitor the HTTP status, response time, and individual dependency fields.
 

@@ -6,11 +6,10 @@ icon: FolderTree
 
 ```text
 apps/
-  webapp/          Next.js main application
+  webapp/          Next.js main application (includes Better Auth)
   website/         public landing page
   documentation/   Fumapress documentation
 services/
-  auth-service/    Better Auth service
   backend/         domain Express API
   mcp/             MCP service
 packages/

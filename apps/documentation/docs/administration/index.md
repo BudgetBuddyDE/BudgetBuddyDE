@@ -4,7 +4,7 @@ description: Configure, deploy, and monitor BudgetBuddy securely.
 icon: Server
 ---
 
-BudgetBuddy consists of a Next.js webapp, an auth service, a backend, and optionally the MCP service. Operations require PostgreSQL and Redis; attachments additionally use S3-compatible storage.
+BudgetBuddy consists of a Next.js webapp that hosts Better Auth, a backend, and optionally the MCP service. Operations require PostgreSQL and Redis; attachments additionally use S3-compatible storage.
 
 ## Operational Tasks
 

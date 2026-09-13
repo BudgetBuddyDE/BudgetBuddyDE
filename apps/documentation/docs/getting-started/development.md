@@ -36,13 +36,12 @@ Copy the respective example files in the workspace directories:
 
 ```text
 apps/webapp/.env.example -> apps/webapp/.env.local
-services/auth-service/.env.example -> services/auth-service/.env
 services/backend/.env.example -> services/backend/.env
 services/mcp/.env.example -> services/mcp/.env
 packages/db/.env.example -> packages/db/.env
 ```
 
-The variables are documented in the [environment variable reference](/reference/environment-variables). Secrets do not belong in Git.
+The webapp hosts Better Auth and therefore also needs `DATABASE_URL`, `AUTH_SECRET`, and `RESEND_API_KEY`. The variables are documented in the [environment variable reference](/reference/environment-variables). Secrets do not belong in Git.
 
 ## Start
 
