@@ -1,3 +1,4 @@
+import {crc32} from 'node:zlib';
 import {fromNodeHeaders} from 'better-auth/node';
 import type {RequestHandler} from 'express';
 import {HTTPStatusCode} from './models';
@@ -60,18 +61,6 @@ const resourceFileNames: Record<TExportResource, string> = {
   apiKeys: 'api-keys',
 };
 
-const crc32Table = Uint32Array.from({length: 256}, (_, index) => {
-  let value = index;
-  for (let bit = 0; bit < 8; bit++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
-  return value >>> 0;
-});
-
-function calculateCrc32(data: Buffer): number {
-  let value = 0xffffffff;
-  for (const byte of data) value = crc32Table[(value ^ byte) & 0xff]! ^ (value >>> 8);
-  return (value ^ 0xffffffff) >>> 0;
-}
-
 function createZip(files: Array<{name: string; content: string}>): Buffer {
   const localFiles: Buffer[] = [];
   const centralDirectory: Buffer[] = [];
@@ -80,13 +69,13 @@ function createZip(files: Array<{name: string; content: string}>): Buffer {
   for (const file of files) {
     const name = Buffer.from(file.name, 'utf8');
     const content = Buffer.from(file.content, 'utf8');
-    const crc32 = calculateCrc32(content);
+    const checksum = crc32(content);
     const localHeader = Buffer.alloc(30);
     localHeader.writeUInt32LE(0x04034b50, 0);
     localHeader.writeUInt16LE(20, 4);
     localHeader.writeUInt16LE(0x0800, 6);
     localHeader.writeUInt16LE(0, 8);
-    localHeader.writeUInt32LE(crc32, 14);
+    localHeader.writeUInt32LE(checksum, 14);
     localHeader.writeUInt32LE(content.length, 18);
     localHeader.writeUInt32LE(content.length, 22);
     localHeader.writeUInt16LE(name.length, 26);
@@ -97,7 +86,7 @@ function createZip(files: Array<{name: string; content: string}>): Buffer {
     centralHeader.writeUInt16LE(20, 6);
     centralHeader.writeUInt16LE(0x0800, 8);
     centralHeader.writeUInt16LE(0, 10);
-    centralHeader.writeUInt32LE(crc32, 16);
+    centralHeader.writeUInt32LE(checksum, 16);
     centralHeader.writeUInt32LE(content.length, 20);
     centralHeader.writeUInt32LE(content.length, 24);
     centralHeader.writeUInt16LE(name.length, 28);
