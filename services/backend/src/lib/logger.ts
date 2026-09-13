@@ -1,13 +1,11 @@
-import {createLogger, type Logger} from '@budgetbuddyde/logger';
-import {createConsoleSink, formatConsoleEvent} from '@budgetbuddyde/logger/console';
+import {createServiceLogger} from '@budgetbuddyde/logger/console';
 import {config} from '../config';
 
-export const logger: Logger = createLogger({
-  sinks: [createConsoleSink({formatter: formatConsoleEvent})],
-  context: {
+export const logger = createServiceLogger(
+  {
     service: config.service,
     version: config.version,
     runtime: config.runtime,
   },
-  threshold: config.log?.level ?? 'info',
-});
+  config.log?.level ?? 'info',
+);

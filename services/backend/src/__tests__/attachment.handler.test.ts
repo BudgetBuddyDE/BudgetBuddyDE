@@ -85,7 +85,6 @@ vi.mock('@aws-sdk/s3-request-presigner', () => ({
   getSignedUrl: (...args: unknown[]) => mockGetSignedUrl(...args),
 }));
 
-import {AttachmentHandler} from '../lib/attachment/attachment.handler';
 import {TransactionAttachmentHandler} from '../lib/attachment/transaction-attachment.handler';
 
 beforeEach(() => {
@@ -122,15 +121,15 @@ const TX_ID = 'tx-456';
 const ATTACHMENT_ID = '01926a0b-0000-7000-8000-000000000001';
 
 // ---------------------------------------------------------------------------
-// AttachmentHandler – static helper
+// TransactionAttachmentHandler – static helper
 // ---------------------------------------------------------------------------
 
-suite('AttachmentHandler', () => {
+suite('TransactionAttachmentHandler', () => {
   describe('prepareAttachmentBuffer', () => {
     it('gzip-compresses non-image buffers when the compressed payload is smaller', async () => {
       const buffer = Buffer.from('receipt-data-'.repeat(100));
 
-      const prepared = await AttachmentHandler.prepareAttachmentBuffer(buffer, 'application/pdf');
+      const prepared = await TransactionAttachmentHandler.prepareAttachmentBuffer(buffer, 'application/pdf');
 
       expect(prepared.contentEncoding).toBe('gzip');
       expect(prepared.optimization).toBe('gzip');
@@ -140,7 +139,7 @@ suite('AttachmentHandler', () => {
     it('keeps original non-image buffers when gzip would not reduce the payload size', async () => {
       const buffer = Buffer.from([0x1f]);
 
-      const prepared = await AttachmentHandler.prepareAttachmentBuffer(buffer, 'application/pdf');
+      const prepared = await TransactionAttachmentHandler.prepareAttachmentBuffer(buffer, 'application/pdf');
 
       expect(prepared.contentEncoding).toBeUndefined();
       expect(prepared.optimization).toBe('none');
@@ -159,7 +158,7 @@ suite('AttachmentHandler', () => {
         .jpeg({quality: 100})
         .toBuffer();
 
-      const prepared = await AttachmentHandler.prepareAttachmentBuffer(buffer, 'image/jpeg');
+      const prepared = await TransactionAttachmentHandler.prepareAttachmentBuffer(buffer, 'image/jpeg');
 
       expect(prepared.contentEncoding).toBeUndefined();
       expect(prepared.optimization).toBe('image');
@@ -174,37 +173,39 @@ suite('AttachmentHandler', () => {
       const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
       const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0]);
 
-      expect(AttachmentHandler.hasValidImageSignature(png, 'image/png')).toBe(true);
-      expect(AttachmentHandler.hasValidImageSignature(jpeg, 'image/jpeg')).toBe(true);
-      expect(AttachmentHandler.hasValidImageSignature(Buffer.from('not-an-image'), 'image/png')).toBe(false);
-      expect(AttachmentHandler.hasValidImageSignature(Buffer.from('anything'), 'application/pdf')).toBe(true);
+      expect(TransactionAttachmentHandler.hasValidImageSignature(png, 'image/png')).toBe(true);
+      expect(TransactionAttachmentHandler.hasValidImageSignature(jpeg, 'image/jpeg')).toBe(true);
+      expect(TransactionAttachmentHandler.hasValidImageSignature(Buffer.from('not-an-image'), 'image/png')).toBe(false);
+      expect(TransactionAttachmentHandler.hasValidImageSignature(Buffer.from('anything'), 'application/pdf')).toBe(
+        true,
+      );
     });
   });
 
   describe('getFileExtension', () => {
     it('returns lowercase extension without leading dot', () => {
       const file = makeMulFile({originalname: 'photo.PNG'});
-      expect(AttachmentHandler.getFileExtension(file)).toBe('png');
+      expect(TransactionAttachmentHandler.getFileExtension(file)).toBe('png');
     });
 
     it('handles files without extension', () => {
       const file = makeMulFile({originalname: 'noext'});
-      expect(AttachmentHandler.getFileExtension(file)).toBe('');
+      expect(TransactionAttachmentHandler.getFileExtension(file)).toBe('');
     });
 
     it('handles dotfiles', () => {
       const file = makeMulFile({originalname: '.gitignore'});
       // Node.js path.extname('.gitignore') returns '' — dotfiles have no extension
-      expect(AttachmentHandler.getFileExtension(file)).toBe('');
+      expect(TransactionAttachmentHandler.getFileExtension(file)).toBe('');
     });
   });
 });
 
 // ---------------------------------------------------------------------------
-// AttachmentHandler – generateSignedUrl
+// TransactionAttachmentHandler – generateSignedUrl
 // ---------------------------------------------------------------------------
 
-suite('AttachmentHandler.generateSignedUrl', () => {
+suite('TransactionAttachmentHandler.generateSignedUrl', () => {
   let handler: TransactionAttachmentHandler;
 
   beforeEach(() => {
@@ -272,10 +273,10 @@ suite('AttachmentHandler.generateSignedUrl', () => {
 });
 
 // ---------------------------------------------------------------------------
-// AttachmentHandler – generateSignedUrls
+// TransactionAttachmentHandler – generateSignedUrls
 // ---------------------------------------------------------------------------
 
-suite('AttachmentHandler.generateSignedUrls', () => {
+suite('TransactionAttachmentHandler.generateSignedUrls', () => {
   let handler: TransactionAttachmentHandler;
 
   beforeEach(() => {
@@ -332,10 +333,10 @@ suite('AttachmentHandler.generateSignedUrls', () => {
 });
 
 // ---------------------------------------------------------------------------
-// AttachmentHandler – deleteAttachments
+// TransactionAttachmentHandler – deleteAttachments
 // ---------------------------------------------------------------------------
 
-suite('AttachmentHandler.deleteAttachments', () => {
+suite('TransactionAttachmentHandler.deleteAttachments', () => {
   let handler: TransactionAttachmentHandler;
 
   beforeEach(() => {

@@ -1,5 +1,14 @@
 import {ATTACHMENT_CONTENT_TYPES} from '@budgetbuddyde/api/attachment';
-import {BackendConfig, type BackendConfigOptions} from '@budgetbuddyde/core/config/BackendConfig';
+import {
+  BackendConfig,
+  type BackendConfigOptions,
+  getOptionalEnvironmentValue,
+  getPort,
+  getRedisDatabase,
+  getRuntime,
+  getTrustedOrigins,
+  getTrustProxy,
+} from '@budgetbuddyde/core/config/BackendConfig';
 import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSetError';
 import {getLogLevel, type LogThreshold} from '@budgetbuddyde/logger';
 import type {CorsOptions} from 'cors';
@@ -7,6 +16,12 @@ import 'dotenv/config';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
 import {name, version} from '../package.json';
 import {HTTPStatusCode} from './models/HttpStatusCode';
+
+function getRequiredEnvironmentValue(environment: NodeJS.ProcessEnv, name: string): string {
+  const value = getOptionalEnvironmentValue(environment, name);
+  if (value === undefined) throw new EnvironmentNotSetError(name);
+  return value;
+}
 
 /** Complete, centrally constructed runtime configuration for the backend service. */
 export class AppConfig extends BackendConfig {
@@ -167,36 +182,36 @@ export class AppConfig extends BackendConfig {
 
   /** Builds the backend configuration from a process environment. */
   static fromEnvironment(environment: NodeJS.ProcessEnv = process.env): AppConfig {
-    const runtime = AppConfig.getRuntime(environment.NODE_ENV);
+    const runtime = getRuntime(environment.NODE_ENV);
     const service = name;
-    const timezone = AppConfig.getOptionalEnvironmentValue(environment, 'TIMEZONE') ?? 'Europe/Berlin';
-    const redisUrl = AppConfig.getOptionalEnvironmentValue(environment, 'REDIS_URL');
+    const timezone = getOptionalEnvironmentValue(environment, 'TIMEZONE') ?? 'Europe/Berlin';
+    const redisUrl = getOptionalEnvironmentValue(environment, 'REDIS_URL');
 
     return new AppConfig({
       service,
       version,
-      port: AppConfig.getPort(environment.PORT, 9000),
+      port: getPort(environment.PORT, 9000),
       runtime,
       auth: {
-        baseUrl: AppConfig.getOptionalEnvironmentValue(environment, 'AUTH_SERVICE_HOST') ?? 'http://localhost:8080',
+        baseUrl: getOptionalEnvironmentValue(environment, 'AUTH_SERVICE_HOST') ?? 'http://localhost:8080',
         credentials: 'include',
         requestTimeoutMs: 5000,
       },
       database: {
-        connectionString: AppConfig.getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
+        connectionString: getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
         connectionTimeoutMillis: 5000,
         maxConnections: 20,
       },
       redis: {
         url: redisUrl,
-        database: AppConfig.getRedisDatabase(environment.REDIS_DB),
+        database: getRedisDatabase(environment.REDIS_DB, 1),
       },
       objectStorage: {
-        endpoint: AppConfig.getOptionalEnvironmentValue(environment, 'AWS_ENDPOINT_URL'),
-        bucketName: AppConfig.getOptionalEnvironmentValue(environment, 'AWS_S3_BUCKET_NAME'),
-        region: AppConfig.getOptionalEnvironmentValue(environment, 'AWS_DEFAULT_REGION'),
-        accessKeyId: AppConfig.getOptionalEnvironmentValue(environment, 'AWS_ACCESS_KEY_ID'),
-        secretAccessKey: AppConfig.getOptionalEnvironmentValue(environment, 'AWS_SECRET_ACCESS_KEY'),
+        endpoint: getOptionalEnvironmentValue(environment, 'AWS_ENDPOINT_URL'),
+        bucketName: getOptionalEnvironmentValue(environment, 'AWS_S3_BUCKET_NAME'),
+        region: getOptionalEnvironmentValue(environment, 'AWS_DEFAULT_REGION'),
+        accessKeyId: getOptionalEnvironmentValue(environment, 'AWS_ACCESS_KEY_ID'),
+        secretAccessKey: getOptionalEnvironmentValue(environment, 'AWS_SECRET_ACCESS_KEY'),
         forcePathStyle: false,
       },
       log: {
@@ -205,13 +220,13 @@ export class AppConfig extends BackendConfig {
       cors: {
         origin:
           runtime === 'production'
-            ? AppConfig.getTrustedOrigins(environment.TRUSTED_ORIGINS)
+            ? getTrustedOrigins(environment.TRUSTED_ORIGINS)
             : [/^(http|https):\/\/localhost(:\d+)?$/],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
         credentials: true,
       },
-      trustProxy: AppConfig.getTrustProxy(environment.TRUST_PROXY, runtime),
+      trustProxy: getTrustProxy(environment.TRUST_PROXY, runtime),
       rateLimit: {
         enabled: runtime === 'production' && redisUrl !== undefined,
         keyPrefix: `rate-limit:${service}:`,
@@ -329,64 +344,6 @@ export class AppConfig extends BackendConfig {
       secretAccessKey: this.objectStorage.secretAccessKey as string,
       forcePathStyle: this.objectStorage.forcePathStyle,
     };
-  }
-
-  private static getOptionalEnvironmentValue(environment: NodeJS.ProcessEnv, name: string): string | undefined {
-    const value = environment[name]?.trim();
-    return value === '' || value === undefined ? undefined : value;
-  }
-
-  private static getRequiredEnvironmentValue(environment: NodeJS.ProcessEnv, name: string): string {
-    const value = AppConfig.getOptionalEnvironmentValue(environment, name);
-    if (value === undefined) throw new EnvironmentNotSetError(name);
-    return value;
-  }
-
-  private static getRuntime(value: string | undefined): 'production' | 'development' | 'test' {
-    switch (value?.toLowerCase()) {
-      case 'production':
-        return 'production';
-      case 'test':
-        return 'test';
-      case 'development':
-        return 'development';
-      default:
-        return 'development';
-    }
-  }
-
-  private static getPort(value: string | undefined, fallbackPort: number): number {
-    const port = Number.parseInt(value ?? '', 10);
-    return Number.isNaN(port) ? fallbackPort : port;
-  }
-
-  private static getRedisDatabase(value: string | undefined): number {
-    if (value === undefined || value.trim() === '') return 1;
-
-    const database = Number(value);
-    return Number.isFinite(database) ? database : 1;
-  }
-
-  private static getTrustedOrigins(value: string | undefined): string[] {
-    return (
-      value
-        ?.split(',')
-        .map(origin => origin.trim())
-        .filter(Boolean) ?? []
-    );
-  }
-
-  /** Parses the `trust proxy` setting; production defaults to a single reverse proxy. */
-  private static getTrustProxy(
-    value: string | undefined,
-    runtime: 'production' | 'development' | 'test',
-  ): boolean | number | string {
-    const trimmed = value?.trim();
-    if (trimmed === undefined || trimmed === '') return runtime === 'production' ? 1 : false;
-    if (trimmed === 'true') return true;
-    if (trimmed === 'false') return false;
-    const numeric = Number(trimmed);
-    return Number.isFinite(numeric) ? numeric : trimmed;
   }
 }
 

@@ -1,13 +1,68 @@
 import type {TSignedAttachmentUrl} from '@budgetbuddyde/api/attachment';
+import type {Logger} from '@budgetbuddyde/logger';
+import type Redis from 'ioredis';
 import {config} from '../../config';
-import {Cache} from './cache';
+import {getRedisClient} from '../../db/redis';
+import {logger} from '../logger';
 
 /** Cache signed URLs for slightly less than their actual expiry to avoid serving stale links. */
 const SIGNED_URL_CACHE_TTL_MARGIN_SECONDS = 60;
 
-export class AttachmentCache extends Cache {
+/** Redis-backed cache that degrades to a no-op when Redis is not configured. */
+export class AttachmentCache {
+  private readonly logger: Logger;
+  private readonly redisClient: Redis | null;
+  private readonly namespace: string;
+
   constructor() {
-    super(config.attachments.cacheNamespace);
+    this.logger = logger.child({module: 'Cache'});
+    this.redisClient = config.redis.url ? getRedisClient() : null;
+    this.namespace = config.attachments.cacheNamespace;
+  }
+
+  private getKey(key: string): `${string}:${string}` {
+    return `${this.namespace}:${key}`;
+  }
+
+  private async setValue(key: string, value: string, options?: {ttl: number}) {
+    if (!this.redisClient) return 'ERROR';
+    try {
+      key = this.getKey(key);
+      const result = options?.ttl
+        ? await this.redisClient.set(key, value, 'EX', options.ttl)
+        : await this.redisClient.set(key, value);
+      this.logger.debug(`Value set for '${key}'`);
+      return result;
+    } catch (error) {
+      this.logger.error('SetCacheError', error instanceof Error ? error : new Error(String(error)));
+      return 'ERROR';
+    }
+  }
+
+  private async getValue<Result extends string = string>(key: string) {
+    if (!this.redisClient) return null;
+    try {
+      key = this.getKey(key);
+      const result = await this.redisClient.get(key);
+      this.logger.debug(result ? `Retrieved value for '${key}'` : `No value found for '${key}'`);
+      return result as Result | null;
+    } catch (error) {
+      this.logger.error('GetCacheError', error instanceof Error ? error : new Error(String(error)));
+      return null;
+    }
+  }
+
+  private async deleteValue(key: string) {
+    if (!this.redisClient) return 0;
+    try {
+      key = this.getKey(key);
+      const result = await this.redisClient.del(key);
+      this.logger.debug(`Deleted value for '${key}'`);
+      return result;
+    } catch (error) {
+      this.logger.error('DeleteCacheError', error instanceof Error ? error : new Error(String(error)));
+      return 0;
+    }
   }
 
   private cacheTtl(ttlSeconds: number): number {

@@ -94,16 +94,13 @@ describe('DataTable', () => {
   });
 
   it('respects pagination settings', async () => {
-    const onPaginationChange = vi.fn();
-
     render(
       <DataTable
         data={mockProducts}
         columns={mockColumns}
         pagination
-        paginationModel={{page: 0, pageSize: 10}}
-        onPaginationModelChange={onPaginationChange}
         pageSizeOptions={[5, 10, 25]}
+        dataGridProps={{initialState: {pagination: {paginationModel: {page: 0, pageSize: 10}}}}}
       />,
     );
 
