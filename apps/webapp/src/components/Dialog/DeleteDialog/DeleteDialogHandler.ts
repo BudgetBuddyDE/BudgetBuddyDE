@@ -8,10 +8,8 @@ type Action<TargetIdentifier = string> =
   | {
       action: 'CONFIRM';
       callback: (entityId: TargetIdentifier | TargetIdentifier[]) => Promise<void> | void;
-      autoClose?: boolean;
     }
-  | {action: 'CLOSE'}
-  | {action: 'CLEAR'};
+  | {action: 'CLOSE'};
 
 export function getInitialDeleteDialogState<TargetIdentifier = string>(): State<TargetIdentifier> {
   return {
@@ -38,10 +36,9 @@ export function deleteDialogReducer<TargetIdentifier = string>(
       // Note: This does not block the reducer; side effects should be handled carefully in real applications
       action.callback(state.target);
       return {
-        isOpen: action.autoClose === false ? state.isOpen : false,
+        isOpen: false,
         target: null,
       };
-    case 'CLEAR':
     case 'CLOSE':
       return {isOpen: false, target: null};
     default:

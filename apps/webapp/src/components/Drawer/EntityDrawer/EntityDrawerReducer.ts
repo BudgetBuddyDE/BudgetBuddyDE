@@ -28,8 +28,7 @@ export type EntityDrawerAction<A, Actions = DefaultActions> =
       action: EntityAction<Actions>;
       defaultValues?: Partial<A>;
     }
-  | {type: 'CLOSE'}
-  | {type: 'RESET'};
+  | {type: 'CLOSE'};
 
 export function entityDrawerReducer<T, Actions = DefaultActions>(
   state: EntityDrawerState<T, Actions>,
@@ -44,7 +43,6 @@ export function entityDrawerReducer<T, Actions = DefaultActions>(
       };
 
     case 'CLOSE':
-    case 'RESET':
       return {
         isOpen: false,
         action: null,

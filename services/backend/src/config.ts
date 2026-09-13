@@ -62,7 +62,6 @@ export class AppConfig extends BackendConfig {
   public readonly timezone: string;
   public readonly jobs: {
     recurringPayments: {
-      enabled: boolean;
       name: string;
       schedule: string;
       timezone: string;
@@ -72,7 +71,6 @@ export class AppConfig extends BackendConfig {
     /** Globally enable or disable caching. When false, no caching occurs regardless of Redis availability. */
     enabled: boolean;
     keyPrefix: string;
-    invalidationScanCount: number;
     /** Per-route cache configuration. Only listed routes are cached. */
     routes: {
       /** Express path prefix to match, e.g. '/api/category' */
@@ -248,7 +246,6 @@ export class AppConfig extends BackendConfig {
       timezone,
       jobs: {
         recurringPayments: {
-          enabled: true,
           name: 'process-recurring-payments',
           schedule: '30 1 * * *',
           timezone,
@@ -257,7 +254,6 @@ export class AppConfig extends BackendConfig {
       cache: {
         enabled: redisUrl !== undefined,
         keyPrefix: 'cache',
-        invalidationScanCount: 100,
         routes: [
           {path: '/api/category', ttl: 300},
           {path: '/api/paymentMethod', ttl: 300},

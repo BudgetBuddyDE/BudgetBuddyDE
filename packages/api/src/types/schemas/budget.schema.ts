@@ -23,23 +23,6 @@ export const Budget = z.object({
   ),
 });
 
-// export const CreateBudgetPayload = Budget.pick({
-// 	type: true,
-// 	budget: true,
-// 	name: true,
-// 	description: true,
-// }).extend({
-// 	categories: z.array(Category.shape.id),
-// });
-
-// export const UpdateBudgetPayload = z.object({
-// 	type: Budget.shape.type.optional(),
-// 	budget: Budget.shape.budget.optional(),
-// 	name: Budget.shape.name.optional(),
-// 	description: Budget.shape.description.optional(),
-// 	categories: z.array(Category.shape.id).optional(),
-// });
-
 export const CreateOrUpdateBudgetPayload = Budget.pick({
   type: true,
   name: true,

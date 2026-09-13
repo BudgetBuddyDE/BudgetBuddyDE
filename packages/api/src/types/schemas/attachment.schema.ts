@@ -30,22 +30,11 @@ export const AttachmentWithUrl = Attachment.extend({
   signedUrl: z.url(),
 });
 
-export const GetAllAttachmentsResponse = ApiResponse.extend({
-  data: z.array(AttachmentWithUrl).nullable(),
-});
 export const GetAttachmentResponse = ApiResponse.extend({
   data: AttachmentWithUrl.nullable(),
 });
 export const CreateAttachmentResponse = ApiResponse.extend({
   data: z.array(AttachmentWithUrl).nullable(),
-});
-export const UpdateAttachmentResponse = undefined;
-export const DeleteAttachmentResponse = CreateAttachmentResponse.extend({});
-
-/** Paginated response for listing attachments */
-export const GetAttachmentsPagedResponse = ApiResponse.extend({
-  data: z.array(AttachmentWithUrl).nullable(),
-  totalCount: z.number().optional(),
 });
 
 /** Query parameters for fetching attachments */

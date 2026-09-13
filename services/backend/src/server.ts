@@ -155,23 +155,21 @@ export function startServer(): Server {
     logger.info('%s is available under http://localhost:%d', config.service, config.port, {...options});
 
     const recurringPaymentsJob = config.jobs.recurringPayments;
-    if (recurringPaymentsJob.enabled) {
-      scheduledJob = cron.schedule(recurringPaymentsJob.schedule, processRecurringPayments, {
-        name: recurringPaymentsJob.name,
+    scheduledJob = cron.schedule(recurringPaymentsJob.schedule, processRecurringPayments, {
+      name: recurringPaymentsJob.name,
+      timezone: recurringPaymentsJob.timezone,
+    });
+    logger.info(
+      'Scheduled job "%s" with schedule "%s" (%s timezone)',
+      recurringPaymentsJob.name,
+      recurringPaymentsJob.schedule,
+      recurringPaymentsJob.timezone,
+      {
+        job: recurringPaymentsJob.name,
+        schedule: recurringPaymentsJob.schedule,
         timezone: recurringPaymentsJob.timezone,
-      });
-      logger.info(
-        'Scheduled job "%s" with schedule "%s" (%s timezone)',
-        recurringPaymentsJob.name,
-        recurringPaymentsJob.schedule,
-        recurringPaymentsJob.timezone,
-        {
-          job: recurringPaymentsJob.name,
-          schedule: recurringPaymentsJob.schedule,
-          timezone: recurringPaymentsJob.timezone,
-        },
-      );
-    }
+      },
+    );
   });
 
   const shutdown = (signal: NodeJS.Signals) => {

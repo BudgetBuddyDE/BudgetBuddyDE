@@ -11,20 +11,7 @@ describe('NoResults', () => {
     expect(container.querySelector('.MuiCard-root')).toBeInTheDocument();
   });
 
-  it('renders a Paper surface when requested', () => {
-    const {container} = render(<NoResults surface="paper" />);
-
-    expect(container.querySelector('.MuiCard-root')).not.toBeInTheDocument();
-    expect(container.querySelector('.MuiPaper-root')).toBeInTheDocument();
-  });
-
-  it('renders without a surface when requested', () => {
-    const {container} = render(<NoResults surface="none" />);
-
-    expect(container.querySelector('.MuiCard-root, .MuiPaper-root')).not.toBeInTheDocument();
-  });
-
-  it('renders with custom string text', () => {
+  it('renders a custom string text', () => {
     render(<NoResults text="Nothing here yet" />);
     expect(screen.getByText('Nothing here yet')).toBeInTheDocument();
   });

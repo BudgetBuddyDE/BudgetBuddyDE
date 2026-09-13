@@ -19,8 +19,7 @@ export function useFetch<ReturnValue>(getterFunc: () => Promise<ReturnValue> | R
         setHasFetched(true);
 
         void (async () => {
-          const isAsyncGetter = getterFunc.constructor.name === 'AsyncFunction';
-          const retrievedData = isAsyncGetter ? await getterFunc() : (getterFunc() as ReturnValue);
+          const retrievedData = await getterFunc();
           setData(retrievedData);
           setIsLoading(false);
         })();
@@ -31,11 +30,6 @@ export function useFetch<ReturnValue>(getterFunc: () => Promise<ReturnValue> | R
     },
     [getterFunc, hasFetched],
   );
-
-  const dataGetter = React.useMemo(() => {
-    // void fetchOptions();
-    return data;
-  }, [data]);
 
   React.useEffect(() => {
     if (!hasFetched) {
@@ -52,5 +46,5 @@ export function useFetch<ReturnValue>(getterFunc: () => Promise<ReturnValue> | R
     // Including fetchOptions is safe; guard conditions prevent loops
   }, [getterFunc, hasFetched, fetchDataFunc]);
 
-  return {isLoading, error, data: dataGetter, hasFetchedData: hasFetched};
+  return {isLoading, error, data, hasFetchedData: hasFetched};
 }

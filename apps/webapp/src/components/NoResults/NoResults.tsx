@@ -3,18 +3,15 @@
 import AddRounded from '@mui/icons-material/AddRounded';
 import InboxRounded from '@mui/icons-material/InboxRounded';
 import SearchOffRounded from '@mui/icons-material/SearchOffRounded';
-import {Box, type BoxProps, Button, type ButtonProps, Paper, Stack, Typography} from '@mui/material';
+import {Box, type BoxProps, Button, type ButtonProps, Stack, Typography} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
 
 export type NoResultsVariant = 'empty' | 'filtered' | 'create';
-export type NoResultsSurface = 'card' | 'paper' | 'none';
 
 export type NoResultsProps = Pick<BoxProps, 'sx'> & {
   /** Selects the empty-state copy and visual treatment. */
   variant?: NoResultsVariant;
-  /** Visual surface used to distinguish the empty state from its surroundings. */
-  surface?: NoResultsSurface;
   /** Optional icon shown above the empty-state copy. */
   icon?: React.ReactNode;
   /** Primary empty-state message. */
@@ -53,7 +50,6 @@ const defaultIcon: Record<NoResultsVariant, React.ReactNode> = {
 
 export const NoResults: React.FC<NoResultsProps> = ({
   variant = 'empty',
-  surface = 'card',
   icon,
   title,
   description,
@@ -122,22 +118,6 @@ export const NoResults: React.FC<NoResultsProps> = ({
       {resolvedAction}
     </Stack>
   );
-
-  if (surface === 'none') {
-    return (
-      <Box component="section" sx={surfaceSx}>
-        {content}
-      </Box>
-    );
-  }
-
-  if (surface === 'paper') {
-    return (
-      <Paper component="section" variant="outlined" sx={surfaceSx}>
-        {content}
-      </Paper>
-    );
-  }
 
   return (
     <Card component="section" variant="outlined" sx={surfaceSx}>
