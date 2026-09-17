@@ -10,7 +10,6 @@ BudgetBuddyDE uses Concourse CI to validate, build, version, and release the pro
 
 Concourse watches the `main` branch and turns merged changes into released artifacts:
 
-- Docker images for the services, published to `ghcr.io/budgetbuddyde/*`.
 - npm packages, published to the public registry.
 - Version bumps, Git tags, and release commits pushed back to the repository.
 - Database migrations, applied to the test database first and to production after passing.

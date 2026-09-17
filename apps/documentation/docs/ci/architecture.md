@@ -22,7 +22,6 @@ Variables passed with `fly -v` (such as `repo_path` or `service_name`) are plain
 | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ | -------------------------------------------- |
 | `((github.private_key))`                                                                                                 | `github` / `private_key`                                     | Git resource (read access to the repository) |
 | `((github.pat))`                                                                                                         | `github` / `pat`                                             | Commit status resource (cogito)              |
-| `((docker.username))`, `((docker.password))`                                                                             | `docker` / `username`, `password`                            | ghcr.io image publishing                     |
 | `((s3-versions.bucket))`, `((s3-versions.region))`, `((s3-versions.access_key_id))`, `((s3-versions.access_key_secret))` | `s3-versions`                                                | Version state for the semver resources       |
 | `((s3-db-backup.*))`                                                                                                     | `s3-db-backup`                                               | Daily database backups                       |
 | `((discord.webhook_url))`                                                                                                | `discord` / `webhook_url`                                    | Failed release notifications                 |
@@ -35,7 +34,6 @@ Variables passed with `fly -v` (such as `repo_path` or `service_name`) are plain
 | ---------------- | --------------------------------------------------------------------------------------------------------- |
 | `git`            | Repository checkouts filtered by `repo_path`, authenticated with the deploy key                           |
 | `registry-image` | Node.js LTS image for build tasks                                                                         |
-| `docker-image`   | Build and push images to `ghcr.io/budgetbuddyde/*`                                                        |
 | `semver`         | Versions stored in S3, used for release candidates and final releases                                     |
 | `s3`             | Database backup bucket (`backup_*.dump`)                                                                  |
 | `time`           | Daily trigger for database backups                                                                        |
@@ -61,12 +59,12 @@ Variables passed with `fly -v` (such as `repo_path` or `service_name`) are plain
         │           │                                          │
         │           │  update-test-database → update-prod-db   │
         │           │  database-backup (daily timer)           │
-        │           └───┬────────┬────────┬────────┬───────────┘
-        │               │        │        │        │
-        │  release      │        │        │        │
-        │  commits      ▼        ▼        ▼        ▼
-        │  + tags   ghcr.io/  npm      S3       PostgreSQL
-        └─────────  images   registry versions  test → prod
+        │           └───┬────────┬────────┬───────────────────┘
+        │               │        │        │
+        │  release      │        │        │
+        │  commits      ▼        ▼        ▼
+        │  + tags   npm      S3       PostgreSQL
+        └─────────  registry versions  test → prod
                        │
                        │  status / alerts
                        ▼
