@@ -80,12 +80,11 @@ fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-service.pipeline.y
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
   -v repo_path="services/auth-service" \
-  -v docker_image="ghcr.io/budgetbuddyde/auth-service" \
   -v service="bb_auth_service" \
   -v service_name="auth-service"
 ```
 
-`backend` (`repo_path="services/backend"`, `docker_image="ghcr.io/budgetbuddyde/backend"`, `service="bb_backend"`) and `mcp` (`repo_path="services/mcp"`, `docker_image="ghcr.io/budgetbuddyde/mcp"`, `service="bb_mcp"`) follow the same pattern.
+`backend` (`repo_path="services/backend"`, `service="bb_backend"`) and `mcp` (`repo_path="services/mcp"`, `service="bb_mcp"`) follow the same pattern.
 
 ## Manage pipelines
 
