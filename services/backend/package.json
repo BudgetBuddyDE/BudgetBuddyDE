@@ -31,7 +31,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1009.0",
     "@aws-sdk/s3-request-presigner": "^3.1010.0",
-    "@better-auth/api-key": "1.5.6",
+    "@better-auth/api-key": "1.7.5",
     "@budgetbuddyde/api": "*",
     "@budgetbuddyde/core": "0.1.0",
     "@budgetbuddyde/db": "*",
@@ -42,7 +42,7 @@
     "@opentelemetry/resources": "^2.11.0",
     "@opentelemetry/sdk-trace": "^2.11.0",
     "@opentelemetry/sdk-trace-node": "^2.11.0",
-    "better-auth": "1.5.6",
+    "better-auth": "1.7.5",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
