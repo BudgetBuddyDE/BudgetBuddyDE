@@ -2,6 +2,9 @@
   "name": "budgetbuddyde",
   "private": true,
   "packageManager": "npm@11.4.2",
+  "overrides": {
+    "waku": "1.0.0-rc.1"
+  },
   "workspaces": [
     "packages/*",
     "services/*",
