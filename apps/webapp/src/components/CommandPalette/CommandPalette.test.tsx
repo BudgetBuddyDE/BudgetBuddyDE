@@ -46,11 +46,9 @@ describe('CommandPalette', () => {
 
   it('keeps resolver commands open, shows results, and only executes leaf commands', async () => {
     const leafSelect = vi.fn();
-    const resolve = vi.fn(
-      async (query: string): Promise<Command[]> => [
-        {id: 'target-1', label: `Target ${query}`, section: 'Targets', onSelect: leafSelect},
-      ],
-    );
+    const resolve = vi.fn(async (query: string): Promise<Command[]> => [
+      {id: 'target-1', label: `Target ${query}`, section: 'Targets', onSelect: leafSelect},
+    ]);
 
     renderPalette([{id: 'edit-target', label: 'Edit Target...', resolve}]);
 
@@ -68,9 +66,9 @@ describe('CommandPalette', () => {
   });
 
   it('returns from resolver mode to top-level commands on Escape', async () => {
-    const resolve = vi.fn(
-      async (): Promise<Command[]> => [{id: 'target-1', label: 'Target One', section: 'Targets', onSelect: vi.fn()}],
-    );
+    const resolve = vi.fn(async (): Promise<Command[]> => [
+      {id: 'target-1', label: 'Target One', section: 'Targets', onSelect: vi.fn()},
+    ]);
 
     renderPalette([{id: 'edit-target', label: 'Edit Target...', resolve}]);
 

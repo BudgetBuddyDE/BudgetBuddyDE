@@ -18,8 +18,4 @@ export type BaseAttributes<T, U extends FieldValues> = {
   T;
 
 export type EntityDrawerField<T extends FieldValues> =
-  | DateField<T>
-  | TextField<T>
-  | NumberField<T>
-  | AutocompleteField<T, unknown>
-  | SelectField<T>;
+  DateField<T> | TextField<T> | NumberField<T> | AutocompleteField<T, unknown> | SelectField<T>;

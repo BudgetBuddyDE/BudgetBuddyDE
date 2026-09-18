@@ -1,12 +1,10 @@
 import type {GridRowId} from '@mui/x-data-grid';
 
 type MappingResult<Payload> =
-  | {success: true; payload: Payload[]}
-  | {success: false; issues: Array<{rowId: GridRowId; message: string}>};
+  {success: true; payload: Payload[]} | {success: false; issues: Array<{rowId: GridRowId; message: string}>};
 
 type ParseResult<Payload> =
-  | {success: true; data: Payload}
-  | {success: false; error: {issues: Array<{message: string}>}};
+  {success: true; data: Payload} | {success: false; error: {issues: Array<{message: string}>}};
 
 /**
  * Validates each draft row against `schema` and collects per-row issues instead of failing on the
