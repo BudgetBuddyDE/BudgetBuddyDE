@@ -16,6 +16,7 @@ Next.js 15 App Router application. Server route pages parse URL/search filters a
 - `src/app` — route groups `(auth)` and `(dashboard)` plus internal Next routes under `api/`.
 - `src/components` — domain UI grouped by area (Transaction, Budget, Category, Charts, User, and so on).
 - `src/lib/features` — Redux Toolkit slices for paged entity state.
+- `src/instrumentation.ts` / `src/instrumentation-client.ts` — OpenTelemetry setup; server-side registers when `OTEL_EXPORTER_OTLP_ENDPOINT` is set, client-side when `NEXT_PUBLIC_OTEL_ENDPOINT` is set (see [Configuration](/self-hosting/configuration#tracing-opentelemetry)).
 
 ### `apps/documentation` — this site
 
