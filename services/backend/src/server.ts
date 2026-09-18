@@ -75,8 +75,8 @@ export function createApp(): Express {
     logger.info('Rate limiting is enabled.');
   } else logger.warn('Rate limiting is disabled. Make sure to enable it in production to prevent abuse.');
 
-  app.get(/^\/(api\/)?(status|health)\/?$/, healthHandler);
-  app.head(/^\/(api\/)?(status|health)\/?$/, (_req, res) => {
+  app.get('/health', healthHandler);
+  app.head('/health', (_req, res) => {
     res.status(HTTPStatusCode.OK).end();
   });
 

@@ -28,7 +28,7 @@ if (config.rateLimit.enabled) {
   );
   logger.info('Rate limiting is enabled.');
 } else logger.warn('Rate limiting is disabled. Make sure to enable it in production to prevent abuse.');
-app.all(/^\/(api\/)?(status|health)\/?$/, async (_, res) => {
+app.all('/health', async (_, res) => {
   const isDatabaseConnected = await checkConnection();
   const redisStatus = config.redis.url ? getRedisClient().status : 'not configured';
   const isRedisReachable = config.redis.url ? redisStatus === 'ready' : undefined;

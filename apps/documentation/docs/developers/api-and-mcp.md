@@ -8,18 +8,18 @@ The backend exposes a REST API under `/api/*`; the MCP service wraps it for LLM 
 
 ## REST endpoints
 
-| Base path                           | Domain                                               |
-| ----------------------------------- | ---------------------------------------------------- |
-| `/api/category`                     | CRUD, batch create/update, merge, per-category stats |
-| `/api/paymentMethod`                | CRUD and batch operations                            |
-| `/api/transaction`                  | CRUD, batch operations, filters                      |
-| `/api/recurringPayment`             | CRUD, batch operations, occurrences                  |
-| `/api/budget`                       | CRUD and `/estimated` (current-month free amount)    |
-| `/api/insights`                     | Aggregated analytics                                 |
-| `/api/attachment`                   | Fetch with signed URL, delete                        |
-| `/api/application`                  | Export and import (`/export`, `/import`)             |
-| `/api/me`                           | Current request context                              |
-| `/health`, `/api/health`, `/status` | Health and status (also without the `/api` prefix)   |
+| Base path               | Domain                                               |
+| ----------------------- | ---------------------------------------------------- |
+| `/api/category`         | CRUD, batch create/update, merge, per-category stats |
+| `/api/paymentMethod`    | CRUD and batch operations                            |
+| `/api/transaction`      | CRUD, batch operations, filters                      |
+| `/api/recurringPayment` | CRUD, batch operations, occurrences                  |
+| `/api/budget`           | CRUD and `/estimated` (current-month free amount)    |
+| `/api/insights`         | Aggregated analytics                                 |
+| `/api/attachment`       | Fetch with signed URL, delete                        |
+| `/api/application`      | Export and import (`/export`, `/import`)             |
+| `/api/me`               | Current request context                              |
+| `/health`               | Health                                               |
 
 Common list query parameters are `from`/`to` for offset/limit pagination and `search` for text search. Responses include `totalCount` where applicable.
 
@@ -64,7 +64,7 @@ See the runnable [`examples/api-key-client`](https://github.com/BudgetBuddyDE/Bu
 - **Transport:** stateless Streamable HTTP; each request gets its own server and transport, so there are no session IDs.
 - **Auth:** `x-api-key` or `Authorization: Bearer` validated by the API-key middleware.
 - **Tools:** categories, payment methods, transactions, recurring payments, budgets, and attachments (`src/tools/index.ts`).
-- **Health:** `/health` and `/status` proxy the backend health.
+- **Health:** `/health` proxy the backend health.
 - **Rate limit:** 120 requests per minute when `NODE_ENV=production`.
 
 The service forwards the caller's API key to the backend, so all tool actions run with the key owner's permissions and data.

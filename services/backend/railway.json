@@ -3,17 +3,14 @@
   "build": {
     "builder": "RAILPACK",
     "buildCommand": "npx turbo run build --filter=@budgetbuddyde/backend",
-    "watchPatterns": [
-      "/services/backend/**",
-      "/packages/**"
-    ],
+    "watchPatterns": ["/services/backend/**", "/packages/**"],
     "buildEnvironment": "V3"
   },
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
     "startCommand": "npx turbo run start --filter=@budgetbuddyde/backend",
-    "healthcheckPath": "/api/health",
+    "healthcheckPath": "/health",
     "healthcheckTimeout": 15,
     "sleepApplication": false,
     "multiRegionConfig": {

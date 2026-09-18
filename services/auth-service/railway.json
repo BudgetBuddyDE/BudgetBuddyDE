@@ -3,17 +3,14 @@
   "build": {
     "builder": "RAILPACK",
     "buildCommand": "npx turbo run build --filter=@budgetbuddyde/auth-service",
-    "watchPatterns": [
-      "/services/auth-service/**",
-      "/packages/**"
-    ],
+    "watchPatterns": ["/services/auth-service/**", "/packages/**"],
     "buildEnvironment": "V3"
   },
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
     "startCommand": "npx turbo run start --filter=@budgetbuddyde/auth-service",
-    "healthcheckPath": "/api/health",
+    "healthcheckPath": "/health",
     "healthcheckTimeout": 15,
     "sleepApplication": false,
     "multiRegionConfig": {

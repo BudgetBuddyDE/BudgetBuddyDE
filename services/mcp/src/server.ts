@@ -20,7 +20,7 @@ if (config.rateLimit.enabled) {
 } else logger.warn('Rate limiting is disabled. Make sure to enable it in production to prevent abuse.');
 
 // Health / status
-app.all(/^\/(api\/)?(status|health)\/?$/, async (_req, res) => {
+app.all('/health', async (_req, res) => {
   const healthStatus = await getHealthStatus(config.backendUrl);
   res.status(healthStatus.status).json(healthStatus);
 });

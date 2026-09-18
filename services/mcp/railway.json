@@ -3,17 +3,14 @@
   "build": {
     "builder": "RAILPACK",
     "buildCommand": "npx turbo run build --filter=@budgetbuddyde/mcp",
-    "watchPatterns": [
-      "/services/mcp/**",
-      "/packages/**"
-    ],
+    "watchPatterns": ["/services/mcp/**", "/packages/**"],
     "buildEnvironment": "V3"
   },
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
     "startCommand": "npx turbo run start --filter=@budgetbuddyde/mcp",
-    "healthcheckPath": "/api/health",
+    "healthcheckPath": "/health",
     "healthcheckTimeout": 15,
     "sleepApplication": false,
     "multiRegionConfig": {
