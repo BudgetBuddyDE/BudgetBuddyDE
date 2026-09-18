@@ -43,6 +43,7 @@ Each workspace reads its own `.env` file. Copy the matching `.env.example` and a
 | `LOG_LEVEL`                                   | No          | `INFO`                  | Log verbosity.                                                                                |
 | `LOG_HIDE_META`                               | No          | `false`                 | Hides request metadata from logs.                                                             |
 | `TIMEZONE`                                    | No          | `Europe/Berlin`         | Timezone for the daily recurring-payment job and monthly budget calculations.                 |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`                 | No          | `http://localhost:4318` | OTLP endpoint that receives traces when the backend runs with tracing (see below).            |
 
 The five `AWS_*` variables must all be set together; if any is missing, attachments fail with an "Object storage is not configured" error.
 
@@ -94,6 +95,16 @@ All transactional emails go through [Resend](https://resend.com). Create an API 
 ## Object storage
 
 Attachments work with any S3-compatible storage. Set all five `AWS_*` variables in `services/backend/.env`. BudgetBuddy uses virtual-hosted-style addressing, so the endpoint must support it. The bucket needs permissions for read, write, and delete of objects.
+
+## Tracing (OpenTelemetry)
+
+The backend ships with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start the backend with instrumentation to enable it:
+
+```bash
+npm run start:instrumentation --workspace services/backend
+```
+
+Traces are exported via OTLP to the endpoint configured with `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), so any OTLP-compatible collector or backend such as Jaeger or Grafana Tempo works. Health-check requests to `/health` are filtered out and not sampled.
 
 ## Next step
 

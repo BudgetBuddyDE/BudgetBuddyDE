@@ -35,6 +35,7 @@ Express API under `/api/*`. Routers validate with Zod, enforce ownership, and an
 - `src/router/index.ts` — domain router exports; each `*.router.ts` is one domain.
 - `src/middleware` — request context, auth, cache, logging.
 - `src/lib` — S3 client, attachment handler, logger.
+- `src/tracer.ts` / `src/instrumentation.ts` — OpenTelemetry setup, loaded via `npm run start:instrumentation`.
 
 ### `services/mcp` — MCP server
 
