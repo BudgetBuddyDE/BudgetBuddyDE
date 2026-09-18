@@ -49,12 +49,13 @@ The five `AWS_*` variables must all be set together; if any is missing, attachme
 
 ## MCP service (`services/mcp/.env`)
 
-| Variable                  | Required | Default       | Description                                                    |
-| ------------------------- | -------- | ------------- | -------------------------------------------------------------- |
-| `BUDGETBUDDY_BACKEND_URL` | Yes      | —             | Base URL of your backend, for example `http://localhost:9000`. |
-| `PORT`                    | No       | `8070`        | HTTP port.                                                     |
-| `NODE_ENV`                | No       | `development` | `production` enables rate limiting (120 requests per minute).  |
-| `LOG_LEVEL`               | No       | `info`        | Log verbosity.                                                 |
+| Variable                      | Required | Default                 | Description                                                                        |
+| ----------------------------- | -------- | ----------------------- | ---------------------------------------------------------------------------------- |
+| `BUDGETBUDDY_BACKEND_URL`     | Yes      | —                       | Base URL of your backend, for example `http://localhost:9000`.                     |
+| `PORT`                        | No       | `8070`                  | HTTP port.                                                                         |
+| `NODE_ENV`                    | No       | `development`           | `production` enables rate limiting (120 requests per minute).                      |
+| `LOG_LEVEL`                   | No       | `info`                  | Log verbosity.                                                                     |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | No       | `http://localhost:4318` | OTLP endpoint that receives traces when the service runs with tracing (see below). |
 
 ## Web app (`apps/webapp/.env`)
 
@@ -98,10 +99,11 @@ Attachments work with any S3-compatible storage. Set all five `AWS_*` variables 
 
 ## Tracing (OpenTelemetry)
 
-The backend ships with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start the backend with instrumentation to enable it:
+The backend and MCP services ship with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start a service with instrumentation to enable it:
 
 ```bash
 npm run start:instrumentation --workspace services/backend
+npm run start:instrumentation --workspace services/mcp
 ```
 
 Traces are exported via OTLP to the endpoint configured with `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), so any OTLP-compatible collector or backend such as Jaeger or Grafana Tempo works. Health-check requests to `/health` are filtered out and not sampled.

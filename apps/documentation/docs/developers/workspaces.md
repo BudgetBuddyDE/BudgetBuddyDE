@@ -39,7 +39,7 @@ Express API under `/api/*`. Routers validate with Zod, enforce ownership, and an
 
 ### `services/mcp` — MCP server
 
-Express + MCP SDK service exposing backend capabilities as tools for LLM clients. Stateless Streamable HTTP transport at `/mcp`; one transport per request. Entry points: `src/server.ts`, `src/tools/index.ts`, `src/middleware/apiKey.middleware.ts`.
+Express + MCP SDK service exposing backend capabilities as tools for LLM clients. Stateless Streamable HTTP transport at `/mcp`; one transport per request. Entry points: `src/server.ts`, `src/tools/index.ts`, `src/middleware/apiKey.middleware.ts`, `src/tracer.ts`/`src/instrumentation.ts` (OpenTelemetry setup, loaded via `npm run start:instrumentation`).
 
 ## Packages
 
