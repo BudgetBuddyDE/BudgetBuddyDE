@@ -75,9 +75,9 @@
     "drizzle-kit": "0.31.10",
     "drizzle-orm": "0.44.7",
     "drizzle-zod": "0.8.3",
-    "zod": "^4.3.6"
+    "zod": "^4.6.5"
   },
   "peerDependencies": {
-    "uuidv7": "^1.1.0"
+    "uuidv7": "^1.2.1"
   }
 }
