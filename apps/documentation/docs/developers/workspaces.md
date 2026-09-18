@@ -25,7 +25,7 @@ Fumapress (Fumadocs) site served at [docs.budget-buddy.de](https://docs.budget-b
 
 ### `services/auth-service` — authentication
 
-Express service with Better Auth on a Drizzle/pg adapter. Registration, login, sessions, email verification, password reset, email change, account deletion, social providers, and API keys. Entry points: `src/auth.ts` (Better Auth configuration), `src/config.ts`, `src/db/`.
+Express service with Better Auth on a Drizzle/pg adapter. Registration, login, sessions, email verification, password reset, email change, account deletion, social providers, and API keys. Entry points: `src/auth.ts` (Better Auth configuration), `src/config.ts`, `src/db/`, `src/tracer.ts`/`src/instrumentation.ts` (OpenTelemetry setup, loaded via `npm run start:instrumentation`).
 
 ### `services/backend` — domain API
 

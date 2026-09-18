@@ -25,6 +25,7 @@ Each workspace reads its own `.env` file. Copy the matching `.env.example` and a
 | `TIMEZONE`                                  | No         | `Europe/Berlin`         | Timezone for scheduled work.                                                                                                                   |
 | `DISABLE_CSRF_CHECK`                        | No         | `false`                 | Set to `true` only for special setups; disables CSRF protection.                                                                               |
 | `DISABLE_SIGNUP`                            | No         | `false`                 | Set to `true` to close public registration (useful for private instances).                                                                     |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`               | No         | `http://localhost:4318` | OTLP endpoint that receives traces when the service runs with tracing (see below).                                                             |
 
 ## Backend (`services/backend/.env`)
 
@@ -99,11 +100,12 @@ Attachments work with any S3-compatible storage. Set all five `AWS_*` variables 
 
 ## Tracing (OpenTelemetry)
 
-The backend and MCP services ship with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start a service with instrumentation to enable it:
+The backend, MCP, and auth services ship with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start a service with instrumentation to enable it:
 
 ```bash
 npm run start:instrumentation --workspace services/backend
 npm run start:instrumentation --workspace services/mcp
+npm run start:instrumentation --workspace services/auth-service
 ```
 
 Traces are exported via OTLP to the endpoint configured with `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), so any OTLP-compatible collector or backend such as Jaeger or Grafana Tempo works. Health-check requests to `/health` are filtered out and not sampled.
