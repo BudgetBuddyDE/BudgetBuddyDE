@@ -20,4 +20,14 @@ export class CurrencyFormatter {
       maximumFractionDigits,
     });
   }
+
+  static shortenBalance(value: number) {
+    const absoluteValue = Math.abs(value);
+    if (absoluteValue < 1_000) return this.formatBalance(value);
+
+    const divisor = absoluteValue >= 1_000_000_000 ? 1_000_000_000 : absoluteValue >= 1_000_000 ? 1_000_000 : 1_000;
+    const unit = divisor === 1_000_000_000 ? 'B' : divisor === 1_000_000 ? 'M' : 'k';
+    const formattedValue = (value / divisor).toLocaleString('de-DE', {maximumFractionDigits: 1});
+    return `${formattedValue} ${unit} €`;
+  }
 }
