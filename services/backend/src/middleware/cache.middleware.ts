@@ -8,7 +8,13 @@ const cacheLogger = logger.child({module: 'cache', middleware: 'cache'});
 
 const invalidatedRoutePaths: Record<string, readonly string[]> = {
   '/api/category': ['/api/category', '/api/transaction', '/api/recurringPayment', '/api/budget', '/api/insights'],
-  '/api/paymentMethod': ['/api/paymentMethod', '/api/transaction', '/api/recurringPayment', '/api/budget'],
+  '/api/paymentMethod': [
+    '/api/paymentMethod',
+    '/api/transaction',
+    '/api/recurringPayment',
+    '/api/budget',
+    '/api/insights',
+  ],
   '/api/transaction': ['/api/transaction', '/api/budget', '/api/insights'],
   '/api/recurringPayment': ['/api/recurringPayment', '/api/budget'],
   '/api/budget': ['/api/budget'],

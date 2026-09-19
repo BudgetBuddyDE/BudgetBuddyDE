@@ -328,7 +328,7 @@ suite('Cache', () => {
       await invalidateCache(req, res, next);
       await listeners.finish();
 
-      expect(mockRedisIncr).toHaveBeenCalledTimes(4);
+      expect(mockRedisIncr).toHaveBeenCalledTimes(5);
     });
 
     it('does not invalidate caches for failed mutations', async () => {

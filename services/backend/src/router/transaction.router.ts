@@ -150,6 +150,8 @@ transactionRouter.get(
         .or(PaymentMethod.shape.id)
         .transform(value => (Array.isArray(value) ? value : [value]))
         .optional(),
+      $receiver: z.string().optional(),
+      $transactionType: z.enum(['income', 'expense']).optional(),
     }),
   }),
   async (req, res) => {
@@ -179,6 +181,15 @@ transactionRouter.get(
     }
     if (query.$paymentMethods) {
       additionalFilters.push({columnName: 'paymentMethodId', operator: 'in', value: query.$paymentMethods});
+    }
+    if (query.$receiver) {
+      additionalFilters.push({columnName: 'receiver', operator: 'eq', value: query.$receiver});
+    }
+    if (query.$transactionType === 'income') {
+      additionalFilters.push({columnName: 'transferAmount', operator: 'gte', value: 0});
+    }
+    if (query.$transactionType === 'expense') {
+      additionalFilters.push({columnName: 'transferAmount', operator: 'lte', value: -Number.EPSILON});
     }
     if (query.$excl_paymentMethods) {
       additionalFilters.push({columnName: 'paymentMethodId', operator: 'notIn', value: query.$excl_paymentMethods});
