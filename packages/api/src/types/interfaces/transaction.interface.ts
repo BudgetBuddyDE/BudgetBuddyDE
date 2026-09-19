@@ -9,4 +9,6 @@ export interface IGetAllTransactionsQuery extends IBaseGetAllQuery {
   $excl_categories?: TCategory['id'][];
   $paymentMethods?: TPaymentMethod['id'][];
   $excl_paymentMethods?: TPaymentMethod['id'][];
+  $receiver?: string;
+  $transactionType?: 'income' | 'expense';
 }
