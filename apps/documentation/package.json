@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "overrides": {
+    "waku": "1.0.0-rc.1"
+  },
   "scripts": {
     "dev": "fumapress dev",
     "build": "fumapress build",
