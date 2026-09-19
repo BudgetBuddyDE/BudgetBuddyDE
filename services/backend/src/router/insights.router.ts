@@ -1,4 +1,5 @@
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
+import type {IGetInsightsReportQuery} from '@budgetbuddyde/api/interfaces';
 import type {TCategory} from '@budgetbuddyde/api/types';
 import {categories, transactionHistorySummaryView, transactionHistoryView} from '@budgetbuddyde/db/backend';
 import {toZonedTime} from 'date-fns-tz';
@@ -8,9 +9,46 @@ import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {config} from '../config';
 import {db} from '../db';
+import {buildInsightsReport} from '../lib/insights/report';
 import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const insightsRouter = Router();
+
+const InsightsReportQuery = z.object({
+  $dateFrom: z.coerce.date(),
+  $dateTo: z.coerce.date(),
+  $categories: z
+    .array(z.uuid())
+    .or(z.uuid())
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  $paymentMethods: z
+    .array(z.uuid())
+    .or(z.uuid())
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  $granularity: z.enum(['auto', 'day', 'week', 'month']).default('auto'),
+  $comparison: z.enum(['previous', 'none']).default('previous'),
+});
+
+function reportQuery(query: z.infer<typeof InsightsReportQuery>): IGetInsightsReportQuery {
+  return query;
+}
+
+insightsRouter.get('/report', validateRequest({query: InsightsReportQuery}), async (req, res) => {
+  const userId = req.context.user?.id;
+  if (!userId) {
+    ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
+    return;
+  }
+  const result = await buildInsightsReport(userId, reportQuery(req.query));
+  ApiResponse.builder()
+    .withStatus(HTTPStatusCode.OK)
+    .withMessage("Fetched user's insights report successfully")
+    .withData(result)
+    .withFrom('db')
+    .buildAndSend(res);
+});
 
 const TransactionHistoryQuery = z.object({
   $dateFrom: z.coerce.date().optional(),
