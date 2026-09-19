@@ -21,13 +21,13 @@ All pipelines live in `ci/pipelines/` as reusable templates. Per-workspace value
 - **Release commits** — release jobs run `npm version`, commit the change as `chore(release): Release <service>-v<version>`, create an annotated Git tag, and push back to the repository with `rebase`.
 - **Commit statuses** — `publish-service` and `publish-npm-package` report `pending`, `success`, `failure`, `error`, and `abort` to the GitHub commit via cogito.
 - **Failure alerts** — the service and package templates post to Discord when a release job fails.
-- **Task images** — build tasks run in the `node:lts` image; database tasks use `postgres:17`.
+- **Task images** — build tasks run in the pinned `node:24.21.0` image; database tasks use `postgres:17`.
 
 ## `publish-service.pipeline.yml`
 
 Jobs:
 
-- **`build-<service>`** — triggered by repository changes under `repo_path`. Gets Node LTS, the repository, and an RC version; sets the GitHub status to `pending`; runs `npm install`, `npm test -F=@budgetbuddyde/<service_name>`, `npm run build -F=...`, and `npm version`; then publishes the new RC version to the semver resource.
+- **`build-<service>`** — triggered by repository changes under `repo_path`. Gets Node 24.21.0, the repository, and an RC version; sets the GitHub status to `pending`; runs `npm install`, `npm test -F=@budgetbuddyde/<service_name>`, `npm run build -F=...`, and `npm version`; then publishes the new RC version to the semver resource.
 - **`release-patch` / `release-minor` / `release-major`** — get the next version, prepare the release commit and tag, update both version resources (`version` and `version-prod` in S3), and push the release commit back to the repository with `rebase`.
 
 Credentials: `github.private_key`, `github.pat`, `s3-versions.*`, `discord.webhook_url`.

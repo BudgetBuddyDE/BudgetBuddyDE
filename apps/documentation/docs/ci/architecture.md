@@ -33,7 +33,7 @@ Variables passed with `fly -v` (such as `repo_path` or `service_name`) are plain
 | Resource type    | Provides                                                                                                  |
 | ---------------- | --------------------------------------------------------------------------------------------------------- |
 | `git`            | Repository checkouts filtered by `repo_path`, authenticated with the deploy key                           |
-| `registry-image` | Node.js LTS image for build tasks                                                                         |
+| `registry-image` | Pinned Node.js 24.21.0 LTS image for build tasks                                                          |
 | `semver`         | Versions stored in S3, used for release candidates and final releases                                     |
 | `s3`             | Database backup bucket (`backup_*.dump`)                                                                  |
 | `time`           | Daily trigger for database backups                                                                        |

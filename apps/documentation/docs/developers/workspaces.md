@@ -20,7 +20,7 @@ Next.js 15 App Router application. Server route pages parse URL/search filters a
 
 ### `apps/documentation` — this site
 
-Fumapress (Fumadocs) site served at [docs.budget-buddy.de](https://docs.budget-buddy.de). Content lives in `docs/`, navigation in `meta.json` files per folder. Note: the docs workspace requires Node.js 24 or later, unlike the rest of the repository.
+Fumapress (Fumadocs) site served at [docs.budget-buddy.de](https://docs.budget-buddy.de). Content lives in `docs/`, navigation in `meta.json` files per folder. The workspace uses the repository-wide Node.js 24.21.0 LTS baseline.
 
 ## Services
 

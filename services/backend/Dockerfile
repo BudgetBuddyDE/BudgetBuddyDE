@@ -1,4 +1,4 @@
-FROM node:alpine AS builder
+FROM node:24.21.0-alpine AS builder
 
 LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
 
@@ -12,7 +12,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:alpine
+FROM node:24.21.0-alpine
 
 WORKDIR /usr/src/backend/
 

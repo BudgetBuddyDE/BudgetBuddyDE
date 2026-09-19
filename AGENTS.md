@@ -81,12 +81,12 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - `services/backend/src/router/index.ts`: domain router mounts.
 - `vitest.config.ts` and workspace `vitest.config.*`: shared and workspace test settings.
 - `eslint.config.mjs`, `.prettierrc.json`, `.lintstagedrc.json`: quality tooling.
-- `.github/workflows/ci.yml`: Node 22 CI quality and build jobs; runs on pushes and pull requests.
+- `ci/pipelines/*.pipeline.yml`: Concourse CI pipelines use the pinned Node.js 24.21.0 LTS image.
 - `.husky/pre-commit`: lint-staged and pre-commit checks.
 
 ## Runtime/Tooling Preferences
 
-- Required baseline: Node.js 22+ and npm 11.x (`packageManager: npm@11.4.2`). Use npm, not pnpm or yarn.
+- Required baseline: Node.js 24.21.0 and npm 11.x (`packageManager: npm@11.4.2`). Use npm, not pnpm or yarn.
 - Use Turborepo via `turbo run` and preserve its dependency graph; do not manually chain or bypass workspace build dependencies. `turbo.json` uses `^build`, Turbo cache outputs include `lib/**`, `build/**`, and `.next/**` (excluding Next cache), and environment mode is `loose`.
 - Use `npm ci` in CI and update dependencies with npm. When an internal package version changes, update consumers and refresh the root lockfile with `npm install --package-lock-only --ignore-scripts`.
 - Use `tsx`/the existing service scripts for backend development and Next.js with Turbopack for webapp development. Do not introduce another package-resolution or API-client pattern.
@@ -101,4 +101,4 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - Prefer deterministic inline fixtures and mocks (`vi.mock`, `vi.fn`, `vi.hoisted`), semantic Testing Library queries, interaction assertions, and `waitFor` for async UI behavior. Restore environment variables, spies, and mock state in `afterEach`.
 - Test boundaries and observable behavior: Zod validation, query serialization, API error tuples, auth headers/context, owner isolation, transaction/error paths, cache hit/miss/invalidation, and UI state transitions. Do not test incidental implementation details.
 - Coverage is disabled by default and no threshold is enforced. `packages/logger`, `packages/db`, and `packages/api` allow no-test passes where configured; do not infer coverage from that setting.
-- Before submitting a permanent change, run the narrow workspace test, then relevant `npm run format:check`, `npm run lint:check`, `npm run typecheck`, and build. CI runs formatting, linting, typechecking, tests, then builds on Node 22.
+- Before submitting a permanent change, run the narrow workspace test, then relevant `npm run format:check`, `npm run lint:check`, `npm run typecheck`, and build. CI runs formatting, linting, typechecking, tests, then builds on Node 24.21.0.

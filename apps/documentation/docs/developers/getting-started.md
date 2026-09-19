@@ -6,7 +6,7 @@ icon: Terminal
 
 ## Prerequisites
 
-- **Node.js 22 or later** and **npm 11 or later** (`packageManager: npm@11.4.2`)
+- **Node.js 24.21.0** and **npm 11 or later** (`packageManager: npm@11.4.2`)
 - **Docker** for PostgreSQL 16, Redis 7, and the Drizzle Gateway
 - A `.env` file per workspace, copied from the matching `.env.example` (see [Installation](/self-hosting/installation#3-create-environment-files))
 

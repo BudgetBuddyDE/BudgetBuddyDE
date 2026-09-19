@@ -6,7 +6,7 @@ icon: Rocket
 
 ## Prerequisites
 
-- **Node.js 22 or later** and **npm 11 or later**
+- **Node.js 24.21.0** and **npm 11 or later**
 - **Docker** (recommended, for PostgreSQL, Redis, and the Drizzle Gateway) — or your own PostgreSQL 16 and Redis 7 installations
 - An **S3-compatible object storage** if you want attachments
 - A **Resend API key** for transactional emails (the auth service requires one)
