@@ -1,7 +1,7 @@
 import {Grid, Stack} from '@mui/material';
 import React from 'react';
 import {apiClient} from '@/apiClient';
-import {BudgetPieChart} from '@/components/Budget/BudgetPieChart';
+import {BudgetOverviewCard} from '@/components/Budget/BudgetOverviewCard';
 import {CategoryExpenseChart} from '@/components/Category/CategoryPieChart';
 import {PathnameErrorBoundary, RouteErrorFallback} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
@@ -49,26 +49,24 @@ export default async function DashboardPage() {
         <Stack spacing={2}>
           <PathnameErrorBoundary>
             <React.Suspense fallback={<CircularProgress />}>
-              <CategoryExpenseChart />
-            </React.Suspense>
-          </PathnameErrorBoundary>
-
-          <PathnameErrorBoundary>
-            <React.Suspense fallback={<CircularProgress />}>
               {error || !estimatedBudget ? (
                 <RouteErrorFallback
                   error={error ?? new Error('Budget data is unavailable')}
                   title="Budget chart is temporarily unavailable"
                 />
               ) : (
-                <BudgetPieChart
-                  initialData={{
-                    expenses: estimatedBudget.expenses.paid,
-                    upcomingExpenses: estimatedBudget.expenses.upcoming,
-                    freeAmount: estimatedBudget.freeAmount,
-                  }}
+                <BudgetOverviewCard
+                  totalBudget={estimatedBudget.income.received + estimatedBudget.income.upcoming}
+                  spent={estimatedBudget.expenses.paid}
+                  futureExpenses={estimatedBudget.expenses.upcoming}
                 />
               )}
+            </React.Suspense>
+          </PathnameErrorBoundary>
+
+          <PathnameErrorBoundary>
+            <React.Suspense fallback={<CircularProgress />}>
+              <CategoryExpenseChart />
             </React.Suspense>
           </PathnameErrorBoundary>
         </Stack>
