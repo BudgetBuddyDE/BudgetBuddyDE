@@ -18,7 +18,12 @@ export const DrawerHamburger: React.FC<DrawerHeaderProps> = ({...iconButtonProps
   // MenuIcon = Three horizontal lines
   // MenuOpenIcon = Arrow pointing left with three horizontal lines
   return (
-    <IconButton onClick={() => toggleVisibility()} {...iconButtonProps}>
+    <IconButton
+      aria-label="Toggle navigation"
+      aria-expanded={isOpen(screenSize)}
+      onClick={() => toggleVisibility()}
+      {...iconButtonProps}
+    >
       {isOpen(screenSize) ? <MenuOpenIcon /> : <MenuIcon />}
     </IconButton>
   );

@@ -12,6 +12,7 @@ import {
   Menu,
   MenuItem,
   AppBar as MuiAppBar,
+  Stack,
   Toolbar,
   Tooltip,
 } from '@mui/material';
@@ -23,7 +24,11 @@ import {useSnackbarContext} from '@/components/Snackbar';
 import {Avatar} from '@/components/User';
 import {DrawerHamburger} from '../Drawer/Hamburger';
 
-export const AppBar = () => {
+export type AppBarProps = {
+  showBrand?: boolean;
+};
+
+export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
   const router = useRouter();
   const {showSnackbar} = useSnackbarContext();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -80,36 +85,33 @@ export const AppBar = () => {
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          {/* Desktop: Brand */}
-          <Brand asLink boxStyle={{display: {xs: 'none', md: 'flex'}, mr: 1}} />
-
-          {/* Menu: Mobile */}
-          <Box sx={{flexGrow: 1, display: {xs: 'flex', md: 'none'}}}>
-            <DrawerHamburger size="large" />
-          </Box>
-
-          {/* Mobile: Brand */}
-          <Brand asLink boxStyle={{display: {xs: 'flex', md: 'none'}, flexGrow: 1}} />
+          <DrawerHamburger size="medium" />
+          {showBrand && <Brand asLink boxStyle={{ml: 1}} />}
 
           {/* Menu: Desktop */}
-          <Box
+          <Stack
+            direction={'row'}
             sx={{
-              display: {xs: 'none', md: 'flex'},
               marginLeft: 'auto',
               marginRight: 2,
             }}
           >
-            {MenuLinks.map(page => (
-              <Button key={page.label} href={page.href} sx={{my: 2, color: 'white', display: 'block'}}>
-                {page.label}
-              </Button>
-            ))}
-          </Box>
+            <Box
+              sx={{
+                display: {xs: 'none', md: 'flex'},
+                marginRight: 2,
+              }}
+            >
+              {MenuLinks.map(page => (
+                <Button key={page.label} href={page.href} sx={{my: 2, color: 'white', display: 'block'}}>
+                  {page.label}
+                </Button>
+              ))}
+            </Box>
 
-          {/* Profile */}
-          <Box sx={{flexGrow: 0}}>
+            {/* Profile */}
             <Tooltip title="Profile">
-              <IconButton onClick={handleOpenUserMenu} sx={{p: 0}}>
+              <IconButton onClick={handleOpenUserMenu} sx={{p: 0, height: 'min-content', my: 'auto'}}>
                 <Avatar />
               </IconButton>
             </Tooltip>
@@ -143,7 +145,7 @@ export const AppBar = () => {
                 </MenuItem>
               ))}
             </Menu>
-          </Box>
+          </Stack>
         </Toolbar>
       </Container>
     </MuiAppBar>

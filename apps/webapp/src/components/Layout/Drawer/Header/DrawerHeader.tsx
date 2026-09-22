@@ -3,7 +3,6 @@
 import {Brand} from '@/components/Brand';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {useDrawerContext} from '../DrawerContext';
-import {DrawerHamburger} from '../Hamburger';
 import {StyledDrawerHeader} from './StyledDrawerHeader';
 
 export const DrawerHeader = () => {
@@ -12,9 +11,8 @@ export const DrawerHeader = () => {
 
   if (screenSize === 'small') {
     return (
-      <StyledDrawerHeader sx={{justifyContent: 'space-between'}}>
+      <StyledDrawerHeader sx={{justifyContent: 'flex-start'}}>
         <Brand asLink boxStyle={{ml: 2}} />
-        <DrawerHamburger />
       </StyledDrawerHeader>
     );
   }
@@ -35,7 +33,6 @@ export const DrawerHeader = () => {
           ml: 2,
         }}
       />
-      <DrawerHamburger />
     </StyledDrawerHeader>
   );
 };
