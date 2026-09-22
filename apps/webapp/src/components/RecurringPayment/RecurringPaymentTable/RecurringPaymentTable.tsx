@@ -583,7 +583,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     () => [
       {
         key: 'startsOn',
-        label: 'Next occurrence',
+        label: 'Next',
         width: 136,
         renderCell: (_value, row) => (
           <Typography
@@ -599,7 +599,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'executionPlan',
-        label: 'Plan / Frequency',
+        label: 'Frequency',
         width: 152,
         renderCell: value => <Typography variant="body2">{executionPlanLabels[value as TExecutionPlan]}</Typography>,
       },
