@@ -9,7 +9,7 @@ describe('recurring payment date-only helpers', () => {
   it('parses date-only values at local midnight', () => {
     const date = parseLocalDateOnly('2026-03-29');
     expect([date.getFullYear(), date.getMonth(), date.getDate(), date.getHours()]).toEqual([2026, 2, 29, 0]);
-    expect(formatDateOnlyForDisplay('2026-03-29')).toBe('29/03/2026');
+    expect(formatDateOnlyForDisplay('2026-03-29')).toBe('29.03.2026');
   });
 
   it('rejects invalid calendar dates and finds the local month end', () => {

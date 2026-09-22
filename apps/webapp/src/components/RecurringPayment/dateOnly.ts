@@ -1,3 +1,5 @@
+import {DateFormatter} from '@/utils/Formatter/DateFormatter';
+
 export function formatLocalDateOnly(date: Date): string {
   const year = String(date.getFullYear()).padStart(4, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -16,7 +18,7 @@ export function parseLocalDateOnly(value: string): Date {
 
 export function formatDateOnlyForDisplay(value: string): string {
   const date = parseLocalDateOnly(value);
-  return new Intl.DateTimeFormat('en-GB', {day: '2-digit', month: '2-digit', year: 'numeric'}).format(date);
+  return DateFormatter.formatWithPattern(date);
 }
 
 export function endOfLocalMonthDateOnly(date: Date): string {
