@@ -48,7 +48,7 @@
     "ioredis": "^5.8.2",
     "pg": "^8.16.1",
     "rate-limit-redis": "^4.3.1",
-    "resend": "^6.12.4"
+    "resend": "^6.29.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -56,7 +56,7 @@
     "@types/node": "^24.0.3",
     "@types/pg": "^8.15.4",
     "rimraf": "^6.0.1",
-    "tsx": "^4.20.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
