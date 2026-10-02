@@ -8,6 +8,7 @@ import tseslint from 'typescript-eslint';
 
 const tsProjects = [
   './apps/webapp/tsconfig.json',
+  './apps/webapp-v2/tsconfig.json',
   './examples/*/tsconfig.json',
   './packages/*/tsconfig.json',
   './services/*/tsconfig.json',
@@ -17,12 +18,18 @@ const sourceFiles = [
   'vitest.config.ts',
   'apps/webapp/next.config.mjs',
   'apps/webapp/src/**/*.{js,jsx,ts,tsx}',
+  'apps/webapp-v2/next.config.mjs',
+  'apps/webapp-v2/postcss.config.cjs',
+  'apps/webapp-v2/src/**/*.{js,jsx,ts,tsx}',
   'examples/*/src/**/*.{js,jsx,ts,tsx}',
   'packages/*/src/**/*.{js,jsx,ts,tsx}',
   'services/*/src/**/*.{js,jsx,ts,tsx}',
 ];
 
-const webappSourceFiles = ['apps/webapp/src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}'];
+const webappSourceFiles = [
+  'apps/webapp/src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}',
+  'apps/webapp-v2/src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}',
+];
 
 const testGlobals = {
   afterAll: 'readonly',
@@ -61,7 +68,7 @@ export default tseslint.config(
     },
     settings: {
       next: {
-        rootDir: 'apps/webapp/',
+        rootDir: ['apps/webapp/', 'apps/webapp-v2/'],
       },
     },
     rules: {
