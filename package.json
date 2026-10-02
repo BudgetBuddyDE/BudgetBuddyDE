@@ -12,6 +12,7 @@
     "packages/*",
     "services/*",
     "apps/webapp",
+    "apps/webapp-v2",
     "apps/documentation",
     "examples/*"
   ],
