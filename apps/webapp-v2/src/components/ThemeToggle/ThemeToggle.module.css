@@ -1,0 +1,15 @@
+.sun {
+  display: none;
+
+  @mixin dark {
+    display: block;
+  }
+}
+
+.moon {
+  display: block;
+
+  @mixin dark {
+    display: none;
+  }
+}
