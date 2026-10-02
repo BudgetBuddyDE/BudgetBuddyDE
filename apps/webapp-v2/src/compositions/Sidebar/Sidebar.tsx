@@ -51,7 +51,11 @@ export function Sidebar({items, collapsed = false, showBranding = true, onNaviga
       </nav>
       <Stack gap="sm" className={classes.user}>
         <Group gap="sm" wrap="nowrap" justify={collapsed ? 'center' : undefined}>
-          <UserAvatar onNavigate={onNavigate} />
+          <Tooltip label="Profile">
+            <UnstyledButton component={Link} href="/settings/profile" onClick={onNavigate} aria-label="Profile">
+              <UserAvatar />
+            </UnstyledButton>
+          </Tooltip>
           {!collapsed && (
             <Text size="sm" fw={600}>
               User

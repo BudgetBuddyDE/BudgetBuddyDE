@@ -4,7 +4,7 @@ import {ActionIcon, Anchor, Group, Tooltip} from '@mantine/core';
 import {IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconMenu2} from '@tabler/icons-react';
 import {Branding} from '@/components/Branding/Branding';
 import {ThemeToggle} from '@/components/ThemeToggle/ThemeToggle';
-import {UserAvatar} from '@/components/UserAvatar/UserAvatar';
+import {UserMenu} from '@/compositions/UserMenu/UserMenu';
 
 interface AppBarProps {
   desktopCollapsed: boolean;
@@ -58,7 +58,7 @@ export function AppBar({desktopCollapsed, mobileOpened, onToggleDesktop, onOpenM
           </Anchor>
         </Group>
         <ThemeToggle />
-        <UserAvatar />
+        <UserMenu />
       </Group>
     </Group>
   );
