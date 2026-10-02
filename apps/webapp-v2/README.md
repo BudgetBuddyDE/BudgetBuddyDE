@@ -1,6 +1,8 @@
 # BudgetBuddyDE Webapp v2
 
-Minimal Next.js App Router starter with TypeScript and Mantine. The only page displays the project heading.
+Next.js App Router starter with TypeScript and Mantine. The root page displays the project heading.
+Routes in `src/app/(app)` share a responsive sidebar, app bar, and page headers with navigation tabs.
+The user area is a placeholder and logout is disabled until authentication is connected.
 No backend, authentication service, or environment variables are required.
 
 ## Requirements
@@ -29,3 +31,6 @@ npx turbo run format:check lint:check typecheck --filter=@budgetbuddyde/webapp-v
 The production server also uses port 3001. Stop the development server before starting it.
 
 Application routes live in `src/app`. The `@/*` import alias resolves to `src/*`.
+
+UI building blocks live in `src/components`, assembled UI in `src/compositions`, and complete features in `src/features`.
+The application shell lives in `src/features/AppLayout` and only applies to the `(app)` route group.
