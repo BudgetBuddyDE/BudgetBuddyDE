@@ -1,10 +1,12 @@
 import {Paper, Text, Title} from '@mantine/core';
+import {IconMinus, IconPlus, IconScale} from '@tabler/icons-react';
+import {StatsCard} from '@/compositions/Cards/StatsCard';
 import classes from './DashboardOverview.module.css';
 
 const summaries = [
-  {title: 'Income', description: 'Your income overview will appear here.'},
-  {title: 'Spendings', description: 'Your spending overview will appear here.'},
-  {title: 'Balance', description: 'Your balance overview will appear here.'},
+  {title: 'Income', value: '0.00 €', subtitle: 'Upcoming: 0.00 €', icon: <IconPlus />},
+  {title: 'Spendings', value: '0.00 €', subtitle: 'Upcoming: 0.00 €', icon: <IconMinus />},
+  {title: 'Balance', value: '0.00 €', subtitle: 'Estimated: 0.00 €', icon: <IconScale />},
 ];
 
 function PlaceholderCard({title, description, tall = false}: {title: string; description: string; tall?: boolean}) {
@@ -24,15 +26,8 @@ export default function DashboardPage() {
   return (
     <div className={classes.overview}>
       <div className={classes.summaryGrid}>
-        {summaries.map(({title, description}) => (
-          <Paper key={title} component="section" className={`${classes.card} ${classes.summaryCard}`}>
-            <Title order={2} size="h4">
-              {title}
-            </Title>
-            <Text c="dimmed" mt="md">
-              {description}
-            </Text>
-          </Paper>
+        {summaries.map(({title, value, subtitle, icon}) => (
+          <StatsCard key={title} title={title} value={value} subtitle={subtitle} icon={icon} />
         ))}
       </div>
       <div className={classes.contentGrid}>
