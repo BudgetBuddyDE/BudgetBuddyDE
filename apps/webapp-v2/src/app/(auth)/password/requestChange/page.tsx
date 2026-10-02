@@ -1,3 +1,5 @@
-export default function RequestPasswordChangePage() {
-  return <h1>Request password change</h1>;
+import {redirect} from 'next/navigation';
+
+export default function LegacyRequestPasswordChangePage() {
+  redirect('/password/request-reset');
 }
