@@ -1,0 +1,45 @@
+.section {
+  min-width: 0;
+}
+
+.section:where([data-orientation='vertical']) {
+  padding-block: var(--card-padding);
+}
+
+.section:where([data-orientation='horizontal']) {
+  padding-inline: var(--card-padding);
+}
+
+/* Mantine removes the leading border of every adjacent section. Restore it
+   when only this section has a border, and keep shared borders single. */
+.section[data-with-border]:where([data-orientation='vertical']):not(:first-child) {
+  border-top: 1px solid var(--border-color) !important;
+}
+
+[data-with-border] + .section[data-with-border]:where([data-orientation='vertical']) {
+  border-top: none !important;
+}
+
+.section[data-with-border]:where([data-orientation='horizontal']):not(:first-child) {
+  border-inline-start: 1px solid var(--border-color) !important;
+}
+
+[data-with-border] + .section[data-with-border]:where([data-orientation='horizontal']) {
+  border-inline-start: none !important;
+}
+
+.header,
+.footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-xs);
+}
+
+.header {
+  justify-content: space-between;
+}
+
+.footer {
+  justify-content: flex-start;
+}
