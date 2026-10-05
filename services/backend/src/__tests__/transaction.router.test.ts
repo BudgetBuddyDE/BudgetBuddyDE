@@ -27,6 +27,8 @@ const {
   attachmentLogger: {debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn()},
 }));
 
+vi.mock('../domain/cache', () => ({invalidateDomainMutation: vi.fn()}));
+
 vi.mock('../db', () => ({
   db: {
     query: {

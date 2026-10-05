@@ -1,109 +1,34 @@
-import {Category} from '@budgetbuddyde/api/category';
-import {PaymentMethod} from '@budgetbuddyde/api/paymentMethod';
-import {listOccurrenceDates} from '@budgetbuddyde/api/recurringPayment';
+export {recurringPaymentOccurrencesQuerySchema, expandRecurringPaymentOccurrences} from '../domain/recurringPayment';
 import {RecurringPaymentSchemas, recurringPayments} from '@budgetbuddyde/db/backend';
-import {and, eq, inArray, lte, notInArray, sql} from 'drizzle-orm';
+import {and, eq} from 'drizzle-orm';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
-import {assembleFilter, type TAdditionalFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
-import {paginationFields, paginationWindow, refinePagination} from './pagination';
+import {
+  createRecurringPayment,
+  getRecurringPayment,
+  listRecurringPayments,
+  listRecurringPaymentOccurrences,
+  updateRecurringPayment,
+  removeRecurringPayment,
+  recurringPaymentListSchema,
+  recurringPaymentOccurrencesQuerySchema,
+  createRecurringPaymentSchema,
+  updateRecurringPaymentSchema,
+} from '../domain/recurringPayment';
+import {executeDomain} from '../domain/response';
 import {invalidateUserCaches} from '../middleware/cache.middleware';
-import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
+import {ApiResponse, HTTPStatusCode} from '../models';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
 export const recurringPaymentRouter = Router();
 
-const categoryAndPaymentMethodFilters = {
-  $categories: z
-    .array(Category.shape.id)
-    .or(Category.shape.id)
-    .transform(value => (Array.isArray(value) ? value : [value]))
-    .optional(),
-  $excl_categories: z
-    .array(Category.shape.id)
-    .or(Category.shape.id)
-    .transform(value => (Array.isArray(value) ? value : [value]))
-    .optional(),
-  $paymentMethods: z
-    .array(PaymentMethod.shape.id)
-    .or(PaymentMethod.shape.id)
-    .transform(value => (Array.isArray(value) ? value : [value]))
-    .optional(),
-  $excl_paymentMethods: z
-    .array(PaymentMethod.shape.id)
-    .or(PaymentMethod.shape.id)
-    .transform(value => (Array.isArray(value) ? value : [value]))
-    .optional(),
-};
-
-const dateOnlySchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/)
-  .pipe(z.iso.date());
-
-export const recurringPaymentOccurrencesQuerySchema = z
-  .object({
-    ...paginationFields,
-    ...categoryAndPaymentMethodFilters,
-    $dateFrom: dateOnlySchema,
-    $dateTo: dateOnlySchema,
-    $includePaused: z.stringbool().default(false),
-  })
-  .superRefine((query, context) => {
-    refinePagination(query, context);
-    const fromDay = Date.parse(`${query.$dateFrom}T00:00:00Z`) / 86_400_000;
-    const toDay = Date.parse(`${query.$dateTo}T00:00:00Z`) / 86_400_000;
-    if (fromDay > toDay) {
-      context.addIssue({code: 'custom', path: ['$dateTo'], message: '$dateTo must be on or after $dateFrom'});
-    } else if (toDay - fromDay > 365) {
-      context.addIssue({code: 'custom', path: ['$dateTo'], message: 'Date range must not exceed 366 days'});
-    }
-  });
-
-const createRecurringPaymentSchema = RecurringPaymentSchemas.insert.omit({
-  id: true,
-  ownerId: true,
-  createdAt: true,
-  updatedAt: true,
-});
-const updateRecurringPaymentSchema = RecurringPaymentSchemas.update.omit({
-  id: true,
-  ownerId: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export function expandRecurringPaymentOccurrences<T extends Parameters<typeof listOccurrenceDates>[0] & {id: string}>(
-  payments: readonly T[],
-  dateFrom: string,
-  dateTo: string,
-) {
-  return payments
-    .flatMap(recurringPayment =>
-      listOccurrenceDates(recurringPayment, dateFrom, dateTo).map(scheduledFor => ({
-        scheduledFor,
-        recurringPayment,
-      })),
-    )
-    .sort(
-      (left, right) =>
-        left.scheduledFor.localeCompare(right.scheduledFor) ||
-        left.recurringPayment.id.localeCompare(right.recurringPayment.id),
-    );
-}
-
 recurringPaymentRouter.get(
   '/',
   validateRequest({
-    query: z.object({
-      search: z.string().optional(),
-      ...paginationFields,
-      ...categoryAndPaymentMethodFilters,
-      $paused: z.stringbool().optional(),
-    }),
+    query: recurringPaymentListSchema,
   }),
   async (req, res) => {
     const userId = req.context.user?.id;
@@ -112,63 +37,7 @@ recurringPaymentRouter.get(
       return;
     }
 
-    const query = req.query;
-    const additionalFilters: TAdditionalFilter<(typeof recurringPayments)['_']['config']>[] = [];
-    if (query.$paused !== undefined) {
-      additionalFilters.push({columnName: 'paused', operator: 'eq', value: query.$paused});
-    }
-    if (query.$categories) {
-      additionalFilters.push({columnName: 'categoryId', operator: 'in', value: query.$categories});
-    }
-    if (query.$excl_categories) {
-      additionalFilters.push({columnName: 'categoryId', operator: 'notIn', value: query.$excl_categories});
-    }
-    if (query.$paymentMethods) {
-      additionalFilters.push({columnName: 'paymentMethodId', operator: 'in', value: query.$paymentMethods});
-    }
-    if (query.$excl_paymentMethods) {
-      additionalFilters.push({columnName: 'paymentMethodId', operator: 'notIn', value: query.$excl_paymentMethods});
-    }
-    const filter = assembleFilter(
-      recurringPayments,
-      {ownerColumnName: 'ownerId', ownerValue: userId},
-      {
-        searchTerm: query.search,
-        searchableColumnName: ['receiver', 'information'],
-      },
-      additionalFilters,
-    );
-
-    const [[{count: totalCount}], records] = await Promise.all([
-      db
-        .select({
-          count: sql<number>`count(*)`.as('count'),
-        })
-        .from(recurringPayments)
-        .where(filter)
-        .limit(1),
-      db.query.recurringPayments.findMany({
-        where() {
-          return filter;
-        },
-        orderBy(fields, operators) {
-          return [operators.asc(fields.startsOn), operators.desc(fields.updatedAt)];
-        },
-        ...paginationWindow(req.query),
-        with: {
-          category: true,
-          paymentMethod: true,
-        },
-      }),
-    ]);
-
-    ApiResponse.builder<typeof records>()
-      .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's recurring payments successfully")
-      .withTotalCount(totalCount)
-      .withData(records)
-      .withFrom('db')
-      .buildAndSend(res);
+    await executeDomain(res, () => listRecurringPayments(userId, req.query));
   },
 );
 
@@ -182,32 +51,7 @@ recurringPaymentRouter.get(
       return;
     }
 
-    const query = req.query;
-    const filters = [eq(recurringPayments.ownerId, userId), lte(recurringPayments.startsOn, query.$dateTo)];
-    if (!query.$includePaused) filters.push(eq(recurringPayments.paused, false));
-    if (query.$categories) filters.push(inArray(recurringPayments.categoryId, query.$categories));
-    if (query.$excl_categories) filters.push(notInArray(recurringPayments.categoryId, query.$excl_categories));
-    if (query.$paymentMethods) filters.push(inArray(recurringPayments.paymentMethodId, query.$paymentMethods));
-    if (query.$excl_paymentMethods) {
-      filters.push(notInArray(recurringPayments.paymentMethodId, query.$excl_paymentMethods));
-    }
-
-    const payments = await db.query.recurringPayments.findMany({
-      where: and(...filters),
-      with: {category: true, paymentMethod: true},
-    });
-    const occurrences = expandRecurringPaymentOccurrences(payments, query.$dateFrom, query.$dateTo);
-    const totalCount = occurrences.length;
-    const from = query.from ?? 0;
-    const records = occurrences.slice(from, query.to ?? from + 50);
-
-    ApiResponse.builder<typeof records>()
-      .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's recurring payment occurrences successfully")
-      .withTotalCount(totalCount)
-      .withData(records)
-      .withFrom('db')
-      .buildAndSend(res);
+    await executeDomain(res, () => listRecurringPaymentOccurrences(userId, req.query));
   },
 );
 
@@ -344,30 +188,8 @@ recurringPaymentRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const entityId = req.params.id;
-    const records = await db.query.recurringPayments.findFirst({
-      where(fields, operators) {
-        return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
-      },
-      with: {
-        category: true,
-        paymentMethod: true,
-      },
-    });
-    if (!records) {
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.NOT_FOUND)
-        .withMessage(`Recurring payment ${entityId} not found`)
-        .withFrom('db')
-        .buildAndSend(res);
-      return;
-    }
-    ApiResponse.builder<typeof records>()
-      .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's recurring payment successfully")
-      .withData(records)
-      .withFrom('db')
-      .buildAndSend(res);
+
+    await executeDomain(res, () => getRecurringPayment(userId, req.params.id));
   },
 );
 
@@ -382,37 +204,8 @@ recurringPaymentRouter.post(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const [categoryOwned, paymentMethodOwned] = await Promise.all([
-      hasAllOwnedIds(userId, [req.body.categoryId], ownedIdsFinder(db.query.categories)),
-      hasAllOwnedIds(userId, [req.body.paymentMethodId], ownedIdsFinder(db.query.paymentMethods)),
-    ]);
-    if (!categoryOwned || !paymentMethodOwned) {
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.BAD_REQUEST)
-        .withMessage('Referenced category or payment method is invalid')
-        .buildAndSend(res);
-      return;
-    }
 
-    try {
-      const createdRecords = await db
-        .insert(recurringPayments)
-        .values({...req.body, ownerId: userId})
-        .returning();
-      if (createdRecords.length === 0) {
-        throw new Error('No recurring payment created');
-      }
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Recurring payment created successfully')
-        .withData(createdRecords)
-        .withFrom('db')
-        .buildAndSend(res);
-    } catch (err) {
-      ApiResponse.builder()
-        .fromError(err instanceof Error ? err : new Error(String(err)))
-        .buildAndSend(res);
-    }
+    await executeDomain(res, () => createRecurringPayment(userId, req.body));
   },
 );
 
@@ -431,42 +224,8 @@ recurringPaymentRouter.put(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const [categoryOwned, paymentMethodOwned] = await Promise.all([
-      hasAllOwnedIds(userId, req.body.categoryId ? [req.body.categoryId] : [], ownedIdsFinder(db.query.categories)),
-      hasAllOwnedIds(
-        userId,
-        req.body.paymentMethodId ? [req.body.paymentMethodId] : [],
-        ownedIdsFinder(db.query.paymentMethods),
-      ),
-    ]);
-    if (!categoryOwned || !paymentMethodOwned) {
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.BAD_REQUEST)
-        .withMessage('Referenced category or payment method is invalid')
-        .buildAndSend(res);
-      return;
-    }
 
-    try {
-      const updatedRecord = await db
-        .update(recurringPayments)
-        .set(req.body)
-        .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, req.params.id)))
-        .returning();
-      if (updatedRecord.length === 0) {
-        throw new NotFoundError('Recurring payment not found');
-      }
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Recurring payment updated successfully')
-        .withData(updatedRecord)
-        .withFrom('db')
-        .buildAndSend(res);
-    } catch (err) {
-      ApiResponse.builder()
-        .fromError(err instanceof Error ? err : new Error(String(err)))
-        .buildAndSend(res);
-    }
+    await executeDomain(res, () => updateRecurringPayment(userId, req.params.id, req.body));
   },
 );
 
@@ -530,24 +289,7 @@ recurringPaymentRouter.delete(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const entityId = req.params.id;
-    try {
-      const deletedRecord = await db
-        .delete(recurringPayments)
-        .where(and(eq(recurringPayments.ownerId, userId), eq(recurringPayments.id, entityId)))
-        .returning();
-      if (deletedRecord.length === 0) {
-        throw new NotFoundError('Recurring payment not found');
-      }
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Recurring payment deleted successfully')
-        .withFrom('db')
-        .buildAndSend(res);
-    } catch (err) {
-      ApiResponse.builder()
-        .fromError(err instanceof Error ? err : new Error(String(err)))
-        .buildAndSend(res);
-    }
+
+    await executeDomain(res, () => removeRecurringPayment(userId, req.params.id));
   },
 );

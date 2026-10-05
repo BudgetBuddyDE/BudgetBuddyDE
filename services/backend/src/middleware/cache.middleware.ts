@@ -156,7 +156,7 @@ export async function invalidateCache(req: Request, res: Response, next: NextFun
   }
 
   res.on('finish', () => {
-    if (res.statusCode >= 200 && res.statusCode < 300) {
+    if (!res.locals?.domainMutationHandled && res.statusCode >= 200 && res.statusCode < 300) {
       void invalidateUserCaches(userId, invalidatedRoutePaths[route.path] ?? [route.path]);
     }
   });

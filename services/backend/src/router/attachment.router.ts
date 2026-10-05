@@ -1,10 +1,10 @@
-import type {TUserID} from '@budgetbuddyde/api';
-import {SignedAttachmentUrlTTL, type TAttachment, type TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {AttachmentSchemas} from '@budgetbuddyde/db/backend';
 import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {config} from '../config';
+import {getAttachment, attachmentQuerySchema} from '../domain/attachment';
+import {executeDomain} from '../domain/response';
 import {logger} from '../lib';
 import {TransactionAttachmentHandler} from '../lib/attachment';
 import {ApiResponse, HTTPStatusCode} from '../models';
@@ -25,9 +25,7 @@ function getAttachmentService(): TransactionAttachmentHandler {
 attachmentRouter.get(
   '/:attachmentId',
   validateRequest({
-    query: z.object({
-      ttl: SignedAttachmentUrlTTL.optional(),
-    }),
+    query: attachmentQuerySchema,
     params: z.object({
       attachmentId: AttachmentSchemas.select.shape.id,
     }),
@@ -41,40 +39,7 @@ attachmentRouter.get(
         .buildAndSend(res);
     }
 
-    try {
-      const attachmentId = req.params.attachmentId;
-      const targetAttachment = await getAttachmentService().verifyOwnership(attachmentId, userId);
-
-      if (!targetAttachment) {
-        return ApiResponse.builder()
-          .withStatus(HTTPStatusCode.NOT_FOUND)
-          .withMessage('Attachment not found')
-          .buildAndSend(res);
-      }
-
-      const signedUrl = await getAttachmentService().generateSignedUrl(targetAttachment, {ttl: req.query.ttl});
-
-      ApiResponse.builder<TAttachmentWithUrl>()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Attachment retrieved successfully')
-        .withData({
-          id: targetAttachment.id as TAttachment['id'],
-          ownerId: targetAttachment.ownerId as TUserID,
-          fileName: targetAttachment.fileName,
-          fileExtension: targetAttachment.fileExtension,
-          contentType: targetAttachment.contentType as TAttachmentWithUrl['contentType'],
-          location: targetAttachment.location,
-          signedUrl: signedUrl as TAttachmentWithUrl['signedUrl'],
-          createdAt: targetAttachment.createdAt.toISOString(),
-        })
-        .buildAndSend(res);
-    } catch (error) {
-      attachmentLogger.error("Couldn't retrieve attachment", error instanceof Error ? error : new Error(String(error)));
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR)
-        .withMessage('Failed to retrieve attachment')
-        .buildAndSend(res);
-    }
+    await executeDomain(res, () => getAttachment(userId, req.params.attachmentId, req.query));
   },
 );
 

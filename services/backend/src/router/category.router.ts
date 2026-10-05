@@ -10,11 +10,12 @@ import {Router} from 'express';
 import validateRequest from 'express-zod-safe';
 import {z} from 'zod';
 import {db} from '../db';
-import {logger} from '../lib';
-import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
-import {assembleFilter} from './assembleFilter';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
-import {paginationFields, paginationWindow} from './pagination';
+import {paginationFields} from './pagination';
+import * as categoryDomain from '../domain/category';
+import {sendDomainResponse} from '../domain/response';
+import {logger} from '../lib';
+import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const categoryRouter = Router();
 
@@ -202,42 +203,8 @@ categoryRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-
-    const filter = assembleFilter(
-      categories,
-      {ownerColumnName: 'ownerId', ownerValue: userId},
-      {
-        searchTerm: req.query.search,
-        searchableColumnName: ['name', 'description'],
-      },
-    );
-
-    const [[{count: totalCount}], records] = await Promise.all([
-      db
-        .select({
-          count: sql<number>`count(*)`.as('count'),
-        })
-        .from(categories)
-        .where(filter)
-        .limit(1),
-      db.query.categories.findMany({
-        where() {
-          return filter;
-        },
-        orderBy(fields, operators) {
-          return [operators.desc(fields.updatedAt)];
-        },
-        ...paginationWindow(req.query),
-      }),
-    ]);
-
-    ApiResponse.builder<typeof records>()
-      .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's categories successfully")
-      .withData(records)
-      .withTotalCount(totalCount)
-      .withFrom('db')
-      .buildAndSend(res);
+    const result = await categoryDomain.list(userId, req.query);
+    sendDomainResponse(res, result);
   },
 );
 
@@ -346,28 +313,8 @@ categoryRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const entityId = req.params.id;
-    const record = await db.query.categories.findFirst({
-      where(fields, operators) {
-        return operators.and(operators.eq(fields.ownerId, userId), operators.eq(fields.id, entityId));
-      },
-    });
-
-    if (!record) {
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.NOT_FOUND)
-        .withMessage(`Category ${entityId} not found`)
-        .withFrom('db')
-        .buildAndSend(res);
-      return;
-    }
-
-    ApiResponse.builder<typeof record>()
-      .withStatus(HTTPStatusCode.OK)
-      .withMessage("Fetched user's category successfully")
-      .withData(record)
-      .withFrom('db')
-      .buildAndSend(res);
+    const result = await categoryDomain.get(userId, req.params.id);
+    sendDomainResponse(res, result);
   },
 );
 
@@ -384,28 +331,8 @@ categoryRouter.post(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-
-    const requestBody = [req.body].map(body => {
-      body.ownerId = userId;
-      return body as z.infer<typeof CategorySchemas.insert>;
-    });
-
-    try {
-      const createdRecords = await db.insert(categories).values(requestBody).returning();
-      if (createdRecords.length === 0) {
-        throw new Error('No category created');
-      }
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category created successfully')
-        .withData(createdRecords)
-        .withFrom('db')
-        .buildAndSend(res);
-    } catch (err) {
-      ApiResponse.builder()
-        .fromError(err instanceof Error ? err : new Error(String(err)))
-        .buildAndSend(res);
-    }
+    const result = await categoryDomain.create(userId, req.body);
+    sendDomainResponse(res, result);
   },
 );
 
@@ -425,30 +352,8 @@ categoryRouter.put(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const requestBody = req.body;
-    requestBody.ownerId = userId;
-
-    try {
-      const updatedRecords = await db
-        .update(categories)
-        .set(requestBody)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, req.params.id)))
-        .returning();
-
-      if (updatedRecords.length === 0) {
-        throw new NotFoundError('Category not found');
-      }
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category updated successfully')
-        .withData(updatedRecords)
-        .withFrom('db')
-        .buildAndSend(res);
-    } catch (err) {
-      ApiResponse.builder()
-        .fromError(err instanceof Error ? err : new Error(String(err)))
-        .buildAndSend(res);
-    }
+    const result = await categoryDomain.update(userId, req.params.id, req.body);
+    sendDomainResponse(res, result);
   },
 );
 
@@ -465,26 +370,7 @@ categoryRouter.delete(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const entityId = req.params.id;
-
-    try {
-      const deletedRecord = await db
-        .delete(categories)
-        .where(and(eq(categories.ownerId, userId), eq(categories.id, entityId)))
-        .returning();
-
-      if (deletedRecord.length === 0) {
-        throw new NotFoundError('Category not found');
-      }
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Category deleted successfully')
-        .withFrom('db')
-        .buildAndSend(res);
-    } catch (err) {
-      ApiResponse.builder()
-        .fromError(err instanceof Error ? err : new Error(String(err)))
-        .buildAndSend(res);
-    }
+    const result = await categoryDomain.remove(userId, req.params.id);
+    sendDomainResponse(res, result);
   },
 );
