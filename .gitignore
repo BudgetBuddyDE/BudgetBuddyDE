@@ -5,4 +5,5 @@ ci/secrets/**
 node_modules/
 .env
 build/
+coverage/
 local-docs/

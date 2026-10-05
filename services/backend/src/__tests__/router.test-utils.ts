@@ -4,7 +4,7 @@ import type {RequestContext} from '../types';
 
 export async function requestRouter(
   router: Router,
-  userId: string,
+  userId: string | null,
   path: string,
   options: {method: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown},
 ): Promise<{status: number; body: unknown}> {
@@ -12,7 +12,7 @@ export async function requestRouter(
   app.use(express.json());
   app.use((req, _res, next) => {
     req.context = {
-      user: {id: userId} as RequestContext['user'],
+      user: userId ? ({id: userId} as RequestContext['user']) : null,
       session: null,
     };
     next();
