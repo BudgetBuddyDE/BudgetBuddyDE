@@ -24,6 +24,7 @@ const mocks = vi.hoisted(() => ({
   checkConnection: vi.fn(),
   end: vi.fn(),
   closeRedis: vi.fn(),
+  closeMcp: vi.fn(),
   destroyS3: vi.fn(),
   redis: {status: 'ready', call: vi.fn()},
   authRedis: {status: 'ready', call: vi.fn()},
@@ -39,6 +40,19 @@ const mocks = vi.hoisted(() => ({
   recurring: vi.fn(),
   logger: {info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn()},
 }));
+vi.mock('./mcp/router', async () => {
+  const {Router, json} = await import('express');
+  return {
+    createMcpRouter: () => {
+      const router = Router();
+      router.use(json());
+      router.all('/', (req, res) => res.json({mcp: true, parsed: req.body}));
+      return router;
+    },
+    closeMcpServers: mocks.closeMcp,
+    validateMcpOrigin: (_req: Request, _res: Response, next: () => void) => next(),
+  };
+});
 vi.mock('./config', () => ({config: mocks.config}));
 vi.mock('./auth', () => ({auth: {api: {getSession: mocks.getSession}}}));
 vi.mock('better-auth/node', () => ({toNodeHandler: () => mocks.authHandler}));
@@ -145,6 +159,20 @@ describe('backend app composition', () => {
     expect(res.headers.get('x-served-by')).toBe('backend::1');
     expect(mocks.getSession).not.toHaveBeenCalled();
     expect(mocks.cache).not.toHaveBeenCalled();
+  });
+
+  it('mounts MCP before domain authentication, parsing, caching and limits', async () => {
+    mocks.getSession.mockResolvedValue(null);
+    mocks.config.rateLimit.enabled = true;
+    const res = await request('/mcp', {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: '{"jsonrpc":"2.0"}',
+    });
+    expect(res.body).toEqual({mcp: true, parsed: {jsonrpc: '2.0'}});
+    expect(mocks.getSession).not.toHaveBeenCalled();
+    expect(mocks.cache).not.toHaveBeenCalled();
+    expect(mocks.invalidate).not.toHaveBeenCalled();
   });
 
   it('dispatches export before the auth wildcard and domain middleware', async () => {
@@ -282,6 +310,7 @@ describe('backend startup and shutdown', () => {
     listeners.get(signal)!(signal);
     await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(0));
     expect(mocks.stop).toHaveBeenCalledOnce();
+    expect(mocks.closeMcp).toHaveBeenCalledOnce();
     expect(mocks.end).toHaveBeenCalledOnce();
     expect(mocks.closeRedis).toHaveBeenCalledOnce();
     expect(mocks.destroyS3).toHaveBeenCalledOnce();

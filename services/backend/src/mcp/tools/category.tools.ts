@@ -1,10 +1,11 @@
 import {Category, CreateOrUpdateCategoryPayload} from '@budgetbuddyde/api/schemas';
+import * as responses from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {err, ok} from './helpers';
-import {api, getApiRequestConfig} from '../lib/api';
+import {callTool} from './helpers';
+import * as domain from '../../domain/category';
 
-export function registerCategoryTools(server: McpServer): void {
+export function registerCategoryTools(server: McpServer, userId: string): void {
   server.registerTool(
     'list_categories',
     {
@@ -16,9 +17,7 @@ export function registerCategoryTools(server: McpServer): void {
       },
     },
     async (params, _extra) => {
-      const [result, error] = await api.backend.category.getAll(params, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.list(userId, params), responses.GetAllCategoriesResponse);
     },
   );
 
@@ -31,9 +30,7 @@ export function registerCategoryTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.category.getById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.get(userId, id), responses.GetCategoryResponse);
     },
   );
 
@@ -44,9 +41,7 @@ export function registerCategoryTools(server: McpServer): void {
       inputSchema: CreateOrUpdateCategoryPayload,
     },
     async (payload, _extra) => {
-      const [result, error] = await api.backend.category.create(payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.create(userId, payload), responses.CreateCategoryResponse);
     },
   );
 
@@ -59,9 +54,7 @@ export function registerCategoryTools(server: McpServer): void {
       }),
     },
     async ({id, ...payload}, _extra) => {
-      const [result, error] = await api.backend.category.updateById(id, payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.update(userId, id, payload), responses.UpdateCategoryResponse);
     },
   );
 
@@ -74,9 +67,7 @@ export function registerCategoryTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.category.deleteById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.remove(userId, id), responses.DeleteCategoryResponse);
     },
   );
 }

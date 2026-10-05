@@ -1,15 +1,16 @@
 import {Transaction, CreateOrUpdateTransactionPayload} from '@budgetbuddyde/api/schemas';
+import * as responses from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {err, ok} from './helpers';
-import {api, getApiRequestConfig} from '../lib/api';
+import {callTool} from './helpers';
+import * as domain from '../../domain/transaction';
 
 // MCP input schemas must be representable as JSON Schema; Date instances are not.
 const McpTransactionPayload = CreateOrUpdateTransactionPayload.omit({processedAt: true}).extend({
   processedAt: z.iso.datetime().describe('Transaction date as an ISO 8601 string'),
 });
 
-export function registerTransactionTools(server: McpServer): void {
+export function registerTransactionTools(server: McpServer, userId: string): void {
   server.registerTool(
     'list_transactions',
     {
@@ -29,9 +30,7 @@ export function registerTransactionTools(server: McpServer): void {
         $dateTo: $dateTo ? new Date($dateTo) : undefined,
       };
 
-      const [result, error] = await api.backend.transaction.getAll(query, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.listTransactions(userId, query), responses.GetAllTransactionsResponse);
     },
   );
 
@@ -44,9 +43,7 @@ export function registerTransactionTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.transaction.getById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.getTransaction(userId, id), responses.GetTransactionResponse);
     },
   );
 
@@ -57,9 +54,7 @@ export function registerTransactionTools(server: McpServer): void {
       inputSchema: McpTransactionPayload,
     },
     async (payload, _extra) => {
-      const [result, error] = await api.backend.transaction.create(payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.createTransaction(userId, payload), responses.CreateTransactionResponse);
     },
   );
 
@@ -72,9 +67,7 @@ export function registerTransactionTools(server: McpServer): void {
       }),
     },
     async ({id, ...payload}, _extra) => {
-      const [result, error] = await api.backend.transaction.updateById(id, payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.updateTransaction(userId, id, payload), responses.UpdateTransactionResponse);
     },
   );
 
@@ -87,9 +80,7 @@ export function registerTransactionTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.transaction.deleteById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.removeTransaction(userId, id), responses.DeleteTransactionResponse);
     },
   );
 }

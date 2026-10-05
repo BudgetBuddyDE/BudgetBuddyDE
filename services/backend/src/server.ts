@@ -14,6 +14,7 @@ import {closeRedis, getAuthRedisClient, getRedisClient} from './db/redis';
 import {processRecurringPayments} from './jobs/processRecurringPayments';
 import {logger} from './lib/logger';
 import {destroyS3Client} from './lib/s3';
+import {closeMcpServers, createMcpRouter, validateMcpOrigin} from './mcp/router';
 import {cacheResponse, handleError, invalidateCache, logRequest, servedBy, setRequestContext} from './middleware';
 import {ApiResponse, HTTPStatusCode} from './models';
 import {
@@ -74,6 +75,7 @@ export function createApp(): Express {
   const app = express();
 
   app.set('trust proxy', config.trustProxy);
+  app.use('/mcp', validateMcpOrigin);
   app.use(cors(config.cors));
   // Public auth routes must keep the raw request stream and bypass domain authentication/cache.
   app.use(logRequest);
@@ -111,6 +113,7 @@ export function createApp(): Express {
   }
   app.get('/api/auth/export', authExportHandler);
   app.all('/api/auth/{*splat}', toNodeHandler(auth));
+  app.use('/mcp', createMcpRouter());
   if (config.rateLimit.enabled) {
     app.use(
       rateLimit({
@@ -180,7 +183,9 @@ let scheduledJob: ReturnType<typeof cron.schedule> | undefined;
 async function stopServer(server: Server, signal: NodeJS.Signals): Promise<void> {
   logger.info('Received %s, shutting down gracefully', signal);
   scheduledJob?.stop();
-  await new Promise<void>(resolve => server.close(() => resolve()));
+  const closed = new Promise<void>(resolve => server.close(() => resolve()));
+  await closeMcpServers();
+  await closed;
   await Promise.allSettled([pool.end(), closeRedis()]);
   destroyS3Client();
   logger.info('Shutdown complete');

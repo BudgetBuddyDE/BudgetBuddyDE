@@ -1,10 +1,12 @@
 import {Attachment, SignedAttachmentUrlTTL} from '@budgetbuddyde/api/schemas';
+import * as responses from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {err, ok} from './helpers';
-import {api, getApiRequestConfig} from '../lib/api';
+import {callTool} from './helpers';
+import * as domain from '../../domain/attachment';
+import {listTransactionAttachments} from '../../domain/transaction';
 
-export function registerAttachmentTools(server: McpServer): void {
+export function registerAttachmentTools(server: McpServer, userId: string): void {
   server.registerTool(
     'get_attachment',
     {
@@ -15,9 +17,7 @@ export function registerAttachmentTools(server: McpServer): void {
       },
     },
     async ({id, ttl}, _extra) => {
-      const [result, error] = await api.backend.attachment.getById(id, {ttl}, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.getAttachment(userId, id, {ttl}), responses.GetAttachmentResponse);
     },
   );
 
@@ -32,13 +32,10 @@ export function registerAttachmentTools(server: McpServer): void {
       },
     },
     async ({transactionId, ...query}, _extra) => {
-      const [result, error] = await api.backend.transaction.getTransactionAttachments(
-        transactionId,
-        query,
-        getApiRequestConfig(),
+      return callTool(
+        () => listTransactionAttachments(userId, transactionId, query),
+        responses.GetTransactionAttachmentsResponse,
       );
-      if (error) return err(error);
-      return ok(result);
     },
   );
 }

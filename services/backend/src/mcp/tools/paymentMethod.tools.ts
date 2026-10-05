@@ -1,10 +1,11 @@
 import {PaymentMethod, CreateOrUpdatePaymentMethodPayload} from '@budgetbuddyde/api/schemas';
+import * as responses from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {err, ok} from './helpers';
-import {api, getApiRequestConfig} from '../lib/api';
+import {callTool} from './helpers';
+import * as domain from '../../domain/paymentMethod';
 
-export function registerPaymentMethodTools(server: McpServer): void {
+export function registerPaymentMethodTools(server: McpServer, userId: string): void {
   server.registerTool(
     'list_payment_methods',
     {
@@ -16,9 +17,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
       },
     },
     async (params, _extra) => {
-      const [result, error] = await api.backend.paymentMethod.getAll(params, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.list(userId, params), responses.GetAllPaymentMethodsResponse);
     },
   );
 
@@ -31,9 +30,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.paymentMethod.getById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.get(userId, id), responses.GetPaymentMethodResponse);
     },
   );
 
@@ -44,9 +41,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
       inputSchema: CreateOrUpdatePaymentMethodPayload,
     },
     async (payload, _extra) => {
-      const [result, error] = await api.backend.paymentMethod.create(payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.create(userId, payload), responses.CreatePaymentMethodResponse);
     },
   );
 
@@ -59,9 +54,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
       }),
     },
     async ({id, ...payload}, _extra) => {
-      const [result, error] = await api.backend.paymentMethod.updateById(id, payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.update(userId, id, payload), responses.UpdatePaymentMethodResponse);
     },
   );
 
@@ -74,9 +67,7 @@ export function registerPaymentMethodTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.paymentMethod.deleteById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.remove(userId, id), responses.DeletePaymentMethodResponse);
     },
   );
 }

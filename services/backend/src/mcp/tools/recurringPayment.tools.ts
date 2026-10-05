@@ -1,10 +1,11 @@
 import {RecurringPayment, CreateOrUpdateRecurringPaymentPayload} from '@budgetbuddyde/api/schemas';
+import * as responses from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {err, ok} from './helpers';
-import {api, getApiRequestConfig} from '../lib/api';
+import {callTool} from './helpers';
+import * as domain from '../../domain/recurringPayment';
 
-export function registerRecurringPaymentTools(server: McpServer): void {
+export function registerRecurringPaymentTools(server: McpServer, userId: string): void {
   server.registerTool(
     'list_recurring_payments',
     {
@@ -16,9 +17,7 @@ export function registerRecurringPaymentTools(server: McpServer): void {
       },
     },
     async (params, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.getAll(params, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.listRecurringPayments(userId, params), responses.GetAllRecurringPaymentsResponse);
     },
   );
 
@@ -31,9 +30,7 @@ export function registerRecurringPaymentTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.getById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.getRecurringPayment(userId, id), responses.GetRecurringPaymentResponse);
     },
   );
 
@@ -50,12 +47,17 @@ export function registerRecurringPaymentTools(server: McpServer): void {
       },
     },
     async ({dateFrom, dateTo, includePaused, from, to}, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.getOccurrences(
-        {$dateFrom: dateFrom, $dateTo: dateTo, $includePaused: includePaused, from, to},
-        getApiRequestConfig(),
+      return callTool(
+        () =>
+          domain.listRecurringPaymentOccurrences(userId, {
+            $dateFrom: dateFrom,
+            $dateTo: dateTo,
+            $includePaused: includePaused,
+            from,
+            to,
+          }),
+        responses.GetRecurringPaymentOccurrencesResponse,
       );
-      if (error) return err(error);
-      return ok(result);
     },
   );
 
@@ -66,9 +68,7 @@ export function registerRecurringPaymentTools(server: McpServer): void {
       inputSchema: CreateOrUpdateRecurringPaymentPayload,
     },
     async (payload, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.create(payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.createRecurringPayment(userId, payload), responses.CreateRecurringPaymentResponse);
     },
   );
 
@@ -81,9 +81,10 @@ export function registerRecurringPaymentTools(server: McpServer): void {
       }),
     },
     async ({id, ...payload}, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.updateById(id, payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(
+        () => domain.updateRecurringPayment(userId, id, payload),
+        responses.UpdateRecurringPaymentResponse,
+      );
     },
   );
 
@@ -96,9 +97,7 @@ export function registerRecurringPaymentTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.recurringPayment.deleteById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.removeRecurringPayment(userId, id), responses.DeleteRecurringPaymentResponse);
     },
   );
 }

@@ -60,7 +60,8 @@
     "sharp": "^0.34.5",
     "uuidv7": "^1.1.0",
     "zod": "^4.1.12",
-    "resend": "^6.12.4"
+    "resend": "^6.12.4",
+    "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -39,6 +39,7 @@ export class AppConfig extends BackendConfig {
     rateLimit: AppConfig['rateLimit'];
     exportRateLimit: AppConfig['exportRateLimit'];
   };
+  public readonly mcp: {rateLimit: {enabled: boolean; windowMs: number; limit: number}};
   public readonly email: {resendApiKey: string};
   public readonly database: {
     connectionString: string;
@@ -138,6 +139,7 @@ export class AppConfig extends BackendConfig {
   constructor({
     auth,
     email,
+    mcp,
     database,
     redis,
     objectStorage,
@@ -157,6 +159,7 @@ export class AppConfig extends BackendConfig {
     Pick<
       AppConfig,
       | 'auth'
+      | 'mcp'
       | 'email'
       | 'database'
       | 'redis'
@@ -176,6 +179,7 @@ export class AppConfig extends BackendConfig {
     super(backendConfig);
     this.auth = auth;
     this.email = email;
+    this.mcp = mcp;
     this.database = database;
     this.redis = redis;
     this.objectStorage = objectStorage;
@@ -267,6 +271,7 @@ export class AppConfig extends BackendConfig {
           },
         },
       },
+      mcp: {rateLimit: {enabled: runtime === 'production', windowMs: 60_000, limit: 120}},
       email: {resendApiKey: getRequiredEnvironmentValue(environment, 'RESEND_API_KEY')},
       database: {
         connectionString: getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
@@ -294,7 +299,16 @@ export class AppConfig extends BackendConfig {
             ? getTrustedOrigins(environment.TRUSTED_ORIGINS)
             : [/^(http|https):\/\/localhost(:\d+)?$/],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', 'X-Api-Key'],
+        allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'X-User-Id',
+          'X-Api-Key',
+          'MCP-Protocol-Version',
+          'Mcp-Session-Id',
+          'Last-Event-ID',
+        ],
+        exposedHeaders: ['MCP-Protocol-Version', 'Mcp-Session-Id'],
         credentials: true,
       },
       trustProxy: getTrustProxy(environment.TRUST_PROXY, runtime),

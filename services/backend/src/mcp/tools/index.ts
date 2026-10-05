@@ -6,11 +6,11 @@ import {registerPaymentMethodTools} from './paymentMethod.tools';
 import {registerRecurringPaymentTools} from './recurringPayment.tools';
 import {registerTransactionTools} from './transaction.tools';
 
-export function registerAllTools(server: McpServer): void {
-  registerCategoryTools(server);
-  registerPaymentMethodTools(server);
-  registerTransactionTools(server);
-  registerRecurringPaymentTools(server);
-  registerBudgetTools(server);
-  registerAttachmentTools(server);
+export function registerAllTools(server: McpServer, userId: string): void {
+  registerCategoryTools(server, userId);
+  registerPaymentMethodTools(server, userId);
+  registerTransactionTools(server, userId);
+  registerRecurringPaymentTools(server, userId);
+  registerBudgetTools(server, userId);
+  registerAttachmentTools(server, userId);
 }

@@ -1,10 +1,11 @@
 import {Budget, CreateOrUpdateBudgetPayload} from '@budgetbuddyde/api/schemas';
+import * as responses from '@budgetbuddyde/api/schemas';
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
-import {err, ok} from './helpers';
-import {api, getApiRequestConfig} from '../lib/api';
+import {callTool} from './helpers';
+import * as domain from '../../domain/budget';
 
-export function registerBudgetTools(server: McpServer): void {
+export function registerBudgetTools(server: McpServer, userId: string): void {
   server.registerTool(
     'list_budgets',
     {
@@ -15,9 +16,7 @@ export function registerBudgetTools(server: McpServer): void {
       },
     },
     async (params, _extra) => {
-      const [result, error] = await api.backend.budget.getAll(params, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.list(userId, params), responses.GetAllBudgetsResponse);
     },
   );
 
@@ -30,9 +29,7 @@ export function registerBudgetTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.budget.getById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.get(userId, id), responses.GetBudgetResponse);
     },
   );
 
@@ -43,9 +40,7 @@ export function registerBudgetTools(server: McpServer): void {
       inputSchema: CreateOrUpdateBudgetPayload,
     },
     async (payload, _extra) => {
-      const [result, error] = await api.backend.budget.create(payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.create(userId, payload), responses.CreateBudgetResponse);
     },
   );
 
@@ -58,9 +53,7 @@ export function registerBudgetTools(server: McpServer): void {
       }),
     },
     async ({id, ...payload}, _extra) => {
-      const [result, error] = await api.backend.budget.updateById(id, payload, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.update(userId, id, payload), responses.UpdateBudgetResponse);
     },
   );
 
@@ -73,9 +66,7 @@ export function registerBudgetTools(server: McpServer): void {
       },
     },
     async ({id}, _extra) => {
-      const [result, error] = await api.backend.budget.deleteById(id, getApiRequestConfig());
-      if (error) return err(error);
-      return ok(result);
+      return callTool(() => domain.remove(userId, id), responses.DeleteBudgetResponse);
     },
   );
 }
