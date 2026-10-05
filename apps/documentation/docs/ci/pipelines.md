@@ -8,7 +8,7 @@ All pipelines live in `ci/pipelines/` as reusable templates. Per-workspace value
 
 | Template                           | Pipelines                     | Publishes                       |
 | ---------------------------------- | ----------------------------- | ------------------------------- |
-| `publish-service.pipeline.yml`     | `backend`, `mcp`              | Git tags & release commits      |
+| `publish-service.pipeline.yml`     | `backend`                     | Git tags & release commits      |
 | `publish-npm-package.pipeline.yml` | `db`, `api`, `core`, `logger` | npm packages                    |
 | `test-webapp.pipeline.yml`         | `webapp`                      | Nothing; validation only        |
 | `manage-database.pipeline.yml`     | `manage-database`             | Migrations and daily S3 backups |

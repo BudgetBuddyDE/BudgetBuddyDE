@@ -24,19 +24,16 @@ Fumapress (Fumadocs) site served at [docs.budget-buddy.de](https://docs.budget-b
 
 ## Services
 
-### `services/backend` - domain API and authentication
+### `services/backend` - domain API, authentication, and MCP
 
-Express API under `/api/*`. Routers validate with Zod, enforce ownership, and answer with `ApiResponse` values. Also hosts Better Auth under `/api/auth/*`, authentication emails, OAuth, API keys, the daily recurring-payment job, and import/export endpoints. `src/auth.ts` configures Better Auth with the shared Drizzle PostgreSQL connection.
+Express API under `/api/*`. Routers validate with Zod, enforce ownership, and answer with `ApiResponse` values. Also hosts Better Auth under `/api/auth/*`, authentication emails, OAuth, API keys, the daily recurring-payment job, and import/export endpoints. `src/auth.ts` configures Better Auth with the shared Drizzle PostgreSQL connection. MCP runs in this process at `/mcp` and shares internal domain services with REST, preserving the 28 tool contracts.
 
 - `src/server.ts` - middleware order, route mounts, cron schedule.
 - `src/router/index.ts` - domain router exports; each `*.router.ts` is one domain.
 - `src/middleware` - request context, auth, cache, logging.
 - `src/lib` - S3 client, attachment handler, logger.
+- `src/mcp` - stateless Streamable HTTP transport, tools, and local API-key authentication.
 - `src/tracer.ts` / `src/instrumentation.ts` - OpenTelemetry setup, loaded via `npm run start:instrumentation`.
-
-### `services/mcp` - MCP server
-
-Express + MCP SDK service exposing backend capabilities as tools for LLM clients. Stateless Streamable HTTP transport at `/mcp`; one transport per request. Entry points: `src/server.ts`, `src/tools/index.ts`, `src/middleware/apiKey.middleware.ts`, `src/tracer.ts`/`src/instrumentation.ts` (OpenTelemetry setup, loaded via `npm run start:instrumentation`).
 
 ## Packages
 

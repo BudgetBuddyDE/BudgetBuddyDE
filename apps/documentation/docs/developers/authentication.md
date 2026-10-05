@@ -33,7 +33,7 @@ Account linking is enabled for `email-password`, GitHub, and Google. Unlinking t
 The Better Auth API-key plugin (`@better-auth/api-key`) is configured with:
 
 - Prefix `bb-` and required key names.
-- Session usage enabled (`enableSessionForAPIKeys`), so keys can be sent to the backend as `x-api-key` and to the MCP service as `x-api-key` or `Authorization: Bearer`.
+- Session usage enabled (`enableSessionForAPIKeys`), so keys can be sent to the backend as `x-api-key` and to backend `/mcp` as `x-api-key` or `Authorization: Bearer <API key>`. MCP validates a key locally on every request, with `x-api-key` taking precedence. Cookies alone are rejected; missing, invalid, expired, or disabled keys return `401`, and unexpected authentication errors return a generic `503`.
 - A rate limit of half the authentication request limit over the same window.
 - Permissions are currently an empty default set with a TODO for scoped permissions, meaning keys act with full account access.
 

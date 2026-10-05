@@ -84,7 +84,7 @@ fly -t ci set-pipeline -p backend -c ./pipelines/publish-service.pipeline.yml \
   -v service_name="backend"
 ```
 
-`mcp` follows the same pattern with `repo_path="services/mcp"`, `service="bb_mcp"`, and `service_name="mcp"`. The backend pipeline now builds and tests both domain and authentication code. Retire the old standalone authentication pipeline after the coordinated deployment described in [Updating](/self-hosting/updating#integrated-authentication-cutover).
+The backend pipeline builds and tests domain, authentication, and MCP code together. Do not create a separate MCP pipeline. Retire the previous standalone authentication and MCP pipelines after their coordinated cutovers described in [Updating](/self-hosting/updating). The reusable service pipeline template remains available for backend releases; live pipeline changes are performed by the operator.
 
 ## Manage pipelines
 

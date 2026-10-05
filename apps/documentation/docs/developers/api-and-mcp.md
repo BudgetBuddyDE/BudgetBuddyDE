@@ -1,10 +1,10 @@
 ---
 title: API and MCP
-description: REST surface, response format, and the MCP service.
+description: REST contracts and integrated backend MCP tools.
 icon: Cable
 ---
 
-The backend exposes a REST API under `/api/*`; the MCP service wraps it for LLM clients. Domain routes are owner-scoped and validate input with Zod. Better Auth uses its own endpoint contracts under `/api/auth/*`.
+The backend exposes a REST API under `/api/*` and MCP tools under `/mcp`. Both call shared internal domain services; MCP does not call REST over HTTP. Domain routes are owner-scoped and validate input with Zod. Better Auth uses its own endpoint contracts under `/api/auth/*`.
 
 ## REST endpoints
 
@@ -46,7 +46,7 @@ Domain routes answer with `ApiResponse`; `/api/me` keeps this contract. Better A
 ## Authentication
 
 - **Session cookie** - browsers send cookies with `credentials: 'include'`; the backend validates them using its local Better Auth instance.
-- **API key** - external clients send `x-api-key: bb-...`. The same key works against the MCP service.
+- **API key** - external clients send `x-api-key: bb-...`. The same key works against backend `/mcp`.
 
 ## Typed client
 
@@ -60,18 +60,19 @@ Domain routes answer with `ApiResponse`; `/api/me` keeps this contract. Better A
 
 See the runnable [`examples/api-key-client`](https://github.com/BudgetBuddyDE/BudgetBuddyDE/tree/main/examples/api-key-client) for API-key usage.
 
-## MCP service
+## Integrated MCP
 
-`services/mcp` exposes BudgetBuddy as MCP tools:
+`services/backend/src/mcp` exposes BudgetBuddy through the MCP SDK:
 
-- **Endpoint:** `POST/GET/DELETE /mcp` (default port 8070).
-- **Transport:** stateless Streamable HTTP; each request gets its own server and transport, so there are no session IDs.
-- **Auth:** `x-api-key` or `Authorization: Bearer` validated by the API-key middleware.
-- **Tools:** categories, payment methods, transactions, recurring payments, budgets, and attachments (`src/tools/index.ts`).
-- **Health:** `/health` proxy the backend health.
-- **Rate limit:** 120 requests per minute when `NODE_ENV=production`.
+- **Endpoint:** `<backend URL>/mcp`, locally `http://localhost:9000/mcp`. Streamable HTTP handles POST; unsupported GET/DELETE requests receive the SDK's stateless transport response.
+- **Transport:** stateless Streamable HTTP; each request gets its own server and transport, with no session IDs. Server identity remains `@budgetbuddyde/mcp`; its version follows the backend release.
+- **Auth:** `x-api-key` or `Authorization: Bearer <API key>`, validated locally before processing, including initialization. `x-api-key` takes precedence. Cookies alone are rejected. Missing, invalid, expired, or disabled keys receive `401`; unexpected authentication errors receive a generic `503`.
+- **Tools:** all 28 existing names, input schemas, text responses, and `isError` contracts are preserved. They cover categories, payment methods, transactions, recurring payments, budgets, and attachments.
+- **Origins:** backend `TRUSTED_ORIGINS` applies to browser clients; untrusted Origins receive `403`. Clients without an Origin header remain allowed.
+- **Rate limit:** independent 120 requests per minute and IP in production, using backend cache Redis when configured or an in-memory fallback. The API-key limit also applies; the domain HTTP limiter does not.
+- **Health and lifecycle:** backend `/health`, logging, and tracing cover MCP. Request completion, errors, client aborts, and backend shutdown close the corresponding transports and servers.
 
-The service forwards the caller's API key to the backend, so all tool actions run with the key owner's permissions and data.
+Shared domain services receive the key owner explicitly and preserve REST validation, pagination, ownership, transactions, and error behavior. Successful MCP mutations invalidate the same owner-scoped response caches as REST mutations. MCP reads access the services directly rather than the REST response cache.
 
 ## Next steps
 

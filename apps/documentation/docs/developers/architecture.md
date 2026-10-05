@@ -33,7 +33,7 @@ Supporting components:
 - **Integrated Better Auth** handles authentication under `/api/auth/*` and validates domain request sessions in-process. Auth endpoints run before JSON parsing and domain authentication/cache middleware.
 - **Redis** stores sessions (optional), cached responses, and rate-limit counters.
 - **S3-compatible storage** holds attachment files.
-- **MCP service** exposes the backend to LLM tools, authenticated with API keys.
+- **Integrated MCP** exposes 28 tools at backend `/mcp`, authenticated locally with API keys. REST and MCP share internal domain services; there are no HTTP loopback calls.
 
 ## Error convention: `TResult`
 
@@ -77,11 +77,11 @@ There are two layers:
 | `/api/budget`           | 300 s |
 | `/api/insights`         | 120 s |
 
-Only listed routes are cached. Mutations invalidate the affected keys via the cache middleware. When Redis is not configured, the backend cache is disabled.
+Only listed routes are cached. REST and MCP mutations invalidate affected owner-scoped keys through shared invalidation logic after successful writes. When Redis is not configured, the backend cache is disabled.
 
 ## Rate limiting
 
-Production HTTP limits use Redis. Auth HTTP limits use `AUTH_REDIS_URL` when set, otherwise cache `REDIS_URL`; domain limits use `REDIS_URL`. MCP has its own in-memory limiter, and the API-key plugin also enforces its configured limit:
+Production HTTP limits use Redis. Auth HTTP limits use `AUTH_REDIS_URL` when set, otherwise cache `REDIS_URL`; domain limits use `REDIS_URL`. MCP uses its own limiter with cache Redis or an in-memory fallback. The API-key plugin also enforces its configured limit:
 
 | Service                    | Limit                |
 | -------------------------- | -------------------- |
@@ -89,12 +89,12 @@ Production HTTP limits use Redis. Auth HTTP limits use `AUTH_REDIS_URL` when set
 | Backend                    | 300 requests / 5 min |
 | Backend application export | 4 / 15 min           |
 | Auth export                | 2 / 15 min           |
-| MCP service                | 120 / min            |
+| MCP (`/mcp`)               | 120 / min / IP       |
 | API keys                   | 250 requests / 5 min |
 
 ## Ownership and writes
 
-- Every backend entity is owner-scoped through `ownerId`; handlers read the user from `req.context.user` and filter every query and write by it.
+- Every backend entity is owner-scoped through `ownerId`. REST handlers and MCP tools pass the authenticated user explicitly to shared domain services, which filter every query and write by it.
 - Batch operations are limited to 100 records and verify ownership of every ID before writing.
 - Multi-step and relational writes (batch create/update, category merge, import) run in Drizzle transactions.
 

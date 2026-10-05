@@ -60,5 +60,6 @@ The command reads `DATABASE_URL` from `packages/db/.env`; make sure it points to
 ## Still stuck?
 
 - Check the service logs first; each service logs configuration, requests, and job runs.
-- Health endpoints: web app `/api/health`, backend `/health`, MCP service `/health`.
+- Health endpoints: web app `/api/health` and backend `/health`; the backend check covers the infrastructure used by MCP.
+- MCP clients connect to `<backend URL>/mcp`. A `401` requires a valid API key, even for initialization; cookies alone do not authenticate MCP. A `403` with an Origin header requires adding that browser client origin to backend `TRUSTED_ORIGINS`.
 - Search or open an issue on [GitHub](https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues).

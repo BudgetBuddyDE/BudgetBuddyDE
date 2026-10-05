@@ -63,7 +63,7 @@ For development:
 npm run dev
 ```
 
-Turbo starts the web app, backend and MCP service. The web app is available at [http://localhost:3000](http://localhost:3000).
+Turbo starts the web app and backend, including integrated authentication and MCP. The web app is available at [http://localhost:3000](http://localhost:3000).
 
 For production, build everything first and then start the services. See [Production](/self-hosting/production).
 
@@ -71,11 +71,10 @@ For production, build everything first and then start the services. See [Product
 
 Check the health endpoints:
 
-| Service     | Endpoint                           |
-| ----------- | ---------------------------------- |
-| Web app     | `http://localhost:3000/api/health` |
-| Backend     | `http://localhost:9000/health`     |
-| MCP service | `http://localhost:8070/health`     |
+| Service | Endpoint                           |
+| ------- | ---------------------------------- |
+| Web app | `http://localhost:3000/api/health` |
+| Backend | `http://localhost:9000/health`     |
 
 The backend health response also reports database and Redis connectivity. Then open the web app, sign up, and follow [Getting started](/users/getting-started).
 

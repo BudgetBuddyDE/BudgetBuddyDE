@@ -31,6 +31,16 @@ Set `AUTH_SECRET`, `RESEND_API_KEY`, and, in production, `BASE_URL` to the compl
 
 Follow the [cutover guide](https://docs.budget-buddy.de/self-hosting/updating#integrated-authentication-cutover) when replacing an existing standalone authentication deployment. Preserve its signing secret, cookies, and session store. External hosting, OAuth, proxy, and Concourse configuration changes must be performed by the operator.
 
+## Integrated MCP
+
+The stateless Streamable HTTP endpoint runs at `<backend URL>/mcp`, locally `http://localhost:9000/mcp`. All 28 existing tools retain their names, input schemas, and MCP response contracts. REST and MCP use shared internal domain services with explicit owner context, transactions, and common cache invalidation after successful writes. No HTTP loopback client or separate MCP process is needed.
+
+Send a valid key using `x-api-key` or `Authorization: Bearer <API key>`; `x-api-key` takes precedence. Keys are validated locally for every request, including initialization; cookies alone do not authenticate MCP. Missing or invalid keys receive `401`, and unexpected auth failures receive a generic `503`.
+
+Browser MCP origins must be included in `TRUSTED_ORIGINS`; untrusted origins receive `403`, while clients without an Origin header remain allowed. In production the independent MCP limit is 120 requests/minute/IP, using cache Redis when available or memory otherwise. API-key limits also apply. Backend health, logging, tracing, and shutdown cover MCP; each request owns its server and transport without session IDs.
+
+Follow the [MCP cutover guide](https://docs.budget-buddy.de/self-hosting/updating#integrated-mcp-cutover) to update clients and proxies and retire the previous deployment and pipeline. Existing API keys remain valid; no schema migration is required. The API-key example retains its `BUDGETBUDDY_BACKEND_URL` setting.
+
 ## Tests
 
 Backend unit tests mock external database, Redis, mail, storage, and HTTP boundaries. Coverage requires at least 80% for statements, branches, functions, and lines:

@@ -8,7 +8,7 @@ Each workspace reads its own `.env` file. Copy the matching `.env.example` and a
 
 ## Backend (`services/backend/.env`)
 
-The backend serves domain routes and Better Auth under `/api/auth/*`. It uses one PostgreSQL database with the existing auth and domain schemas.
+The backend serves domain routes, Better Auth under `/api/auth/*`, and MCP at `/mcp`. It uses one PostgreSQL database with the existing auth and domain schemas.
 
 | Variable                                      | Required    | Default                                      | Description                                                                                                                                   |
 | --------------------------------------------- | ----------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -16,14 +16,14 @@ The backend serves domain routes and Better Auth under `/api/auth/*`. It uses on
 | `AUTH_SECRET`                                 | Yes         | N/A                                          | Session/token signing secret; preserve the existing value during migration.                                                                   |
 | `RESEND_API_KEY`                              | Yes         | N/A                                          | Transactional verification, password reset, email change, and account deletion emails.                                                        |
 | `BASE_URL`                                    | Production  | `http://localhost:<PORT>` outside production | Complete HTTP(S) backend origin, including a port if needed. Paths, queries, fragments, and credentials are rejected. Required in production. |
-| `TRUSTED_ORIGINS`                             | Production  | `http://localhost:3000` for auth             | Comma-separated web app origins allowed for authentication and CORS.                                                                          |
+| `TRUSTED_ORIGINS`                             | Production  | `http://localhost:3000` for auth             | Comma-separated web app and browser MCP client origins allowed for authentication, MCP Origin checks, and CORS.                               |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`   | No          | N/A                                          | Enable GitHub sign-in when both are set.                                                                                                      |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`   | No          | N/A                                          | Enable Google sign-in when both are set.                                                                                                      |
 | `DISABLE_CSRF_CHECK`                          | No          | `false`                                      | Set to `true` only when your deployment requires disabling CSRF checks.                                                                       |
 | `DISABLE_SIGNUP`                              | No          | `false`                                      | Close public registration.                                                                                                                    |
 | `AUTH_REDIS_URL`                              | No          | N/A                                          | Independent Redis connection for auth sessions and auth HTTP rate limiting. Without it, sessions use PostgreSQL.                              |
 | `AUTH_REDIS_DB`                               | No          | `0`                                          | Auth Redis database index; preserve the previous session store during migration.                                                              |
-| `REDIS_URL`                                   | No          | N/A                                          | Response cache and domain HTTP rate limiting. Does not enable auth Redis.                                                                     |
+| `REDIS_URL`                                   | No          | N/A                                          | Response cache, domain HTTP limits, and MCP HTTP limits. Does not enable auth Redis.                                                          |
 | `REDIS_DB`                                    | No          | `1`                                          | Backend cache Redis database index.                                                                                                           |
 | `AWS_ENDPOINT_URL`                            | Attachments | N/A                                          | S3-compatible storage endpoint.                                                                                                               |
 | `AWS_S3_BUCKET_NAME`                          | Attachments | N/A                                          | Attachment bucket.                                                                                                                            |
@@ -37,15 +37,11 @@ The backend serves domain routes and Better Auth under `/api/auth/*`. It uses on
 
 All five `AWS_*` values must be set together for attachments. Auth and cache Redis may use the same server with separate database indices.
 
-## MCP service (`services/mcp/.env`)
+## MCP endpoint
 
-| Variable                      | Required | Default                 | Description                                                                        |
-| ----------------------------- | -------- | ----------------------- | ---------------------------------------------------------------------------------- |
-| `BUDGETBUDDY_BACKEND_URL`     | Yes      | -                       | Base URL of your backend, for example `http://localhost:9000`.                     |
-| `PORT`                        | No       | `8070`                  | HTTP port.                                                                         |
-| `NODE_ENV`                    | No       | `development`           | `production` enables rate limiting (120 requests per minute).                      |
-| `LOG_LEVEL`                   | No       | `info`                  | Log verbosity.                                                                     |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | No       | `http://localhost:4318` | OTLP endpoint that receives traces when the service runs with tracing (see below). |
+MCP is served by the backend at `/mcp` and uses its existing environment. No separate MCP `.env`, port, or backend-host variable is needed. `TRUSTED_ORIGINS` also controls browser MCP clients: add their exact origins; clients without an Origin header remain allowed. `NODE_ENV=production` enables the independent 120 requests/minute/IP MCP limit. Backend `REDIS_URL` / `REDIS_DB` stores its counters when configured; otherwise the limiter uses memory.
+
+The example client's `BUDGETBUDDY_BACKEND_URL` remains supported, as documented below.
 
 ## Web app (`apps/webapp/.env`)
 
@@ -90,11 +86,10 @@ Attachments work with any S3-compatible storage. Set all five `AWS_*` variables 
 
 ## Tracing (OpenTelemetry)
 
-The backend and MCP services ship with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start a service with instrumentation to enable it:
+The backend ships with OpenTelemetry tracing for the HTTP and Express layers, including MCP. Regular `npm start` runs without tracing; start the backend with instrumentation to enable it:
 
 ```bash
 npm run start:instrumentation --workspace services/backend
-npm run start:instrumentation --workspace services/mcp
 ```
 
 Traces are exported via OTLP to the endpoint configured with `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), so any OTLP-compatible collector or backend such as Jaeger or Grafana Tempo works. Health-check requests to `/health` are filtered out and not sampled.

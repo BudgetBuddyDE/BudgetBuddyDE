@@ -4,12 +4,12 @@ description: Connect scripts and AI assistants to your BudgetBuddy data.
 icon: KeyRound
 ---
 
-API keys give external clients access to your account without sharing your password. They are managed under **Settings → API keys** and can be used with the REST API and with the MCP service, for example to connect an AI assistant.
+API keys give external clients access to your account without sharing your password. They are managed under **Settings → API keys** and can be used with the REST API and with the backend MCP endpoint, for example to connect an AI assistant.
 
 ## Create an API key
 
 1. Open **Settings → API keys** and create a new key.
-2. Give it a name — names are required and help you recognize what the key is used for.
+2. Give it a name; names are required and help you recognize what the key is used for.
 3. Copy the key immediately: it is shown only once. Keys start with the prefix `bb-`.
 
 ## Security
@@ -32,7 +32,7 @@ A runnable example is included in the repository: [`examples/api-key-client`](ht
 
 ## Use with MCP
 
-The MCP service exposes BudgetBuddy as tools for LLM clients at the endpoint `/mcp` (default `http://localhost:8070/mcp` on a self-hosted instance). Authenticate with either header:
+The backend exposes BudgetBuddy as tools for LLM clients at `/mcp` (default `http://localhost:9000/mcp` on a self-hosted instance). Authenticate with either header:
 
 - `x-api-key: bb-your-api-key`, or
 - `Authorization: Bearer bb-your-api-key`
@@ -44,7 +44,13 @@ Example configuration for an MCP client that supports command-based servers:
   "mcpServers": {
     "budgetbuddy": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://your-mcp.example.com/mcp", "--header", "x-api-key:${BUDGETBUDDY_API_KEY}"],
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://your-backend.example.com/mcp",
+        "--header",
+        "x-api-key:${BUDGETBUDDY_API_KEY}"
+      ],
       "env": {
         "BUDGETBUDDY_API_KEY": "bb-your-api-key"
       }
@@ -53,7 +59,7 @@ Example configuration for an MCP client that supports command-based servers:
 }
 ```
 
-Available tools cover categories, payment methods, transactions, recurring payments, budgets, and attachments. In production the MCP service rate limits requests to 120 per minute.
+All 28 tools cover categories, payment methods, transactions, recurring payments, budgets, and attachments. A valid key is required for every request, including initialization; browser cookies alone do not work. If both headers are present, `x-api-key` takes precedence. In production MCP limits requests independently to 120 per minute and IP, in addition to API-key limits. Browser client origins must be included in the instance's backend `TRUSTED_ORIGINS`; clients without an Origin header are allowed.
 
 ## Related pages
 

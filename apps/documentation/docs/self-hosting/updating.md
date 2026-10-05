@@ -40,6 +40,19 @@ Authentication is now part of the backend at `/api/auth/*`; the standalone authe
 
 No repository command automatically changes OAuth providers, reverse proxies, hosting templates, or live pipelines. Rollback requires restoring the previous environment layout, callback URLs, web app build, and standalone auth process together.
 
+## Integrated MCP cutover
+
+MCP now runs inside the backend at `/mcp`; the standalone MCP workspace is removed. This is a direct cutover with no aliases for old MCP URLs. There is no database migration, new MCP host variable, or change to existing API keys. All 28 tool names, schemas, and MCP responses remain supported.
+
+1. Retain the old backend/MCP builds, client URLs, proxy configuration, and pipeline settings for rollback. Deploy the new backend using the existing backend build/start commands and Node.js 24.21.0. Its pipeline tests authentication, REST, and MCP together with 80% minimum coverage for statements, branches, functions, and lines.
+2. Route `/mcp` on the public backend host to the backend process. Preserve the proxy's Streamable HTTP behavior and configure trusted proxy handling correctly for per-IP limits. MCP now shares backend logging, tracing, and `/health`; remove separate MCP health forwarding.
+3. Change every MCP client's endpoint from the old MCP host or `http://localhost:8070/mcp` to `<Backend-URL>/mcp`, locally `http://localhost:9000/mcp`. Keep the existing API key. Both `x-api-key` and `Authorization: Bearer <API key>` remain supported; `x-api-key` takes precedence. Cookies alone are rejected, including initialization requests.
+4. Add exact browser MCP client origins to backend `TRUSTED_ORIGINS`. Untrusted origins receive `403`; clients that send no Origin header remain allowed. In production MCP has an independent 120 requests/minute/IP limit, using cache Redis when configured or an in-memory fallback, alongside the API-key limit.
+5. Remove the old MCP environment bindings and deployment templates. The MCP service's `BUDGETBUDDY_BACKEND_URL` setting is no longer needed; the independent `examples/api-key-client` still uses its identically named variable. No separate MCP port, credentials, or environment file needs to be copied into the backend.
+6. Verify backend health, an authenticated MCP initialization, `tools/list` (28 tools), representative read/write tool calls, owner isolation, and REST cache refresh after an MCP mutation. Check invalid-key rejection and browser Origin handling. After verification, shut down the old MCP process and retire its Concourse pipeline, release automation, and monitoring.
+
+Repository changes do not update external client registrations, reverse proxies, Railway services/templates, or live pipelines. Rollback requires restoring the previous backend build, standalone MCP deployment, client endpoints, and proxy routing together.
+
 ## Verify
 
 After restarting:

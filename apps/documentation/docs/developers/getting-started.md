@@ -21,7 +21,7 @@ docker compose up -d
 npm run dev
 ```
 
-`npm run dev` runs every development task through Turbo. Use `npm run dev-services` if you only need the backend and MCP service.
+`npm run dev` runs every development task through Turbo. Use `npm run dev-services` if you only need the backend, including its authentication and MCP endpoints.
 
 ## Root commands
 

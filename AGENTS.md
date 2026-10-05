@@ -12,7 +12,7 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `packages/db` contains Drizzle PostgreSQL tables, relations, enums, and views. Backend entities are owner-scoped through `ownerId`.
 - `services/backend` provides Better Auth under `/api/auth/*` and the Express/Drizzle domain API: request context and authentication middleware run before `/api/*` routers, which validate with Zod, enforce ownership, and return standardized `ApiResponse` values.
 - Backend batch and relational writes use transactions and ownership checks; batch operations are limited to 100 records. Cache lookup/invalidation is part of the backend request pipeline.
-- `services/mcp` exposes backend capabilities as authenticated MCP tools.
+- The backend exposes 28 API-key-authenticated MCP tools at `/mcp`, using shared internal domain services with the REST API rather than HTTP loopback calls.
 - Frontend mutations refresh Redux entity state; component-only dialog/batch state stays local. Use `Promise.all` for independent lookups and Snackbar retry flows for surfaced request failures.
 
 ## Key Directories
@@ -25,7 +25,7 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `packages/logger`: cross-cutting logging.
 - `services/backend/src/router`: authenticated, owner-scoped domain routers; authentication endpoints use the integrated Better Auth handler.
 - `services/backend/src/middleware`: local Better Auth request context, cache, and related middleware.
-- `services/mcp/src`: MCP server/tools and request authentication.
+- `services/backend/src/mcp`: stateless Streamable HTTP transport, tools, and local API-key authentication.
 - `examples/api-key-client`: runnable API-key client example.
 - `apps/documentation`: project and development documentation.
 
@@ -109,3 +109,12 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - `AUTH_REDIS_URL` and `AUTH_REDIS_DB` (default `0`) configure auth sessions independently of response-cache Redis (`REDIS_URL`, `REDIS_DB` default `1`). Without auth Redis, sessions use PostgreSQL.
 - Register `/api/auth/export` before Better Auth, and mount authentication before JSON parsing, domain session checks, and response caching. `/api/me` retains its domain `ApiResponse` contract.
 - Backend coverage requires at least 80% for statements, branches, functions, and lines. Use deterministic unit tests with mocked external dependencies.
+
+## Integrated MCP
+
+- MCP runs at `<backend URL>/mcp`, with one server and transport per request and no session IDs. Preserve all 28 tool names, schemas, and responses.
+- REST and MCP share owner-scoped domain services and mutation cache invalidation. Pass the authenticated user explicitly; MCP must not call the REST API over HTTP.
+- Authenticate each request locally using `x-api-key` or a Bearer API key; `x-api-key` takes precedence. Cookies alone do not authenticate MCP.
+- Reject untrusted request origins with `403`; clients without an Origin header remain allowed. Use backend `TRUSTED_ORIGINS` for browser clients.
+- In production, MCP has an independent 120 requests/minute/IP limit using cache Redis when available, with an in-memory fallback. Domain HTTP limits do not apply to MCP.
+- Close request transports after completion or client abort, and active MCP instances before shared resources during backend shutdown.

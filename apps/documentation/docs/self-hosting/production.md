@@ -29,7 +29,7 @@ Turbo builds dependencies before their consumers. Run the services under a proce
 
 ## Reverse proxy
 
-A minimal Caddy configuration routes the web app and backend, including authentication:
+A minimal Caddy configuration routes the web app and backend, including authentication and MCP:
 
 ```text
 app.example.com {
@@ -51,14 +51,14 @@ Set GitHub and Google callback registrations to `https://backend.example.com/api
 | Domain API                       | 300 requests per 5 minutes |
 | Application export               | 4 per 15 minutes           |
 | Auth export (`/api/auth/export`) | 2 per 15 minutes           |
-| MCP service                      | 120 requests per minute    |
+| MCP (`/mcp`)                     | 120 requests/minute/IP     |
 | API keys                         | 250 requests per 5 minutes |
 
-Auth HTTP limits use `AUTH_REDIS_URL` when configured, otherwise cache `REDIS_URL`; domain limits use `REDIS_URL`. Auth export has its own strict limit. These surfaces do not apply the domain HTTP limiter to Better Auth requests.
+Auth HTTP limits use `AUTH_REDIS_URL` when configured, otherwise cache `REDIS_URL`; domain limits use `REDIS_URL`. Auth export has its own strict limit. MCP uses cache Redis when configured and otherwise an in-memory limiter. Better Auth and MCP requests do not pass through the domain HTTP limiter. Add browser MCP client origins to `TRUSTED_ORIGINS`; clients without an Origin header remain allowed.
 
 ## Hosting integrations
 
-The backend Dockerfile and Railway configuration now include authentication. Existing hosted installations and one-click templates must replace standalone auth service environment bindings and retire that deployment during the coordinated cutover. Reverse proxies, OAuth registrations, hosting templates, and live Concourse pipelines require operator updates; repository changes do not modify those external resources.
+The backend Dockerfile and Railway configuration include authentication and MCP. Route `/mcp` to the backend and update all MCP clients to that public URL; no separate MCP process or domain is required. Follow the [MCP cutover guide](/self-hosting/updating#integrated-mcp-cutover) to retire its previous deployment, pipeline, and monitoring. Existing hosted installations and one-click templates must replace standalone auth service environment bindings and retire that deployment during the coordinated cutover. Reverse proxies, OAuth registrations, hosting templates, and live Concourse pipelines require operator updates; repository changes do not modify those external resources.
 
 ## Next step
 
