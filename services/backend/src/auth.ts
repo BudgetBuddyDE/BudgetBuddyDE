@@ -5,7 +5,7 @@ import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
 import {config} from './config';
 import {db} from './db';
-import {getRedisClient} from './db/redis';
+import {getAuthRedisClient} from './db/redis';
 import {logger} from './lib/logger';
 import {resendManager} from './lib/resend';
 
@@ -13,25 +13,26 @@ const authLogger = logger.child({module: 'auth'});
 
 const options: BetterAuthOptions = {
   secret: config.auth.secret,
-  baseURL: config.runtime === 'production' ? config.baseUrl : `${config.baseUrl}:${config.port}`,
+  baseURL: config.auth.baseUrl,
+  basePath: '/api/auth',
   appName: config.service,
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: authSchema,
   }),
-  secondaryStorage: config.redis.url
+  secondaryStorage: config.auth.redis.url
     ? {
         set(key, value, ttl) {
-          const client = getRedisClient();
-          client.set(key, value, 'EX', ttl || 10);
+          const client = getAuthRedisClient();
+          return client.set(key, value, 'EX', ttl || 10).then(() => undefined);
         },
         get(key) {
-          const client = getRedisClient();
+          const client = getAuthRedisClient();
           return client.get(key);
         },
         delete(key) {
-          const client = getRedisClient();
-          client.del(key);
+          const client = getAuthRedisClient();
+          return client.del(key).then(() => undefined);
         },
       }
     : undefined,
@@ -177,8 +178,8 @@ const options: BetterAuthOptions = {
       requireName: true,
       rateLimit: {
         enabled: true,
-        maxRequests: (config.rateLimit.options.limit as number) / 2,
-        timeWindow: config.rateLimit.options.windowMs,
+        maxRequests: 250,
+        timeWindow: 5 * 60 * 1000,
       },
       permissions: {
         // TODO: Implement proper permissions for API keys, e.g. by allowing users to select permissions when creating an API key and storing them in the database

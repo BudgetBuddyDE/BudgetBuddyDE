@@ -5,7 +5,7 @@ import {BackendError} from '../error';
 import type {TResult} from '../types/common';
 
 export class AuthDataExportService extends BackendService {
-  constructor(host: string, entityPath = '/api', logger?: Logger) {
+  constructor(host: string, entityPath = '/api/auth', logger?: Logger) {
     super(host, entityPath, logger);
   }
 

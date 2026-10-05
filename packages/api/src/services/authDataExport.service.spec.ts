@@ -6,18 +6,18 @@ describe('AuthDataExportService', () => {
     vi.unstubAllGlobals();
   });
 
-  it('exports auth data from the configured auth host', async () => {
+  it('exports auth data from the configured backend host', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(new Response('auth archive', {headers: {'content-type': 'application/zip'}}));
     vi.stubGlobal('fetch', fetchMock);
 
-    const [archive, error] = await new AuthDataExportService('https://auth.example').exportArchive('csv');
+    const [archive, error] = await new AuthDataExportService('https://backend.example').exportArchive('csv');
 
     expect(error).toBeNull();
     await expect(archive?.text()).resolves.toBe('auth archive');
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://auth.example/api/export?format=csv',
+      'https://backend.example/api/auth/export?format=csv',
       expect.objectContaining({cache: 'no-store', credentials: 'include'}),
     );
   });

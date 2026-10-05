@@ -1,3 +1,4 @@
+import * as authSchema from '@budgetbuddyde/db/auth';
 import * as schema from '@budgetbuddyde/db/backend';
 import {drizzle} from 'drizzle-orm/node-postgres';
 import {config} from '../config';
@@ -7,7 +8,7 @@ const drizzleLogger = dbLogger.child({module: 'drizzle'});
 
 export const db = drizzle({
   client: pool,
-  schema: schema,
+  schema: {...schema, ...authSchema},
   logger:
     config.log.level === 'debug'
       ? {

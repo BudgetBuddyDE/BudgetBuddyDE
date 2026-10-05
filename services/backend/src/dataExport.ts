@@ -1,7 +1,7 @@
 import {crc32} from 'node:zlib';
 import {fromNodeHeaders} from 'better-auth/node';
 import type {RequestHandler} from 'express';
-import {HTTPStatusCode} from './models';
+import {HTTPStatusCode} from './models/HttpStatusCode';
 
 type TExportValue = string | number | boolean | Date | null;
 export type TExportRecord = Record<string, TExportValue>;
@@ -164,7 +164,13 @@ export function createAuthExportArchive(data: TAuthExportData, format: TExportFo
 export function createAuthExportHandler({getSession, getData}: TExportDependencies): RequestHandler {
   return async (req, res) => {
     res.set({'Cache-Control': 'no-store', Pragma: 'no-cache'});
-    const authenticatedSession = await getSession(fromNodeHeaders(req.headers));
+    let authenticatedSession: Awaited<ReturnType<TExportDependencies['getSession']>>;
+    try {
+      authenticatedSession = await getSession(fromNodeHeaders(req.headers));
+    } catch {
+      res.status(HTTPStatusCode.SERVICE_UNAVAILABLE).json({error: 'Authentication service unavailable'});
+      return;
+    }
     if (!authenticatedSession) {
       res.status(HTTPStatusCode.UNAUTHORIZED).json({error: 'Unauthorized'});
       return;
@@ -177,7 +183,13 @@ export function createAuthExportHandler({getSession, getData}: TExportDependenci
     }
 
     const selectedFormat: TExportFormat = format ?? 'json';
-    const archive = createAuthExportArchive(await getData(authenticatedSession.user.id), selectedFormat);
+    let archive: Buffer;
+    try {
+      archive = createAuthExportArchive(await getData(authenticatedSession.user.id), selectedFormat);
+    } catch {
+      res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({error: 'Failed to export authentication data'});
+      return;
+    }
     const date = new Date().toISOString().slice(0, 10);
 
     res

@@ -8,7 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "npx rimraf build && npx tsc",
     "pretest": "npm run check",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "check": "npm run format:check && npm run lint:check",
     "check:write": "npm run lint && npm run format",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix --max-warnings=0",
@@ -59,7 +59,8 @@
     "rate-limit-redis": "^4.3.1",
     "sharp": "^0.34.5",
     "uuidv7": "^1.1.0",
-    "zod": "^4.1.12"
+    "zod": "^4.1.12",
+    "resend": "^6.12.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -71,6 +72,7 @@
     "rimraf": "^6.0.1",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@vitest/coverage-v8": "3.2.7"
   }
 }

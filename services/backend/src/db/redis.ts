@@ -5,6 +5,24 @@ import {logger} from '../lib/logger';
 const redisLogger = logger.child({module: 'redis'});
 
 let redis: Redis | null = null;
+let authRedis: Redis | null = null;
+
+/** Auth sessions keep their existing Redis database independently of domain caches. */
+export function getAuthRedisClient(): Redis {
+  if (!authRedis) {
+    const {url, database} = config.auth.redis;
+    if (!url) throw new Error('AUTH_REDIS_URL is not configured.');
+    authRedis = new Redis(url, {
+      db: database,
+      // A local session lookup must fail promptly when its storage is unavailable.
+      connectTimeout: 5000,
+      commandTimeout: 5000,
+      maxRetriesPerRequest: 1,
+    });
+    authRedis.on('error', err => redisLogger.error('Auth Redis error:', err));
+  }
+  return authRedis;
+}
 
 export function getRedisClient(): Redis {
   if (!redis) {
@@ -34,8 +52,8 @@ export function getRedisClient(): Redis {
 
 /** Closes the shared Redis connection during graceful shutdown. */
 export async function closeRedis(): Promise<void> {
-  if (!redis) return;
-  const client = redis;
+  const clients = [redis, authRedis].filter((client): client is Redis => client !== null);
   redis = null;
-  await client.quit().catch(() => undefined);
+  authRedis = null;
+  await Promise.allSettled(clients.map(client => client.quit()));
 }

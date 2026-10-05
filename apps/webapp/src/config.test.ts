@@ -14,7 +14,6 @@ describe('WebappConfig', () => {
       service: name,
       version,
       runtime: 'development',
-      authServiceHost: 'http://localhost:8080',
       backendServiceHost: 'http://localhost:9000',
       log: {level: 'info'},
     });
@@ -24,7 +23,6 @@ describe('WebappConfig', () => {
     const config = WebappConfig.fromEnvironment({
       NODE_ENV: 'production',
       NEXT_PUBLIC_APP_VERSION: ' 3.6.0 ',
-      NEXT_PUBLIC_AUTH_SERVICE_HOST: ' https://auth.budget-buddy.de ',
       NEXT_PUBLIC_BACKEND_SERVICE_HOST: ' https://api.budget-buddy.de ',
       NEXT_PUBLIC_LOG_LEVEL: 'debug',
     });
@@ -32,7 +30,6 @@ describe('WebappConfig', () => {
     expect(config).toMatchObject({
       runtime: 'production',
       version: '3.6.0',
-      authServiceHost: 'https://auth.budget-buddy.de',
       backendServiceHost: 'https://api.budget-buddy.de',
       log: {level: 'debug'},
     });
@@ -41,13 +38,11 @@ describe('WebappConfig', () => {
   it('uses local host defaults for blank values and normalizes the runtime', () => {
     const config = WebappConfig.fromEnvironment({
       NODE_ENV: 'preview',
-      NEXT_PUBLIC_AUTH_SERVICE_HOST: ' ',
       NEXT_PUBLIC_BACKEND_SERVICE_HOST: '',
       NEXT_PUBLIC_LOG_LEVEL: 'error',
     });
 
     expect(config.runtime).toBe('development');
-    expect(config.authServiceHost).toBe('http://localhost:8080');
     expect(config.backendServiceHost).toBe('http://localhost:9000');
     expect(config.log.level).toBe('error');
   });

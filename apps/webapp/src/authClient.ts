@@ -5,12 +5,12 @@ import {webappConfig} from './config';
 import {logger} from './logger';
 
 export const authClient = createAuthClient({
-  baseURL: webappConfig.authServiceHost,
+  baseURL: webappConfig.backendServiceHost,
   fetchOptions: {
     onError(e) {
       if (e.error.status === 429) {
-        logger.warn('Auth service rate limit reached', {status: e.error.status});
-      } else logger.error('Auth service request failed', {status: e.error.status});
+        logger.warn('Authentication rate limit reached', {status: e.error.status});
+      } else logger.error('Authentication request failed', {status: e.error.status});
     },
   },
   plugins: [apiKeyClient()],

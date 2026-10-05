@@ -166,3 +166,62 @@ describe('auth export', () => {
     expect(getData).not.toHaveBeenCalled();
   });
 });
+
+describe('auth export validation and failures', () => {
+  it.each(['xml', ['json', 'csv'], {format: 'json'}])(
+    'rejects invalid format %j without reading data',
+    async format => {
+      const getData = vi.fn();
+      const handler = createAuthExportHandler({getSession: vi.fn().mockResolvedValue({user: {id: 'user-1'}}), getData});
+      const response = createResponse();
+      await handler({headers: {}, query: {format}} as never, response as never, vi.fn());
+      expect(response.status).toHaveBeenCalledWith(400);
+      expect(response.json).toHaveBeenCalledWith({error: "format must be either 'json' or 'csv'"});
+      expect(getData).not.toHaveBeenCalled();
+    },
+  );
+
+  it('defaults downloads to JSON', async () => {
+    const handler = createAuthExportHandler({
+      getSession: vi.fn().mockResolvedValue({user: {id: 'user-1'}}),
+      getData: vi.fn().mockResolvedValue(exportData),
+    });
+    const response = createResponse();
+    await handler({headers: {}, query: {}} as never, response as never, vi.fn());
+    expect(readStoredZipEntries(response.send.mock.calls[0]![0])).toHaveProperty('user.json');
+  });
+
+  it('does not reveal authentication failures', async () => {
+    const getData = vi.fn();
+    const handler = createAuthExportHandler({
+      getSession: vi.fn().mockRejectedValue(new Error('secret backend details')),
+      getData,
+    });
+    const response = createResponse();
+    await handler({headers: {}, query: {}} as never, response as never, vi.fn());
+    expect(response.status).toHaveBeenCalledWith(503);
+    expect(response.json).toHaveBeenCalledWith({error: 'Authentication service unavailable'});
+    expect(getData).not.toHaveBeenCalled();
+  });
+
+  it('does not reveal export database failures', async () => {
+    const handler = createAuthExportHandler({
+      getSession: vi.fn().mockResolvedValue({user: {id: 'user-1'}}),
+      getData: vi.fn().mockRejectedValue(new Error('secret connection string')),
+    });
+    const response = createResponse();
+    await handler({headers: {}, query: {}} as never, response as never, vi.fn());
+    expect(response.status).toHaveBeenCalledWith(500);
+    expect(response.json).toHaveBeenCalledWith({error: 'Failed to export authentication data'});
+    expect(response.send).not.toHaveBeenCalled();
+  });
+
+  it('writes empty fields and properly escapes CSV newlines and commas', () => {
+    const data = {user: {id: 'owner', name: 'Ada,\n"Lovelace"'}, sessions: [], accounts: [], apiKeys: []};
+    const entries = readStoredZipEntries(createAuthExportArchive(data, 'csv'));
+    expect(entries['user.csv']).toContain('"Ada,\n""Lovelace"""');
+    expect(entries['sessions.csv']?.trim().split('\n')).toHaveLength(1);
+    const json = readStoredZipEntries(createAuthExportArchive(data, 'json'));
+    expect(JSON.parse(json['user.json']!)[0].email).toBeNull();
+  });
+});

@@ -27,10 +27,10 @@ export class Api {
     insights: InsightsService;
   };
 
-  constructor(backendHost: string, authHost = backendHost, logger: Logger = createNoopLogger()) {
+  constructor(backendHost: string, logger: Logger = createNoopLogger()) {
     this.backendHost = backendHost;
     this.auth = {
-      dataExport: new AuthDataExportService(authHost, '/api', logger.child({module: 'AuthDataExportService'})),
+      dataExport: new AuthDataExportService(backendHost, '/api/auth', logger.child({module: 'AuthDataExportService'})),
     };
     this.backend = {
       application: new ApplicationDataService(

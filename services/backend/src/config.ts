@@ -27,10 +27,19 @@ function getRequiredEnvironmentValue(environment: NodeJS.ProcessEnv, name: strin
 export class AppConfig extends BackendConfig {
   public readonly auth: {
     baseUrl: string;
-    credentials: RequestCredentials;
-    /** Timeout in milliseconds for the auth-service session lookup. */
-    requestTimeoutMs: number;
+    secret: string;
+    trustedOrigins: string[];
+    disableCsrfCheck: boolean;
+    disableSignUp: boolean;
+    socialProviders: {
+      github: {clientId?: string; clientSecret?: string};
+      google: {clientId?: string; clientSecret?: string};
+    };
+    redis: {url?: string; database: number};
+    rateLimit: AppConfig['rateLimit'];
+    exportRateLimit: AppConfig['exportRateLimit'];
   };
+  public readonly email: {resendApiKey: string};
   public readonly database: {
     connectionString: string;
     connectionTimeoutMillis: number;
@@ -128,6 +137,7 @@ export class AppConfig extends BackendConfig {
 
   constructor({
     auth,
+    email,
     database,
     redis,
     objectStorage,
@@ -147,6 +157,7 @@ export class AppConfig extends BackendConfig {
     Pick<
       AppConfig,
       | 'auth'
+      | 'email'
       | 'database'
       | 'redis'
       | 'objectStorage'
@@ -164,6 +175,7 @@ export class AppConfig extends BackendConfig {
     >) {
     super(backendConfig);
     this.auth = auth;
+    this.email = email;
     this.database = database;
     this.redis = redis;
     this.objectStorage = objectStorage;
@@ -186,17 +198,76 @@ export class AppConfig extends BackendConfig {
     const service = name;
     const timezone = getOptionalEnvironmentValue(environment, 'TIMEZONE') ?? 'Europe/Berlin';
     const redisUrl = getOptionalEnvironmentValue(environment, 'REDIS_URL');
+    const authRedisUrl = getOptionalEnvironmentValue(environment, 'AUTH_REDIS_URL');
+    const trustedOrigins = getTrustedOrigins(environment.TRUSTED_ORIGINS);
+    const port = getPort(environment.PORT, 9000);
+    if (runtime === 'production' && trustedOrigins.length === 0) {
+      throw new EnvironmentNotSetError('TRUSTED_ORIGINS');
+    }
+    const baseUrl =
+      runtime === 'production'
+        ? getRequiredEnvironmentValue(environment, 'BASE_URL')
+        : (getOptionalEnvironmentValue(environment, 'BASE_URL') ?? `http://localhost:${port}`);
+    const publicUrl = new URL(baseUrl);
+    if (
+      !['http:', 'https:'].includes(publicUrl.protocol) ||
+      publicUrl.pathname !== '/' ||
+      publicUrl.search ||
+      publicUrl.hash ||
+      publicUrl.username ||
+      publicUrl.password
+    ) {
+      throw new Error('BASE_URL must be an HTTP(S) origin without credentials, a path, query, or fragment.');
+    }
 
     return new AppConfig({
       service,
       version,
-      port: getPort(environment.PORT, 9000),
+      port,
       runtime,
       auth: {
-        baseUrl: getOptionalEnvironmentValue(environment, 'AUTH_SERVICE_HOST') ?? 'http://localhost:8080',
-        credentials: 'include',
-        requestTimeoutMs: 5000,
+        baseUrl: publicUrl.origin,
+        secret: getRequiredEnvironmentValue(environment, 'AUTH_SECRET'),
+        trustedOrigins: trustedOrigins.length > 0 ? trustedOrigins : ['http://localhost:3000'],
+        disableCsrfCheck: environment.DISABLE_CSRF_CHECK === 'true',
+        disableSignUp: environment.DISABLE_SIGNUP === 'true',
+        socialProviders: {
+          github: {
+            clientId: getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_ID'),
+            clientSecret: getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_SECRET'),
+          },
+          google: {
+            clientId: getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_ID'),
+            clientSecret: getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_SECRET'),
+          },
+        },
+        redis: {url: authRedisUrl, database: getRedisDatabase(environment.AUTH_REDIS_DB, 0)},
+        rateLimit: {
+          enabled: runtime === 'production' && (redisUrl !== undefined || authRedisUrl !== undefined),
+          keyPrefix: `rate-limit:${service}:auth:`,
+          options: {
+            windowMs: 5 * 60 * 1000,
+            limit: 500,
+            standardHeaders: 'draft-7',
+            legacyHeaders: false,
+            passOnStoreError: true,
+            statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
+          },
+        },
+        exportRateLimit: {
+          enabled: runtime === 'production' && (redisUrl !== undefined || authRedisUrl !== undefined),
+          keyPrefix: `rate-limit:${service}:auth-export:`,
+          options: {
+            windowMs: 15 * 60 * 1000,
+            limit: 2,
+            standardHeaders: 'draft-7',
+            legacyHeaders: false,
+            passOnStoreError: false,
+            statusCode: HTTPStatusCode.TOO_MANY_REQUESTS,
+          },
+        },
       },
+      email: {resendApiKey: getRequiredEnvironmentValue(environment, 'RESEND_API_KEY')},
       database: {
         connectionString: getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
         connectionTimeoutMillis: 5000,
@@ -223,7 +294,7 @@ export class AppConfig extends BackendConfig {
             ? getTrustedOrigins(environment.TRUSTED_ORIGINS)
             : [/^(http|https):\/\/localhost(:\d+)?$/],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', 'X-Api-Key'],
         credentials: true,
       },
       trustProxy: getTrustProxy(environment.TRUST_PROXY, runtime),

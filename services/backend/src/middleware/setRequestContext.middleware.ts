@@ -1,12 +1,12 @@
 import type {NextFunction, Request, Response} from 'express';
-import {config} from '../config';
-import {authClient, logger as mainLogger} from '../lib';
+import {auth} from '../auth';
+import {logger as mainLogger} from '../lib/logger';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import type {RequestContext} from '../types';
 
 const logger = mainLogger.child({module: 'auth', middleware: 'setRequestContext'});
 
-/** Only credentials the auth service needs are forwarded upstream. */
+/** Only authentication credentials are passed to the local session lookup. */
 const FORWARDED_AUTH_HEADERS = ['cookie', 'authorization', 'x-api-key'] as const;
 
 function buildAuthHeaders(req: Request): Headers {
@@ -20,41 +20,26 @@ function buildAuthHeaders(req: Request): Headers {
 }
 
 export async function setRequestContext(req: Request, res: Response, next: NextFunction) {
-  const session = await authClient
-    .getSession({
-      fetchOptions: {
-        headers: buildAuthHeaders(req),
-        signal: AbortSignal.timeout(config.auth.requestTimeoutMs),
-      },
-    })
-    .catch((error: unknown) => {
-      logger.error('Authentication service request failed', error instanceof Error ? error : new Error(String(error)));
-      return null;
-    });
+  const session = await auth.api.getSession({headers: buildAuthHeaders(req)}).catch((error: unknown) => {
+    logger.error('Authentication failed', error instanceof Error ? error : new Error(String(error)));
+    return undefined;
+  });
 
-  if (session === null) {
+  if (session === undefined) {
     return ApiResponse.builder()
       .withStatus(HTTPStatusCode.SERVICE_UNAVAILABLE)
       .withMessage('Authentication failed')
       .buildAndSend(res);
   }
 
-  if (session.error) {
-    logger.error('Authentication service returned an error', session.error);
-    return ApiResponse.builder()
-      .withStatus(HTTPStatusCode.SERVICE_UNAVAILABLE)
-      .withMessage('Authentication failed')
-      .buildAndSend(res);
-  }
-
-  if (!session.data) {
+  if (!session) {
     logger.warn('No session data found');
     return ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
   }
 
   const context: RequestContext = {
-    user: session.data.user,
-    session: session.data.session,
+    user: session.user,
+    session: session.session,
   };
   logger.debug('Request context set', {userId: context.user?.id});
 

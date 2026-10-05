@@ -11,8 +11,8 @@ const {getSession, loggerFunctions} = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../lib', () => ({
-  authClient: {getSession},
+vi.mock('../auth', () => ({auth: {api: {getSession}}}));
+vi.mock('../lib/logger', () => ({
   logger: {
     child: () => loggerFunctions,
   },
@@ -37,11 +37,8 @@ describe('setRequestContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getSession.mockResolvedValue({
-      data: {
-        user: {id: 'user-id'},
-        session: {id: 'session-id'},
-      },
-      error: null,
+      user: {id: 'user-id'},
+      session: {id: 'session-id'},
     });
   });
 
@@ -58,7 +55,7 @@ describe('setRequestContext', () => {
     expect(next).toHaveBeenCalledOnce();
   });
 
-  it('forwards only the required authentication headers upstream', async () => {
+  it('passes only authentication credentials to the local auth API', async () => {
     const req = createRequest({
       cookie: 'better-auth.session_token=session-token',
       authorization: 'Bearer token',
@@ -68,22 +65,15 @@ describe('setRequestContext', () => {
 
     await setRequestContext(req, createResponse(), vi.fn() as NextFunction);
 
-    const headers = getSession.mock.calls[0][0].fetchOptions.headers as Headers;
+    const headers = getSession.mock.calls[0][0].headers as Headers;
     expect(headers.get('cookie')).toBe('better-auth.session_token=session-token');
     expect(headers.get('authorization')).toBe('Bearer token');
     expect(headers.get('x-api-key')).toBe('bb-api-key');
     expect(headers.get('x-unrelated')).toBeNull();
   });
 
-  it('bounds the auth-service request with an abort signal', async () => {
-    await setRequestContext(createRequest({}), createResponse(), vi.fn() as NextFunction);
-
-    const signal = getSession.mock.calls[0][0].fetchOptions.signal;
-    expect(signal).toBeInstanceOf(AbortSignal);
-  });
-
   it('returns 401 when no session is returned', async () => {
-    getSession.mockResolvedValueOnce({data: null, error: null});
+    getSession.mockResolvedValueOnce(null);
     const res = createResponse();
     const next = vi.fn() as NextFunction;
 
@@ -102,7 +92,25 @@ describe('setRequestContext', () => {
     await setRequestContext(createRequest({}), res, next);
 
     expect(res.status).toHaveBeenCalledWith(503);
-    expect(loggerFunctions.error).toHaveBeenCalledWith('Authentication service request failed', upstreamError);
+    expect(loggerFunctions.error).toHaveBeenCalledWith('Authentication failed', upstreamError);
     expect(next).not.toHaveBeenCalled();
+  });
+});
+
+describe('session credentials and failures', () => {
+  it('supports array-valued credential headers', async () => {
+    getSession.mockResolvedValueOnce({user: {id: 'api-owner'}, session: {id: 'api-key-session'}});
+    const req = createRequest({'x-api-key': ['bb-first', 'bb-second']});
+    await setRequestContext(req, createResponse(), vi.fn());
+    expect(getSession.mock.lastCall?.[0].headers.get('x-api-key')).toBe('bb-first, bb-second');
+    expect(req.context.user?.id).toBe('api-owner');
+  });
+
+  it('normalizes non-Error rejections and exposes no internal details', async () => {
+    getSession.mockRejectedValueOnce('private database error');
+    const res = createResponse();
+    await setRequestContext(createRequest({}), res, vi.fn());
+    expect(loggerFunctions.error).toHaveBeenLastCalledWith('Authentication failed', expect.any(Error));
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({status: 503, message: 'Authentication failed'}));
   });
 });
