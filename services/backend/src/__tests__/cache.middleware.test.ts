@@ -207,6 +207,7 @@ suite('Cache', () => {
       expect(next).toHaveBeenCalledOnce();
 
       // Simulate route handler calling res.json
+      res.locals = {domainMutationHandled: true};
       const responseBody = {status: 200, data: []};
       res.json(responseBody);
 
@@ -329,6 +330,21 @@ suite('Cache', () => {
       await listeners.finish();
 
       expect(mockRedisIncr).toHaveBeenCalledTimes(5);
+    });
+
+    it('does not invalidate successful shared-domain mutations twice', async () => {
+      const req = makeRequest({method: 'POST'});
+      const listeners: Record<string, () => void> = {};
+      const res = {
+        ...makeResponse(),
+        locals: {domainMutationHandled: true},
+        on: (event: string, cb: () => void) => {
+          listeners[event] = cb;
+        },
+      } as unknown as Response;
+      await invalidateCache(req, res, next);
+      await listeners.finish();
+      expect(mockRedisIncr).not.toHaveBeenCalled();
     });
 
     it('does not invalidate caches for failed mutations', async () => {
