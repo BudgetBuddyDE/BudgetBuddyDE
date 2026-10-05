@@ -21,7 +21,7 @@ docker compose up -d
 npm run dev
 ```
 
-`npm run dev` runs every development task through Turbo. Use `npm run dev-services` if you only need the backend, auth service, and MCP service.
+`npm run dev` runs every development task through Turbo. Use `npm run dev-services` if you only need the backend and MCP service.
 
 ## Root commands
 
@@ -52,7 +52,7 @@ Vitest runs in every tested workspace. Root defaults are global APIs, a Node env
 - Service tests live in `src/__tests__` and load `.env.test` where configured.
 - Web app utilities use `.spec.ts`; component tests use `.test.tsx` with Testing Library and `happy-dom`. The setup file is `apps/webapp/src/vitest.setup.ts`; Next.js navigation and image APIs are mocked globally.
 
-Test boundaries and observable behavior — Zod validation, query serialization, `TResult` error tuples, auth context, owner isolation, cache behavior, and UI state transitions — not implementation details. Coverage is disabled by default; no threshold is enforced.
+Test boundaries and observable behavior - Zod validation, query serialization, `TResult` error tuples, auth context, owner isolation, cache behavior, and UI state transitions - not implementation details. Backend unit tests enforce 80% coverage for statements, branches, functions, and lines, with mocked database, Redis, email, storage, and HTTP boundaries. Other workspaces retain their existing coverage defaults.
 
 ## Repository conventions
 

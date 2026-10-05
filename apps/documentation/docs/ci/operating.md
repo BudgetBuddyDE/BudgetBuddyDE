@@ -25,7 +25,7 @@ If the team does not exist yet, ask a Concourse administrator to create it; pipe
 
 Run the commands from the `ci/` directory so the relative `-c ./pipelines/...` paths resolve. Setting a pipeline that already exists updates it.
 
-> Pass secrets through Vault only — never as `-v` values, and never commit files under `secrets/**`.
+> Pass secrets through Vault only - never as `-v` values, and never commit files under `secrets/**`.
 
 ### Webapp
 
@@ -72,19 +72,19 @@ fly -t ci set-pipeline -p db -c ./pipelines/publish-npm-package.pipeline.yml \
 
 ### Services
 
-`auth-service`:
+`backend`:
 
 ```bash
-fly -t ci set-pipeline -p auth-service -c ./pipelines/publish-service.pipeline.yml \
+fly -t ci set-pipeline -p backend -c ./pipelines/publish-service.pipeline.yml \
   --team budgetbuddyde \
   -v repo_owner="budgetbuddyde" \
   -v repo_name="budgetbuddyde" \
-  -v repo_path="services/auth-service" \
-  -v service="bb_auth_service" \
-  -v service_name="auth-service"
+  -v repo_path="services/backend" \
+  -v service="bb_backend" \
+  -v service_name="backend"
 ```
 
-`backend` (`repo_path="services/backend"`, `service="bb_backend"`) and `mcp` (`repo_path="services/mcp"`, `service="bb_mcp"`) follow the same pattern.
+`mcp` follows the same pattern with `repo_path="services/mcp"`, `service="bb_mcp"`, and `service_name="mcp"`. The backend pipeline now builds and tests both domain and authentication code. Retire the old standalone authentication pipeline after the coordinated deployment described in [Updating](/self-hosting/updating#integrated-authentication-cutover).
 
 ## Manage pipelines
 

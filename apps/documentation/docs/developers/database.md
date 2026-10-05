@@ -8,8 +8,8 @@ icon: Database
 
 ## Schema layout
 
-- `src/auth` — Better Auth tables (users, sessions, accounts, verification, API keys), generated from the Better Auth configuration.
-- `src/backend` — domain tables in a dedicated PostgreSQL schema `budgetbuddy_backend`, plus enums, relations, and views.
+- `src/auth` - Better Auth tables (users, sessions, accounts, verification, API keys), generated from the Better Auth configuration.
+- `src/backend` - domain tables in a dedicated PostgreSQL schema `budgetbuddy_backend`, plus enums, relations, and views.
 - Backend endpoints read from views where aggregate reads are cheaper; views live alongside the tables in `src/backend`.
 
 ## Domain tables
@@ -33,15 +33,15 @@ Referential actions encode the data model:
 
 | Relation                                            | On user deletion  | On parent deletion                                                 |
 | --------------------------------------------------- | ----------------- | ------------------------------------------------------------------ |
-| `payment_method` → user                             | cascade           | —                                                                  |
-| `category` → user                                   | cascade           | —                                                                  |
+| `payment_method` → user                             | cascade           | -                                                                  |
+| `category` → user                                   | cascade           | -                                                                  |
 | `transaction` → category / payment_method           | cascade via those | **Deleting a category or payment method deletes its transactions** |
 | `recurring_payment` → category / payment_method     | cascade via those | same as transactions                                               |
 | `budget_category` → budget / category               | cascade           | link rows are removed                                              |
-| `attachment` → user                                 | **set null**      | —                                                                  |
+| `attachment` → user                                 | **set null**      | -                                                                  |
 | `transaction_attachment` → transaction / attachment | cascade           | link rows are removed                                              |
 
-Because the auth and backend services share one database in the default setup, deleting a user cascades to all owned domain data. The auth service's `afterDelete` hook still carries a TODO for cross-service cleanup if you split databases.
+The integrated backend uses one PostgreSQL connection for auth and domain schemas. User deletion applies the existing foreign-key actions above, including retaining attachment metadata with a null owner. Moving authentication into the backend requires no schema changes or data migration.
 
 ## Migrations
 

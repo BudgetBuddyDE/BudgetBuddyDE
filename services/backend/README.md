@@ -21,6 +21,24 @@ npm run build
 npm start
 ```
 
+## Integrated authentication
+
+Better Auth runs in this backend at `/api/auth/*`, including registration, sessions, OAuth, email verification, password resets, account management, and API keys. `GET /api/auth/export?format=json|csv` provides the auth metadata ZIP export. `/api/me` retains the domain `ApiResponse` request-context contract.
+
+Set `AUTH_SECRET`, `RESEND_API_KEY`, and, in production, `BASE_URL` to the complete public backend URL. Use `NEXT_PUBLIC_BACKEND_SERVICE_HOST` in the web app for both domain and auth requests. OAuth callbacks use `<BASE_URL>/api/auth/callback/github` or `/google`.
+
+`AUTH_REDIS_URL` / `AUTH_REDIS_DB` (default `0`) configure auth sessions independently of cache `REDIS_URL` / `REDIS_DB` (default `1`). Without auth Redis, sessions use PostgreSQL. Auth and domain tables use the existing database schemas and connection.
+
+Follow the [cutover guide](https://docs.budget-buddy.de/self-hosting/updating#integrated-authentication-cutover) when replacing an existing standalone authentication deployment. Preserve its signing secret, cookies, and session store. External hosting, OAuth, proxy, and Concourse configuration changes must be performed by the operator.
+
+## Tests
+
+Backend unit tests mock external database, Redis, mail, storage, and HTTP boundaries. Coverage requires at least 80% for statements, branches, functions, and lines:
+
+```bash
+npx turbo run test --filter=@budgetbuddyde/backend
+```
+
 ## Credits
 
 - [ExpressJS](https://expressjs.com/)

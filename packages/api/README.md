@@ -17,19 +17,19 @@ npm install @budgetbuddyde/api
 
 ### Peer Dependencies
 
-> [!NOTE] 
+> [!NOTE]
 > The package uses Zod for schema validation, therefore `zod` must be installed as a peer dependency.
+>
 > ```bash
 > npm install zod
 > ```
-
 
 ## Getting Started
 
 ### Basic Usage
 
 ```typescript
-import { Api } from '@budgetbuddyde/api';
+import {Api} from '@budgetbuddyde/api';
 
 // Initialize API client
 const api = new Api('https://backend.budgetbuddy.de');
@@ -63,10 +63,7 @@ const [categories, getAllError] = await api.backend.category.getAll();
 const [category, getError] = await api.backend.category.getById('category-id');
 
 // Update - Update category
-const [updated, updateError] = await api.backend.category.updateById(
-  'category-id',
-  { name: 'Groceries & Beverages' }
-);
+const [updated, updateError] = await api.backend.category.updateById('category-id', {name: 'Groceries & Beverages'});
 
 // Delete - Delete category
 const [deleted, deleteError] = await api.backend.category.deleteById('category-id');
@@ -91,11 +88,11 @@ const [transactions, error] = await api.backend.transaction.getAll({
 The package uses a `TResult<T, E>` pattern for type-safe error handling:
 
 ```typescript
-import type { TResult } from '@budgetbuddyde/api';
+import type {TResult} from '@budgetbuddyde/api';
 
 async function loadBudgets() {
   const [budgets, error] = await api.backend.budget.getAll();
-  
+
   // Check for errors
   if (error) {
     // TypeScript knows that 'budgets' is null here
@@ -106,7 +103,7 @@ async function loadBudgets() {
     }
     return;
   }
-  
+
   // TypeScript knows that 'budgets' is not null here
   console.log('Budgets loaded:', budgets);
 }
@@ -118,15 +115,12 @@ For advanced usage, request options can be passed:
 
 ```typescript
 // With custom headers
-const [data, error] = await api.backend.transaction.getAll(
-  undefined,
-  {
-    headers: {
-      'X-Custom-Header': 'value',
-    },
-    signal: abortController.signal, // AbortController for cancellation
-  }
-);
+const [data, error] = await api.backend.transaction.getAll(undefined, {
+  headers: {
+    'X-Custom-Header': 'value',
+  },
+  signal: abortController.signal, // AbortController for cancellation
+});
 ```
 
 ## Development
@@ -169,13 +163,13 @@ npm run format
 
 ### Available Services
 
-| Service | Description | Endpoint |
-|---------|-------------|----------|
-| `api.backend.category` | Category management | `/api/category` |
-| `api.backend.paymentMethod` | Payment methods | `/api/paymentMethod` |
-| `api.backend.transaction` | Transactions | `/api/transaction` |
-| `api.backend.recurringPayment` | Recurring payments | `/api/recurringPayment` |
-| `api.backend.budget` | Budget management | `/api/budget` |
+| Service                        | Description         | Endpoint                |
+| ------------------------------ | ------------------- | ----------------------- |
+| `api.backend.category`         | Category management | `/api/category`         |
+| `api.backend.paymentMethod`    | Payment methods     | `/api/paymentMethod`    |
+| `api.backend.transaction`      | Transactions        | `/api/transaction`      |
+| `api.backend.recurringPayment` | Recurring payments  | `/api/recurringPayment` |
+| `api.backend.budget`           | Budget management   | `/api/budget`           |
 
 ### Common Methods
 
@@ -249,6 +243,7 @@ packages/api/
 ### Architecture Components
 
 #### 1. **API Class** (`api.ts`)
+
 The central entry point that aggregates all service instances:
 
 ```typescript
@@ -262,6 +257,7 @@ const api = new Api('https://backend-url');
 ```
 
 #### 2. **Entity Service** (`services/entity.service.ts`)
+
 Abstract base class for all entity services with generic CRUD operations:
 
 - `getAll(query?, config?)` - Fetch all entities
@@ -271,6 +267,7 @@ Abstract base class for all entity services with generic CRUD operations:
 - `deleteById(id, config?)` - Delete entity
 
 **Features:**
+
 - Automatic Zod validation of all responses
 - Type-safe request/response handling
 - Query parameter serialization
@@ -278,6 +275,7 @@ Abstract base class for all entity services with generic CRUD operations:
 - Request config merging
 
 #### 3. **Specialized Services** (`services/*.service.ts`)
+
 Extend `EntityService` with domain-specific methods:
 
 ```typescript
@@ -292,10 +290,11 @@ class BudgetService extends EntityService {
 #### 4. **Type System** (`types/`)
 
 ##### **Schemas** (`types/schemas/`)
+
 Zod schemas for runtime validation:
 
 ```typescript
-import { z } from 'zod';
+import {z} from 'zod';
 
 export const CategorySchema = z.object({
   id: z.string(),
@@ -311,16 +310,18 @@ export const GetAllCategoriesResponse = z.object({
 ```
 
 ##### **Types** (`types/*.type.ts`)
+
 TypeScript types, often derived from Zod schemas:
 
 ```typescript
-import type { z } from 'zod';
-import { CategorySchema } from './schemas/category.schema';
+import type {z} from 'zod';
+import {CategorySchema} from './schemas/category.schema';
 
 export type TCategory = z.infer<typeof CategorySchema>;
 ```
 
 ##### **Common Types** (`types/common.ts`)
+
 Shared type helpers:
 
 - `TResult<T, E>` - Result type for error handling
@@ -328,6 +329,7 @@ Shared type helpers:
 - `TypeOfSchema<Schema>` - Schema-to-type converter
 
 ##### **Interfaces** (`types/interfaces/`)
+
 TypeScript interfaces for structure definitions:
 
 ```typescript
@@ -340,6 +342,7 @@ export interface IBaseGetAllQuery {
 ```
 
 #### 5. **Error Handling** (`error.ts`)
+
 Custom error classes for various error scenarios:
 
 - `CustomError` - Base error class
@@ -360,7 +363,17 @@ try {
 }
 ```
 
-
 ## Contributing
 
 See [the documentation for contribution guidelines](https://docs.budget-buddy.de/docs/introduction/contribution).
+
+## Integrated authentication
+
+`new Api(backendHost, logger?)` uses one backend URL for domain services and `api.auth.dataExport`. The previous separate auth-host constructor parameter has been removed. Better Auth client operations use the same backend origin under `/api/auth/*`.
+
+```typescript
+const api = new Api('https://backend.example.com');
+const [archive, error] = await api.auth.dataExport.exportArchive('json');
+```
+
+Auth export requests now use `GET /api/auth/export?format=json|csv` and retain the existing ZIP download and `TResult` tuple behavior. See the [migration guide](https://docs.budget-buddy.de/self-hosting/updating#integrated-authentication-cutover) for the coordinated backend/web app cutover.

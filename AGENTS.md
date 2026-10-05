@@ -10,7 +10,7 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `apps/webapp/src/apiClient.ts` creates the shared `@budgetbuddyde/api` client using `NEXT_PUBLIC_BACKEND_SERVICE_HOST` (default `http://localhost:9000`). Browser-authenticated requests use `credentials: 'include'`.
 - `packages/api` is the typed HTTP boundary. `BackendService` handles query serialization, GET caching, cache invalidation after mutations, HTTP/JSON errors, and `TResult`; `EntityService` validates responses with Zod. Preserve `[data, null] | [null, error]` rather than introducing another error convention.
 - `packages/db` contains Drizzle PostgreSQL tables, relations, enums, and views. Backend entities are owner-scoped through `ownerId`.
-- `services/auth-service` provides authentication with Better Auth. `services/backend` is the Express/Drizzle domain API: request context and authentication middleware run before `/api/*` routers, which validate with Zod, enforce ownership, and return standardized `ApiResponse` values.
+- `services/backend` provides Better Auth under `/api/auth/*` and the Express/Drizzle domain API: request context and authentication middleware run before `/api/*` routers, which validate with Zod, enforce ownership, and return standardized `ApiResponse` values.
 - Backend batch and relational writes use transactions and ownership checks; batch operations are limited to 100 records. Cache lookup/invalidation is part of the backend request pipeline.
 - `services/mcp` exposes backend capabilities as authenticated MCP tools.
 - Frontend mutations refresh Redux entity state; component-only dialog/batch state stays local. Use `Promise.all` for independent lookups and Snackbar retry flows for surfaced request failures.
@@ -23,9 +23,8 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `packages/api/src`: typed API facade, backend/entity services, API schemas.
 - `packages/db/src`: Drizzle schema and database exports; import through package boundaries.
 - `packages/logger`: cross-cutting logging.
-- `services/backend/src/router`: authenticated, owner-scoped domain routers.
-- `services/backend/src/middleware`: request context, authentication, cache, and related middleware.
-- `services/auth-service/src`: authentication service.
+- `services/backend/src/router`: authenticated, owner-scoped domain routers; authentication endpoints use the integrated Better Auth handler.
+- `services/backend/src/middleware`: local Better Auth request context, cache, and related middleware.
 - `services/mcp/src`: MCP server/tools and request authentication.
 - `examples/api-key-client`: runnable API-key client example.
 - `apps/documentation`: project and development documentation.
@@ -100,5 +99,13 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - Service tests are generally under `src/__tests__` and load `.env.test` where configured. Package tests are commonly colocated under `src`; webapp utilities use `.spec.ts` and component tests commonly use `.test.tsx`.
 - Prefer deterministic inline fixtures and mocks (`vi.mock`, `vi.fn`, `vi.hoisted`), semantic Testing Library queries, interaction assertions, and `waitFor` for async UI behavior. Restore environment variables, spies, and mock state in `afterEach`.
 - Test boundaries and observable behavior: Zod validation, query serialization, API error tuples, auth headers/context, owner isolation, transaction/error paths, cache hit/miss/invalidation, and UI state transitions. Do not test incidental implementation details.
-- Coverage is disabled by default and no threshold is enforced. `packages/logger`, `packages/db`, and `packages/api` allow no-test passes where configured; do not infer coverage from that setting.
+- Backend tests collect coverage with 80% minimum thresholds for statements, branches, functions, and lines; other workspaces retain their existing coverage defaults. `packages/logger`, `packages/db`, and `packages/api` allow no-test passes where configured; do not infer coverage from that setting.
 - Before submitting a permanent change, run the narrow workspace test, then relevant `npm run format:check`, `npm run lint:check`, `npm run typecheck`, and build. CI runs formatting, linting, typechecking, tests, then builds on Node 24.21.0.
+
+## Integrated authentication
+
+- Auth and domain data share the backend PostgreSQL connection and unchanged schemas. Preserve `AUTH_SECRET` and cookie settings during upgrades.
+- `BASE_URL` is the complete public backend URL, required in production; development defaults to `http://localhost:<PORT>`. Browser auth uses `NEXT_PUBLIC_BACKEND_SERVICE_HOST`.
+- `AUTH_REDIS_URL` and `AUTH_REDIS_DB` (default `0`) configure auth sessions independently of response-cache Redis (`REDIS_URL`, `REDIS_DB` default `1`). Without auth Redis, sessions use PostgreSQL.
+- Register `/api/auth/export` before Better Auth, and mount authentication before JSON parsing, domain session checks, and response caching. `/api/me` retains its domain `ApiResponse` contract.
+- Backend coverage requires at least 80% for statements, branches, functions, and lines. Use deterministic unit tests with mocked external dependencies.

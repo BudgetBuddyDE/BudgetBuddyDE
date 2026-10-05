@@ -4,22 +4,18 @@ description: Go live with a self-hosted instance.
 icon: ShieldCheck
 ---
 
-This page collects what differs between a local development setup and a public instance.
+## Production configuration
 
-## Checklist
-
-1. **Set `NODE_ENV=production`** for all services. This enables secure cookies, requires `TRUSTED_ORIGINS`, and enables rate limiting (where Redis is configured).
-2. **Use HTTPS everywhere.** Production cookies are `Secure` and `SameSite=None`; sign-in does not work over plain HTTP.
-3. **Set `TRUSTED_ORIGINS`** in the auth service and backend to your exact web app origin(s), for example `https://app.example.com`.
-4. **Set `BASE_URL`** in the auth service to its public address, for example `https://auth.example.com`.
-5. **Set the `NEXT_PUBLIC_*` variables** in `apps/webapp/.env` to the public auth and backend URLs, then build the web app.
-6. **Replace development credentials**: the PostgreSQL and Redis passwords from `docker-compose.yml`, the `AUTH_SECRET` (generate a long random value, for example with `openssl rand -base64 32`), and the Drizzle Gateway `MASTERPASS`.
-7. **Configure backups** for PostgreSQL and your object storage. See [Updating](/self-hosting/updating).
-8. **Optional:** set `DISABLE_SIGNUP=true` on private instances to close public registration.
+1. Set `NODE_ENV=production` for services and use HTTPS for the web app and backend. Production cookies are `Secure` and `SameSite=None`.
+2. Set backend `TRUSTED_ORIGINS` to the exact web app origin(s), for example `https://app.example.com`.
+3. Set backend `BASE_URL` to its complete public HTTP(S) origin without a path, query, fragment, or credentials, for example `https://backend.example.com`. Authentication is served there under `/api/auth/*`.
+4. Set `NEXT_PUBLIC_BACKEND_SERVICE_HOST` before building the web app; this is its only backend/auth URL.
+5. Configure `AUTH_SECRET` and `RESEND_API_KEY`, replace development infrastructure credentials, and set `DISABLE_SIGNUP=true` if registration should be closed.
+6. Back up PostgreSQL and attachment storage. For an existing instance, follow [Updating](/self-hosting/updating#integrated-authentication-cutover).
 
 ## Important: cookie domain
 
-Production sessions use cross-subdomain cookies, and the domain is preset to `.budget-buddy.de` in `services/auth-service/src/auth.ts`. If you run the web app and auth service on your own domain, change that value to your domain (for example `.example.com`). If you skip this, sign-in can fail on custom domains.
+Cross-subdomain cookies retain the existing `.budget-buddy.de` production domain in `services/backend/src/auth.ts`. For your own domain, change it to your domain (for example `.example.com`). Keep the existing cookie prefix and signing secret during migration to preserve compatible sessions.
 
 ## Build and run
 
@@ -29,19 +25,15 @@ npm run build
 npm start
 ```
 
-`npm run build` builds all workspaces in dependency order; `npm start` runs the workspace start scripts via Turbo. Run this under a process manager (systemd, Docker, PM2, or your hosting platform) so services restart automatically. The backend must run continuously because it executes the daily recurring-payment job.
+Turbo builds dependencies before their consumers. Run the services under a process manager such as systemd, Docker, PM2, or your hosting platform. The backend must remain running for its recurring-payment job.
 
 ## Reverse proxy
 
-Put the web app, auth service, and backend behind a reverse proxy that terminates TLS. A minimal Caddy example:
+A minimal Caddy configuration routes the web app and backend, including authentication:
 
 ```text
 app.example.com {
   reverse_proxy localhost:3000
-}
-
-auth.example.com {
-  reverse_proxy localhost:8080
 }
 
 backend.example.com {
@@ -49,26 +41,24 @@ backend.example.com {
 }
 ```
 
-Keep the public URLs consistent with your environment files (`BASE_URL`, `NEXT_PUBLIC_*`, `TRUSTED_ORIGINS`).
+Set GitHub and Google callback registrations to `https://backend.example.com/api/auth/callback/github` and `/google`. No separate authentication process or domain is required.
 
 ## Rate limiting
 
-The following limits are active in production:
+| Surface                          | Limit                      |
+| -------------------------------- | -------------------------- |
+| Authentication (`/api/auth/*`)   | 500 requests per 5 minutes |
+| Domain API                       | 300 requests per 5 minutes |
+| Application export               | 4 per 15 minutes           |
+| Auth export (`/api/auth/export`) | 2 per 15 minutes           |
+| MCP service                      | 120 requests per minute    |
+| API keys                         | 250 requests per 5 minutes |
 
-| Service                      | Limit                               |
-| ---------------------------- | ----------------------------------- |
-| Auth service                 | 500 requests per 5 minutes          |
-| Backend                      | 300 requests per 5 minutes          |
-| Application export (backend) | 4 per 15 minutes                    |
-| Auth export                  | 2 per 15 minutes                    |
-| MCP service                  | 120 requests per minute             |
-| API keys                     | Half the auth service request limit |
+Auth HTTP limits use `AUTH_REDIS_URL` when configured, otherwise cache `REDIS_URL`; domain limits use `REDIS_URL`. Auth export has its own strict limit. These surfaces do not apply the domain HTTP limiter to Better Auth requests.
 
-Backend and auth rate limiting require `REDIS_URL`; without Redis they stay disabled.
+## Hosting integrations
 
-## One-click deploy
-
-The repository includes a [Railway template](https://railway.com/deploy/WjE5vD?referralCode=SD-6Xm&utm_medium=integration&utm_source=template&utm_campaign=generic) that provisions the service stack. Review the generated environment variables against [Configuration](/self-hosting/configuration) before inviting users.
+The backend Dockerfile and Railway configuration now include authentication. Existing hosted installations and one-click templates must replace standalone auth service environment bindings and retire that deployment during the coordinated cutover. Reverse proxies, OAuth registrations, hosting templates, and live Concourse pipelines require operator updates; repository changes do not modify those external resources.
 
 ## Next step
 

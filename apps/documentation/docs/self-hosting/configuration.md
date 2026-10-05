@@ -6,53 +6,42 @@ icon: Settings
 
 Each workspace reads its own `.env` file. Copy the matching `.env.example` and adjust the values. This page is the single reference for all variables.
 
-## Auth service (`services/auth-service/.env`)
-
-| Variable                                    | Required   | Default                 | Description                                                                                                                                    |
-| ------------------------------------------- | ---------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                              | Yes        | —                       | PostgreSQL connection string.                                                                                                                  |
-| `AUTH_SECRET`                               | Yes        | —                       | Secret for signing sessions and tokens. Use a long random value in production.                                                                 |
-| `RESEND_API_KEY`                            | Yes        | —                       | Resend API key for transactional emails (verification, password reset, email change, account deletion). The service does not start without it. |
-| `BACKEND_HOST_URL`                          | Yes        | —                       | Public URL of your backend, for example `http://localhost:9000`.                                                                               |
-| `TRUSTED_ORIGINS`                           | Production | `http://localhost:3000` | Comma-separated web app origins allowed for CORS and authentication. Must be set in production.                                                |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | No         | —                       | Enable GitHub sign-in. Both must be set.                                                                                                       |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | No         | —                       | Enable Google sign-in. Both must be set.                                                                                                       |
-| `REDIS_URL`                                 | No         | —                       | Redis for session storage. Recommended in production.                                                                                          |
-| `REDIS_DB`                                  | No         | `0`                     | Redis database index.                                                                                                                          |
-| `BASE_URL`                                  | No         | `http://localhost`      | Public base URL of the auth service. Used as the Better Auth base URL in production.                                                           |
-| `PORT`                                      | No         | `8080`                  | HTTP port.                                                                                                                                     |
-| `LOG_LEVEL`                                 | No         | `info`                  | Log verbosity.                                                                                                                                 |
-| `TIMEZONE`                                  | No         | `Europe/Berlin`         | Timezone for scheduled work.                                                                                                                   |
-| `DISABLE_CSRF_CHECK`                        | No         | `false`                 | Set to `true` only for special setups; disables CSRF protection.                                                                               |
-| `DISABLE_SIGNUP`                            | No         | `false`                 | Set to `true` to close public registration (useful for private instances).                                                                     |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`               | No         | `http://localhost:4318` | OTLP endpoint that receives traces when the service runs with tracing (see below).                                                             |
-
 ## Backend (`services/backend/.env`)
 
-| Variable                                      | Required    | Default                 | Description                                                                                   |
-| --------------------------------------------- | ----------- | ----------------------- | --------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                                | Yes         | —                       | PostgreSQL connection string.                                                                 |
-| `AUTH_SERVICE_HOST`                           | No          | `http://localhost:8080` | Base URL of the auth service, used to validate sessions and API keys.                         |
-| `TRUSTED_ORIGINS`                             | Production  | —                       | Comma-separated web app origins allowed for CORS. Must be set in production.                  |
-| `REDIS_URL`                                   | No          | —                       | Redis. Enables the response cache and production rate limiting.                               |
-| `REDIS_DB`                                    | No          | `1`                     | Redis database index.                                                                         |
-| `AWS_ENDPOINT_URL`                            | Attachments | —                       | Endpoint of your S3-compatible storage.                                                       |
-| `AWS_S3_BUCKET_NAME`                          | Attachments | —                       | Bucket for attachment files.                                                                  |
-| `AWS_DEFAULT_REGION`                          | Attachments | —                       | Region, for example `eu-central-1`.                                                           |
-| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Attachments | —                       | Credentials for the bucket.                                                                   |
-| `PORT`                                        | No          | `9000`                  | HTTP port. (The shipped `.env.example` comment shows an outdated value; the default is 9000.) |
-| `LOG_LEVEL`                                   | No          | `INFO`                  | Log verbosity.                                                                                |
-| `LOG_HIDE_META`                               | No          | `false`                 | Hides request metadata from logs.                                                             |
-| `TIMEZONE`                                    | No          | `Europe/Berlin`         | Timezone for the daily recurring-payment job and monthly budget calculations.                 |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`                 | No          | `http://localhost:4318` | OTLP endpoint that receives traces when the backend runs with tracing (see below).            |
+The backend serves domain routes and Better Auth under `/api/auth/*`. It uses one PostgreSQL database with the existing auth and domain schemas.
 
-The five `AWS_*` variables must all be set together; if any is missing, attachments fail with an "Object storage is not configured" error.
+| Variable                                      | Required    | Default                                      | Description                                                                                                                                   |
+| --------------------------------------------- | ----------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                | Yes         | N/A                                          | PostgreSQL connection string for both schemas.                                                                                                |
+| `AUTH_SECRET`                                 | Yes         | N/A                                          | Session/token signing secret; preserve the existing value during migration.                                                                   |
+| `RESEND_API_KEY`                              | Yes         | N/A                                          | Transactional verification, password reset, email change, and account deletion emails.                                                        |
+| `BASE_URL`                                    | Production  | `http://localhost:<PORT>` outside production | Complete HTTP(S) backend origin, including a port if needed. Paths, queries, fragments, and credentials are rejected. Required in production. |
+| `TRUSTED_ORIGINS`                             | Production  | `http://localhost:3000` for auth             | Comma-separated web app origins allowed for authentication and CORS.                                                                          |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`   | No          | N/A                                          | Enable GitHub sign-in when both are set.                                                                                                      |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`   | No          | N/A                                          | Enable Google sign-in when both are set.                                                                                                      |
+| `DISABLE_CSRF_CHECK`                          | No          | `false`                                      | Set to `true` only when your deployment requires disabling CSRF checks.                                                                       |
+| `DISABLE_SIGNUP`                              | No          | `false`                                      | Close public registration.                                                                                                                    |
+| `AUTH_REDIS_URL`                              | No          | N/A                                          | Independent Redis connection for auth sessions and auth HTTP rate limiting. Without it, sessions use PostgreSQL.                              |
+| `AUTH_REDIS_DB`                               | No          | `0`                                          | Auth Redis database index; preserve the previous session store during migration.                                                              |
+| `REDIS_URL`                                   | No          | N/A                                          | Response cache and domain HTTP rate limiting. Does not enable auth Redis.                                                                     |
+| `REDIS_DB`                                    | No          | `1`                                          | Backend cache Redis database index.                                                                                                           |
+| `AWS_ENDPOINT_URL`                            | Attachments | N/A                                          | S3-compatible storage endpoint.                                                                                                               |
+| `AWS_S3_BUCKET_NAME`                          | Attachments | N/A                                          | Attachment bucket.                                                                                                                            |
+| `AWS_DEFAULT_REGION`                          | Attachments | N/A                                          | Storage region, for example `eu-central-1`.                                                                                                   |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Attachments | N/A                                          | Storage credentials.                                                                                                                          |
+| `PORT`                                        | No          | `9000`                                       | Backend HTTP port.                                                                                                                            |
+| `LOG_LEVEL`                                   | No          | `INFO`                                       | Log verbosity.                                                                                                                                |
+| `LOG_HIDE_META`                               | No          | `false`                                      | Hide request metadata from logs.                                                                                                              |
+| `TIMEZONE`                                    | No          | `Europe/Berlin`                              | Recurring-payment job and monthly budget calculations.                                                                                        |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`                 | No          | `http://localhost:4318`                      | Trace destination when started with instrumentation.                                                                                          |
+
+All five `AWS_*` values must be set together for attachments. Auth and cache Redis may use the same server with separate database indices.
 
 ## MCP service (`services/mcp/.env`)
 
 | Variable                      | Required | Default                 | Description                                                                        |
 | ----------------------------- | -------- | ----------------------- | ---------------------------------------------------------------------------------- |
-| `BUDGETBUDDY_BACKEND_URL`     | Yes      | —                       | Base URL of your backend, for example `http://localhost:9000`.                     |
+| `BUDGETBUDDY_BACKEND_URL`     | Yes      | -                       | Base URL of your backend, for example `http://localhost:9000`.                     |
 | `PORT`                        | No       | `8070`                  | HTTP port.                                                                         |
 | `NODE_ENV`                    | No       | `development`           | `production` enables rate limiting (120 requests per minute).                      |
 | `LOG_LEVEL`                   | No       | `info`                  | Log verbosity.                                                                     |
@@ -62,10 +51,9 @@ The five `AWS_*` variables must all be set together; if any is missing, attachme
 
 | Variable                           | Required | Default | Description                                                          |
 | ---------------------------------- | -------- | ------- | -------------------------------------------------------------------- |
-| `NEXT_PUBLIC_AUTH_SERVICE_HOST`    | Yes      | —       | Public URL of the auth service, for example `http://localhost:8080`. |
-| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Yes      | —       | Public URL of the backend, for example `http://localhost:9000`.      |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`      | No       | —       | Set to enable server-side tracing via the OTLP endpoint (see below). |
-| `NEXT_PUBLIC_OTEL_ENDPOINT`        | No       | —       | Set to enable client-side tracing via the OTLP endpoint (see below). |
+| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Yes      | -       | Public URL of the backend, for example `http://localhost:9000`.      |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`      | No       | -       | Set to enable server-side tracing via the OTLP endpoint (see below). |
+| `NEXT_PUBLIC_OTEL_ENDPOINT`        | No       | -       | Set to enable client-side tracing via the OTLP endpoint (see below). |
 
 > `NEXT_PUBLIC_*` variables are inlined during the build. Set them before running `npm run build`, and rebuild after changing them.
 
@@ -73,24 +61,24 @@ The five `AWS_*` variables must all be set together; if any is missing, attachme
 
 | Variable       | Required | Default | Description                                                        |
 | -------------- | -------- | ------- | ------------------------------------------------------------------ |
-| `DATABASE_URL` | Yes      | —       | PostgreSQL connection string used by `db:migrate` and `db:studio`. |
+| `DATABASE_URL` | Yes      | -       | PostgreSQL connection string used by `db:migrate` and `db:studio`. |
 
 ## Example client (`examples/api-key-client/.env`)
 
 | Variable                   | Required | Default | Description                                            |
 | -------------------------- | -------- | ------- | ------------------------------------------------------ |
-| `BUDGETBUDDY_API_KEY`      | Yes      | —       | An API key created in the web app.                     |
-| `BUDGETBUDDY_BACKEND_URL`  | Yes      | —       | Base URL of your backend.                              |
+| `BUDGETBUDDY_API_KEY`      | Yes      | -       | An API key created in the web app.                     |
+| `BUDGETBUDDY_BACKEND_URL`  | Yes      | -       | Base URL of your backend.                              |
 | `BUDGETBUDDY_RESULT_LIMIT` | No       | `5`     | How many transactions and recurring payments to print. |
 
 ## GitHub and Google sign-in
 
-Create OAuth apps in the provider consoles and configure the redirect URIs with your public auth service URL:
+Create OAuth apps in the provider consoles and configure the redirect URIs with the public backend URL from `BASE_URL`:
 
-- GitHub: `https://auth.example.com/api/auth/callback/github`
-- Google: `https://auth.example.com/api/auth/callback/google`
+- GitHub: `https://backend.example.com/api/auth/callback/github`
+- Google: `https://backend.example.com/api/auth/callback/google`
 
-Then set the client ID and secret in `services/auth-service/.env`. Providers are only enabled when both values are present.
+Then set the client ID and secret in `services/backend/.env`. Providers are only enabled when both values are present.
 
 ## Email delivery with Resend
 
@@ -102,17 +90,16 @@ Attachments work with any S3-compatible storage. Set all five `AWS_*` variables 
 
 ## Tracing (OpenTelemetry)
 
-The backend, MCP, and auth services ship with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start a service with instrumentation to enable it:
+The backend and MCP services ship with OpenTelemetry tracing for the HTTP and Express layers. Regular `npm start` runs without tracing; start a service with instrumentation to enable it:
 
 ```bash
 npm run start:instrumentation --workspace services/backend
 npm run start:instrumentation --workspace services/mcp
-npm run start:instrumentation --workspace services/auth-service
 ```
 
 Traces are exported via OTLP to the endpoint configured with `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), so any OTLP-compatible collector or backend such as Jaeger or Grafana Tempo works. Health-check requests to `/health` are filtered out and not sampled.
 
-The web app uses Next.js' built-in instrumentation instead. Server-side tracing is enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` (Next.js spans for routing, rendering, and fetch are emitted automatically; set `NEXT_OTEL_VERBOSE=1` to see more). Client-side tracing is enabled by setting `NEXT_PUBLIC_OTEL_ENDPOINT` — it is inlined at build time, so set it before `npm run build`. Because the browser sends spans directly to the collector, the collector must allow cross-origin requests from your web app origin (for example, Jaeger with `--collector.otlp.http.cors.allowed-origins=https://your-app-origin`).
+The web app uses Next.js' built-in instrumentation instead. Server-side tracing is enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` (Next.js spans for routing, rendering, and fetch are emitted automatically; set `NEXT_OTEL_VERBOSE=1` to see more). Client-side tracing is enabled by setting `NEXT_PUBLIC_OTEL_ENDPOINT` - it is inlined at build time, so set it before `npm run build`. Because the browser sends spans directly to the collector, the collector must allow cross-origin requests from your web app origin (for example, Jaeger with `--collector.otlp.http.cors.allowed-origins=https://your-app-origin`).
 
 ## Next step
 

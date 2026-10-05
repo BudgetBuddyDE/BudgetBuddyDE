@@ -4,7 +4,7 @@ description: REST surface, response format, and the MCP service.
 icon: Cable
 ---
 
-The backend exposes a REST API under `/api/*`; the MCP service wraps it for LLM clients. All routes are owner-scoped and validate input with Zod.
+The backend exposes a REST API under `/api/*`; the MCP service wraps it for LLM clients. Domain routes are owner-scoped and validate input with Zod. Better Auth uses its own endpoint contracts under `/api/auth/*`.
 
 ## REST endpoints
 
@@ -18,6 +18,8 @@ The backend exposes a REST API under `/api/*`; the MCP service wraps it for LLM 
 | `/api/insights`         | Aggregated analytics                                 |
 | `/api/attachment`       | Fetch with signed URL, delete                        |
 | `/api/application`      | Export and import (`/export`, `/import`)             |
+| `/api/auth/*`           | Better Auth registration, sessions, OAuth, API keys  |
+| `/api/auth/export`      | Auth metadata ZIP export (`format=json` or `csv`)    |
 | `/api/me`               | Current request context                              |
 | `/health`               | Health                                               |
 
@@ -25,7 +27,7 @@ Common list query parameters are `from`/`to` for offset/limit pagination and `se
 
 ## Response format
 
-Every route answers with `ApiResponse`:
+Domain routes answer with `ApiResponse`; `/api/me` keeps this contract. Better Auth returns its native responses, and auth export returns a ZIP archive:
 
 ```json
 {
@@ -43,8 +45,8 @@ Every route answers with `ApiResponse`:
 
 ## Authentication
 
-- **Session cookie** — browsers send cookies with `credentials: 'include'`; the backend validates them against the auth service.
-- **API key** — external clients send `x-api-key: bb-...`. The same key works against the MCP service.
+- **Session cookie** - browsers send cookies with `credentials: 'include'`; the backend validates them using its local Better Auth instance.
+- **API key** - external clients send `x-api-key: bb-...`. The same key works against the MCP service.
 
 ## Typed client
 
@@ -53,6 +55,8 @@ Every route answers with `ApiResponse`:
 - `BackendService` handles query serialization, GET caching, cache invalidation after mutations, HTTP/JSON errors, and returns `TResult`.
 - `EntityService` validates responses with Zod and implements generic CRUD and batch behavior.
 - Per-domain services and Zod schemas live next to the client so the web app and external tools share the same contracts.
+
+`new Api(backendHost, logger?)` uses one backend URL for all services, including `api.auth.dataExport` at `/api/auth/export`. The previous separate auth-host constructor argument has been removed.
 
 See the runnable [`examples/api-key-client`](https://github.com/BudgetBuddyDE/BudgetBuddyDE/tree/main/examples/api-key-client) for API-key usage.
 

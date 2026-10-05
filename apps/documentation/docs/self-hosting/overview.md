@@ -4,59 +4,49 @@ description: Components, ports, and storage of a BudgetBuddy instance.
 icon: Server
 ---
 
-A BudgetBuddy instance consists of four applications and three infrastructure components.
+A BudgetBuddy instance consists of a web app, a backend with integrated authentication, and an optional MCP service.
 
 ## Applications
 
-| Service      | Default port | Purpose                                                                                                                                 |
-| ------------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Web app      | 3000         | Next.js frontend; the interface your users open in the browser.                                                                         |
-| Auth service | 8080         | Authentication with Better Auth: registration, login, sessions, emails, API keys.                                                       |
-| Backend      | 9000         | Domain API: transactions, recurring payments, budgets, insights, attachments, import/export. Also runs the daily recurring-payment job. |
-| MCP service  | 8070         | Model Context Protocol endpoint for LLM clients, authenticated with API keys. Optional.                                                 |
+| Service     | Default port | Purpose                                                                                                |
+| ----------- | ------------ | ------------------------------------------------------------------------------------------------------ |
+| Web app     | 3000         | Next.js frontend.                                                                                      |
+| Backend     | 9000         | Better Auth at `/api/auth/*`, domain API, imports/exports, attachments, and the recurring-payment job. |
+| MCP service | 8070         | Optional Model Context Protocol endpoint for LLM clients authenticated with API keys.                  |
 
 ## Infrastructure
 
-| Component                    | Default port | Purpose                                                                                            |
-| ---------------------------- | ------------ | -------------------------------------------------------------------------------------------------- |
-| PostgreSQL 16                | 5432         | All persistent data.                                                                               |
-| Redis 7                      | 6379         | Sessions (optional), response cache, rate limiting (optional).                                     |
-| S3-compatible object storage | —            | Attachment files. Required only if users should upload attachments.                                |
-| Drizzle Gateway              | 4983         | Optional; remote Drizzle Studio for inspecting the database. Part of the development compose file. |
+| Component                    | Default port | Purpose                                                          |
+| ---------------------------- | ------------ | ---------------------------------------------------------------- |
+| PostgreSQL 16                | 5432         | Auth and domain schemas in one database.                         |
+| Redis 7                      | 6379         | Optional session storage, response cache, and rate limiting.     |
+| S3-compatible object storage | N/A          | Attachment files, required for attachment uploads.               |
+| Drizzle Gateway              | 4983         | Optional remote Drizzle Studio, included in development Compose. |
 
 ## How the pieces interact
 
 ```text
-Browser
-  │
-  ▼
-Web app (3000) ──────────────► Auth service (8080) ─────► PostgreSQL / Redis
-  │                                   ▲
-  ▼                                   │ session validation
-Backend (9000) ───────────────────────┘
-  │            │
-  │            └──► S3-compatible storage (attachments)
-  ▼
-PostgreSQL / Redis
+Browser → Web app (3000) → Backend (9000)
+                          ├─ /api/auth/*: Better Auth
+                          ├─ /api/*: domain API
+                          ├─ PostgreSQL: auth and domain data
+                          ├─ Redis: sessions, cache, rate limits
+                          └─ S3-compatible attachment storage
 
-LLM client ──► MCP service (8070) ──► Backend
+LLM client → MCP service (8070) → Backend
 ```
 
-- The web app talks to the auth service for sign-in and session handling and to the backend for all domain data.
-- The backend validates every request against the auth service (`AUTH_SERVICE_HOST`).
-- The MCP service is a thin layer over the backend and authenticates requests with API keys.
+The web app uses one public backend URL for authentication and domain requests. The backend validates cookies and API keys using its local Better Auth instance. MCP forwards the caller's API key to the backend.
 
 ## The role of Redis
 
-Redis is optional, but recommended. Without it:
+Auth and cache connections are independent. `AUTH_REDIS_URL` with `AUTH_REDIS_DB` (default `0`) stores auth sessions and supports auth HTTP rate limiting. Without auth Redis, sessions use PostgreSQL. Auth HTTP rate limits use auth Redis when available, otherwise cache Redis. `REDIS_URL` with `REDIS_DB` (default `1`) enables backend response caching and domain rate limiting.
 
-- Sessions are stored in PostgreSQL instead of Redis (still works, just more database load).
-- The backend response cache is disabled (more database load).
-- Production rate limiting is disabled, because it relies on Redis.
+Both URLs may point to the same Redis server with separate database indices. Configuring only cache Redis does not enable auth Redis.
 
 ## Hosted vs. self-hosted
 
-The hosted service at `app.budget-buddy.de` runs the same components. When you self-host, you decide the domain, the email delivery, the object storage, and who can register. Everything described in the [user guide](/users/getting-started) works the same way.
+When you self-host, you choose domains, email delivery, object storage, and registration policy. Existing installations should follow the [authentication cutover instructions](/self-hosting/updating#integrated-authentication-cutover).
 
 ## Next step
 

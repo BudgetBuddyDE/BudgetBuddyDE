@@ -20,7 +20,7 @@ Next.js web app (apps/webapp)
   │  EntityService: Zod-validated CRUD and batch calls
   ▼
 Backend (services/backend)
-  │  CORS → rate limit → request context → auth check → cache → log → router
+  │  CORS → log → auth endpoints or domain rate limit → local request context → cache → router
   ▼
 Router (Zod validation)
   │  ownership filters on every query and write
@@ -30,7 +30,7 @@ Drizzle → PostgreSQL
 
 Supporting components:
 
-- **Auth service** validates sessions for the backend (`AUTH_SERVICE_HOST`) and provides Better Auth endpoints for the web app.
+- **Integrated Better Auth** handles authentication under `/api/auth/*` and validates domain request sessions in-process. Auth endpoints run before JSON parsing and domain authentication/cache middleware.
 - **Redis** stores sessions (optional), cached responses, and rate-limit counters.
 - **S3-compatible storage** holds attachment files.
 - **MCP service** exposes the backend to LLM tools, authenticated with API keys.
@@ -47,7 +47,7 @@ Keep this shape when extending the API layer; do not introduce a second error co
 
 ## Response format
 
-Backend routes answer with an `ApiResponse` object:
+Domain backend routes answer with an `ApiResponse` object. Better Auth endpoints retain their native response formats:
 
 ```json
 {
@@ -81,16 +81,16 @@ Only listed routes are cached. Mutations invalidate the affected keys via the ca
 
 ## Rate limiting
 
-Active in production and, for the services, only when Redis is configured:
+Production HTTP limits use Redis. Auth HTTP limits use `AUTH_REDIS_URL` when set, otherwise cache `REDIS_URL`; domain limits use `REDIS_URL`. MCP has its own in-memory limiter, and the API-key plugin also enforces its configured limit:
 
-| Service                    | Limit                       |
-| -------------------------- | --------------------------- |
-| Auth service               | 500 requests / 5 min        |
-| Backend                    | 300 requests / 5 min        |
-| Backend application export | 4 / 15 min                  |
-| Auth export                | 2 / 15 min                  |
-| MCP service                | 120 / min                   |
-| API keys                   | Half the auth service limit |
+| Service                    | Limit                |
+| -------------------------- | -------------------- |
+| Authentication             | 500 requests / 5 min |
+| Backend                    | 300 requests / 5 min |
+| Backend application export | 4 / 15 min           |
+| Auth export                | 2 / 15 min           |
+| MCP service                | 120 / min            |
+| API keys                   | 250 requests / 5 min |
 
 ## Ownership and writes
 
