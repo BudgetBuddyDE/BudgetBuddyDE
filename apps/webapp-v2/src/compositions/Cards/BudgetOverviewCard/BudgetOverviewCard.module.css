@@ -1,0 +1,61 @@
+.root {
+  min-width: 0;
+}
+
+.heading {
+  min-width: 0;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: var(--mantine-font-weight-bold);
+  line-height: 1.6;
+}
+
+.total {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.334;
+  overflow-wrap: anywhere;
+}
+
+.legend {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) fit-content(60%);
+  align-items: center;
+  gap: 8px;
+}
+
+.label,
+.amount {
+  min-width: 0;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.amount {
+  font-weight: 500;
+  text-align: end;
+}

@@ -1,5 +1,6 @@
 import {Paper, Text, Title} from '@mantine/core';
 import {IconMinus, IconPlus, IconScale} from '@tabler/icons-react';
+import {BudgetOverviewCard} from '@/compositions/Cards/BudgetOverviewCard';
 import {StatsCard} from '@/compositions/Cards/StatsCard';
 import classes from './DashboardOverview.module.css';
 
@@ -37,7 +38,7 @@ export default function DashboardPage() {
           tall
         />
         <div className={classes.middleColumn}>
-          <PlaceholderCard title="Budget" description="Your monthly budget overview will appear here." />
+          <BudgetOverviewCard totalBudget={4129.93} spent={1244.38} futureExpenses={1678.44} />
           <PlaceholderCard title="Category Expenses" description="Your expenses per category will appear here." />
         </div>
         <PlaceholderCard title="Transactions" description="Your latest transactions will appear here." tall />
