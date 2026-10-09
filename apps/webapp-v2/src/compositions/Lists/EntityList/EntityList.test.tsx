@@ -10,6 +10,14 @@ function TestProvider({children}: {children: ReactNode}) {
 }
 
 describe('EntityList', () => {
+  it('renders an optional footer alongside the empty state', () => {
+    render(<EntityList title="Budgets" data={[]} renderItem={() => null} footer={<button>Next page</button>} />, {
+      wrapper: TestProvider,
+    });
+    expect(screen.getByText('No results found')).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Next page'})).toBeInTheDocument();
+  });
+
   it('renders the typed item renderer, title, subtitle and card props', () => {
     render(
       <EntityList

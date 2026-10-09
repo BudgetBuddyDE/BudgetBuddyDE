@@ -16,6 +16,7 @@ export interface EntityListProps<T> extends Omit<CardProps, 'children'> {
   noResultsMessage?: ReactNode;
   onAddEntity?: () => void;
   headerAction?: ReactNode;
+  footer?: ReactNode;
 }
 
 type EntityListPolymorphicProps<T, C extends ElementType> = EntityListProps<T> &
@@ -31,6 +32,7 @@ export function EntityList<T, C extends ElementType = 'section'>({
   noResultsMessage = 'No results found',
   onAddEntity,
   headerAction,
+  footer,
   component,
   ...cardProps
 }: EntityListPolymorphicProps<T, C>) {
@@ -67,6 +69,7 @@ export function EntityList<T, C extends ElementType = 'section'>({
           </Stack>
         )}
       </Card.Body>
+      {footer != null && <Card.Footer>{footer}</Card.Footer>}
     </Card>
   );
 }

@@ -1,13 +1,14 @@
 'use client';
 
-import {Box, Group, Image, Text, UnstyledButton} from '@mantine/core';
+import {Box, Group, Image, Text, UnstyledButton, useMantineTheme, type MantineColor} from '@mantine/core';
 import type {ReactNode} from 'react';
 import classes from './ListWithIcon.module.css';
 
 export interface ListWithIconProps {
   icon?: ReactNode;
+  iconColor?: MantineColor;
   imageUrl?: string;
-  title: string;
+  title: ReactNode;
   subtitle?: string | string[] | ReactNode;
   amount?: string | number | ReactNode;
   onClick?: () => void;
@@ -35,13 +36,19 @@ function renderSubtitle(subtitle: ListWithIconProps['subtitle']) {
   return subtitle;
 }
 
-export function ListWithIcon({icon, imageUrl, title, subtitle, amount, onClick}: ListWithIconProps) {
+export function ListWithIcon({icon, iconColor, imageUrl, title, subtitle, amount, onClick}: ListWithIconProps) {
+  const theme = useMantineTheme();
+  const iconColors = iconColor ? theme.variantColorResolver({color: iconColor, variant: 'light', theme}) : undefined;
   const content = (
     <>
-      <Box className={classes.tile} aria-hidden="true">
+      <Box
+        className={classes.tile}
+        style={iconColors ? {color: iconColors.color, backgroundColor: iconColors.background} : undefined}
+        aria-hidden="true"
+      >
         {imageUrl ? <Image src={imageUrl} alt="" className={classes.image} /> : icon}
       </Box>
-      <Text fw={700} className={classes.title}>
+      <Text component="div" fw={700} className={classes.title}>
         {title}
       </Text>
       {amount != null && (
