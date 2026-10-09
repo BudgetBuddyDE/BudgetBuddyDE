@@ -26,6 +26,7 @@ function formatAmount(amount: string | number | ReactNode) {
 
 function renderSubtitle(subtitle: ListWithIconProps['subtitle']) {
   if (Array.isArray(subtitle)) {
+    // FIXME: Use native badge component instead of custom badge styling. This is a temporary solution...
     return subtitle.map((label, index) => (
       <span className={classes.badge} key={`${label}-${index}`}>
         {label}

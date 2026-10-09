@@ -46,7 +46,7 @@ export function EntityList<T, C extends ElementType = 'section'>({
     ) : null;
 
   return (
-    <Card {...(cardProps as CardProps)} component={(component ?? 'section') as 'section'}>
+    <Card {...(cardProps as CardProps)} component={(component ?? 'section') as 'section'} withBorder>
       <Card.Header>
         <Box>
           <Card.Title order={2}>{title}</Card.Title>
