@@ -226,12 +226,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
       </DialogContent>
 
       <DialogActions sx={{justifyContent: 'space-between', gap: 1, flexWrap: 'wrap'}}>
-        <Stack
-          direction="row"
-          sx={{
-            gap: 1,
-          }}
-        >
+        <Stack direction="row" spacing={1}>
           {mode === 'CREATE' && (
             <>
               <Button onClick={handleAddRow} disabled={isSubmitting || draftRows.length >= MAX_ROWS}>
@@ -243,12 +238,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
             </>
           )}
         </Stack>
-        <Stack
-          direction="row"
-          sx={{
-            gap: 1,
-          }}
-        >
+        <Stack direction="row" spacing={1}>
           <Button onClick={handleClose}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
             Save

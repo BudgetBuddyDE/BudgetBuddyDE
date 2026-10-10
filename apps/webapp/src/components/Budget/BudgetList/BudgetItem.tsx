@@ -64,12 +64,7 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
           sx={{mr: 1}}
         />
         <Box sx={{mr: 1}}>
-          <Stack
-            sx={{
-              flexDirection: 'row',
-              gap: 1,
-            }}
-          >
+          <Stack direction="row" spacing={1}>
             <Typography
               variant="body1"
               sx={{

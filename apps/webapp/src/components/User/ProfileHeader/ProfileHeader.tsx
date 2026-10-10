@@ -23,12 +23,7 @@ export const ProfileHeader = () => {
   if (isPending || !data) return null;
   return (
     <Box className={styles.profileHeader} sx={{borderRadius: theme => `${theme.shape.borderRadius}px`}}>
-      <Stack
-        sx={{
-          flexDirection: 'row',
-          gap: 2,
-        }}
-      >
+      <Stack direction="row" spacing={2}>
         <Box sx={{ml: 4, my: 4}}>
           <Avatar
             sx={{

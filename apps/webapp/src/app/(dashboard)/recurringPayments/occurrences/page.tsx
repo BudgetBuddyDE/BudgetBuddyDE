@@ -23,8 +23,8 @@ export default async function RecurringPaymentOccurrencesPage({
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>
             <Stack
+              spacing={2}
               sx={{
-                gap: 2,
                 minWidth: 0,
               }}
             >

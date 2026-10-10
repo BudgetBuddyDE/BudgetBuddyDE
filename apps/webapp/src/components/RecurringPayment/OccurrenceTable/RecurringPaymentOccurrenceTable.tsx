@@ -166,8 +166,8 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
         children: (
           <Stack
             direction={{xs: 'column', md: 'row'}}
+            spacing={1}
             sx={{
-              gap: 1,
               alignItems: {xs: 'stretch', md: 'center'},
             }}
           >
