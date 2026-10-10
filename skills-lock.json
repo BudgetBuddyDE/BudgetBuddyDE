@@ -1,6 +1,36 @@
 {
   "version": 1,
   "skills": {
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
+    },
+    "material-ui-nextjs": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": "skills/material-ui-nextjs/SKILL.md",
+      "computedHash": "c304c084df2b50efd47e2557209f87f2da6ffe4ec0c43fecf0b9096fe77ed7a0"
+    },
+    "material-ui-review": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/material-ui-review/SKILL.md",
+      "computedHash": "553c204be0dd3e7c602035be74d8edf69a16b9e6694863295b68cf015ee64edf"
+    },
+    "material-ui-styling": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": "skills/material-ui-styling/SKILL.md",
+      "computedHash": "3aee2bcb4c2ea1fcba3d97f7e43a3208bfc0d477f494d06dad22c1ec25c33ac3"
+    },
+    "material-ui-theming": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": "skills/material-ui-theming/SKILL.md",
+      "computedHash": "06f09d0152bf43a8f64d170a67418e7f33ac265bc995e2fed47adb5bcc979a54"
+    },
     "turborepo": {
       "source": "vercel/turborepo",
       "sourceType": "github",
