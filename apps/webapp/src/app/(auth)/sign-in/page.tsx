@@ -112,15 +112,16 @@ export default function SignInPage() {
               <Grid size={{xs: 12}}>
                 <PasswordInput />
 
-                <Link
-                  tabIndex={-1}
-                  variant="caption"
+                <Button
+                  component={Link}
                   href="/password/request-reset"
-                  sx={{textDecoration: 'none', mt: 0.5}}
-                  component={Button}
+                  tabIndex={-1}
+                  variant="text"
+                  size="small"
+                  sx={{mt: 0.5}}
                 >
                   Forgot password?
-                </Link>
+                </Button>
               </Grid>
             </Grid>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
