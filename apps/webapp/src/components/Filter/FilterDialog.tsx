@@ -87,17 +87,9 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
       />
 
       <DialogContent dividers>
-        <Stack
-          sx={{
-            gap: 3,
-          }}
-        >
+        <Stack spacing={3}>
           {withDateRange && (
-            <Stack
-              sx={{
-                gap: 1,
-              }}
-            >
+            <Stack spacing={1}>
               <SectionLabel label="Date Range" />
               <DateRangePicker
                 defaultValue={{startDate: state.dateRange.startDate, endDate: state.dateRange.endDate}}
@@ -128,11 +120,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           )}
 
           {withRecurringPaymentStatus && (
-            <Stack
-              sx={{
-                gap: 1,
-              }}
-            >
+            <Stack spacing={1}>
               <SectionLabel label="Status" />
               <ToggleButtonGroup
                 size="small"
@@ -151,11 +139,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           )}
 
           {withCategories && (
-            <Stack
-              sx={{
-                gap: 1,
-              }}
-            >
+            <Stack spacing={1}>
               <SectionLabel label="Categories" />
               <Autocomplete<TCategoryVH, true>
                 name="filter-categories"
@@ -174,11 +158,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
           )}
 
           {withPaymentMethods && (
-            <Stack
-              sx={{
-                gap: 1,
-              }}
-            >
+            <Stack spacing={1}>
               <SectionLabel label="Payment Methods" />
               <Autocomplete<TPaymentMethodVH, true>
                 name="filter-payment-methods"

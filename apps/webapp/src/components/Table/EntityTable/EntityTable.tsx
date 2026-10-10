@@ -199,12 +199,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
             >
               {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
             </Typography>
-            <Stack
-              direction="row"
-              sx={{
-                gap: 1,
-              }}
-            >
+            <Stack direction="row" spacing={1}>
               <Button
                 size="small"
                 onClick={() => setSelectedIds(new Set())}

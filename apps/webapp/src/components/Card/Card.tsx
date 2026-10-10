@@ -8,6 +8,7 @@ import {
   type CardContentProps,
   type CardProps as MuiCardProps,
   type PaperProps,
+  Stack,
   Typography,
   type TypographyProps,
 } from '@mui/material';
@@ -54,9 +55,9 @@ export interface HeaderActionsProps extends CardSectionProps {
 }
 const HeaderActions = forwardRef<HTMLDivElement, HeaderActionsProps>(
   ({children, sx, actionPaperProps, ...props}, ref) => (
-    <Box ref={ref} {...props} sx={[{display: 'flex', flexDirection: 'row'}, ...(Array.isArray(sx) ? sx : [sx])]}>
+    <Stack ref={ref} direction="row" {...props} sx={[...(Array.isArray(sx) ? sx : [sx])]}>
       <ActionPaper {...actionPaperProps}>{children}</ActionPaper>
-    </Box>
+    </Stack>
   ),
 );
 HeaderActions.displayName = 'CardHeaderActions';

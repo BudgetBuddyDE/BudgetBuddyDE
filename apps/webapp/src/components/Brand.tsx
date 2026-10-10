@@ -1,5 +1,5 @@
 import SavingsIcon from '@mui/icons-material/SavingsRounded';
-import {Box, type BoxProps, type IconProps, Typography, type TypographyProps} from '@mui/material';
+import {type BoxProps, type IconProps, Stack, Typography, type TypographyProps} from '@mui/material';
 import NextLink from 'next/link';
 import type React from 'react';
 
@@ -24,7 +24,7 @@ export const Brand: React.FC<TBrandProps> = ({boxStyle, iconStyle, typographySty
   };
 
   return (
-    <Box sx={{display: 'flex', alignItems: 'center', ...boxStyle}}>
+    <Stack direction="row" sx={{alignItems: 'center', ...boxStyle}}>
       <SavingsIcon sx={{mr: 1, ...iconStyle}} />
       {asLink ? (
         <Typography component={NextLink} href="/" {...baseProps}>
@@ -33,6 +33,6 @@ export const Brand: React.FC<TBrandProps> = ({boxStyle, iconStyle, typographySty
       ) : (
         <Typography {...baseProps}>{appName}</Typography>
       )}
-    </Box>
+    </Stack>
   );
 };

@@ -5,6 +5,7 @@ import {
   IconButton,
   type IconButtonProps,
   Skeleton,
+  Stack,
   type SxProps,
   type Theme,
   Tooltip,
@@ -95,13 +96,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
         </Box>
       )}
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          ml: 'auto',
-        }}
-      >
+      <Stack direction="row" sx={{ml: 'auto'}}>
         {isLoading ? (
           <Skeleton variant="rounded" sx={{width: {xs: '5rem', md: '10rem'}, height: '2.3rem'}} />
         ) : (
@@ -136,7 +131,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
             })}
           </ActionPaper>
         )}
-      </Box>
+      </Stack>
       {!isLoading && children && (
         <Box
           sx={theme => ({
