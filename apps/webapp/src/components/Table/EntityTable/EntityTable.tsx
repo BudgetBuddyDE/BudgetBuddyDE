@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   Checkbox,
-  lighten,
   Paper,
   Stack,
   type SxProps,
@@ -24,6 +23,7 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults, type NoResultsProps} from '@/components/NoResults';
+import {tableHeadBackground} from '@/theme/style';
 import type {BasicTableProps, ColumnDefinition} from '../BasicTable';
 import {Pagination, type PaginationProps} from '../Pagination';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
@@ -252,10 +252,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
               <TableHead>
                 <TableRow>
                   {withSelection && (
-                    <TableCell
-                      padding="checkbox"
-                      sx={{backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825)}}
-                    >
+                    <TableCell padding="checkbox" sx={{backgroundColor: tableHeadBackground}}>
                       <Checkbox
                         checked={isAllSelected}
                         indeterminate={isPartiallySelected}
@@ -268,7 +265,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                       key={String(col.key)}
                       align={col.align ?? 'left'}
                       sx={{
-                        backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825),
+                        backgroundColor: tableHeadBackground,
                         width: col.width,
                       }}
                     >

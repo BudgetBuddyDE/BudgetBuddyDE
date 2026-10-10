@@ -2,7 +2,6 @@
 
 import {
   Box,
-  lighten,
   Paper,
   type SxProps,
   Table,
@@ -20,6 +19,7 @@ import type React from 'react';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
+import {tableHeadBackground} from '@/theme/style';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
 import {getNestedValue} from '../utils';
 
@@ -105,7 +105,7 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
                       key={String(col.key)}
                       align={col.align ?? 'left'}
                       sx={{
-                        backgroundColor: theme => lighten(theme.palette.background.paper, 0.0825),
+                        backgroundColor: tableHeadBackground,
                         width: col.width,
                       }}
                     >
