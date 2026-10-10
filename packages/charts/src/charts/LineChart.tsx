@@ -16,16 +16,9 @@ import {ChartLegend, ChartTooltip} from '../primitives';
 import {ParentSize} from '../primitives/ParentSize';
 import {useChartMotion} from '../primitives/useChartMotion';
 import {getSeriesColor, useChartTheme} from '../theme';
-import type {BaseChartProps, CartesianSeriesConfig, ChartDataRow} from '../types';
+import type {BaseChartProps, CartesianSeriesConfig, ChartDataRow, ReferenceLineConfig} from '../types';
 
-export type ReferenceLineConfig = {
-  /** Horizontal position in data (y) coordinates. */
-  y?: number;
-  /** Vertical position in category (x) coordinates. */
-  x?: string | number;
-  label?: string;
-  color?: string;
-};
+export type {ReferenceLineConfig} from '../types';
 
 export type LineChartProps = BaseChartProps & {
   data: ChartDataRow[];

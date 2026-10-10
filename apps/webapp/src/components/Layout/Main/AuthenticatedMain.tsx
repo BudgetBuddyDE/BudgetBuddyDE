@@ -3,6 +3,7 @@ import {styled} from '@mui/material';
 
 export const AuthenticatedMain = styled('main')(({theme}) => ({
   position: 'relative',
+  minWidth: 0,
   isolation: 'isolate',
   transition: theme.transitions.create('margin', {
     easing: theme.transitions.easing.sharp,
