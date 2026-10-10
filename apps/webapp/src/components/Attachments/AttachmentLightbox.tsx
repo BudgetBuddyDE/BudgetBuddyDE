@@ -44,7 +44,7 @@ export const AttachmentLightbox: React.FC<AttachmentLightboxProps> = ({attachmen
             width={1600}
             height={1200}
             unoptimized
-            style={{
+            sx={{
               maxWidth: '100%',
               maxHeight: '70vh',
               width: 'auto',

@@ -29,15 +29,7 @@ export default async function MailChangedPage() {
               flexDirection: 'column',
             }}
           >
-            <AppLogo
-              style={{
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                borderRadius: '5px',
-              }}
-              width={96}
-              height={96}
-            />
+            <AppLogo sx={{mx: 'auto', borderRadius: '5px'}} width={96} height={96} />
 
             <Typography
               variant={'h5'}

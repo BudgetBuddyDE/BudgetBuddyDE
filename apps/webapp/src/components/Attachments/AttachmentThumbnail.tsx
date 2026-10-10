@@ -105,7 +105,7 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
                 sizes="(max-width: 600px) 50vw, (max-width: 960px) 33vw, 25vw"
                 onLoad={() => setImgLoaded(true)}
                 onError={() => setImgError(true)}
-                style={{
+                sx={{
                   objectFit: 'cover',
                   opacity: imgLoaded ? 1 : 0,
                   transition: 'opacity 0.25s ease',

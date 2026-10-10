@@ -98,7 +98,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
         type="file"
         accept={accept}
         multiple
-        style={{display: 'none'}}
+        hidden
         onChange={handleFileInputChange}
         disabled={isUploading}
         data-testid="attachment-file-input"
