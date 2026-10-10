@@ -1,4 +1,4 @@
-import {Alert, type AlertProps, Grid} from '@mui/material';
+import {Alert, type AlertProps, Box, Grid} from '@mui/material';
 import React, {type JSX} from 'react';
 import {type DefaultValues, type FieldValues, useForm} from 'react-hook-form';
 import {ErrorAlert} from '@/components/ErrorAlert';
@@ -139,7 +139,7 @@ export const EntityDrawer = <T extends FieldValues>({
 
         default:
           return (
-            <Grid key={`field-unknown-${Math.random()}`} size={{xs: 12}}>
+            <Grid key={`field-unknown-${(field as {name?: string}).name ?? 'unknown'}`} size={{xs: 12}}>
               <ErrorAlert
                 error={
                   new Error(
@@ -167,10 +167,11 @@ export const EntityDrawer = <T extends FieldValues>({
     >
       <EntityHeader title={title} subtitle={subtitle} onClose={handlers.handleClose} />
 
-      <form
+      <Box
+        component="form"
         onSubmit={form.handleSubmit(data => handlers.handleSubmit(preProcessFormPayload(data, fields)))}
-        style={{display: 'flex', flexDirection: 'column', flex: 1}}
         noValidate
+        sx={{display: 'flex', flexDirection: 'column', flex: 1}}
       >
         <Grid container spacing={2} sx={{m: 2}}>
           {slots && slots.alert !== undefined && (
@@ -182,7 +183,7 @@ export const EntityDrawer = <T extends FieldValues>({
         </Grid>
 
         <EntityFooter ref={saveBtnRef} onClose={handlers.handleClose} isLoading={isLoading} />
-      </form>
+      </Box>
     </Drawer>
   );
 };
