@@ -5,7 +5,7 @@ import {ImageRounded} from '@mui/icons-material';
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import ImageNotSupportedRounded from '@mui/icons-material/ImageNotSupportedRounded';
-import {alpha, Box, type BoxProps, Skeleton, Stack, Tooltip, Typography, useTheme} from '@mui/material';
+import {alpha, Box, Skeleton, Stack, type StackProps, Tooltip, Typography, useTheme} from '@mui/material';
 import type React from 'react';
 import {memo, useState} from 'react';
 import {Card} from '@/components/Card';
@@ -15,7 +15,7 @@ import {ActionButton} from './ActionButton';
 import {Icon} from '../Icon';
 import {PreviewPill} from './PreviewPill';
 
-export type AttachmentActionProps = Omit<BoxProps, 'onClick'> & {
+export type AttachmentActionProps = Omit<StackProps, 'onClick'> & {
   attachment: TAttachmentWithUrl;
   onView?: (attachment: TAttachmentWithUrl) => void;
   onDownload?: (attachment: TAttachmentWithUrl) => void;
@@ -23,7 +23,7 @@ export type AttachmentActionProps = Omit<BoxProps, 'onClick'> & {
 };
 
 const AttachmentActions: React.FC<AttachmentActionProps> = ({attachment, onDownload, onDelete, ...boxProps}) => (
-  <Box className="attachment-actions" {...boxProps}>
+  <Stack direction="row" className="attachment-actions" {...boxProps}>
     {onDownload && (
       <ActionButton label="Download" onClick={() => onDownload(attachment)}>
         <DownloadRounded />
@@ -34,7 +34,7 @@ const AttachmentActions: React.FC<AttachmentActionProps> = ({attachment, onDownl
         <DeleteRounded />
       </ActionButton>
     )}
-  </Box>
+  </Stack>
 );
 
 /** Props for {@link AttachmentThumbnail}. */
@@ -164,7 +164,7 @@ export const AttachmentThumbnail: React.FC<AttachmentThumbnailProps> = memo(
           </Stack>
           {!imgError && (
             <AttachmentActions
-              sx={{display: 'flex', alignItems: 'center', flex: '0 0 auto'}}
+              sx={{alignItems: 'center', flex: '0 0 auto'}}
               attachment={attachment}
               onDownload={onDownload}
               onDelete={onDelete}

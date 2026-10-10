@@ -12,6 +12,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Stack,
   TextField,
   Typography,
 } from '@mui/material';
@@ -286,13 +287,14 @@ export const CommandPalette: React.FC = () => {
               </Box>
             ))}
         </Box>
-        <Box
+        <Stack
           component="footer"
+          direction="row"
+          spacing={1.5}
+          useFlexGap
           aria-label="Keyboard shortcuts"
           sx={{
-            display: 'flex',
             flexWrap: 'wrap',
-            gap: 1.5,
             alignItems: 'center',
             px: 2,
             py: 1.25,
@@ -327,7 +329,7 @@ export const CommandPalette: React.FC = () => {
               <Box component="span">{label}</Box>
             </Box>
           ))}
-        </Box>
+        </Stack>
       </DialogContent>
     </Dialog>
   );

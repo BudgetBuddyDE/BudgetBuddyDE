@@ -2,7 +2,7 @@
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {VisibilityRounded} from '@mui/icons-material';
-import {alpha, Box, Typography, useTheme} from '@mui/material';
+import {alpha, Stack, Typography, useTheme} from '@mui/material';
 
 export type PreviewPillProps = {
   attachment: TAttachmentWithUrl;
@@ -12,15 +12,15 @@ export type PreviewPillProps = {
 export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) => {
   const theme = useTheme();
   return (
-    <Box
+    <Stack
       component="button"
       type="button"
+      direction="row"
+      spacing={0.75}
       aria-label="View"
       onClick={() => onClick(attachment)}
       sx={{
-        display: 'flex',
         alignItems: 'center',
-        gap: 0.75,
         border: 0,
         borderRadius: 999,
         px: 1.5,
@@ -42,6 +42,6 @@ export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) =
       >
         Preview
       </Typography>
-    </Box>
+    </Stack>
   );
 };

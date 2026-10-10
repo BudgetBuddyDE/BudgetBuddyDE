@@ -80,32 +80,32 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
           </Box>
 
           <Stack spacing={1} component="dl" sx={{m: 0, fontSize: '0.875rem'}}>
-            <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-              <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+            <Stack direction="row" sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+              <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
                 <Box aria-hidden sx={{width: 12, height: 12, borderRadius: 1, bgcolor: 'error.main'}} />
                 <Typography component="dt" color="text.secondary">
                   Spent
                 </Typography>
-              </Box>
+              </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
                 {Formatter.currency.formatBalance(spent)}
               </Typography>
-            </Box>
+            </Stack>
 
-            <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-              <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+            <Stack direction="row" sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+              <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
                 <Box aria-hidden sx={{width: 12, height: 12, borderRadius: 1, bgcolor: 'warning.main'}} />
                 <Typography component="dt" color="text.secondary">
                   Upcoming Expenses
                 </Typography>
-              </Box>
+              </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
                 {Formatter.currency.formatBalance(futureExpenses)}
               </Typography>
-            </Box>
+            </Stack>
 
-            <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-              <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+            <Stack direction="row" sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+              <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
                 <Box
                   aria-hidden
                   sx={{
@@ -118,11 +118,11 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
                 <Typography component="dt" color="text.secondary">
                   {isOverBudget ? 'Overdrawn' : 'Available'}
                 </Typography>
-              </Box>
+              </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500, color: isOverBudget ? 'error.main' : undefined}}>
                 {Formatter.currency.formatBalance(isOverBudget ? overBudgetAmount : available)}
               </Typography>
-            </Box>
+            </Stack>
           </Stack>
         </Stack>
       </Card.Body>
