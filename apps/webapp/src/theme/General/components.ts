@@ -154,30 +154,6 @@ export const components: Components<Theme> = {
       }),
     },
   },
-  MuiTable: {
-    styleOverrides: {
-      stickyHeader: {
-        '& th': {
-          // FIXME: Replace with correct color
-          // backgroundColor: '#121212',
-        },
-      },
-    },
-  },
-  MuiAlert: {
-    styleOverrides: {
-      root: {
-        variants: [
-          {
-            props: {severity: 'info'},
-            style: {
-              // backgroundColor: '#60a5fa',
-            },
-          },
-        ],
-      },
-    },
-  },
   MuiChip: {
     defaultProps: {
       size: 'small',
