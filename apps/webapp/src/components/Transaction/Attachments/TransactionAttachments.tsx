@@ -58,8 +58,8 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
 
       {isLoading ? (
         <Grid container spacing={1}>
-          {[0, 1, 2].map(i => (
-            <Grid key={i} size={{xs: 6, sm: 4}}>
+          {[0, 1, 2].map(item => (
+            <Grid key={`attachment-skeleton-${item}`} size={{xs: 6, sm: 4}}>
               <Skeleton variant="rounded" height={100} />
             </Grid>
           ))}

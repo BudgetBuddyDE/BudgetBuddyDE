@@ -24,7 +24,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({headers, rows, rightAli
         <TableBody>
           {rows.length ? (
             rows.map((row, index) => (
-              <TableRow key={index}>
+              <TableRow key={row[0] ?? `report-row-${index}`}>
                 {row.map((cell, cellIndex) => (
                   <TableCell key={cellIndex} align={rightAlignedColumns.includes(cellIndex) ? 'right' : 'left'}>
                     {cell}

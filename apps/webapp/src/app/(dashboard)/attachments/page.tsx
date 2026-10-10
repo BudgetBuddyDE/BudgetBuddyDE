@@ -6,6 +6,8 @@ import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {headers} from '@/lib/headers';
 import {AllAttachmentsClient} from './AllAttachmentsClient';
 
+const attachmentSkeletonKeys = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5', 'skeleton-6'];
+
 export default async function AttachmentsPage() {
   const [result, error] = await apiClient.backend.transaction.getAllTransactionAttachments(
     {from: 0, to: 20},
@@ -23,8 +25,8 @@ export default async function AttachmentsPage() {
         <React.Suspense
           fallback={
             <Grid container spacing={2}>
-              {[...Array(6)].map((_, i) => (
-                <Grid key={i} size={{xs: 12, sm: 6, md: 4}}>
+              {attachmentSkeletonKeys.map(key => (
+                <Grid key={key} size={{xs: 12, sm: 6, md: 4}}>
                   <Skeleton variant="rectangular" height={200} sx={{borderRadius: 1}} />
                 </Grid>
               ))}
