@@ -32,6 +32,7 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
   const router = useRouter();
   const {showSnackbar} = useSnackbarContext();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+  const isUserMenuOpen = anchorElUser !== null;
 
   const MenuLinks = [
     {label: 'Website', href: 'https://budgetbuddy.dev'},
@@ -111,7 +112,14 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
 
             {/* Profile */}
             <Tooltip title="Profile">
-              <IconButton onClick={handleOpenUserMenu} sx={{p: 0, height: 'min-content', my: 'auto'}}>
+              <IconButton
+                onClick={handleOpenUserMenu}
+                aria-label="Profile"
+                aria-haspopup="true"
+                aria-expanded={isUserMenuOpen}
+                aria-controls={isUserMenuOpen ? 'menu-appbar' : undefined}
+                sx={{p: 0, height: 'min-content', my: 'auto'}}
+              >
                 <Avatar />
               </IconButton>
             </Tooltip>
@@ -129,7 +137,7 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
                 vertical: 'top',
                 horizontal: 'right',
               }}
-              open={Boolean(anchorElUser)}
+              open={isUserMenuOpen}
               onClose={handleCloseUserMenu}
             >
               {ProfileMenu.map(item => (
