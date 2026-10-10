@@ -25,14 +25,25 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
     [timeline],
   );
 
-  const categoryData = React.useMemo(() => {
-    const rows = timeline.map(row => ({label: row.label}) as Record<string, string | number | null>);
-    report.categoryTimeline.forEach((series, seriesIndex) => {
-      series.values.forEach((value, rowIndex) => {
-        rows[rowIndex][`category-${seriesIndex}`] = value;
+  const {categoryData, averageIncome, averageExpenses, averageAccumulatedExpenses} = React.useMemo(() => {
+    const rows = timeline.map((row, rowIndex) => {
+      const categoryRow: Record<string, string | number | null> = {label: row.label};
+      report.categoryTimeline.forEach((series, seriesIndex) => {
+        categoryRow[`category-${seriesIndex}`] = series.values[rowIndex] ?? null;
       });
+      return categoryRow;
     });
-    return rows;
+    const average = (values: number[]) =>
+      values.length > 0 ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+    const periodTotals = timeline.map((_, rowIndex) =>
+      report.categoryTimeline.reduce((sum, series) => sum + (series.values[rowIndex] ?? 0), 0),
+    );
+    return {
+      categoryData: rows,
+      averageIncome: average(timeline.map(row => row.income)),
+      averageExpenses: average(timeline.map(row => row.expenses)),
+      averageAccumulatedExpenses: average(periodTotals),
+    };
   }, [report.categoryTimeline, timeline]);
 
   return (
@@ -42,7 +53,10 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
           <Card.Header>
             <Stack>
               <Card.Title>Income, expenses and balance</Card.Title>
-              <Card.Subtitle>{report.granularity} aggregation</Card.Subtitle>
+              <Card.Subtitle>
+                {report.granularity} aggregation · currency flows use the left scale; cumulative balance uses the right
+                scale
+              </Card.Subtitle>
             </Stack>
           </Card.Header>
           <Card.Body>
@@ -53,10 +67,26 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
               axisValueFormatter={value => Formatter.currency.shortenBalance(value)}
               tooltipValueFormatter={value => formatBalance(value)}
               showLegend
+              leftAxisLabel="Period amount"
+              rightAxisLabel="Cumulative balance"
+              referenceLines={[
+                ...(averageExpenses === null
+                  ? []
+                  : [{y: averageExpenses, label: 'Avg. expenses', role: 'expense' as const, yAxisId: 'left'}]),
+                ...(averageIncome === null
+                  ? []
+                  : [{y: averageIncome, label: 'Avg. income', role: 'income' as const, yAxisId: 'left'}]),
+              ]}
               series={[
                 {key: 'expenses', label: 'Expenses', type: 'bar', role: 'expense'},
                 {key: 'income', label: 'Income', type: 'bar', role: 'income'},
-                {key: 'cumulativeBalance', label: 'Cumulative balance', type: 'line', role: 'balance'},
+                {
+                  key: 'cumulativeBalance',
+                  label: 'Cumulative balance',
+                  type: 'line',
+                  role: 'balance',
+                  yAxisId: 'right',
+                },
               ]}
             />
           </Card.Body>
@@ -78,11 +108,24 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
               axisValueFormatter={value => Formatter.currency.shortenBalance(value)}
               tooltipValueFormatter={value => formatBalance(value)}
               showLegend
+              referenceLines={
+                averageAccumulatedExpenses === null
+                  ? []
+                  : [
+                      {
+                        y: averageAccumulatedExpenses,
+                        label: 'Avg. total expenses',
+                        role: 'target',
+                        yAxisId: 'left',
+                      },
+                    ]
+              }
               series={report.categoryTimeline.map((row, index) => ({
                 key: `category-${index}`,
                 label: row.label,
                 type: 'line' as const,
                 colorId: row.categoryId ?? `category-${index}`,
+                connectNulls: false,
               }))}
             />
           </Card.Body>

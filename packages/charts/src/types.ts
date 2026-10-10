@@ -40,3 +40,15 @@ export type CartesianSeriesConfig = {
   /** Dash pattern for line/area strokes. */
   strokeDasharray?: string;
 };
+
+export type ReferenceLineConfig = {
+  /** Horizontal position in chart data coordinates (left axis unless specified). */
+  y?: number;
+  /** Vertical position in category coordinates. */
+  x?: string | number;
+  /** Optional axis id for dual-axis composed charts. */
+  yAxisId?: string;
+  label?: string;
+  color?: string;
+  role?: SeriesRole;
+};

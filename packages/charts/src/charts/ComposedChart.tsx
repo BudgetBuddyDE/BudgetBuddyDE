@@ -16,7 +16,7 @@ import {ChartLegend, ChartTooltip} from '../primitives';
 import {ParentSize} from '../primitives/ParentSize';
 import {useChartMotion} from '../primitives/useChartMotion';
 import {getSeriesColor, useChartTheme} from '../theme';
-import type {BaseChartProps, ChartDataRow} from '../types';
+import type {BaseChartProps, ChartDataRow, ReferenceLineConfig} from '../types';
 
 export type ComposedSeriesConfig = {
   key: string;
@@ -42,6 +42,8 @@ export type ComposedChartProps = BaseChartProps & {
   leftAxisLabel?: string;
   rightAxisLabel?: string;
   rightAxisFormatter?: import('../types').ValueFormatter;
+  /** Horizontal/vertical reference values such as averages or targets. */
+  referenceLines?: ReferenceLineConfig[];
 };
 
 /**
@@ -67,6 +69,7 @@ export const ComposedChart: React.FC<ComposedChartProps> = ({
   leftAxisLabel,
   rightAxisLabel,
   rightAxisFormatter,
+  referenceLines,
 }) => {
   const theme = useChartTheme();
   const [hiddenKeys, setHiddenKeys] = React.useState<string[]>([]);
@@ -153,6 +156,26 @@ export const ComposedChart: React.FC<ComposedChartProps> = ({
             )}
 
             {showZeroLine && <ReferenceLine yAxisId="left" y={0} stroke={theme.axisLineStroke} />}
+            {referenceLines?.map((reference, index) => (
+              <ReferenceLine
+                key={`${reference.label ?? 'reference'}-${index}`}
+                {...(reference.x !== undefined ? {x: reference.x} : {y: reference.y})}
+                yAxisId={reference.yAxisId ?? 'left'}
+                stroke={reference.color ?? (reference.role ? theme.semantic[reference.role] : theme.semantic.target)}
+                strokeDasharray="5 4"
+                label={
+                  reference.label
+                    ? {
+                        value: reference.label,
+                        fill:
+                          reference.color ?? (reference.role ? theme.semantic[reference.role] : theme.semantic.target),
+                        fontSize: 12,
+                        position: 'insideTopRight',
+                      }
+                    : undefined
+                }
+              />
+            ))}
             {series.map(config => {
               const color = config.color ?? getSeriesColor(theme, config.colorId ?? config.key, config.role);
               const yAxisId = config.yAxisId ?? 'left';
