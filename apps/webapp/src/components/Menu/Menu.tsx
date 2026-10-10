@@ -54,6 +54,7 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
         <IconButton
           onClick={handleClick}
           color="primary"
+          aria-label="Open menu"
           aria-haspopup="true"
           aria-expanded={open}
           aria-controls={open ? menuId : undefined}

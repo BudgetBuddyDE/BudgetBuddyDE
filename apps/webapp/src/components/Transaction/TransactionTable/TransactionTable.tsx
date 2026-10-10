@@ -619,6 +619,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           ) : (
             <ActionPaper sx={{width: 'min-content'}}>
               <IconButton
+                aria-label="View attachments"
                 onClick={() => {
                   setAttachmentsDialog({open: true, transaction: row});
                 }}

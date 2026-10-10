@@ -18,6 +18,7 @@ export const GoBack: React.FC<TGoBackProps> = ({withNavigation, navigationPath, 
     <IconButton
       size="large"
       color="primary"
+      aria-label="Go back"
       {...(withNavigation && {
         component: NextLink,
         ...(navigationPath

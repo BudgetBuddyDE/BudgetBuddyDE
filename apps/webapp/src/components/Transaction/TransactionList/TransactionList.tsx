@@ -63,7 +63,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         {(headerAction || onAddEntity) && (
           <Card.HeaderActions>
             {headerAction ?? (
-              <IconButton color="primary" onClick={onAddEntity}>
+              <IconButton color="primary" aria-label="Add transaction" onClick={onAddEntity}>
                 <AddIcon />
               </IconButton>
             )}

@@ -374,7 +374,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
           </Box>
 
           <Card.HeaderActions>
-            <IconButton color="primary" onClick={handleCreateEntity}>
+            <IconButton color="primary" aria-label="Create budget" onClick={handleCreateEntity}>
               <AddRounded />
             </IconButton>
           </Card.HeaderActions>
