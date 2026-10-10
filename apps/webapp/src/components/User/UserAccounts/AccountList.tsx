@@ -30,10 +30,7 @@ export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
 
   const handleAccountUnlink = async (providerId: string, accountId: string) => {
     try {
-      const {error} = await authClient.unlinkAccount({
-        providerId,
-        accountId,
-      });
+      const {error} = await authClient.unlinkAccount({accountId});
       if (error) throw error;
 
       await revalidateSession(undefined, () => {
