@@ -65,7 +65,6 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        mb: children ? 1.5 : 1,
         px: 2,
         pt: 2,
         ...sx,

@@ -2,6 +2,14 @@ import type {Components, Theme} from '@mui/material/styles';
 import {shape} from './shape';
 
 export const components: Components<Theme> = {
+  MuiTableCell: {
+    styleOverrides: {
+      stickyHeader: {
+        backgroundColor: 'transparent',
+        backgroundImage: 'none',
+      },
+    },
+  },
   MuiPaper: {
     styleOverrides: {
       root: {

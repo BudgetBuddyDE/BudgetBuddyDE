@@ -19,7 +19,6 @@ import type React from 'react';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
-import {tableHeadBackground} from '@/theme/style';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
 import {getNestedValue} from '../utils';
 
@@ -101,11 +100,7 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
               <TableHead>
                 <TableRow>
                   {columns.map(col => (
-                    <TableCell
-                      key={String(col.key)}
-                      align={col.align ?? 'left'}
-                      sx={theme => ({...tableHeadBackground(theme), width: col.width})}
-                    >
+                    <TableCell key={String(col.key)} align={col.align ?? 'left'} sx={{width: col.width}}>
                       {col.renderHeader ? (
                         col.renderHeader()
                       ) : (

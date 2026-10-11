@@ -36,7 +36,6 @@ import {useSnackbarContext} from '@/components/Snackbar';
 import {Pagination} from '@/components/Table';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
-import {tableHeadBackground} from '@/theme/style';
 import {Formatter} from '@/utils/Formatter';
 import {ApiKeyCreateDrawer} from '../ApiKeyCreateDrawer';
 import {ApiKeyDeleteDialog} from '../ApiKeyDeleteDialog';
@@ -331,13 +330,13 @@ export const ApiKeyTable: React.FC = () => {
                 <TableHead>
                   <TableRow>
                     {['Name', 'Key', 'Status', 'Created'].map(label => (
-                      <TableCell key={label} sx={theme => tableHeadBackground(theme)}>
+                      <TableCell key={label}>
                         <Typography variant="body2" sx={{fontWeight: 'bold'}}>
                           {label}
                         </Typography>
                       </TableCell>
                     ))}
-                    <TableCell align="right" sx={theme => tableHeadBackground(theme)} />
+                    <TableCell align="right" />
                   </TableRow>
                 </TableHead>
                 <TableBody>

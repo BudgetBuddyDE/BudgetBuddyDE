@@ -1,7 +1,6 @@
 'use client';
 
-import ClearRounded from '@mui/icons-material/ClearRounded';
-import DeleteRounded from '@mui/icons-material/DeleteRounded';
+import {ClearRounded, DeleteRounded} from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -23,7 +22,6 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults, type NoResultsProps} from '@/components/NoResults';
-import {tableHeadBackground} from '@/theme/style';
 import type {BasicTableProps, ColumnDefinition} from '../BasicTable';
 import {Pagination, type PaginationProps} from '../Pagination';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
@@ -252,7 +250,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
               <TableHead>
                 <TableRow>
                   {withSelection && (
-                    <TableCell padding="checkbox" sx={tableHeadBackground}>
+                    <TableCell padding="checkbox">
                       <Checkbox
                         checked={isAllSelected}
                         indeterminate={isPartiallySelected}
@@ -261,11 +259,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                     </TableCell>
                   )}
                   {columns.map(col => (
-                    <TableCell
-                      key={String(col.key)}
-                      align={col.align ?? 'left'}
-                      sx={theme => ({...tableHeadBackground(theme), width: col.width})}
-                    >
+                    <TableCell key={String(col.key)} align={col.align ?? 'left'} sx={{width: col.width}}>
                       {col.renderHeader ? (
                         col.renderHeader()
                       ) : (
