@@ -252,7 +252,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
               <TableHead>
                 <TableRow>
                   {withSelection && (
-                    <TableCell padding="checkbox" sx={{backgroundColor: tableHeadBackground}}>
+                    <TableCell padding="checkbox" sx={tableHeadBackground}>
                       <Checkbox
                         checked={isAllSelected}
                         indeterminate={isPartiallySelected}
@@ -264,10 +264,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                     <TableCell
                       key={String(col.key)}
                       align={col.align ?? 'left'}
-                      sx={{
-                        backgroundColor: tableHeadBackground,
-                        width: col.width,
-                      }}
+                      sx={theme => ({...tableHeadBackground(theme), width: col.width})}
                     >
                       {col.renderHeader ? (
                         col.renderHeader()

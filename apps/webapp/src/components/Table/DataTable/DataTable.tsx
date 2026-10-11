@@ -88,9 +88,6 @@ export const DataTable = <T extends GridValidRowModel & {id: string | number}>({
             }}
             sx={{
               border: 'none',
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: 'background.paper',
-              },
             }}
             {...dataGridProps}
           />

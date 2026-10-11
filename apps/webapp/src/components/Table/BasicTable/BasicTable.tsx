@@ -104,10 +104,7 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
                     <TableCell
                       key={String(col.key)}
                       align={col.align ?? 'left'}
-                      sx={{
-                        backgroundColor: tableHeadBackground,
-                        width: col.width,
-                      }}
+                      sx={theme => ({...tableHeadBackground(theme), width: col.width})}
                     >
                       {col.renderHeader ? (
                         col.renderHeader()
