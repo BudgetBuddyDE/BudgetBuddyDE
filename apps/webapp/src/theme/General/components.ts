@@ -4,12 +4,12 @@ import {shape} from './shape';
 export const components: Components<Theme> = {
   MuiCssBaseline: {
     styleOverrides: {
-      '::view-transition-old(.dashboard-page), ::view-transition-new(.dashboard-page)': {
-        animationDuration: '180ms',
+      '::view-transition-old(.route-page), ::view-transition-new(.route-page)': {
+        animationDuration: '120ms',
         animationTimingFunction: 'ease-out',
       },
       '@media (prefers-reduced-motion: reduce)': {
-        '::view-transition-group(.dashboard-page), ::view-transition-old(.dashboard-page), ::view-transition-new(.dashboard-page)':
+        '::view-transition-group(.route-page), ::view-transition-old(.route-page), ::view-transition-new(.route-page)':
           {
             animationDuration: '0.01ms',
           },
