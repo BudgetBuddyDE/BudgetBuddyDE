@@ -3,6 +3,7 @@
 import {Grid} from '@mui/material';
 import {usePathname} from 'next/navigation';
 import type React from 'react';
+import {ViewTransition} from 'react';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {DashboardNavigation, DashboardViewMapping} from './DashboardNavigation';
 
@@ -19,7 +20,7 @@ export default function DashboardLayout({children}: React.PropsWithChildren) {
         <DashboardNavigation />
       </Grid>
 
-      {children}
+      <ViewTransition default="dashboard-page">{children}</ViewTransition>
     </ContentGrid>
   );
 }

@@ -2,6 +2,20 @@ import type {Components, Theme} from '@mui/material/styles';
 import {shape} from './shape';
 
 export const components: Components<Theme> = {
+  MuiCssBaseline: {
+    styleOverrides: {
+      '::view-transition-old(.dashboard-page), ::view-transition-new(.dashboard-page)': {
+        animationDuration: '180ms',
+        animationTimingFunction: 'ease-out',
+      },
+      '@media (prefers-reduced-motion: reduce)': {
+        '::view-transition-group(.dashboard-page), ::view-transition-old(.dashboard-page), ::view-transition-new(.dashboard-page)':
+          {
+            animationDuration: '0.01ms',
+          },
+      },
+    },
+  },
   MuiTableCell: {
     styleOverrides: {
       stickyHeader: {
