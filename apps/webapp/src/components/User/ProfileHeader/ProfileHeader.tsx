@@ -1,12 +1,10 @@
 'use client';
 
-import SettingsRounded from '@mui/icons-material/SettingsRounded';
-import VpnKeyRounded from '@mui/icons-material/VpnKeyRounded';
+import {SettingsRounded, VpnKeyRounded} from '@mui/icons-material';
 import {Box, Stack, Tab, Tabs, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import {authClient} from '@/authClient';
 import {Avatar} from '../Avatar';
-import styles from './ProfileHeader.module.css';
 
 const TABS = [
   {label: 'Profile', icon: <SettingsRounded />, path: '/settings/profile'},
@@ -22,9 +20,28 @@ export const ProfileHeader = () => {
   if (error) throw error;
   if (isPending || !data) return null;
   return (
-    <Box className={styles.profileHeader} sx={{borderRadius: theme => `${theme.shape.borderRadius}px`}}>
+    <Box
+      sx={{
+        '--profile-header-size': '84px',
+        '--profile-header-color-1': '#0059b2',
+        '--profile-header-color-2': '#004c99',
+        '--profile-header-color-3': '#003a75',
+        '--profile-header-gradient-stops': '0 120deg, #0000 0',
+        borderRadius: theme => `${theme.shape.borderRadius}px`,
+        background: `
+          conic-gradient(from 0deg at calc(500% / 6) calc(100% / 3), var(--profile-header-color-3) var(--profile-header-gradient-stops)),
+          conic-gradient(from -120deg at calc(100% / 6) calc(100% / 3), var(--profile-header-color-2) var(--profile-header-gradient-stops)),
+          conic-gradient(from 120deg at calc(100% / 3) calc(500% / 6), var(--profile-header-color-1) var(--profile-header-gradient-stops)),
+          conic-gradient(from 120deg at calc(200% / 3) calc(500% / 6), var(--profile-header-color-1) var(--profile-header-gradient-stops)),
+          conic-gradient(from -180deg at calc(100% / 3) 50%, var(--profile-header-color-2) 60deg, var(--profile-header-color-1) var(--profile-header-gradient-stops)),
+          conic-gradient(from 60deg at calc(200% / 3) 50%, var(--profile-header-color-1) 60deg, var(--profile-header-color-3) var(--profile-header-gradient-stops)),
+          conic-gradient(from -60deg at 50% calc(100% / 3), var(--profile-header-color-1) 120deg, var(--profile-header-color-2) 0 240deg, var(--profile-header-color-3) 0)
+        `,
+        backgroundSize: 'calc(var(--profile-header-size) * 1.732) var(--profile-header-size)',
+      }}
+    >
       <Stack direction="row" spacing={2}>
-        <Box sx={{ml: 4, my: 4}}>
+        <Box sx={{pl: 4, py: 4}}>
           <Avatar
             sx={{
               width: {xs: 64, md: 96},
@@ -32,7 +49,7 @@ export const ProfileHeader = () => {
             }}
           />
         </Box>
-        <Stack sx={{mt: 4}}>
+        <Stack sx={{pt: 4}}>
           <Box sx={{mt: 'auto'}}>
             <Typography
               variant="h5"
