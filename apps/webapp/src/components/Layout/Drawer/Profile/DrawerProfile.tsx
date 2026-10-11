@@ -37,7 +37,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
 
   const handleProfileClick = () => {
     if (isOpen('small')) {
-      toggleVisibility();
+      toggleVisibility(screenSize);
     }
     router.push('/settings/profile');
   };

@@ -33,7 +33,7 @@ export const Drawer = () => {
       <MuiDrawer
         variant="temporary"
         open={isOpen('small')}
-        onClose={(_ev, reason) => reason === 'backdropClick' && toggleVisibility()}
+        onClose={(_ev, reason) => reason === 'backdropClick' && toggleVisibility('small')}
         ModalProps={{
           keepMounted: true, // Better open performance on mobile.
         }}

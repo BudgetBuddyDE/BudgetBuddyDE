@@ -1,4 +1,5 @@
 import {Box, Container} from '@mui/material';
+import {cookies} from 'next/headers';
 import type React from 'react';
 import {
   CommandPalette,
@@ -11,10 +12,15 @@ import {Drawer, DrawerProvider} from '@/components/Layout/Drawer';
 import {Footer} from '@/components/Layout/Footer';
 import {AuthenticatedMain} from '@/components/Layout/Main';
 
-export default function Layout({children}: React.PropsWithChildren) {
+export default async function Layout({children}: React.PropsWithChildren) {
+  const cookieStore = await cookies();
+  const persistedDrawerState = cookieStore.get('budgetbuddy-drawer-state')?.value;
+  const hasPersistedDrawerState = persistedDrawerState === 'shown' || persistedDrawerState === 'hidden';
+  const initialDrawerState = persistedDrawerState === 'hidden' ? 'hidden' : 'shown';
+
   return (
     <Box sx={{display: 'flex'}}>
-      <DrawerProvider>
+      <DrawerProvider initialState={initialDrawerState} hasPersistedState={hasPersistedDrawerState}>
         <Drawer />
 
         <AuthenticatedMain

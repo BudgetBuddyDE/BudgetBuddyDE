@@ -20,18 +20,17 @@ export const DrawerHeader = () => {
   return (
     <StyledDrawerHeader
       sx={{
-        justifyContent: {
-          xs: 'space-between',
-          md: isOpen(screenSize) ? 'space-between' : 'center',
-        },
+        justifyContent: isOpen(screenSize) ? 'flex-start' : 'center',
       }}
     >
       <Brand
         asLink
         boxStyle={{
-          display: isOpen(screenSize) ? 'block' : 'none',
-          ml: 2,
+          justifyContent: isOpen(screenSize) ? 'flex-start' : 'center',
+          width: '100%',
+          pl: isOpen(screenSize) ? 1 : 0,
         }}
+        typographyStyle={{display: isOpen(screenSize) ? 'block' : 'none'}}
       />
     </StyledDrawerHeader>
   );
