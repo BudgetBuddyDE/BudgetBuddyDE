@@ -11,7 +11,6 @@ import {AppBar} from '@/components/Layout/AppBar';
 import {Drawer, DrawerProvider} from '@/components/Layout/Drawer';
 import {Footer} from '@/components/Layout/Footer';
 import {AuthenticatedMain} from '@/components/Layout/Main';
-import {RouteTransition} from '@/components/Layout/RouteTransition';
 
 export default async function Layout({children}: React.PropsWithChildren) {
   const cookieStore = await cookies();
@@ -41,7 +40,7 @@ export default async function Layout({children}: React.PropsWithChildren) {
             <CommandPaletteProvider>
               <RegisterDefaultCommands />
               <RegisterIntentCommands />
-              <RouteTransition>{children}</RouteTransition>
+              {children}
               <CommandPalette />
             </CommandPaletteProvider>
           </Container>
