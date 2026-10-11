@@ -23,10 +23,11 @@ export const Brand: React.FC<TBrandProps> = ({
   const content = (
     <Stack direction="row" sx={{alignItems: 'center', gap: 1.5, minWidth: 0, ...boxStyle}}>
       <Image
-        src="/logo.png"
+        src="/logo.webp"
         alt={showTitle ? '' : 'BudgetBuddyDE logo'}
         width={logoSize}
         height={logoSize}
+        loading="eager"
         sx={{width: logoSize, height: logoSize, flex: '0 0 auto', ...logoStyle}}
       />
       {showTitle && (
