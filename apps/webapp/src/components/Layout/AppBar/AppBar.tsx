@@ -104,7 +104,7 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
               }}
             >
               {MenuLinks.map(page => (
-                <Button key={page.label} href={page.href} sx={{my: 2, color: 'white', display: 'block'}}>
+                <Button key={page.label} href={page.href} sx={{my: 0, color: 'white', display: 'block'}}>
                   {page.label}
                 </Button>
               ))}
