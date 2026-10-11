@@ -23,7 +23,7 @@ describe('NoResults', () => {
   });
 
   it('renders a create empty state with its action', () => {
-    render(
+    const {container} = render(
       <NoResults
         variant="create"
         action={
@@ -35,6 +35,7 @@ describe('NoResults', () => {
     );
     expect(screen.getByRole('heading', {name: 'Create your first item'})).toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Create item'})).toBeInTheDocument();
+    expect(container.querySelector('.MuiCard-root')).not.toHaveClass('MuiCard-outlined');
   });
 
   it('renders and invokes the default create button', () => {

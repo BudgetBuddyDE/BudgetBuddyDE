@@ -1,8 +1,6 @@
 'use client';
 
-import AddRounded from '@mui/icons-material/AddRounded';
-import InboxRounded from '@mui/icons-material/InboxRounded';
-import SearchOffRounded from '@mui/icons-material/SearchOffRounded';
+import {AddRounded, InboxRounded, SearchOffRounded} from '@mui/icons-material';
 import {Box, type BoxProps, Button, type ButtonProps, Stack, Typography} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
@@ -76,12 +74,9 @@ export const NoResults: React.FC<NoResultsProps> = ({
     isCreateState
       ? {
           alignItems: 'center',
-          borderColor: 'divider',
-          borderStyle: 'dashed',
           display: 'flex',
           justifyContent: 'center',
-          minHeight: {xs: 260, sm: 300},
-          p: {xs: 3, sm: 4},
+          p: 3,
         }
       : {p: {xs: 2.5, sm: 3}},
     ...(Array.isArray(sx) ? sx : [sx]),
@@ -120,7 +115,7 @@ export const NoResults: React.FC<NoResultsProps> = ({
   );
 
   return (
-    <Card component="section" variant="outlined" sx={surfaceSx}>
+    <Card component="section" sx={surfaceSx}>
       {content}
     </Card>
   );
