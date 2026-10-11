@@ -1,38 +1,52 @@
-import SavingsIcon from '@mui/icons-material/SavingsRounded';
-import {type BoxProps, type IconProps, Stack, Typography, type TypographyProps} from '@mui/material';
+import {Link, Stack, Typography, type StackProps, type TypographyProps} from '@mui/material';
 import NextLink from 'next/link';
 import type React from 'react';
+import {Image, type ImageComponentProps} from '@/components/Image';
 
 export type TBrandProps = {
-  boxStyle?: BoxProps['sx'];
-  iconStyle?: IconProps['sx'];
+  showTitle?: boolean;
+  logoSize?: number;
+  boxStyle?: StackProps['sx'];
+  logoStyle?: ImageComponentProps['sx'];
   typographyStyle?: TypographyProps['sx'];
   asLink?: boolean;
 };
 
-export const Brand: React.FC<TBrandProps> = ({boxStyle, iconStyle, typographyStyle, asLink = false}) => {
-  const appName = 'BudgetBuddyDE';
-  const baseProps: TypographyProps = {
-    variant: 'h5',
-    noWrap: true,
-    sx: {
-      fontWeight: 700,
-      color: 'inherit',
-      textDecoration: 'none',
-      ...typographyStyle,
-    },
-  };
-
-  return (
-    <Stack direction="row" sx={{alignItems: 'center', ...boxStyle}}>
-      <SavingsIcon sx={{mr: 1, ...iconStyle}} />
-      {asLink ? (
-        <Typography component={NextLink} href="/" {...baseProps}>
-          {appName}
+export const Brand: React.FC<TBrandProps> = ({
+  showTitle = false,
+  logoSize = 36,
+  boxStyle,
+  logoStyle,
+  typographyStyle,
+  asLink = false,
+}) => {
+  const content = (
+    <Stack direction="row" sx={{alignItems: 'center', gap: 1.5, minWidth: 0, ...boxStyle}}>
+      <Image
+        src="/logo.png"
+        alt={showTitle ? '' : 'BudgetBuddyDE logo'}
+        width={logoSize}
+        height={logoSize}
+        sx={{width: logoSize, height: logoSize, flex: '0 0 auto', ...logoStyle}}
+      />
+      {showTitle && (
+        <Typography
+          component="span"
+          variant="h5"
+          noWrap
+          sx={{fontWeight: 700, color: 'inherit', textDecoration: 'none', ...typographyStyle}}
+        >
+          BudgetBuddyDE
         </Typography>
-      ) : (
-        <Typography {...baseProps}>{appName}</Typography>
       )}
     </Stack>
+  );
+
+  return asLink ? (
+    <Link component={NextLink} href="/" underline="none" color="inherit" sx={{display: 'inline-flex'}}>
+      {content}
+    </Link>
+  ) : (
+    content
   );
 };

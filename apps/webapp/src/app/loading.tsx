@@ -37,7 +37,7 @@ export default function Loading() {
           }}
         >
           <CircularProgress sx={{mb: 0.5}} size={33} />
-          <Brand />
+          <Brand showTitle />
         </motion.div>
       </Box>
 

@@ -1,7 +1,7 @@
 import {Box, Card, Divider, Grid, Typography} from '@mui/material';
 import {headers} from 'next/headers';
 import {authClient} from '@/authClient';
-import {AppLogo} from '@/components/AppLogo';
+import {Brand} from '@/components/Brand';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
 
@@ -30,7 +30,7 @@ export default async function MailVerifiedPage() {
               flexDirection: 'column',
             }}
           >
-            <AppLogo sx={{mx: 'auto', borderRadius: '5px'}} width={96} height={96} />
+            <Brand logoSize={96} logoStyle={{borderRadius: '5px'}} boxStyle={{mx: 'auto'}} />
 
             <Typography
               variant={'h5'}

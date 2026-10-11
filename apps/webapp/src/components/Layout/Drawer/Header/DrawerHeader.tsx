@@ -12,7 +12,7 @@ export const DrawerHeader = () => {
   if (screenSize === 'small') {
     return (
       <StyledDrawerHeader sx={{justifyContent: 'flex-start'}}>
-        <Brand asLink boxStyle={{ml: 2}} />
+        <Brand asLink showTitle boxStyle={{ml: 2}} />
       </StyledDrawerHeader>
     );
   }
@@ -25,12 +25,12 @@ export const DrawerHeader = () => {
     >
       <Brand
         asLink
+        showTitle={isOpen(screenSize)}
         boxStyle={{
           justifyContent: isOpen(screenSize) ? 'flex-start' : 'center',
           width: '100%',
           pl: isOpen(screenSize) ? 1 : 0,
         }}
-        typographyStyle={{display: isOpen(screenSize) ? 'block' : 'none'}}
       />
     </StyledDrawerHeader>
   );

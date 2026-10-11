@@ -4,8 +4,14 @@ import {describe, expect, it} from 'vitest';
 import {Brand} from './Brand';
 
 describe('Brand', () => {
-  it('renders the app name "BudgetBuddyDE"', () => {
+  it('renders the logo without the title by default', () => {
     render(<Brand />);
+    expect(screen.getByRole('img', {name: 'BudgetBuddyDE logo'})).toHaveAttribute('src', '/logo.png');
+    expect(screen.queryByText('BudgetBuddyDE')).not.toBeInTheDocument();
+  });
+
+  it('renders the app title when showTitle is true', () => {
+    render(<Brand showTitle />);
     expect(screen.getByText('BudgetBuddyDE')).toBeInTheDocument();
   });
 
@@ -22,7 +28,7 @@ describe('Brand', () => {
 
   it('renders without crashing with custom styles', () => {
     const {container} = render(
-      <Brand boxStyle={{m: 1}} iconStyle={{fontSize: 24}} typographyStyle={{fontWeight: 400}} />,
+      <Brand boxStyle={{m: 1}} logoStyle={{borderRadius: 1}} showTitle typographyStyle={{fontWeight: 400}} />,
     );
     expect(container).not.toBeEmptyDOMElement();
   });
