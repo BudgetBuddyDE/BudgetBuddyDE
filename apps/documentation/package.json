@@ -14,11 +14,11 @@
     "format:check": "prettier --check \"**/*.{json,md,mdx,ts,tsx,css}\""
   },
   "dependencies": {
-    "@base-ui/react": "^1.8.0",
-    "fumadocs-core": "^16.15.7",
-    "fumadocs-mdx": "^15.4.0",
+    "@base-ui/react": "^1.9.0",
+    "fumadocs-core": "^16.17.0",
+    "fumadocs-mdx": "^15.4.7",
     "fumadocs-ui": "npm:@fumadocs/base-ui@^16.15.7",
-    "fumapress": "^1.2.0",
+    "fumapress": "^1.6.0",
     "lucide-react": "^0.511.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
@@ -30,6 +30,6 @@
     "@types/react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.3.4"
   }
 }
