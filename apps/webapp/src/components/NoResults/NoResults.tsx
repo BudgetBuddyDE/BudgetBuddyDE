@@ -115,7 +115,7 @@ export const NoResults: React.FC<NoResultsProps> = ({
   );
 
   return (
-    <Card component="section" sx={surfaceSx}>
+    <Card component="section" sx={surfaceSx} elevation={1}>
       {content}
     </Card>
   );
