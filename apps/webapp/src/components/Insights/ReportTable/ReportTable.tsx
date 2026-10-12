@@ -4,7 +4,7 @@ import {Card} from '@/components/Card';
 
 export type ReportTableProps = {
   headers: string[];
-  rows: string[][];
+  rows: React.ReactNode[][];
   rightAlignedColumns?: number[];
 };
 
@@ -24,7 +24,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({headers, rows, rightAli
         <TableBody>
           {rows.length ? (
             rows.map((row, index) => (
-              <TableRow key={row[0] ?? `report-row-${index}`}>
+              <TableRow key={index}>
                 {row.map((cell, cellIndex) => (
                   <TableCell key={cellIndex} align={rightAlignedColumns.includes(cellIndex) ? 'right' : 'left'}>
                     {cell}

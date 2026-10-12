@@ -1,7 +1,14 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {afterEach, describe, expect, it} from 'vitest';
-import {buildReport} from '../InsightsReport.fixtures';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {buildReport, metric} from '../InsightsReport.fixtures';
 import {InsightsReportAnalysis} from './InsightsReportAnalysis';
+
+vi.mock('@budgetbuddyde/charts', () => ({
+  BarChart: ({ariaLabel, axisValueFormatter}: {ariaLabel: string; axisValueFormatter: (value: number) => string}) => (
+    <div role="img" aria-label={ariaLabel} data-axis-label={axisValueFormatter(100)} />
+  ),
+  BulletChart: () => <div />,
+}));
 
 afterEach(() => cleanup());
 
@@ -17,6 +24,10 @@ describe('InsightsReportAnalysis', () => {
     expect(screen.getAllByText(/120,50/)).toHaveLength(2);
     expect(screen.getAllByText(/95,00/)).toHaveLength(2);
     expect(screen.getByText('40.2%')).toBeInTheDocument();
+    expect(screen.getByRole('img', {name: 'Category amounts compared with the previous period'})).toHaveAttribute(
+      'data-axis-label',
+      expect.stringContaining('100,00'),
+    );
   });
 
   it('recomputes the selected metric column when the metric changes', () => {
@@ -48,7 +59,7 @@ describe('InsightsReportAnalysis', () => {
     render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
 
     fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Rank by'}));
-    fireEvent.click(screen.getByRole('option', {name: 'Volume'}));
+    fireEvent.click(screen.getByRole('option', {name: 'Expenses'}));
 
     const rows = screen
       .getAllByRole('row')
@@ -89,6 +100,41 @@ describe('InsightsReportAnalysis', () => {
     const report = buildReport();
     render(<InsightsReportAnalysis report={report} selectedCategoryRows={[]} />);
 
-    expect(screen.getByText('No data for the selected filters.')).toBeInTheDocument();
+    expect(screen.getAllByText('No data for the selected filters.').length).toBeGreaterThan(0);
+  });
+
+  it('preserves date and payment filters in category drill-down links', () => {
+    const report = buildReport({comparisonPeriod: null});
+    render(
+      <InsightsReportAnalysis
+        report={report}
+        selectedCategoryRows={report.categories}
+        reportQuery={{
+          $dateFrom: new Date(2026, 1, 1),
+          $dateTo: new Date(2026, 1, 28),
+          $paymentMethods: ['pm-1'],
+        }}
+      />,
+    );
+    const link = screen.getByRole('link', {name: 'Groceries'});
+    const params = new URL(link.getAttribute('href')!, 'https://example.test').searchParams;
+    expect(params.get('dateFrom')).toBe('2026-02-01');
+    expect(params.get('cat')).toBe('cat-1');
+    expect(params.get('pm')).toBe('pm-1');
+    expect(screen.getByText('Largest amounts in the selected period')).toBeInTheDocument();
+  });
+
+  it('shows positive expense receivers and labels the count as all transactions', () => {
+    const report = buildReport({
+      receivers: [
+        {receiver: 'Shop & Sons', expenses: metric(80), transactionCount: metric(3), averageExpense: metric(40)},
+        {receiver: 'Employer', expenses: metric(0), transactionCount: metric(1), averageExpense: metric(0)},
+      ],
+    });
+    render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
+    const link = screen.getByRole('link', {name: 'Shop & Sons'});
+    expect(new URL(link.getAttribute('href')!, 'https://example.test').searchParams.get('q')).toBe('Shop & Sons');
+    expect(screen.queryByText('Employer')).not.toBeInTheDocument();
+    expect(screen.getByText(/Counts include all transactions/)).toBeInTheDocument();
   });
 });

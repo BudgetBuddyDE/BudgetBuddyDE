@@ -40,6 +40,9 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@budgetbuddyde/charts', () => ({
   ComposedChart: () => <div>timeline chart</div>,
+  BarChart: () => <div>analysis chart</div>,
+  BulletChart: () => <div>budget chart</div>,
+  Sparkline: () => <div>trend chart</div>,
 }));
 
 vi.mock('@/components/Form/DateRangePicker', () => ({

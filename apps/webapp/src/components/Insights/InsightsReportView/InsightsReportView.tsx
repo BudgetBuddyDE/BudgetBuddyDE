@@ -1,5 +1,6 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TInsightsReport} from '@budgetbuddyde/api/insights';
+import type {IGetInsightsReportQuery} from '@budgetbuddyde/api/interfaces';
 import type {TExpandedTransaction} from '@budgetbuddyde/api/types';
 import {Box, LinearProgress, Skeleton, Stack} from '@mui/material';
 import React from 'react';
@@ -11,6 +12,7 @@ import {InsightsReportTransactions} from '../InsightsReportTransactions/Insights
 
 export type InsightsReportViewProps = {
   report: TInsightsReport | null;
+  reportQuery?: IGetInsightsReportQuery;
   error: Error | null;
   loading: boolean;
   categories: TCategoryVH[];
@@ -24,6 +26,7 @@ export type InsightsReportViewProps = {
 
 export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
   report,
+  reportQuery,
   error,
   loading,
   categories,
@@ -36,7 +39,7 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
 }) => {
   const initialLoading = loading && !report;
   const refreshing = loading && Boolean(report);
-  const categoryIds = new Set<string>(categories.map(category => category.id));
+  const categoryIds = new Set<string>(reportQuery?.$categories ?? categories.map(category => category.id));
   const selectedCategoryRows =
     report?.categories.filter(row => categoryIds.size === 0 || categoryIds.has(row.category.id)) ?? [];
 
@@ -54,9 +57,13 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
             />
           )}
           <Stack spacing={2}>
-            <InsightsReportSummaryCards summary={report.summary} />
-            <InsightsReportCharts report={report} />
-            <InsightsReportAnalysis report={report} selectedCategoryRows={selectedCategoryRows} />
+            <InsightsReportSummaryCards summary={report.summary} timeline={report.timeline} />
+            <InsightsReportCharts report={report} reportQuery={reportQuery} refreshing={refreshing} />
+            <InsightsReportAnalysis
+              report={report}
+              reportQuery={reportQuery}
+              selectedCategoryRows={selectedCategoryRows}
+            />
             <InsightsReportTransactions
               transactions={transactions}
               transactionCount={transactionCount}

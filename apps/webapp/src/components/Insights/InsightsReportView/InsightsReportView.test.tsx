@@ -5,6 +5,8 @@ import {InsightsReportView} from './InsightsReportView';
 
 vi.mock('@budgetbuddyde/charts', () => ({
   ComposedChart: () => <div>timeline chart</div>,
+  BarChart: () => <div>comparison chart</div>,
+  BulletChart: () => <div>budget chart</div>,
 }));
 
 afterEach(() => cleanup());
@@ -155,5 +157,26 @@ describe('InsightsReportView', () => {
 
     expect(screen.getByTitle('Go to previous page')).toBeDisabled();
     expect(screen.getByTitle('Go to next page')).toBeEnabled();
+  });
+
+  it('keeps displayed category rows tied to the loaded report when a new filter request fails', () => {
+    render(
+      <InsightsReportView
+        report={report}
+        reportQuery={{$categories: ['cat-1']}}
+        error={new Error('Updated report unavailable')}
+        loading={false}
+        categories={[categoryOption('cat-2', 'Housing')]}
+        transactions={[]}
+        transactionCount={0}
+        transactionPage={0}
+        transactionRowsPerPage={10}
+        onTransactionPageChange={vi.fn()}
+        onTransactionRowsPerPageChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('link', {name: 'Groceries'})).toBeInTheDocument();
+    expect(screen.queryByRole('link', {name: 'Housing'})).not.toBeInTheDocument();
+    expect(screen.getByText('Updated report unavailable')).toBeInTheDocument();
   });
 });

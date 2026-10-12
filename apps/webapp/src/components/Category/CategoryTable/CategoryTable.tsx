@@ -328,6 +328,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         renderCell: (_value, row) => (
           <EntityMenu
             entity={row}
+            actions={[
+              {
+                children: 'View insights',
+                onClick: () => router.push('/dashboard/insights?' + new URLSearchParams({cat: row.id})),
+              },
+            ]}
             handleEditEntity={handleEditEntity}
             handleDeleteEntity={({id}) => {
               dispatchDeleteDialogAction({action: 'OPEN', target: id});
@@ -337,7 +343,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       },
     ],
     // biome-ignore lint/correctness/useExhaustiveDependencies: handleEditEntity is stable within render context
-    [handleEditEntity],
+    [handleEditEntity, router],
   );
 
   const batchColumns = React.useMemo(() => categoryBatchColumns(), []);

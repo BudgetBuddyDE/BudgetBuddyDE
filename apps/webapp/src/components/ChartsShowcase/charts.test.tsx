@@ -52,9 +52,11 @@ describe('chart presentation', () => {
   });
 
   it('distinguishes missing heatmap cells from zero and supports arrow navigation', () => {
+    const onSelect = vi.fn();
     render(
       <HeatmapChart
         width={300}
+        onSelect={onSelect}
         data={[{x: 'Mon', y: 'W1', value: 0}]}
         xLabels={['Mon', 'Tue']}
         yLabels={['W1']}
@@ -67,6 +69,9 @@ describe('chart presentation', () => {
     fireEvent.keyDown(zero, {key: 'ArrowRight'});
     expect(missing).toHaveFocus();
     expect(missing).toHaveAttribute('tabindex', '0');
+    expect(onSelect).toHaveBeenLastCalledWith({x: 'Tue', y: 'W1', value: null});
+    fireEvent.click(zero);
+    expect(onSelect).toHaveBeenLastCalledWith({x: 'Mon', y: 'W1', value: 0});
   });
 
   it('measures container changes and disconnects its observer', () => {
