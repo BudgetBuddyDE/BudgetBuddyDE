@@ -1,7 +1,9 @@
 <p align="center">
-  <h1 align="center">
-    BudgetBuddyDE
-  </h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/wordmark-logo/budgetbuddyde-wordmark-light.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="assets/wordmark-logo/budgetbuddyde-wordmark-dark.svg" />
+    <img src="assets/wordmark-logo/budgetbuddyde-wordmark-dark.svg" alt="BudgetBuddyDE" width="520" />
+  </picture>
 
   <p align="center">
     <img src="https://img.shields.io/github/license/BudgetBuddyDE/BudgetBuddyDE?label=License" alt="GitHub License" />
