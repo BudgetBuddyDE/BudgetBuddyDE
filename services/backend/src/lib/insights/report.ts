@@ -1,5 +1,6 @@
+import type {TInsightsReport} from '@budgetbuddyde/api/insights';
+import type {IGetInsightsReportQuery} from '@budgetbuddyde/api/interfaces';
 import {budgets, paymentMethods, transactions} from '@budgetbuddyde/db/backend';
-import {and, eq, gte, inArray, lte} from 'drizzle-orm';
 import {
   addDays,
   addMonths,
@@ -8,16 +9,17 @@ import {
   endOfDay,
   endOfMonth,
   endOfWeek,
+  format,
   isWithinInterval,
   startOfDay,
   startOfMonth,
   startOfWeek,
 } from 'date-fns';
 import {fromZonedTime, toZonedTime} from 'date-fns-tz';
-import type {IGetInsightsReportQuery} from '@budgetbuddyde/api/interfaces';
-import type {TInsightsReport} from '@budgetbuddyde/api/insights';
+import {and, eq, gte, inArray, lte} from 'drizzle-orm';
 import {config} from '../../config';
 import {db} from '../../db';
+import {currentBudgetMonth} from '../budget';
 
 type Granularity = 'day' | 'week' | 'month';
 type Period = {from: Date; to: Date};
@@ -60,14 +62,30 @@ export function periodFromQuery(query: IGetInsightsReportQuery): Period {
 }
 
 function previousPeriod(period: Period): Period {
-  const days = differenceInCalendarDays(period.to, period.from) + 1;
-  const to = addDays(period.from, -1);
-  return {from: addDays(to, -(days - 1)), to};
+  const fromLocal = dateOnly(period.from, config.timezone);
+  const toLocal = dateOnly(period.to, config.timezone);
+  const days = differenceInCalendarDays(toLocal, fromLocal) + 1;
+  return {
+    from: toInstant(startOfDay(addDays(fromLocal, -days)), config.timezone),
+    to: toInstant(endOfDay(addDays(fromLocal, -1)), config.timezone),
+  };
+}
+
+/** Preserve the current buckets' calendar-day lengths and offsets in the previous period. */
+function comparisonBuckets(buckets: Bucket[], period: Period): Bucket[] {
+  const days =
+    differenceInCalendarDays(dateOnly(period.to, config.timezone), dateOnly(period.from, config.timezone)) + 1;
+  return buckets.map(bucket => ({
+    ...bucket,
+    from: toInstant(startOfDay(addDays(dateOnly(bucket.from, config.timezone), -days)), config.timezone),
+    to: toInstant(endOfDay(addDays(dateOnly(bucket.to, config.timezone), -days)), config.timezone),
+  }));
 }
 
 function resolveGranularity(query: IGetInsightsReportQuery, period: Period): Granularity {
   if (query.$granularity && query.$granularity !== 'auto') return query.$granularity;
-  const days = differenceInCalendarDays(period.to, period.from) + 1;
+  const days =
+    differenceInCalendarDays(dateOnly(period.to, config.timezone), dateOnly(period.from, config.timezone)) + 1;
   return days <= 31 ? 'day' : days <= 180 ? 'week' : 'month';
 }
 
@@ -103,7 +121,7 @@ function makeBuckets(period: Period, granularity: Granularity): Bucket[] {
 }
 
 function labelFor(date: Date, granularity: Granularity): string {
-  if (granularity === 'day') return date.toISOString().slice(0, 10);
+  if (granularity === 'day') return format(date, 'yyyy-MM-dd');
   if (granularity === 'week') return 'W' + String(getIsoWeek(date)).padStart(2, '0') + ' ' + date.getFullYear();
   return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
 }
@@ -209,7 +227,7 @@ export async function buildInsightsReport(ownerId: string, query: IGetInsightsRe
   const current = amountStats(currentTransactions);
   const previous = amountStats(previousTransactions);
   const currentBuckets = makeBuckets(period, granularity);
-  const previousBuckets = comparison ? makeBuckets(comparison, granularity) : [];
+  const previousBuckets = comparison ? comparisonBuckets(currentBuckets, period) : [];
   const currentByBucket = bucketTransactions(currentTransactions, currentBuckets);
   const previousByBucket = bucketTransactions(previousTransactions, previousBuckets);
   let cumulativeExpenses = 0;
@@ -342,6 +360,7 @@ export async function buildInsightsReport(ownerId: string, query: IGetInsightsRe
     });
 
   return {
+    timezone: config.timezone,
     period: {from: period.from, to: period.to},
     comparisonPeriod: comparison ? {from: comparison.from, to: comparison.to} : null,
     granularity,
@@ -366,9 +385,7 @@ export async function buildInsightsReport(ownerId: string, query: IGetInsightsRe
 }
 
 async function buildCurrentBudgets(ownerId: string, period: Period): Promise<TInsightsReport['budgets']> {
-  const today = toZonedTime(new Date(), config.timezone);
-  const monthFrom = toInstant(startOfDay(startOfMonth(today)), config.timezone);
-  const monthTo = toInstant(endOfDay(endOfMonth(today)), config.timezone);
+  const {from: monthFrom, to: monthTo} = currentBudgetMonth();
   if (period.to < monthFrom || period.from > monthTo) return null;
   const [budgetRows, monthTransactions] = await Promise.all([
     db.query.budgets.findMany({

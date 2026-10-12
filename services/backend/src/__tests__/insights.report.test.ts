@@ -55,6 +55,48 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('insights report data boundaries', () => {
+  it.each([
+    ['2026-03-29', '2026-03-31', '2026-03-25T23:00:00Z', '2026-03-28T22:59:59.999Z'],
+    ['2026-10-25', '2026-10-27', '2026-10-21T22:00:00Z', '2026-10-24T21:59:59.999Z'],
+  ])('includes the complete previous local day across DST for %s to %s', async (from, to, previousFrom, previousTo) => {
+    config.timezone = 'Europe/Berlin';
+    transactions.mockImplementation(async options => {
+      const params = new PgDialect().sqlToQuery(options.where).params;
+      const start = new Date(String(params[1]));
+      const end = new Date(String(params[2]));
+      const last = row('last', -15, 'category-1', previousTo);
+      return last.processedAt >= start && last.processedAt <= end ? [last] : [];
+    });
+    const report = await buildInsightsReport('owner', {
+      ...query,
+      $dateFrom: new Date(`${from}T12:00:00Z`),
+      $dateTo: new Date(`${to}T12:00:00Z`),
+    });
+    expect(report.comparisonPeriod).toEqual({from: new Date(previousFrom), to: new Date(previousTo)});
+    expect(report.summary.expenses.previousValue).toBe(15);
+    expect(report.timeline.map(bucket => bucket.previousExpenses)).toEqual([0, 0, 15]);
+  });
+  it.each([
+    ['week', '2026-01-07', '2026-01-13', ['2025-12-31', '2026-01-04', '2026-01-05', '2026-01-06']],
+    ['month', '2026-01-29', '2026-02-03', ['2026-01-23', '2026-01-25', '2026-01-26', '2026-01-28']],
+  ] as const)(
+    'compares equally long relative intervals for clipped %s buckets',
+    async (granularity, from, to, dates) => {
+      transactions
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(
+          dates.map((date, index) => row(`previous-${index}`, -(index + 1), 'category-1', `${date}T12:00:00Z`)),
+        );
+      const report = await buildInsightsReport('owner', {
+        $dateFrom: new Date(`${from}T12:00:00Z`),
+        $dateTo: new Date(`${to}T12:00:00Z`),
+        $granularity: granularity,
+      });
+      expect(report.timeline.map(bucket => bucket.previousExpenses)).toEqual([3, 7]);
+      expect(report.timeline[0].from).toEqual(new Date(`${from}T00:00:00Z`));
+      expect(report.timeline.at(-1)!.to).toEqual(new Date(`${to}T23:59:59.999Z`));
+    },
+  );
   it('converts local calendar day limits across the DST transition', () => {
     config.timezone = 'Europe/Berlin';
     expect(
@@ -88,6 +130,7 @@ describe('insights report data boundaries', () => {
 describe('insights calculations', () => {
   it('returns zero metrics and unused payment methods for empty data', async () => {
     const report = await buildInsightsReport('owner', query);
+    expect(report.timezone).toBe('UTC');
     expect(report.summary.income).toEqual({value: 0, previousValue: 0, absoluteChange: 0, percentChange: 0});
     expect(report.summary.averageExpense.value).toBe(0);
     expect(report.timeline).toHaveLength(3);
@@ -180,12 +223,44 @@ describe('insights calculations', () => {
     budgets.mockResolvedValue([
       {id: 'include', name: 'Rent', type: 'i', budget: 100, categories: [{categoryId: 'category-1'}]},
       {id: 'exclude', name: 'Other', type: 'e', budget: 0, categories: [{categoryId: 'category-1'}]},
+      {id: 'empty-include', name: 'Empty include', type: 'i', budget: 100, categories: []},
+      {id: 'empty-exclude', name: 'Empty exclude', type: 'e', budget: 100, categories: []},
     ]);
     const report = await buildInsightsReport('owner', query);
     expect(report.budgets).toEqual([
       {id: 'include', name: 'Rent', budget: 100, spent: 120, remaining: -20, utilization: 120, overBudget: true},
       {id: 'exclude', name: 'Other', budget: 0, spent: 20, remaining: -20, utilization: 0, overBudget: true},
+      {
+        id: 'empty-include',
+        name: 'Empty include',
+        budget: 100,
+        spent: 0,
+        remaining: 100,
+        utilization: 0,
+        overBudget: false,
+      },
+      {
+        id: 'empty-exclude',
+        name: 'Empty exclude',
+        budget: 100,
+        spent: 140,
+        remaining: -40,
+        utilization: 140,
+        overBudget: true,
+      },
     ]);
     expect(new PgDialect().sqlToQuery(budgets.mock.calls[0][0].where).params).toContain('owner');
+  });
+  it('uses the full application month for budgets, independently of report filters', async () => {
+    config.timezone = 'Europe/Berlin';
+    vi.setSystemTime(new Date('2026-03-31T22:30:00Z'));
+    await buildInsightsReport('owner', {
+      $dateFrom: new Date('2026-04-10T12:00:00Z'),
+      $dateTo: new Date('2026-04-12T12:00:00Z'),
+      $categories: ['category-1'],
+      $paymentMethods: ['method-1'],
+    });
+    const params = new PgDialect().sqlToQuery(transactions.mock.calls[2][0].where).params;
+    expect(params).toEqual(['owner', '2026-03-31T22:00:00.000Z', '2026-04-30T21:59:59.999Z']);
   });
 });

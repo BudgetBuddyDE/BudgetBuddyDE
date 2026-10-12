@@ -485,6 +485,7 @@ describe('category statistics and budget balances', () => {
       {id: 'include', type: 'i', categories: [{categoryId: CATEGORY}, {categoryId: 'no-expenses'}]},
       {id: 'exclude', type: 'e', categories: [{categoryId: CATEGORY}]},
       {id: 'empty', type: 'i', categories: []},
+      {id: 'empty-exclude', type: 'e', categories: []},
     ]);
     mocks.chain.groupBy.mockResolvedValueOnce([
       {categoryId: CATEGORY, expenses: 30},
@@ -498,6 +499,7 @@ describe('category statistics and budget balances', () => {
         {id: 'include', balance: 30},
         {id: 'exclude', balance: 20},
         {id: 'empty', balance: 0},
+        {id: 'empty-exclude', balance: 50},
       ],
     });
     expect(mocks.chain.groupBy).toHaveBeenCalledOnce();

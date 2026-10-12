@@ -347,6 +347,23 @@ suite('Cache', () => {
       expect(mockRedisIncr).not.toHaveBeenCalled();
     });
 
+    it('invalidates budget and insights for a successful budget mutation outside the shared domain', async () => {
+      mockRedisIncr.mockResolvedValue(1);
+      const listeners: Record<string, () => void> = {};
+      const res = {
+        ...makeResponse(),
+        on: (event: string, callback: () => void) => {
+          listeners[event] = callback;
+        },
+      } as unknown as Response;
+      await invalidateCache(makeRequest({method: 'PUT', path: '/api/budget/1'}), res, next);
+      listeners.finish();
+      expect(mockRedisIncr.mock.calls.map(([key]) => key)).toEqual([
+        'cache:generation:/api/budget:user-1',
+        'cache:generation:/api/insights:user-1',
+      ]);
+    });
+
     it('does not invalidate caches for failed mutations', async () => {
       mockRedisIncr.mockResolvedValue(1);
 

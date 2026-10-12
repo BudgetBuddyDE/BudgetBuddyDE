@@ -1,7 +1,8 @@
-import {BudgetWithCategoriesSchema, budgetCategories, budgets, transactionHistoryView} from '@budgetbuddyde/db/backend';
-import {and, eq, inArray, sql} from 'drizzle-orm';
+import {BudgetWithCategoriesSchema, budgetCategories, budgets, transactions} from '@budgetbuddyde/db/backend';
+import {and, eq, gte, inArray, lt, lte, sql} from 'drizzle-orm';
 import {z} from 'zod';
 import {db} from '../db';
+import {currentBudgetMonth} from '../lib/budget';
 import {ApiResponse, HTTPStatusCode, NotFoundError} from '../models';
 import {invalidateDomainMutation} from './cache';
 import {normalizeResponse} from './response';
@@ -339,7 +340,7 @@ type TBudgetBalanceTarget = {
  * Computes monthly balances for multiple budgets with a single grouped query.
  *
  * Type `i` sums expenses of the assigned categories; type `e` sums all other
- * categories. Budgets without categories keep their previous zero balance.
+ * categories. Empty include rules spend nothing; empty exclude rules include all expenses.
  */
 async function calculateBudgetBalances(
   ownerId: string,
@@ -348,23 +349,23 @@ async function calculateBudgetBalances(
 ): Promise<number[]> {
   if (budgets.length === 0) return [];
 
-  const currentMonth = time.getMonth() + 1;
-  const currentYear = time.getFullYear();
+  const month = currentBudgetMonth(time);
 
   const rows = await db
     .select({
-      categoryId: transactionHistoryView.categoryId,
-      expenses: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('expenses'),
+      categoryId: transactions.categoryId,
+      expenses: sql<number>`COALESCE(SUM(ABS(${transactions.transferAmount})), 0)`.as('expenses'),
     })
-    .from(transactionHistoryView)
+    .from(transactions)
     .where(
       and(
-        eq(transactionHistoryView.ownerId, ownerId),
-        eq(transactionHistoryView.month, currentMonth),
-        eq(transactionHistoryView.year, currentYear),
+        eq(transactions.ownerId, ownerId),
+        gte(transactions.processedAt, month.from),
+        lte(transactions.processedAt, month.to),
+        lt(transactions.transferAmount, 0),
       ),
     )
-    .groupBy(transactionHistoryView.categoryId);
+    .groupBy(transactions.categoryId);
 
   const expensesByCategory = new Map<string, number>();
   let totalExpenses = 0;
@@ -376,8 +377,8 @@ async function calculateBudgetBalances(
 
   return budgets.map(budget => {
     const categories = budget.categories.map(category => category.categoryId);
-    if (categories.length === 0) return 0;
     const assignedExpenses = categories.reduce((sum, categoryId) => sum + (expensesByCategory.get(categoryId) ?? 0), 0);
-    return budget.type === 'i' ? assignedExpenses : totalExpenses - assignedExpenses;
+    const spent = budget.type === 'i' ? assignedExpenses : totalExpenses - assignedExpenses;
+    return Math.round((spent + Number.EPSILON) * 100) / 100;
   });
 }

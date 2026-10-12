@@ -55,6 +55,14 @@ it('rejects invalid report query before querying', async () => {
   ).toBe(400);
   expect(report).not.toHaveBeenCalled();
 });
+it.each([
+  '$dateFrom=2026-02-30&$dateTo=2026-03-01',
+  '$dateFrom=2026-02-01&$dateTo=2026-01-31',
+  '$dateFrom=2020-01-01&$dateTo=2035-01-01',
+])('rejects invalid report ranges before querying: %s', async query => {
+  expect((await requestRouter(insightsRouter, 'owner', `/report?${query}`, {method: 'GET'})).status).toBe(400);
+  expect(report).not.toHaveBeenCalled();
+});
 it.each(['/balance', '/category-balance'])('filters %s by owner and optional date bounds', async path => {
   chain.orderBy.mockResolvedValue([
     {

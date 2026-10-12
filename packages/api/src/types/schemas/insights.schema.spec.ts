@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {GetInsightsReportResponse} from './insights.schema';
+import {GetInsightsReportResponse, InsightsReportQuery, MAX_INSIGHTS_REPORT_DAYS} from './insights.schema';
 
 const report = {
   period: {from: '2026-01-01T00:00:00.000Z', to: '2026-01-31T23:59:59.999Z'},
@@ -41,5 +41,23 @@ describe('GetInsightsReportResponse', () => {
     };
 
     expect(GetInsightsReportResponse.safeParse({status: 200, data: invalid}).success).toBe(false);
+  });
+});
+
+describe('InsightsReportQuery range validation', () => {
+  it.each(['bad', '2026-02-30', '2026-02-30T12:00:00Z'])('rejects invalid dates: %s', $dateFrom => {
+    expect(InsightsReportQuery.safeParse({$dateFrom, $dateTo: '2026-03-01'}).success).toBe(false);
+  });
+  it('rejects reversed calendar days', () => {
+    expect(InsightsReportQuery.safeParse({$dateFrom: '2026-01-02', $dateTo: '2026-01-01'}).success).toBe(false);
+  });
+  it('allows a single day and the inclusive maximum even with daily granularity', () => {
+    const from = new Date('2020-01-01T12:00:00Z');
+    const last = new Date(from.getTime() + (MAX_INSIGHTS_REPORT_DAYS - 1) * 86_400_000);
+    expect(InsightsReportQuery.safeParse({$dateFrom: from, $dateTo: from}).success).toBe(true);
+    expect(InsightsReportQuery.safeParse({$dateFrom: from, $dateTo: last, $granularity: 'day'}).success).toBe(true);
+    expect(
+      InsightsReportQuery.safeParse({$dateFrom: from, $dateTo: new Date(last.getTime() + 86_400_000)}).success,
+    ).toBe(false);
   });
 });
