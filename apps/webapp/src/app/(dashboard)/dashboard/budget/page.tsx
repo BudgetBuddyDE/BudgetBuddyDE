@@ -2,7 +2,7 @@ import {Grid} from '@mui/material';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {BudgetList} from '@/components/Budget/BudgetList';
-import {SpendingGoalsRadarChart} from '@/components/Budget/SpendingGoals';
+import {BudgetUtilizationOverview} from '@/components/Budget/SpendingGoals';
 import {CategoryExpenseChart, CategoryIncomeChart} from '@/components/Category/CategoryPieChart';
 import {PathnameErrorBoundary, RouteErrorFallback} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
@@ -12,16 +12,7 @@ import {DashboardStatsWrapper} from '../DashboardStatsWrapper';
 
 export default async function BudgetView() {
   const requestHeaders = await headers();
-  const [[budgets, error], [estimated, estimatedError]] = await Promise.all([
-    apiClient.backend.budget.getAll(
-      {
-        from: 0,
-        to: 10,
-      },
-      {headers: requestHeaders},
-    ),
-    apiClient.backend.budget.getEstimatedBudget({headers: requestHeaders}),
-  ]);
+  const [estimated, estimatedError] = await apiClient.backend.budget.getEstimatedBudget({headers: requestHeaders});
   return (
     <React.Fragment>
       <PathnameErrorBoundary>
@@ -48,7 +39,7 @@ export default async function BudgetView() {
       <Grid size={{xs: 12, md: 4}}>
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>
-            <SpendingGoalsRadarChart budgets={budgets?.data ?? []} error={error} />
+            <BudgetUtilizationOverview />
           </React.Suspense>
         </PathnameErrorBoundary>
       </Grid>
