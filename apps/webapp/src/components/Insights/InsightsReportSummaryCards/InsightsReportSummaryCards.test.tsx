@@ -21,8 +21,8 @@ describe('InsightsReportSummaryCards', () => {
     render(<InsightsReportSummaryCards summary={buildReport().summary} />);
 
     expect(screen.getByText(/1\.200,00/)).toBeInTheDocument();
-    // The expenses value feeds both the Expenses and Average expense cards
-    expect(screen.getAllByText(/300,00/)).toHaveLength(2);
+    expect(screen.getByText(/300,00/)).toBeInTheDocument();
+    expect(screen.getByText(/^30,00/)).toBeInTheDocument();
     expect(screen.getByText(/900,00/)).toBeInTheDocument();
   });
 
@@ -48,8 +48,8 @@ describe('InsightsReportSummaryCards', () => {
   it('renders negative percent changes with a minus sign', () => {
     render(<InsightsReportSummaryCards summary={buildReport().summary} />);
 
-    // Expenses and Average expense share the same metric
-    expect(screen.getAllByText('-5.0%')).toHaveLength(2);
+    expect(screen.getByText('-5.0%')).toBeInTheDocument();
+    expect(screen.getByText('-2.0%')).toBeInTheDocument();
   });
 
   it('omits the change information when no previous value exists', () => {
@@ -65,6 +65,27 @@ describe('InsightsReportSummaryCards', () => {
     render(<InsightsReportSummaryCards summary={summary} />);
 
     expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
+  });
+
+  it('marks a savings rate without income as unavailable', () => {
+    const summary = {...buildReport().summary, income: metric(0), savingsRate: metric(0, 100, 20)};
+    render(<InsightsReportSummaryCards summary={summary} />);
+    expect(screen.getByText('N/A')).toBeInTheDocument();
+    expect(screen.getByText('No recorded income')).toBeInTheDocument();
+    expect(screen.queryByText('+100.0%')).not.toBeInTheDocument();
+  });
+
+  it('adds expense and cashflow trends only with multiple buckets', () => {
+    const timeline = [
+      buildReport().timeline[0],
+      {...buildReport().timeline[0], label: 'Feb 2026', expenses: 40, balance: -20},
+    ];
+    const {rerender} = render(<InsightsReportSummaryCards summary={buildReport().summary} timeline={timeline} />);
+    expect(screen.getByRole('img', {name: /Expenses trend: Jan 2026/})).toBeInTheDocument();
+    expect(screen.getByRole('img', {name: /Net. cash flow trend: Jan 2026/})).toBeInTheDocument();
+    expect(screen.getAllByText(/Trend in selected period/)).toHaveLength(2);
+    rerender(<InsightsReportSummaryCards summary={buildReport().summary} timeline={timeline.slice(0, 1)} />);
+    expect(screen.queryByText(/Trend in selected period/)).not.toBeInTheDocument();
   });
 
   it('renders one card per summary metric', () => {
