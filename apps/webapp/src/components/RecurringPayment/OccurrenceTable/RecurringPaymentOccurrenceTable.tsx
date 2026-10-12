@@ -15,6 +15,7 @@ import {Formatter} from '@/utils/Formatter';
 import {formatDateOnlyForDisplay, formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
 import {executionPlanLabels} from '../executionPlan';
 import type {OccurrenceRange} from './occurrenceRange';
+import {RecurringPaymentOccurrencesChart} from './RecurringPaymentOccurrencesChart';
 
 type OccurrenceRow = TRecurringPaymentOccurrence & {rowId: string};
 
@@ -33,6 +34,11 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
   const [totalCount, setTotalCount] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
+
+  const range = React.useMemo<OccurrenceRange>(
+    () => ({dateFrom, dateTo, includePaused, categories, paymentMethods}),
+    [dateFrom, dateTo, includePaused, categories, paymentMethods],
+  );
 
   const updateUrl = React.useCallback(
     (nextRange: OccurrenceRange) => {
@@ -155,72 +161,83 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
   );
 
   return (
-    <EntityTable<OccurrenceRow, 'rowId'>
-      slice={{data: rows, isLoading, error, totalCount}}
-      dataKey="rowId"
-      columns={columns}
-      toolbar={{
-        title: 'Occurrences',
-        subtitle: 'Concrete recurring payment dates',
-        showCount: true,
-        children: (
-          <Stack
-            direction={{xs: 'column', md: 'row'}}
-            spacing={1}
-            sx={{
-              alignItems: {xs: 'stretch', md: 'center'},
-            }}
-          >
-            <DateRangePicker
-              key={`${dateFrom}-${dateTo}`}
-              defaultValue={{startDate: parseLocalDateOnly(dateFrom), endDate: parseLocalDateOnly(dateTo)}}
-              dateFormat="dd.MM.yyyy"
-              size="small"
-              slotProps={{stack: {direction: {xs: 'column', sm: 'row'}}}}
-              onDateRangeChange={(start, end) => {
-                if (!start || !end) return;
-                const nextFrom = formatLocalDateOnly(start);
-                const nextTo = formatLocalDateOnly(end);
-                setDateFrom(nextFrom);
-                setDateTo(nextTo);
-                setPage(0);
-                updateUrl({dateFrom: nextFrom, dateTo: nextTo, includePaused, categories, paymentMethods});
-              }}
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={includePaused}
-                  onChange={event => {
-                    const checked = event.target.checked;
-                    setIncludePaused(checked);
-                    setPage(0);
-                    updateUrl({dateFrom, dateTo, includePaused: checked, categories, paymentMethods});
-                  }}
-                />
-              }
-              label="Include paused"
-              sx={{whiteSpace: 'nowrap'}}
-            />
-            <FilterWrapper
-              currentFilters={occurrenceFilters}
-              onApply={handleFilterApply}
-              withCategories
-              withPaymentMethods
-            />
-          </Stack>
-        ),
-      }}
-      emptyMessage="No recurring payment occurrences in this date range"
-      pagination={{
-        page,
-        rowsPerPage,
-        onPageChange: setPage,
-        onRowsPerPageChange: value => {
-          setRowsPerPage(value);
+    <Stack spacing={2}>
+      <RecurringPaymentOccurrencesChart
+        range={range}
+        onSelectRange={(nextFrom, nextTo) => {
+          setDateFrom(nextFrom);
+          setDateTo(nextTo);
           setPage(0);
-        },
-      }}
-    />
+          updateUrl({...range, dateFrom: nextFrom, dateTo: nextTo});
+        }}
+      />
+      <EntityTable<OccurrenceRow, 'rowId'>
+        slice={{data: rows, isLoading, error, totalCount}}
+        dataKey="rowId"
+        columns={columns}
+        toolbar={{
+          title: 'Occurrences',
+          subtitle: 'Concrete recurring payment dates',
+          showCount: true,
+          children: (
+            <Stack
+              direction={{xs: 'column', md: 'row'}}
+              spacing={1}
+              sx={{
+                alignItems: {xs: 'stretch', md: 'center'},
+              }}
+            >
+              <DateRangePicker
+                key={`${dateFrom}-${dateTo}`}
+                defaultValue={{startDate: parseLocalDateOnly(dateFrom), endDate: parseLocalDateOnly(dateTo)}}
+                dateFormat="dd.MM.yyyy"
+                size="small"
+                slotProps={{stack: {direction: {xs: 'column', sm: 'row'}}}}
+                onDateRangeChange={(start, end) => {
+                  if (!start || !end) return;
+                  const nextFrom = formatLocalDateOnly(start);
+                  const nextTo = formatLocalDateOnly(end);
+                  setDateFrom(nextFrom);
+                  setDateTo(nextTo);
+                  setPage(0);
+                  updateUrl({dateFrom: nextFrom, dateTo: nextTo, includePaused, categories, paymentMethods});
+                }}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={includePaused}
+                    onChange={event => {
+                      const checked = event.target.checked;
+                      setIncludePaused(checked);
+                      setPage(0);
+                      updateUrl({dateFrom, dateTo, includePaused: checked, categories, paymentMethods});
+                    }}
+                  />
+                }
+                label="Include paused"
+                sx={{whiteSpace: 'nowrap'}}
+              />
+              <FilterWrapper
+                currentFilters={occurrenceFilters}
+                onApply={handleFilterApply}
+                withCategories
+                withPaymentMethods
+              />
+            </Stack>
+          ),
+        }}
+        emptyMessage="No recurring payment occurrences in this date range"
+        pagination={{
+          page,
+          rowsPerPage,
+          onPageChange: setPage,
+          onRowsPerPageChange: value => {
+            setRowsPerPage(value);
+            setPage(0);
+          },
+        }}
+      />
+    </Stack>
   );
 };
