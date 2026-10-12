@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/wordmark-logo/budgetbuddyde-wordmark-light.svg" />
     <source media="(prefers-color-scheme: light)" srcset="assets/wordmark-logo/budgetbuddyde-wordmark-dark.svg" />
-    <img src="assets/wordmark-logo/budgetbuddyde-wordmark-dark.svg" alt="BudgetBuddyDE" width="520" />
+    <img src="assets/wordmark-logo/budgetbuddyde-wordmark-light.svg" alt="BudgetBuddyDE" width="520" style="border-radius: 1rem; corner-shape: bevel;" />
   </picture>
 
   <p align="center">
