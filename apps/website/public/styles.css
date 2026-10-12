@@ -153,6 +153,8 @@ img {
   border-radius: 8px;
 }
 
+.nav__logo picture { display: contents; }
+
 .nav__links {
   display: flex;
   align-items: center;

@@ -9,12 +9,13 @@
   <!-- Open Graph -->
   <meta property="og:title" content="BudgetBuddyDE" />
   <meta property="og:description" content="Take control of your finances with BudgetBuddyDE — track income, expenses, subscriptions and more." />
-  <meta property="og:image" content="./logo.png" />
+  <meta property="og:image" content="./wordmark-light.svg" />
   <meta property="og:type" content="website" />
 
   <title>BudgetBuddyDE</title>
 
-  <link rel="icon" type="image/png" href="./logo.png" />
+  <link rel="icon" type="image/svg+xml" href="./mobile-logo-light.svg" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" type="image/svg+xml" href="./mobile-logo-dark.svg" media="(prefers-color-scheme: light)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -26,7 +27,7 @@
   <header class="nav">
     <div class="container nav__inner">
       <a href="/" class="nav__logo">
-        <img src="./logo.png" alt="BudgetBuddyDE logo" width="36" height="36" />
+        <picture><source srcset="./mobile-logo-dark.svg" media="(prefers-color-scheme: light)" /><img src="./mobile-logo-light.svg" alt="BudgetBuddyDE logo" width="36" height="36" /></picture>
         <span>BudgetBuddyDE</span>
       </a>
       <nav class="nav__links">
@@ -189,7 +190,7 @@
   <footer class="footer">
     <div class="container footer__inner">
       <div class="footer__brand">
-        <img src="./logo.png" alt="BudgetBuddyDE" width="28" height="28" />
+        <picture><source srcset="./mobile-logo-dark.svg" media="(prefers-color-scheme: light)" /><img src="./mobile-logo-light.svg" alt="BudgetBuddyDE" width="28" height="28" /></picture>
         <span>BudgetBuddyDE</span>
       </div>
       <nav class="footer__links" aria-label="Footer navigation">

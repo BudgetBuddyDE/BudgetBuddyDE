@@ -1,4 +1,5 @@
 import type {SxProps, Theme} from '@mui/material';
+import {useColorScheme} from '@mui/material/styles';
 import type React from 'react';
 
 import type {ImageComponentProps} from '@/components/Image';
@@ -7,9 +8,11 @@ import {Image} from '../Image';
 export type TAppLogoProps = Omit<ImageComponentProps, 'src'> & {sx?: SxProps<Theme>};
 
 export const AppLogo: React.FC<TAppLogoProps> = ({sx, ...imageProps}) => {
+  const {mode} = useColorScheme();
+
   return (
     <Image
-      src="/logo.png"
+      src={mode === 'light' ? '/mobile-logo-dark.svg' : '/mobile-logo-light.svg'}
       alt="BudgetBuddy Logo"
       {...imageProps}
       sx={{

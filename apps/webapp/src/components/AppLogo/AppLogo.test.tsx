@@ -9,9 +9,9 @@ describe('AppLogo', () => {
     expect(screen.getByAltText('BudgetBuddy Logo')).toBeInTheDocument();
   });
 
-  it('renders an image with src pointing to /logo.png', () => {
+  it('renders the logo suited to the active color scheme', () => {
     render(<AppLogo />);
-    expect(screen.getByAltText('BudgetBuddy Logo')).toHaveAttribute('src', '/logo.png');
+    expect(screen.getByAltText('BudgetBuddy Logo')).toHaveAttribute('src', '/mobile-logo-light.svg');
   });
 
   it('renders without crashing when no props are provided', () => {
