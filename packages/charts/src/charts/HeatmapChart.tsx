@@ -15,8 +15,6 @@ export type HeatmapChartProps = {
   valueFormatter?: ValueFormatter;
   lowColor?: string;
   highColor?: string;
-  /** Explicit click or keyboard-focus selection. Does not navigate. */
-  onSelect?: (point: HeatmapDataPoint) => void;
 };
 
 export function HeatmapChart({
@@ -28,7 +26,6 @@ export function HeatmapChart({
   valueFormatter = String,
   lowColor = 'var(--bb-chart-heat-low)',
   highColor = 'var(--bb-chart-heat-high)',
-  onSelect,
 }: HeatmapChartProps) {
   const [selected, setSelected] = React.useState<string>();
   const lookup = React.useMemo(
@@ -83,12 +80,8 @@ export function HeatmapChart({
                       onFocus={() => {
                         setFocusIndex(index);
                         setSelected(key);
-                        onSelect?.({x, y, value: missing ? null : value});
                       }}
-                      onClick={() => {
-                        setSelected(key);
-                        onSelect?.({x, y, value: missing ? null : value});
-                      }}
+                      onClick={() => setSelected(key)}
                       onMouseEnter={() => setSelected(key)}
                       onKeyDown={event => {
                         const offsets: Record<string, number> = {

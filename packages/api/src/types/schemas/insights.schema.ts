@@ -29,64 +29,14 @@ export const GetHistoricalCategoryBalanceResponse = ApiResponse.extend({
 export const InsightsGranularity = z.enum(['auto', 'day', 'week', 'month']);
 export const InsightsComparison = z.enum(['previous', 'none']);
 
-/** Inclusive calendar-day limit; daily requests retain the same limit as other granularities. */
-export const MAX_INSIGHTS_REPORT_DAYS = 3660;
-
-const ReportDate = z.preprocess(value => {
-  if (typeof value === 'string') {
-    const match = /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/.exec(value);
-    if (match) {
-      const year = Number(match[1]);
-      const month = Number(match[2]);
-      const day = Number(match[3]);
-      const parsed = new Date(0);
-      parsed.setUTCFullYear(year, month - 1, day);
-      if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
-        return new Date(NaN);
-      }
-    }
-  }
-  return value;
-}, z.coerce.date());
-
-export function refineInsightsReportRange(
-  query: {$dateFrom: Date; $dateTo: Date},
-  context: z.RefinementCtx,
-  timezone = 'UTC',
-): void {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-  });
-  const calendarDay = (date: Date) => {
-    const parts = formatter.formatToParts(date);
-    const value = (name: string) => Number(parts.find(part => part.type === name)!.value);
-    return Date.UTC(value('year'), value('month') - 1, value('day')) / 86_400_000;
-  };
-  const days = calendarDay(query.$dateTo) - calendarDay(query.$dateFrom) + 1;
-  if (days < 1) {
-    context.addIssue({code: 'custom', path: ['$dateTo'], message: '$dateTo must be on or after $dateFrom'});
-  } else if (days > MAX_INSIGHTS_REPORT_DAYS) {
-    context.addIssue({
-      code: 'custom',
-      path: ['$dateTo'],
-      message: `Date range must not exceed ${MAX_INSIGHTS_REPORT_DAYS} calendar days`,
-    });
-  }
-}
-
-export const InsightsReportQuery = z
-  .object({
-    $dateFrom: ReportDate,
-    $dateTo: ReportDate,
-    $categories: z.array(Category.shape.id).optional(),
-    $paymentMethods: z.array(PaymentMethod.shape.id).optional(),
-    $granularity: InsightsGranularity.default('auto'),
-    $comparison: InsightsComparison.default('previous'),
-  })
-  .superRefine((query, context) => refineInsightsReportRange(query, context));
+export const InsightsReportQuery = z.object({
+  $dateFrom: z.coerce.date(),
+  $dateTo: z.coerce.date(),
+  $categories: z.array(Category.shape.id).optional(),
+  $paymentMethods: z.array(PaymentMethod.shape.id).optional(),
+  $granularity: InsightsGranularity.default('auto'),
+  $comparison: InsightsComparison.default('previous'),
+});
 
 export const InsightsMetric = z.object({
   value: z.number(),
@@ -118,7 +68,6 @@ const CategoryTimelineSeries = z.object({
 });
 
 export const InsightsReport = z.object({
-  timezone: z.string().optional(),
   period: ReportPeriod,
   comparisonPeriod: ReportPeriod.nullable(),
   granularity: z.enum(['day', 'week', 'month']),

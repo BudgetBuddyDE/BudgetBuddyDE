@@ -11,7 +11,7 @@ const dependencies: Record<string, readonly string[]> = {
   ],
   '/api/transaction': ['/api/transaction', '/api/budget', '/api/insights'],
   '/api/recurringPayment': ['/api/recurringPayment', '/api/budget'],
-  '/api/budget': ['/api/budget', '/api/insights'],
+  '/api/budget': ['/api/budget'],
 };
 
 /** Shared invalidation for successful REST and MCP mutations. */

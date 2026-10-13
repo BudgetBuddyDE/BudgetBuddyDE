@@ -1,7 +1,7 @@
 'use client';
 
 import QuestionMarkRounded from '@mui/icons-material/QuestionMarkRounded';
-import {Box, Skeleton, type SxProps, type Theme, Typography} from '@mui/material';
+import {Skeleton, type SxProps, type Theme, Typography} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
 
@@ -11,7 +11,6 @@ export type TStatsCardProps = {
   valueInformation?: string;
   icon?: React.ReactNode;
   isLoading?: boolean;
-  trend?: React.ReactNode;
 };
 
 export const StatsIconStyle: SxProps<Theme> = {
@@ -24,14 +23,7 @@ export const StatsIconStyle: SxProps<Theme> = {
   color: theme => theme.palette.primary.main,
 };
 
-export const StatsCard: React.FC<TStatsCardProps> = ({
-  label,
-  value,
-  valueInformation,
-  icon,
-  trend,
-  isLoading = false,
-}) => {
+export const StatsCard: React.FC<TStatsCardProps> = ({label, value, valueInformation, icon, isLoading = false}) => {
   return (
     <Card sx={{position: 'relative', height: '100%', px: 2, py: 1.25}}>
       <Typography
@@ -58,7 +50,6 @@ export const StatsCard: React.FC<TStatsCardProps> = ({
           {isLoading ? <Skeleton width={100} height={'1.6rem'} /> : valueInformation}
         </Typography>
       )}
-      {trend && !isLoading && <Box sx={{position: 'relative', zIndex: 1, mt: 1}}>{trend}</Box>}
 
       {icon ? (
         React.isValidElement(icon) &&

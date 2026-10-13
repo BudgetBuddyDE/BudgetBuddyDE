@@ -1,6 +1,5 @@
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
 import type {IGetInsightsReportQuery} from '@budgetbuddyde/api/interfaces';
-import {InsightsReportQuery as ApiInsightsReportQuery, refineInsightsReportRange} from '@budgetbuddyde/api/schemas';
 import type {TCategory} from '@budgetbuddyde/api/types';
 import {categories, transactionHistorySummaryView, transactionHistoryView} from '@budgetbuddyde/db/backend';
 import {toZonedTime} from 'date-fns-tz';
@@ -15,24 +14,22 @@ import {ApiResponse, HTTPStatusCode} from '../models';
 
 export const insightsRouter = Router();
 
-const InsightsReportQuery = z
-  .object({
-    $dateFrom: ApiInsightsReportQuery.shape.$dateFrom,
-    $dateTo: ApiInsightsReportQuery.shape.$dateTo,
-    $categories: z
-      .array(z.uuid())
-      .or(z.uuid())
-      .transform(value => (Array.isArray(value) ? value : [value]))
-      .optional(),
-    $paymentMethods: z
-      .array(z.uuid())
-      .or(z.uuid())
-      .transform(value => (Array.isArray(value) ? value : [value]))
-      .optional(),
-    $granularity: z.enum(['auto', 'day', 'week', 'month']).default('auto'),
-    $comparison: z.enum(['previous', 'none']).default('previous'),
-  })
-  .superRefine((query, context) => refineInsightsReportRange(query, context, config.timezone));
+const InsightsReportQuery = z.object({
+  $dateFrom: z.coerce.date(),
+  $dateTo: z.coerce.date(),
+  $categories: z
+    .array(z.uuid())
+    .or(z.uuid())
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  $paymentMethods: z
+    .array(z.uuid())
+    .or(z.uuid())
+    .transform(value => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  $granularity: z.enum(['auto', 'day', 'week', 'month']).default('auto'),
+  $comparison: z.enum(['previous', 'none']).default('previous'),
+});
 
 function reportQuery(query: z.infer<typeof InsightsReportQuery>): IGetInsightsReportQuery {
   return query;

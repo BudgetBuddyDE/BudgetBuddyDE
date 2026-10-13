@@ -44,7 +44,6 @@ export const InsightsReportDashboard: React.FC = () => {
     (searchParams.get('comparison') as Comparison) || 'previous',
   );
   const [report, setReport] = React.useState<TInsightsReport | null>(null);
-  const [reportQuery, setReportQuery] = React.useState<IGetInsightsReportQuery>();
   const [error, setError] = React.useState<Error | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [transactions, setTransactions] = React.useState<TExpandedTransaction[]>([]);
@@ -138,10 +137,7 @@ export const InsightsReportDashboard: React.FC = () => {
     void apiClient.backend.insights.getReport(query).then(([result, requestError]) => {
       if (ignored.current) return;
       if (requestError) setError(requestError);
-      else {
-        setReport(result?.data ?? null);
-        setReportQuery(query);
-      }
+      else setReport(result?.data ?? null);
       setLoading(false);
     });
     return () => {
@@ -208,7 +204,6 @@ export const InsightsReportDashboard: React.FC = () => {
       />
       <InsightsReportView
         report={report}
-        reportQuery={reportQuery}
         error={error}
         loading={loading}
         categories={categories}

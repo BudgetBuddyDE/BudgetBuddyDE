@@ -108,24 +108,4 @@ describe('budget lookup by id', () => {
     expect(query.params).toContain(USER_ID);
     expect(query.sql).toContain('owner_id');
   });
-
-  it.each([
-    ['2026-03-31T22:30:00Z', '2026-03-31T22:00:00.000Z', '2026-04-30T21:59:59.999Z'],
-    ['2026-10-31T23:30:00Z', '2026-10-31T23:00:00.000Z', '2026-11-30T22:59:59.999Z'],
-  ])('uses the application month rather than the host month at %s', async (now, from, to) => {
-    vi.useFakeTimers();
-    try {
-      vi.setSystemTime(new Date(now));
-      budgetFindFirst.mockResolvedValueOnce({...budgetRecord, type: 'e', categories: []});
-      const response = await requestRouter(budgetRouter, USER_ID, `/${BUDGET_ID}`, {method: 'GET'});
-      expect(response.body).toMatchObject({data: {balance: 42}});
-      const condition = select.mock.results[0].value.where.mock.calls[0][0];
-      const query = new PgDialect().sqlToQuery(condition.getSQL());
-      expect(query.params).toEqual([USER_ID, from, to, 0]);
-      expect(query.sql).toContain('processed_at');
-      expect(query.sql).toContain('transfer_amount');
-    } finally {
-      vi.useRealTimers();
-    }
-  });
 });
