@@ -1,65 +1,58 @@
 ---
 title: Pipelines
-description: The four pipeline templates, their jobs, and their credentials.
+description: The current project and database pipelines, their jobs, and reusable tasks.
 icon: GitBranch
 ---
 
-All pipelines live in `ci/pipelines/` as reusable templates. Per-workspace values are passed as variables when the pipeline is created; credentials resolve from Vault at runtime (see [Architecture](/ci/architecture)).
+The active definitions are `ci/general.pipeline.yml` and `ci/database.pipeline.yml`. The project and database migration jobs load reusable task files from the checked-out repository under `ci/tasks/`; the scheduled database backup defines its task inline. The historical `.ci/` templates have been removed.
 
-| Template                           | Pipelines                     | Publishes                       |
-| ---------------------------------- | ----------------------------- | ------------------------------- |
-| `publish-service.pipeline.yml`     | `backend`                     | Git tags & release commits      |
-| `publish-npm-package.pipeline.yml` | `db`, `api`, `core`, `logger` | npm packages                    |
-| `test-webapp.pipeline.yml`         | `webapp`                      | Nothing; validation only        |
-| `manage-database.pipeline.yml`     | `manage-database`             | Migrations and daily S3 backups |
+## Project pipeline: `general.pipeline.yml`
 
-## Shared conventions
+Despite its filename, this pipeline covers the entire npm-workspace monorepo, not just the webapp. Its groups are `all`, `validation`, and `maintenance`.
 
-- **Job groups** - every pipeline (except `manage-database`) groups its jobs into `all`, `build`, and `release` for the Concourse UI.
-- **Templates** - `repo_path`, `service`, and `service_name` are passed with `fly -v`; each workspace gets its own pipeline from the same file.
-- **Versioning** - versions are stored in S3 through a semver resource. The build job produces release candidates (`0.0.0-rc.0`, bumped with the `rc` pre-release), and the release jobs bump the final version.
-- **Release commits** - release jobs run `npm version`, commit the change as `chore(release): Release <service>-v<version>`, create an annotated Git tag, and push back to the repository with `rebase`.
-- **Commit statuses** - `publish-service` and `publish-npm-package` report `pending`, `success`, `failure`, `error`, and `abort` to the GitHub commit via cogito.
-- **Failure alerts** - the service and package templates post to Discord when a release job fails.
-- **Task images** - build tasks run in the pinned `node:24.21.0` image; database tasks use `postgres:17`.
+### `validate-build`
 
-## `publish-service.pipeline.yml`
+- Watches `main` without a path filter and processes every detected resource version (`trigger: true`, `version: every`).
+- Loads the repository and pinned `node:24.21.0` image in parallel.
+- Uses `verify.task.yml` to run `npm ci` and `npm run ci` from the repository root.
+- Checks formatting, lint, types, tests, and builds through the existing root scripts and Turborepo dependency graph. A failed step stops the remaining chain.
+- Sends `pending`, `success`, `failure`, `error`, or `abort` to Cogito. Cogito maps aborts to GitHub's `error` state.
 
-Jobs:
+### `pull-request`
 
-- **`build-<service>`** - triggered by repository changes under `repo_path`. Gets Node 24.21.0, the repository, and an RC version; sets the GitHub status to `pending`; runs `npm install`, `npm test -F=@budgetbuddyde/<service_name>`, `npm run build -F=...`, and `npm version`; then publishes the new RC version to the semver resource.
-- **`release-patch` / `release-minor` / `release-major`** - get the next version, prepare the release commit and tag, update both version resources (`version` and `version-prod` in S3), and push the release commit back to the repository with `rebase`.
+- Checks GitHub PRs targeting `repo.pr.branch` every minute and processes every detected PR version.
+- Uses the same verification task and Node image, mapping the PR checkout to the task's `repository` input.
+- Reports `pending`, `success`, `failure`, or `error` through the GitHub PR resource; aborted builds report `error`.
+- Ignores CI-skip markers for PR discovery (`disable_ci_skip: true`).
 
-Credentials: `github.private_key`, `github.pat`, `s3-versions.*`, `discord.webhook_url`.
+Both validation jobs have `public: true`, making build information and logs public subject to the Concourse deployment's visibility settings. They do not publish artifacts or create versions.
 
-## `test-webapp.pipeline.yml`
+### `update-dependencies`
 
-Same structure as the service template: the build job runs `npm run check` and `npm run build` for the webapp, and the release jobs only bump the version, tag, and push the release commit. Used for validating and version-tracking `apps/webapp`.
+- Runs every 168 hours or manually, with `serial: true` to prevent overlapping update builds.
+- Uses `repository-write` to check out and push `main`. This is the same remote as `repository`, but a separate Concourse resource for writes.
+- Executes `update-dependencies.task.yml` in `node:24.21.0-alpine`, installs Git with `apk`, and runs `npm ci`, `npm update -D`, `npm audit fix`, and `npm run ci`.
+- Does not force major upgrades or use automatically fixing lint commands. Unresolved audit findings or failed checks stop the task before pushing.
+- Stages changed root/workspace manifests and the root lockfile, and commits only if staged changes exist.
+- Pushes without force or rebase. Concurrent external changes to `main` can reject the push safely.
 
-Credentials: `github.private_key`, `github.pat`, `s3-versions.*`, `discord.webhook_url`.
+Dependency commits use `build(dependencies): Automated update of dependencies` without `[skip ci]`, so the main repository resource detects them and starts normal validation. `git.name` and `git.email` supply the commit identity.
 
-> The template currently has the test step commented out and validates via `check` and `build` instead.
+Credentials: `github.private_key` for read/write Git access and `github.pat` for commit and PR statuses. npm tokens, GHCR credentials, and S3 version credentials are not needed by this pipeline.
 
-## `publish-npm-package.pipeline.yml`
+## Database pipeline: `database.pipeline.yml`
 
-Jobs:
+Groups are `all`, `backups`, and `database`. All database jobs have `public: false`.
 
-- **`build-<package>`** - triggered by repository changes under `repo_path`. Runs tests and build for the package and a `npm publish --dry-run` to verify packaging, then publishes the RC version.
-- **`release-patch` / `release-minor` / `release-major`** - bump the version, write an `.npmrc` containing `npm_token`, run `npm publish --access public`, commit and tag the release, and push the repository.
+- **`database-backup`**: runs every 24 hours from the timer, independently of the migration repository resource. Its inline task creates a PostgreSQL custom-format dump with `pg_dump -Fc` in `postgres:17` and uploads `backup/backup_<timestamp>.dump` to the S3 resource.
+- **`update-test-database`**: triggered by changes under `<repo_path>/drizzle/**`; uses `apply-db-migration.task.yml` with Node 24.21.0 to run dependency installation, `drizzle-kit check`, and `db:migrate` against test.
+- **`update-prod-database`**: uses the same migration task, restricted to repository versions that passed `update-test-database`. Its get step has no trigger, so start this job manually to apply production migrations.
 
-Credentials: `github.private_key`, `github.pat`, `s3-versions.*`, `npm_token`, `discord.webhook_url`.
+The migration task currently uses the fixed directory `repository/packages/db/`. Although the pipeline passes `REPO_PATH`, the task does not consume it; configure `repo_path=packages/db` for the resource filter. The repository is filtered to migration changes, so task-only changes may not yield a new resource version.
 
-## `manage-database.pipeline.yml`
-
-Jobs:
-
-- **`database-backup`** - runs daily (24-hour timer) in `postgres:17`, creates a compressed dump with `pg_dump -Fc`, and uploads it to the S3 backup bucket as `backup_<timestamp>.dump`.
-- **`update-test-database`** - triggered by changes under `<repo_path>/drizzle/**`. Runs `npx drizzle-kit check` and `npm run db:migrate` against the test database.
-- **`update-prod-database`** - runs the same migration task against the production database, gated on a successful test migration (`passed: [update-test-database]`).
-
-Credentials: `github.private_key`, `s3-db-backup.*`, `manage-database.test-database-url`, `manage-database.prod-database-url`.
+Credentials: `github.private_key`, `s3-db-backup.bucket`, `region`, `access_key_id`, `access_key_secret`, `database.test-database-url`, `database.prod-database-url`, and `manage-database.prod-database-url`. The last value is used by the backup task; the production migration uses `database.prod-database-url`. Both must identify the intended production database.
 
 ## Related pages
 
-- [Architecture](/ci/architecture) - Vault and resources
-- [Operating](/ci/operating) - create these pipelines with `fly`
+- [Architecture](/ci/architecture) - resources and credential lookup.
+- [Operating](/ci/operating) - configure and run these pipelines with `fly`.

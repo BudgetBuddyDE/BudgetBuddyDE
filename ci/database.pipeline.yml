@@ -20,10 +20,10 @@ resources:
     type: git
     icon: git
     source:
-      uri: git@github.com:((repo_owner))/((repo_name)).git
+      uri: git@github.com:((repo.owner))/((repo.name)).git
       private_key: ((github.private_key))
       branch: main
-      paths: [((repo_path))/drizzle/**]
+      paths: [packages/db/drizzle/**]
   - name: db-bucket
     type: s3
     icon: database-import
@@ -52,13 +52,13 @@ jobs:
             type: registry-image
             source:
               repository: postgres
-              tag: 17
+              tag: '17'
           outputs:
             - name: backup
           params:
             CI: 'true'
             FORCE_COLOR: 1
-            DATABASE_URL: ((manage-database.prod-database-url))
+            DATABASE_URL: ((database.prod-database-url))
           run:
             path: sh
             args:
@@ -67,7 +67,7 @@ jobs:
                 TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
                 FILE="backup_${TIMESTAMP}.dump"
                 echo "Creating PostgreSQL dump..."
-                pg_dump "$DATABASE_URL" -Fc -f backup/$FILE >> /dev/null
+                pg_dump "$DATABASE_URL" -Fc -f "backup/$FILE" >> /dev/null
                 echo "Backup created!"
       - put: db-bucket
         params:
@@ -81,24 +81,11 @@ jobs:
             resource: repository
             trigger: true
       - task: apply-migrations
+        file: repository/ci/tasks/apply-db-migration.task.yml
         image: node-image
-        config:
-          platform: linux
-          inputs:
-            - name: repository
-          params:
-            CI: 'true'
-            FORCE_COLOR: 1
-            DATABASE_URL: ((manage-database.test-database-url))
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                cd repository/((repo_path))
-                npm install
-                npx drizzle-kit check
-                npm run db:migrate
+        params:
+          REPO_PATH: packages/db/drizzle
+          DATABASE_URL: ((database.test-database-url))
   - name: update-prod-database
     public: false
     plan:
@@ -108,21 +95,8 @@ jobs:
             resource: repository
             passed: [update-test-database]
       - task: apply-migrations
+        file: repository/ci/tasks/apply-db-migration.task.yml
         image: node-image
-        config:
-          platform: linux
-          inputs:
-            - name: repository
-          params:
-            CI: 'true'
-            FORCE_COLOR: 1
-            DATABASE_URL: ((manage-database.prod-database-url))
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                cd repository/((repo_path))
-                npm install
-                npx drizzle-kit check
-                npm run db:migrate
+        params:
+          REPO_PATH: packages/db/drizzle
+          DATABASE_URL: ((database.prod-database-url))

@@ -7,6 +7,8 @@ import {robotsPlugin} from 'fumapress/plugins/robots';
 import {llmsPlugin} from 'fumapress/plugins/llms.txt';
 import {sitemapPlugin} from 'fumapress/plugins/sitemap';
 import {takumiPlugin} from 'fumapress/plugins/takumi';
+import defaultMdxComponents, {createRelativeLink} from 'fumadocs-ui/mdx';
+import {Mermaid} from './src/components/Mermaid';
 
 const docs = defineDocs({
   dir: 'docs',
@@ -32,7 +34,17 @@ export default defineConfig({
     plugins: [lucideIconsPlugin()],
   },
 })
-  .adapters(fumadocsMdx())
+  .adapters(
+    fumadocsMdx({
+      async getMdxComponents(page) {
+        return {
+          ...defaultMdxComponents,
+          Mermaid,
+          a: createRelativeLink(await this.getLoader(), page),
+        };
+      },
+    }),
+  )
   .plugins(
     linkValidationPlugin(),
     llmsPlugin({routes: 'all'}),

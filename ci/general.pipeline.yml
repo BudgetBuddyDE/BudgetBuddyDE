@@ -1,0 +1,164 @@
+groups:
+  - name: all
+    jobs:
+      - '*'
+  - name: validation
+    jobs:
+      - validate-build
+      - pull-request
+  - name: maintenance
+    jobs:
+      - update-dependencies
+
+resource_types:
+  - name: cogito
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: pix4d/cogito
+  - name: github-pr
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: teliaoss/github-pr-resource
+      tag: latest
+
+resources:
+  - name: dependency-timer
+    type: time
+    icon: clock-outline
+    source:
+      interval: 168h
+  - name: node-image
+    type: registry-image
+    icon: nodejs
+    source:
+      repository: node
+      tag: 24.21.0
+  - name: repository
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo.owner))/((repo.name)).git
+      branch: main
+      private_key: ((github.private_key))
+      disable_ci_skip: false
+  # Keep Git writes separate; dependency commits are detected by the main resource.
+  - name: repository-write
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo.owner))/((repo.name)).git
+      branch: main
+      private_key: ((github.private_key))
+      disable_ci_skip: true
+  - name: pr-((repo.pr.branch))
+    type: github-pr
+    check_every: 1m
+    icon: github
+    source:
+      repository: ((repo.owner))/((repo.name))
+      access_token: ((github.pat))
+      base_branch: ((repo.pr.branch))
+      disable_ci_skip: true
+  - name: status
+    type: cogito
+    icon: github
+    check_every: never
+    source:
+      owner: ((repo.owner))
+      repo: ((repo.name))
+      access_token: ((github.pat))
+
+jobs:
+  - name: update-dependencies
+    public: false
+    serial: true
+    plan:
+      - in_parallel:
+          - get: dependency-timer
+            trigger: true
+          - get: repository
+            resource: repository-write
+      - task: update-dependencies
+        file: repository/ci/tasks/update-dependencies.task.yml
+        params:
+          GIT_NAME: ((git.name))
+          GIT_EMAIL: ((git.email))
+      - put: repository-write
+        inputs: [repository]
+        no_get: true
+        params:
+          repository: repository
+  - name: validate-build
+    public: true
+    on_success:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: success}
+    on_failure:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: failure}
+    on_error:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: error}
+    on_abort:
+      put: status
+      inputs: [repository]
+      no_get: true
+      params: {state: abort}
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: repository
+            trigger: true
+            version: every
+      - put: status
+        inputs: [repository]
+        params: {state: pending}
+        no_get: true
+      - task: verify
+        file: repository/ci/tasks/verify.task.yml
+        image: node-image
+  - name: pull-request
+    public: true
+    on_success:
+      put: pr-((repo.pr.branch))
+      params:
+        path: pr-((repo.pr.branch))
+        status: success
+    on_failure:
+      put: pr-((repo.pr.branch))
+      params:
+        path: pr-((repo.pr.branch))
+        status: failure
+    on_error:
+      put: pr-((repo.pr.branch))
+      params:
+        path: pr-((repo.pr.branch))
+        status: error
+    on_abort:
+      put: pr-((repo.pr.branch))
+      params:
+        path: pr-((repo.pr.branch))
+        status: error
+    plan:
+      - in_parallel:
+          - get: node-image
+          - get: pr-((repo.pr.branch))
+            trigger: true
+            version: every
+      - put: pr-((repo.pr.branch))
+        params:
+          path: pr-((repo.pr.branch))
+          status: pending
+      - task: verify
+        file: pr-((repo.pr.branch))/ci/tasks/verify.task.yml
+        image: node-image
+        input_mapping:
+          repository: pr-((repo.pr.branch))
