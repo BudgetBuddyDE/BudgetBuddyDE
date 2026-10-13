@@ -1,0 +1,43 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: node
+    tag: 24.21.0-alpine
+
+inputs:
+  - name: repository
+
+outputs:
+  - name: repository
+
+params:
+  CI: 'true'
+  HUSKY: '0'
+  FORCE_COLOR: 1
+  NEXT_TELEMETRY_DISABLED: 1
+  NPM_CONFIG_LOGLEVEL: 'error'
+  NPM_CONFIG_FUND: false
+  NPM_CONFIG_AUDIT: false
+  NPM_CONFIG_UPDATE_NOTIFIER: false
+  GIT_NAME:
+  GIT_EMAIL:
+
+run:
+  path: sh
+  args:
+    - -ec
+    - |
+      : "${GIT_NAME:?GIT_NAME is required}"
+      : "${GIT_EMAIL:?GIT_EMAIL is required}"
+      apk add --no-cache --no-progress git
+      cd repository/
+      npm ci
+      npm update -D
+      npm audit fix
+      npm run ci
+      git add package.json package-lock.json ':(glob)packages/*/package.json' ':(glob)services/*/package.json' ':(glob)apps/*/package.json' ':(glob)examples/*/package.json'
+      if ! git diff --cached --quiet; then
+        git -c user.name="$GIT_NAME" -c user.email="$GIT_EMAIL" commit -m 'build(dependencies): Automated update of dependencies'
+      fi

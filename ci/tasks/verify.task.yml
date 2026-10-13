@@ -1,0 +1,28 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: node
+    tag: 24.21.0
+
+inputs:
+  - name: repository
+
+params:
+  CI: 'true'
+  FORCE_COLOR: 1
+  NEXT_TELEMETRY_DISABLED: 1
+  NPM_CONFIG_LOGLEVEL: 'error'
+  NPM_CONFIG_FUND: false
+  NPM_CONFIG_AUDIT: false
+  NPM_CONFIG_UPDATE_NOTIFIER: false
+
+run:
+  path: sh
+  args:
+    - -ec
+    - |
+      cd repository/
+      npm ci
+      npm run ci
