@@ -1,25 +1,30 @@
 ---
 title: Overview
-description: How BudgetBuddyDE is validated, built, versioned, and released.
+description: Project validation, dependency updates, database migrations, and backups.
 icon: Workflow
 ---
 
-BudgetBuddyDE uses Concourse CI to validate, build, version, and release the project.
+BudgetBuddyDE uses Concourse CI for project-wide validation and database maintenance.
+The current definitions live directly in `ci/`, with reusable tasks in `ci/tasks/`.
 
 ## What Concourse does
 
-Concourse watches the `main` branch and turns merged changes into released artifacts:
+- Validates, tests, and builds all npm workspaces when a new commit is detected on `main`.
+- Runs the same verification for GitHub pull requests and reports their status.
+- Reports main build statuses to GitHub through Cogito.
+- Updates development dependencies weekly or manually, validates changes, and pushes successful updates to `main`.
+- Applies database migrations to test first; production migrations require a manual build using a version that passed test.
+- Creates daily PostgreSQL backups and uploads them to S3.
 
-- npm packages, published to the public registry.
-- Version bumps, Git tags, and release commits pushed back to the repository.
-- Database migrations, applied to the test database first and to production after passing.
-- Daily PostgreSQL backups.
+There is currently no automatic versioning, Git tag creation, npm publishing, Docker image publishing, or deployment. Existing tags and S3 version data are not removed. S3 is still used for database backups.
 
-All pipelines are parameterized templates; credentials are resolved from HashiCorp Vault at runtime. Details:
+## Documentation
 
-- [Architecture](/ci/architecture) — Concourse instance, Vault credential manager, resources
-- [Pipelines](/ci/pipelines) — the four pipeline templates and their jobs
-- [Operating](/ci/operating) — team, `fly` CLI, creating and updating pipelines
+- [Architecture](/ci/architecture) - resources, Git access, and Vault credentials.
+- [Pipelines](/ci/pipelines) - the project and database pipelines and their jobs.
+- [Operating](/ci/operating) - validation, configuration, and manual job execution with `fly`.
+
+The historical templates under `.ci/` are not the current workflow. Repository changes do not update or remove live Concourse pipelines; operators must apply the definitions and retire obsolete pipelines explicitly.
 
 ## Related pages
 
