@@ -2,24 +2,23 @@ FROM node:24.21.0-alpine AS builder
 
 LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
 
-WORKDIR /usr/src/backend/
-
-COPY package*.json ./
-
-RUN npm install --frozen-lockfile
-
+WORKDIR /app
 COPY . .
-
-RUN npm run build
+RUN npm ci
+RUN npm run build -- --filter=@budgetbuddyde/backend
+RUN npm prune --omit=dev --ignore-scripts
 
 FROM node:24.21.0-alpine
+ARG SOURCE_SHA
+LABEL org.opencontainers.image.source=https://github.com/budgetbuddyde/budgetbuddyde
+LABEL org.opencontainers.image.revision=$SOURCE_SHA
 
-WORKDIR /usr/src/backend/
-
-COPY --from=builder /usr/src/backend/package*.json ./
-COPY --from=builder /usr/src/backend/node_modules ./node_modules
-COPY --from=builder /usr/src/backend/build ./build
+WORKDIR /app
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/packages ./packages
+COPY --from=builder --chown=node:node /app/services/backend ./services/backend
 
 ENV NODE_ENV=production
 
-CMD ["npm", "start"]
+USER node
+CMD ["node", "services/backend/build/src/server.js"]
