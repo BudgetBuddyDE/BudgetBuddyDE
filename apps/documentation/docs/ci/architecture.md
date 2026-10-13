@@ -1,77 +1,68 @@
 ---
 title: Architecture
-description: Concourse instance, Vault credential manager, and resources.
+description: Concourse resources, repository access, and Vault credentials.
 icon: Network
 ---
 
-Concourse runs at `https://ci.tklein.it`. All pipelines belong to the `budgetbuddyde` team. Pipeline definitions live in `ci/pipelines/` as reusable templates; per-workspace values are passed as variables and secrets are resolved from HashiCorp Vault.
+The documented Concourse instance is `https://ci.tklein.it`, with pipelines in the `budgetbuddyde` team. Current definitions live in `ci/` and reusable tasks in `ci/tasks/`. The project pipeline validates all npm workspaces; the database pipeline handles migrations and backups separately.
 
 ## HashiCorp Vault credential manager
 
-Concourse is configured with Vault as its credential manager. Any `((name))` reference in a pipeline definition that is not passed as a plain variable resolves from Vault when the step runs:
+The deployment uses Vault to resolve credentials. With the documented lookup configuration, Concourse searches `/concourse/budgetbuddyde/<pipeline>/<name>` before `/concourse/budgetbuddyde/<name>`.
 
-- Lookup order: `/concourse/budgetbuddyde/<pipeline>/<name>`, then `/concourse/budgetbuddyde/<name>`.
-- Credentials are key-value pairs: a dot addresses a field, so `((github.private_key))` reads the `private_key` field of the secret `github`.
-- Secrets are never persisted in build plans and never appear in `fly get-pipeline` output.
-
-Variables passed with `fly -v` (such as `repo_path` or `service_name`) are plain configuration; secrets are passed by the `((...))` references below and live only in Vault.
+A dotted reference selects a field: `((github.private_key))` reads `private_key` from the `github` secret. Plain configuration is supplied with `ci/vars.yml` or `fly -v`; unresolved credential references are resolved through the credential manager. Never put secrets in committed variable files or command-line variables. Task scripts must also avoid printing secrets: credential management does not make arbitrary build output safe.
 
 ### Secret inventory
 
-| Reference                                                                                                                | Vault secret / field                                         | Used by                                      |
-| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ | -------------------------------------------- |
-| `((github.private_key))`                                                                                                 | `github` / `private_key`                                     | Git resource (read access to the repository) |
-| `((github.pat))`                                                                                                         | `github` / `pat`                                             | Commit status resource (cogito)              |
-| `((s3-versions.bucket))`, `((s3-versions.region))`, `((s3-versions.access_key_id))`, `((s3-versions.access_key_secret))` | `s3-versions`                                                | Version state for the semver resources       |
-| `((s3-db-backup.*))`                                                                                                     | `s3-db-backup`                                               | Daily database backups                       |
-| `((discord.webhook_url))`                                                                                                | `discord` / `webhook_url`                                    | Failed release notifications                 |
-| `((npm_token))`                                                                                                          | `npm_token`                                                  | npm publishing                               |
-| `((manage-database.test-database-url))`, `((manage-database.prod-database-url))`                                         | `manage-database` / `test-database-url`, `prod-database-url` | Database migrations                          |
+| Reference                                                             | Used by                                                                            |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `github.private_key`                                                  | Git checkouts; the project pipeline also needs write access for dependency updates |
+| `github.pat`                                                          | Cogito commit statuses and GitHub PR discovery/statuses                            |
+| `s3-db-backup.bucket`, `region`, `access_key_id`, `access_key_secret` | Database backup uploads                                                            |
+| `database.test-database-url`                                          | Test migrations                                                                    |
+| `database.prod-database-url`                                          | Production migrations                                                              |
+| `manage-database.prod-database-url`                                   | Production backup connection                                                       |
+
+The project pipeline does not use `s3-versions`, `npm_token`, Docker registry credentials, or Discord notifications. Existing credentials/data for historical release pipelines are not deleted by changing the repository.
 
 ## Resources
 
-| Resource type    | Provides                                                                                                  |
-| ---------------- | --------------------------------------------------------------------------------------------------------- |
-| `git`            | Repository checkouts filtered by `repo_path`, authenticated with the deploy key                           |
-| `registry-image` | Pinned Node.js 24.21.0 LTS image for build tasks                                                          |
-| `semver`         | Versions stored in S3, used for release candidates and final releases                                     |
-| `s3`             | Database backup bucket (`backup_*.dump`)                                                                  |
-| `time`           | Daily trigger for database backups                                                                        |
-| `cogito`         | GitHub commit statuses for build jobs                                                                     |
-| `discord-alert`  | Notifications on failed releases (custom type from `ghcr.io/tklein1801/concourse-discord-alert-resource`) |
+| Resource type    | Purpose                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `git`            | Main checkouts, dependency-update pushes, and migration-filtered database checkouts |
+| `registry-image` | Node 24.21.0 task images and PostgreSQL 17 backup image                             |
+| `github-pr`      | PR discovery and statuses through `teliaoss/github-pr-resource`                     |
+| `cogito`         | GitHub commit statuses through `pix4d/cogito`                                       |
+| `time`           | Weekly dependency updates and daily database backups                                |
+| `s3`             | PostgreSQL backup storage                                                           |
+
+In the project pipeline, `repository` tracks main commits and triggers validation. `repository-write` points to the same remote but is used by dependency updates. Separate write resources keep Git puts from directly introducing versions into the validation resource; the main check still detects dependency commits normally. The write checkout includes CI-skipped commits, while validation discovery honors skip markers.
 
 ## Flow
 
-```text
-                    ┌──────────────────────┐
-                    │ HashiCorp Vault      │
-                    │ /concourse/          │
-                    │   budgetbuddyde/...  │
-                    └──────────┬───────────┘
-                               │ ((secrets)) at runtime
-                               ▼
-┌──────────────┐    ┌──────────────────────────────────────────┐
-│ GitHub repo  │    │ Concourse CI (ci.tklein.it)              │
-│ budgetbuddyde│───►│ team budgetbuddyde                       │
-│   /main      │    │                                          │
-└──────────────┘    │  build-*            release-*            │
-        ▲           │  npm test/build  →  minor/major/patch    │
-        │           │                                          │
-        │           │  update-test-database → update-prod-db   │
-        │           │  database-backup (daily timer)           │
-        │           └───┬────────┬────────┬───────────────────┘
-        │               │        │        │
-        │  release      │        │        │
-        │  commits      ▼        ▼        ▼
-        │  + tags   npm      S3       PostgreSQL
-        └─────────  registry versions  test → prod
-                       │
-                       │  status / alerts
-                       ▼
-              GitHub commit statuses · Discord
+```mermaid
+flowchart TD
+  main["GitHub: push to main"] --> validation["validate-build"]
+  validation --> commitStatus["GitHub commit status via Cogito"]
+  pr["GitHub: PR created or updated"] --> prValidation["pull-request"]
+  prValidation --> prStatus["GitHub PR status"]
+
+  weekly["Weekly timer or manual run"] --> dependencies["Update dependencies"]
+  dependencies --> verification["Full project verification"]
+  verification --> push["Commit and push to main"]
+  push --> main
+
+  migrations["Migration changes"] --> testMigration["Test database migration"]
+  testMigration --> approval["Manual production job trigger"]
+  approval --> prodMigration["Production database migration"]
+
+  daily["Daily timer"] --> dump["PostgreSQL dump"]
+  dump --> s3["S3 backup bucket"]
 ```
+
+All project verification goes through the root npm scripts and Turborepo. There is no versioning, release job, artifact publication, or deployment. Live Concourse configuration and permissions require operator changes; updating YAML alone does not alter the running instance.
 
 ## Related pages
 
-- [Pipelines](/ci/pipelines) — what each template builds
-- [Operating](/ci/operating) — creating pipelines with `fly`
+- [Pipelines](/ci/pipelines) - jobs and tasks.
+- [Operating](/ci/operating) - configure pipelines with `fly`.
