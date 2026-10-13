@@ -1,0 +1,27 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: postgres
+    tag: 17
+
+outputs:
+  - name: backup
+
+params:
+  CI: 'true'
+  FORCE_COLOR: 1
+  DATABASE_URL: ''
+
+run:
+  path: sh
+  args:
+    - -ec
+    - |
+      : "${DATABASE_URL:?DATABASE_URL has not been set}"
+      TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+      FILE="backup_${TIMESTAMP}.dump"
+      echo "Creating PostgreSQL dump..."
+      pg_dump "$DATABASE_URL" -Fc -f "backup/$FILE" >> /dev/null
+      echo "Backup created!"
