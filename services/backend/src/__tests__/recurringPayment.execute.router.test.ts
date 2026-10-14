@@ -55,4 +55,15 @@ describe('manual recurring payment execution', () => {
     expect(response.status).toBe(500);
     expect(invalidateUserCaches).not.toHaveBeenCalled();
   });
+
+  it('keeps repeated manual executions as independent extra bookings', async () => {
+    createTransaction.mockResolvedValueOnce({id: 'transaction-1'}).mockResolvedValueOnce({id: 'transaction-2'});
+
+    const first = await requestRouter(recurringPaymentRouter, USER_ID, `/${PAYMENT_ID}/execute`, {method: 'POST'});
+    const second = await requestRouter(recurringPaymentRouter, USER_ID, `/${PAYMENT_ID}/execute`, {method: 'POST'});
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(createTransaction).toHaveBeenCalledTimes(2);
+  });
 });
