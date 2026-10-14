@@ -52,12 +52,7 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = ({
       )}
       <Stack spacing={0.25}>
         {entries.map((entry, index) => (
-          <Stack
-            key={`${entry.dataKey ?? entry.name ?? index}`}
-            direction="row"
-            spacing={1}
-            sx={{alignItems: 'center'}}
-          >
+          <Stack key={`${entry.dataKey ?? entry.name ?? index}`} direction="row" sx={{alignItems: 'center', gap: 1}}>
             <Box
               sx={{width: 10, height: 10, borderRadius: '3px', bgcolor: entry.color ?? 'text.disabled', flexShrink: 0}}
             />
