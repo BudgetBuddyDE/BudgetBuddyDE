@@ -65,7 +65,6 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        mb: 1,
         px: 2,
         pt: 2,
         ...sx,
@@ -139,7 +138,8 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
             mx: -2,
             mt: 1.5,
             px: 2,
-            py: 1.5,
+            pt: 1.25,
+            pb: 1.5,
             borderTop: `1px solid ${theme.palette.divider}`,
             borderBottom: `1px solid ${theme.palette.divider}`,
           })}

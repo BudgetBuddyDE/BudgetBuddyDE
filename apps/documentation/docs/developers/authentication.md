@@ -39,6 +39,12 @@ The Better Auth API-key plugin (`@better-auth/api-key`) is configured with:
 
 Keys are created and revoked in the web app under Settings → API keys; key metadata is included in auth data exports, but secret values never are.
 
+### API-key request counting
+
+The API-key `requestCount` is a rate-limit counter, not a lifetime usage total. The current configuration allows 250 authenticated requests per key in a 5-minute window. Each accepted request increments the counter and updates `lastRequest`. When more than 5 minutes have passed since the last accepted request, the next accepted request starts the counter at 1. Requests rejected because the limit has been reached do not increment the counter. Invalid, disabled, and expired keys are rejected before this counter is checked. When per-key rate limiting is disabled, requests do not increment `requestCount`.
+
+The separate `remaining` value is a quota that can be consumed and refilled; it is not the same as `requestCount`. As a result, a UI value based on `requestCount` describes usage in the current rate-limit window, not total usage since key creation. The production-wide IP rate limit and the MCP per-IP rate limit are additional limits, independent of this per-key counter.
+
 ## How the backend validates requests
 
 `services/backend` calls the local `auth.api.getSession` with incoming cookies or API keys and records the result in the request context. There is no HTTP round trip or separate auth process:

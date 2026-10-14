@@ -3,8 +3,8 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {buildReport, buildTransaction, categoryOption} from '../InsightsReport.fixtures';
 import {InsightsReportView} from './InsightsReportView';
 
-vi.mock('@/components/Charts', () => ({
-  BarLineChart: () => <div>timeline chart</div>,
+vi.mock('@budgetbuddyde/charts', () => ({
+  ComposedChart: () => <div>timeline chart</div>,
 }));
 
 afterEach(() => cleanup());

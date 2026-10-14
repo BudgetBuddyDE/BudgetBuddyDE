@@ -1,5 +1,5 @@
 import {Grid, Stack, Typography} from '@mui/material';
-import {AppLogo} from '@/components/AppLogo';
+import {Brand} from '@/components/Brand';
 import {Card} from '@/components/Card';
 
 export default async function ConfirmUserDeletionPage() {
@@ -15,7 +15,7 @@ export default async function ConfirmUserDeletionPage() {
           <Card.Header>
             <Stack direction={'column'}></Stack>
 
-            <AppLogo sx={{mx: 'auto', borderRadius: '5px'}} width={96} height={96} />
+            <Brand logoSize={96} logoStyle={{borderRadius: '5px'}} boxStyle={{mx: 'auto'}} />
 
             <Typography
               variant={'h5'}

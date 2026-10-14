@@ -22,10 +22,12 @@ function getScreenSize(): ScreenSize {
 }
 
 export function useScreenSize(): ScreenSize {
-  const [screenSize, setScreenSize] = React.useState(getScreenSize);
+  // Use the same first-render value on the server and client; read the viewport after hydration.
+  const [screenSize, setScreenSize] = React.useState<ScreenSize>('small');
 
   React.useEffect(() => {
     const handleResize = () => setScreenSize(getScreenSize());
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);

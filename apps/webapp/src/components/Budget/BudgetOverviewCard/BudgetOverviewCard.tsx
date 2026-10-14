@@ -1,3 +1,5 @@
+'use client';
+
 import {Box, Stack, Tooltip, Typography} from '@mui/material';
 import type React from 'react';
 import {Card} from '@/components/Card';

@@ -1,6 +1,16 @@
 'use client';
 
-import QuestionMarkRounded from '@mui/icons-material/QuestionMarkRounded';
+import {
+  AddRounded,
+  BalanceRounded,
+  QuestionMarkRounded,
+  ReceiptLongRounded,
+  RemoveRounded,
+  RequestQuoteRounded,
+  SavingsRounded,
+  TrendingDownRounded,
+  TrendingUpRounded,
+} from '@mui/icons-material';
 import {Skeleton, type SxProps, type Theme, Typography} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
@@ -9,7 +19,7 @@ export type TStatsCardProps = {
   label: string | number;
   value: string | number;
   valueInformation?: string;
-  icon?: React.ReactNode;
+  icon?: 'add' | 'balance' | 'receipt' | 'remove' | 'requestQuote' | 'savings' | 'trendingDown' | 'trendingUp';
   isLoading?: boolean;
 };
 
@@ -23,7 +33,20 @@ export const StatsIconStyle: SxProps<Theme> = {
   color: theme => theme.palette.primary.main,
 };
 
+const ICONS = {
+  add: AddRounded,
+  balance: BalanceRounded,
+  receipt: ReceiptLongRounded,
+  remove: RemoveRounded,
+  requestQuote: RequestQuoteRounded,
+  savings: SavingsRounded,
+  trendingDown: TrendingDownRounded,
+  trendingUp: TrendingUpRounded,
+} as const;
+
 export const StatsCard: React.FC<TStatsCardProps> = ({label, value, valueInformation, icon, isLoading = false}) => {
+  const IconComponent = icon ? ICONS[icon] : QuestionMarkRounded;
+
   return (
     <Card sx={{position: 'relative', height: '100%', px: 2, py: 1.25}}>
       <Typography
@@ -51,20 +74,7 @@ export const StatsCard: React.FC<TStatsCardProps> = ({label, value, valueInforma
         </Typography>
       )}
 
-      {icon ? (
-        React.isValidElement(icon) &&
-        React.cloneElement(icon, {
-          // @ts-expect-error FIXME:
-          ...icon.props,
-          sx: {
-            ...StatsIconStyle,
-            // @ts-expect-error FIXME:
-            ...icon.props.sx,
-          },
-        })
-      ) : (
-        <QuestionMarkRounded sx={StatsIconStyle} />
-      )}
+      <IconComponent sx={StatsIconStyle} />
     </Card>
   );
 };

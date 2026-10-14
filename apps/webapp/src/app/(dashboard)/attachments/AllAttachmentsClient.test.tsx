@@ -8,10 +8,6 @@ import {apiClient} from '@/apiClient';
 
 const {noResultsMock} = vi.hoisted(() => ({noResultsMock: vi.fn()}));
 
-vi.mock('@mui/icons-material', () => ({
-  AttachFileRounded: () => null,
-}));
-
 vi.mock('@/apiClient', () => ({
   apiClient: {
     backend: {

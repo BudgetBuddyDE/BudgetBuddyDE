@@ -1,12 +1,12 @@
 import type React from 'react';
 
-import {CategoryPieChart, type CategoryPieChartProps} from '../CategoryPieChart';
+import {CategoryPieChart, type CategoryPieChartProps} from './CategoryPieChart';
 
 export type CategoryExpenseChartProps = Pick<CategoryPieChartProps, 'withViewMore'>;
 
 /**
  * REVISIT: Rework this component
- * Renders a pie chart displaying the income per category.
+ * Renders a pie chart displaying the expenses per category.
  *
  * @returns The CategoryExpenseChart component.
  */

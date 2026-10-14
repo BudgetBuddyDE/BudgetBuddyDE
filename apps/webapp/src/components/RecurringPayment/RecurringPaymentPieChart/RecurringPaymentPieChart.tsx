@@ -2,12 +2,12 @@
 
 import type {TCategory} from '@budgetbuddyde/api/category';
 import type {TRecurringPaymentOccurrence} from '@budgetbuddyde/api/recurringPayment';
+import {DonutChart, type DonutDataPoint} from '@budgetbuddyde/charts';
 import {Box, Button, Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import NextLink from 'next/link';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
-import {PieChart, type PieChartData} from '@/components/Charts';
 import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
@@ -147,7 +147,7 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
 
   const stats = state.data[recurringPaymentType];
 
-  const chartData: PieChartData[] = React.useMemo(() => {
+  const chartData: DonutDataPoint[] = React.useMemo(() => {
     return stats ? toPieData(stats) : [];
   }, [stats]);
 
@@ -161,16 +161,11 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
     if (chartData.length === 0) return <NoResults text={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].emptyText} />;
 
     return (
-      <PieChart
-        fullWidth
+      <DonutChart
+        data={chartData}
         primaryText={Formatter.currency.formatBalance(totalValue)}
         secondaryText={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].label}
-        series={[
-          {
-            data: chartData,
-            valueFormatter: value => Formatter.currency.formatBalance(value.value),
-          },
-        ]}
+        valueFormatter={value => Formatter.currency.formatBalance(value)}
       />
     );
   };
@@ -244,8 +239,9 @@ function groupRecurringPaymentsByCategory(recurringPayments: TRecurringPaymentOc
   return Array.from(grouped.values());
 }
 
-function toPieData(stats: RecurringPaymentStats[]): PieChartData[] {
+function toPieData(stats: RecurringPaymentStats[]): DonutDataPoint[] {
   return stats.map(stat => ({
+    id: stat.category.id,
     label: stat.category.name,
     value: Math.abs(stat.value),
   }));

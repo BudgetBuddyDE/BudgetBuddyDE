@@ -26,7 +26,7 @@ export const DrawerItem: React.FC<DrawerItemProps> = ({open, text, path, icon, c
   const handler = {
     onClick: () => {
       if (closeOnClick) {
-        toggleVisibility();
+        toggleVisibility('small');
       }
       router.push(path);
     },

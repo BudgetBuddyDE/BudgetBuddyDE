@@ -533,7 +533,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       {
         key: 'processedAt',
         label: 'Processed at',
-        width: 96,
+        width: 120,
+        renderHeader: () => (
+          <Typography variant="body1" noWrap sx={{fontWeight: 'bolder'}}>
+            Processed at
+          </Typography>
+        ),
         renderCell: value => (
           <Typography variant="body2" noWrap>
             {Formatter.date.format(value as Date)}

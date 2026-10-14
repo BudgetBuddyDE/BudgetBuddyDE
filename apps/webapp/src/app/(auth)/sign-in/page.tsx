@@ -6,7 +6,7 @@ import NextLink from 'next/link';
 import {redirect, useRouter, useSearchParams} from 'next/navigation';
 import {useFormStatus} from 'react-dom';
 import {authClient} from '@/authClient';
-import {AppLogo} from '@/components/AppLogo';
+import {Brand} from '@/components/Brand';
 import {Card} from '@/components/Card';
 import {PasswordInput} from '@/components/Form/PasswordInput';
 import {useSnackbarContext} from '@/components/Snackbar';
@@ -61,7 +61,7 @@ export default function SignInPage() {
               flexDirection: 'column',
             }}
           >
-            <AppLogo sx={{mx: 'auto', borderRadius: '5px'}} width={96} height={96} />
+            <Brand logoSize={96} logoStyle={{borderRadius: '5px'}} boxStyle={{mx: 'auto'}} />
 
             <Typography
               variant={'h5'}

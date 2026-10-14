@@ -38,8 +38,8 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard/insights',
 }));
 
-vi.mock('@/components/Charts', () => ({
-  BarLineChart: () => <div>timeline chart</div>,
+vi.mock('@budgetbuddyde/charts', () => ({
+  ComposedChart: () => <div>timeline chart</div>,
 }));
 
 vi.mock('@/components/Form/DateRangePicker', () => ({

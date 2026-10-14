@@ -1,7 +1,6 @@
 'use client';
 
-import DashboardRounded from '@mui/icons-material/DashboardRounded';
-import InsightsRounded from '@mui/icons-material/InsightsRounded';
+import {DashboardRounded, InsightsRounded} from '@mui/icons-material';
 import {ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import type React from 'react';

@@ -1,12 +1,12 @@
 'use client';
 
 import type {TCategoryStats} from '@budgetbuddyde/api/category';
+import {DonutChart, type DonutDataPoint} from '@budgetbuddyde/charts';
 import {Box, Button, Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import NextLink from 'next/link';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
-import {PieChart, type PieChartData} from '@/components/Charts';
 import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
@@ -210,16 +210,11 @@ export function CategoryPieChart({
         ) : error ? (
           <ErrorComp error={error} />
         ) : chartData.length > 0 ? (
-          <PieChart
-            fullWidth
+          <DonutChart
+            data={chartData}
             primaryText={Formatter.currency.formatBalance(totalValue)}
             secondaryText={transactionsType === 'EXPENSE' ? 'Expenses' : 'Income'}
-            series={[
-              {
-                data: chartData,
-                valueFormatter: value => Formatter.currency.formatBalance(value.value),
-              },
-            ]}
+            valueFormatter={value => Formatter.currency.formatBalance(value)}
           />
         ) : (
           <NoResults text={TIMEFRAME_META[currentTimeframe].emptyText} />
@@ -246,9 +241,9 @@ export function CategoryPieChart({
 /**
  * Convert raw category stats into PieChart data format
  */
-function toPieData(stats: Stats[], type: CategoryPieChartTransactionType): PieChartData[] {
+function toPieData(stats: Stats[], type: CategoryPieChartTransactionType): DonutDataPoint[] {
   const pick: keyof Stats = type === 'INCOME' ? 'income' : 'expenses';
   return stats
-    .map(s => ({label: s.category.name, value: s[pick]}))
+    .map(s => ({id: s.category.id, label: s.category.name, value: s[pick]}))
     .filter(d => (Number.isFinite(d.value) ? (d.value as number) > 0 : false));
 }

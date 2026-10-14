@@ -87,7 +87,7 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <DrawerHamburger size="medium" />
-          {showBrand && <Brand asLink boxStyle={{ml: 1}} />}
+          {showBrand && <Brand asLink showTitle boxStyle={{ml: 1}} />}
 
           {/* Menu: Desktop */}
           <Stack
@@ -104,7 +104,7 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
               }}
             >
               {MenuLinks.map(page => (
-                <Button key={page.label} href={page.href} sx={{my: 2, color: 'white', display: 'block'}}>
+                <Button key={page.label} href={page.href} sx={{my: 0, color: 'white', display: 'block'}}>
                   {page.label}
                 </Button>
               ))}

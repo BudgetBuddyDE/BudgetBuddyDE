@@ -9,7 +9,7 @@ export const StyledDrawerHeader = styled('div')(({theme}) => ({
   padding: theme.spacing(0, 1),
   // necessary for content to be below app bar
   ...theme.mixins.toolbar,
-  height: '67.5px',
+  height: 64,
   [theme.breakpoints.only('xs')]: {
     height: 'unset',
   },
