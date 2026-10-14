@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import {Cell, Funnel, FunnelChart as RechartsFunnelChart, Tooltip} from 'recharts';
+import {Funnel, FunnelChart as RechartsFunnelChart, Trapezoid, Tooltip, type FunnelTrapezoidItem} from 'recharts';
 import {ChartLegend, ChartTooltip} from '../primitives';
 import {ParentSize} from '../primitives/ParentSize';
 import {getSeriesColor, useChartTheme} from '../theme';
@@ -21,6 +21,8 @@ export type FunnelChartProps = {
   hideTooltip?: boolean;
 };
 
+const FunnelShape = (props: FunnelTrapezoidItem) => <Trapezoid {...props} />;
+
 /**
  * Funnel chart. Ideal for a budget funnel
  * (planned -> committed -> spent -> remaining).
@@ -33,26 +35,26 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
   hideTooltip = false,
 }) => {
   const theme = useChartTheme();
+  const funnelData = data.map(entry => ({
+    ...entry,
+    fill: entry.fill ?? getSeriesColor(theme, entry.name),
+  }));
 
   return (
     <ParentSize width={width}>
       {({width: measured}) => (
         <>
           <ChartLegend
-            items={data.map(item => ({
+            items={funnelData.map(item => ({
               key: item.name,
               label: item.name,
-              color: item.fill ?? getSeriesColor(theme, item.name),
+              color: item.fill,
               value: (valueFormatter ?? String)(item.value),
             }))}
           />
           <RechartsFunnelChart width={measured} height={height} margin={{top: 8, right: 12, left: 12, bottom: 8}}>
             {!hideTooltip && <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} />}
-            <Funnel dataKey="value" data={data} isAnimationActive={false}>
-              {data.map(entry => (
-                <Cell key={entry.name} fill={entry.fill ?? getSeriesColor(theme, entry.name)} />
-              ))}
-            </Funnel>
+            <Funnel dataKey="value" data={funnelData} isAnimationActive={false} shape={FunnelShape} />
           </RechartsFunnelChart>
         </>
       )}

@@ -1,7 +1,6 @@
 'use client';
 
 import {Box, Stack, Typography} from '@mui/material';
-import React from 'react';
 import {ParentSize} from '../primitives';
 import {useChartTheme} from '../theme';
 import type {ValueFormatter} from '../types';
@@ -14,7 +13,7 @@ export type BulletChartProps = {
   valueFormatter?: ValueFormatter;
 };
 
-export function BulletChart({data, width, valueFormatter = String}: BulletChartProps) {
+export const BulletChart: React.FC<BulletChartProps> = ({data, width, valueFormatter = String}) => {
   const theme = useChartTheme();
   return (
     <ParentSize width={width}>
@@ -65,4 +64,4 @@ export function BulletChart({data, width, valueFormatter = String}: BulletChartP
       )}
     </ParentSize>
   );
-}
+};

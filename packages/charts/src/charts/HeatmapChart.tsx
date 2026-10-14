@@ -17,7 +17,7 @@ export type HeatmapChartProps = {
   highColor?: string;
 };
 
-export function HeatmapChart({
+export const HeatmapChart: React.FC<HeatmapChartProps> = ({
   data,
   xLabels,
   yLabels,
@@ -26,7 +26,7 @@ export function HeatmapChart({
   valueFormatter = String,
   lowColor = 'var(--bb-chart-heat-low)',
   highColor = 'var(--bb-chart-heat-high)',
-}: HeatmapChartProps) {
+}) => {
   const [selected, setSelected] = React.useState<string>();
   const lookup = React.useMemo(
     () => new Map(data.map(point => [JSON.stringify([point.x, point.y]), point.value])),
@@ -143,4 +143,4 @@ export function HeatmapChart({
       )}
     </ParentSize>
   );
-}
+};

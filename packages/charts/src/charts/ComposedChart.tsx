@@ -16,15 +16,15 @@ import {ChartLegend, ChartTooltip} from '../primitives';
 import {ParentSize} from '../primitives/ParentSize';
 import {useChartMotion} from '../primitives/useChartMotion';
 import {getSeriesColor, useChartTheme} from '../theme';
-import type {BaseChartProps, ChartDataRow, ReferenceLineConfig} from '../types';
+import type {BaseChartProps, ChartDataRow, ReferenceLineConfig, SeriesRole, ValueFormatter} from '../types';
 
 export type ComposedSeriesConfig = {
   key: string;
   label: string;
   color?: string;
   colorId?: string;
-  role?: import('../types').SeriesRole;
-  valueFormatter?: import('../types').ValueFormatter;
+  role?: SeriesRole;
+  valueFormatter?: ValueFormatter;
   type: 'bar' | 'line' | 'area';
   stackId?: string;
   /** Render on a secondary right axis. */

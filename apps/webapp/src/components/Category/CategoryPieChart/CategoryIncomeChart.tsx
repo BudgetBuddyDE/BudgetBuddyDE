@@ -1,6 +1,6 @@
 import type React from 'react';
 
-import {CategoryPieChart, type CategoryPieChartProps} from '.';
+import {CategoryPieChart, type CategoryPieChartProps} from './CategoryPieChart';
 
 export type CategoryIncomeChartProps = Pick<CategoryPieChartProps, 'withViewMore'>;
 

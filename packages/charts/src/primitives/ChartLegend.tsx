@@ -1,20 +1,17 @@
 'use client';
 
 import {Box, ButtonBase, Stack, Typography} from '@mui/material';
-import React from 'react';
 
 export type ChartLegendItem = {key: string; label: string; color: string; dashed?: boolean; value?: string};
 
-/** HTML legend stays outside the plot so labels never steal its drawing area. */
-export function ChartLegend({
-  items,
-  hiddenKeys = [],
-  onToggle,
-}: {
+export type ChartLegendProps = {
   items: ChartLegendItem[];
   hiddenKeys?: string[];
   onToggle?: (key: string) => void;
-}) {
+};
+
+/** HTML legend stays outside the plot so labels never steal its drawing area. */
+export const ChartLegend: React.FC<ChartLegendProps> = ({items, hiddenKeys = [], onToggle}) => {
   return (
     <Stack
       component="ul"
@@ -60,4 +57,4 @@ export function ChartLegend({
       ))}
     </Stack>
   );
-}
+};

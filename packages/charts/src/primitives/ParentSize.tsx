@@ -4,6 +4,7 @@ import {styled} from '@mui/material/styles';
 import React from 'react';
 import {categoricalColors, darkCategoricalColors} from '../theme/chartTheme';
 
+// FIXME: Check for better alternatives
 const Container = styled('div')(({theme}) => ({
   width: '100%',
   minWidth: 0,

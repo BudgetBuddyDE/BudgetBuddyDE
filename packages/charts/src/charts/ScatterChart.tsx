@@ -6,7 +6,7 @@ import {ChartLegend, ChartTooltip} from '../primitives';
 import {ParentSize} from '../primitives/ParentSize';
 import {useChartMotion} from '../primitives/useChartMotion';
 import {getSeriesColor, useChartTheme} from '../theme';
-import type {BaseChartProps, ValueFormatter} from '../types';
+import type {BaseChartProps, ValueFormatter, SeriesRole} from '../types';
 
 export type ScatterPoint = {
   x: number;
@@ -20,8 +20,8 @@ export type ScatterSeriesConfig = {
   label: string;
   color?: string;
   colorId?: string;
-  role?: import('../types').SeriesRole;
-  valueFormatter?: import('../types').ValueFormatter;
+  role?: SeriesRole;
+  valueFormatter?: ValueFormatter;
   data: ScatterPoint[];
 };
 
