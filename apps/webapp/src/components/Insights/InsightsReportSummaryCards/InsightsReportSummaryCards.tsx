@@ -1,12 +1,4 @@
 import type {TInsightsReport} from '@budgetbuddyde/api/insights';
-import {
-  BalanceRounded,
-  ReceiptLongRounded,
-  RequestQuoteRounded,
-  SavingsRounded,
-  TrendingDownRounded,
-  TrendingUpRounded,
-} from '@mui/icons-material';
 import {Grid} from '@mui/material';
 import React from 'react';
 import {StatsCard} from '@/components/Analytics/StatsCard';
@@ -25,43 +17,43 @@ export type InsightsReportSummaryCardsProps = {
 
 export const InsightsReportSummaryCards: React.FC<InsightsReportSummaryCardsProps> = ({summary}) => {
   const cards: {
-    icon: React.ReactNode;
+    icon: 'balance' | 'receipt' | 'requestQuote' | 'savings' | 'trendingDown' | 'trendingUp';
     label: string;
     metric: SummaryMetric;
     format: (value: number) => string;
   }[] = [
     {
-      icon: <TrendingUpRounded />,
+      icon: 'trendingUp',
       label: 'Income',
       metric: summary.income,
       format: Formatter.currency.formatBalance,
     },
     {
-      icon: <TrendingDownRounded />,
+      icon: 'trendingDown',
       label: 'Expenses',
       metric: summary.expenses,
       format: Formatter.currency.formatBalance,
     },
     {
-      icon: <BalanceRounded />,
+      icon: 'balance',
       label: 'Net. cash flow',
       metric: summary.balance,
       format: Formatter.currency.formatBalance,
     },
     {
-      icon: <SavingsRounded />,
+      icon: 'savings',
       label: 'Savings rate',
       metric: summary.savingsRate,
       format: value => value.toFixed(1) + '%',
     },
     {
-      icon: <ReceiptLongRounded />,
+      icon: 'receipt',
       label: 'Transactions',
       metric: summary.transactionCount,
       format: value => String(value),
     },
     {
-      icon: <RequestQuoteRounded />,
+      icon: 'requestQuote',
       label: 'Average expense',
       metric: summary.expenses,
       format: Formatter.currency.formatBalance,

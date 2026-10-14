@@ -1,7 +1,4 @@
 import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
-import AddRounded from '@mui/icons-material/AddRounded';
-import BalanceRounded from '@mui/icons-material/BalanceRounded';
-import RemoveRounded from '@mui/icons-material/RemoveRounded';
 import {Grid} from '@mui/material';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
 import {Formatter} from '@/utils/Formatter';
@@ -12,19 +9,19 @@ export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}
     estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);
   const stats: TStatsCardProps[] = [
     {
-      icon: <AddRounded />,
+      icon: 'add',
       label: 'Income',
       value: Formatter.currency.formatBalance(estimated.income.received),
       valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.income.upcoming)}`,
     },
     {
-      icon: <RemoveRounded />,
+      icon: 'remove',
       label: 'Spendings',
       value: Formatter.currency.formatBalance(estimated.expenses.paid),
       valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.expenses.upcoming)}`,
     },
     {
-      icon: <BalanceRounded />,
+      icon: 'balance',
       label: 'Balance',
       value: Formatter.currency.formatBalance(currentBalance),
       valueInformation: `Estimated: ${Formatter.currency.formatBalance(estimatedBalance)}`,

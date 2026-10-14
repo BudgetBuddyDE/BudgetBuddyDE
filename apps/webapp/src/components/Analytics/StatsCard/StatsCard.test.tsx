@@ -36,8 +36,8 @@ describe('StatsCard', () => {
   });
 
   it('renders a custom icon when provided', () => {
-    render(<StatsCard label="Balance" value="€100.00" icon={<span data-testid="custom-icon">★</span>} />);
-    expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+    render(<StatsCard label="Balance" value="€100.00" icon="add" />);
+    expect(screen.getByTestId('AddRoundedIcon')).toBeInTheDocument();
   });
 
   it('renders without crashing when no icon is provided', () => {

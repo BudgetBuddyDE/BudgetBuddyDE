@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
 import {BudgetOverviewCard} from './BudgetOverviewCard';
 
@@ -27,5 +27,13 @@ describe('BudgetOverviewCard', () => {
     expect(screen.getByLabelText('Budget progress')).toBeInTheDocument();
     expect(screen.getByText('Available')).toBeInTheDocument();
     expect(screen.getAllByText(/0,00/)).not.toHaveLength(0);
+  });
+
+  it('shows progress tooltips when hovering the budget segments', async () => {
+    render(<BudgetOverviewCard totalBudget={200} spent={100} futureExpenses={40} />);
+
+    fireEvent.mouseOver(screen.getByLabelText('Spent'));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(/Spent/);
+    expect(screen.getByRole('tooltip')).toHaveTextContent(/100,00/);
   });
 });
