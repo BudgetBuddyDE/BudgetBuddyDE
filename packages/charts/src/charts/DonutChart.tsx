@@ -93,7 +93,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                   animationDuration={280}
                   shape={DonutSector}
                 />
-                {!hideTooltip && <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} />}
+                {!hideTooltip && (
+                  <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} wrapperStyle={{zIndex: 1}} />
+                )}
               </RechartsPieChart>
               {(primaryText || secondaryText) && (
                 <Box
