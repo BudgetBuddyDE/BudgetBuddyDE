@@ -19,6 +19,7 @@ export const Avatar: React.FC<TAvatarProps> = props => {
   const style: SxProps<Theme> = {
     height: 'auto',
     aspectRatio: '1/1',
+    cornerShape: 'squircle',
     ...props.sx,
   };
   if (isPending || !data) {

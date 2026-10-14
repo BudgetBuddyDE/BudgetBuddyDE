@@ -18,6 +18,7 @@ function NextImageBase({alt = '', width, height, fill, ...props}: ImageComponent
 
 export const Image = styled(NextImageBase)(({theme}) => ({
   borderRadius: `${theme.shape.borderRadius}px`,
+  cornerShape: 'squircle',
   // objectFit: 'cover',
   // aspectRatio: '1 / 1',
 }));

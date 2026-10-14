@@ -41,7 +41,7 @@ export const ProfileHeader = () => {
       }}
     >
       <Stack direction="row" spacing={2}>
-        <Box sx={{pl: 4, py: 4}}>
+        <Box sx={{pl: {xs: 2, md: 4}, py: {xs: 2, md: 4}}}>
           <Avatar
             sx={{
               width: {xs: 64, md: 96},
@@ -49,7 +49,7 @@ export const ProfileHeader = () => {
             }}
           />
         </Box>
-        <Stack sx={{pt: 4}}>
+        <Stack sx={{pt: {xs: 2, md: 4}}}>
           <Box sx={{mt: 'auto'}}>
             <Typography
               variant="h5"
