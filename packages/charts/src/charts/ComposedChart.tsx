@@ -104,7 +104,9 @@ export const ComposedChart: React.FC<ComposedChartProps> = ({
             maxBarSize={36}
             margin={{top: 32, right: 16, left: 0, bottom: 8}}
           >
-            {showGrid && <CartesianGrid stroke={theme.gridStroke} strokeOpacity={0.8} vertical={false} />}
+            {showGrid && (
+              <CartesianGrid yAxisId="left" stroke={theme.axisTickFill} strokeOpacity={0.18} vertical={false} />
+            )}
             <XAxis
               dataKey={xKey}
               tick={{fill: theme.axisTickFill, fontSize: 13}}

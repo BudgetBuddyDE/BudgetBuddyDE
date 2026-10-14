@@ -67,6 +67,7 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
               axisValueFormatter={value => Formatter.currency.shortenBalance(value)}
               tooltipValueFormatter={value => formatBalance(value)}
               showLegend
+              showGrid
               leftAxisLabel="Period amount"
               rightAxisLabel="Cumulative balance"
               referenceLines={[
@@ -108,6 +109,7 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
               axisValueFormatter={value => Formatter.currency.shortenBalance(value)}
               tooltipValueFormatter={value => formatBalance(value)}
               showLegend
+              showGrid
               referenceLines={
                 averageAccumulatedExpenses === null
                   ? []
