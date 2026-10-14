@@ -27,9 +27,9 @@ vi.mock('@/components/Snackbar', () => ({
 
 vi.mock('@/lib/ibn', () => ({useConsumeIntent: vi.fn()}));
 vi.mock('@/components/FAB', () => ({AddFab: () => null, FabContainer: ({children}: PropsWithChildren) => children}));
-vi.mock('./ApiKeyCreateDrawer', () => ({ApiKeyCreateDrawer: () => null}));
-vi.mock('./ApiKeyDeleteDialog', () => ({ApiKeyDeleteDialog: () => null}));
-vi.mock('./CreatedApiKeyDialog', () => ({CreatedApiKeyDialog: () => null}));
+vi.mock('../ApiKeyCreateDrawer', () => ({ApiKeyCreateDrawer: () => null}));
+vi.mock('../ApiKeyDeleteDialog', () => ({ApiKeyDeleteDialog: () => null}));
+vi.mock('../CreatedApiKeyDialog', () => ({CreatedApiKeyDialog: () => null}));
 
 const makeApiKey = (overrides: Partial<ApiKey> = {}): ApiKey =>
   ({
@@ -89,11 +89,10 @@ describe('ApiKeyTable', () => {
     expect(screen.getByText('Active keys')).toBeInTheDocument();
     expect(screen.getByText('Disabled / expired')).toBeInTheDocument();
     expect(screen.getByText('1 hour ago')).toBeInTheDocument();
-    expect(
-      within(screen.getByText('Last created').parentElement!).getByText(
-        Formatter.date.format(new Date(Date.now() - 60 * 60 * 1000)),
-      ),
-    ).toBeInTheDocument();
+    fireEvent.mouseOver(screen.getByText('1 hour ago'));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      Formatter.date.format(new Date(Date.now() - 60 * 60 * 1000)),
+    );
     expect(screen.queryByText('hashed-key-value')).not.toBeInTheDocument();
 
     const detailsButton = screen.getByRole('button', {name: 'Show details for API key Active key'});
@@ -105,6 +104,20 @@ describe('ApiKeyTable', () => {
     expect(within(detailsPanel).getByText('5 requests')).toBeInTheDocument();
     expect(within(detailsPanel).getByText('95 remaining')).toBeInTheDocument();
     expect(within(detailsPanel).getByText('100/1m')).toBeInTheDocument();
+  });
+
+  it('renders dividers for both layouts in the grid outside the statistics', async () => {
+    render(<ApiKeyTable />);
+
+    await screen.findByText('Active key');
+
+    ['Disabled / expired', 'Last created'].forEach(label => {
+      const statistic = screen.getByText(label).parentElement!;
+      const dividers = within(statistic.parentElement!).getAllByRole('separator', {hidden: true});
+      expect(dividers).toHaveLength(label === 'Last created' ? 2 : 1);
+      expect(dividers.filter(divider => divider.getAttribute('aria-orientation') === 'vertical')).toHaveLength(1);
+      dividers.forEach(divider => expect(statistic).not.toContainElement(divider));
+    });
   });
 
   it('keeps client-side pagination while loading the complete list for the summary', async () => {

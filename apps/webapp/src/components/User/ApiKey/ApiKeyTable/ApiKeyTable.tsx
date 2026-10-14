@@ -1,16 +1,14 @@
 'use client';
 
-import AddRounded from '@mui/icons-material/AddRounded';
-import DeleteRounded from '@mui/icons-material/DeleteRounded';
-import KeyboardArrowDownRounded from '@mui/icons-material/KeyboardArrowDownRounded';
-import KeyboardArrowUpRounded from '@mui/icons-material/KeyboardArrowUpRounded';
+import {AddRounded, DeleteRounded, KeyboardArrowDownRounded, KeyboardArrowUpRounded} from '@mui/icons-material';
 import {
   Box,
   Button,
   Chip,
   Collapse,
+  Divider,
+  Grid,
   IconButton,
-  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -42,7 +40,8 @@ import {ApiKeyDeleteDialog} from '../ApiKeyDeleteDialog';
 import {CreatedApiKeyDialog} from '../CreatedApiKeyDialog';
 import {type ApiKey, type ApiKeyFormFields, type CreatedKeyDialogState, initialCreatedKeyDialogState} from '../types';
 import {getApiKeySummary, getDaysUntilDate, isActive, isExpired} from '../utils';
-
+import {ApiKeyDetail} from './ApiKeyDetail';
+import {ApiKeyStatistic} from './ApiKeyStatistic';
 export const ApiKeyTable: React.FC = () => {
   const {showSnackbar} = useSnackbarContext();
 
@@ -275,41 +274,57 @@ export const ApiKeyTable: React.FC = () => {
           >
             API keys
           </Card.Title>
-          <Button onClick={handleCreateEntity} startIcon={<AddRounded />} variant="contained" size="small">
+          <Button onClick={handleCreateEntity} startIcon={<AddRounded />} variant="text" size="small">
             Create API key
           </Button>
         </Card.Header>
 
         <Card.Body>
-          <Box
+          <Grid
+            container
             sx={theme => ({
               borderBottom: `1px solid ${theme.palette.divider}`,
               borderTop: `1px solid ${theme.palette.divider}`,
-              display: 'grid',
-              gridTemplateColumns: {xs: '1fr', sm: 'repeat(3, minmax(0, 1fr))'},
               px: {xs: 2, sm: 0},
               py: 1.5,
             })}
           >
-            <ApiKeyStatistic label="Active keys" value={isInitialLoading ? null : summary.activeCount} />
-            <ApiKeyStatistic
-              label="Disabled / expired"
-              value={isInitialLoading ? null : summary.inactiveCount}
-              divider
-            />
-            <ApiKeyStatistic
-              label="Last created"
-              value={
-                isInitialLoading
-                  ? null
-                  : summary.lastCreated
-                    ? formatDistanceToNowStrict(new Date(summary.lastCreated), {addSuffix: true})
-                    : 'None yet'
-              }
-              valueTooltip={summary.lastCreated ? Formatter.date.format(summary.lastCreated) : undefined}
-              divider
-            />
-          </Box>
+            <Grid size={{xs: 6, md: 4}}>
+              <ApiKeyStatistic label="Active keys" value={isInitialLoading ? null : summary.activeCount} />
+            </Grid>
+            <Grid size={{xs: 6, md: 4}} sx={{position: 'relative', pl: {xs: 2, sm: 0}}}>
+              <Divider
+                orientation="vertical"
+                sx={{position: 'absolute', top: {xs: 1, sm: 0}, bottom: {xs: 1, sm: 0}, left: 0, height: 'auto'}}
+              />
+              <ApiKeyStatistic label="Disabled / expired" value={isInitialLoading ? null : summary.inactiveCount} />
+            </Grid>
+            <Grid size={{xs: 12, md: 4}} sx={{position: 'relative'}}>
+              <Divider orientation="horizontal" sx={{display: {xs: 'block', md: 'none'}}} />
+              <Divider
+                orientation="vertical"
+                sx={{
+                  display: {xs: 'none', md: 'block'},
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  height: 'auto',
+                }}
+              />
+              <ApiKeyStatistic
+                label="Last created"
+                value={
+                  isInitialLoading
+                    ? null
+                    : summary.lastCreated
+                      ? formatDistanceToNowStrict(new Date(summary.lastCreated), {addSuffix: true})
+                      : 'None yet'
+                }
+                valueTooltip={summary.lastCreated ? Formatter.date.format(summary.lastCreated) : undefined}
+              />
+            </Grid>
+          </Grid>
 
           {error && <ErrorAlert error={error} sx={{m: 2}} />}
           {isInitialLoading && <CircularProgress />}
@@ -489,57 +504,6 @@ export const ApiKeyTable: React.FC = () => {
     </React.Fragment>
   );
 };
-
-const ApiKeyStatistic: React.FC<{
-  label: string;
-  value: string | number | null;
-  valueTooltip?: string;
-  divider?: boolean;
-}> = ({label, value, valueTooltip, divider = false}) => {
-  return (
-    <Box
-      sx={theme => ({
-        minWidth: 0,
-        px: {xs: 0, sm: 2},
-        py: {xs: 1, sm: 0},
-        ...(divider && {borderLeft: {sm: `1px solid ${theme.palette.divider}`}}),
-      })}
-    >
-      <Typography color="text.secondary" variant="body2">
-        {label}
-      </Typography>
-      <Typography variant="h6" sx={{fontWeight: 500}}>
-        {value === null ? (
-          <Skeleton width={label === 'Last created' ? 180 : 48} />
-        ) : valueTooltip ? (
-          <Tooltip title={valueTooltip}>
-            <Box component="span">{value}</Box>
-          </Tooltip>
-        ) : (
-          value
-        )}
-      </Typography>
-    </Box>
-  );
-};
-
-const ApiKeyDetail: React.FC<{label: string; value: string; valueInformation?: string}> = ({
-  label,
-  value,
-  valueInformation,
-}) => (
-  <Box>
-    <Typography color="text.secondary" variant="caption">
-      {label}
-    </Typography>
-    <Typography variant="body2">{value}</Typography>
-    {valueInformation && (
-      <Typography color="text.secondary" variant="caption">
-        {valueInformation}
-      </Typography>
-    )}
-  </Box>
-);
 
 const formatRateLimit = (apiKey: ApiKey) => {
   if (!apiKey.rateLimitEnabled || !apiKey.rateLimitMax) return 'Off';
