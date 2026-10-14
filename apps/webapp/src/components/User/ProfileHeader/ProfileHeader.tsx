@@ -21,13 +21,16 @@ export const ProfileHeader = () => {
   if (isPending || !data) return null;
   return (
     <Box
-      sx={{
+      sx={theme => ({
         '--profile-header-size': '84px',
-        '--profile-header-color-1': '#0059b2',
-        '--profile-header-color-2': '#004c99',
-        '--profile-header-color-3': '#003a75',
+        // @ts-expect-error
+        '--profile-header-color-1': theme.palette.primary[700],
+        // @ts-expect-error
+        '--profile-header-color-2': theme.palette.primary[800],
+        // @ts-expect-error
+        '--profile-header-color-3': theme.palette.primary[900],
         '--profile-header-gradient-stops': '0 120deg, #0000 0',
-        borderRadius: theme => `${theme.shape.borderRadius}px`,
+        borderRadius: `${theme.shape.borderRadius}px`,
         background: `
           conic-gradient(from 0deg at calc(500% / 6) calc(100% / 3), var(--profile-header-color-3) var(--profile-header-gradient-stops)),
           conic-gradient(from -120deg at calc(100% / 6) calc(100% / 3), var(--profile-header-color-2) var(--profile-header-gradient-stops)),
@@ -38,7 +41,7 @@ export const ProfileHeader = () => {
           conic-gradient(from -60deg at 50% calc(100% / 3), var(--profile-header-color-1) 120deg, var(--profile-header-color-2) 0 240deg, var(--profile-header-color-3) 0)
         `,
         backgroundSize: 'calc(var(--profile-header-size) * 1.732) var(--profile-header-size)',
-      }}
+      })}
     >
       <Stack direction="row" spacing={2}>
         <Box sx={{pl: {xs: 2, md: 4}, py: {xs: 2, md: 4}}}>
