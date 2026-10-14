@@ -1,6 +1,7 @@
 import {recurringPaymentExecutions, recurringPayments, transactions} from '@budgetbuddyde/db/backend';
 import {and, eq} from 'drizzle-orm';
 import {db} from '../db';
+import {createPaymentString} from '../jobs/processRecurringPayments';
 
 type TScheduledPayment = Pick<
   typeof recurringPayments.$inferSelect,
@@ -16,9 +17,11 @@ export async function executeScheduledRecurringPayment(
   processedAt: Date,
 ): Promise<TExecutionResult> {
   return db.transaction(async tx => {
+    // TODO: insert value for content
+    const paymentString = createPaymentString({});
     const [reservation] = await tx
       .insert(recurringPaymentExecutions)
-      .values({ownerId: payment.ownerId, recurringPaymentId: payment.id, scheduledFor})
+      .values({ownerId: payment.ownerId, recurringPaymentId: payment.id, scheduledFor, content: paymentString})
       .onConflictDoNothing({
         target: [
           recurringPaymentExecutions.ownerId,
@@ -44,7 +47,7 @@ export async function executeScheduledRecurringPayment(
       .returning();
 
     if (!transaction) throw new Error('No transaction created for recurring payment occurrence');
-
+  
     const [execution] = await tx
       .update(recurringPaymentExecutions)
       .set({transactionId: transaction.id})
