@@ -20,8 +20,8 @@ resource_types:
     type: registry-image
     check_every: 24h
     source:
-      repository: teliaoss/github-pr-resource
-      tag: latest
+      repository: cfcommunity/github-pr-resource
+      tag: '0.26.0'
 
 resources:
   - name: dependency-timer

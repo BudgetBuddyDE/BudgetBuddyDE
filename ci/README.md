@@ -15,6 +15,8 @@
 
 Verification uses Node 24.21.0, `npm ci` and `npm run ci`: formatting, lint,
 type checking, tests and builds, with dependencies orchestrated by Turborepo.
+The GitHub PR resource uses the maintained cloudfoundry-community fork, published
+as `cfcommunity/github-pr-resource`, pinned to image tag `0.26.0`.
 The update task uses Node 24.21.0-alpine because it installs Git with `apk`.
 Unresolved audit findings or failed validation prevent the dependency push.
 Dependency commits do not contain `[skip ci]`, so main validation runs afterward.
