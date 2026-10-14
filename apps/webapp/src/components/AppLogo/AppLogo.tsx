@@ -1,3 +1,5 @@
+'use client';
+
 import type {SxProps, Theme} from '@mui/material';
 import {useColorScheme} from '@mui/material/styles';
 import type React from 'react';
