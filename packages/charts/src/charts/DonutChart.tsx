@@ -2,7 +2,7 @@
 
 import {Box, Typography} from '@mui/material';
 import React from 'react';
-import {Cell, Pie, PieChart as RechartsPieChart, Tooltip} from 'recharts';
+import {Pie, PieChart as RechartsPieChart, type PieSectorShapeProps, Sector, Tooltip} from 'recharts';
 import {ChartLegend, ChartTooltip} from '../primitives';
 import {ParentSize} from '../primitives/ParentSize';
 import {useChartMotion} from '../primitives/useChartMotion';
@@ -32,6 +32,8 @@ export type DonutChartProps = {
   animate?: boolean;
 };
 
+const DonutSector = (props: PieSectorShapeProps) => <Sector {...props} />;
+
 /**
  * Donut chart with an optional two line center label.
  * Ideal for spending/income distribution and total amounts.
@@ -52,6 +54,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 }) => {
   const theme = useChartTheme();
   const motion = useChartMotion(animate);
+  const pieData = data.map(entry => ({
+    ...entry,
+    fill: entry.color ?? getSeriesColor(theme, entry.id ?? entry.label),
+  }));
 
   return (
     <ParentSize width={width}>
@@ -62,10 +68,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
           <>
             {showLegend && (
               <ChartLegend
-                items={data.map(item => ({
+                items={pieData.map(item => ({
                   key: item.id ?? item.label,
                   label: item.label,
-                  color: item.color ?? getSeriesColor(theme, item.id ?? item.label),
+                  color: item.fill,
                   value: `${(valueFormatter ?? String)(item.value)} (${total ? Math.round((item.value / total) * 100) : 0}%)`,
                 }))}
               />
@@ -73,7 +79,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             <Box sx={{position: 'relative', width: size, height: size, mx: 'auto'}}>
               <RechartsPieChart width={size} height={size} accessibilityLayer aria-label="Distribution of amounts">
                 <Pie
-                  data={data}
+                  data={pieData}
                   dataKey="value"
                   nameKey="label"
                   cx="50%"
@@ -85,14 +91,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                   stroke="none"
                   isAnimationActive={motion}
                   animationDuration={280}
-                >
-                  {data.map(entry => (
-                    <Cell
-                      key={entry.id ?? entry.label}
-                      fill={entry.color ?? getSeriesColor(theme, entry.id ?? entry.label)}
-                    />
-                  ))}
-                </Pie>
+                  shape={DonutSector}
+                />
                 {!hideTooltip && <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} />}
               </RechartsPieChart>
               {(primaryText || secondaryText) && (

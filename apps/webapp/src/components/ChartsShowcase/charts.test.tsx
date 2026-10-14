@@ -1,4 +1,4 @@
-import {BulletChart, ChartLegend, ChartTooltip, HeatmapChart, ParentSize} from '@budgetbuddyde/charts';
+import {BulletChart, ChartLegend, ChartTooltip, DonutChart, HeatmapChart, ParentSize} from '@budgetbuddyde/charts';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -12,6 +12,24 @@ afterEach(() => {
 });
 
 describe('chart presentation', () => {
+  it('renders donut sectors with explicit and identity-based colors without mutating the data', () => {
+    const data = [
+      {id: 'rent', label: 'Rent', value: 100, color: '#123456'},
+      {id: 'food', label: 'Food', value: 50},
+    ];
+    const {container, rerender} = render(<DonutChart width={300} data={data} primaryText="Total" />);
+    const sectors = container.querySelectorAll('.recharts-sector');
+    expect(sectors).toHaveLength(2);
+    expect(sectors[0]).toHaveAttribute('fill', '#123456');
+    const foodColor = sectors[1].getAttribute('fill');
+    expect(foodColor).toMatch(/^var\(--bb-chart-series-/);
+    expect(screen.getByText('Total')).toBeInTheDocument();
+    expect(data.every(entry => !('fill' in entry))).toBe(true);
+
+    rerender(<DonutChart width={300} data={[...data].reverse()} />);
+    expect(container.querySelectorAll('.recharts-sector')[0]).toHaveAttribute('fill', foodColor);
+  });
+
   it('exposes series visibility as accessible toggle buttons', () => {
     const toggle = vi.fn();
     render(
