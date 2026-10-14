@@ -1,4 +1,14 @@
-import {BulletChart, ChartLegend, ChartTooltip, DonutChart, HeatmapChart, ParentSize} from '@budgetbuddyde/charts';
+import {
+  BulletChart,
+  ChartLegend,
+  ChartTooltip,
+  DonutChart,
+  FunnelChart,
+  HeatmapChart,
+  ParentSize,
+  RadialBarChart,
+  WaterfallChart,
+} from '@budgetbuddyde/charts';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -28,6 +38,62 @@ describe('chart presentation', () => {
 
     rerender(<DonutChart width={300} data={[...data].reverse()} />);
     expect(container.querySelectorAll('.recharts-sector')[0]).toHaveAttribute('fill', foodColor);
+  });
+
+  it('renders funnel trapezoids with explicit and identity-based colors without mutating the data', () => {
+    const data = [
+      {name: 'Planned', value: 100, fill: '#123456'},
+      {name: 'Spent', value: 50},
+    ];
+    const {container, rerender} = render(<FunnelChart width={300} data={data} />);
+    const trapezoids = container.querySelectorAll('.recharts-trapezoid');
+    expect(trapezoids).toHaveLength(2);
+    expect(trapezoids[0]).toHaveAttribute('fill', '#123456');
+    const spentColor = trapezoids[1].getAttribute('fill');
+    expect(spentColor).toMatch(/^var\(--bb-chart-series-/);
+    expect(data.every(entry => !('fill' in entry) || entry.fill === '#123456')).toBe(true);
+
+    rerender(<FunnelChart width={300} data={[...data].reverse()} />);
+    expect(container.querySelectorAll('.recharts-trapezoid')[0]).toHaveAttribute('fill', spentColor);
+  });
+
+  it('renders radial bar sectors with explicit and identity-based colors without mutating the data', () => {
+    const data = [
+      {label: 'Income', value: 100, fill: '#123456'},
+      {label: 'Expenses', value: 50},
+    ];
+    const {container, rerender} = render(<RadialBarChart width={300} data={data} />);
+    const sectors = Array.from(container.querySelectorAll('.recharts-sector'));
+    const incomeSector = sectors.find(sector => sector.getAttribute('fill') === '#123456');
+    const expensesSector = sectors.find(sector => sector.getAttribute('fill')?.startsWith('var(--bb-chart-series-'));
+    expect(incomeSector).toBeDefined();
+    expect(expensesSector).toBeDefined();
+    const expensesColor = expensesSector?.getAttribute('fill');
+    expect(expensesColor).toMatch(/^var\(--bb-chart-series-/);
+    expect(data.every(entry => !('name' in entry))).toBe(true);
+
+    rerender(<RadialBarChart width={300} data={[...data].reverse()} />);
+    expect(
+      Array.from(container.querySelectorAll('.recharts-sector')).find(
+        sector => sector.getAttribute('fill') === expensesColor,
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders waterfall bars with colors based on increase, decrease, and total rows', () => {
+    const data = [
+      {label: 'Increase', value: 100},
+      {label: 'Decrease', value: -40},
+      {label: 'Balance', value: 60, isTotal: true},
+    ];
+    const {container} = render(<WaterfallChart width={300} data={data} />);
+    const bars = Array.from(container.querySelectorAll('.recharts-rectangle'));
+    expect(bars).toHaveLength(3);
+    expect(bars.map(bar => bar.getAttribute('fill'))).toEqual([
+      'var(--bb-chart-income, #0F766E)',
+      'var(--bb-chart-expense, #C2410C)',
+      'var(--bb-chart-balance, #2563EB)',
+    ]);
   });
 
   it('exposes series visibility as accessible toggle buttons', () => {

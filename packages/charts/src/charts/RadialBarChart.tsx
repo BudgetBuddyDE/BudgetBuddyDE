@@ -2,7 +2,14 @@
 
 import {Typography} from '@mui/material';
 import React from 'react';
-import {Cell, PolarAngleAxis, RadialBar, RadialBarChart as RechartsRadialBarChart, Tooltip} from 'recharts';
+import {
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart as RechartsRadialBarChart,
+  Sector,
+  Tooltip,
+  type RadialBarSectorProps,
+} from 'recharts';
 import {ChartLegend, ChartTooltip} from '../primitives';
 import {ParentSize} from '../primitives/ParentSize';
 import {useChartMotion} from '../primitives/useChartMotion';
@@ -31,6 +38,8 @@ export type RadialBarChartProps = {
   animate?: boolean;
 };
 
+const RadialBarShape = (props: RadialBarSectorProps) => <Sector {...props} />;
+
 /**
  * Radial bar chart. With `gauge` it renders a half circle progress gauge,
  * ideal for budget usage and savings goal progress.
@@ -51,6 +60,11 @@ export const RadialBarChart: React.FC<RadialBarChartProps> = ({
   const theme = useChartTheme();
   const motion = useChartMotion(animate);
   const domainMax = Math.max(max ?? 1, ...data.map(point => point.value));
+  const chartData = data.map(item => ({
+    ...item,
+    name: item.label,
+    fill: item.fill ?? getSeriesColor(theme, item.label),
+  }));
 
   return (
     <ParentSize width={width}>
@@ -58,10 +72,10 @@ export const RadialBarChart: React.FC<RadialBarChartProps> = ({
         <>
           {showLegend && (
             <ChartLegend
-              items={data.map(item => ({
+              items={chartData.map(item => ({
                 key: item.label,
                 label: item.label,
-                color: item.fill ?? getSeriesColor(theme, item.label),
+                color: item.fill,
                 value: (valueFormatter ?? String)(item.value),
               }))}
             />
@@ -69,7 +83,7 @@ export const RadialBarChart: React.FC<RadialBarChartProps> = ({
           <RechartsRadialBarChart
             width={measured}
             height={height}
-            data={data.map(item => ({...item, name: item.label}))}
+            data={chartData}
             cx="50%"
             cy={gauge ? '75%' : '50%'}
             innerRadius={innerRadius}
@@ -85,11 +99,8 @@ export const RadialBarChart: React.FC<RadialBarChartProps> = ({
               cornerRadius={8}
               isAnimationActive={motion}
               animationDuration={280}
-            >
-              {data.map(entry => (
-                <Cell key={entry.label} fill={entry.fill ?? getSeriesColor(theme, entry.label)} />
-              ))}
-            </RadialBar>
+              shape={RadialBarShape}
+            />
           </RechartsRadialBarChart>
           {max !== undefined && (
             <Typography variant="body2" color="text.secondary">

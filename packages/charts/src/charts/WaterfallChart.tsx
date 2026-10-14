@@ -4,8 +4,9 @@ import React from 'react';
 import {
   Bar,
   BarChart as RechartsBarChart,
-  Cell,
+  type BarShapeProps,
   ReferenceLine,
+  Rectangle,
   Tooltip,
   XAxis,
   YAxis,
@@ -27,6 +28,8 @@ export type WaterfallChartProps = {
   valueFormatter?: ValueFormatter;
   xTickFormatter?: (value: unknown) => string;
 };
+
+const WaterfallShape = (props: BarShapeProps) => <Rectangle {...props} />;
 
 function Connectors({rows}: {rows: ReturnType<typeof buildWaterfall>}) {
   const x = useXAxisScale();
@@ -51,9 +54,22 @@ function Connectors({rows}: {rows: ReturnType<typeof buildWaterfall>}) {
   );
 }
 
-export function WaterfallChart({data, height = 300, width, valueFormatter, xTickFormatter}: WaterfallChartProps) {
+export const WaterfallChart: React.FC<WaterfallChartProps> = ({
+  data,
+  height = 300,
+  width,
+  valueFormatter,
+  xTickFormatter,
+}) => {
   const theme = useChartTheme();
-  const rows = React.useMemo(() => buildWaterfall(data), [data]);
+  const rows = React.useMemo(
+    () =>
+      buildWaterfall(data).map(row => ({
+        ...row,
+        fill: theme.semantic[row.kind === 'total' ? 'balance' : row.kind === 'increase' ? 'income' : 'expense'],
+      })),
+    [data, theme.semantic],
+  );
   return (
     <ParentSize width={width}>
       {({width: measured}) => (
@@ -103,17 +119,10 @@ export function WaterfallChart({data, height = 300, width, valueFormatter, xTick
               );
             }}
           />
-          <Bar dataKey="range" isAnimationActive={false} radius={2}>
-            {rows.map((row, index) => (
-              <Cell
-                key={index}
-                fill={theme.semantic[row.kind === 'total' ? 'balance' : row.kind === 'increase' ? 'income' : 'expense']}
-              />
-            ))}
-          </Bar>
+          <Bar dataKey="range" isAnimationActive={false} radius={2} shape={WaterfallShape} />
           <Customized component={<Connectors rows={rows} />} />
         </RechartsBarChart>
       )}
     </ParentSize>
   );
-}
+};
