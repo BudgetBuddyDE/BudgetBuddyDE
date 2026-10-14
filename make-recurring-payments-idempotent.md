@@ -7,13 +7,13 @@ wiederholt oder parallel laufen, auch in mehreren Backend-Instanzen, ohne für d
 Transaktionen zu erzeugen.
 
 Die fachlichen Anforderungen und Umfangsgrenzen wurden abgestimmt. Das nachfolgende Datenmodell und der
-Verarbeitungsablauf bilden den technischen Umsetzungsvorschlag. Dieser Plan dokumentiert die geplante Änderung; die
-Implementierung steht noch aus. Weitere fachliche oder technische Entscheidungen sollen während der Umsetzung mit dem
-Auftraggeber abgestimmt werden.
+Verarbeitungsablauf sind implementiert, einschließlich Migration, Unit- und PostgreSQL-Tests sowie Dokumentation.
+Die Migration wurde ausschließlich in einer isolierten Testdatenbank angewendet; der produktive Rollout steht noch aus.
+Weitere fachliche oder technische Entscheidungen sollen mit dem Auftraggeber abgestimmt werden.
 
 Die Garantie lautet bewusst **„höchstens einmal automatisch gebucht“**, nicht „jeder Termin wird garantiert gebucht“.
 
-## Aktueller Zustand
+## Ausgangszustand vor der Umsetzung
 
 - `services/backend/src/jobs/processRecurringPayments.ts` verarbeitet ausschließlich Termine des heutigen Tages in der
   konfigurierten Job-Zeitzone. Verpasste Tage werden nicht nachgeholt.

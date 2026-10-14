@@ -32,6 +32,16 @@ Notes:
 - Imported records keep their IDs, so importing the same archive twice does not create duplicates; existing records are handled according to the preview.
 - After a successful import the affected views are refreshed automatically.
 
+## Recurring-payment execution history
+
+Application-data ZIP archives do **not** contain the internal execution records used to prevent duplicate automatic recurring-payment bookings.
+
+- **Import into the same database/account:** existing execution records stay in place. Even deleting and restoring a recurring payment with the same ID does not reopen dates already executed there.
+- **Import into a fresh database:** previously generated transactions can be restored, but no execution history is carried over. The job cannot infer which scheduled dates those transactions fulfilled and may book today's occurrences again. Coordinate the import and job schedule to avoid repeating an already booked day; missed past dates are not caught up.
+- **Full database backup and restore:** execution records are included and their duplicate protection is preserved at the backup's point in time. Restoring an older backup does not retain executions made after that backup.
+
+Newly created payments with new IDs are independent of previous execution records. Manual extra bookings remain outside automatic duplicate protection in every case. See [Recurring payments](/users/recurring-payments) and [Self-hosting: updating](/self-hosting/updating).
+
 ## Related pages
 
 - [Account](/users/account)

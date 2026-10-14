@@ -23,18 +23,34 @@ Open **Recurring payments** and create an entry with the following fields:
 
 ## Automatic transaction creation
 
-The backend processes due recurring payments once per day (by default at 01:30 in the instance timezone). For every occurrence that is due, it creates a transaction with the same receiver, amount, category, and payment method. Paused entries are skipped.
+The backend processes recurring payments once per day (by default at 01:30 in the configured instance timezone). It creates transactions only for occurrences scheduled for **today**, using the same receiver, amount, category, and payment method. Paused entries are skipped. Missed days, including days when the backend was offline, are not caught up.
+
+Each recurring payment can create **at most one automatic transaction per scheduled date**. Repeated or concurrent job runs, including runs in multiple updated backend instances sharing the database, skip occurrences that were already executed. Two separate recurring payments with identical details are still processed independently.
+
+Changing the amount, receiver, or other details after execution does not allow another automatic booking for that date. Editing or deleting the generated transaction does not reset the execution record either. Occurrences not yet executed use the payment details in effect when they are processed.
+
+Failed bookings leave no execution record and can be attempted again by another job run on the same day. No additional automatic retries are scheduled, and the next day's job does not retry the missed date. The guarantee is at most one automatic booking, not guaranteed execution of every occurrence.
+
+The protection starts with the idempotency update; older transactions are not matched retrospectively. Self-hosted instances must follow the [coordinated rollout](/self-hosting/updating#recurring-payment-idempotency-cutover).
 
 Because processing happens on the server, a self-hosted instance must keep the backend service running. See [Self-hosting: overview](/self-hosting/overview).
 
+## Manual extra bookings
+
+**Execute payment** creates an additional transaction independently of the schedule. Every successful manual request creates another transaction, even if today's automatic occurrence has already been booked. Manual bookings do not mark a scheduled occurrence as executed and do not stop its automatic booking.
+
+Manual execution has no duplicate protection. Clicking repeatedly or retrying after an uncertain network response can create multiple extra bookings; check your transactions before retrying.
+
 ## Occurrences
 
-The **Occurrences** view shows the individual execution dates of your recurring payments: past occurrences with their generated transactions, and future ones that are planned. This makes it easy to check whether everything happened as expected and what is still coming up this month.
+The **Occurrences** view calculates past and future dates from your recurring payments' current schedules. It is a schedule projection, not an execution history: it does not show whether an occurrence was actually booked or link to generated transactions. Check **Transactions** for actual bookings. Changing a schedule can also change the projected past dates without changing existing transactions or execution records.
 
 ## Pausing and deleting
 
 - **Pause** an entry to stop future transactions without losing its history. Unpause to continue from the schedule.
 - **Delete** an entry to remove it. Transactions that were already created from it remain in your history.
+- Internal execution records remain even after deleting an entry or its generated transaction. Restoring the same payment ID for the same account in the same database retains duplicate protection. A newly created payment with a new ID is independent.
+- Execution records are removed when the user account is deleted. They are not included in application-data exports; a full database backup preserves them. See [Export and import data](/users/data-management).
 
 ## Related pages
 

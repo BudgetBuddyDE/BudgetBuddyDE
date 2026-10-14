@@ -53,6 +53,20 @@ MCP now runs inside the backend at `/mcp`; the standalone MCP workspace is remov
 
 Repository changes do not update external client registrations, reverse proxies, Railway services/templates, or live pipelines. Rollback requires restoring the previous backend build, standalone MCP deployment, client endpoints, and proxy routing together.
 
+## Recurring-payment idempotency cutover
+
+The idempotency update adds internal execution records. They protect automatic bookings by recurring-payment ID and scheduled date, including repeated or concurrent runs of updated backend instances sharing the same database. Old transactions have no reliable schedule association and are not backfilled.
+
+1. Back up the complete database and retain the previous build and configuration.
+2. Stop **all** old backend instances and allow their in-flight jobs to finish before starting the new version.
+3. Apply the migrations with `npm run db:migrate --workspace @budgetbuddyde/db`.
+4. Start only the updated backend, before the first scheduled run of a day for which the old version has not already generated transactions. If the old version already booked today's occurrences, do not run the new job for today; the first protected run must be on a later day. Dates follow the configured `TIMEZONE`.
+5. Check the first run's logs: newly booked occurrences count as processed, existing records as skipped, and unsuccessful attempts as failed.
+
+Do not mix old and updated backend versions: the old version bypasses execution records and can still generate duplicate transactions. Rolling back to the old version also removes the guarantee, even if the new table remains in the database. The job does not catch up missed days or add automatic retries. Plan the cutover around the configured schedule so that stopping services does not miss a needed run.
+
+Full database backups preserve execution history. Application-data ZIP exports do not; restoring them into a fresh database starts without that history.
+
 ## Verify
 
 After restarting:
