@@ -6,7 +6,7 @@ import {Brand} from './Brand';
 describe('Brand', () => {
   it('renders the logo without the title by default', () => {
     render(<Brand />);
-    expect(screen.getByRole('img', {name: 'BudgetBuddyDE logo'})).toHaveAttribute('src', '/logo.webp');
+    expect(screen.getByRole('img', {name: 'BudgetBuddyDE logo'})).toHaveAttribute('src', '/mobile-logo-light.svg');
     expect(screen.queryByText('BudgetBuddyDE')).not.toBeInTheDocument();
   });
 
