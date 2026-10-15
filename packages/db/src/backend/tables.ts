@@ -115,11 +115,12 @@ export const recurringPaymentExecutions = backendSchema.table(
     executedAt: timestamp('executed_at', {withTimezone: true}).defaultNow().notNull(),
     transactionId: uuid('transaction_id').references(() => transactions.id, {onDelete: 'set null'}),
     content: text('content'),
+    contentHash: varchar('content_hash', {length: 64}).notNull(),
   },
   table => [
     primaryKey({
       name: 'recurring_payment_execution_pkey',
-      columns: [table.ownerId, table.recurringPaymentId, table.scheduledFor],
+      columns: [table.ownerId, table.recurringPaymentId, table.scheduledFor, table.contentHash],
     }),
     index('recurring_payment_execution_transaction_idx').on(table.transactionId),
   ],

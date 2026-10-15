@@ -78,6 +78,20 @@
       "when": 1792090766760,
       "tag": "0010_dapper_ozymandias",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792092184364,
+      "tag": "0011_recurring_payment_content_identity",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792093233524,
+      "tag": "0012_recurring_payment_json_content",
+      "breakpoints": true
     }
   ]
 }
