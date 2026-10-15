@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import * as authSchema from '@budgetbuddyde/db/auth';
 import * as backendSchema from '@budgetbuddyde/db/backend';
@@ -8,6 +9,7 @@ import {migrate} from 'drizzle-orm/node-postgres/migrator';
 import {Pool} from 'pg';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 import {executeScheduledRecurringPayment} from '../utils/executeScheduledRecurringPayment';
+import {createPaymentSnapshot, hashPaymentSnapshot} from '../utils/recurringPaymentSnapshot';
 
 const schema = {...authSchema, ...backendSchema};
 let database: ReturnType<typeof drizzle<typeof schema>>;
@@ -81,6 +83,70 @@ describe.skipIf(!connectionString)('scheduled recurring payments against Postgre
     if (pool) await pool.end();
   });
 
+  it('migrates existing JSON and null snapshots without losing execution records', async () => {
+    const client = await pool.connect();
+    const testSchema = `migration_${randomUUID().replaceAll('-', '')}`;
+    try {
+      await client.query('BEGIN');
+      await client.query(`CREATE SCHEMA "${testSchema}";
+        CREATE TABLE "${testSchema}".recurring_payment_execution (
+          owner_id varchar NOT NULL, recurring_payment_id uuid NOT NULL, scheduled_for date NOT NULL,
+          content text, CONSTRAINT recurring_payment_execution_pkey PRIMARY KEY(owner_id, recurring_payment_id, scheduled_for)
+        )`);
+      const snapshot = createPaymentSnapshot(
+        {
+          ownerId: 'migration-test',
+          categoryId: randomUUID(),
+          paymentMethodId: randomUUID(),
+          receiver: 'Rent',
+          transferAmount: -100,
+          information: 'Unicode \u00e4\u20ac '.repeat(100),
+        },
+        scheduledFor,
+      );
+      await client.query(
+        `INSERT INTO "${testSchema}".recurring_payment_execution VALUES ($1, $2, $3, $4), ($1, $5, $3, NULL)`,
+        ['migration-test', randomUUID(), scheduledFor, snapshot, randomUUID()],
+      );
+      const migration = await readFile(
+        resolve(__dirname, '../../../../packages/db/drizzle/0011_recurring_payment_content_identity.sql'),
+        'utf8',
+      );
+      await client.query(migration.replaceAll('"budgetbuddy_backend"', `"${testSchema}"`));
+      const {rows} = await client.query(
+        `SELECT content, content_hash FROM "${testSchema}".recurring_payment_execution`,
+      );
+      expect(rows).toEqual(
+        expect.arrayContaining([
+          {
+            content: Buffer.from(snapshot, 'utf8').toString('base64'),
+            content_hash: hashPaymentSnapshot(Buffer.from(snapshot, 'utf8').toString('base64')),
+          },
+          {content: null, content_hash: ''},
+        ]),
+      );
+      expect(rows).toHaveLength(2);
+      const jsonMigration = await readFile(
+        resolve(__dirname, '../../../../packages/db/drizzle/0012_recurring_payment_json_content.sql'),
+        'utf8',
+      );
+      await client.query(jsonMigration.replaceAll('"budgetbuddy_backend"', `"${testSchema}"`));
+      const converted = await client.query(
+        `SELECT content, content_hash FROM "${testSchema}".recurring_payment_execution`,
+      );
+      expect(converted.rows).toEqual(
+        expect.arrayContaining([
+          {content: snapshot, content_hash: hashPaymentSnapshot(snapshot)},
+          {content: null, content_hash: ''},
+        ]),
+      );
+      expect(converted.rows).toHaveLength(2);
+    } finally {
+      await client.query('ROLLBACK');
+      client.release();
+    }
+  });
+
   it('commits exactly one booking and execution across competing database connections', async () => {
     const payment = await createPayment();
     const results = await Promise.all(
@@ -102,7 +168,80 @@ describe.skipIf(!connectionString)('scheduled recurring payments against Postgre
     expect(executions[0]).toMatchObject({scheduledFor, transactionId: bookings[0].id});
   });
 
-  it('skips repeated attempts, changed data, and a retry after an uncertain commit response', async () => {
+  it('still skips previously booked content after migrating its Base64 snapshot to JSON', async () => {
+    const payment = await createPayment();
+    const result = await executeScheduledRecurringPayment(payment, scheduledFor, processedAt);
+    if (result.status !== 'created') throw new Error('Expected a created booking');
+    const content = Buffer.from(createPaymentSnapshot(payment, scheduledFor), 'utf8').toString('base64');
+    await database
+      .update(recurringPaymentExecutions)
+      .set({content, contentHash: hashPaymentSnapshot(content)})
+      .where(eq(recurringPaymentExecutions.ownerId, payment.ownerId));
+    const migration = await readFile(
+      resolve(__dirname, '../../../../packages/db/drizzle/0012_recurring_payment_json_content.sql'),
+      'utf8',
+    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(migration);
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+    expect(await executeScheduledRecurringPayment(payment, scheduledFor, processedAt)).toEqual({status: 'skipped'});
+    const records = await recordsFor(payment.ownerId);
+    expect(records.bookings).toHaveLength(1);
+    expect(records.executions).toHaveLength(1);
+    expect(records.executions[0]).toMatchObject({
+      content: createPaymentSnapshot(payment, scheduledFor),
+      contentHash: hashPaymentSnapshot(createPaymentSnapshot(payment, scheduledFor)),
+      transactionId: result.transaction.id,
+    });
+    expect(
+      (await executeScheduledRecurringPayment({...payment, transferAmount: -120}, scheduledFor, processedAt)).status,
+    ).toBe('created');
+    expect(await executeScheduledRecurringPayment(payment, scheduledFor, processedAt)).toEqual({status: 'skipped'});
+  });
+
+  it.each(['invalid-base64!', '/w=='])('aborts JSON migration on invalid stored encoding: %s', async invalidContent => {
+    const client = await pool.connect();
+    const testSchema = `migration_${randomUUID().replaceAll('-', '')}`;
+    try {
+      await client.query('BEGIN');
+      await client.query(`CREATE SCHEMA "${testSchema}";
+        CREATE TABLE "${testSchema}".recurring_payment_execution (content text, content_hash varchar(64))`);
+      const validContent = Buffer.from('{"version":1}', 'utf8').toString('base64');
+      await client.query(`INSERT INTO "${testSchema}".recurring_payment_execution VALUES ($1, $2), ($3, $4)`, [
+        validContent,
+        hashPaymentSnapshot(validContent),
+        invalidContent,
+        hashPaymentSnapshot(invalidContent),
+      ]);
+      await client.query('SAVEPOINT before_migration');
+      const migration = await readFile(
+        resolve(__dirname, '../../../../packages/db/drizzle/0012_recurring_payment_json_content.sql'),
+        'utf8',
+      );
+      await expect(client.query(migration.replaceAll('"budgetbuddy_backend"', `"${testSchema}"`))).rejects.toThrow();
+      await client.query('ROLLBACK TO SAVEPOINT before_migration');
+      const {rows} = await client.query(
+        `SELECT content, content_hash FROM "${testSchema}".recurring_payment_execution`,
+      );
+      expect(rows).toEqual([
+        {content: validContent, content_hash: hashPaymentSnapshot(validContent)},
+        {content: invalidContent, content_hash: hashPaymentSnapshot(invalidContent)},
+      ]);
+    } finally {
+      await client.query('ROLLBACK');
+      client.release();
+    }
+  });
+
+  it('books changed content once and skips repeats including a return to earlier values', async () => {
     const payment = await createPayment();
     expect((await executeScheduledRecurringPayment(payment, scheduledFor, processedAt)).status).toBe('created');
     const [changedPayment] = await database
@@ -111,13 +250,42 @@ describe.skipIf(!connectionString)('scheduled recurring payments against Postgre
       .where(eq(recurringPayments.id, payment.id))
       .returning();
 
-    expect(await executeScheduledRecurringPayment(changedPayment, scheduledFor, processedAt)).toEqual({
-      status: 'skipped',
-    });
+    const results = await Promise.all(
+      Array.from({length: 12}, () => executeScheduledRecurringPayment(changedPayment, scheduledFor, processedAt)),
+    );
+    expect(results.filter(result => result.status === 'created')).toHaveLength(1);
+    expect(results.filter(result => result.status === 'skipped')).toHaveLength(11);
     expect(await executeScheduledRecurringPayment(payment, scheduledFor, processedAt)).toEqual({status: 'skipped'});
-    const {bookings} = await recordsFor(payment.ownerId);
-    expect(bookings).toHaveLength(1);
-    expect(bookings[0].transferAmount).toBe(-100);
+    const {bookings, executions} = await recordsFor(payment.ownerId);
+    expect(bookings.map(booking => booking.transferAmount).sort()).toEqual([-100, -200]);
+    expect(executions).toHaveLength(2);
+    expect(
+      executions.find(execution => execution.content === createPaymentSnapshot(payment, scheduledFor))?.transactionId,
+    ).toBe(bookings.find(booking => booking.transferAmount === -100)?.id);
+    expect(
+      executions.find(execution => execution.content === createPaymentSnapshot(changedPayment, scheduledFor))
+        ?.transactionId,
+    ).toBe(bookings.find(booking => booking.transferAmount === -200)?.id);
+  });
+
+  it('keeps legacy executions without content protected even after payment changes', async () => {
+    const payment = await createPayment();
+    await database.insert(recurringPaymentExecutions).values({
+      ownerId: payment.ownerId,
+      recurringPaymentId: payment.id,
+      scheduledFor,
+      contentHash: '',
+    });
+    expect(
+      await executeScheduledRecurringPayment({...payment, transferAmount: -200}, scheduledFor, processedAt),
+    ).toEqual({status: 'skipped'});
+    expect((await recordsFor(payment.ownerId)).bookings).toHaveLength(0);
+  });
+
+  it('supports long snapshot contents without exceeding PostgreSQL index limits', async () => {
+    const payment = {...(await createPayment()), information: 'long payment information '.repeat(1000)};
+    expect((await executeScheduledRecurringPayment(payment, scheduledFor, processedAt)).status).toBe('created');
+    expect((await executeScheduledRecurringPayment(payment, scheduledFor, processedAt)).status).toBe('skipped');
   });
 
   it('keeps identical schedules and different occurrence dates independent', async () => {

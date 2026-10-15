@@ -1,17 +1,30 @@
 import {recurringPaymentExecutions, transactions} from '@budgetbuddyde/db/backend';
 import {executeScheduledRecurringPayment} from '../utils/executeScheduledRecurringPayment';
+import {createPaymentSnapshot, hashPaymentSnapshot} from '../utils/recurringPaymentSnapshot';
 
-const {transaction, insert, update, reservationReturning, transactionReturning, executionReturning, values, set} =
-  vi.hoisted(() => ({
-    transaction: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    reservationReturning: vi.fn(),
-    transactionReturning: vi.fn(),
-    executionReturning: vi.fn(),
-    values: vi.fn(),
-    set: vi.fn(),
-  }));
+const {
+  transaction,
+  insert,
+  update,
+  select,
+  legacyResult,
+  reservationReturning,
+  transactionReturning,
+  executionReturning,
+  values,
+  set,
+} = vi.hoisted(() => ({
+  transaction: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  select: vi.fn(),
+  legacyResult: vi.fn(),
+  reservationReturning: vi.fn(),
+  transactionReturning: vi.fn(),
+  executionReturning: vi.fn(),
+  values: vi.fn(),
+  set: vi.fn(),
+}));
 
 vi.mock('../db', () => ({db: {transaction}}));
 
@@ -28,7 +41,9 @@ const processedAt = new Date('2026-10-14T01:30:00Z');
 
 beforeEach(() => {
   vi.resetAllMocks();
-  transaction.mockImplementation(callback => callback({insert, update}));
+  transaction.mockImplementation(callback => callback({insert, update, select}));
+  select.mockReturnValue({from: () => ({where: () => ({limit: legacyResult})})});
+  legacyResult.mockResolvedValue([]);
   insert.mockImplementation(table => ({
     values: (input: unknown) => {
       values(input);
@@ -57,21 +72,20 @@ it('reserves and links an occurrence in the same transaction with the original p
     ownerId: payment.ownerId,
     recurringPaymentId: payment.id,
     scheduledFor: '2026-10-14',
-    content: JSON.stringify({
-      version: 1,
-      ownerId: payment.ownerId,
-      scheduledFor: '2026-10-14',
-      categoryId: payment.categoryId,
-      paymentMethodId: payment.paymentMethodId,
-      receiver: payment.receiver,
-      transferAmount: payment.transferAmount,
-      information: payment.information,
-    }),
+    content: createPaymentSnapshot(payment, '2026-10-14'),
+    contentHash: hashPaymentSnapshot(createPaymentSnapshot(payment, '2026-10-14')),
   });
   const {id: _id, ...transactionData} = payment;
   expect(values).toHaveBeenNthCalledWith(2, {...transactionData, processedAt});
   expect(insert).toHaveBeenNthCalledWith(2, transactions);
   expect(set).toHaveBeenCalledWith({transactionId: 'created'});
+});
+
+it('keeps historical executions without a snapshot protected', async () => {
+  legacyResult.mockResolvedValue([{scheduledFor: '2026-10-14'}]);
+  expect(await executeScheduledRecurringPayment(payment, '2026-10-14', processedAt)).toEqual({status: 'skipped'});
+  expect(insert).not.toHaveBeenCalled();
+  expect(update).not.toHaveBeenCalled();
 });
 
 it('skips a reserved occurrence without inserting a transaction or updating its link', async () => {

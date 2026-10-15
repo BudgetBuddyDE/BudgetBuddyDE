@@ -1,7 +1,7 @@
 import {recurringPaymentExecutions, recurringPayments, transactions} from '@budgetbuddyde/db/backend';
-import {and, eq} from 'drizzle-orm';
+import {and, eq, isNull} from 'drizzle-orm';
 import {db} from '../db';
-import {createPaymentSnapshot} from './recurringPaymentSnapshot';
+import {createPaymentSnapshot, hashPaymentSnapshot} from './recurringPaymentSnapshot';
 
 type TScheduledPayment = Pick<
   typeof recurringPayments.$inferSelect,
@@ -18,14 +18,31 @@ export async function executeScheduledRecurringPayment(
 ): Promise<TExecutionResult> {
   return db.transaction(async tx => {
     const content = createPaymentSnapshot(payment, scheduledFor);
+    const contentHash = hashPaymentSnapshot(content);
+    // Historical executions without a snapshot cannot safely be compared; keep their protection.
+    const [legacyExecution] = await tx
+      .select({scheduledFor: recurringPaymentExecutions.scheduledFor})
+      .from(recurringPaymentExecutions)
+      .where(
+        and(
+          eq(recurringPaymentExecutions.ownerId, payment.ownerId),
+          eq(recurringPaymentExecutions.recurringPaymentId, payment.id),
+          eq(recurringPaymentExecutions.scheduledFor, scheduledFor),
+          isNull(recurringPaymentExecutions.content),
+        ),
+      )
+      .limit(1);
+    if (legacyExecution) return {status: 'skipped'};
+
     const [reservation] = await tx
       .insert(recurringPaymentExecutions)
-      .values({ownerId: payment.ownerId, recurringPaymentId: payment.id, scheduledFor, content})
+      .values({ownerId: payment.ownerId, recurringPaymentId: payment.id, scheduledFor, content, contentHash})
       .onConflictDoNothing({
         target: [
           recurringPaymentExecutions.ownerId,
           recurringPaymentExecutions.recurringPaymentId,
           recurringPaymentExecutions.scheduledFor,
+          recurringPaymentExecutions.contentHash,
         ],
       })
       .returning({scheduledFor: recurringPaymentExecutions.scheduledFor});
@@ -55,6 +72,7 @@ export async function executeScheduledRecurringPayment(
           eq(recurringPaymentExecutions.ownerId, payment.ownerId),
           eq(recurringPaymentExecutions.recurringPaymentId, payment.id),
           eq(recurringPaymentExecutions.scheduledFor, scheduledFor),
+          eq(recurringPaymentExecutions.contentHash, contentHash),
         ),
       )
       .returning({transactionId: recurringPaymentExecutions.transactionId});

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {z} from 'zod';
 
 const recurringPaymentSnapshotSchema = z.object({
@@ -22,4 +23,8 @@ export function createPaymentSnapshot(
 
 export function parsePaymentSnapshot(content: string) {
   return recurringPaymentSnapshotSchema.parse(JSON.parse(content));
+}
+
+export function hashPaymentSnapshot(content: string): string {
+  return createHash('sha256').update(content, 'utf8').digest('hex');
 }

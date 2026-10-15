@@ -1,8 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-const {findMany, select, createTransaction, info, error, invalidateUserCaches} = vi.hoisted(() => ({
+const {findMany, createTransaction, info, error, invalidateUserCaches} = vi.hoisted(() => ({
   findMany: vi.fn(),
-  select: vi.fn(),
   createTransaction: vi.fn(),
   info: vi.fn(),
   error: vi.fn(),
@@ -10,7 +9,7 @@ const {findMany, select, createTransaction, info, error, invalidateUserCaches} =
 }));
 
 vi.mock('../db', () => ({
-  db: {query: {recurringPayments: {findMany}}, select},
+  db: {query: {recurringPayments: {findMany}}},
 }));
 
 vi.mock('../utils/executeScheduledRecurringPayment', () => ({
@@ -29,7 +28,6 @@ describe('processRecurringPayments', () => {
     vi.resetAllMocks();
     invalidateUserCaches.mockResolvedValue(undefined);
     createTransaction.mockResolvedValue({status: 'created', transaction: {id: 'transaction'}});
-    select.mockReturnValue({from: () => ({where: () => Promise.resolve([])})});
   });
 
   afterEach(() => {
@@ -58,24 +56,23 @@ describe('processRecurringPayments', () => {
     expect(createTransaction).not.toHaveBeenCalled();
   });
 
-  it('skips occurrences with an existing owner, payment, and scheduled-date execution record', async () => {
-    const alreadyExecuted = {id: 'daily', ownerId: 'user-1', executionPlan: 'daily', startsOn: '2026-08-01'};
-    const anotherOwner = {id: 'daily', ownerId: 'user-2', executionPlan: 'daily', startsOn: '2026-08-01'};
-    findMany.mockResolvedValue([alreadyExecuted, anotherOwner]);
-    select.mockReturnValue({
-      from: () => ({where: () => Promise.resolve([{ownerId: 'user-1', recurringPaymentId: 'daily'}])}),
-    });
-
+  it('passes changed payments to the content-aware executor on every run', async () => {
+    const payment = {
+      id: 'daily',
+      ownerId: 'user-1',
+      executionPlan: 'daily',
+      startsOn: '2026-08-01',
+      transferAmount: -100,
+    };
+    findMany.mockResolvedValue([payment]);
+    createTransaction.mockResolvedValueOnce({status: 'skipped'});
     await processRecurringPayments();
-
-    expect(createTransaction).toHaveBeenCalledTimes(1);
-    expect(createTransaction).toHaveBeenCalledWith(anotherOwner, '2026-08-28', expect.any(Date));
-    expect(info).toHaveBeenLastCalledWith(expect.stringContaining('1 skipped'), {
-      scheduledFor: '2026-08-28',
-      processedCount: 1,
-      skippedCount: 1,
-      failedCount: 0,
-    });
+    const changed = {...payment, transferAmount: -120};
+    findMany.mockResolvedValue([changed]);
+    await processRecurringPayments();
+    expect(createTransaction).toHaveBeenCalledTimes(2);
+    expect(createTransaction).toHaveBeenLastCalledWith(changed, '2026-08-28', expect.any(Date));
+    expect(invalidateUserCaches).toHaveBeenCalledTimes(1);
   });
 
   it('preserves monthly anchor days when February clamps a month-end occurrence', async () => {
