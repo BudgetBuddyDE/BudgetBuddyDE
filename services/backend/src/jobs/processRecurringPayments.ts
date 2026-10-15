@@ -7,10 +7,9 @@ import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {invalidateUserCaches} from '../middleware/cache.middleware';
-import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
+import {executeScheduledRecurringPayment} from '../utils/executeScheduledRecurringPayment';
 
 const RECURRING_PAYMENT_BATCH_SIZE = 10;
-
 /**
  * Processes all due recurring payments and creates corresponding transactions.
  */
@@ -36,16 +35,25 @@ export async function processRecurringPayments() {
     }
 
     let processedCount = 0;
+    let skippedCount = 0;
     let failedCount = 0;
     for (let start = 0; start < duePayments.length; start += RECURRING_PAYMENT_BATCH_SIZE) {
       const batch = duePayments.slice(start, start + RECURRING_PAYMENT_BATCH_SIZE);
       const results = await Promise.allSettled(
-        batch.map(payment => createTransactionFromRecurringPayment(payment, today)),
+        batch.map(payment => executeScheduledRecurringPayment(payment, scheduledFor, today)),
       );
       const affectedUserIds = new Set<string>();
 
       results.forEach((result, index) => {
         if (result.status === 'fulfilled') {
+          if (result.value.status === 'skipped') {
+            skippedCount += 1;
+            logger.debug('Recurring payment occurrence already executed; skipping', {
+              recurringPaymentId: batch[index].id,
+              scheduledFor,
+            });
+            return;
+          }
           processedCount += 1;
           affectedUserIds.add(batch[index].ownerId);
           return;
@@ -67,10 +75,11 @@ export async function processRecurringPayments() {
     }
 
     logger.info(
-      `Processed ${processedCount} recurring payments scheduled for ${scheduledFor}; ${failedCount} failed.`,
+      `Processed ${processedCount} recurring payments scheduled for ${scheduledFor}; ${skippedCount} skipped; ${failedCount} failed.`,
       {
         scheduledFor,
         processedCount,
+        skippedCount,
         failedCount,
       },
     );

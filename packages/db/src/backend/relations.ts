@@ -5,6 +5,7 @@ import {
   budgets,
   categories,
   paymentMethods,
+  recurringPaymentExecutions,
   recurringPayments,
   transactionAttachments,
   transactions,
@@ -39,6 +40,17 @@ export const recurringPaymentRelations = relations(recurringPayments, ({one}) =>
   paymentMethod: one(paymentMethods, {
     fields: [recurringPayments.paymentMethodId],
     references: [paymentMethods.id],
+  }),
+}));
+
+export const recurringPaymentExecutionRelations = relations(recurringPaymentExecutions, ({one}) => ({
+  owner: one(user, {
+    fields: [recurringPaymentExecutions.ownerId],
+    references: [user.id],
+  }),
+  transaction: one(transactions, {
+    fields: [recurringPaymentExecutions.transactionId],
+    references: [transactions.id],
   }),
 }));
 

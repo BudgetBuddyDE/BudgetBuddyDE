@@ -53,6 +53,22 @@ MCP now runs inside the backend at `/mcp`; the standalone MCP workspace is remov
 
 Repository changes do not update external client registrations, reverse proxies, Railway services/templates, or live pipelines. Rollback requires restoring the previous backend build, standalone MCP deployment, client endpoints, and proxy routing together.
 
+## Recurring-payment idempotency cutover
+
+The idempotency update adds internal execution records. They protect automatic bookings by recurring-payment ID, scheduled date, and payment content, including repeated or concurrent runs of updated backend instances sharing the same database. Old transactions have no reliable schedule association and are not backfilled.
+
+1. Back up the complete database and retain the previous build and configuration.
+2. Stop **all** old backend instances and allow their in-flight jobs to finish before starting the new version.
+3. Apply the migrations with `npm run db:migrate --workspace @budgetbuddyde/db`.
+4. Start only the updated backend, before the first scheduled run of a day for which the old version has not already generated transactions. If the old version already booked today's occurrences, do not run the new job for today; the first protected run must be on a later day. Dates follow the configured `TIMEZONE`.
+5. Check the first run's logs: newly booked occurrences count as processed, existing records as skipped, and unsuccessful attempts as failed.
+
+Do not mix old and updated backend versions: the old version bypasses execution records and can still generate duplicate transactions. Rolling back to the old version also removes the guarantee, even if the new table remains in the database. The job does not catch up missed days or add automatic retries. Plan the cutover around the configured schedule so that stopping services does not miss a needed run.
+
+The content-aware update requires a coordinated migration as well: stop all backend instances, back up, apply all migrations through `0012_recurring_payment_json_content`, then start only the updated build. Migration 0011 adds a content fingerprint to the primary key. Migration 0012 converts its Base64 snapshots back to compact UTF-8 JSON and recomputes the fingerprints atomically without changing the JSON bytes. Invalid Base64 or UTF-8 aborts migration; investigate the affected data rather than deleting execution records. Earlier execution records without snapshots remain protected for the entire occurrence. Do not mix older and updated builds: earlier builds either use an incompatible conflict target or hash Base64 rather than JSON, which could allow duplicate bookings. A rollback needs the previous database backup, not just the previous application build. Changed payment details can now produce an additional full transaction on the same day; reverting to already booked details does not.
+
+Full database backups preserve execution history. Application-data ZIP exports do not; restoring them into a fresh database starts without that history.
+
 ## Verify
 
 After restarting:

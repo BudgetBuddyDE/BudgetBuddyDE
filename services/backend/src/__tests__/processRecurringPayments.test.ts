@@ -12,8 +12,8 @@ vi.mock('../db', () => ({
   db: {query: {recurringPayments: {findMany}}},
 }));
 
-vi.mock('../utils/createTransactionFromRecurringPayment', () => ({
-  createTransactionFromRecurringPayment: createTransaction,
+vi.mock('../utils/executeScheduledRecurringPayment', () => ({
+  executeScheduledRecurringPayment: createTransaction,
 }));
 
 vi.mock('../lib', () => ({logger: {info, error, debug: vi.fn()}}));
@@ -25,8 +25,9 @@ describe('processRecurringPayments', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-08-28T12:00:00.000Z'));
-    vi.clearAllMocks();
-    createTransaction.mockResolvedValue({id: 'transaction'});
+    vi.resetAllMocks();
+    invalidateUserCaches.mockResolvedValue(undefined);
+    createTransaction.mockResolvedValue({status: 'created', transaction: {id: 'transaction'}});
   });
 
   afterEach(() => {
@@ -43,6 +44,7 @@ describe('processRecurringPayments', () => {
 
     expect(createTransaction).toHaveBeenCalledTimes(2);
     expect(createTransaction.mock.calls.map(([payment]) => payment.id)).toEqual(['daily', 'weekly-due']);
+    expect(createTransaction).toHaveBeenCalledWith(daily, '2026-08-28', expect.any(Date));
     expect(info).toHaveBeenCalledWith(expect.stringContaining('2026-08-28'), {scheduledFor: '2026-08-28'});
   });
 
@@ -52,6 +54,42 @@ describe('processRecurringPayments', () => {
     await processRecurringPayments();
 
     expect(createTransaction).not.toHaveBeenCalled();
+  });
+
+  it('passes changed payments to the content-aware executor on every run', async () => {
+    const payment = {
+      id: 'daily',
+      ownerId: 'user-1',
+      executionPlan: 'daily',
+      startsOn: '2026-08-01',
+      transferAmount: -100,
+    };
+    findMany.mockResolvedValue([payment]);
+    createTransaction.mockResolvedValueOnce({status: 'skipped'});
+    await processRecurringPayments();
+    const changed = {...payment, transferAmount: -120};
+    findMany.mockResolvedValue([changed]);
+    await processRecurringPayments();
+    expect(createTransaction).toHaveBeenCalledTimes(2);
+    expect(createTransaction).toHaveBeenLastCalledWith(changed, '2026-08-28', expect.any(Date));
+    expect(invalidateUserCaches).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves monthly anchor days when February clamps a month-end occurrence', async () => {
+    vi.setSystemTime(new Date('2026-02-28T12:00:00Z'));
+    const payment = {id: 'month-end', ownerId: 'user-1', executionPlan: 'monthly', startsOn: '2026-01-31'};
+    findMany.mockResolvedValue([payment]);
+
+    await processRecurringPayments();
+
+    expect(createTransaction).toHaveBeenCalledWith(payment, '2026-02-28', expect.any(Date));
+    createTransaction.mockClear();
+    vi.setSystemTime(new Date('2026-03-28T12:00:00Z'));
+    await processRecurringPayments();
+    expect(createTransaction).not.toHaveBeenCalled();
+    vi.setSystemTime(new Date('2026-03-31T12:00:00Z'));
+    await processRecurringPayments();
+    expect(createTransaction).toHaveBeenCalledWith(payment, '2026-03-31', expect.any(Date));
   });
 
   it('invalidates affected owner caches after successful processing', async () => {
@@ -78,6 +116,43 @@ describe('processRecurringPayments', () => {
     expect(error).toHaveBeenCalledWith('Error processing recurring payments:', databaseError);
   });
 
+  it('counts already executed occurrences as skipped without invalidating caches', async () => {
+    findMany.mockResolvedValue([{id: 'daily', ownerId: 'user-1', executionPlan: 'daily', startsOn: '2026-08-01'}]);
+    createTransaction.mockResolvedValue({status: 'skipped'});
+
+    await processRecurringPayments();
+
+    expect(invalidateUserCaches).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
+    expect(info).toHaveBeenLastCalledWith(expect.stringContaining('1 skipped'), {
+      scheduledFor: '2026-08-28',
+      processedCount: 0,
+      skippedCount: 1,
+      failedCount: 0,
+    });
+  });
+
+  it('invalidates only owners with newly created transactions in a mixed batch', async () => {
+    findMany.mockResolvedValue([
+      {id: 'daily-a', ownerId: 'user-a', executionPlan: 'daily', startsOn: '2026-08-01'},
+      {id: 'daily-b', ownerId: 'user-b', executionPlan: 'daily', startsOn: '2026-08-01'},
+      {id: 'daily-c', ownerId: 'user-c', executionPlan: 'daily', startsOn: '2026-08-01'},
+    ]);
+    createTransaction.mockResolvedValueOnce({status: 'skipped'});
+    createTransaction.mockRejectedValueOnce(new Error('insert failed'));
+
+    await processRecurringPayments();
+
+    expect(invalidateUserCaches).toHaveBeenCalledTimes(1);
+    expect(invalidateUserCaches).toHaveBeenCalledWith('user-c', ['/api/transaction', '/api/budget', '/api/insights']);
+    expect(info).toHaveBeenLastCalledWith(expect.any(String), {
+      scheduledFor: '2026-08-28',
+      processedCount: 1,
+      skippedCount: 1,
+      failedCount: 1,
+    });
+  });
+
   it('limits concurrent recurring payment processing to one batch', async () => {
     const payments = Array.from({length: 25}, (_, index) => ({
       id: `daily-${index}`,
@@ -92,7 +167,7 @@ describe('processRecurringPayments', () => {
       maximumActive = Math.max(maximumActive, active);
       await Promise.resolve();
       active -= 1;
-      return {id: 'transaction'};
+      return {status: 'created', transaction: {id: 'transaction'}};
     });
 
     await processRecurringPayments();

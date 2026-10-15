@@ -1,0 +1,1 @@
+ALTER TABLE "budgetbuddy_backend"."recurring_payment_execution" ADD COLUMN "content" text;

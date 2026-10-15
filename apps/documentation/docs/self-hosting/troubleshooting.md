@@ -45,7 +45,11 @@ Redis is optional. When `REDIS_URL` is not set, the backend response cache and d
 
 - The backend must be running; the job executes once per day at 01:30 in the configured `TIMEZONE`.
 - Paused recurring payments are skipped by design.
-- Only occurrences due today or earlier are created; check the occurrences view in the app.
+- Only occurrences scheduled for **today** in that timezone are processed. Missed days are not caught up, including after downtime or unpausing.
+- Already executed occurrences are counted as **skipped**, not failed. Editing or deleting their transactions does not make them executable again. Changing payment details does not reset protection either.
+- **Failed** bookings leave no execution record and can be tried again by another job run on the same day. No extra retry runs are scheduled; the next day does not retry that occurrence.
+- The occurrences view is only a projection of the current schedule, not proof that a transaction was created. Check transactions and backend logs for actual results.
+- Protection starts at the coordinated [idempotency cutover](/self-hosting/updating#recurring-payment-idempotency-cutover). Mixed old/new backend versions or an application-data restore into a new database do not preserve the guarantee.
 
 ## "relation does not exist" errors
 
