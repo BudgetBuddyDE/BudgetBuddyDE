@@ -16,6 +16,10 @@ go build ./...
 
 `evaluate` is a local policy diagnostic, not an authenticated code-safety attestation. `run` performs snapshot verification, analysis, S3 reuse and GitHub publication. `reconcile` scans open PRs against the configured base branch and runs reviews serially; it also catches target-branch changes. Run only one instance per repository, including manual invocations.
 
+## Smoke test
+
+Open a pull request with a small documentation change and wait for the next five-minute reconciliation. Confirm that the App publishes an `ai-review/gate` check and a summary comment. A clean documentation change does not necessarily produce inline suggestions; those are only expected when the reviewer identifies an actionable issue.
+
 ## Environment
 
 | Variable                 | Purpose                                                     |
