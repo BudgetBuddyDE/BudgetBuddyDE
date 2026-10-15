@@ -6,6 +6,7 @@ groups:
     jobs:
       - validate-build
       - pull-request
+      - pull-request-ai-review
   - name: maintenance
     jobs:
       - update-dependencies
@@ -24,6 +25,10 @@ resource_types:
       tag: '0.26.0'
 
 resources:
+  - name: ai-review-timer
+    type: time
+    source:
+      interval: 5m
   - name: dependency-timer
     type: time
     icon: clock-outline
@@ -71,6 +76,55 @@ resources:
       access_token: ((github.pat))
 
 jobs:
+  # Never load review executables or task definitions from a PR checkout.
+  - name: pull-request-ai-review
+    public: false
+    serial: true
+    plan:
+      - in_parallel:
+          - get: ai-review-timer
+            trigger: true
+          - get: repository
+      - task: build-ai-review-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: repository
+          outputs:
+            - name: image
+          caches:
+            - path: cache
+          params:
+            CONTEXT: repository/tools/ai-review
+            UNPACK_ROOTFS: 'true'
+          run:
+            path: build
+      - task: review-open-pull-requests
+        image: image
+        timeout: 2h
+        config:
+          platform: linux
+          params:
+            REVIEW_REPOSITORY: ((repo.owner))/((repo.name))
+            REVIEW_BASE_BRANCH: ((repo.pr.branch))
+            GITHUB_APP_ID: ((ai-review.appId))
+            GITHUB_INSTALLATION_ID: ((ai-review.installationId))
+            GITHUB_APP_PRIVATE_KEY: ((ai-review.appPrivateKey))
+            LITELLM_BASE_URL: ((litellm.host))
+            LITELLM_API_KEY: ((litellm.apiKey))
+            LITELLM_MODEL: code-review
+            REVIEW_S3_BUCKET: ((s3-ai-review.bucket))
+            AWS_REGION: ((s3-ai-review.region))
+            AWS_ACCESS_KEY_ID: ((s3-ai-review.access_key_id))
+            AWS_SECRET_ACCESS_KEY: ((s3-ai-review.access_key_secret))
+          run:
+            path: /ai-review
+            args: [reconcile]
   - name: update-dependencies
     public: false
     serial: true
@@ -125,6 +179,8 @@ jobs:
       - task: verify
         file: repository/ci/tasks/verify.task.yml
         image: node-image
+      - task: verify-ai-review
+        file: repository/ci/tasks/verify-ai-review.task.yml
   - name: pull-request
     public: true
     on_success:
@@ -160,5 +216,9 @@ jobs:
       - task: verify
         file: pr-((repo.pr.branch))/ci/tasks/verify.task.yml
         image: node-image
+        input_mapping:
+          repository: pr-((repo.pr.branch))
+      - task: verify-ai-review
+        file: pr-((repo.pr.branch))/ci/tasks/verify-ai-review.task.yml
         input_mapping:
           repository: pr-((repo.pr.branch))

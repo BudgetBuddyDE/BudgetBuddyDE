@@ -1,0 +1,19 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: golang
+    tag: 1.25.5
+inputs:
+  - name: repository
+run:
+  path: sh
+  args:
+    - -ec
+    - |
+      cd repository/tools/ai-review
+      test -z "$(gofmt -l cmd internal)"
+      go mod download
+      go vet ./...
+      go test -race ./...
+      go build ./...

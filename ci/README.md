@@ -1,12 +1,16 @@
 # Project CI
 
-`general.pipeline.yml` has three jobs:
+`general.pipeline.yml` includes the following jobs:
 
 - `validate-build`: validates and builds all npm workspaces on pushes to `main`.
   Every detected Git version is processed. Cogito reports pending, success,
   failure, error or abort to GitHub.
 - `pull-request`: runs the same verification for pull requests targeting
   `repo.pr.branch`, and reports status through the GitHub PR resource.
+- `pull-request-ai-review`: every five minutes, serially reconciles open PRs
+  using a Go runner image built from the trusted `main` checkout. Reviews are cached by immutable
+  identity in S3; target-branch changes cause a new review. Negative or incomplete
+  reviews fail the dedicated `ai-review/gate` GitHub Check.
 - `update-dependencies`: runs every 168 hours or manually. Updates development
   dependencies and applies `npm audit fix` without forced major upgrades, then
   validates the entire project before pushing changed manifests and the lockfile.
@@ -53,6 +57,43 @@ or S3 version credentials are required by the project pipeline. The separate
 database pipeline still requires its own credentials.
 
 ## Local checks
+
+### AI review deployment
+
+The Vault-backed variables are `ai-review.appId`, `ai-review.installationId`,
+`ai-review.appPrivateKey`, `litellm.host`, `litellm.apiKey`,
+`s3-ai-review.bucket`, `s3-ai-review.region`, `s3-ai-review.access_key_id`,
+and `s3-ai-review.access_key_secret`. `litellm.host` includes `/v1`
+(configured endpoint: `https://ai.tklein.online/v1`). The model alias is `code-review`.
+
+The job builds `tools/ai-review/Dockerfile` from the trusted `repository` resource
+(`main`) using `concourse/oci-build-task`, then passes its unpacked image directly
+to the review task. No custom registry or committed image archive is required.
+The builder requires a worker that permits privileged tasks and network access to
+the public build/base images and Go modules. The review task itself is not
+privileged and receives secrets only after the image build. Build layers are cached
+on the worker. Builder and Dockerfile base images currently use mutable tags;
+pinning their digests remains deployment hardening work.
+
+The provided task maps AWS environment credentials. Prefer short-lived credentials
+injected by your credential integration; include `AWS_SESSION_TOKEN` in the task
+when using temporary credentials. Alternatively adapt it to your worker's workload
+identity and remove the explicit access-key parameters. Do not expose review
+credentials to PR verification tasks. Keep the review job serial.
+
+Merge runner changes only after maintainer review. See
+`tools/ai-review/README.md` and `docs/ai-review-github-app-setup.md` for environment,
+limits, bucket setup, App permissions and required ruleset activation. Bootstrap
+the policy on the target branch before enabling the required check. Pipeline
+deployment now requires the additional variables; no existing job is silently
+treated as the AI gate.
+
+Activation TODO: after a successful live test, configure the `main` ruleset to
+require `ai-review/gate` from this GitHub App. Until then, failed reviews do not
+enforce merge blocking. Also retain the existing required CI checks and enable
+the up-to-date branch requirement.
+
+### Validation commands
 
 ```sh
 fly validate-pipeline -c ci/general.pipeline.yml -l ci/vars.yml --strict
