@@ -1,5 +1,5 @@
 import {isOccurrenceDate} from '@budgetbuddyde/api/recurringPayment';
-import {recurringPayments} from '@budgetbuddyde/db/backend';
+import {recurringPaymentExecutions, recurringPayments} from '@budgetbuddyde/db/backend';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import {and, eq, lte} from 'drizzle-orm';
@@ -10,8 +10,6 @@ import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {executeScheduledRecurringPayment} from '../utils/executeScheduledRecurringPayment';
 
 const RECURRING_PAYMENT_BATCH_SIZE = 10;
-
-
 /**
  * Processes all due recurring payments and creates corresponding transactions.
  */
@@ -24,29 +22,42 @@ export async function processRecurringPayments() {
   });
 
   try {
-    // TODO: check if there are any exeuction logs for today
-    // if there are no logs, there is no need to further check... (as we haven't processed any recurring-payments for today)
-
     const candidatePayments = await db.query.recurringPayments.findMany({
       where: and(eq(recurringPayments.paused, false), lte(recurringPayments.startsOn, scheduledFor)),
     });
     const duePayments = candidatePayments.filter(payment => isOccurrenceDate(payment, scheduledFor));
-
-    // TODO: If we have any execution logs, check here (by ownerId, scheduledFor and content) if there are any matches
-    // if matches are existent, filter these records
+    const executions = await db
+      .select({
+        ownerId: recurringPaymentExecutions.ownerId,
+        recurringPaymentId: recurringPaymentExecutions.recurringPaymentId,
+      })
+      .from(recurringPaymentExecutions)
+      .where(eq(recurringPaymentExecutions.scheduledFor, scheduledFor));
+    const executedPayments = new Set(
+      executions.map(execution => `${execution.ownerId}:${execution.recurringPaymentId}`),
+    );
+    const paymentsToProcess = duePayments.filter(payment => !executedPayments.has(`${payment.ownerId}:${payment.id}`));
+    const alreadyExecutedCount = duePayments.length - paymentsToProcess.length;
 
     logger.info(`Found ${duePayments.length} recurring payments scheduled for ${scheduledFor}.`, {scheduledFor});
 
-    if (duePayments.length === 0) {
+    if (paymentsToProcess.length === 0) {
+      if (alreadyExecutedCount > 0) {
+        logger.info(`Skipped ${alreadyExecutedCount} recurring payments already executed for ${scheduledFor}.`, {
+          scheduledFor,
+          skippedCount: alreadyExecutedCount,
+        });
+        return;
+      }
       logger.info('No recurring payments to process. Exiting job.');
       return;
     }
 
     let processedCount = 0;
-    let skippedCount = 0;
+    let skippedCount = alreadyExecutedCount;
     let failedCount = 0;
-    for (let start = 0; start < duePayments.length; start += RECURRING_PAYMENT_BATCH_SIZE) {
-      const batch = duePayments.slice(start, start + RECURRING_PAYMENT_BATCH_SIZE);
+    for (let start = 0; start < paymentsToProcess.length; start += RECURRING_PAYMENT_BATCH_SIZE) {
+      const batch = paymentsToProcess.slice(start, start + RECURRING_PAYMENT_BATCH_SIZE);
       const results = await Promise.allSettled(
         batch.map(payment => executeScheduledRecurringPayment(payment, scheduledFor, today)),
       );
@@ -95,25 +106,4 @@ export async function processRecurringPayments() {
     const error = err instanceof Error ? err : new Error(String(err));
     logger.error('Error processing recurring payments:', error);
   }
-}
-
-export function createPaymentString(recurringPayment: object): string {
-  const string = JSON.stringify({
-    ownerId: "",
-    date: "2000-01-01",
-    categoryId: "",
-    paymentMethodId: "",
-    receiver: "",
-    transferAmount: -10.00,
-    information: null
-  });
-  return Buffer.from(string, "utf8").toString("base64");
-
-}
-
-function retrievePaymentStringDetails(base64String: string) {
-  const decodedString = Buffer.from(base64String, "base64").toString("utf8");
-  // TODO: Use Zod to parse stringified JSON
-  const parsedValue = {};
-  return parsedValue;
 }

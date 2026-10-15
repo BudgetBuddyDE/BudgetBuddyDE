@@ -57,6 +57,16 @@ it('reserves and links an occurrence in the same transaction with the original p
     ownerId: payment.ownerId,
     recurringPaymentId: payment.id,
     scheduledFor: '2026-10-14',
+    content: JSON.stringify({
+      version: 1,
+      ownerId: payment.ownerId,
+      scheduledFor: '2026-10-14',
+      categoryId: payment.categoryId,
+      paymentMethodId: payment.paymentMethodId,
+      receiver: payment.receiver,
+      transferAmount: payment.transferAmount,
+      information: payment.information,
+    }),
   });
   const {id: _id, ...transactionData} = payment;
   expect(values).toHaveBeenNthCalledWith(2, {...transactionData, processedAt});
