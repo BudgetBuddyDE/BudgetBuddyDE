@@ -16,6 +16,10 @@ go build ./...
 
 `evaluate` is a local policy diagnostic, not an authenticated code-safety attestation. `run` performs snapshot verification, analysis, S3 reuse and GitHub publication. `reconcile` scans open PRs against the configured base branch and runs reviews serially; it also catches target-branch changes. Run only one instance per repository, including manual invocations.
 
+## Verify CI progress
+
+In Concourse, open `pull-request-ai-review` and inspect the `review-open-pull-requests` task. Expect timestamped phase logs, including `review_started`, `snapshot_ready`, `cache_hit` or `cache_miss`, and `check_completed`. A cache hit reuses an existing report, so per-unit analysis logs are only emitted for a fresh analysis. Verify the final result in the PR's `ai-review/gate` check and summary comment, not in the separate Go verification task.
+
 ## Environment
 
 | Variable                 | Purpose                                                     |
