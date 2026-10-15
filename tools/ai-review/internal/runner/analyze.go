@@ -71,7 +71,7 @@ func analyze(ctx context.Context, endpoint, key, model string, p config.Policy, 
 			} `json:"choices"`
 		}
 		err := request(ctx, client, "POST", strings.TrimRight(endpoint, "/")+"/chat/completions", key, map[string]any{
-			"model": model, "temperature": 0, "max_tokens": 8192, "response_format": map[string]string{"type": "json_object"},
+			"model": model, "max_tokens": 8192, "response_format": map[string]string{"type": "json_object"},
 			"messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": string(input)}},
 		}, &response)
 		if err != nil {
