@@ -38,6 +38,8 @@ AWS credentials use the SDK default credential chain, including workload roles, 
 
 ## Behavior and boundaries
 
+The CI task writes timestamped progress logs to stderr: discovery, PR/head, check creation, policy load, snapshot file count, cache hit/miss, per-unit analysis progress and duration, gate decision, publication and completion. Logs intentionally omit filenames, source, prompts, model responses and credentials. `successful=false` includes both blocking findings and technical failures; the preceding gate/check events distinguish them.
+
 - Loads `.ai-review` from the exact target-branch SHA, never PR instructions. Git tree modes reject symlinks/submodules before the Contents API can dereference them.
 - Path scopes support `**`, exact paths and directory prefixes ending in `/**`; unsupported syntax fails validation.
 - Fetches full changed text files and patches at immutable references. Deleted files use merge-base content. No PR code or Git hooks execute.

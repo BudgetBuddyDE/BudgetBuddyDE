@@ -67,6 +67,11 @@ func Environment() (Options, error) {
 // Run is a trusted, tool-free orchestrator. The model only receives explicitly
 // serialized source and instructions, never environment variables or capabilities.
 func Run(ctx context.Context, o Options) (returnErr error) {
+	started := time.Now()
+	progress("review_started", o.PR, "head", o.ExpectedHead)
+	defer func() {
+		progress("review_finished", o.PR, "elapsed_ms", time.Since(started).Milliseconds(), "successful", returnErr == nil)
+	}()
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 	jwt, err := appJWT(o.AppID, o.PrivateKey)
@@ -99,6 +104,7 @@ func Run(ctx context.Context, o Options) (returnErr error) {
 	if checkID == 0 {
 		return fmt.Errorf("missing check ID")
 	}
+	progress("check_started", o.PR, "check_id", checkID)
 	p, err := g.getPull(ctx, o)
 	if err != nil {
 		return err
@@ -107,6 +113,7 @@ func Run(ctx context.Context, o Options) (returnErr error) {
 	if err != nil {
 		return fmt.Errorf("trusted policy unavailable: %w", err)
 	}
+	progress("policy_loaded", o.PR, "base", p.Base.SHA, "policy_hash", trusted.Hash, "criteria", len(trusted.Config.Criteria))
 	duration, _ := time.ParseDuration(trusted.Config.Limits.Timeout)
 	if duration > 10*time.Minute {
 		duration = 10 * time.Minute
@@ -117,6 +124,7 @@ func Run(ctx context.Context, o Options) (returnErr error) {
 	if err != nil {
 		return err
 	}
+	progress("snapshot_ready", o.PR, "files", len(files))
 	if _, err = g.getUnchanged(ctx, o, p); err != nil {
 		return err
 	}
@@ -138,6 +146,7 @@ func Run(ctx context.Context, o Options) (returnErr error) {
 	}
 	var report review.Report
 	if cached != nil {
+		progress("cache_hit", o.PR)
 		if cached.Identity != identity {
 			return fmt.Errorf("stored identity mismatch")
 		}
@@ -146,6 +155,7 @@ func Run(ctx context.Context, o Options) (returnErr error) {
 			return err
 		}
 	} else {
+		progress("cache_miss", o.PR)
 		report, err = analyze(analysisCtx, o.Endpoint, o.APIKey, o.Model, trusted, files, o.MaxCalls)
 		if err != nil {
 			return err
@@ -156,11 +166,14 @@ func Run(ctx context.Context, o Options) (returnErr error) {
 		if err := s.save(ctx, key, stored{identity, report}); err != nil {
 			return err
 		}
+		progress("report_stored", o.PR)
 	}
 	decision := policy.Evaluate(trusted.Config, report)
+	progress("policy_evaluated", o.PR, "findings", len(report.Findings), "completed_units", len(report.CompletedUnits), "allowed", decision.Allowed)
 	if _, err = g.getUnchanged(ctx, o, p); err != nil {
 		return err
 	}
+	progress("publishing_started", o.PR)
 	if err := g.publish(ctx, o, p, identity, trusted.Hash, report, decision, files, trusted.Config.Publishing.MaxInlineComments, trusted.Config.Publishing.Suggestions); err != nil {
 		return err
 	}
@@ -175,6 +188,7 @@ func Run(ctx context.Context, o Options) (returnErr error) {
 		return err
 	}
 	completed = true
+	progress("check_completed", o.PR, "conclusion", conclusion)
 	if !decision.Allowed {
 		return fmt.Errorf("review contains blocking findings or invalid analysis")
 	}

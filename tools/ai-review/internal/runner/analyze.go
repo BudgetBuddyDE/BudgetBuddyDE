@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/budgetbuddyde/budgetbuddyde/tools/ai-review/internal/config"
 	"github.com/budgetbuddyde/budgetbuddyde/tools/ai-review/internal/review"
@@ -39,7 +40,9 @@ func analyze(ctx context.Context, endpoint, key, model string, p config.Policy, 
 	if len(files) > maxCalls || len(files) > p.Config.Limits.MaxModelCalls {
 		return r, fmt.Errorf("model call budget exceeded")
 	}
-	for _, f := range files {
+	for index, f := range files {
+		started := time.Now()
+		progress("analysis_unit_started", 0, "unit", index+1, "total", len(files))
 		var criteria []config.Criterion
 		for _, c := range p.Config.Criteria {
 			for _, pattern := range c.Paths {
@@ -100,6 +103,7 @@ func analyze(ctx context.Context, endpoint, key, model string, p config.Policy, 
 			r.Findings = append(r.Findings, finding)
 		}
 		r.CompletedUnits = append(r.CompletedUnits, f.Name)
+		progress("analysis_unit_completed", 0, "unit", index+1, "total", len(files), "findings", len(output.Findings), "elapsed_ms", time.Since(started).Milliseconds())
 	}
 	return r, nil
 }
