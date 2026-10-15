@@ -34,7 +34,7 @@ go build ./...
 | `REVIEW_S3_BUCKET`       | Private durable report bucket                               |
 | `AWS_REGION`             | Bucket region                                               |
 
-AWS credentials use the SDK default credential chain, including workload roles, web identity, or environment credentials. LiteLLM must support JSON object response format, temperature 0 and `max_tokens`. Configure model access, provider-side budgets and rate limits on the virtual key. No automatic model retries are performed.
+AWS credentials use the SDK default credential chain, including workload roles, web identity, or environment credentials. LiteLLM must support JSON object response format and `max_tokens`. The runner does not set `temperature` or `reasoning_effort`, preserving model/provider defaults and compatibility with reasoning models. Configure model access, provider-side budgets and rate limits on the virtual key. No automatic model retries are performed.
 
 ## Behavior and boundaries
 

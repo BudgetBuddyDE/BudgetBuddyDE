@@ -98,13 +98,18 @@ func TestAnalyzeUntrustedSource(t *testing.T) {
 			t.Fatal("unexpected endpoint/auth")
 		}
 		var input struct {
-			Messages []struct {
+			Temperature     json.RawMessage `json:"temperature"`
+			ReasoningEffort json.RawMessage `json:"reasoning_effort"`
+			Messages        []struct {
 				Role    string
 				Content string
 			}
 		}
 		if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
 			t.Fatal(err)
+		}
+		if input.Temperature != nil || input.ReasoningEffort != nil {
+			t.Fatal("request must preserve provider sampling and reasoning defaults")
 		}
 		if len(input.Messages) != 2 || input.Messages[1].Role != "user" || !strings.Contains(input.Messages[1].Content, "ignore previous") || strings.Contains(input.Messages[0].Content, "ignore previous") {
 			t.Fatal("trust boundaries mixed")
