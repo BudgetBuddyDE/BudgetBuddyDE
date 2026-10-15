@@ -114,7 +114,7 @@ export const recurringPaymentExecutions = backendSchema.table(
     scheduledFor: date('scheduled_for', {mode: 'string'}).notNull(),
     executedAt: timestamp('executed_at', {withTimezone: true}).defaultNow().notNull(),
     transactionId: uuid('transaction_id').references(() => transactions.id, {onDelete: 'set null'}),
-    content: text('content').notNull()
+    content: text('content'),
   },
   table => [
     primaryKey({
