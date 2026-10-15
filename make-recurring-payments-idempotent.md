@@ -11,7 +11,7 @@ Verarbeitungsablauf sind implementiert, einschließlich Migration, Unit- und Pos
 Die Migration wurde ausschließlich in einer isolierten Testdatenbank angewendet; der produktive Rollout steht noch aus.
 Weitere fachliche oder technische Entscheidungen sollen mit dem Auftraggeber abgestimmt werden.
 
-Die Garantie lautet bewusst **„höchstens einmal automatisch gebucht“**, nicht „jeder Termin wird garantiert gebucht“.
+Die Garantie lautet **„höchstens einmal pro Zahlungsinhalt und Termin automatisch gebucht“**, nicht „jeder Termin wird garantiert gebucht“.
 
 ## Ausgangszustand vor der Umsetzung
 
@@ -28,19 +28,17 @@ Die Garantie lautet bewusst **„höchstens einmal automatisch gebucht“**, nic
 
 ### Identität einer automatischen Ausführung
 
-Eine automatische Ausführung wird durch die **ID der wiederkehrenden Zahlung und ihr geplantes Datum**, jeweils dem
-Besitzer zugeordnet, identifiziert.
+Eine automatische Ausführung wird durch **Besitzer, Zahlungs-ID, geplantes Datum und SHA-256-Fingerabdruck des JSON-Inhalts** identifiziert.
 
-Der ursprünglich vorgeschlagene Hash über veränderliche Zahlungsdaten entfällt. Eine Änderung von Betrag, Empfänger,
-Kategorie, Zahlungsmethode oder anderen Feldern darf keine zweite automatische Buchung desselben Termins ermöglichen.
+Der Inhalt ist deterministisches, versioniertes JSON mit ownerId, scheduledFor, categoryId, paymentMethodId, receiver, transferAmount und information, als kompakter UTF-8-JSON-Text gespeichert. Änderungen an diesen Zahlungsdaten erlauben eine zusätzliche vollständige Buchung, keine Differenzbuchung. Alle bereits gebuchten Inhaltsversionen bleiben geschützt; eine Rückänderung erlaubt keine erneute Buchung. Zeitplan-Metadaten sind kein Zahlungsinhalt.
 Zwei eigenständige wiederkehrende Zahlungen mit identischen Zahlungsdaten müssen unabhängig voneinander gebucht werden.
 
 ### Verhalten bei Wiederholung und Änderungen
 
-- Mehrere Jobläufe für dieselbe Zahlungs-ID und dasselbe geplante Datum erzeugen höchstens eine automatische Transaktion.
+- Mehrere Jobläufe für dieselbe Zahlungs-ID, dasselbe Datum und denselben Zahlungsinhalt erzeugen höchstens eine automatische Transaktion.
 - Parallele Jobläufe und mehrere Backend-Instanzen unterliegen demselben Schutz.
-- Nach einer erfolgreichen Buchung ermöglichen Änderungen an Zahlungsdaten keine erneute automatische Ausführung für
-  denselben Termin. Noch nicht ausgeführte Termine verwenden die dann geltenden Zahlungsdaten.
+- Nach einer erfolgreichen Buchung ermöglichen neue Zahlungsinhalte eine zusätzliche vollständige automatische Buchung
+  desselben Termins. Identische Inhalte werden auch nach zwischenzeitlichen Änderungen übersprungen.
 - Das Bearbeiten oder Löschen einer automatisch erzeugten Transaktion hebt den Ausführungsnachweis nicht auf.
 - Das Löschen einer wiederkehrenden Zahlung entfernt ihre Ausführungsnachweise nicht. Bereits erzeugte Transaktionen
   bleiben wie bisher bestehen.
@@ -83,20 +81,21 @@ Die manuelle Ausführung bleibt eine bewusste **Zusatzbuchung unabhängig vom Ze
 In `packages/db/src/backend` wird eine neue interne Tabelle eingeführt, beispielsweise
 `recurring_payment_execution`, mit folgenden Feldern:
 
-| Feld                   | Zweck                                                                    |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `owner_id`             | Besitzer; wird bei Kontolöschung mit entfernt                            |
-| `recurring_payment_id` | Dauerhaft gespeicherte Identität der wiederkehrenden Zahlung             |
-| `scheduled_for`        | Geplantes Datum als `YYYY-MM-DD`, ohne Uhrzeit                           |
-| `executed_at`          | Tatsächlicher Ausführungszeitpunkt                                       |
-| `transaction_id`       | Optionale Referenz auf die erzeugte Transaktion                          |
-| `content`              | Optionaler, versionierter JSON-Text-Snapshot der gebuchten Zahlungsdaten |
+| Feld                   | Zweck                                                               |
+| ---------------------- | ------------------------------------------------------------------- |
+| `owner_id`             | Besitzer; wird bei Kontolöschung mit entfernt                       |
+| `recurring_payment_id` | Dauerhaft gespeicherte Identität der wiederkehrenden Zahlung        |
+| `scheduled_for`        | Geplantes Datum als `YYYY-MM-DD`, ohne Uhrzeit                      |
+| `executed_at`          | Tatsächlicher Ausführungszeitpunkt                                  |
+| `transaction_id`       | Optionale Referenz auf die erzeugte Transaktion                     |
+| `content`              | Optionaler, versionierter JSON-Snapshot der gebuchten Zahlungsdaten |
 
-Ein Datenbank-Constraint erzwingt die Eindeutigkeit von **Besitzer + Zahlungs-ID + geplantem Datum**.
+Ein Datenbank-Constraint erzwingt die Eindeutigkeit von **Besitzer + Zahlungs-ID + geplantem Datum + content_hash**.
+Der SHA-256-Fingerabdruck begrenzt die Indexgröße unabhängig von der Länge des JSON-Inhalts.
 
-Der optionale Snapshot dient der Dokumentation der tatsächlich verwendeten Zahlungsdaten und ist ausdrücklich kein
-weiterer Duplikatschlüssel. Er wird als kompakter JSON-Text gespeichert, nicht als Base64. Historische Nachweise dürfen
-keinen Snapshot enthalten; die Spalte bleibt deshalb nullable.
+Der Snapshot dokumentiert die tatsächlich verwendeten Zahlungsdaten und bestimmt über seinen Fingerabdruck den Duplikatschutz.
+Migration 0011 führt inhaltsbasierte Fingerabdrücke ein. Migration 0012 dekodiert die Base64-Inhalte zurück nach JSON und berechnet die Fingerabdrücke atomar neu; die JSON-Bytes bleiben unverändert. Historische Nachweise ohne Snapshot
+bleiben mit leerem Fingerabdruck für den ganzen Termin sperrend; die Spalte content bleibt nullable.
 
 Die Löschregeln müssen die fachlichen Anforderungen erhalten:
 
@@ -185,11 +184,11 @@ Self-Hosting-Dokumentation beschrieben.
 
 ### Idempotenz und Datenidentität
 
-- Wiederholte Ausführung derselben Zahlungs-ID für dasselbe geplante Datum erzeugt genau eine automatische Transaktion.
-- Parallele Ausführung desselben Termins erzeugt genau eine automatische Transaktion und einen Ausführungsnachweis.
+- Wiederholte Ausführung derselben Zahlungs-ID mit gleichem Inhalt für dasselbe Datum erzeugt genau eine automatische Transaktion.
+- Parallele Ausführung desselben Inhalts und Termins erzeugt genau eine automatische Transaktion und einen Ausführungsnachweis.
 - Unterschiedliche Zahlungs-IDs werden trotz identischer Zahlungsdaten unabhängig voneinander gebucht.
 - Unterschiedliche geplante Daten derselben Zahlungs-ID sind unabhängig voneinander ausführbar.
-- Änderungen an Zahlungsdaten ermöglichen keine erneute Buchung eines bereits ausgeführten Termins.
+- Geänderte Zahlungsdaten erlauben genau eine zusätzliche Buchung desselben Termins; Wiederholungen und Rückänderungen werden übersprungen.
 - Benutzerkonten und ihre Ausführungsnachweise bleiben voneinander isoliert.
 
 ### Atomarität und Fehlerverhalten
@@ -246,7 +245,7 @@ Folgende Seiten werden gezielt angepasst:
 
 - Neue Tabelle, Eindeutigkeit und Besitzermodell ergänzen.
 - Atomare Verarbeitung und die Löschregeln dokumentieren.
-- Erklären, warum veränderliche Zahlungsdaten nicht Teil des Duplikatschlüssels sind.
+- JSON-Inhalt, Fingerabdruck, zusätzliche Buchungen bei Änderungen und Schutz bei Rückänderungen erklären.
 
 ### `apps/documentation/docs/self-hosting/updating.md`
 

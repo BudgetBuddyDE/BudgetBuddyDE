@@ -25,11 +25,11 @@ Open **Recurring payments** and create an entry with the following fields:
 
 The backend processes recurring payments once per day (by default at 01:30 in the configured instance timezone). It creates transactions only for occurrences scheduled for **today**, using the same receiver, amount, category, and payment method. Paused entries are skipped. Missed days, including days when the backend was offline, are not caught up.
 
-Each recurring payment can create **at most one automatic transaction per scheduled date**. Repeated or concurrent job runs, including runs in multiple updated backend instances sharing the database, skip occurrences that were already executed. Two separate recurring payments with identical details are still processed independently.
+Each recurring payment can create **at most one automatic transaction per distinct payment content and scheduled date**. Repeated or concurrent job runs, including runs in multiple updated backend instances sharing the database, skip payment contents that were already executed for that occurrence. Two separate recurring payments with identical details are still processed independently.
 
-Changing the amount, receiver, or other details after execution does not allow another automatic booking for that date. Editing or deleting the generated transaction does not reset the execution record either. Occurrences not yet executed use the payment details in effect when they are processed.
+Changing the amount, receiver, category, payment method, or information after execution allows an additional full booking on a later job run on the same scheduled date. It does not replace the old transaction or book only the difference. Returning to any content already booked on that date is skipped. Schedule metadata such as the execution plan is not payment content. Editing or deleting the generated transaction does not reset its execution record. Historical records without a content snapshot continue to block that occurrence because their original payment details are unknown.
 
-Failed bookings leave no execution record and can be attempted again by another job run on the same day. No additional automatic retries are scheduled, and the next day's job does not retry the missed date. The guarantee is at most one automatic booking, not guaranteed execution of every occurrence.
+Failed bookings leave no execution record and can be attempted again by another job run on the same day. No additional automatic retries are scheduled, and the next day's job does not retry the missed date. The guarantee is at most one automatic booking per distinct payment content and occurrence, not guaranteed execution of every occurrence.
 
 The protection starts with the idempotency update; older transactions are not matched retrospectively. Self-hosted instances must follow the [coordinated rollout](/self-hosting/updating#recurring-payment-idempotency-cutover).
 
