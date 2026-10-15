@@ -14,17 +14,17 @@ icon: Database
 
 ## Domain tables
 
-| Table                         | Purpose                              | Notable columns                                                                                                       |
-| ----------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| `payment_method`              | Payment methods                      | `name`, `provider`, `address`, `owner_id`                                                                             |
-| `category`                    | Categories                           | `name`, `description`, `owner_id`                                                                                     |
-| `transaction`                 | Income and expenses                  | `category_id`, `payment_method_id`, `processed_at`, `receiver`, `transfer_amount` (positive income, negative expense) |
-| `recurring_payment`           | Scheduled payments                   | `execution_plan` (`daily`, `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly`), `starts_on`, `paused`             |
-| `recurring_payment_execution` | Internal automatic execution records | `owner_id`, `recurring_payment_id`, `scheduled_for` (composite primary key), `executed_at`, nullable `transaction_id` |
-| `budget`                      | Monthly goals                        | `type` (`i` income, `e` expense), `name`, `budget` (amount)                                                           |
-| `budget_category`             | Budget ↔ category link               | Composite primary key                                                                                                 |
-| `attachment`                  | Attachment metadata                  | `file_name`, `file_extension`, `content_type`, `location` (unique, S3 key); IDs are UUIDv7                            |
-| `transaction_attachment`      | Transaction ↔ attachment link        | Composite primary key                                                                                                 |
+| Table                         | Purpose                              | Notable columns                                                                                                                     |
+| ----------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `payment_method`              | Payment methods                      | `name`, `provider`, `address`, `owner_id`                                                                                           |
+| `category`                    | Categories                           | `name`, `description`, `owner_id`                                                                                                   |
+| `transaction`                 | Income and expenses                  | `category_id`, `payment_method_id`, `processed_at`, `receiver`, `transfer_amount` (positive income, negative expense)               |
+| `recurring_payment`           | Scheduled payments                   | `execution_plan` (`daily`, `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly`), `starts_on`, `paused`                           |
+| `recurring_payment_execution` | Internal automatic execution records | `owner_id`, `recurring_payment_id`, `scheduled_for` (composite primary key), `executed_at`, nullable `transaction_id` and `content` |
+| `budget`                      | Monthly goals                        | `type` (`i` income, `e` expense), `name`, `budget` (amount)                                                                         |
+| `budget_category`             | Budget ↔ category link               | Composite primary key                                                                                                               |
+| `attachment`                  | Attachment metadata                  | `file_name`, `file_extension`, `content_type`, `location` (unique, S3 key); IDs are UUIDv7                                          |
+| `transaction_attachment`      | Transaction ↔ attachment link        | Composite primary key                                                                                                               |
 
 ## Ownership and deletion
 
@@ -50,6 +50,8 @@ The integrated backend uses one PostgreSQL connection for auth and domain schema
 `recurring_payment_execution` identifies an automatic occurrence by owner, recurring-payment ID, and scheduled date. Mutable payment details are not part of the key: changing an amount or receiver must not permit a second automatic booking for the same date. Separate schedule IDs remain independent even when their details match.
 
 `executeScheduledRecurringPayment` reserves the key using `INSERT ... ON CONFLICT DO NOTHING`, creates the transaction, and links it to the execution record in one Drizzle transaction. A conflict means **skipped**, not failed. Any write failure rolls back both the reservation and the booking; only successful commits leave execution records. A concurrent contender waits for the database to resolve the unique-key conflict. No distributed job lock or Redis key is required.
+
+New execution records store `content` as compact JSON text containing a versioned snapshot of the owner, scheduled date, and payment details used for the booking. The snapshot is validated when created; it is descriptive only and is not used as an idempotency key. The column is nullable so records created before this snapshot was introduced remain valid and continue to protect their occurrences.
 
 The transaction reference is always assigned from the new booking created for the same owner by this internal path. There is no foreign key to `recurring_payment`, so deleting a schedule does not erase its protection. Deleting a generated transaction sets `transaction_id` to null without reopening the occurrence. Records have no automatic retention cleanup and are deleted with the owner account.
 

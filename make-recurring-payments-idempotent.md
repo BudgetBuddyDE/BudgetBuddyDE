@@ -83,15 +83,20 @@ Die manuelle Ausführung bleibt eine bewusste **Zusatzbuchung unabhängig vom Ze
 In `packages/db/src/backend` wird eine neue interne Tabelle eingeführt, beispielsweise
 `recurring_payment_execution`, mit folgenden Feldern:
 
-| Feld                   | Zweck                                                        |
-| ---------------------- | ------------------------------------------------------------ |
-| `owner_id`             | Besitzer; wird bei Kontolöschung mit entfernt                |
-| `recurring_payment_id` | Dauerhaft gespeicherte Identität der wiederkehrenden Zahlung |
-| `scheduled_for`        | Geplantes Datum als `YYYY-MM-DD`, ohne Uhrzeit               |
-| `executed_at`          | Tatsächlicher Ausführungszeitpunkt                           |
-| `transaction_id`       | Optionale Referenz auf die erzeugte Transaktion              |
+| Feld                   | Zweck                                                                    |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `owner_id`             | Besitzer; wird bei Kontolöschung mit entfernt                            |
+| `recurring_payment_id` | Dauerhaft gespeicherte Identität der wiederkehrenden Zahlung             |
+| `scheduled_for`        | Geplantes Datum als `YYYY-MM-DD`, ohne Uhrzeit                           |
+| `executed_at`          | Tatsächlicher Ausführungszeitpunkt                                       |
+| `transaction_id`       | Optionale Referenz auf die erzeugte Transaktion                          |
+| `content`              | Optionaler, versionierter JSON-Text-Snapshot der gebuchten Zahlungsdaten |
 
 Ein Datenbank-Constraint erzwingt die Eindeutigkeit von **Besitzer + Zahlungs-ID + geplantem Datum**.
+
+Der optionale Snapshot dient der Dokumentation der tatsächlich verwendeten Zahlungsdaten und ist ausdrücklich kein
+weiterer Duplikatschlüssel. Er wird als kompakter JSON-Text gespeichert, nicht als Base64. Historische Nachweise dürfen
+keinen Snapshot enthalten; die Spalte bleibt deshalb nullable.
 
 Die Löschregeln müssen die fachlichen Anforderungen erhalten:
 
