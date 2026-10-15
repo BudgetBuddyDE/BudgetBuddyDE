@@ -23,7 +23,7 @@ resources:
       uri: git@github.com:((repo.owner))/((repo.name)).git
       private_key: ((github.private_key))
       branch: main
-      paths: [packages/db/drizzle/**]
+      paths: [packages/db/**]
   - name: db-bucket
     type: s3
     icon: database-import

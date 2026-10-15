@@ -26,6 +26,19 @@ or Docker image publishing in this pipeline. Existing tags and S3 version data
 are not deleted. `database.pipeline.yml` remains independent and retains its
 backup and migration tasks.
 
+## Database migrations
+
+The database migration task installs dependencies with `npm ci` at the repository
+root, then runs `npm run build -- --filter=@budgetbuddyde/db`. Turborepo builds the
+database workspace and its internal dependencies in dependency order so Drizzle
+can load the compiled `@budgetbuddyde/core` exports from its configuration.
+The task then checks and applies migrations from `packages/db`.
+
+Changes under `packages/db/**` trigger the test migration job. If there are no
+pending migrations, no database schema changes are applied.
+Production migrations remain manual and only use repository versions that have
+passed `update-test-database`.
+
 ## Configuration
 
 Load `ci/vars.yml` when setting the pipeline. Supply these secrets through the
@@ -43,6 +56,7 @@ database pipeline still requires its own credentials.
 
 ```sh
 fly validate-pipeline -c ci/general.pipeline.yml -l ci/vars.yml --strict
+fly validate-pipeline -c ci/database.pipeline.yml -l ci/vars.yml --strict
 npm run ci
 ```
 

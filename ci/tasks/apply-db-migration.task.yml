@@ -23,8 +23,11 @@ run:
   args:
     - -ec
     - |
-      cd repository/packages/db/
+      cd repository
       : "${DATABASE_URL:?DATABASE_URL has not been set}"
       npm ci
+      npm run build -- --filter=@budgetbuddyde/db
+
+      cd packages/db
       npx --no-install drizzle-kit check
       npm run db:migrate
