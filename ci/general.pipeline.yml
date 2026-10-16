@@ -128,9 +128,9 @@ jobs:
               AWS_ACCESS_KEY_ID: ((s3-ai-review.access_key_id))
               AWS_SECRET_ACCESS_KEY: ((s3-ai-review.access_key_secret))
               LITELLM_BASE_URL: ((litellm.host))
-              LITELLM_MODEL: ((ai-review.model))
-              LITELLM_CONTEXT_WINDOW: ((ai-review.contextWindow))
-              LITELLM_PROFILE_REVISION: ((ai-review.profileRevision))
+              LITELLM_MODEL: ((ai-review-settings.model))
+              LITELLM_CONTEXT_WINDOW: ((ai-review-settings.contextWindow))
+              LITELLM_PROFILE_REVISION: ((ai-review-settings.profileRevision))
           - task: analyze-ai-review
             image: image
             timeout: 10m
@@ -138,9 +138,9 @@ jobs:
             params:
               LITELLM_API_KEY: ((litellm.apiKey))
               LITELLM_BASE_URL: ((litellm.host))
-              LITELLM_MODEL: ((ai-review.model))
-              LITELLM_CONTEXT_WINDOW: ((ai-review.contextWindow))
-              LITELLM_PROFILE_REVISION: ((ai-review.profileRevision))
+              LITELLM_MODEL: ((ai-review-settings.model))
+              LITELLM_CONTEXT_WINDOW: ((ai-review-settings.contextWindow))
+              LITELLM_PROFILE_REVISION: ((ai-review-settings.profileRevision))
           - task: publish-ai-review
             image: image
             file: ci-source/ci/tasks/publish-ai-review.task.yml

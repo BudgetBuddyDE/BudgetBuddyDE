@@ -16,7 +16,7 @@ Reuse `litellm.host` for the OpenAI-compatible base URL including `/v1`, and `li
 Set the nonsecret operator parameters in `ci/vars.yml`:
 
 ```yaml
-ai-review:
+ai-review-settings:
   model: code-review
   contextWindow: 32000
   profileRevision: '1'

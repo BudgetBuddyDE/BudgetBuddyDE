@@ -6,7 +6,7 @@ repo:
   name: budgetbuddyde
   pr:
     branch: main
-ai-review:
+ai-review-settings:
   model: code-review
   # Set to the actual context window exposed by this LiteLLM model alias.
   contextWindow: 32000

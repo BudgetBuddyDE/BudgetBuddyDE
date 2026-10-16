@@ -73,8 +73,9 @@ AI review reuses these credential-manager variables:
 - `s3-ai-review.bucket`, `s3-ai-review.region`, `s3-ai-review.access_key_id`,
   `s3-ai-review.access_key_secret`: private result cache.
 
-`ai-review.model`, `ai-review.contextWindow` and `ai-review.profileRevision` are
-nonsecret parameters in `ci/vars.yml`. The initial context limit is 32000 tokens;
+`ai-review-settings.model`, `ai-review-settings.contextWindow` and `ai-review-settings.profileRevision` are
+nonsecret parameters in `ci/vars.yml`. Their separate namespace keeps static
+settings from shadowing the `ai-review` credentials in the credential manager. The initial context limit is 32000 tokens;
 verify it does not exceed the actual alias capacity. Increment the profile
 revision whenever model routing or capabilities change. Fallbacks are disabled.
 
@@ -110,8 +111,7 @@ See [architecture](../docs/ai-pr-review-concept.md) and
 ### Validation commands
 
 ```sh
-# Add a secret vars file for offline validation, or use placeholders.
-fly validate-pipeline -c ci/general.pipeline.yml -l ci/vars.yml -l /path/to/secret-vars.yml --strict
+fly validate-pipeline -c ci/general.pipeline.yml -l ci/vars.yml --strict
 fly validate-pipeline -c ci/database.pipeline.yml -l ci/vars.yml --strict
 npm run ci
 ```

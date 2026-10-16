@@ -1,5 +1,6 @@
 """Integration contracts between Concourse tasks and the installed adapter CLI."""
 
+import re
 from pathlib import Path
 
 import yaml
@@ -75,3 +76,26 @@ def test_task_artifacts_and_cli_contract():
     assert finalize["inputs"] == [{"name": "prepared", "optional": True}, {"name": "analyzed", "optional": True}]
     assert '--conclusion "$REVIEW_CONCLUSION"' in finalize["run"]["args"][-1]
     assert "--result analyzed" in finalize["run"]["args"][-1]
+
+
+def test_static_model_settings_do_not_shadow_credentials():
+    variables = yaml.safe_load((ROOT / "ci" / "vars.yml").read_text())
+    pipeline_text = (ROOT / "ci" / "general.pipeline.yml").read_text()
+    _, job = review_job()
+    assert {"model", "contextWindow", "profileRevision"} <= variables["ai-review-settings"].keys()
+    assert {"ai-review", "litellm", "s3-ai-review", "github"}.isdisjoint(variables)
+    for namespace, field in re.findall(r"\(\(([^():.\s]+)\.([^()\s]+)\)\)", pipeline_text):
+        if namespace in variables:
+            value = variables[namespace]
+            for part in field.split("."):
+                assert isinstance(value, dict) and part in value, f"Unresolved static var: {namespace}.{field}"
+                value = value[part]
+    prepare, analyze, publish = job["plan"][2]["do"]
+    for step in (prepare, analyze):
+        assert step["params"]["LITELLM_MODEL"] == "((ai-review-settings.model))"
+        assert step["params"]["LITELLM_CONTEXT_WINDOW"] == "((ai-review-settings.contextWindow))"
+        assert step["params"]["LITELLM_PROFILE_REVISION"] == "((ai-review-settings.profileRevision))"
+    for step in (prepare, publish):
+        assert step["params"]["GITHUB_APP_ID"] == "((ai-review.appId))"
+        assert step["params"]["GITHUB_INSTALLATION_ID"] == "((ai-review.installationId))"
+        assert step["params"]["GITHUB_APP_PRIVATE_KEY"] == "((ai-review.appPrivateKey))"
