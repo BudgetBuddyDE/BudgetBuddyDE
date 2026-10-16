@@ -1,61 +1,42 @@
-# AI review runner
+# PR-Agent Concourse adapter
 
-Standalone Go module, outside npm workspaces. Requires Go 1.25 or later.
+Python 3.12 integration of PR-Agent with immutable PR snapshots, LiteLLM, GitHub App checks and S3 result reuse. It replaces the previous Go review engine. PR-Agent is pinned to `95a3cd0dacfbab14803eacc7cdac68c82d8d0af9`; update the dependency lock and contract tests together when upgrading.
 
-## Commands
+## Development
 
 ```sh
-go run ./cmd/ai-review config validate ../../.ai-review
-go run ./cmd/ai-review evaluate ../../.ai-review report.json
-go run ./cmd/ai-review run
-go run ./cmd/ai-review reconcile
-go test -race ./...
-go vet ./...
-go build ./...
+cd tools/ai-review
+uv sync --locked
+uv run --locked ruff check .
+uv run --locked ruff format --check .
+uv run --locked pytest
 ```
 
-`evaluate` is a local policy diagnostic, not an authenticated code-safety attestation. `run` performs snapshot verification, analysis, S3 reuse and GitHub publication. `reconcile` scans open PRs against the configured base branch and runs reviews serially; it also catches target-branch changes. Run only one instance per repository, including manual invocations.
+The root npm checks do not install or test this separate Python project. Concourse runs its own verification task on main and PRs. Build the operational image from trusted main:
 
-## Environment
+```sh
+docker build -t budgetbuddy-pr-agent tools/ai-review
+```
 
-| Variable                 | Purpose                                                     |
-| ------------------------ | ----------------------------------------------------------- |
-| `REVIEW_REPOSITORY`      | `owner/repo`                                                |
-| `REVIEW_BASE_BRANCH`     | Allowed target branch, e.g. `main`                          |
-| `REVIEW_PR`              | PR number (`run` only)                                      |
-| `REVIEW_HEAD_SHA`        | Exact expected SHA (`run` only)                             |
-| `GITHUB_APP_ID`          | Numeric App ID                                              |
-| `GITHUB_INSTALLATION_ID` | Numeric installation ID                                     |
-| `GITHUB_APP_PRIVATE_KEY` | PEM RSA key from the credential manager                     |
-| `LITELLM_BASE_URL`       | HTTPS OpenAI-compatible base URL, including `/v1` if needed |
-| `LITELLM_API_KEY`        | Dedicated virtual key                                       |
-| `LITELLM_MODEL`          | Operator-approved model alias                               |
-| `REVIEW_MAX_CALLS`       | Optional hard call limit, default 20, maximum 100           |
-| `REVIEW_S3_BUCKET`       | Private durable report bucket                               |
-| `AWS_REGION`             | Bucket region                                               |
+Concourse uses its OCI build task and unpacked image directly, without pushing an image registry artifact.
 
-AWS credentials use the SDK default credential chain, including workload roles, web identity, or environment credentials. LiteLLM must support JSON object response format and `max_tokens`. The runner does not set `temperature` or `reasoning_effort`, preserving model/provider defaults and compatibility with reasoning models. Configure model access, provider-side budgets and rate limits on the virtual key. No automatic model retries are performed.
+## Task interfaces
 
-## Behavior and boundaries
+```sh
+python -m ai_review prepare --pr-resource pull-request --output prepared
+python -m ai_review analyze --input prepared --output analyzed
+python -m ai_review publish --input prepared --result analyzed
+python -m ai_review finalize --input prepared --conclusion failure
+```
 
-The CI task writes timestamped progress logs to stderr: discovery, PR/head, check creation, policy load, snapshot file count, cache hit/miss, per-unit analysis progress and duration, gate decision, publication and completion. Logs intentionally omit filenames, source, prompts, model responses and credentials. `successful=false` includes both blocking findings and technical failures; the preceding gate/check events distinguish them.
+Preparation receives `GITHUB_REPOSITORY`, `TARGET_BRANCH`, `GITHUB_APP_ID`, `GITHUB_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and nonsecret LiteLLM configuration. Analysis receives only `LITELLM_API_KEY` and `LITELLM_BASE_URL`, `LITELLM_MODEL`, `LITELLM_CONTEXT_WINDOW`, `LITELLM_PROFILE_REVISION`. Publication receives the GitHub App and S3 credentials. Cleanup receives the App credentials and a prepared check identity when available.
 
-- Loads `.ai-review` from the exact target-branch SHA, never PR instructions. Git tree modes reject symlinks/submodules before the Contents API can dereference them.
-- Path scopes support `**`, exact paths and directory prefixes ending in `/**`; unsupported syntax fails validation.
-- Fetches full changed text files and patches at immutable references. Deleted files use merge-base content. No PR code or Git hooks execute.
-- One model call per changed file, with all applicable criteria. Source is serialized as untrusted user data; only policy documents become instructions.
-- Limits: 100 files, 128 KiB per file, 2 MiB total source/patch input, 180 KiB per model input, 8,192 maximum output tokens per call, at most 10 minutes analysis / 15 minutes per PR. Unsupported files, absent/truncated patches and exceeded limits block rather than silently skip.
-- Exact source evidence and locations are revalidated, including cached reports. Only changed-line ranges receive inline comments. Other findings remain in the summary and affect the gate.
-- Immutable S3 reports use conditional writes under `reviews/<owner>/<repo>/<pr>/<identity>.json`. Identity includes SHAs, policy, runner, endpoint and model. Retrying the same completed identity does not ask the model again. Do not grant untrusted actors write access to this prefix.
-- Summary is updated only for the verified App bot. Inline fingerprints prevent duplicates. Publication errors do not grant success. Findings beyond the inline cap still affect policy.
-- Required check is `ai-review/gate`. A negative review exits nonzero after publishing a failure. Provider/storage/validation errors also fail the check. Abrupt container termination can leave a pending check, which blocks until the next reconciliation.
+Prepared artifacts contain snapshot data and trusted `.pr_agent.toml`, never credentials. They are untrusted code data and must not be executed. The registered snapshot provider supplies native `review` and `improve` with this fixed input and collects their structured outputs locally. Configuration is loaded from the fixed base commit; PR configuration does not override operator settings.
 
-## Deployment
+## Gate and retries
 
-Concourse builds this directory's Dockerfile from trusted `main` using the OCI build task and supplies its unpacked image directly to the review task. You do not need to publish a runner image or commit a binary image archive. The worker must support privileged image builds; the review task itself is not privileged. See `ci/README.md` for Vault variable mappings. Never build the operational runner from the PR being reviewed. The initial `.ai-review` policy must be merged through a maintainer-controlled bootstrap before making the check required.
+Complete `no_concerns_found` and `needs_review` pass; `changes_required`, invalid results, incomplete required coverage and technical errors block. Deleted files retain full review coverage using their old-content diff; suggestions for removed files are explicitly not applicable. All other required files must be covered by both tools. Timeouts and cancellation grant no success. The check is bound to the exact head SHA and state is checked again before publication and success.
 
-The initial version deliberately uses a single trusted orchestrator process. Credentials are never put in model context, but prepare/analyze/publish are not separate OS security domains. Use dedicated isolated Concourse workers and network egress restrictions; process-separated credentials are a future hardening step. There are no model tools, shell commands or automatic suggestion commits.
+S3 stores completed positive and negative analyses under a versioned identity containing immutable revisions, configuration and PR metadata hashes, model/adapter/upstream versions and a hash of adapter source plus the dependency lock. Retry publication uses that result without model calls; marked comments avoid duplicates. Older Go reports are retained but not imported. Inline suggestions are validated against snapshot ranges and never applied automatically. A summary captures findings beyond the fifteen inline-comment limit.
 
-Not implemented: merge queues, cross-file import traversal, distributed publisher locking, provider streaming, arbitrary glob syntax and hosted webhook reruns. PRs with unsupported contents fail closed. Prompt injection can still affect model judgment; this does not replace tests or human review. Local tests do not establish real GitHub ruleset enforcement; run the setup acceptance checks before production activation.
-
-See `docs/ai-pr-review-concept.md` and `docs/ai-review-github-app-setup.md` at repository root.
+See [architecture](../../docs/ai-pr-review-concept.md), [GitHub App setup and live acceptance](../../docs/ai-review-github-app-setup.md) and [CI operations](../../ci/README.md). Repository validation alone does not prove a live deployment or merge restriction.
