@@ -1,68 +1,44 @@
-# GitHub App setup for AI review
+# GitHub App setup for PR-Agent reviews
 
-Status: setup guide for the Go runner. Live acceptance requires your GitHub App, LiteLLM and S3 credentials.
+This guide describes deployment of the Python PR-Agent adapter. A committed pipeline is not a live deployment or an enforced merge gate. Complete the acceptance checklist before making the check mandatory.
 
-## Create and install the app
+## GitHub App
 
-1. Create a dedicated GitHub App in the repository owner's settings. Use a descriptive name and your project URL as homepage. Disable webhooks for the initial Concourse-only integration; no callback URL or user authorization is needed.
-2. Grant repository permissions: Contents read, Pull requests write, Checks write. Metadata read is implicit. Do not grant Contents write, Administration or Actions write.
-3. Install the app only on the BudgetBuddyDE repository.
-4. Record the App ID and installation ID; generate a private key. Store the private key in the Concourse credential manager, never in Git, build artifacts or model prompts.
-5. The trusted runner exchanges an App JWT for short-lived repository-scoped installation tokens. The initial orchestrator uses a read-only token for discovery and a write token for the review lifecycle. It never includes tokens or the private key in model context. Separate process credentials remain a future hardening step.
+1. Reuse the dedicated review App, or create one in the repository owner's settings. Disable webhooks for this Concourse polling integration. No callback URL or user authorization flow is needed.
+2. Grant repository permissions: **Contents: read**, **Pull requests: write**, **Checks: write**. Metadata read is implicit. Install it on the intended repository.
+3. Supply `ai-review.appId`, `ai-review.installationId` and `ai-review.appPrivateKey` through the Concourse credential manager. Preserve the PEM newlines in the private key. Never put credentials into Git or task artifacts.
+4. The adapter exchanges an App JWT for a short-lived installation token. Only preparation, publication and cleanup receive App credentials; the analysis task does not.
 
-## Enforce the gate (after implementation)
+## LiteLLM and Concourse variables
 
-1. Publish a test check named `ai-review/gate` from the app so GitHub can select it.
-2. Add a ruleset targeting `main`: require PRs, up-to-date branches, existing CI checks and `ai-review/gate`.
-3. Select this App as the expected source of the review check, not any source.
-4. Require code-owner review and review policy/runner changes with particular care. CODEOWNERS alone does not enforce approval.
-5. Restrict bypass permissions. Verify failed, missing, cancelled and stale checks block merging in a test repository first.
+Reuse `litellm.host` for the OpenAI-compatible base URL including `/v1`, and `litellm.apiKey` for a dedicated virtual key. The key is supplied only to analysis. Restrict its model access, budget and rate limits in LiteLLM. Budget exhaustion blocks the check until a successful retry.
 
-Merge queues and webhook-triggered reruns require additional implementation and are not supported yet. App administrators and ruleset administrators remain trusted operators.
+Set the nonsecret operator parameters in `ci/vars.yml`:
 
-## LiteLLM and storage
-
-Use a dedicated LiteLLM virtual API key with allowed models, budget and rate limits. The endpoint and model profile are operator-controlled; PR policy cannot override them. Configure TLS, redact logs and disable retention of raw prompts/code unless explicitly required. Provider-side budgets complement local call/token limits.
-
-Recommended durable storage: a dedicated private AWS S3 bucket. Enable Block Public Access, Bucket Owner Enforced ownership, encryption (SSE-S3 or SSE-KMS), TLS-only access and a lifecycle policy for automatic expiration. Prefer short-lived workload credentials and least-privilege access to the runner's prefix; avoid long-lived AWS access keys where possible.
-
-Store validated reports, run manifests and publication IDs by review identity. Do not retain raw prompts or code snapshots by default. Reports can contain code and sensitive findings, so restrict access and log only metadata. Define retention and version-expiration policies, including for noncurrent versions if bucket versioning is enabled.
-
-S3 is suitable for immutable artifacts and conditional writes, but is not a general distributed lock service. Initially serialize the Concourse review job. Add explicit concurrency coordination before allowing concurrent publishers.
-
-### Minimal bucket permissions
-
-Replace `BUCKET` and restrict the prefix further if the runner serves only one repository:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:PutObject"],
-      "Resource": "arn:aws:s3:::BUCKET/reviews/budgetbuddyde/budgetbuddyde/*"
-    }
-  ]
-}
+```yaml
+ai-review:
+  model: code-review
+  contextWindow: 32000
+  profileRevision: '1'
 ```
 
-The runner does not require object deletion or bucket listing. Missing objects must return `NoSuchKey`; depending on your bucket permissions S3 can instead return `AccessDenied`, which intentionally blocks the review. If needed, grant `s3:ListBucket` constrained by the runner prefix to allow missing-object detection. With SSE-KMS add narrowly scoped `kms:GenerateDataKey` and `kms:Decrypt` access to the selected key. Deny non-TLS access in the bucket policy.
+The context window must match the supported model profile and must never exceed its actual capacity. The model is sent as `openai/code-review`; implicit provider fallbacks are disabled. Increment the profile revision when changing the routing or capabilities behind an unchanged alias so cached reviews are not reused across different profiles.
 
-### Live acceptance checklist
+Supply S3 credentials through the existing variables `s3-ai-review.access_key_id`, `s3-ai-review.access_key_secret`, `s3-ai-review.bucket` and `s3-ai-review.region`. The private bucket stores completed PR-Agent analyses for retry reuse, including negative decisions. Existing Go reports remain untouched and are not accepted as new-format results.
 
-1. Merge the reviewed runner and initial policy through a trusted bootstrap. Concourse builds the Dockerfile from `main` and uses the output image directly; no runner registry is required. Populate the Concourse variables without committing secrets. Workers must allow the privileged OCI build task.
-2. Confirm a small clean text-only PR produces a summary and a successful App check.
-3. Introduce an obvious serious defect. Confirm a blocking finding and, where valid, a directly applicable inline suggestion.
-4. Enable the required App-sourced check. Confirm negative and missing checks prevent merge and a status from a different identity cannot satisfy the requirement.
-5. Break the LiteLLM key and deny S3 access in the test environment. Confirm no success is granted. Retry after repair and check report reuse and absence of duplicate comments.
-6. Push a new head and advance the target branch. Confirm checks bind to the correct head, stale runs fail and reconciliation reevaluates changed identities.
-7. Add instruction-like code comments and change `.ai-review` in a PR. Confirm the active policy still comes from the target commit. This tests boundaries, not a guarantee of model judgment.
-8. Verify Concourse worker egress, bucket expiration, secret redaction and restricted manual execution. Keep the review job serial; merge queues are not supported.
+Grant the adapter `s3:GetObject` and `s3:PutObject` for its review prefix. Missing objects must be distinguishable from denied reads; AWS may require prefix-constrained `s3:ListBucket` for this. Restrict access to the bucket because reports can contain code and security findings. Configure expiration according to your retention requirements. SSE-KMS buckets additionally need the selected key's encrypt/decrypt permissions.
 
-## Current deployment handoff
+## Load and accept the pipeline
 
-- GitHub App registered; credentials provided through `ai-review.appId`, `ai-review.installationId` and `ai-review.appPrivateKey`.
-- LiteLLM base URL: `https://ai.tklein.online/v1`, supplied by `litellm.host`; virtual key supplied by `litellm.apiKey`; model alias `code-review`.
-- S3 variables: `s3-ai-review.access_key_id`, `s3-ai-review.access_key_secret`, `s3-ai-review.bucket`, `s3-ai-review.region`.
-- **Still pending:** enable the required App-sourced `ai-review/gate` check in the `main` ruleset after live acceptance. App registration alone does not block merges.
+1. Merge the reviewed adapter, `.pr_agent.toml` and task definitions into trusted `main`. The image is built locally by the privileged Concourse OCI build task; no registry publication is required. Verify that workers support this build.
+2. Load `ci/general.pipeline.yml` with `ci/vars.yml` and credential-manager secrets, then unpause `pull-request-ai-review`. Keep `ai-review/gate` optional during acceptance.
+3. Open a small clean PR targeting `main`. Confirm a German summary, accurate head SHA, successful App check and visible coverage.
+4. Introduce a clear defect. Confirm `changes_required` produces failure and valid suggestions appear as applicable GitHub suggestions. Model judgment is probabilistic, so inspect the result rather than assuming a seeded defect is always detected.
+5. Push another commit, and then test a force-push while analysis runs. Confirm another build and check for the current head; old results must not approve it. Verify stale queued builds skip model calls.
+6. Intentionally fail the LiteLLM call in the test environment. Confirm no success, then repair and retry. Also test denied S3 access and publication failure. Completed analyses must be reused without duplicate comments or model calls.
+7. Modify `.pr_agent.toml` and add instruction-like PR content. Confirm active configuration comes from the fixed target commit and no PR code is executed by operational tasks.
+8. Confirm canceled, missing and in-progress checks grant no merge permission. Verify a retry after worker interruption closes or replaces the interrupted review appropriately.
+9. Only after these checks, require `ai-review/gate` in the `main` ruleset and select the dedicated App as the expected source. Retain existing CI requirements, require branches to be up to date and restrict bypass rights. Confirm an unrelated identity's status cannot satisfy this check.
+10. Verify a negative check actually prevents merging and a new commit requires its own successful check.
+
+Existing administrators remain trusted operators. Merge queues and manual override commands require additional implementation. To roll back enforcement, remove only the new required check from the ruleset and pause its job; retain normal CI requirements, App credentials and S3 data.

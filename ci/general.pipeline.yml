@@ -6,6 +6,7 @@ groups:
     jobs:
       - validate-build
       - pull-request
+      - pull-request-ai-review
   - name: maintenance
     jobs:
       - update-dependencies
@@ -24,6 +25,14 @@ resource_types:
       tag: '0.26.0'
 
 resources:
+  - name: ci-source
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repo.owner))/((repo.name)).git
+      branch: main
+      private_key: ((github.private_key))
+      disable_ci_skip: false
   - name: dependency-timer
     type: time
     icon: clock-outline
@@ -71,17 +80,114 @@ resources:
       access_token: ((github.pat))
 
 jobs:
+  # Review image and task definitions always come from trusted main.
+  - name: pull-request-ai-review
+    public: false
+    serial: true
+    plan:
+      - in_parallel:
+          - get: ci-source
+          - get: repository
+          - get: pull-request
+            resource: pr-((repo.pr.branch))
+            trigger: true
+            version: every
+            params:
+              integration_tool: checkout
+      - task: build-ai-review-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: repository
+          outputs:
+            - name: image
+          caches:
+            - path: cache
+          params:
+            CONTEXT: repository/tools/ai-review
+            UNPACK_ROOTFS: 'true'
+          run:
+            path: build
+      - do:
+          - task: prepare-ai-review
+            image: image
+            file: ci-source/ci/tasks/prepare-ai-review.task.yml
+            params:
+              GITHUB_REPOSITORY: ((repo.owner))/((repo.name))
+              TARGET_BRANCH: ((repo.pr.branch))
+              GITHUB_APP_ID: ((ai-review.appId))
+              GITHUB_INSTALLATION_ID: ((ai-review.installationId))
+              GITHUB_APP_PRIVATE_KEY: ((ai-review.appPrivateKey))
+              S3_BUCKET: ((s3-ai-review.bucket))
+              AWS_REGION: ((s3-ai-review.region))
+              AWS_ACCESS_KEY_ID: ((s3-ai-review.access_key_id))
+              AWS_SECRET_ACCESS_KEY: ((s3-ai-review.access_key_secret))
+              LITELLM_BASE_URL: ((litellm.host))
+              LITELLM_MODEL: ((ai-review.model))
+              LITELLM_CONTEXT_WINDOW: ((ai-review.contextWindow))
+              LITELLM_PROFILE_REVISION: ((ai-review.profileRevision))
+          - task: analyze-ai-review
+            image: image
+            timeout: 10m
+            file: ci-source/ci/tasks/analyze-ai-review.task.yml
+            params:
+              LITELLM_API_KEY: ((litellm.apiKey))
+              LITELLM_BASE_URL: ((litellm.host))
+              LITELLM_MODEL: ((ai-review.model))
+              LITELLM_CONTEXT_WINDOW: ((ai-review.contextWindow))
+              LITELLM_PROFILE_REVISION: ((ai-review.profileRevision))
+          - task: publish-ai-review
+            image: image
+            file: ci-source/ci/tasks/publish-ai-review.task.yml
+            params:
+              <<: &ai-review-app-params
+                GITHUB_REPOSITORY: ((repo.owner))/((repo.name))
+                GITHUB_APP_ID: ((ai-review.appId))
+                GITHUB_INSTALLATION_ID: ((ai-review.installationId))
+                GITHUB_APP_PRIVATE_KEY: ((ai-review.appPrivateKey))
+              S3_BUCKET: ((s3-ai-review.bucket))
+              AWS_REGION: ((s3-ai-review.region))
+              AWS_ACCESS_KEY_ID: ((s3-ai-review.access_key_id))
+              AWS_SECRET_ACCESS_KEY: ((s3-ai-review.access_key_secret))
+        timeout: 15m
+        on_failure:
+          task: fail-ai-review
+          image: image
+          file: ci-source/ci/tasks/finalize-ai-review.task.yml
+          params:
+            <<: *ai-review-app-params
+            REVIEW_CONCLUSION: failure
+        on_error:
+          task: error-ai-review
+          image: image
+          file: ci-source/ci/tasks/finalize-ai-review.task.yml
+          params:
+            <<: *ai-review-app-params
+            REVIEW_CONCLUSION: failure
+        on_abort:
+          task: cancel-ai-review
+          image: image
+          file: ci-source/ci/tasks/finalize-ai-review.task.yml
+          params:
+            <<: *ai-review-app-params
+            REVIEW_CONCLUSION: cancelled
   - name: update-dependencies
     public: false
     serial: true
     plan:
       - in_parallel:
+          - get: ci-source
           - get: dependency-timer
             trigger: true
           - get: repository
             resource: repository-write
       - task: update-dependencies
-        file: repository/ci/tasks/update-dependencies.task.yml
+        file: ci-source/ci/tasks/update-dependencies.task.yml
         params:
           GIT_NAME: ((git.name))
           GIT_EMAIL: ((git.email))
@@ -114,6 +220,7 @@ jobs:
       params: {state: abort}
     plan:
       - in_parallel:
+          - get: ci-source
           - get: node-image
           - get: repository
             trigger: true
@@ -123,8 +230,10 @@ jobs:
         params: {state: pending}
         no_get: true
       - task: verify
-        file: repository/ci/tasks/verify.task.yml
+        file: ci-source/ci/tasks/verify.task.yml
         image: node-image
+      - task: verify-ai-review
+        file: ci-source/ci/tasks/verify-ai-review.task.yml
   - name: pull-request
     public: true
     on_success:
@@ -149,6 +258,7 @@ jobs:
         status: error
     plan:
       - in_parallel:
+          - get: ci-source
           - get: node-image
           - get: pr-((repo.pr.branch))
             trigger: true
@@ -158,7 +268,11 @@ jobs:
           path: pr-((repo.pr.branch))
           status: pending
       - task: verify
-        file: pr-((repo.pr.branch))/ci/tasks/verify.task.yml
+        file: ci-source/ci/tasks/verify.task.yml
         image: node-image
+        input_mapping:
+          repository: pr-((repo.pr.branch))
+      - task: verify-ai-review
+        file: ci-source/ci/tasks/verify-ai-review.task.yml
         input_mapping:
           repository: pr-((repo.pr.branch))

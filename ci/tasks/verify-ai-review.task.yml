@@ -2,8 +2,8 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: golang
-    tag: 1.25.5
+    repository: ghcr.io/astral-sh/uv
+    tag: 0.13.1-python3.12-bookworm
 inputs:
   - name: repository
 run:
@@ -12,8 +12,7 @@ run:
     - -ec
     - |
       cd repository/tools/ai-review
-      test -z "$(gofmt -l cmd internal)"
-      go mod download
-      go vet ./...
-      go test -race ./...
-      go build ./...
+      uv sync --locked
+      uv run --locked ruff check .
+      uv run --locked ruff format --check .
+      uv run --locked pytest

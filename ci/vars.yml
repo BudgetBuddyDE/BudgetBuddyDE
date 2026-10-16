@@ -6,3 +6,9 @@ repo:
   name: budgetbuddyde
   pr:
     branch: main
+ai-review:
+  model: code-review
+  # Set to the actual context window exposed by this LiteLLM model alias.
+  contextWindow: 32000
+  # Increment whenever routing or model capabilities behind the alias change.
+  profileRevision: '1'
