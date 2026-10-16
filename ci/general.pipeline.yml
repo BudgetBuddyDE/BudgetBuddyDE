@@ -25,6 +25,23 @@ resource_types:
       tag: '0.26.0'
 
 resources:
+  - name: ai-code-buddy-source
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:tklein1801/ai-code-buddy.git
+      branch: main
+      private_key: ((ai-code-buddy-source.private_key))
+    version:
+      ref: ((ai-code-buddy-settings.revision))
+  - name: ai-code-buddy-image
+    type: registry-image
+    icon: robot
+    source:
+      repository: ghcr.io/tklein1801/ai-code-buddy
+      tag: python-v2
+    version:
+      digest: ((ai-code-buddy-settings.digest))
   - name: ci-source
     type: git
     icon: git
@@ -80,43 +97,27 @@ resources:
       access_token: ((github.pat))
 
 jobs:
-  # Review image and task definitions always come from trusted main.
+  # Review tasks and runtime are pinned to one AI Code Buddy release.
   - name: pull-request-ai-review
     public: false
     serial: true
     plan:
       - in_parallel:
-          - get: ci-source
-          - get: repository
+          - get: ai-code-buddy-source
+          - get: ai-code-buddy-image
           - get: pull-request
             resource: pr-((repo.pr.branch))
             trigger: true
             version: every
             params:
               integration_tool: checkout
-      - task: build-ai-review-image
-        privileged: true
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: concourse/oci-build-task
-          inputs:
-            - name: repository
-          outputs:
-            - name: image
-          caches:
-            - path: cache
-          params:
-            CONTEXT: repository/tools/ai-review
-            UNPACK_ROOTFS: 'true'
-          run:
-            path: build
+      - task: verify-ai-code-buddy-release
+        image: ai-code-buddy-image
+        file: ai-code-buddy-source/ci/tasks/verify-ai-code-buddy-release.task.yml
       - do:
           - task: prepare-ai-review
-            image: image
-            file: ci-source/ci/tasks/prepare-ai-review.task.yml
+            image: ai-code-buddy-image
+            file: ai-code-buddy-source/ci/tasks/prepare-ai-review.task.yml
             params:
               GITHUB_REPOSITORY: ((repo.owner))/((repo.name))
               TARGET_BRANCH: ((repo.pr.branch))
@@ -132,9 +133,9 @@ jobs:
               LITELLM_CONTEXT_WINDOW: ((ai-review-settings.contextWindow))
               LITELLM_PROFILE_REVISION: ((ai-review-settings.profileRevision))
           - task: analyze-ai-review
-            image: image
+            image: ai-code-buddy-image
             timeout: 10m
-            file: ci-source/ci/tasks/analyze-ai-review.task.yml
+            file: ai-code-buddy-source/ci/tasks/analyze-ai-review.task.yml
             params:
               LITELLM_API_KEY: ((litellm.apiKey))
               LITELLM_BASE_URL: ((litellm.host))
@@ -142,8 +143,8 @@ jobs:
               LITELLM_CONTEXT_WINDOW: ((ai-review-settings.contextWindow))
               LITELLM_PROFILE_REVISION: ((ai-review-settings.profileRevision))
           - task: publish-ai-review
-            image: image
-            file: ci-source/ci/tasks/publish-ai-review.task.yml
+            image: ai-code-buddy-image
+            file: ai-code-buddy-source/ci/tasks/publish-ai-review.task.yml
             params:
               <<: &ai-review-app-params
                 GITHUB_REPOSITORY: ((repo.owner))/((repo.name))
@@ -157,22 +158,22 @@ jobs:
         timeout: 15m
         on_failure:
           task: fail-ai-review
-          image: image
-          file: ci-source/ci/tasks/finalize-ai-review.task.yml
+          image: ai-code-buddy-image
+          file: ai-code-buddy-source/ci/tasks/finalize-ai-review.task.yml
           params:
             <<: *ai-review-app-params
             REVIEW_CONCLUSION: failure
         on_error:
           task: error-ai-review
-          image: image
-          file: ci-source/ci/tasks/finalize-ai-review.task.yml
+          image: ai-code-buddy-image
+          file: ai-code-buddy-source/ci/tasks/finalize-ai-review.task.yml
           params:
             <<: *ai-review-app-params
             REVIEW_CONCLUSION: failure
         on_abort:
           task: cancel-ai-review
-          image: image
-          file: ci-source/ci/tasks/finalize-ai-review.task.yml
+          image: ai-code-buddy-image
+          file: ai-code-buddy-source/ci/tasks/finalize-ai-review.task.yml
           params:
             <<: *ai-review-app-params
             REVIEW_CONCLUSION: cancelled
@@ -232,8 +233,6 @@ jobs:
       - task: verify
         file: ci-source/ci/tasks/verify.task.yml
         image: node-image
-      - task: verify-ai-review
-        file: ci-source/ci/tasks/verify-ai-review.task.yml
   - name: pull-request
     public: true
     on_success:
@@ -270,9 +269,5 @@ jobs:
       - task: verify
         file: ci-source/ci/tasks/verify.task.yml
         image: node-image
-        input_mapping:
-          repository: pr-((repo.pr.branch))
-      - task: verify-ai-review
-        file: ci-source/ci/tasks/verify-ai-review.task.yml
         input_mapping:
           repository: pr-((repo.pr.branch))

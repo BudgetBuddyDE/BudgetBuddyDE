@@ -1,7 +1,0 @@
-platform: linux
-inputs:
-  - name: prepared
-  - name: analyzed
-run:
-  path: python
-  args: [-m, ai_review, publish, --input, prepared, --result, analyzed]

@@ -1,8 +1,0 @@
-platform: linux
-inputs:
-  - name: pull-request
-outputs:
-  - name: prepared
-run:
-  path: python
-  args: [-m, ai_review, prepare, --pr-resource, pull-request, --output, prepared]

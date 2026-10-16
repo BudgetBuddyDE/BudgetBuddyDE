@@ -4,7 +4,7 @@ description: Concourse resources, repository access, and Vault credentials.
 icon: Network
 ---
 
-The documented Concourse instance is `https://ci.tklein.it`, with pipelines in the `budgetbuddyde` team. Current definitions live in `ci/` and reusable tasks in `ci/tasks/`. The project pipeline validates all npm workspaces; the database pipeline handles migrations and backups separately.
+The documented Concourse instance is `https://ci.tklein.it`, with pipelines in the `budgetbuddyde` team. Current definitions live in `ci/`. Normal reusable tasks load from `ci-source` on `main`; AI review tasks load from a pinned AI Code Buddy Provider commit. The project pipeline validates all npm workspaces; the database pipeline handles migrations and backups separately.
 
 ## HashiCorp Vault credential manager
 
@@ -21,7 +21,14 @@ A dotted reference selects a field: `((github.private_key))` reads `private_key`
 | `s3-db-backup.bucket`, `region`, `access_key_id`, `access_key_secret` | Database backup uploads                                                            |
 | `database.test-database-url`                                          | Test migrations                                                                    |
 | `database.prod-database-url`                                          | Production migrations                                                              |
-| `manage-database.prod-database-url`                                   | Production backup connection                                                       |
+
+AI reviews additionally use `ai-review.appId`, `ai-review.installationId`,
+`ai-review.appPrivateKey`, `litellm.host`, `litellm.apiKey` and the
+`s3-ai-review` bucket/region/access-key fields. A separate read-only
+`ai-code-buddy-source.private_key` accesses the private Provider task source.
+The public runtime image needs no registry-read credentials. Static release pins
+use `ai-code-buddy-settings.revision` and `.digest`; static model parameters use
+`ai-review-settings`, preserving the App-secret namespace.
 
 The project pipeline does not use `s3-versions`, `npm_token`, Docker registry credentials, or Discord notifications. Existing credentials/data for historical release pipelines are not deleted by changing the repository.
 
@@ -46,6 +53,8 @@ flowchart TD
   validation --> commitStatus["GitHub commit status via Cogito"]
   pr["GitHub: PR created or updated"] --> prValidation["pull-request"]
   prValidation --> prStatus["GitHub PR status"]
+  pr --> aiReview["Pinned AI Code Buddy review"]
+  aiReview --> aiGate["App check: ai-review/gate"]
 
   weekly["Weekly timer or manual run"] --> dependencies["Update dependencies"]
   dependencies --> verification["Full project verification"]
@@ -59,6 +68,13 @@ flowchart TD
   daily["Daily timer"] --> dump["PostgreSQL dump"]
   dump --> s3["S3 backup bucket"]
 ```
+
+The AI runtime and its task definitions are a matched immutable release pair.
+A secret-free check verifies their source identity before preparation. Only
+analysis receives the LiteLLM key. Preparation/publication use App and S3
+credentials, while cleanup uses the App. Project instructions and path exclusions
+come from `.pr_agent.toml` at the exact target-branch commit, never from PR code.
+Completed analyses are cached privately in S3; suggestions are not auto-applied.
 
 All project verification goes through the root npm scripts and Turborepo. There is no versioning, release job, artifact publication, or deployment. Live Concourse configuration and permissions require operator changes; updating YAML alone does not alter the running instance.
 

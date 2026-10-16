@@ -30,9 +30,22 @@ Supply S3 credentials through the existing variables `s3-ai-review.access_key_id
 
 Grant the adapter `s3:GetObject` and `s3:PutObject` for its review prefix. Missing objects must be distinguishable from denied reads; AWS may require prefix-constrained `s3:ListBucket` for this. Restrict access to the bucket because reports can contain code and security findings. Configure expiration according to your retention requirements. SSE-KMS buckets additionally need the selected key's encrypt/decrypt permissions.
 
+## Provider release settings
+
+The published runtime is `ghcr.io/tklein1801/ai-code-buddy`; Consumers use its
+manifest digest rather than `python-v2` or a SHA tag. The historical `latest`
+image is the incompatible Go release. Task definitions and cleanup hooks come
+from the pinned Provider commit. Do not use a placeholder or independently
+selected source/image pair. New Provider releases do not automatically trigger
+Consumer reviews. The public image needs no registry-read credential.
+
+All existing App, LiteLLM and S3 secrets remain unchanged. Review tasks receive
+only their required credentials; the source Deploy Key is independent of the
+Consumer dependency-update write key.
+
 ## Load and accept the pipeline
 
-1. Merge the reviewed adapter, `.pr_agent.toml` and task definitions into trusted `main`. The image is built locally by the privileged Concourse OCI build task; no registry publication is required. Verify that workers support this build.
+1. Publish and smoke-test the Provider runtime in `tklein1801/ai-code-buddy`. Verify an anonymous pull of the public image and obtain its actual source commit and registry digest. Set both Consumer pins under `ai-code-buddy-settings.revision` and `.digest`. Provision the read-only `ai-code-buddy-source.private_key` Deploy Key for task-source access. Confirm the secret-free release verification succeeds, and a deliberately mismatched pair fails before preparation. Commit trusted project instructions in `.pr_agent.toml`; the Consumer no longer builds the runtime.
 2. Load `ci/general.pipeline.yml` with `ci/vars.yml` and credential-manager secrets, then unpause `pull-request-ai-review`. Keep `ai-review/gate` optional during acceptance.
 3. Open a small clean PR targeting `main`. Confirm a German summary, accurate head SHA, successful App check and visible coverage.
 4. Introduce a clear defect. Confirm a complete, successfully published `changes_required` review sets `ai-review/gate` to `failure` while the Concourse review job succeeds. Valid suggestions must appear as applicable GitHub suggestions. Model judgment is probabilistic, so inspect the result rather than assuming a seeded defect is always detected.
@@ -43,4 +56,4 @@ Grant the adapter `s3:GetObject` and `s3:PutObject` for its review prefix. Missi
 9. Only after these checks, require `ai-review/gate` in the `main` ruleset and select the dedicated App as the expected source. Retain existing CI requirements, require branches to be up to date and restrict bypass rights. Confirm an unrelated identity's status cannot satisfy this check.
 10. Verify a negative check actually prevents merging and a new commit requires its own successful check.
 
-Existing administrators remain trusted operators. Merge queues and manual override commands require additional implementation. To roll back enforcement, remove only the new required check from the ruleset and pause its job; retain normal CI requirements, App credentials and S3 data.
+Existing administrators remain trusted operators. Merge queues and manual override commands require additional implementation. To roll back a runtime release, restore a previously verified Provider commit/digest pair together. For the first extraction, Consumer commit `db13f13c` retains the working local runtime. To roll back enforcement, remove only the review required check from the ruleset and pause its job; retain normal CI requirements, App credentials and S3 data.

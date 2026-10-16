@@ -22,8 +22,8 @@
     "dev-services": "turbo run dev --filter=./services/*",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
-    "lint": "turbo run lint && eslint vitest.config.ts --fix --max-warnings=0",
-    "lint:check": "turbo run lint:check && eslint vitest.config.ts --max-warnings=0",
+    "lint": "turbo run lint && eslint vitest.config.ts ci/tests/*.mjs --fix --max-warnings=0",
+    "lint:check": "turbo run lint:check && eslint vitest.config.ts ci/tests/*.mjs --max-warnings=0",
     "check": "turbo run check",
     "check:write": "turbo run check:write",
     "test": "turbo run test",
@@ -33,7 +33,8 @@
     "build-apps": "turbo run build --filter=./apps/*",
     "build-examples": "turbo run build --filter='./examples/*'",
     "typecheck": "turbo run typecheck",
-    "ci": "npm run format:check && npm run lint:check && npm run typecheck && npm test && npm run build"
+    "ci": "npm run format:check && npm run lint:check && npm run typecheck && npm run test:ci-contracts && npm test && npm run build",
+    "test:ci-contracts": "node --test ci/tests/*.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -50,6 +51,7 @@
     "prettier": "^3.8.4",
     "turbo": "^2.9.14",
     "typescript-eslint": "^8.61.0",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "yaml": "^2.9.1"
   }
 }

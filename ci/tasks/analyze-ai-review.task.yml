@@ -1,8 +1,0 @@
-platform: linux
-inputs:
-  - name: prepared
-outputs:
-  - name: analyzed
-run:
-  path: python
-  args: [-m, ai_review, analyze, --input, prepared, --output, analyzed]

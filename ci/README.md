@@ -26,13 +26,16 @@ Unresolved audit findings or failed validation prevent the dependency push.
 Dependency commits do not contain `[skip ci]`, so main validation runs afterward.
 
 There is no package versioning, Git tag creation, npm publishing or Docker
-image publishing in this pipeline. Review containers are built locally and
-completed AI analyses are persisted to S3 for retries. Existing tags and old
+image publishing in this pipeline. The AI review runtime is published separately
+by [AI Code Buddy](https://github.com/tklein1801/ai-code-buddy). This pipeline
+consumes a fixed image digest and reuses completed analyses through S3. Existing tags and old
 S3 data are not deleted. `database.pipeline.yml` remains independent and retains its
 backup and migration tasks.
 
-Both pipelines use the `ci-source` Git resource to load external task definitions
-from `main` via `file: ci-source/ci/tasks/<file>`, including failure and abort hooks.
+Both pipelines use the `ci-source` Git resource to load this repository's task
+definitions from `main` via `file: ci-source/ci/tasks/<file>`. AI review lifecycle
+tasks and their failure/error/abort hooks instead come from the pinned
+`ai-code-buddy-source` Provider resource.
 Jobs fetch this resource without a trigger; existing repository, PR and schedule
 resources continue to control when they run. PR verification still checks the PR
 input, and builds and migrations keep their existing repository inputs and input
@@ -61,7 +64,9 @@ Concourse credential manager:
 - `github.pat`: commit and pull request status access.
 
 `git.name` and `git.email` identify automated dependency commits. No npm or GHCR
-publishing credentials are required. The separate database pipeline retains its
+publishing credentials are required. The public AI Code Buddy image also needs
+no registry-read credential. Supply `ai-code-buddy-source.private_key` as a
+separate read-only Deploy Key for the private Provider task-source repository. The separate database pipeline retains its
 own credentials.
 
 AI review reuses these credential-manager variables:
@@ -81,13 +86,23 @@ revision whenever model routing or capabilities change. Fallbacks are disabled.
 
 ## PR-Agent tasks and rollout
 
-The review job gets the PR with `integration_tool: checkout` and gets `main`
-separately. Its task definitions come from `ci-source`; the Dockerfile and adapter
-continue to come from the trusted `repository` input on main.
-Only the OCI image build is privileged. The image is used directly for separate
-prepare, analyze and publish tasks; only analyze receives the LiteLLM key, while
-GitHub and S3 credentials remain in preparation/publication. PR verification and
-its Python tests run without operational review secrets.
+The review job fetches the PR with `integration_tool: checkout`, pinned
+`ai-code-buddy-source` task definitions and the matching `ai-code-buddy-image`.
+The local adapter, image build and Python verification have moved to the Provider.
+All review tasks and cleanup hooks use the same published runtime. The job does
+not fetch the Consumer `repository` or `ci-source` inputs for executable review code.
+
+Set `ai-code-buddy-settings.revision` to the actual published Provider commit and
+`ai-code-buddy-settings.digest` to its matching registry digest. Both gets have no
+trigger. `verify-ai-code-buddy-release.task.yml` compares the checked-out task
+commit to embedded image metadata without credentials before preparation.
+Mismatched releases fail before model calls. Updating the Provider alone does not
+update this pipeline or review unchanged PR heads.
+
+The reviewed repository's `.pr_agent.toml`, including `[ignore].glob` project
+exclusions, is still loaded from the fixed target-branch commit through GitHub.
+Only analysis receives the LiteLLM key; GitHub and S3 credentials stay in
+preparation/publication, while cleanup receives App credentials.
 
 The analysis task has a ten-minute limit and the three-task lifecycle has a
 fifteen-minute limit. Both PR-Agent tools allow at most three chunks. Technical
@@ -107,15 +122,18 @@ fifteen-inline limit. Superseded or aborted runs post no new comments. Worker lo
 can leave a pending check that does not permit merging; retry after recovery.
 Build logs omit raw model responses, source code and secrets.
 
-First merge the adapter and trusted `.pr_agent.toml` into main and load the
+Publish and smoke-test the Provider before pinning its actual commit and digest
+here. Verify public image access and the read-only task-source key, then load the
 pipeline with the check optional. Perform the live scenarios in
 [App setup](../docs/ai-review-github-app-setup.md), then require `ai-review/gate`
 from the dedicated App in the main ruleset alongside normal CI. Require an
-up-to-date branch. This pipeline does not periodically re-review base-only
-changes or support merge queues. Existing App registration and S3 reports remain.
+up-to-date branch. Provider updates and rollbacks change both pins together;
+`db13f13c` is the Consumer return point before this first extraction. Existing
+App registration and S3 reports remain. Merge queues and periodic base-only
+reviews are not implemented.
 
-See [architecture](../docs/ai-pr-review-concept.md) and
-[Python development](../tools/ai-review/README.md).
+See [Consumer architecture](../docs/ai-pr-review-concept.md) and
+[Provider development](https://github.com/tklein1801/ai-code-buddy).
 
 ## Local checks
 
@@ -124,6 +142,7 @@ See [architecture](../docs/ai-pr-review-concept.md) and
 ```sh
 fly validate-pipeline -c ci/general.pipeline.yml -l ci/vars.yml --strict
 fly validate-pipeline -c ci/database.pipeline.yml -l ci/vars.yml --strict
+npm run test:ci-contracts
 npm run ci
 ```
 
