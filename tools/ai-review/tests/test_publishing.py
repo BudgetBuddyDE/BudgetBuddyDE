@@ -90,3 +90,78 @@ def test_limit_preserves_overflow_in_summary():
     assert client.request.call_count == 16
     body = client.request.call_args.args[2]["body"]
     assert "Problem 15" in body and "Problem 16" in body
+
+
+def test_incomplete_publication_preserves_valid_findings_and_reports_safe_diagnostics():
+    client, snapshot, result = fixture()
+    result.pop("review")
+    result["tool_status"] = {"review": "failed", "improve": "completed"}
+    result["coverage"] = {"reviewed_files": [], "improved_files": ["a.py"]}
+    result["diagnostics"] = [
+        {"tool": "review", "code": "invalid_recommendation"},
+        {"tool": "review", "code": "secret-from-model"},
+        {"tool": "secret-tool", "code": "transport_error"},
+    ]
+    result["comments"] = [None, {"path": [], "body": "bad"}, {"path": "a.py", "body": None}]
+    result["suggestions"] = [{"path": "a.py", "start_line": 1, "end_line": 1, "body": "```suggestion\nfix\n```"}]
+    publish(client, "owner/repo", 1, snapshot, result, incomplete=True)
+    assert client.request.call_count == 2
+    assert "```suggestion" in client.request.call_args_list[0].args[2]["body"]
+    summary = client.request.call_args.args[2]["body"]
+    assert "Analyse unvollständig" in summary
+    assert snapshot["head_sha"] in summary
+    assert "`review`: `failed`" in summary and "`improve`: `completed`" in summary
+    assert "`review/invalid_recommendation`" in summary
+    assert "secret" not in summary
+    assert "needs_review" not in summary
+    assert "`review`: `a.py`" in summary
+
+
+def test_incomplete_invalid_inline_location_is_advisory_only():
+    client, snapshot, result = fixture()
+    result["suggestions"] = [{"path": "a.py", "start_line": 2, "end_line": 2, "body": "```suggestion\nfix\n```"}]
+    publish(client, "owner/repo", 1, snapshot, result, incomplete=True)
+    assert client.request.call_count == 1
+    summary = client.request.call_args.args[2]["body"]
+    assert "fix" in summary and "```suggestion" not in summary
+
+
+def test_incomplete_missing_diagnostic_and_malformed_optional_fields():
+    client, snapshot, _ = fixture()
+    result = {"tool_status": {"review": []}, "coverage": None, "comments": None}
+    publish(client, "owner/repo", 1, snapshot, result, incomplete=True)
+    summary = client.request.call_args.args[2]["body"]
+    assert "Analyse unvollständig" in summary
+    assert "`review`: `unknown`" in summary
+    assert "nicht vollständig abgeschlossen" in summary
+
+
+def test_incomplete_retries_keep_same_inline_marker_and_update_summary():
+    client, snapshot, result = fixture()
+    result["comments"] = [{"path": "a.py", "start_line": 1, "end_line": 1, "body": "Defekt"}]
+    publish(client, "owner/repo", 1, snapshot, result, incomplete=True)
+    inline = client.request.call_args_list[0].args[2]["body"]
+    client.review_comments.return_value = [{"body": inline}]
+    client.issue_comments.return_value = [{"id": 42, "body": "<!-- pr-agent:summary:v1 -->\nalt"}]
+    client.request.reset_mock()
+    publish(client, "owner/repo", 1, snapshot, result, incomplete=True)
+    assert client.request.call_count == 1
+    assert client.request.call_args.args[:2] == ("PATCH", "/repos/owner/repo/issues/comments/42")
+
+
+def test_incomplete_limit_preserves_overflow_in_summary():
+    client, snapshot, result = fixture()
+    result["comments"] = [{"path": "a.py", "start_line": 1, "end_line": 1, "body": f"Problem {n}"} for n in range(17)]
+    publish(client, "owner/repo", 1, snapshot, result, incomplete=True)
+    assert client.request.call_count == 16
+    summary = client.request.call_args.args[2]["body"]
+    assert "Analyse unvollständig" in summary and "Problem 15" in summary and "Problem 16" in summary
+
+
+def test_incomplete_checkpoint_identifies_tool_that_has_not_started():
+    client, snapshot, result = fixture()
+    result["tool_status"] = {"review": "completed", "improve": "not_started"}
+    publish(client, "owner/repo", 1, snapshot, result, incomplete=True)
+    summary = client.request.call_args.args[2]["body"]
+    assert "`review`: `completed`" in summary
+    assert "`improve`: `not_started`" in summary

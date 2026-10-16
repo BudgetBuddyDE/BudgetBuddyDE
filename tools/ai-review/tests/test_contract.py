@@ -187,3 +187,60 @@ def test_real_engine_changed_file_contracts(monkeypatch, status, base, head, pat
     else:
         assert len(calls) == 2
         assert result["coverage"]["improved_files"] == ["a.py"]
+
+
+@pytest.mark.parametrize("recommendation", ["", "  merge_recommendation: unexpected\n"])
+def test_invalid_recommendation_keeps_findings_and_runs_improve(monkeypatch, recommendation):
+    from copy import deepcopy
+
+    from pr_agent.algo.ai_handlers.litellm_ai_handler import LiteLLMAIHandler
+
+    checkpoints, calls = [], []
+
+    async def completion(self, model, system, user, **kwargs):
+        calls.append(system)
+        if "merge_recommendation" in system:
+            return (
+                "review:\n"
+                + recommendation
+                + """  key_issues_to_review:
+  - relevant_file: a.py
+    issue_header: Regression
+    issue_content: x muss eins bleiben.
+    start_line: 1
+    end_line: 1
+""",
+                "stop",
+            )
+        return "code_suggestions: []", "stop"
+
+    monkeypatch.setattr(LiteLLMAIHandler, "chat_completion", completion)
+    result = analyze(SNAPSHOT, SETTINGS, checkpoint=lambda value: checkpoints.append(deepcopy(value)))
+    assert len(calls) == 2
+    assert result["comments"][0]["body"] == "x muss eins bleiben."
+    assert result["review"] == {}
+    assert result["coverage"]["complete"] is False
+    assert {"tool": "review", "code": "invalid_recommendation"} in result["diagnostics"]
+    assert result["tool_status"] == {"review": "failed", "improve": "completed"}
+    assert checkpoints[0]["tool_status"] == {"review": "not_started", "improve": "not_started"}
+    assert checkpoints[1]["comments"] == result["comments"]
+    assert checkpoints[1]["tool_status"]["improve"] == "not_started"
+
+
+def test_failed_improve_keeps_completed_review_checkpoint(monkeypatch):
+    from pr_agent.algo.ai_handlers.litellm_ai_handler import LiteLLMAIHandler
+
+    checkpoints = []
+
+    async def completion(self, model, system, user, **kwargs):
+        if "merge_recommendation" in system:
+            return "review:\n  merge_recommendation: changes_required\n  key_issues_to_review: []", "stop"
+        return "not a suggestion result", "stop"
+
+    monkeypatch.setattr(LiteLLMAIHandler, "chat_completion", completion)
+    result = analyze(SNAPSHOT, SETTINGS, checkpoint=checkpoints.append)
+    assert checkpoints[1]["review"]["merge_recommendation"] == "changes_required"
+    assert checkpoints[1]["tool_status"] == {"review": "completed", "improve": "not_started"}
+    assert result["tool_status"] == {"review": "completed", "improve": "failed"}
+    assert {"tool": "improve", "code": "invalid_suggestions"} in result["diagnostics"]
+    assert result["coverage"]["complete"] is False

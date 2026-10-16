@@ -128,6 +128,18 @@ def _normalize_issues(review, files):
     removed = {file["filename"] for file in files if file["status"] in {"removed", "deleted"}}
     comments = []
     for issue in review.get("key_issues_to_review", []):
+        if (
+            not isinstance(issue, dict)
+            or not isinstance(issue.get("relevant_file"), str)
+            or not issue["relevant_file"].strip()
+            or not isinstance(issue.get("issue_content"), str)
+            or not issue["issue_content"].strip()
+            or len(issue["issue_content"]) > 16000
+            or type(issue.get("start_line")) is not int
+            or type(issue.get("end_line")) is not int
+            or not 0 < issue["start_line"] <= issue["end_line"]
+        ):
+            raise ValueError("Invalid review finding")
         comments.append(
             {
                 "path": issue["relevant_file"].strip(),
@@ -147,8 +159,20 @@ def _normalize_suggestions(data, files):
         code = suggestion["improved_code"]
         if not isinstance(code, str) or "```" in code:
             raise ValueError("Suggestion contains an unsafe or invalid code fence")
+        explanation_text = suggestion["suggestion_content"]
+        if not isinstance(explanation_text, str) or "```" in explanation_text or "~~~" in explanation_text:
+            raise ValueError("Suggestion explanation contains an invalid code fence")
+        if (
+            not isinstance(suggestion.get("relevant_file"), str)
+            or not suggestion["relevant_file"].strip()
+            or not isinstance(suggestion.get("existing_code"), str)
+            or type(suggestion.get("relevant_lines_start")) is not int
+            or type(suggestion.get("relevant_lines_end")) is not int
+            or not 0 < suggestion["relevant_lines_start"] <= suggestion["relevant_lines_end"]
+        ):
+            raise ValueError("Invalid suggestion location")
         path = suggestion["relevant_file"].strip()
-        start, end = int(suggestion["relevant_lines_start"]), int(suggestion["relevant_lines_end"])
+        start, end = suggestion["relevant_lines_start"], suggestion["relevant_lines_end"]
         existing = suggestion["existing_code"]
         applicable = (
             isinstance(existing, str)
@@ -162,19 +186,21 @@ def _normalize_suggestions(data, files):
             if applicable
             else "\n\nHinweis: Der ursprüngliche Code stimmt nicht exakt überein. Bitte manuell prüfen."
         )
+        if len(explanation_text + explanation + code) > 15900:
+            raise ValueError("Suggestion body is oversized")
         suggestions.append(
             {
                 "path": path,
                 "start_line": int(suggestion["relevant_lines_start"]),
                 "end_line": int(suggestion["relevant_lines_end"]),
                 "side": "RIGHT",
-                "body": str(suggestion["suggestion_content"]) + explanation + "\n\n```" + fence + "\n" + code + "\n```",
+                "body": explanation_text + explanation + "\n\n```" + fence + "\n" + code + "\n```",
             }
         )
     return suggestions
 
 
-async def _analyze(snapshot, settings):
+async def _analyze(snapshot, settings, checkpoint=None):
     from pr_agent.algo.ai_handlers.litellm_ai_handler import LiteLLMAIHandler
     from pr_agent.algo.output_models import PRCodeSuggestions as SuggestionsModel
     from pr_agent.algo.output_models import PRCodeSuggestionsFeedback, PRReview
@@ -190,6 +216,7 @@ async def _analyze(snapshot, settings):
     result = {
         "schema_version": 1,
         "review": {},
+        "diagnostics": [],
         "comments": [],
         "suggestions": [],
         "markdown": "",
@@ -203,13 +230,26 @@ async def _analyze(snapshot, settings):
             "errors": [],
         },
         "usage": {},
-        "tool_status": {"review": "failed", "improve": "failed"},
+        "tool_status": {"review": "not_started", "improve": "not_started"},
     }
     if not required:
         result["review"] = {"merge_recommendation": "no_concerns_found", "key_issues_to_review": []}
         result["coverage"]["complete"] = True
         result["tool_status"] = {"review": "completed", "improve": "completed"}
         return result
+
+    def save():
+        result["markdown"] = "\n\n".join(provider.markdown)
+        if checkpoint is not None:
+            checkpoint(deepcopy(result))
+
+    def diagnose(tool, code):
+        item = {"tool": tool, "code": code}
+        if item not in result["diagnostics"]:
+            result["diagnostics"].append(item)
+            result["coverage"]["errors"].append(f"{tool}: {code}")
+
+    save()
     with request_cycle_context({"settings": config, "git_provider": {"snapshot://review": provider}}):
         for name, factory in (("review", PRReviewer), ("improve", PRCodeSuggestions)):
             provider.analysis_tool = name
@@ -218,79 +258,108 @@ async def _analyze(snapshot, settings):
                 result["coverage"]["improve_not_applicable_files"] = sorted(set(required) - set(eligible))
             if not eligible:
                 result["tool_status"][name] = "completed"
+                save()
                 continue
+            tool = None
             try:
-                transport_errors = []
 
                 class ValidatingHandler(LiteLLMAIHandler):
-                    async def chat_completion(self, *args, _errors=transport_errors, _tool=name, **kwargs):
+                    async def chat_completion(self, *args, _tool=name, **kwargs):
                         try:
                             response, finish = await super().chat_completion(*args, **kwargs)
-                            if finish != "stop":
-                                _errors.append("Incomplete model completion")
-                            if _tool == "improve":
+                        except Exception:
+                            diagnose(_tool, "transport_error")
+                            raise
+                        if finish != "stop":
+                            diagnose(_tool, "incomplete_completion")
+                        if _tool == "improve":
+                            try:
                                 payload = load_yaml(response)
                                 suggestions = payload.get("code_suggestions") if isinstance(payload, dict) else None
                                 if not isinstance(suggestions, list):
-                                    raise ValueError("Malformed suggestions response")
+                                    raise TypeError("Malformed suggestions response")
                                 if suggestions and "suggestion_score" in suggestions[0]:
                                     PRCodeSuggestionsFeedback.model_validate(payload)
                                 else:
                                     SuggestionsModel.model_validate(payload)
-                            return response, finish
-                        except Exception:
-                            _errors.append("Invalid or failed model response")
-                            raise
+                            except Exception:
+                                diagnose(_tool, "invalid_suggestions")
+                                raise
+                        return response, finish
 
                 tool = factory("snapshot://review", ai_handler=ValidatingHandler)
                 await tool.run()
-                if command_failed() or transport_errors:
-                    raise ValueError("PR-Agent reported a command failure")
-                covered, errors = _tool_coverage(tool, eligible, review=name == "review")
-                if name == "review":
-                    errors.extend(_deletion_coverage_errors(tool, snapshot["files"]))
-                result["coverage"]["errors"].extend(f"{name}: {error}" for error in errors)
-                result["coverage"]["reviewed_files" if name == "review" else "improved_files"] = covered
-                if name == "review":
-                    payload = provider.structured_review
-                    if not isinstance(payload, dict):
-                        raise ValueError("Missing structured review")
-                    PRReview.model_validate({"review": payload.get("review")})
-                    review = payload["review"]
-                    if review.get("merge_recommendation") not in RECOMMENDATIONS:
-                        raise ValueError("Missing or invalid merge recommendation")
-                    result["review"] = deepcopy(review)
-                    result["comments"] = _normalize_issues(review, snapshot["files"])
+                if command_failed():
+                    diagnose(name, "command_failed")
+            except Exception:  # noqa: BLE001 - upstream messages may contain source or secrets.
+                diagnose(name, "tool_error")
+            # Extract independently valid findings even when the overall tool run failed.
+            if name == "review":
+                payload = provider.structured_review
+                review = payload.get("review") if isinstance(payload, dict) else None
+                if not isinstance(review, dict):
+                    diagnose(name, "missing_structured_review")
                 else:
-                    data = getattr(tool, "data", None)
-                    if not isinstance(data, dict) or not isinstance(data.get("code_suggestions"), list):
-                        raise ValueError("Missing code suggestions result")
-                    # Normalize engine data, not publication callbacks, to retain overflow findings.
-                    result["suggestions"] = _normalize_suggestions(data["code_suggestions"], snapshot["files"])
-                if not errors:
-                    result["tool_status"][name] = "completed"
-                details = get_run_details()
-                if details is not None and details.has_token_usage:
-                    result["usage"][name] = {
-                        "prompt_tokens": details.prompt_tokens,
-                        "completion_tokens": details.completion_tokens,
-                        "total_tokens": details.total_tokens,
-                    }
-            except Exception as exc:  # noqa: BLE001 - all upstream failures must produce a blocking report.
-                # Exception messages can contain HTTP response content and credentials.
-                result["coverage"]["errors"].append(f"{name}: {type(exc).__name__}")
-        result["markdown"] = "\n\n".join(provider.markdown)
+                    issues = review.get("key_issues_to_review", [])
+                    if not isinstance(issues, list):
+                        diagnose(name, "invalid_review_schema")
+                    else:
+                        for issue in issues[:1000]:
+                            try:
+                                result["comments"].extend(
+                                    _normalize_issues({"key_issues_to_review": [issue]}, snapshot["files"])
+                                )
+                            except (KeyError, ValueError, TypeError, AttributeError):
+                                diagnose(name, "invalid_review_schema")
+                    recommendation = review.get("merge_recommendation")
+                    if not isinstance(recommendation, str) or recommendation not in RECOMMENDATIONS:
+                        diagnose(name, "invalid_recommendation")
+                    else:
+                        result["review"] = deepcopy(review)
+                    try:
+                        PRReview.model_validate({"review": review})
+                    except ValueError:
+                        diagnose(name, "invalid_review_schema")
+            else:
+                data = getattr(tool, "data", None)
+                suggestions = data.get("code_suggestions") if isinstance(data, dict) else None
+                if not isinstance(suggestions, list):
+                    diagnose(name, "invalid_suggestions")
+                else:
+                    for suggestion in suggestions[:1000]:
+                        try:
+                            result["suggestions"].extend(_normalize_suggestions([suggestion], snapshot["files"]))
+                        except (KeyError, ValueError, TypeError, AttributeError):
+                            diagnose(name, "invalid_suggestions")
+            covered, errors = _tool_coverage(tool, eligible, review=name == "review")
+            if name == "review":
+                errors.extend(_deletion_coverage_errors(tool, snapshot["files"]))
+            if errors:
+                diagnose(name, "incomplete_chunks")
+            result["coverage"]["reviewed_files" if name == "review" else "improved_files"] = covered
+            result["tool_status"][name] = (
+                "failed" if any(item["tool"] == name for item in result["diagnostics"]) else "completed"
+            )
+            details = get_run_details()
+            if details is not None and details.has_token_usage:
+                result["usage"][name] = {
+                    "prompt_tokens": details.prompt_tokens,
+                    "completion_tokens": details.completion_tokens,
+                    "total_tokens": details.total_tokens,
+                }
+            save()
     result["coverage"]["complete"] = not result["coverage"]["errors"] and all(
         value == "completed" for value in result["tool_status"].values()
     )
+    save()
     return result
 
 
-def analyze(snapshot: dict, settings: dict) -> dict:
+def analyze(snapshot: dict, settings: dict, checkpoint=None) -> dict:
     """Synchronous entry point; callers persist the returned result, including failed coverage."""
 
     async def run():
         async with asyncio.timeout(600):
-            return await _analyze(snapshot, settings)
+            return await _analyze(snapshot, settings, checkpoint)
 
     return asyncio.run(run())

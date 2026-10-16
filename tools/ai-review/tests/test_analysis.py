@@ -125,3 +125,26 @@ def test_removed_findings_use_left_side():
     issue = {"relevant_file": "gone.py", "start_line": 1, "end_line": 1, "issue_content": "Regression"}
     result = _normalize_issues({"key_issues_to_review": [issue]}, [{"filename": "gone.py", "status": "removed"}])
     assert result[0]["side"] == "LEFT"
+
+
+@pytest.mark.parametrize("body", ["```suggestion\nwrong\n```", "~~~suggestion\nwrong\n~~~"])
+def test_explanation_cannot_inject_an_applicable_suggestion(snapshot, body):
+    item = {
+        "relevant_file": "a.py",
+        "relevant_lines_start": 1,
+        "relevant_lines_end": 1,
+        "improved_code": "x = 1",
+        "existing_code": "wrong original",
+        "suggestion_content": body,
+    }
+    with pytest.raises(ValueError, match="fence"):
+        _normalize_suggestions([item], snapshot["files"])
+
+
+@pytest.mark.parametrize("change", [{"issue_content": {}}, {"start_line": True}, {"start_line": 1.5}])
+def test_malformed_partial_review_finding_is_rejected(change):
+    from ai_review.analysis import _normalize_issues
+
+    issue = {"relevant_file": "a.py", "start_line": 1, "end_line": 1, "issue_content": "Regression", **change}
+    with pytest.raises(ValueError):
+        _normalize_issues({"key_issues_to_review": [issue]}, [{"filename": "a.py", "status": "modified"}])

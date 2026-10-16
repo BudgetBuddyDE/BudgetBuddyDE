@@ -91,10 +91,21 @@ its Python tests run without operational review secrets.
 
 The analysis task has a ten-minute limit and the three-task lifecycle has a
 fifteen-minute limit. Both PR-Agent tools allow at most three chunks. Technical
-errors, invalid results, incomplete required coverage and `changes_required`
-block. `needs_review` passes with a visible warning. Failure/error/abort hooks
-finalize checks where possible; worker loss can leave a pending check that does
-not permit merging. Retry the build after recovery.
+errors, invalid results and incomplete required coverage fail the Concourse job
+and block the GitHub gate. A fully published `changes_required` review completes
+the Concourse job successfully with exit code 0 while setting `ai-review/gate` to
+`failure`; `needs_review` passes with a visible warning. Merge enforcement belongs
+to the required GitHub check.
+
+Analysis saves private partial results atomically after each tool. Failure/error
+hooks use `finalize` to publish individually validated findings and suggestions
+with an “Analyse unvollständig” summary, tool status, coverage gaps and fixed
+per-tool diagnostic codes. Missing recommendations are never inferred. Such
+analyses still fail the job and check (or use `timed_out`) and are not cached in
+S3. Finalization makes no model calls and uses the same comment markers and
+fifteen-inline limit. Superseded or aborted runs post no new comments. Worker loss
+can leave a pending check that does not permit merging; retry after recovery.
+Build logs omit raw model responses, source code and secrets.
 
 First merge the adapter and trusted `.pr_agent.toml` into main and load the
 pipeline with the check optional. Perform the live scenarios in

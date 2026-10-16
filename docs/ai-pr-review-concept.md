@@ -16,12 +16,12 @@ The Python 3.12 adapter pins upstream PR-Agent to commit `95a3cd0dacfbab14803eac
 
 The tasks have separate credentials:
 
-| Task     | Inputs                                | Credentials              | Output                                                           |
-| -------- | ------------------------------------- | ------------------------ | ---------------------------------------------------------------- |
-| Prepare  | PR resource metadata                  | GitHub App and S3        | Immutable snapshot, configuration and cached result if available |
-| Analyze  | Prepared snapshot                     | LiteLLM virtual key only | Structured review, suggestions, coverage and usage               |
-| Publish  | Prepared snapshot and analysis        | GitHub App and S3        | Cached result, GitHub comments and final check                   |
-| Finalize | Prepared check identity, if available | GitHub App               | Failure or cancellation after interrupted tasks                  |
+| Task     | Inputs                                         | Credentials              | Output                                                           |
+| -------- | ---------------------------------------------- | ------------------------ | ---------------------------------------------------------------- |
+| Prepare  | PR resource metadata                           | GitHub App and S3        | Immutable snapshot, configuration and cached result if available |
+| Analyze  | Prepared snapshot                              | LiteLLM virtual key only | Structured review, suggestions, coverage and usage               |
+| Publish  | Prepared snapshot and analysis                 | GitHub App and S3        | Cached result, GitHub comments and final check                   |
+| Finalize | Prepared check identity and available analysis | GitHub App               | Validated partial findings and failed or canceled check          |
 
 The endpoint, model alias, context window and model-profile revision are operator-controlled. The default alias is `code-review`, passed to LiteLLM as `openai/code-review`; fallback models are disabled. `contextWindow: 32000` is the initial conservative setting and must not exceed the real context window exposed by the alias. Increment `profileRevision` whenever routing or model capabilities behind the alias change. A dedicated LiteLLM virtual key limits allowed models, spend and request rates.
 
@@ -42,7 +42,11 @@ A marked summary comment is updated in place. At most fifteen validated inline c
 | Analysis deadline exceeded                                                               | `timed_out`                       |
 | Aborted or superseded run                                                                | `cancelled`                       |
 
-A successful CLI exit does not prove review completeness. Both tool outputs and their coverage metadata must validate. Failure and abort hooks close started checks where possible. Worker loss may leave a check in progress, which grants no merge permission; rerun the build after recovery.
+Both tool outputs and their coverage metadata must validate before a complete review can be published. Every fully published valid review exits 0, including `changes_required`: that recommendation fails the GitHub gate while the Concourse job succeeds. Technical failures and incomplete analyses continue to fail the job and check. Publication stores a validated completed analysis before posting comments, so publication retries do not repeat model calls.
+
+Analysis atomically checkpoints private partial results after each tool. Failure/error hooks use `finalize` to publish individually validated findings and suggestions, using the existing stable markers and fifteen-inline limit. The summary is headed “Analyse unvollständig” and includes the checked commit, tool statuses, known coverage gaps and fixed per-tool diagnostic codes. Missing overall recommendations are not inferred. Without usable findings, the summary explains the error. Partial analyses never enter the completed S3 cache and cannot produce a successful check; timeouts conclude `timed_out`.
+
+Diagnostics distinguish missing structured results, invalid recommendations, transport failures and incomplete chunks before overall result validation. Build logs omit raw model responses, code and secrets. Finalization makes no model calls. Superseded and aborted runs post no new comments; abort hooks close their checks as canceled where possible. Worker loss may leave a check in progress, which grants no merge permission; rerun the build after recovery.
 
 ## Verification and rollout
 

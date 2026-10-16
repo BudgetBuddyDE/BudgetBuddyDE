@@ -10,6 +10,7 @@ import uuid
 from pathlib import Path
 
 from .contracts import REPOSITORY, ReviewError, StaleReview, validate_envelope, validate_result
+from .diagnostics import partial_result, safe_diagnostics
 from .snapshot import assert_current, build_snapshot, resource_identity, settings_from_env
 
 
@@ -152,11 +153,13 @@ def analyze(args):
             timeout=570,
             check=False,
         )
-        if process.returncode:
-            if (Path(args.output) / "result.json").is_file():
-                validate_result(read_json(args.output, "result.json"), snapshot)
+        result = read_json(args.output, "result.json")
+        diagnostics = safe_diagnostics(result)
+        for diagnostic in diagnostics:
+            progress("tool_diagnostic", **diagnostic)
+        if process.returncode or diagnostics:
             raise ReviewError("PR-Agent analysis failed")
-        validate_result(read_json(args.output, "result.json"), snapshot)
+        validate_result(result, snapshot)
     except Exception as error:  # noqa: BLE001 - failures are reduced to a safe stage marker.
         timed_out = isinstance(error, subprocess.TimeoutExpired)
         write_json(args.output, "error.json", {"conclusion": "timed_out" if timed_out else "failure"})
@@ -164,7 +167,7 @@ def analyze(args):
             "analysis_failed",
             pr=state["pr"],
             timed_out=timed_out,
-            reason=str(error) if isinstance(error, ReviewError) else "Model or transport failure",
+            code="analysis_timeout" if timed_out else "analysis_failed",
         )
         raise ReviewError("Analysis timed out" if timed_out else "Analysis failed or was incomplete") from None
     progress("analysis_completed", pr=state["pr"])
@@ -176,10 +179,14 @@ def engine(args):
 
     snapshot = read_json(args.input, "snapshot.json")
     settings = {**snapshot["settings"], "api_key": os.environ["LITELLM_API_KEY"]}
-    result = run_analysis(snapshot, settings)
+
+    def checkpoint(result):
+        result["identity"] = snapshot["identity"]
+        write_json(args.output, "result.json", result)
+
+    result = run_analysis(snapshot, settings, checkpoint=checkpoint)
     result["identity"] = snapshot["identity"]
-    # Keep incomplete coverage available as a private diagnostic artifact, never as a cached/published result.
-    write_json(args.output, "result.json", result)
+    checkpoint(result)
     validate_result(result, snapshot)
     return 0
 
@@ -217,7 +224,7 @@ def publish(args):
             f"Geprüfter Commit: `{snapshot['head_sha']}`. Beide Werkzeuge vollständig ausgeführt.",
         )
         progress("check_completed", pr=state["pr"], head=state["head_sha"], conclusion=conclusion)
-        return 0 if conclusion == "success" else 1
+        return 0
     except StaleReview:
         client.update_check(
             state["repository"],
@@ -244,20 +251,65 @@ def finalize(args):
     if check.get("status") == "completed":
         return 0
     conclusion = args.conclusion
-    if (
-        conclusion != "cancelled"
-        and args.result
-        and (Path(args.result) / "error.json").is_file()
-        and read_json(args.result, "error.json").get("conclusion") == "timed_out"
-    ):
-        conclusion = "timed_out"
+    if conclusion != "cancelled" and args.result and (Path(args.result) / "error.json").is_file():
+        try:
+            if read_json(args.result, "error.json").get("conclusion") == "timed_out":
+                conclusion = "timed_out"
+        except (ReviewError, ValueError, OSError):
+            progress("invalid_failure_marker", code="invalid_artifact")
+    publication_error = None
+    # Completed checks are immutable here; failure hooks only report unfinished runs.
+    if conclusion != "cancelled" and (Path(args.input) / "snapshot.json").is_file():
+        from .publishing import publish as publish_comments
+
+        try:
+            snapshot = read_json(args.input, "snapshot.json")
+            if (
+                snapshot["head_sha"] != state["head_sha"]
+                or snapshot["repository"] != state["repository"]
+                or snapshot["pr"] != state["pr"]
+            ):
+                raise ReviewError("Finalization snapshot mismatch")
+            check_current(client, snapshot)
+            raw = None
+            if args.result and (Path(args.result) / "result.json").is_file():
+                try:
+                    raw = read_json(args.result, "result.json")
+                    report = partial_result(raw, snapshot)
+                except (ReviewError, ValueError, OSError):
+                    raw = None
+            if raw is None:
+                report = partial_result({"schema_version": 1, "identity": snapshot["identity"]}, snapshot)
+                report["diagnostics"] = [{"tool": "analysis", "code": "invalid_artifact"}]
+            if conclusion == "timed_out":
+                report["diagnostics"].append({"tool": "analysis", "code": "analysis_timeout"})
+            elif not report["diagnostics"]:
+                # Complete analysis with an unfinished check indicates publication failure.
+                raw_coverage = raw.get("coverage") if raw is not None else None
+                complete = isinstance(raw_coverage, dict) and raw_coverage.get("complete") is True
+                report["diagnostics"].append(
+                    {
+                        "tool": "publication" if complete else "analysis",
+                        "code": "publication_failed" if complete else "analysis_failed",
+                    }
+                )
+            publish_comments(client, state["repository"], state["pr"], snapshot, report, incomplete=True)
+            check_current(client, snapshot)
+        except StaleReview:
+            conclusion = "cancelled"
+        except Exception as error:  # noqa: BLE001 - always attempt check cleanup.
+            # Still close the check when GitHub comments fail. Never emit exception text.
+            publication_error = error
+            progress("partial_publication_failed", code="publication_failed")
     client.update_check(
         state["repository"],
         state["check_id"],
         conclusion,
         "KI-Review nicht abgeschlossen",
-        "Keine Freigabe. Details im Concourse-Build.",
+        "Keine Freigabe. Analyse unvollständig oder Veröffentlichung fehlgeschlagen. Details im Concourse-Build.",
     )
+    if publication_error is not None:
+        raise ReviewError("Partial publication failed") from None
     progress("check_finalized", pr=state["pr"], conclusion=conclusion)
     return 0
 

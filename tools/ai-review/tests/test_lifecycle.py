@@ -251,9 +251,12 @@ def test_analysis_rejects_accidental_publisher_credentials(prepared, monkeypatch
         cli.analyze(Namespace(input=str(prepared), output=str(tmp_path)))
 
 
-@pytest.mark.parametrize("recommendation,exit_code", [("changes_required", 1), ("needs_review", 0)])
+@pytest.mark.parametrize(
+    "recommendation,conclusion",
+    [("changes_required", "failure"), ("needs_review", "success"), ("no_concerns_found", "success")],
+)
 def test_publish_saves_before_comments_and_uses_exact_head(
-    prepared, result, recommendation, exit_code, monkeypatch, tmp_path
+    prepared, result, recommendation, conclusion, monkeypatch, tmp_path
 ):
     from ai_review import publishing
     from ai_review.storage import Store
@@ -270,8 +273,8 @@ def test_publish_saves_before_comments_and_uses_exact_head(
         store.save.assert_called_once()
 
     monkeypatch.setattr(publishing, "publish", post)
-    assert cli.publish(Namespace(input=str(prepared), result=str(tmp_path / "analyzed"))) == exit_code
-    assert client.update_check.call_args.args[:3] == ("owner/repo", 123, "failure" if exit_code else "success")
+    assert cli.publish(Namespace(input=str(prepared), result=str(tmp_path / "analyzed"))) == 0
+    assert client.update_check.call_args.args[:3] == ("owner/repo", 123, conclusion)
     assert store.save.call_args.args[1]["manifest"]["head_sha"] == HEAD
 
 
@@ -301,6 +304,10 @@ def test_finalize_distinguishes_analysis_timeout(prepared, monkeypatch, tmp_path
     client = Mock(app_id=99)
     client.request.return_value = {"head_sha": HEAD, "app": {"id": 99}, "status": "in_progress"}
     monkeypatch.setattr(cli, "client_from_state", lambda _: client)
+    monkeypatch.setattr(cli, "check_current", Mock())
+    from ai_review import publishing
+
+    monkeypatch.setattr(publishing, "publish", Mock())
     cli.write_json(tmp_path / "analyzed", "error.json", {"conclusion": "timed_out"})
     assert cli.finalize(Namespace(input=str(prepared), conclusion="failure", result=str(tmp_path / "analyzed"))) == 0
     assert client.update_check.call_args.args[2] == "timed_out"
@@ -383,3 +390,192 @@ def test_new_head_after_comment_publication_prevents_success(prepared, result, m
     post.assert_called_once()
     assert client.update_check.call_args.args[2] == "cancelled"
     assert client.update_check.call_args.args[1] == 123
+
+
+@pytest.mark.parametrize("diagnostic", ["invalid_recommendation", "invalid_suggestions", "incomplete_chunks"])
+def test_failure_hook_publishes_partial_results_without_caching(prepared, result, diagnostic, monkeypatch, tmp_path):
+    from ai_review import publishing
+    from ai_review.storage import Store
+
+    result["review"] = {}
+    result["coverage"]["complete"] = False
+    result["tool_status"]["review"] = "failed"
+    result["diagnostics"] = [{"tool": "review", "code": diagnostic}]
+    result["comments"] = [{"path": "main.py", "side": "RIGHT", "start_line": 1, "end_line": 1, "body": "Fehler"}]
+    cli.write_json(tmp_path / "analyzed", "result.json", result)
+    client = Mock(app_id=99)
+    client.request.return_value = {"head_sha": HEAD, "app": {"id": 99}, "status": "in_progress"}
+    monkeypatch.setattr(cli, "client_from_state", lambda _: client)
+    monkeypatch.setattr(cli, "check_current", Mock())
+    post, store = Mock(), Mock()
+    monkeypatch.setattr(publishing, "publish", post)
+    monkeypatch.setattr(Store, "from_env", store)
+    assert cli.finalize(Namespace(input=str(prepared), conclusion="failure", result=str(tmp_path / "analyzed"))) == 0
+    assert post.call_args.kwargs == {"incomplete": True}
+    report = post.call_args.args[-1]
+    assert report["comments"] == result["comments"]
+    assert report["review"] == {}
+    assert report["diagnostics"] == result["diagnostics"]
+    assert client.update_check.call_args.args[2] == "failure"
+    store.assert_not_called()
+
+
+@pytest.mark.parametrize("stale", [False, True])
+def test_cancellation_never_posts_partial_results(prepared, result, stale, monkeypatch, tmp_path):
+    from ai_review import publishing
+
+    cli.write_json(tmp_path / "analyzed", "result.json", result)
+    client = Mock(app_id=99)
+    client.request.return_value = {"head_sha": HEAD, "app": {"id": 99}, "status": "in_progress"}
+    monkeypatch.setattr(cli, "client_from_state", lambda _: client)
+    monkeypatch.setattr(cli, "check_current", Mock(side_effect=StaleReview()))
+    post = Mock()
+    monkeypatch.setattr(publishing, "publish", post)
+    assert (
+        cli.finalize(
+            Namespace(
+                input=str(prepared), conclusion="failure" if stale else "cancelled", result=str(tmp_path / "analyzed")
+            )
+        )
+        == 0
+    )
+    assert client.update_check.call_args.args[2] == "cancelled"
+    post.assert_not_called()
+
+
+def test_failure_hook_still_closes_check_when_publication_fails(prepared, monkeypatch):
+    from ai_review import publishing
+
+    client = Mock(app_id=99)
+    client.request.return_value = {"head_sha": HEAD, "app": {"id": 99}, "status": "in_progress"}
+    monkeypatch.setattr(cli, "client_from_state", lambda _: client)
+    monkeypatch.setattr(cli, "check_current", Mock())
+    monkeypatch.setattr(publishing, "publish", Mock(side_effect=RuntimeError("SECRET")))
+    with pytest.raises(ReviewError, match="Partial publication failed"):
+        cli.finalize(Namespace(input=str(prepared), conclusion="failure", result=None))
+    assert client.update_check.call_args.args[2] == "failure"
+
+
+def test_wrong_snapshot_partial_artifact_is_not_published(prepared, result, monkeypatch, tmp_path):
+    from ai_review import publishing
+
+    result["identity"] = "another-review"
+    result["comments"] = [{"body": "must never publish this"}]
+    cli.write_json(tmp_path / "analyzed", "result.json", result)
+    client = Mock(app_id=99)
+    client.request.return_value = {"head_sha": HEAD, "app": {"id": 99}, "status": "in_progress"}
+    monkeypatch.setattr(cli, "client_from_state", lambda _: client)
+    monkeypatch.setattr(cli, "check_current", Mock())
+    post = Mock()
+    monkeypatch.setattr(publishing, "publish", post)
+    cli.finalize(Namespace(input=str(prepared), conclusion="failure", result=str(tmp_path / "analyzed")))
+    report = post.call_args.args[-1]
+    assert report["comments"] == []
+    assert report["diagnostics"] == [{"tool": "analysis", "code": "invalid_artifact"}]
+
+
+def test_timeout_preserves_an_existing_checkpoint(prepared, result, monkeypatch, tmp_path):
+    for key in list(cli.os.environ):
+        if key.startswith(("GITHUB_APP_", "GITHUB_INSTALLATION_", "AWS_", "S3_")):
+            monkeypatch.delenv(key)
+    monkeypatch.setenv("LITELLM_API_KEY", "never-log-this")
+    result["coverage"]["complete"] = False
+    result["tool_status"]["improve"] = "not_started"
+    output = tmp_path / "analyzed"
+    cli.write_json(output, "result.json", result)
+    monkeypatch.setattr(cli.subprocess, "run", Mock(side_effect=subprocess.TimeoutExpired("model", 570)))
+    with pytest.raises(ReviewError):
+        cli.analyze(Namespace(input=str(prepared), output=str(output)))
+    assert cli.read_json(output, "result.json") == result
+    assert cli.read_json(output, "error.json")["conclusion"] == "timed_out"
+
+
+def test_analysis_logs_fixed_diagnostics_before_generic_failure(prepared, result, monkeypatch, tmp_path, capsys):
+    for key in list(cli.os.environ):
+        if key.startswith(("GITHUB_APP_", "GITHUB_INSTALLATION_", "AWS_", "S3_")):
+            monkeypatch.delenv(key)
+    monkeypatch.setenv("LITELLM_API_KEY", "never-log-this")
+    result["review"] = {}
+    result["diagnostics"] = [
+        {"tool": "review", "code": "invalid_recommendation"},
+        {"tool": "review", "code": "SECRET-RESPONSE"},
+    ]
+    output = tmp_path / "analyzed"
+    cli.write_json(output, "result.json", result)
+    monkeypatch.setattr(cli.subprocess, "run", Mock(return_value=Mock(returncode=1)))
+    with pytest.raises(ReviewError):
+        cli.analyze(Namespace(input=str(prepared), output=str(output)))
+    log = capsys.readouterr().out
+    assert '"code": "invalid_recommendation"' in log
+    assert "SECRET-RESPONSE" not in log and "never-log-this" not in log
+
+
+def test_partial_result_drops_untrusted_fields_and_malformed_findings(snapshot, result):
+    from ai_review.diagnostics import partial_result
+
+    result["review"] = {"merge_recommendation": "made-up", "secret": "response"}
+    result["coverage"]["errors"] = ["SECRET-ERROR"]
+    result["coverage"]["reviewed_files"] = ["unrelated.py", "main.py"]
+    result["diagnostics"] = [{"tool": "review", "code": "invalid_recommendation"}, {"tool": "review", "code": "SECRET"}]
+    valid = {"path": "main.py", "side": "RIGHT", "start_line": 1, "end_line": 1, "body": "Hinweis"}
+    result["comments"] = [
+        None,
+        valid,
+        dict(valid, end_line=50),
+        dict(valid, body={"bad": "shape"}),
+        dict(valid, path="elsewhere"),
+    ]
+    report = partial_result(result, snapshot)
+    assert report["comments"] == [valid]
+    assert report["review"] == {} and report["markdown"] == ""
+    assert report["coverage"]["errors"] == []
+    assert report["coverage"]["reviewed_files"] == ["main.py"]
+    assert report["diagnostics"] == [{"tool": "review", "code": "invalid_recommendation"}]
+    with pytest.raises(ReviewError):
+        validate_result(report, snapshot)
+
+
+def test_complete_coverage_with_diagnostic_cannot_pass(snapshot, result):
+    result["diagnostics"] = [{"tool": "improve", "code": "incomplete_chunks"}]
+    with pytest.raises(ReviewError):
+        validate_result(result, snapshot)
+
+
+def test_engine_atomically_checkpoints_before_interruption(prepared, result, monkeypatch, tmp_path):
+    from ai_review import analysis
+
+    monkeypatch.setenv("LITELLM_API_KEY", "test-key")
+    output = tmp_path / "analyzed"
+
+    def interrupted(snapshot, settings, checkpoint):
+        checkpoint(result)
+        assert cli.read_json(output, "result.json")["identity"] == snapshot["identity"]
+        assert not (output / "result.json.tmp").exists()
+        raise TimeoutError()
+
+    monkeypatch.setattr(analysis, "analyze", interrupted)
+    with pytest.raises(TimeoutError):
+        cli.engine(Namespace(input=str(prepared), output=str(output)))
+    assert cli.read_json(output, "result.json") == result
+
+
+@pytest.mark.parametrize("artifact", ["snapshot.json", "error.json"])
+def test_corrupted_failure_artifact_still_closes_check(prepared, artifact, monkeypatch, tmp_path):
+    from ai_review import publishing
+
+    client = Mock(app_id=99)
+    client.request.return_value = {"head_sha": HEAD, "app": {"id": 99}, "status": "in_progress"}
+    monkeypatch.setattr(cli, "client_from_state", lambda _: client)
+    monkeypatch.setattr(cli, "check_current", Mock())
+    monkeypatch.setattr(publishing, "publish", Mock())
+    output = tmp_path / "analyzed"
+    output.mkdir()
+    target = prepared if artifact == "snapshot.json" else output
+    (target / artifact).write_text("invalid JSON")
+    args = Namespace(input=str(prepared), conclusion="failure", result=str(output))
+    if artifact == "snapshot.json":
+        with pytest.raises(ReviewError):
+            cli.finalize(args)
+    else:
+        assert cli.finalize(args) == 0
+    assert client.update_check.call_args.args[2] == "failure"

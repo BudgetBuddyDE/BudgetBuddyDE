@@ -45,6 +45,8 @@ def validate_result(result: dict, snapshot: dict) -> str:
         json.dumps(result, allow_nan=False)
     except (ValueError, TypeError):
         raise ReviewError("Analysis is not valid JSON") from None
+    if result.get("diagnostics", []) != []:
+        raise ReviewError("Analysis has diagnostic failures")
     review = result.get("review")
     if not isinstance(review, dict) or review.get("merge_recommendation") not in RECOMMENDATIONS:
         raise ReviewError("Missing or invalid merge recommendation")
