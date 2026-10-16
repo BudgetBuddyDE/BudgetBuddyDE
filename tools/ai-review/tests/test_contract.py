@@ -244,3 +244,51 @@ def test_failed_improve_keeps_completed_review_checkpoint(monkeypatch):
     assert result["tool_status"] == {"review": "completed", "improve": "failed"}
     assert {"tool": "improve", "code": "invalid_suggestions"} in result["diagnostics"]
     assert result["coverage"]["complete"] is False
+
+
+def test_proxy_alias_requests_omit_temperature_for_review_suggestions_and_scoring(monkeypatch):
+    from litellm import ModelResponse
+    from pr_agent.algo.ai_handlers import litellm_ai_handler
+
+    calls = []
+
+    async def completion(**kwargs):
+        calls.append(kwargs)
+        assert kwargs["model"] == "openai/code-review"
+        assert "temperature" not in kwargs
+        assert "reasoning_effort" not in kwargs
+        system = kwargs["messages"][0]["content"]
+        if "merge_recommendation" in system:
+            content = "review:\n  merge_recommendation: changes_required\n  key_issues_to_review: []"
+        elif "suggestion_score" in system:
+            content = """code_suggestions:
+- suggestion_summary: Korrigiere den Wert
+  relevant_file: a.py
+  relevant_lines_start: 1
+  relevant_lines_end: 1
+  suggestion_score: 9
+  why: Korrigiert den Fehler
+"""
+        else:
+            content = """code_suggestions:
+- relevant_file: a.py
+  language: python
+  existing_code: x = 2
+  improved_code: x = 1
+  suggestion_content: Korrigiere den falschen Wert.
+  one_sentence_summary: Korrigiere den Wert
+  label: possible issue
+"""
+        return ModelResponse(
+            model=kwargs["model"],
+            choices=[{"index": 0, "message": {"role": "assistant", "content": content}, "finish_reason": "stop"}],
+            usage={"prompt_tokens": 20, "completion_tokens": 20, "total_tokens": 40},
+        )
+
+    # Replace only the network boundary; run both pinned PR-Agent tools and their real handler.
+    monkeypatch.setattr(litellm_ai_handler, "acompletion", completion)
+    result = analyze(SNAPSHOT, SETTINGS)
+    assert result["coverage"]["complete"] is True
+    assert result["review"]["merge_recommendation"] == "changes_required"
+    assert result["suggestions"]
+    assert len(calls) == 3

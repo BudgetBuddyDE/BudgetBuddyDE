@@ -43,6 +43,8 @@ def build_settings(snapshot, settings):
         "config.custom_model_max_tokens": context_window,
         "config.max_model_tokens": context_window,
         "config.fallback_models": [],
+        # The proxy alias hides model capabilities; let LiteLLM choose sampling defaults.
+        "config.no_temperature_models": [model],
         "config.use_repo_settings_file": False,
         "config.enable_per_directory_settings": False,
         "config.extra_config_url": "",

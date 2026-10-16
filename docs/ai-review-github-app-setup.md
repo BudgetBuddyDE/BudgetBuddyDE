@@ -24,6 +24,8 @@ ai-review-settings:
 
 The context window must match the supported model profile and must never exceed its actual capacity. The model is sent as `openai/code-review`; implicit provider fallbacks are disabled. Increment the profile revision when changing the routing or capabilities behind an unchanged alias so cached reviews are not reused across different profiles.
 
+The adapter omits `temperature` for the configured proxy alias in all PR-Agent model requests, including suggestion scoring. This preserves the LiteLLM model profile defaults and supports reasoning models that reject PR-Agent's default `temperature=0.2`. No reasoning override or model fallback is added.
+
 Supply S3 credentials through the existing variables `s3-ai-review.access_key_id`, `s3-ai-review.access_key_secret`, `s3-ai-review.bucket` and `s3-ai-review.region`. The private bucket stores completed PR-Agent analyses for retry reuse, including negative decisions. Existing Go reports remain untouched and are not accepted as new-format results.
 
 Grant the adapter `s3:GetObject` and `s3:PutObject` for its review prefix. Missing objects must be distinguishable from denied reads; AWS may require prefix-constrained `s3:ListBucket` for this. Restrict access to the bucket because reports can contain code and security findings. Configure expiration according to your retention requirements. SSE-KMS buckets additionally need the selected key's encrypt/decrypt permissions.
