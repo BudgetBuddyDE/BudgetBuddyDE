@@ -9,7 +9,7 @@ import {
   RadialBarChart,
   WaterfallChart,
 } from '@budgetbuddyde/charts';
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import React from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {ChartsShowcase} from './ChartsShowcase';
@@ -24,8 +24,8 @@ afterEach(() => {
 describe('chart presentation', () => {
   it('renders donut sectors with explicit and identity-based colors without mutating the data', () => {
     const data = [
-      {id: 'rent', label: 'Rent', value: 100, color: '#123456'},
       {id: 'food', label: 'Food', value: 50},
+      {id: 'rent', label: 'Rent', value: 100, color: '#123456'},
     ];
     const {container, rerender} = render(<DonutChart width={300} data={data} primaryText="Total" />);
     const sectors = container.querySelectorAll('.recharts-sector');
@@ -37,8 +37,28 @@ describe('chart presentation', () => {
     expect(data.every(entry => !('fill' in entry))).toBe(true);
 
     rerender(<DonutChart width={300} data={[...data].reverse()} />);
-    expect(container.querySelectorAll('.recharts-sector')[0]).toHaveAttribute('fill', foodColor);
+    expect(container.querySelectorAll('.recharts-sector')[0]).toHaveAttribute('fill', '#123456');
+    expect(container.querySelectorAll('.recharts-sector')[1]).toHaveAttribute('fill', foodColor);
+    expect(data.map(entry => entry.id)).toEqual(['food', 'rent']);
   });
+
+  it.each([{values: [0, 50, 100, 50]}, {values: [0, 50, -100, -50]}])(
+    'sorts the donut legend by absolute value for $values without changing the data',
+    ({values}) => {
+      const data = values.map((value, index) => ({label: `Entry ${index}`, value}));
+      render(<DonutChart width={300} data={data} showLegend />);
+
+      const items = within(screen.getByRole('list', {name: 'Chart legend'})).getAllByRole('listitem');
+      expect(items.map(item => within(item).getByText(/^Entry /).textContent)).toEqual([
+        'Entry 2',
+        'Entry 1',
+        'Entry 3',
+        'Entry 0',
+      ]);
+      expect(data.map(entry => entry.value)).toEqual(values);
+      expect(data.every(entry => !('fill' in entry))).toBe(true);
+    },
+  );
 
   it('renders funnel trapezoids with explicit and identity-based colors without mutating the data', () => {
     const data = [

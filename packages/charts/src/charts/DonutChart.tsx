@@ -54,10 +54,12 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 }) => {
   const theme = useChartTheme();
   const motion = useChartMotion(animate);
-  const pieData = data.map(entry => ({
-    ...entry,
-    fill: entry.color ?? getSeriesColor(theme, entry.id ?? entry.label),
-  }));
+  const pieData = data
+    .map(entry => ({
+      ...entry,
+      fill: entry.color ?? getSeriesColor(theme, entry.id ?? entry.label),
+    }))
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
 
   return (
     <ParentSize width={width}>
