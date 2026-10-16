@@ -19,7 +19,7 @@ const dayIntervals: Partial<Record<TExecutionPlan, number>> = {
 };
 const monthIntervals: Partial<Record<TExecutionPlan, number>> = {
   monthly: 1,
-  quarterly: 3,
+  quarterly: 4,
   yearly: 12,
 };
 
@@ -93,7 +93,7 @@ export function listOccurrenceDates(schedule: IRecurrenceSchedule, fromDate: str
 
   const occurrences: string[] = [];
   let occurrence = nextOccurrenceOnOrAfter(schedule, fromDate);
-  while (toEpochDay(parseDateOnly(occurrence)) <= toEpochDayValue) {
+  while (toEpochDay(parseDateOnly(occurrence)) < toEpochDayValue) {
     occurrences.push(occurrence);
     const followingDay = formatDateOnly(fromEpochDay(toEpochDay(parseDateOnly(occurrence)) + 1));
     occurrence = nextOccurrenceOnOrAfter(schedule, followingDay);
