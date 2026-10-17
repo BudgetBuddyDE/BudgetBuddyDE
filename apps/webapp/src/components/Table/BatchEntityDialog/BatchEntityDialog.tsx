@@ -110,7 +110,13 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
   // Snapshot the input rows only when the dialog transitions from closed to open.
   // This prevents parent refreshes/re-renders from overwriting edits in progress.
   useEffect(() => {
-    if (open && !wasOpen.current) {
+    if (!open) {
+      resetState();
+      wasOpen.current = false;
+      return;
+    }
+
+    if (!wasOpen.current) {
       const rows = mode === 'CREATE' ? [createEmptyRow()] : cloneDraftValue(initialRows);
       baselineRows.current = cloneDraftValue(rows);
       setDraftRows(rows);
@@ -120,10 +126,8 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
       setSelectionModel(emptySelection());
       setValidationIssues([]);
       setDraftError(null);
-    } else if (!open && wasOpen.current) {
-      resetState();
     }
-    wasOpen.current = open;
+    wasOpen.current = true;
   }, [createEmptyRow, initialRows, mode, open, resetState]);
 
   const handleClose = useCallback(() => {

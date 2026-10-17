@@ -229,7 +229,7 @@ describe('BatchEntityDialog', () => {
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('preserves edits on parent refresh and resets confirmation and drafts on reopening', async () => {
+  it('preserves edits on parent refresh and clears discard state after external close and reopening', async () => {
     const props = createProps({mode: 'EDIT', initialRows: [{id: 'existing', name: 'Original'}]});
     const {rerender} = render(<BatchEntityDialog {...props} />);
     await editName('Changed');
@@ -239,6 +239,7 @@ describe('BatchEntityDialog', () => {
     closeDialog('Cancel');
     await getConfirmation();
     rerender(<BatchEntityDialog {...refreshedProps} open={false} />);
+    expect(props.onClose).not.toHaveBeenCalled();
     rerender(<BatchEntityDialog {...refreshedProps} />);
     expect(await screen.findByRole('gridcell', {name: 'Refreshed'})).toBeInTheDocument();
     expect(screen.queryByText('Discard unsaved changes?')).not.toBeInTheDocument();
