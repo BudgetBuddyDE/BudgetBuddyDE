@@ -143,7 +143,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
   }, [apiRef, draftRows]);
 
   const handleRequestClose = useCallback(() => {
-    if (confirmingDiscard.current) return;
+    if (isSubmitting || confirmingDiscard.current) return;
 
     if (draftRowsEqual(getCurrentRows(), baselineRows.current)) {
       handleClose();
@@ -151,7 +151,13 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
       confirmingDiscard.current = true;
       setConfirmDiscard(true);
     }
-  }, [getCurrentRows, handleClose]);
+  }, [getCurrentRows, handleClose, isSubmitting]);
+
+  const handleDiscard = useCallback(() => {
+    if (isSubmitting) return;
+
+    handleClose();
+  }, [handleClose, isSubmitting]);
 
   const handleKeepEditing = useCallback(() => {
     confirmingDiscard.current = false;
@@ -346,7 +352,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
           <Button onClick={handleKeepEditing} autoFocus>
             Keep editing
           </Button>
-          <Button onClick={handleClose} color="error" variant="contained">
+          <Button onClick={handleDiscard} disabled={isSubmitting} color="error" variant="contained">
             Discard changes
           </Button>
         </DialogActions>

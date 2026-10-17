@@ -143,6 +143,27 @@ describe('BatchEntityDialog', () => {
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
+    it('keeps the draft when close or discard is attempted during submission', async () => {
+      const props = createProps({initialRows: [{id: 'existing', name: 'Original'}], mode: 'EDIT'});
+      const {rerender} = render(<BatchEntityDialog {...props} />);
+
+      await editName('Changed');
+      rerender(<BatchEntityDialog {...props} isSubmitting />);
+      closeDialog('Cancel');
+
+      expect(props.onClose).not.toHaveBeenCalled();
+      expect(screen.queryByText('Discard unsaved changes?')).not.toBeInTheDocument();
+
+      rerender(<BatchEntityDialog {...props} isSubmitting={false} />);
+      closeDialog('Cancel');
+      const confirmation = await getConfirmation();
+      rerender(<BatchEntityDialog {...props} isSubmitting />);
+      fireEvent.click(within(confirmation).getByRole('button', {name: 'Discard changes'}));
+
+      expect(props.onClose).not.toHaveBeenCalled();
+      expect(screen.getByRole('dialog', {name: 'Discard unsaved changes?'})).toBeInTheDocument();
+    });
+
     it.each(['Keep editing', 'Escape', 'backdrop'] as const)('preserves active input after %s', async action => {
       const props = modeProps();
       render(<BatchEntityDialog {...props} />);
