@@ -74,6 +74,7 @@ export const InsightsReportDashboard: React.FC = () => {
   const [transactionRowsPerPage, setTransactionRowsPerPage] = React.useState(() =>
     parseTransactionPageSize(searchParams.get('pageSize')),
   );
+  const latestPaginationRef = React.useRef({page: transactionPage, pageSize: transactionRowsPerPage});
 
   const query = React.useMemo<IGetInsightsReportQuery>(
     () => ({
@@ -101,8 +102,9 @@ export const InsightsReportDashboard: React.FC = () => {
       }>,
     ) => {
       const params = new URLSearchParams(searchParamsString);
-      const nextPage = overrides.page ?? transactionPage;
-      const nextPageSize = overrides.pageSize ?? transactionRowsPerPage;
+      const nextPage = overrides.page ?? latestPaginationRef.current.page;
+      const nextPageSize = overrides.pageSize ?? latestPaginationRef.current.pageSize;
+      latestPaginationRef.current = {page: nextPage, pageSize: nextPageSize};
       const queryParams = serializeInsightsSearchParams({
         from: overrides.from ?? from,
         to: overrides.to ?? to,
@@ -120,19 +122,7 @@ export const InsightsReportDashboard: React.FC = () => {
       const queryString = nextParams.toString();
       router.push(`${pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`, {scroll: false});
     },
-    [
-      categories,
-      comparison,
-      from,
-      granularity,
-      paymentMethods,
-      pathname,
-      router,
-      searchParamsString,
-      to,
-      transactionPage,
-      transactionRowsPerPage,
-    ],
+    [categories, comparison, from, granularity, paymentMethods, pathname, router, searchParamsString, to],
   );
 
   React.useEffect(() => {
@@ -206,8 +196,11 @@ export const InsightsReportDashboard: React.FC = () => {
     setTo(rangeIsValid ? nextTo : new Date());
     setGranularity(parseGranularity(params.get('granularity')));
     setComparison(parseComparison(params.get('comparison')));
-    setTransactionPage(parseTransactionPage(params.get('page')));
-    setTransactionRowsPerPage(parseTransactionPageSize(params.get('pageSize')));
+    const nextPage = parseTransactionPage(params.get('page'));
+    const nextPageSize = parseTransactionPageSize(params.get('pageSize'));
+    latestPaginationRef.current = {page: nextPage, pageSize: nextPageSize};
+    setTransactionPage(nextPage);
+    setTransactionRowsPerPage(nextPageSize);
   }, [searchParamsString]);
 
   React.useEffect(() => {
