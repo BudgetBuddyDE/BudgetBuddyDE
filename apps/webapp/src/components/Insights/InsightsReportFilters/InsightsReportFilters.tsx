@@ -48,11 +48,7 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
           <Card.Subtitle>All analytics use the same selection</Card.Subtitle>
         </Stack>
         <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', justifyContent: 'flex-end'}}>
-          <DateRangePicker
-            size="small"
-            defaultValue={{startDate: from, endDate: to}}
-            onDateRangeChange={onDateRangeChange}
-          />
+          <DateRangePicker size="small" value={{startDate: from, endDate: to}} onDateRangeChange={onDateRangeChange} />
           <FormControl size="small" sx={{minWidth: 120}}>
             <InputLabel id="insights-report-granularity-label">Grouping</InputLabel>
             <Select

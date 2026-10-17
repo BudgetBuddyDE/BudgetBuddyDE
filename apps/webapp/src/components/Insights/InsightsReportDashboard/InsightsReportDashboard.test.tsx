@@ -11,6 +11,7 @@ const {
   categoryValueHelpMock,
   paymentMethodValueHelpMock,
   replaceMock,
+  pushMock,
   navigation,
 } = vi.hoisted(() => ({
   getReportMock: vi.fn(),
@@ -18,6 +19,7 @@ const {
   categoryValueHelpMock: vi.fn(),
   paymentMethodValueHelpMock: vi.fn(),
   replaceMock: vi.fn(),
+  pushMock: vi.fn(),
   navigation: {params: new URLSearchParams()},
 }));
 
@@ -34,7 +36,7 @@ vi.mock('@/apiClient', () => ({
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => navigation.params,
-  useRouter: () => ({replace: replaceMock}),
+  useRouter: () => ({replace: replaceMock, push: pushMock}),
   usePathname: () => '/dashboard/insights',
 }));
 
@@ -58,6 +60,7 @@ beforeEach(() => {
   categoryValueHelpMock.mockReset();
   paymentMethodValueHelpMock.mockReset();
   replaceMock.mockReset();
+  pushMock.mockReset();
   categoryValueHelpMock.mockResolvedValue([categories, null]);
   paymentMethodValueHelpMock.mockResolvedValue([paymentMethods, null]);
   getReportMock.mockResolvedValue([{data: report}, null]);
@@ -132,7 +135,31 @@ describe('InsightsReportDashboard', () => {
       expect(getReportMock).toHaveBeenLastCalledWith(expect.objectContaining({$granularity: 'week'})),
     );
     await waitFor(() =>
-      expect(replaceMock).toHaveBeenCalledWith(expect.stringContaining('granularity=week'), {scroll: false}),
+      expect(pushMock).toHaveBeenCalledWith(expect.stringContaining('granularity=week'), {scroll: false}),
+    );
+  });
+
+  it('restores report controls and results when the URL changes through history navigation', async () => {
+    const {rerender} = render(<InsightsReportDashboard />);
+    await waitFor(() => expect(getReportMock).toHaveBeenCalled());
+    getReportMock.mockClear();
+    navigation.params = new URLSearchParams(
+      'from=2026-02-01&to=2026-02-28&granularity=month&comparison=none&page=2&pageSize=25',
+    );
+    rerender(<InsightsReportDashboard />);
+
+    await waitFor(() =>
+      expect(getReportMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          $dateFrom: new Date('2026-02-01T00:00:00.000Z'),
+          $dateTo: new Date('2026-02-28T00:00:00.000Z'),
+          $granularity: 'month',
+          $comparison: 'none',
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(transactionGetAllMock).toHaveBeenLastCalledWith(expect.objectContaining({from: 25, to: 50})),
     );
   });
 

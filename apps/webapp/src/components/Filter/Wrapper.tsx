@@ -56,6 +56,8 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
   const [state, dispatch] = React.useReducer(FilterReducer, getInitialFilterState());
   const [categoryOptions, setCategoryOptions] = React.useState<TCategoryVH[]>([]);
   const [paymentMethodOptions, setPaymentMethodOptions] = React.useState<TPaymentMethodVH[]>([]);
+  const [categoryOptionsFailed, setCategoryOptionsFailed] = React.useState(false);
+  const [paymentMethodOptionsFailed, setPaymentMethodOptionsFailed] = React.useState(false);
 
   const handleOpen = () => {
     // Bump key so FilterDialog remounts fresh (DateRangePicker re-reads defaultValue)
@@ -76,8 +78,13 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     let ignoreResult = false;
     void apiClient.backend.category.getValueHelp().then(([categories, error]) => {
       if (ignoreResult) return;
-      if (error) logger.error('Failed to fetch category options', error);
-      else setCategoryOptions(categories ?? []);
+      if (error) {
+        setCategoryOptionsFailed(true);
+        logger.error('Failed to fetch category options', error);
+      } else {
+        setCategoryOptionsFailed(false);
+        setCategoryOptions(categories ?? []);
+      }
     });
 
     return () => {
@@ -91,8 +98,13 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     let ignoreResult = false;
     void apiClient.backend.paymentMethod.getValueHelp().then(([paymentMethods, error]) => {
       if (ignoreResult) return;
-      if (error) logger.error('Failed to fetch payment method options', error);
-      else setPaymentMethodOptions(paymentMethods ?? []);
+      if (error) {
+        setPaymentMethodOptionsFailed(true);
+        logger.error('Failed to fetch payment method options', error);
+      } else {
+        setPaymentMethodOptionsFailed(false);
+        setPaymentMethodOptions(paymentMethods ?? []);
+      }
     });
 
     return () => {
@@ -128,10 +140,23 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
       result.paused = state.paused;
     }
     if (withCategories) {
-      result.categories = state.categories.map(c => c.id);
+      const selectedIds = new Set(state.categories.map(category => category.id));
+      if (categoryOptionsFailed) {
+        currentFilters.categories?.forEach(id => {
+          if (!categoryOptions.some(category => category.id === id)) selectedIds.add(id as TCategoryVH['id']);
+        });
+      }
+      result.categories = Array.from(selectedIds);
     }
     if (withPaymentMethods) {
-      result.paymentMethods = state.paymentMethods.map(pm => pm.id);
+      const selectedIds = new Set(state.paymentMethods.map(paymentMethod => paymentMethod.id));
+      if (paymentMethodOptionsFailed) {
+        currentFilters.paymentMethods?.forEach(id => {
+          if (!paymentMethodOptions.some(paymentMethod => paymentMethod.id === id))
+            selectedIds.add(id as TPaymentMethodVH['id']);
+        });
+      }
+      result.paymentMethods = Array.from(selectedIds);
     }
     onApply(result);
     setOpen(false);
@@ -222,7 +247,15 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           searchAsYouType={false}
           retrieveOptionsFunc={() => categoryOptions}
           value={categoryOptions.filter(category => currentFilters.categories?.includes(category.id))}
-          onChange={(_, categories) => applyQuickFilter({categories: categories.map(category => category.id)})}
+          onChange={(_, categories) => {
+            const selectedIds = new Set(categories.map(category => category.id));
+            if (categoryOptionsFailed) {
+              currentFilters.categories?.forEach(id => {
+                if (!categoryOptions.some(category => category.id === id)) selectedIds.add(id as TCategoryVH['id']);
+              });
+            }
+            applyQuickFilter({categories: Array.from(selectedIds)});
+          }}
           getOptionLabel={category => category.name}
           isOptionEqualToValue={(category, value) => category.id === value.id}
           noOptionsText="No categories found"
@@ -242,9 +275,16 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           value={paymentMethodOptions.filter(paymentMethod =>
             currentFilters.paymentMethods?.includes(paymentMethod.id),
           )}
-          onChange={(_, paymentMethods) =>
-            applyQuickFilter({paymentMethods: paymentMethods.map(paymentMethod => paymentMethod.id)})
-          }
+          onChange={(_, paymentMethods) => {
+            const selectedIds = new Set(paymentMethods.map(paymentMethod => paymentMethod.id));
+            if (paymentMethodOptionsFailed) {
+              currentFilters.paymentMethods?.forEach(id => {
+                if (!paymentMethodOptions.some(paymentMethod => paymentMethod.id === id))
+                  selectedIds.add(id as TPaymentMethodVH['id']);
+              });
+            }
+            applyQuickFilter({paymentMethods: Array.from(selectedIds)});
+          }}
           getOptionLabel={paymentMethod => paymentMethod.name}
           isOptionEqualToValue={(paymentMethod, value) => paymentMethod.id === value.id}
           noOptionsText="No payment methods found"

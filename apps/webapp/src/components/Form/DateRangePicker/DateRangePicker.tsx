@@ -10,6 +10,7 @@ export type DateRangeState = {
 };
 
 export type DateRangePickerProps = {
+  value?: Partial<DateRangeState>;
   slotProps?: {
     stack?: StackProps;
     startDatePicker?: DateTickerProps;
@@ -30,6 +31,7 @@ export type DateRangePickerProps = {
 };
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
+  value: controlledValue,
   slotProps,
   onDateRangeChange,
   defaultValue,
@@ -42,6 +44,16 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   });
   const valueRef = React.useRef<DateRangeState>(value);
   const [openField, setOpenField] = React.useState<'START' | 'END' | null>(null);
+
+  React.useEffect(() => {
+    if (!controlledValue) return;
+    const nextValue = {
+      startDate: controlledValue.startDate ?? null,
+      endDate: controlledValue.endDate ?? null,
+    };
+    valueRef.current = nextValue;
+    setValue(nextValue);
+  }, [controlledValue?.startDate, controlledValue?.endDate]);
 
   const handleStartDateChange = (date: Date | null) => {
     const nextValue = {...valueRef.current, startDate: date};
@@ -68,7 +80,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     <Stack direction={'row'} spacing={2} {...slotProps?.stack}>
       <DatePicker
         label="Start"
-        defaultValue={value.startDate}
+        value={value.startDate}
         onChange={handleStartDateChange}
         open={openField === 'START'}
         onClose={() => {
@@ -101,7 +113,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       />
       <DatePicker
         label="End"
-        defaultValue={value.endDate}
+        value={value.endDate}
         onChange={handleEndDateChange}
         minDate={value.startDate ?? undefined}
         open={openField === 'END'}

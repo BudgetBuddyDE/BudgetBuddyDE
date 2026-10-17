@@ -1,9 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {
   parseKeywordFilterFromParams,
+  parseKeywordQuery,
+  parsePaginationQuery,
   parseRecurringPaymentFiltersFromParams,
   parseTransactionFiltersFromParams,
   serializeKeywordFilter,
+  serializeKeywordQuery,
   serializeRecurringPaymentFilters,
   serializeTransactionFilters,
 } from './URLUtil';
@@ -44,6 +47,12 @@ suite('Filter - URL utils', () => {
 
     it('ignores invalid dateTo', () => {
       expect(parseTransactionFiltersFromParams({dateTo: 'not-a-date'})).toEqual({});
+    });
+
+    it('falls back to the default date range when dates are reversed', () => {
+      expect(parseTransactionFiltersFromParams({dateFrom: '2024-12-31', dateTo: '2024-01-01', q: 'rent'})).toEqual({
+        keyword: 'rent',
+      });
     });
 
     it('parses comma-separated categories', () => {
@@ -320,6 +329,35 @@ suite('Filter - URL utils', () => {
       expect(parsed.excl_categories).toEqual(original.excl_categories);
       expect(parsed.paymentMethods).toEqual(original.paymentMethods);
       expect(parsed.excl_paymentMethods).toEqual(original.excl_paymentMethods);
+    });
+  });
+
+  describe('URL query state', () => {
+    it('restores one-based pages and validates supported page sizes', () => {
+      expect(parseKeywordQuery(new URLSearchParams('q=rent&page=3&pageSize=50'))).toEqual({
+        filters: {keyword: 'rent'},
+        page: 2,
+        pageSize: 50,
+      });
+      expect(parsePaginationQuery(new URLSearchParams('page=-2&pageSize=12'))).toEqual({
+        filters: {},
+        page: 0,
+        pageSize: 15,
+      });
+    });
+
+    it('preserves repeated IDs once and rejects impossible calendar dates', () => {
+      expect(parseTransactionFiltersFromParams({cat: ['food,rent', 'food'], dateFrom: '2024-02-31'})).toEqual({
+        categories: ['food', 'rent'],
+      });
+    });
+
+    it('retains unrelated parameters when filters are serialized', () => {
+      const params = serializeKeywordQuery(
+        {filters: {keyword: 'rent'}, page: 1, pageSize: 25},
+        new URLSearchParams('ibnEntity=budget&keep=yes'),
+      );
+      expect(params.toString()).toBe('ibnEntity=budget&keep=yes&q=rent&page=2&pageSize=25');
     });
   });
 });

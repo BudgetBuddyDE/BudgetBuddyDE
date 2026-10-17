@@ -46,6 +46,13 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
   const router = useRouter();
   const consumedIntentKeyRef = React.useRef<string | null>(null);
 
+  const stripIntentFromCurrentUrl = React.useCallback(() => {
+    const current = new URLSearchParams(window.location.search || searchParams.toString());
+    const stripped = stripIntentSearchParams(current);
+    const strippedQuery = stripped.toString();
+    router.replace(`${pathname}${strippedQuery ? `?${strippedQuery}` : ''}${window.location.hash}`, {scroll: false});
+  }, [pathname, router, searchParams]);
+
   React.useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     const parsed = parseIntentFromSearchParams(params);
@@ -61,9 +68,7 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
     if ('error' in parsed) {
       consumedIntentKeyRef.current = intentKey;
       handlers.onInvalid?.(parsed.error);
-      const stripped = stripIntentSearchParams(params);
-      const strippedQuery = stripped.toString();
-      router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
+      stripIntentFromCurrentUrl();
       return;
     }
 
@@ -85,17 +90,13 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
         await handlers.onDelete?.(intent.id);
       }
 
-      const stripped = stripIntentSearchParams(params);
-      const strippedQuery = stripped.toString();
-      router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
+      stripIntentFromCurrentUrl();
     };
 
     consume().catch(error => {
       const message = error instanceof Error ? error.message : 'Failed to consume intent';
       handlers.onInvalid?.(message);
-      const stripped = stripIntentSearchParams(params);
-      const strippedQuery = stripped.toString();
-      router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
+      stripIntentFromCurrentUrl();
     });
-  }, [entity, handlers, pathname, router, searchParams]);
+  }, [entity, handlers, pathname, router, searchParams, stripIntentFromCurrentUrl]);
 }

@@ -30,7 +30,7 @@ describe('useConsumeIntent', () => {
     rerender(<Harness handlers={{onCreate}} />);
 
     await waitFor(() => expect(onCreate).toHaveBeenCalledTimes(1));
-    expect(replace).toHaveBeenCalledWith('/transactions?q=food');
+    expect(replace).toHaveBeenCalledWith('/transactions?q=food', {scroll: false});
   });
 
   it('calls onEdit with the provided ID', async () => {
@@ -42,7 +42,7 @@ describe('useConsumeIntent', () => {
     render(<Harness handlers={{onEdit}} />);
 
     await waitFor(() => expect(onEdit).toHaveBeenCalledWith('tx-1'));
-    expect(replace).toHaveBeenCalledWith('/transactions');
+    expect(replace).toHaveBeenCalledWith('/transactions', {scroll: false});
   });
 
   it('calls onInvalid and removes IBN keys for invalid intents', async () => {
@@ -54,7 +54,7 @@ describe('useConsumeIntent', () => {
     render(<Harness handlers={{onInvalid}} />);
 
     await waitFor(() => expect(onInvalid).toHaveBeenCalledWith('edit intent requires ID'));
-    expect(replace).toHaveBeenCalledWith('/transactions?q=food');
+    expect(replace).toHaveBeenCalledWith('/transactions?q=food', {scroll: false});
   });
 
   it('ignores a foreign entity on the same page', async () => {

@@ -30,6 +30,7 @@ export function serializeInsightsSearchParams({
   comparison,
   categories,
   paymentMethods,
+  params = new URLSearchParams(),
 }: {
   from: Date;
   to: Date;
@@ -37,8 +38,9 @@ export function serializeInsightsSearchParams({
   comparison: string;
   categories: readonly InsightsFilterOption[];
   paymentMethods: readonly InsightsFilterOption[];
+  params?: URLSearchParams;
 }): string {
-  const params = new URLSearchParams();
+  ['from', 'to', 'granularity', 'comparison', 'cat', 'pm'].forEach(key => params.delete(key));
   params.set('from', format(from, 'yyyy-MM-dd'));
   params.set('to', format(to, 'yyyy-MM-dd'));
   params.set('granularity', granularity);

@@ -30,6 +30,7 @@ import {
   Tabs,
   Typography,
 } from '@mui/material';
+import {useRouter} from 'next/navigation';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {CloseIconButton, FullscreenIconButton} from '@/components/Button';
@@ -185,6 +186,7 @@ export type DataImportProps = {
 };
 
 export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const {showSnackbar} = useSnackbarContext();
   const [open, setOpen] = React.useState(false);
@@ -216,6 +218,7 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
       setActiveStep(mode === 'preview' ? 1 : 2);
       if (mode === 'commit') {
         refreshEntities();
+        router.refresh();
         showSnackbar({message: 'Import completed.'});
       }
     } catch (error) {

@@ -8,7 +8,6 @@ import {
   PostAddRounded as CreateMultipleIcon,
 } from '@mui/icons-material';
 import {Button, Typography} from '@mui/material';
-import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -20,7 +19,7 @@ import {
   getInitialEntityDrawerState,
 } from '@/components/Drawer/EntityDrawer';
 import {AddFab, FabContainer} from '@/components/FAB';
-import {serializeKeywordFilter} from '@/components/Filter';
+import {parseKeywordQuery, serializeKeywordFilter, serializeKeywordQuery} from '@/components/Filter/URLUtil';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {
   BatchEntityDialog,
@@ -40,6 +39,7 @@ import {
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {useEntityUrlState} from '@/lib/useEntityUrlState';
 import {logger} from '@/logger';
 import {
   columns as categoryBatchColumns,
@@ -58,7 +58,7 @@ export type CategoryTableProps = {
 
 export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) => {
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = categorySlice.actions;
+  const {refresh, getPage, setQueryState} = categorySlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -69,8 +69,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     data: categories,
     filter: filters,
   } = useAppSelector(categorySlice.selectors.getState);
-  const router = useRouter();
-  const pathname = usePathname();
+  const {updateFilters, updatePage, updatePageSize} = useEntityUrlState(
+    parseKeywordQuery,
+    serializeKeywordQuery,
+    ['q', 'page', 'pageSize'],
+    setQueryState,
+  );
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
@@ -281,12 +285,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
 
   const handleTextSearch = React.useCallback(
     (text: string) => {
-      const params = serializeKeywordFilter({...filters, keyword: text || null});
-      const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
-      dispatch(applyFilters({keyword: text || null}));
+      updateFilters({keyword: text || null});
     },
-    [applyFilters, dispatch, filters, pathname, router],
+    [updateFilters],
   );
 
   const dispatchNewPage = React.useCallback(
@@ -296,17 +297,16 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         return;
       }
 
-      dispatch(setPage(newPage));
+      updatePage(newPage);
     },
-    [dispatch, setPage],
+    [updatePage],
   );
 
   const dispatchNewRowsPerPage = React.useCallback(
     (newRowsPerPage: number) => {
-      // TODO: Implement validation, in order to ensure that only an valid option is passed
-      dispatch(setRowsPerPage(newRowsPerPage));
+      updatePageSize(newRowsPerPage);
     },
-    [dispatch, setRowsPerPage],
+    [updatePageSize],
   );
 
   const columns: ColumnDefinition<TCategory>[] = React.useMemo(
@@ -376,12 +376,6 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     ];
   }, [handleEditSelected]);
 
-  // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
-  React.useLayoutEffect(() => {
-    dispatch(setFilters({keyword: initialKeyword ?? null}));
-  }, []);
-
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -390,7 +384,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         rowsPerPage: rowsPerPage,
       }),
     );
-  }, [dispatch, getPage, currentPage, rowsPerPage]);
+  }, [dispatch, getPage, currentPage, rowsPerPage, JSON.stringify(filters)]);
 
   return (
     <React.Fragment>
@@ -404,7 +398,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           showCount: true,
           showSearch: true,
           searchPlaceholder: 'Search categories…',
-          searchDefaultValue: initialKeyword,
+          searchDefaultValue: filters.keyword ?? initialKeyword,
           onSearch: handleTextSearch,
           actions: [
             {
@@ -445,6 +439,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+        onRetry={() => dispatch(refresh())}
       />
 
       <BatchEntityDialog<CategoryDraftRow, Parameters<typeof apiClient.backend.category.createMany>[0][number]>

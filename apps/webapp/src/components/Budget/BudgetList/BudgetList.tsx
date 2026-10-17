@@ -4,6 +4,7 @@ import {CreateOrUpdateBudgetPayload, type TBudget} from '@budgetbuddyde/api/budg
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import AddRounded from '@mui/icons-material/AddRounded';
 import {Box, Button, IconButton, InputAdornment, Stack} from '@mui/material';
+import {useRouter} from 'next/navigation';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {ActionPaper} from '@/components/ActionPaper';
@@ -18,6 +19,7 @@ import {
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
 import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
+import {parsePaginationQuery, serializePaginationQuery} from '@/components/Filter/URLUtil';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
@@ -31,6 +33,7 @@ import {
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {useEntityUrlState} from '@/lib/useEntityUrlState';
 import {logger} from '@/logger';
 import {type Budget, BudgetItem, type BudgetItemProps} from './BudgetItem';
 
@@ -56,8 +59,9 @@ function toBudgetItemModel(entity: TBudget): Budget {
 }
 
 export const BudgetList: React.FC<BudgetListProps> = () => {
+  const router = useRouter();
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage} = budgetSlice.actions;
+  const {refresh, getPage, setQueryState} = budgetSlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -67,6 +71,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     count: totalEntityCount,
     data: budgets,
   } = useAppSelector(budgetSlice.selectors.getState);
+  const {updatePage, updatePageSize} = useEntityUrlState(
+    parsePaginationQuery,
+    serializePaginationQuery,
+    ['page', 'pageSize'],
+    setQueryState,
+  );
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
@@ -166,6 +176,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 
     showSnackbar({message: success.message || 'Budget deleted successfully'});
     dispatch(refresh());
+    router.refresh();
   };
 
   const handleClickEntity: BudgetItemProps['onClickBudget'] = async (_event, budget) => {
@@ -235,6 +246,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
       dispatch(refresh());
+      router.refresh();
     } else if (action === 'EDIT') {
       const entityId = drawerState.defaultValues?.id;
       if (!entityId) {
@@ -260,22 +272,22 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
       dispatch(refresh());
+      router.refresh();
     }
   };
 
   const dispatchNewPage = React.useCallback(
     (newPage: number) => {
-      dispatch(setPage(newPage));
+      updatePage(newPage);
     },
-    [dispatch, setPage],
+    [updatePage],
   );
 
   const dispatchNewRowsPerPage = React.useCallback(
     (newRowsPerPage: number) => {
-      // TODO: Implement validation, in order to ensure that only an valid option is passed
-      dispatch(setRowsPerPage(newRowsPerPage));
+      updatePageSize(newRowsPerPage);
     },
-    [dispatch, setRowsPerPage],
+    [updatePageSize],
   );
 
   const EntityFormFields: EntityDrawerField<EntityFormFields>[] = React.useMemo(() => {
@@ -380,7 +392,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
           </Card.HeaderActions>
         </Card.Header>
         <Card.Body>
-          <ErrorComp error={error} sx={{my: 1, mb: budgets && budgets.length > 0 ? 1 : 0}} />
+          {error && (
+            <Stack direction="row" spacing={1} sx={{alignItems: 'center', my: 1}}>
+              <ErrorComp error={error} sx={{flexGrow: 1, mb: budgets && budgets.length > 0 ? 1 : 0}} />
+              <Button onClick={() => dispatch(refresh())}>Retry</Button>
+            </Stack>
+          )}
           {status === 'loading' ? (
             <CircularProgress />
           ) : budgets !== null && budgets.length > 0 ? (
@@ -406,7 +423,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
                 );
               })}
             </Stack>
-          ) : (
+          ) : error ? null : (
             <NoResults
               variant="create"
               title="Create your first budget"

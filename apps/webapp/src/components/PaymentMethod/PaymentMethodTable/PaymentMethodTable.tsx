@@ -8,7 +8,6 @@ import {
   PostAddRounded as CreateMultipleIcon,
 } from '@mui/icons-material';
 import {Button, Typography} from '@mui/material';
-import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -20,7 +19,7 @@ import {
   getInitialEntityDrawerState,
 } from '@/components/Drawer';
 import {AddFab, FabContainer} from '@/components/FAB';
-import {serializeKeywordFilter} from '@/components/Filter';
+import {parseKeywordQuery, serializeKeywordFilter, serializeKeywordQuery} from '@/components/Filter/URLUtil';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {
   BatchEntityDialog,
@@ -33,6 +32,7 @@ import {
 import {paymentMethodSlice} from '@/lib/features/paymentMethods/paymentMethodSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {useEntityUrlState} from '@/lib/useEntityUrlState';
 import {logger} from '@/logger';
 import {
   columns as paymentMethodBatchColumns,
@@ -53,7 +53,7 @@ export type PaymentMethodTableProps = {
 
 export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKeyword}) => {
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = paymentMethodSlice.actions;
+  const {refresh, getPage, setQueryState} = paymentMethodSlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -64,8 +64,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     data: paymentMethods,
     filter: filters,
   } = useAppSelector(paymentMethodSlice.selectors.getState);
-  const router = useRouter();
-  const pathname = usePathname();
+  const {updateFilters, updatePage, updatePageSize} = useEntityUrlState(
+    parseKeywordQuery,
+    serializeKeywordQuery,
+    ['q', 'page', 'pageSize'],
+    setQueryState,
+  );
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
     getInitialEntityDrawerState<EntityFormFields>(),
@@ -263,12 +267,9 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
 
   const handleTextSearch = React.useCallback(
     (text: string) => {
-      const params = serializeKeywordFilter({...filters, keyword: text || null});
-      const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
-      dispatch(applyFilters({keyword: text || null}));
+      updateFilters({keyword: text || null});
     },
-    [applyFilters, dispatch, filters, pathname, router],
+    [updateFilters],
   );
 
   const dispatchNewPage = React.useCallback(
@@ -278,17 +279,16 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         return;
       }
 
-      dispatch(setPage(newPage));
+      updatePage(newPage);
     },
-    [dispatch, setPage],
+    [updatePage],
   );
 
   const dispatchNewRowsPerPage = React.useCallback(
     (newRowsPerPage: number) => {
-      // TODO: Implement validation, in order to ensure that only an valid option is passed
-      dispatch(setRowsPerPage(newRowsPerPage));
+      updatePageSize(newRowsPerPage);
     },
-    [dispatch, setRowsPerPage],
+    [updatePageSize],
   );
 
   const columns: ColumnDefinition<TPaymentMethod>[] = React.useMemo(
@@ -368,12 +368,6 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     ];
   }, [handleEditSelected]);
 
-  // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
-  React.useLayoutEffect(() => {
-    dispatch(setFilters({keyword: initialKeyword ?? null}));
-  }, []);
-
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -382,7 +376,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         rowsPerPage: rowsPerPage,
       }),
     );
-  }, [dispatch, getPage, currentPage, rowsPerPage]);
+  }, [dispatch, getPage, currentPage, rowsPerPage, JSON.stringify(filters)]);
 
   return (
     <React.Fragment>
@@ -396,7 +390,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
           showCount: true,
           showSearch: true,
           searchPlaceholder: 'Search payment methods…',
-          searchDefaultValue: initialKeyword,
+          searchDefaultValue: filters.keyword ?? initialKeyword,
           onSearch: handleTextSearch,
           actions: [
             {
@@ -438,6 +432,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+        onRetry={() => dispatch(refresh())}
       />
 
       <BatchEntityDialog<
