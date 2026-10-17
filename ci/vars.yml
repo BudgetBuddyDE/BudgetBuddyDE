@@ -14,5 +14,5 @@ ai-review-settings:
   profileRevision: '1'
 # Update both values together using the provider build's release report.
 ai-code-buddy-settings:
-  revision: '9384f4d7861eb11b9ad06202fbee55d067ec2a01'
-  digest: 'sha256:6063c8c7a2f6b7e6603526287e60c5e5b1cb4a572a743d1129304035e2b39398'
+  revision: 'a0e723c3523fd5fb11b016f80b32862b12b0d6d8'
+  digest: 'sha256:1876f5324335e9a932a80dcd762340e82c2bb9481a80148b7a9ada7163218b47'

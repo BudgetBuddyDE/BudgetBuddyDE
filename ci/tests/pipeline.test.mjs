@@ -39,6 +39,7 @@ test('provider tasks and image are explicitly pinned to a release', () => {
   assert.equal(source.source.private_key, '((github.private_key))');
   assert.deepEqual(source.version, {ref: '((ai-code-buddy-settings.revision))'});
   assert.equal(image.source.repository, 'ghcr.io/tklein1801/ai-code-buddy');
+  assert.equal(image.source.tag, 'latest');
   assert.deepEqual(image.version, {digest: '((ai-code-buddy-settings.digest))'});
   assert.equal(image.source.username, undefined);
   assert.equal(image.source.password, undefined);

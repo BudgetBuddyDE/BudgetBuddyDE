@@ -39,7 +39,7 @@ resources:
     icon: robot
     source:
       repository: ghcr.io/tklein1801/ai-code-buddy
-      tag: python-v2
+      tag: latest
     version:
       digest: ((ai-code-buddy-settings.digest))
   - name: ci-source

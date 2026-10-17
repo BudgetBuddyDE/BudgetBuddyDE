@@ -33,8 +33,8 @@ Grant the adapter `s3:GetObject` and `s3:PutObject` for its review prefix. Missi
 ## Provider release settings
 
 The published runtime is `ghcr.io/tklein1801/ai-code-buddy`; Consumers use its
-manifest digest rather than `python-v2` or a SHA tag. The historical `latest`
-image is the incompatible Go release. Task definitions and cleanup hooks come
+manifest digest together with the `latest` discovery tag. The digest fixes the
+exact runtime version even after a newer image is published. Task definitions and cleanup hooks come
 from the pinned Provider commit. Do not use a placeholder or independently
 selected source/image pair. New Provider releases do not automatically trigger
 Consumer reviews. The public image needs no registry-read credential.
