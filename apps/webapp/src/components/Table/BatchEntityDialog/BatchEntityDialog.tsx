@@ -345,6 +345,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
         aria-describedby={confirmationDescriptionId}
         maxWidth="xs"
         fullWidth
+        slotProps={{paper: {elevation: 0}}}
       >
         <DialogTitle id={confirmationTitleId}>Discard unsaved changes?</DialogTitle>
         <DialogContent>
