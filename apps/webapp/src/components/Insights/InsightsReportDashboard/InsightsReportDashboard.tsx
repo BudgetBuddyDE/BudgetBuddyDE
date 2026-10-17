@@ -28,6 +28,14 @@ const parseGranularity = (value: string | null): Granularity =>
   ['auto', 'day', 'week', 'month'].includes(value ?? '') ? (value as Granularity) : 'auto';
 const parseComparison = (value: string | null): Comparison =>
   ['previous', 'none'].includes(value ?? '') ? (value as Comparison) : 'previous';
+const parseTransactionPage = (value: string | null): number => {
+  const page = Number(value);
+  return Number.isSafeInteger(page) && page > 0 ? page - 1 : 0;
+};
+const parseTransactionPageSize = (value: string | null): number => {
+  const size = Number(value);
+  return [10, 15, 25, 50, 100].includes(size) ? size : 10;
+};
 
 export const InsightsReportDashboard: React.FC = () => {
   const searchParams = useSearchParams();
@@ -62,8 +70,10 @@ export const InsightsReportDashboard: React.FC = () => {
   const [transactionsLoading, setTransactionsLoading] = React.useState(true);
   const [transactionsRetry, setTransactionsRetry] = React.useState(0);
   const previousTransactionsQueryRef = React.useRef<string | null>(null);
-  const [transactionPage, setTransactionPage] = React.useState(0);
-  const [transactionRowsPerPage, setTransactionRowsPerPage] = React.useState(10);
+  const [transactionPage, setTransactionPage] = React.useState(() => parseTransactionPage(searchParams.get('page')));
+  const [transactionRowsPerPage, setTransactionRowsPerPage] = React.useState(() =>
+    parseTransactionPageSize(searchParams.get('pageSize')),
+  );
 
   const query = React.useMemo<IGetInsightsReportQuery>(
     () => ({
@@ -104,6 +114,7 @@ export const InsightsReportDashboard: React.FC = () => {
       });
       const nextParams = new URLSearchParams(queryParams);
       if (nextPage > 0) nextParams.set('page', String(nextPage + 1));
+      else nextParams.delete('page');
       if (nextPageSize !== 10) nextParams.set('pageSize', String(nextPageSize));
       else nextParams.delete('pageSize');
       const queryString = nextParams.toString();
@@ -195,10 +206,8 @@ export const InsightsReportDashboard: React.FC = () => {
     setTo(rangeIsValid ? nextTo : new Date());
     setGranularity(parseGranularity(params.get('granularity')));
     setComparison(parseComparison(params.get('comparison')));
-    const page = Number(params.get('page'));
-    setTransactionPage(Number.isSafeInteger(page) && page > 0 ? page - 1 : 0);
-    const pageSize = Number(params.get('pageSize'));
-    setTransactionRowsPerPage([10, 15, 25, 50, 100].includes(pageSize) ? pageSize : 10);
+    setTransactionPage(parseTransactionPage(params.get('page')));
+    setTransactionRowsPerPage(parseTransactionPageSize(params.get('pageSize')));
   }, [searchParamsString]);
 
   React.useEffect(() => {

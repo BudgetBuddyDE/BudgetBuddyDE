@@ -1,6 +1,7 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {StrictMode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {buildReport, buildTransaction, categoryOption, paymentMethodOption} from '../InsightsReport.fixtures';
 import {InsightsReportDashboard} from './InsightsReportDashboard';
@@ -45,7 +46,11 @@ vi.mock('@budgetbuddyde/charts', () => ({
 }));
 
 vi.mock('@/components/Form/DateRangePicker', () => ({
-  DateRangePicker: () => <div>date range</div>,
+  DateRangePicker: ({onDateRangeChange}: {onDateRangeChange: (start: Date, end: Date) => void}) => (
+    <button type="button" onClick={() => onDateRangeChange(new Date(2026, 1, 1), new Date(2026, 1, 28))}>
+      Apply test dates
+    </button>
+  ),
 }));
 
 const categories: TCategoryVH[] = [categoryOption('cat-1', 'Food'), categoryOption('cat-2', 'Rent')];
@@ -70,6 +75,72 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe('InsightsReportDashboard', () => {
+  it('hydrates from the active options request even when a superseded request has not completed', async () => {
+    navigation.params = new URLSearchParams(
+      'from=2026-01-01&to=2026-01-31&granularity=month&comparison=none&cat=cat-1&pm=pm-1',
+    );
+    let rejectOldCategories!: (error: Error) => void;
+    let resolveOldPayments!: (value: [TPaymentMethodVH[], null]) => void;
+    categoryValueHelpMock.mockImplementationOnce(() => new Promise((_, reject) => (rejectOldCategories = reject)));
+    paymentMethodValueHelpMock.mockImplementationOnce(() => new Promise(resolve => (resolveOldPayments = resolve)));
+    render(
+      <StrictMode>
+        <InsightsReportDashboard />
+      </StrictMode>,
+    );
+    expect(await screen.findByText('Receiver 1')).toBeInTheDocument();
+    expect(categoryValueHelpMock).toHaveBeenCalledTimes(2);
+    expect(paymentMethodValueHelpMock).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      rejectOldCategories(new Error('Old options rejected'));
+      resolveOldPayments([[], null]);
+    });
+    expect(screen.queryByText('Old options rejected')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Food'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Card'})).toBeInTheDocument();
+  });
+
+  it.each(['category', 'paymentMethod', 'dates', 'pageSize'] as const)(
+    'removes stale URL pages after a %s change following history navigation',
+    async change => {
+      transactionGetAllMock.mockResolvedValue([{data: transactions, totalCount: 200}, null]);
+      navigation.params = new URLSearchParams(
+        'from=2026-01-01&to=2026-01-31&granularity=month&comparison=none&page=3&pageSize=50&foreign=keep',
+      );
+      const {rerender} = render(<InsightsReportDashboard />);
+      await waitFor(() =>
+        expect(transactionGetAllMock).toHaveBeenLastCalledWith(expect.objectContaining({from: 100, to: 150})),
+      );
+      navigation.params = new URLSearchParams(
+        'from=2026-01-01&to=2026-01-31&granularity=month&comparison=none&page=2&pageSize=25&foreign=keep',
+      );
+      rerender(<InsightsReportDashboard />);
+      await waitFor(() =>
+        expect(transactionGetAllMock).toHaveBeenLastCalledWith(expect.objectContaining({from: 25, to: 50})),
+      );
+      if (change === 'dates') fireEvent.click(screen.getByRole('button', {name: 'Apply test dates'}));
+      else if (change === 'pageSize') {
+        const comboboxes = screen.getAllByRole('combobox');
+        fireEvent.mouseDown(comboboxes[comboboxes.length - 1]);
+        fireEvent.click(screen.getByRole('option', {name: '10'}));
+      } else {
+        fireEvent.mouseDown(
+          screen.getByRole('combobox', {name: change === 'category' ? 'Categories' : 'Payment methods'}),
+        );
+        fireEvent.click(await screen.findByRole('option', {name: change === 'category' ? 'Food' : 'Card'}));
+      }
+      await waitFor(() =>
+        expect(transactionGetAllMock).toHaveBeenLastCalledWith(
+          expect.objectContaining({from: 0, to: change === 'pageSize' ? 10 : 25}),
+        ),
+      );
+      const url = new URL(pushMock.mock.lastCall![0], window.location.origin);
+      expect(url.searchParams.has('page')).toBe(false);
+      expect(url.searchParams.get('pageSize')).toBe(change === 'pageSize' ? null : '25');
+      expect(url.searchParams.get('foreign')).toBe('keep');
+    },
+  );
+
   it('fetches filter options, the report and transactions after hydration', async () => {
     render(<InsightsReportDashboard />);
 
