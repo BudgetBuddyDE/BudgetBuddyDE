@@ -2,7 +2,7 @@ import {ApiClientError} from '@budgetbuddyde/core/error/ApiClientError';
 import {createNoopLogger, type Logger} from '@budgetbuddyde/logger';
 import type {z} from 'zod';
 import {BackendError, ResponseNotJsonError} from '../error';
-import {fetchWithCache, clearRequestCache} from './requestCache';
+import {fetchWithCache} from './requestCache';
 import type {TResult} from '../types/common';
 
 export class BackendService {
@@ -88,11 +88,7 @@ export class BackendService {
    */
   protected request(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const requestInit = typeof window === 'undefined' ? {...init, cache: 'no-store' as RequestCache} : init;
-    const method = (init?.method ?? 'GET').toUpperCase();
-    if (method !== 'GET') clearRequestCache();
-    const request = fetchWithCache(input, requestInit);
-    if (method === 'GET') return request;
-    return request.finally(clearRequestCache);
+    return fetchWithCache(input, requestInit);
   }
 
   protected isJsonResponse(response: Response): boolean {

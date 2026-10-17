@@ -35,15 +35,13 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
   transactionCount,
   transactionPage,
   transactionRowsPerPage,
-  transactionsError,
-  transactionsLoading,
+  transactionsError = null,
+  transactionsLoading = false,
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
   onRetryTransactions,
   onRetryReport,
 }) => {
-  transactionsError = null;
-  transactionsLoading = false;
   const initialLoading = loading && !report;
   const refreshing = loading && Boolean(report);
   const categoryIds = new Set<string>(categories.map(category => category.id));

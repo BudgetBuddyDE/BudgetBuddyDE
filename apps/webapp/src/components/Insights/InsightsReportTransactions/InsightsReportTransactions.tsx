@@ -28,16 +28,14 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
   transactionCount,
   transactionPage,
   transactionRowsPerPage,
-  transactionsError,
-  transactionsLoading,
+  transactionsError = null,
+  transactionsLoading = false,
   income,
   expenses,
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
   onRetry,
 }) => {
-  transactionsError = null;
-  transactionsLoading = false;
   return (
     <Card>
       <Card.Header>

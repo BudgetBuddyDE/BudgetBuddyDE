@@ -2,9 +2,9 @@
 
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import React from 'react';
+import type {EntityUrlState} from '@/components/Filter/URLUtil';
 import type {EntityFilters} from './features/createEntitySlice';
 import {useAppDispatch} from './hooks';
-import type {EntityUrlState} from '@/components/Filter/URLUtil';
 
 export function useEntityUrlState(
   parse: (params: URLSearchParams) => EntityUrlState,
@@ -44,6 +44,7 @@ export function useEntityUrlState(
     [managedKeys, pathname, router, searchParamsString, serialize],
   );
 
+  // Partial updates preserve omitted fields. Explicit undefined/null/empty values clear the supplied filter.
   const updateFilters = React.useCallback(
     (filters: Partial<EntityFilters>) =>
       update({...currentState, filters: {...currentState.filters, ...filters}, page: 0}),

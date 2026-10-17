@@ -43,9 +43,13 @@ export async function fetchWithCache(
     isBrowser() && method === 'GET' && init?.cache !== 'no-store' && cacheScope !== null && !hasExplicitAuthorization;
 
   if (!canCache) {
-    const response = await fetch(input, init);
-    if (method !== 'GET') responseCache.clear();
-    return response;
+    if (method === 'GET') return fetch(input, init);
+    clearRequestCache();
+    try {
+      return await fetch(input, init);
+    } finally {
+      clearRequestCache();
+    }
   }
 
   const generation = cacheGeneration;
@@ -68,13 +72,15 @@ export async function fetchWithCache(
       response.headers.get('content-type')?.includes('application/json')
     ) {
       const body = await response.clone().text();
-      responseCache.set(key, {
-        body,
-        headers: [...response.headers.entries()],
-        status: response.status,
-        statusText: response.statusText,
-        expiresAt: Date.now() + ttlMs,
-      });
+      if (generation === cacheGeneration) {
+        responseCache.set(key, {
+          body,
+          headers: [...response.headers.entries()],
+          status: response.status,
+          statusText: response.statusText,
+          expiresAt: Date.now() + ttlMs,
+        });
+      }
     }
     return response.clone();
   } finally {
