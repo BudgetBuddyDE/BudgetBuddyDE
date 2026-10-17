@@ -5,12 +5,20 @@ import {
   budgets,
   categories,
   paymentMethods,
+  preferences,
   recurringPaymentExecutions,
   recurringPayments,
   transactionAttachments,
   transactions,
 } from './tables';
 import {user} from '../auth/tables';
+
+export const preferenceRelations = relations(preferences, ({one}) => ({
+  owner: one(user, {
+    fields: [preferences.ownerId],
+    references: [user.id],
+  }),
+}));
 
 export const transactionRelations = relations(transactions, ({one, many}) => ({
   owner: one(user, {

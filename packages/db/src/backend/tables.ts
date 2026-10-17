@@ -24,6 +24,22 @@ export const paymentMethods = backendSchema.table(
   table => [index('payment_method_owner_updated_at_idx').on(table.ownerId, table.updatedAt)],
 );
 
+export const preferences = backendSchema.table('preference', {
+  ownerId: varchar('owner_id')
+    .primaryKey()
+    .references(() => user.id, {onDelete: 'cascade'}),
+  onboardingCompleted: boolean('onboarding_completed').default(false).notNull(),
+  language: varchar({length: 8}).default('en_US').notNull(),
+  // The longest IANA time zone name is 32 characters (America/Argentina/ComodRivadavia), but we allow for some future-proofing with 64 characters.
+  timeZone: varchar('time_zone', {length: 64}).default('Europe/Berlin').notNull(),
+  currency: varchar({length: 3}).default('EUR').notNull(),
+  createdAt: timestamp('created_at', {withTimezone: true}).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', {withTimezone: true})
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 export const categories = backendSchema.table(
   'category',
   {

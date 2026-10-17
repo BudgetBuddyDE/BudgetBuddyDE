@@ -1,6 +1,6 @@
 import {createInsertSchema, createSelectSchema, createUpdateSchema} from 'drizzle-zod';
 import {z} from 'zod';
-import {attachments, budgets, categories, paymentMethods, recurringPayments, transactions} from './tables';
+import {attachments, budgets, categories, paymentMethods, preferences, recurringPayments, transactions} from './tables';
 import {createTableSchemas} from '../utils/createTableSchemas';
 
 export {budgetType, executionPlanType} from './enums';
@@ -8,6 +8,8 @@ export {budgetType, executionPlanType} from './enums';
 export const CategorySchemas = createTableSchemas(categories);
 
 export const PaymentMethodSchemas = createTableSchemas(paymentMethods);
+
+export const PreferenceSchemas = createTableSchemas(preferences);
 
 export const TransactionSchemas = createTableSchemas(transactions);
 
