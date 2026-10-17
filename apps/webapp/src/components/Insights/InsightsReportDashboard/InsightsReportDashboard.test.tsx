@@ -112,8 +112,8 @@ describe('InsightsReportDashboard', () => {
     await waitFor(() =>
       expect(getReportMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          $dateFrom: new Date('2026-01-01T00:00:00.000Z'),
-          $dateTo: new Date('2026-01-31T00:00:00.000Z'),
+          $dateFrom: new Date(2026, 0, 1),
+          $dateTo: new Date(2026, 0, 31),
           $categories: ['cat-1'],
           $paymentMethods: ['pm-1'],
           $granularity: 'month',
@@ -121,6 +121,19 @@ describe('InsightsReportDashboard', () => {
         }),
       ),
     );
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it('preserves URL calendar days when another report filter changes', async () => {
+    navigation.params = new URLSearchParams('from=2026-02-01&to=2026-02-28&granularity=month&comparison=none');
+    render(<InsightsReportDashboard />);
+    await waitFor(() => expect(screen.getByText('Net. cash flow')).toBeInTheDocument());
+    fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Grouping'}));
+    fireEvent.click(screen.getByRole('option', {name: 'Week'}));
+    await waitFor(() => expect(pushMock).toHaveBeenCalled());
+    const url = new URL(pushMock.mock.lastCall![0], window.location.origin);
+    expect(url.searchParams.get('from')).toBe('2026-02-01');
+    expect(url.searchParams.get('to')).toBe('2026-02-28');
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
@@ -151,8 +164,8 @@ describe('InsightsReportDashboard', () => {
     await waitFor(() =>
       expect(getReportMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          $dateFrom: new Date('2026-02-01T00:00:00.000Z'),
-          $dateTo: new Date('2026-02-28T00:00:00.000Z'),
+          $dateFrom: new Date(2026, 1, 1),
+          $dateTo: new Date(2026, 1, 28),
           $granularity: 'month',
           $comparison: 'none',
         }),

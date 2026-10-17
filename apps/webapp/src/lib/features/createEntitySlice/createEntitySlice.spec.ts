@@ -10,6 +10,34 @@ type Response = TApiResponse<Item[]>;
 const response = (id: string, totalCount = 1): TResult<Response> => [{status: 200, totalCount, data: [{id}]}, null];
 
 describe('createEntitySlice request state', () => {
+  describe.each(['getPage', 'refresh', 'applyFilters'] as const)('%s after URL navigation', requestType => {
+    it.each([
+      ['query', 'success'],
+      ['query', 'failure'],
+      ['reset', 'success'],
+      ['reset', 'failure'],
+    ] as const)('ignores stale responses after %s with %s and no newer request', async (change, outcome) => {
+      let resolveRequest!: (result: TResult<Response>) => void;
+      const getPage = vi.fn(() => new Promise<TResult<Response>>(resolve => (resolveRequest = resolve)));
+      const slice = createEntitySlice<Item[], IBaseGetAllQuery>('transaction', getPage);
+      const store = configureStore({reducer: {transaction: slice.reducer}});
+      const request =
+        requestType === 'getPage'
+          ? store.dispatch(slice.actions.getPage({page: 0, rowsPerPage: 15}))
+          : requestType === 'refresh'
+            ? store.dispatch(slice.actions.refresh())
+            : store.dispatch(slice.actions.applyFilters({keyword: 'old'}));
+
+      if (change === 'query') {
+        store.dispatch(slice.actions.setQueryState({filters: {keyword: 'new'}, page: 2, pageSize: 25}));
+      } else store.dispatch(slice.actions.reset());
+      const stateAfterNavigation = store.getState().transaction;
+      resolveRequest(outcome === 'success' ? response('stale') : [null, new Error('stale error')]);
+      await request;
+      expect(store.getState().transaction).toEqual(stateAfterNavigation);
+    });
+  });
+
   it('keeps only the newest page response and clears a prior error after retry', async () => {
     const pending: Array<(result: TResult<Response>) => void> = [];
     const getPage = vi.fn(

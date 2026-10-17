@@ -16,10 +16,11 @@ function isBrowser() {
   return typeof window !== 'undefined';
 }
 
-function cacheKey(input: RequestInfo | URL, init?: RequestInit) {
+function cacheKey(input: RequestInfo | URL, init: RequestInit | undefined, method: string) {
   const headers = new Headers(input instanceof Request ? input.headers : undefined);
   new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
-  return `${cacheScope}|${typeof input === 'string' ? input : input.toString()}|${headers.get('accept') ?? ''}`;
+  const url = input instanceof Request ? input.url : String(input);
+  return JSON.stringify([cacheScope, method, url, headers.get('accept') ?? '']);
 }
 
 function toResponse(cached: CachedResponse) {
@@ -53,7 +54,7 @@ export async function fetchWithCache(
   }
 
   const generation = cacheGeneration;
-  const key = cacheKey(input, init);
+  const key = cacheKey(input, init, method);
   const cached = responseCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return toResponse(cached);
   responseCache.delete(key);

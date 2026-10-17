@@ -61,6 +61,38 @@ describe('fetchWithCache', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('isolates different URLs supplied as Request objects, including concurrent requests', async () => {
+    vi.stubGlobal('window', {});
+    setRequestCacheScope('user-1:session-1');
+    const fetchMock = vi.fn(
+      async (input: Request) =>
+        new Response(JSON.stringify({url: input.url}), {headers: {'content-type': 'application/json'}}),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const [first, second] = await Promise.all([
+      fetchWithCache(new Request('https://example.com/categories')),
+      fetchWithCache(new Request('https://example.com/transactions')),
+    ]);
+    expect(await first.json()).toEqual({url: 'https://example.com/categories'});
+    expect(await second.json()).toEqual({url: 'https://example.com/transactions'});
+    const cached = await fetchWithCache(new Request('https://example.com/categories'));
+    expect(await cached.json()).toEqual({url: 'https://example.com/categories'});
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('shares a cache entry for the same URL passed as string, URL, or Request', async () => {
+    vi.stubGlobal('window', {});
+    setRequestCacheScope('user-1:session-1');
+    const fetchMock = vi.fn(async () => new Response('{}', {headers: {'content-type': 'application/json'}}));
+    vi.stubGlobal('fetch', fetchMock);
+    await Promise.all([
+      fetchWithCache('https://example.com/private'),
+      fetchWithCache(new URL('https://example.com/private')),
+      fetchWithCache(new Request('https://example.com/private')),
+    ]);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
   it('does not cache private responses without a confirmed session scope', async () => {
     vi.stubGlobal('window', {});
     const fetchMock = vi.fn(async () => new Response('{}', {headers: {'content-type': 'application/json'}}));

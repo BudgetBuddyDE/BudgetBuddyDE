@@ -1,4 +1,5 @@
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
+import {tryParseLocalDateOnly} from '@/utils/dateOnly';
 import {Formatter} from '@/utils/Formatter';
 
 export type EntityUrlState = {filters: Partial<EntityFilters>; page: number; pageSize: number};
@@ -173,16 +174,12 @@ export function parseTransactionFiltersFromParams(
   if (typeof q === 'string' && q) filters.keyword = q;
 
   const dateFrom = params[PARAM.dateFrom];
-  if (typeof dateFrom === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateFrom)) {
-    const d = new Date(dateFrom);
-    if (!Number.isNaN(d.getTime()) && d.toISOString().startsWith(dateFrom)) filters.dateFrom = d;
-  }
+  const parsedDateFrom = typeof dateFrom === 'string' ? tryParseLocalDateOnly(dateFrom) : null;
+  if (parsedDateFrom) filters.dateFrom = parsedDateFrom;
 
   const dateTo = params[PARAM.dateTo];
-  if (typeof dateTo === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateTo)) {
-    const d = new Date(dateTo);
-    if (!Number.isNaN(d.getTime()) && d.toISOString().startsWith(dateTo)) filters.dateTo = d;
-  }
+  const parsedDateTo = typeof dateTo === 'string' ? tryParseLocalDateOnly(dateTo) : null;
+  if (parsedDateTo) filters.dateTo = parsedDateTo;
 
   if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
     delete filters.dateFrom;

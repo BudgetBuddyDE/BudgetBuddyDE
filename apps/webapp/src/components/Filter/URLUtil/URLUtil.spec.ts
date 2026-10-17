@@ -32,13 +32,13 @@ suite('Filter - URL utils', () => {
     it('parses valid dateFrom date string', () => {
       const result = parseTransactionFiltersFromParams({dateFrom: '2024-01-15'});
       expect(result.dateFrom).toBeInstanceOf(Date);
-      expect(result.dateFrom?.toISOString()).toBe('2024-01-15T00:00:00.000Z');
+      expect(result.dateFrom).toEqual(new Date(2024, 0, 15));
     });
 
     it('parses valid dateTo date string', () => {
       const result = parseTransactionFiltersFromParams({dateTo: '2024-12-31'});
       expect(result.dateTo).toBeInstanceOf(Date);
-      expect(result.dateTo?.toISOString()).toBe('2024-12-31T00:00:00.000Z');
+      expect(result.dateTo).toEqual(new Date(2024, 11, 31));
     });
 
     it('ignores invalid dateFrom', () => {
@@ -182,13 +182,13 @@ suite('Filter - URL utils', () => {
     });
 
     it('serializes dateFrom as date-only string (yyyy-MM-dd)', () => {
-      const date = new Date('2024-03-01T00:00:00.000Z');
+      const date = new Date(2024, 2, 1);
       const p = serializeTransactionFilters({...emptyFilters, dateFrom: date});
       expect(p.get('dateFrom')).toBe('2024-03-01');
     });
 
     it('serializes dateTo as date-only string (yyyy-MM-dd)', () => {
-      const date = new Date('2024-03-31T00:00:00.000Z');
+      const date = new Date(2024, 2, 31);
       const p = serializeTransactionFilters({...emptyFilters, dateTo: date});
       expect(p.get('dateTo')).toBe('2024-03-31');
     });
@@ -281,7 +281,7 @@ suite('Filter - URL utils', () => {
 
   describe('round-trip: transaction filters', () => {
     it('serialized params can be parsed back to the same filters', () => {
-      const date = new Date('2024-06-15T00:00:00.000Z');
+      const date = new Date(2024, 5, 15);
       const original = {
         keyword: 'coffee',
         dateFrom: date,
@@ -333,6 +333,17 @@ suite('Filter - URL utils', () => {
   });
 
   describe('URL query state', () => {
+    it.each(['2026-02-01', '2026-03-08', '2026-11-01', '2024-02-29'])(
+      'preserves date-only URL values across local calendar roundtrips: %s',
+      date => {
+        const filters = parseTransactionFiltersFromParams({dateFrom: date, dateTo: date});
+        const params = serializeTransactionFilters({keyword: null, ...filters});
+        expect(params.get('dateFrom')).toBe(date);
+        expect(params.get('dateTo')).toBe(date);
+        expect(filters.dateFrom?.getHours()).toBe(0);
+      },
+    );
+
     it('restores one-based pages and validates supported page sizes', () => {
       expect(parseKeywordQuery(new URLSearchParams('q=rent&page=3&pageSize=50'))).toEqual({
         filters: {keyword: 'rent'},

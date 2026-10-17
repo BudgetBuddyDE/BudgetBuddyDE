@@ -9,6 +9,7 @@ import {Stack} from '@mui/material';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import React from 'react';
 import {apiClient} from '@/apiClient';
+import {tryParseLocalDateOnly} from '@/utils/dateOnly';
 import {Formatter} from '@/utils/Formatter';
 import {
   haveSameInsightsFilterIds,
@@ -23,11 +24,7 @@ type Granularity = NonNullable<IGetInsightsReportQuery['$granularity']>;
 type Comparison = NonNullable<IGetInsightsReportQuery['$comparison']>;
 
 const defaultFrom = () => Formatter.date.startOfMonth(Formatter.date.subMonths(new Date(), 11));
-const parseDateParam = (value: string | null, fallback: Date) => {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return fallback;
-  const date = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value) ? date : fallback;
-};
+const parseDateParam = (value: string | null, fallback: Date) => tryParseLocalDateOnly(value) ?? fallback;
 const parseGranularity = (value: string | null): Granularity =>
   ['auto', 'day', 'week', 'month'].includes(value ?? '') ? (value as Granularity) : 'auto';
 const parseComparison = (value: string | null): Comparison =>

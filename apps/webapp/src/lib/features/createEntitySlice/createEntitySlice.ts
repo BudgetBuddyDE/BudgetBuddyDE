@@ -215,6 +215,7 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
             state.count = 0;
             state.status = 'loading';
             state.error = null;
+            // A null ID rejects every pending request from the previous URL query, even before a new fetch starts.
             state.activeRequestId = null;
           } else if (state.data === null && state.status === 'idle') {
             state.status = 'loading';
