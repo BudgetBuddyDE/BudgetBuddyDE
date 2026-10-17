@@ -83,8 +83,8 @@ describe('FilterWrapper selected IDs', () => {
     const unavailableId = 'deleted-category' as TCategoryVH['id'];
     const onApply = vi.fn();
     render(<FilterWrapper currentFilters={{categories: [unavailableId]}} onApply={onApply} withCategories />);
-    const input = screen.getByRole('combobox', {name: 'Category'});
-    fireEvent.mouseDown(input);
+    await waitFor(() => expect(getCategories).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', {name: 'Open'}));
     fireEvent.click(await screen.findByRole('option', {name: 'Food'}));
 
     expect(onApply).toHaveBeenCalledWith({categories: [category.id]});
