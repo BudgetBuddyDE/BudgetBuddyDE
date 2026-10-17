@@ -8,17 +8,26 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   List,
   ListItem,
   Stack,
 } from '@mui/material';
-import type {GridColDef, GridRowId, GridRowSelectionModel, GridValidRowModel} from '@mui/x-data-grid';
-import {useCallback, useEffect, useRef, useState} from 'react';
-import {CloseIconButton} from '@/components/Button';
+import {
+  GridEditInputCell,
+  useGridApiRef,
+  type GridColDef,
+  type GridRowId,
+  type GridRowSelectionModel,
+  type GridValidRowModel,
+} from '@mui/x-data-grid';
+import {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
+import {CloseIconButton} from '@/components/Button/CloseIconButton';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {ZoomTransition} from '@/components/Transition';
 import {DataTable} from '../DataTable';
+import {cloneDraftValue, draftRowsEqual} from './draftRows';
 
 const MAX_ROWS = 100;
 
@@ -67,20 +76,47 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
   const [selectionModel, setSelectionModel] = useState<SelectionModel>(emptySelection);
   const [validationIssues, setValidationIssues] = useState<MappingFailure['issues']>([]);
   const [draftError, setDraftError] = useState<Error | null>(null);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const baselineRows = useRef<Row[]>([]);
+  const activeCell = useRef<{id: GridRowId; field: string} | null>(null);
+  const confirmingDiscard = useRef(false);
+  const apiRef = useGridApiRef();
+  const confirmationTitleId = useId();
+  const confirmationDescriptionId = useId();
   const wasOpen = useRef(false);
+  // Default text/number editors debounce for 200ms. Keep the grid's edit state
+  // current so an immediate Escape also protects the last keystroke.
+  const editingColumns = useMemo(
+    () =>
+      columns.map((column): GridColDef<Row> =>
+        !column.renderEditCell && (!column.type || column.type === 'string' || column.type === 'number')
+          ? {...column, renderEditCell: params => <GridEditInputCell {...params} debounceMs={0} />}
+          : column,
+      ),
+    [columns],
+  );
 
   const resetState = useCallback(() => {
     setDraftRows([]);
     setSelectionModel(emptySelection());
     setValidationIssues([]);
     setDraftError(null);
+    baselineRows.current = [];
+    activeCell.current = null;
+    confirmingDiscard.current = false;
+    setConfirmDiscard(false);
   }, []);
 
   // Snapshot the input rows only when the dialog transitions from closed to open.
   // This prevents parent refreshes/re-renders from overwriting edits in progress.
   useEffect(() => {
     if (open && !wasOpen.current) {
-      setDraftRows(mode === 'CREATE' ? [createEmptyRow()] : initialRows.map(row => ({...row})));
+      const rows = mode === 'CREATE' ? [createEmptyRow()] : cloneDraftValue(initialRows);
+      baselineRows.current = cloneDraftValue(rows);
+      setDraftRows(rows);
+      activeCell.current = null;
+      confirmingDiscard.current = false;
+      setConfirmDiscard(false);
       setSelectionModel(emptySelection());
       setValidationIssues([]);
       setDraftError(null);
@@ -95,6 +131,32 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
     wasOpen.current = false;
     onClose();
   }, [onClose, resetState]);
+
+  const getCurrentRows = useCallback(() => {
+    const editingCell = activeCell.current;
+    const gridApi = apiRef.current;
+    return editingCell && gridApi
+      ? draftRows.map(row =>
+          row.id === editingCell.id ? (gridApi.getRowWithUpdatedValues(editingCell.id, editingCell.field) as Row) : row,
+        )
+      : draftRows;
+  }, [apiRef, draftRows]);
+
+  const handleRequestClose = useCallback(() => {
+    if (confirmingDiscard.current) return;
+
+    if (draftRowsEqual(getCurrentRows(), baselineRows.current)) {
+      handleClose();
+    } else {
+      confirmingDiscard.current = true;
+      setConfirmDiscard(true);
+    }
+  }, [getCurrentRows, handleClose]);
+
+  const handleKeepEditing = useCallback(() => {
+    confirmingDiscard.current = false;
+    setConfirmDiscard(false);
+  }, []);
 
   const handleProcessRowUpdate = useCallback((newRow: Row): Row => {
     setDraftRows(rows => rows.map(row => (row.id === newRow.id ? newRow : row)));
@@ -135,7 +197,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
 
     let result: MappingSuccess<Payload> | MappingFailure;
     try {
-      result = mapRowsToPayload(draftRows);
+      result = mapRowsToPayload(getCurrentRows());
     } catch (submitError) {
       setDraftError(submitError instanceof Error ? submitError : new Error(String(submitError)));
       return;
@@ -152,7 +214,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
     } catch (submitError) {
       setDraftError(submitError instanceof Error ? submitError : new Error(String(submitError)));
     }
-  }, [draftRows, handleClose, mapRowsToPayload, onSubmit]);
+  }, [getCurrentRows, handleClose, mapRowsToPayload, onSubmit]);
 
   const selectedRowIds =
     selectionModel.type === 'exclude'
@@ -161,90 +223,134 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
   const externalError = error ?? draftError;
 
   return (
-    <Dialog
-      fullScreen
-      fullWidth
-      open={open}
-      onClose={handleClose}
-      scroll="paper"
-      slots={{transition: ZoomTransition}}
-      slotProps={{paper: {elevation: 0}}}
-    >
-      <DialogTitle>{title}</DialogTitle>
-      <CloseIconButton
-        onClick={handleClose}
-        sx={theme => ({
-          position: 'absolute',
-          top: theme.spacing(1),
-          right: theme.spacing(1),
-        })}
-      />
-
-      <DialogContent
-        dividers
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: 0,
-          gap: 1,
+    <>
+      <Dialog
+        fullScreen
+        fullWidth
+        open={open}
+        onClose={handleRequestClose}
+        onKeyDownCapture={event => {
+          if (event.key === 'Escape') {
+            // Intercept before the grid can discard the active cell's input.
+            event.preventDefault();
+            event.stopPropagation();
+            handleRequestClose();
+          }
         }}
+        scroll="paper"
+        slots={{transition: ZoomTransition}}
+        slotProps={{paper: {elevation: 0}}}
       >
-        {validationIssues.length > 0 && (
-          <Alert severity="error" role="alert">
-            <AlertTitle>Validation errors</AlertTitle>
-            <List dense disablePadding>
-              {validationIssues.map((issue, index) => {
-                const rowIndex = draftRows.findIndex(row => row.id === issue.rowId);
-                return (
-                  <ListItem key={`${String(issue.rowId)}-${index}`} disableGutters>
-                    Row {rowIndex >= 0 ? rowIndex + 1 : String(issue.rowId)}: {issue.message}
-                  </ListItem>
-                );
-              })}
-            </List>
-          </Alert>
-        )}
-        {externalError && <ErrorAlert error={externalError} role="alert" />}
-        <Box sx={{flex: 1, minHeight: 0}}>
-          <DataTable
-            data={draftRows}
-            columns={columns}
-            pagination={false}
-            checkboxSelection
-            rowSelectionModel={selectionModel}
-            onRowSelectionModelChange={setSelectionModel}
-            editMode="cell"
-            processRowUpdate={handleProcessRowUpdate}
-            onProcessRowUpdateError={handleProcessRowUpdateError}
-            height="100%"
-            sx={{height: '100%'}}
-            dataGridProps={{
-              sx: {height: '100%'},
-            }}
-          />
-        </Box>
-      </DialogContent>
+        <DialogTitle>{title}</DialogTitle>
+        <CloseIconButton
+          onClick={handleRequestClose}
+          sx={theme => ({
+            position: 'absolute',
+            top: theme.spacing(1),
+            right: theme.spacing(1),
+          })}
+        />
 
-      <DialogActions sx={{justifyContent: 'space-between', gap: 1, flexWrap: 'wrap'}}>
-        <Stack direction="row" spacing={1}>
-          {mode === 'CREATE' && (
-            <>
-              <Button onClick={handleAddRow} disabled={isSubmitting || draftRows.length >= MAX_ROWS}>
-                Add row
-              </Button>
-              <Button onClick={handleRemoveSelected} disabled={isSubmitting || selectedRowIds.size === 0}>
-                Remove selected
-              </Button>
-            </>
+        <DialogContent
+          dividers
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            gap: 1,
+          }}
+        >
+          {validationIssues.length > 0 && (
+            <Alert severity="error" role="alert">
+              <AlertTitle>Validation errors</AlertTitle>
+              <List dense disablePadding>
+                {validationIssues.map((issue, index) => {
+                  const rowIndex = draftRows.findIndex(row => row.id === issue.rowId);
+                  return (
+                    <ListItem key={`${String(issue.rowId)}-${index}`} disableGutters>
+                      Row {rowIndex >= 0 ? rowIndex + 1 : String(issue.rowId)}: {issue.message}
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </Alert>
           )}
-        </Stack>
-        <Stack direction="row" spacing={1}>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
-            Save
+          {externalError && <ErrorAlert error={externalError} role="alert" />}
+          <Box sx={{flex: 1, minHeight: 0}}>
+            <DataTable
+              data={draftRows}
+              columns={editingColumns}
+              pagination={false}
+              checkboxSelection
+              rowSelectionModel={selectionModel}
+              onRowSelectionModelChange={setSelectionModel}
+              editMode="cell"
+              processRowUpdate={handleProcessRowUpdate}
+              onProcessRowUpdateError={handleProcessRowUpdateError}
+              height="100%"
+              sx={{height: '100%'}}
+              dataGridProps={{
+                apiRef,
+                onCellEditStart: params => {
+                  activeCell.current = {id: params.id, field: params.field};
+                },
+                onCellEditStop: (params, event) => {
+                  if (confirmingDiscard.current && params.reason === 'cellFocusOut') {
+                    event.defaultMuiPrevented = true;
+                    return;
+                  }
+                  activeCell.current = null;
+                },
+                sx: {height: '100%'},
+              }}
+            />
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{justifyContent: 'space-between', gap: 1, flexWrap: 'wrap'}}>
+          <Stack direction="row" spacing={1}>
+            {mode === 'CREATE' && (
+              <>
+                <Button onClick={handleAddRow} disabled={isSubmitting || draftRows.length >= MAX_ROWS}>
+                  Add row
+                </Button>
+                <Button onClick={handleRemoveSelected} disabled={isSubmitting || selectedRowIds.size === 0}>
+                  Remove selected
+                </Button>
+              </>
+            )}
+          </Stack>
+          <Stack direction="row" spacing={1}>
+            <Button onClick={handleRequestClose}>Cancel</Button>
+            <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
+              Save
+            </Button>
+          </Stack>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={open && confirmDiscard}
+        onClose={handleKeepEditing}
+        aria-labelledby={confirmationTitleId}
+        aria-describedby={confirmationDescriptionId}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle id={confirmationTitleId}>Discard unsaved changes?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id={confirmationDescriptionId}>
+            Your unsaved changes will be lost. Do you want to discard them?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleKeepEditing} autoFocus>
+            Keep editing
           </Button>
-        </Stack>
-      </DialogActions>
-    </Dialog>
+          <Button onClick={handleClose} color="error" variant="contained">
+            Discard changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
