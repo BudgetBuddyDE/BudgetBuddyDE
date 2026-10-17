@@ -8,7 +8,7 @@ The serial `pull-request-ai-review` job uses `cfcommunity/github-pr-resource:0.2
 
 `ai-code-buddy-settings.revision` pins the Provider task-source commit; `.digest` pins the matching public image under `ghcr.io/tklein1801/ai-code-buddy`. A secret-free release task compares the actual source checkout to embedded image metadata before preparation. Both resources are fetched without triggering builds. Provider changes alone never upgrade the Consumer or rerun unchanged PR heads.
 
-The private task-source resource uses a separate read-only Deploy Key. The runtime image needs no registry credentials and is not rebuilt here. Other CI jobs continue loading this repository's task definitions through `ci-source` from `main`.
+The private task-source resource reuses `github.private_key`, which must allow reading the Provider repository. The runtime image needs no registry credentials and is not rebuilt here. Other CI jobs continue loading this repository's task definitions through `ci-source` from `main`.
 
 ## Review lifecycle
 

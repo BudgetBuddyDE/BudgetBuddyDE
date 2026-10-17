@@ -31,7 +31,7 @@ resources:
     source:
       uri: git@github.com:tklein1801/ai-code-buddy.git
       branch: main
-      private_key: ((ai-code-buddy-source.private_key))
+      private_key: ((github.private_key))
     version:
       ref: ((ai-code-buddy-settings.revision))
   - name: ai-code-buddy-image

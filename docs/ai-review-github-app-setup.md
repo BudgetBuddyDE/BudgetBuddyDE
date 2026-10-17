@@ -40,12 +40,12 @@ selected source/image pair. New Provider releases do not automatically trigger
 Consumer reviews. The public image needs no registry-read credential.
 
 All existing App, LiteLLM and S3 secrets remain unchanged. Review tasks receive
-only their required credentials; the source Deploy Key is independent of the
-Consumer dependency-update write key.
+only their required credentials. Task-source checkout reuses `github.private_key`;
+this existing Git credential must also have read access to the Provider repository.
 
 ## Load and accept the pipeline
 
-1. Publish and smoke-test the Provider runtime in `tklein1801/ai-code-buddy`. Verify an anonymous pull of the public image and obtain its actual source commit and registry digest. Set both Consumer pins under `ai-code-buddy-settings.revision` and `.digest`. Provision the read-only `ai-code-buddy-source.private_key` Deploy Key for task-source access. Confirm the secret-free release verification succeeds, and a deliberately mismatched pair fails before preparation. Commit trusted project instructions in `.pr_agent.toml`; the Consumer no longer builds the runtime.
+1. Publish and smoke-test the Provider runtime in `tklein1801/ai-code-buddy`. Verify an anonymous pull of the public image and obtain its actual source commit and registry digest. Set both Consumer pins under `ai-code-buddy-settings.revision` and `.digest`. Verify that the existing `github.private_key` can read the Provider task-source repository; no additional SSH secret is required. Confirm the secret-free release verification succeeds, and a deliberately mismatched pair fails before preparation. Commit trusted project instructions in `.pr_agent.toml`; the Consumer no longer builds the runtime.
 2. Load `ci/general.pipeline.yml` with `ci/vars.yml` and credential-manager secrets, then unpause `pull-request-ai-review`. Keep `ai-review/gate` optional during acceptance.
 3. Open a small clean PR targeting `main`. Confirm a German summary, accurate head SHA, successful App check and visible coverage.
 4. Introduce a clear defect. Confirm a complete, successfully published `changes_required` review sets `ai-review/gate` to `failure` while the Concourse review job succeeds. Valid suggestions must appear as applicable GitHub suggestions. Model judgment is probabilistic, so inspect the result rather than assuming a seeded defect is always detected.

@@ -37,7 +37,7 @@ team `main`. This project consumes its public GHCR image and private task source
 No local Python installation or runtime image build is required.
 
 1. Obtain a successfully published Provider commit and its matching manifest digest, and verify the public image can be pulled anonymously.
-2. Update `ai-code-buddy-settings.revision` and `.digest` together in `ci/vars.yml`. Provision the separate read-only `ai-code-buddy-source.private_key` through Vault. Existing App, LiteLLM and S3 secrets remain unchanged.
+2. Update `ai-code-buddy-settings.revision` and `.digest` together in `ci/vars.yml`. Verify Provider task-source read access using the existing `github.private_key`. Existing App, LiteLLM and S3 secrets remain unchanged.
 3. Run `npm run test:ci-contracts` and strict pipeline validation, then load the project pipeline. Release verification must succeed before preparation; test a mismatched pair to confirm early rejection.
 4. Run live acceptance with a clean PR, a blocker, a new commit, a technical LiteLLM failure and a repeated completed identity. A fully published blocking review means a green Concourse job and red `ai-review/gate`.
 5. Require the dedicated App check only after confirming actual merge blocking; retain existing CI and up-to-date-branch requirements.

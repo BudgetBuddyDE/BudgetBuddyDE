@@ -59,15 +59,15 @@ passed `update-test-database`.
 Load `ci/vars.yml` when setting the pipeline. Supply these secrets through the
 Concourse credential manager:
 
-- `github.private_key`: repository access for `ci-source` and read/write access for dependency updates.
+- `github.private_key`: repository access for `ci-source` and `ai-code-buddy-source`, and read/write access for dependency updates.
   Branch protection must permit this identity to push to main.
 - `github.pat`: commit and pull request status access.
 
 `git.name` and `git.email` identify automated dependency commits. No npm or GHCR
 publishing credentials are required. The public AI Code Buddy image also needs
-no registry-read credential. Supply `ai-code-buddy-source.private_key` as a
-separate read-only Deploy Key for the private Provider task-source repository. The separate database pipeline retains its
-own credentials.
+no registry-read credential. The existing `github.private_key` must also allow
+reading the private `tklein1801/ai-code-buddy` task-source repository. No additional
+Vault secret is needed. The separate database pipeline retains its own credentials.
 
 AI review reuses these credential-manager variables:
 
@@ -123,7 +123,7 @@ can leave a pending check that does not permit merging; retry after recovery.
 Build logs omit raw model responses, source code and secrets.
 
 Publish and smoke-test the Provider before pinning its actual commit and digest
-here. Verify public image access and the read-only task-source key, then load the
+here. Verify public image access and task-source access with the existing Git key, then load the
 pipeline with the check optional. Perform the live scenarios in
 [App setup](../docs/ai-review-github-app-setup.md), then require `ai-review/gate`
 from the dedicated App in the main ruleset alongside normal CI. Require an

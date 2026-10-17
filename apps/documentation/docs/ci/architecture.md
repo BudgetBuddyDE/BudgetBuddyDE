@@ -24,8 +24,8 @@ A dotted reference selects a field: `((github.private_key))` reads `private_key`
 
 AI reviews additionally use `ai-review.appId`, `ai-review.installationId`,
 `ai-review.appPrivateKey`, `litellm.host`, `litellm.apiKey` and the
-`s3-ai-review` bucket/region/access-key fields. A separate read-only
-`ai-code-buddy-source.private_key` accesses the private Provider task source.
+`s3-ai-review` bucket/region/access-key fields. The existing `github.private_key`
+also reads the private Provider task source; no additional SSH secret is required.
 The public runtime image needs no registry-read credentials. Static release pins
 use `ai-code-buddy-settings.revision` and `.digest`; static model parameters use
 `ai-review-settings`, preserving the App-secret namespace.
