@@ -10,6 +10,7 @@ const ENTITY_PAGE_SIZES = [15, 25, 50, 100];
 
 function parsePageState(
   params: Record<string, string | string[] | undefined>,
+  defaultPageSize = 15,
 ): Pick<EntityUrlState, 'page' | 'pageSize'> {
   const pageValue = params[PAGE_PARAM];
   const pageSizeValue = params[PAGE_SIZE_PARAM];
@@ -17,7 +18,7 @@ function parsePageState(
   const pageSize = typeof pageSizeValue === 'string' ? Number(pageSizeValue) : NaN;
   return {
     page: Number.isSafeInteger(page) && page > 0 ? page - 1 : 0,
-    pageSize: ENTITY_PAGE_SIZES.includes(pageSize) ? pageSize : 15,
+    pageSize: ENTITY_PAGE_SIZES.includes(pageSize) ? pageSize : defaultPageSize,
   };
 }
 
@@ -30,11 +31,11 @@ function toSearchRecord(params: URLSearchParams): Record<string, string | string
   return record;
 }
 
-function serializePageState(state: EntityUrlState, params: URLSearchParams) {
+function serializePageState(state: EntityUrlState, params: URLSearchParams, defaultPageSize = 15) {
   params.delete(PAGE_PARAM);
   params.delete(PAGE_SIZE_PARAM);
   if (state.page > 0) params.set(PAGE_PARAM, String(state.page + 1));
-  if (state.pageSize !== 15) params.set(PAGE_SIZE_PARAM, String(state.pageSize));
+  if (state.pageSize !== defaultPageSize) params.set(PAGE_SIZE_PARAM, String(state.pageSize));
 }
 
 export function parseTransactionQuery(params: URLSearchParams): EntityUrlState {
@@ -81,16 +82,15 @@ export function serializeKeywordQuery(state: EntityUrlState, params = new URLSea
 
 export function parsePaginationQuery(params: URLSearchParams, defaultPageSize = 15): EntityUrlState {
   const record = toSearchRecord(params);
-  const pageState = parsePageState(record);
-  return {
-    ...pageState,
-    pageSize: record[PAGE_SIZE_PARAM] === undefined ? defaultPageSize : pageState.pageSize,
-    filters: {},
-  };
+  return {...parsePageState(record, defaultPageSize), filters: {}};
 }
 
-export function serializePaginationQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
-  serializePageState(state, params);
+export function serializePaginationQuery(
+  state: EntityUrlState,
+  params = new URLSearchParams(),
+  defaultPageSize = 15,
+): URLSearchParams {
+  serializePageState(state, params, defaultPageSize);
   return params;
 }
 
