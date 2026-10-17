@@ -247,6 +247,30 @@ describe('InsightsReportDashboard', () => {
     );
   });
 
+  it('does not normalize a history URL with dates from the previous route while options are loading', async () => {
+    let resolveCategories!: (value: [TCategoryVH[], null]) => void;
+    let resolvePaymentMethods!: (value: [TPaymentMethodVH[], null]) => void;
+    categoryValueHelpMock.mockImplementationOnce(() => new Promise(resolve => (resolveCategories = resolve)));
+    paymentMethodValueHelpMock.mockImplementationOnce(() => new Promise(resolve => (resolvePaymentMethods = resolve)));
+    navigation.params = new URLSearchParams('from=2025-01-01&to=2025-01-31');
+    const {rerender} = render(<InsightsReportDashboard />);
+    await waitFor(() => expect(categoryValueHelpMock).toHaveBeenCalled());
+
+    navigation.params = new URLSearchParams('from=2026-02-01&to=2026-02-28');
+    rerender(<InsightsReportDashboard />);
+    await act(async () => {
+      resolveCategories([categories, null]);
+      resolvePaymentMethods([paymentMethods, null]);
+    });
+
+    await waitFor(() =>
+      expect(getReportMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({$dateFrom: new Date(2026, 1, 1), $dateTo: new Date(2026, 1, 28)}),
+      ),
+    );
+    expect(replaceMock).not.toHaveBeenCalledWith(expect.stringContaining('from=2025-01-01'), expect.anything());
+  });
+
   it('resets the transaction pagination when a category filter is applied', async () => {
     render(<InsightsReportDashboard />);
     await waitFor(() => expect(screen.getByText('Receiver 1')).toBeInTheDocument());
@@ -334,6 +358,16 @@ describe('InsightsReportDashboard', () => {
     const url = new URL(pushMock.mock.lastCall![0], window.location.origin);
     expect(url.searchParams.get('cat')).toBe('cat-1');
     expect(url.searchParams.get('pm')).toBe('pm-1');
+  });
+
+  it('keeps successful filter options available when the other options request rejects', async () => {
+    paymentMethodValueHelpMock.mockRejectedValueOnce(new Error('Payment methods unavailable'));
+    navigation.params = new URLSearchParams('from=2026-02-01&to=2026-02-28&cat=cat-1');
+    render(<InsightsReportDashboard />);
+
+    expect(await screen.findByText('Payment methods unavailable')).toBeInTheDocument();
+    expect(await screen.findByRole('button', {name: 'Food'})).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Retry filters'})).toBeInTheDocument();
   });
 
   it('changes the transaction page size and fetches the first page with the new size', async () => {

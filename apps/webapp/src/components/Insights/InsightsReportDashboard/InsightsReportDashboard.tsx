@@ -42,6 +42,7 @@ export const InsightsReportDashboard: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParamsString = searchParams.toString();
+  const [syncedSearchParamsString, setSyncedSearchParamsString] = React.useState(searchParamsString);
   const previousSearchParamsRef = React.useRef(searchParamsString);
   const normalizedInitialUrlRef = React.useRef(false);
   const initialFrom = parseDateParam(searchParams.get('from'), defaultFrom());
@@ -128,16 +129,25 @@ export const InsightsReportDashboard: React.FC = () => {
   React.useEffect(() => {
     let ignored = false;
     setFilterOptionsError(null);
-    void Promise.all([apiClient.backend.category.getValueHelp(), apiClient.backend.paymentMethod.getValueHelp()])
-      .then(([[loadedCategories, categoryError], [loadedPaymentMethods, paymentMethodError]]) => {
+    void Promise.allSettled([apiClient.backend.category.getValueHelp(), apiClient.backend.paymentMethod.getValueHelp()])
+      .then(([categoryResult, paymentMethodResult]) => {
         if (ignored) return;
-        if (!categoryError) setCategoryOptions(loadedCategories ?? []);
-        if (!paymentMethodError) setPaymentMethodOptions(loadedPaymentMethods ?? []);
+        const categoryError =
+          categoryResult.status === 'rejected'
+            ? categoryResult.reason instanceof Error
+              ? categoryResult.reason
+              : new Error('Failed to load categories')
+            : categoryResult.value[1];
+        const paymentMethodError =
+          paymentMethodResult.status === 'rejected'
+            ? paymentMethodResult.reason instanceof Error
+              ? paymentMethodResult.reason
+              : new Error('Failed to load payment methods')
+            : paymentMethodResult.value[1];
+        if (categoryResult.status === 'fulfilled' && !categoryError) setCategoryOptions(categoryResult.value[0] ?? []);
+        if (paymentMethodResult.status === 'fulfilled' && !paymentMethodError)
+          setPaymentMethodOptions(paymentMethodResult.value[0] ?? []);
         setFilterOptionsError(categoryError ?? paymentMethodError ?? null);
-      })
-      .catch(error => {
-        if (!ignored)
-          setFilterOptionsError(error instanceof Error ? error : new Error('Failed to load filter options'));
       })
       .finally(() => {
         if (!ignored) setFilterOptionsReady(true);
@@ -186,6 +196,7 @@ export const InsightsReportDashboard: React.FC = () => {
   React.useEffect(() => {
     if (previousSearchParamsRef.current === searchParamsString) return;
     previousSearchParamsRef.current = searchParamsString;
+    setSyncedSearchParamsString(searchParamsString);
     const params = new URLSearchParams(searchParamsString);
     const fromParam = params.get('from');
     const toParam = params.get('to');
@@ -204,7 +215,13 @@ export const InsightsReportDashboard: React.FC = () => {
   }, [searchParamsString]);
 
   React.useEffect(() => {
-    if (!filterOptionsReady || !filtersHydrated || normalizedInitialUrlRef.current) return;
+    if (
+      !filterOptionsReady ||
+      !filtersHydrated ||
+      syncedSearchParamsString !== searchParamsString ||
+      normalizedInitialUrlRef.current
+    )
+      return;
     const params = new URLSearchParams(searchParamsString);
     const nextParams = new URLSearchParams(
       serializeInsightsSearchParams({from, to, granularity, comparison, categories, paymentMethods, params}),
@@ -221,6 +238,7 @@ export const InsightsReportDashboard: React.FC = () => {
   }, [
     filterOptionsReady,
     filtersHydrated,
+    syncedSearchParamsString,
     searchParamsString,
     categoryOptions.length,
     paymentMethodOptions.length,

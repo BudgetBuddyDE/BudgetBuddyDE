@@ -115,6 +115,41 @@ describe('fetchWithCache', () => {
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
+  it('keeps responses with different representation headers in separate cache entries', async () => {
+    vi.stubGlobal('window', {});
+    setRequestCacheScope('user-1:session-1');
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const language = new Headers(init?.headers).get('accept-language');
+      return new Response(JSON.stringify({language}), {headers: {'content-type': 'application/json'}});
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const english = await fetchWithCache('/localized', {headers: {'Accept-Language': 'en'}});
+    const german = await fetchWithCache('/localized', {headers: {'Accept-Language': 'de'}});
+    const cachedEnglish = await fetchWithCache('/localized', {headers: {'Accept-Language': 'en'}});
+
+    await expect(english.json()).resolves.toEqual({language: 'en'});
+    await expect(german.json()).resolves.toEqual({language: 'de'});
+    await expect(cachedEnglish.json()).resolves.toEqual({language: 'en'});
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not cache Requests that carry no-store or an explicit API key', async () => {
+    vi.stubGlobal('window', {});
+    setRequestCacheScope('user-1:session-1');
+    const fetchMock = vi.fn(async () => new Response('{}', {headers: {'content-type': 'application/json'}}));
+    vi.stubGlobal('fetch', fetchMock);
+    const noStoreRequest = new Request('https://example.com/no-store', {cache: 'no-store'});
+    const apiKeyRequest = new Request('https://example.com/api-key', {headers: {'x-api-key': 'secret'}});
+
+    await fetchWithCache(noStoreRequest);
+    await fetchWithCache(noStoreRequest);
+    await fetchWithCache(apiKeyRequest);
+    await fetchWithCache(apiKeyRequest);
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
   it('does not cache private responses without a confirmed session scope', async () => {
     vi.stubGlobal('window', {});
     const fetchMock = vi.fn(async () => new Response('{}', {headers: {'content-type': 'application/json'}}));

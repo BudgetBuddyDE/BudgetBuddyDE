@@ -9,6 +9,7 @@ type CachedResponse = {
 const responseCache = new Map<string, CachedResponse>();
 const inFlightRequests = new Map<string, Promise<Response>>();
 const DEFAULT_TTL_MS = 30_000;
+const SENSITIVE_HEADERS = new Set(['authorization', 'cookie', 'proxy-authorization', 'x-api-key']);
 let cacheScope: string | null = null;
 let cacheGeneration = 0;
 
@@ -17,10 +18,18 @@ function isBrowser() {
 }
 
 function cacheKey(input: RequestInfo | URL, init: RequestInit | undefined, method: string) {
+  const headers = getRequestHeaders(input, init);
+  const url = input instanceof Request ? input.url : String(input);
+  const varyHeaders = [...headers.entries()]
+    .filter(([name]) => !SENSITIVE_HEADERS.has(name))
+    .sort(([left], [right]) => left.localeCompare(right));
+  return JSON.stringify([cacheScope, method, url, varyHeaders]);
+}
+
+function getRequestHeaders(input: RequestInfo | URL, init: RequestInit | undefined) {
   const headers = new Headers(input instanceof Request ? input.headers : undefined);
   new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
-  const url = input instanceof Request ? input.url : String(input);
-  return JSON.stringify([cacheScope, method, url, headers.get('accept') ?? '']);
+  return headers;
 }
 
 function toResponse(cached: CachedResponse) {
@@ -37,11 +46,11 @@ export async function fetchWithCache(
   ttlMs = DEFAULT_TTL_MS,
 ): Promise<Response> {
   const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
-  const requestHeaders = new Headers(input instanceof Request ? input.headers : undefined);
-  new Headers(init?.headers).forEach((value, key) => requestHeaders.set(key, value));
-  const hasExplicitAuthorization = requestHeaders.has('authorization');
+  const requestHeaders = getRequestHeaders(input, init);
+  const hasExplicitCredentials = [...SENSITIVE_HEADERS].some(header => requestHeaders.has(header));
+  const cacheMode = init?.cache ?? (input instanceof Request ? input.cache : undefined);
   const canCache =
-    isBrowser() && method === 'GET' && init?.cache !== 'no-store' && cacheScope !== null && !hasExplicitAuthorization;
+    isBrowser() && method === 'GET' && cacheMode !== 'no-store' && cacheScope !== null && !hasExplicitCredentials;
 
   if (!canCache) {
     if (method === 'GET') return fetch(input, init);
