@@ -31,6 +31,8 @@ function toSearchRecord(params: URLSearchParams): Record<string, string | string
 }
 
 function serializePageState(state: EntityUrlState, params: URLSearchParams) {
+  params.delete(PAGE_PARAM);
+  params.delete(PAGE_SIZE_PARAM);
   if (state.page > 0) params.set(PAGE_PARAM, String(state.page + 1));
   if (state.pageSize !== 15) params.set(PAGE_SIZE_PARAM, String(state.pageSize));
 }
@@ -54,6 +56,7 @@ export function parseKeywordQuery(params: URLSearchParams): EntityUrlState {
 }
 
 export function serializeTransactionQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
+  ['q', 'dateFrom', 'dateTo', 'cat', 'excl_cat', 'pm', 'excl_pm'].forEach(key => params.delete(key));
   const filters = serializeTransactionFilters(state.filters as EntityFilters);
   filters.forEach((value, key) => params.set(key, value));
   serializePageState(state, params);
@@ -61,6 +64,7 @@ export function serializeTransactionQuery(state: EntityUrlState, params = new UR
 }
 
 export function serializeRecurringPaymentQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
+  ['q', 'cat', 'excl_cat', 'pm', 'excl_pm', 'paused'].forEach(key => params.delete(key));
   const filters = serializeRecurringPaymentFilters(state.filters as EntityFilters);
   filters.forEach((value, key) => params.set(key, value));
   serializePageState(state, params);
@@ -68,6 +72,7 @@ export function serializeRecurringPaymentQuery(state: EntityUrlState, params = n
 }
 
 export function serializeKeywordQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
+  params.delete('q');
   const filters = serializeKeywordFilter(state.filters as EntityFilters);
   filters.forEach((value, key) => params.set(key, value));
   serializePageState(state, params);
@@ -85,9 +90,7 @@ export function parsePaginationQuery(params: URLSearchParams, defaultPageSize = 
 }
 
 export function serializePaginationQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
-  if (state.page > 0) params.set(PAGE_PARAM, String(state.page + 1));
-  if (state.pageSize === 15) params.delete(PAGE_SIZE_PARAM);
-  else params.set(PAGE_SIZE_PARAM, String(state.pageSize));
+  serializePageState(state, params);
   return params;
 }
 

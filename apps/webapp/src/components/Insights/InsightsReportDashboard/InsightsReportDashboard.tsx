@@ -12,7 +12,6 @@ import {apiClient} from '@/apiClient';
 import {tryParseLocalDateOnly} from '@/utils/dateOnly';
 import {Formatter} from '@/utils/Formatter';
 import {
-  haveSameInsightsFilterIds,
   parseInsightsFilterIds,
   selectInsightsFilterOptions,
   serializeInsightsSearchParams,
@@ -126,16 +125,25 @@ export const InsightsReportDashboard: React.FC = () => {
   );
 
   React.useEffect(() => {
+    let ignored = false;
+    setFilterOptionsError(null);
     void Promise.all([apiClient.backend.category.getValueHelp(), apiClient.backend.paymentMethod.getValueHelp()])
       .then(([[loadedCategories, categoryError], [loadedPaymentMethods, paymentMethodError]]) => {
+        if (ignored) return;
         if (!categoryError) setCategoryOptions(loadedCategories ?? []);
         if (!paymentMethodError) setPaymentMethodOptions(loadedPaymentMethods ?? []);
         setFilterOptionsError(categoryError ?? paymentMethodError ?? null);
       })
-      .catch(error =>
-        setFilterOptionsError(error instanceof Error ? error : new Error('Failed to load filter options')),
-      )
-      .finally(() => setFilterOptionsReady(true));
+      .catch(error => {
+        if (!ignored)
+          setFilterOptionsError(error instanceof Error ? error : new Error('Failed to load filter options'));
+      })
+      .finally(() => {
+        if (!ignored) setFilterOptionsReady(true);
+      });
+    return () => {
+      ignored = true;
+    };
   }, [filterOptionsRetry]);
 
   React.useEffect(() => {
@@ -143,16 +151,34 @@ export const InsightsReportDashboard: React.FC = () => {
     const params = new URLSearchParams(searchParamsString);
     const categoryIds = parseInsightsFilterIds(params.get('cat'));
     const paymentMethodIds = parseInsightsFilterIds(params.get('pm'));
-    if (categoryOptions.length || categoryIds.length === 0) {
-      const nextCategories = selectInsightsFilterOptions(categoryOptions, categoryIds);
-      setCategories(current => (haveSameInsightsFilterIds(current, nextCategories) ? current : nextCategories));
-    }
-    if (paymentMethodOptions.length || paymentMethodIds.length === 0) {
-      const nextPaymentMethods = selectInsightsFilterOptions(paymentMethodOptions, paymentMethodIds);
-      setPaymentMethods(current =>
-        haveSameInsightsFilterIds(current, nextPaymentMethods) ? current : nextPaymentMethods,
+    // URL IDs remain valid query state even when their display options could not be loaded.
+    setCategories(current => {
+      const next = selectInsightsFilterOptions(
+        categoryOptions,
+        categoryIds,
+        id => current.find(option => option.id === id) ?? {id: id as TCategoryVH['id'], name: id, description: null},
       );
-    }
+      return current.length === next.length && current.every((option, index) => option === next[index])
+        ? current
+        : next;
+    });
+    setPaymentMethods(current => {
+      const next = selectInsightsFilterOptions(
+        paymentMethodOptions,
+        paymentMethodIds,
+        id =>
+          current.find(option => option.id === id) ?? {
+            id: id as TPaymentMethodVH['id'],
+            name: id,
+            description: null,
+            address: '',
+            provider: '',
+          },
+      );
+      return current.length === next.length && current.every((option, index) => option === next[index])
+        ? current
+        : next;
+    });
     setFiltersHydrated(true);
   }, [categoryOptions, paymentMethodOptions, filterOptionsReady, searchParamsString]);
 
@@ -178,11 +204,6 @@ export const InsightsReportDashboard: React.FC = () => {
   React.useEffect(() => {
     if (!filterOptionsReady || !filtersHydrated || normalizedInitialUrlRef.current) return;
     const params = new URLSearchParams(searchParamsString);
-    if (
-      (parseInsightsFilterIds(params.get('cat')).length > 0 && categoryOptions.length === 0) ||
-      (parseInsightsFilterIds(params.get('pm')).length > 0 && paymentMethodOptions.length === 0)
-    )
-      return;
     const nextParams = new URLSearchParams(
       serializeInsightsSearchParams({from, to, granularity, comparison, categories, paymentMethods, params}),
     );
@@ -223,12 +244,19 @@ export const InsightsReportDashboard: React.FC = () => {
     }
     setLoading(true);
     setError(null);
-    void apiClient.backend.insights.getReport(query).then(([result, requestError]) => {
-      if (ignored.current) return;
-      if (requestError) setError(requestError);
-      else setReport(result?.data ?? null);
-      setLoading(false);
-    });
+    void apiClient.backend.insights
+      .getReport(query)
+      .then(([result, requestError]) => {
+        if (ignored.current) return;
+        if (requestError) setError(requestError);
+        else setReport(result?.data ?? null);
+      })
+      .catch(error => {
+        if (!ignored.current) setError(error instanceof Error ? error : new Error('Failed to load report'));
+      })
+      .finally(() => {
+        if (!ignored.current) setLoading(false);
+      });
     return () => {
       ignored.current = true;
     };
@@ -270,7 +298,13 @@ export const InsightsReportDashboard: React.FC = () => {
           setTransactions(result?.data ?? []);
           setTransactionCount(result?.totalCount ?? 0);
         }
-        setTransactionsLoading(false);
+      })
+      .catch(error => {
+        if (!ignored.current)
+          setTransactionsError(error instanceof Error ? error : new Error('Failed to load transactions'));
+      })
+      .finally(() => {
+        if (!ignored.current) setTransactionsLoading(false);
       });
     return () => {
       ignored.current = true;

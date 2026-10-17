@@ -41,6 +41,16 @@ describe('useEntityUrlState filter updates', () => {
     expect(url.hash).toBe('#details');
   });
 
+  it.each(['page', 'pageSize'] as const)('removes default pagination from an existing URL: %s', field => {
+    const {result} = renderHook(useQuery);
+    act(() => (field === 'page' ? result.current.updatePage(0) : result.current.updatePageSize(15)));
+    const url = new URL(push.mock.calls[0][0], window.location.origin);
+    expect(url.searchParams.has('page')).toBe(false);
+    expect(url.searchParams.get('pageSize')).toBe(field === 'page' ? '25' : null);
+    expect(url.searchParams.get('q')).toBe('rent');
+    expect(url.searchParams.get('foreign')).toBe('keep');
+  });
+
   it.each([undefined, []])('clears explicitly supplied empty ID filters: %s', categories => {
     const {result} = renderHook(useQuery);
     act(() => result.current.updateFilters({categories}));

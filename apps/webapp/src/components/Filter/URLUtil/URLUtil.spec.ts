@@ -7,7 +7,10 @@ import {
   parseTransactionFiltersFromParams,
   serializeKeywordFilter,
   serializeKeywordQuery,
+  serializePaginationQuery,
+  serializeRecurringPaymentQuery,
   serializeRecurringPaymentFilters,
+  serializeTransactionQuery,
   serializeTransactionFilters,
 } from './URLUtil';
 
@@ -333,6 +336,18 @@ suite('Filter - URL utils', () => {
   });
 
   describe('URL query state', () => {
+    it.each([
+      [serializeTransactionQuery, ['q', 'dateFrom', 'dateTo', 'cat', 'excl_cat', 'pm', 'excl_pm', 'page', 'pageSize']],
+      [serializeRecurringPaymentQuery, ['q', 'cat', 'excl_cat', 'pm', 'excl_pm', 'paused', 'page', 'pageSize']],
+      [serializeKeywordQuery, ['q', 'page', 'pageSize']],
+      [serializePaginationQuery, ['page', 'pageSize']],
+    ] as const)('removes old managed values when serializing cleared filters and defaults: %s', (serialize, keys) => {
+      const params = new URLSearchParams('foreign=keep');
+      keys.forEach(key => params.append(key, 'stale'));
+      const result = serialize({filters: {}, page: 0, pageSize: 15}, params);
+      expect(result.toString()).toBe('foreign=keep');
+    });
+
     it.each(['2026-02-01', '2026-03-08', '2026-11-01', '2024-02-29'])(
       'preserves date-only URL values across local calendar roundtrips: %s',
       date => {

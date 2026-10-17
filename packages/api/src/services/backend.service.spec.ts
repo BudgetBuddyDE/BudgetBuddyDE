@@ -3,6 +3,9 @@ import {BackendService} from './backend.service';
 import {fetchWithCache, resetRequestCacheForTests, setRequestCacheScope} from './requestCache';
 
 class TestBackendService extends BackendService {
+  send(input: RequestInfo | URL, init?: RequestInit) {
+    return this.request(input, init);
+  }
   query(value?: object) {
     return this.reqQueryObjToURLSearchParams(value).toString();
   }
@@ -22,6 +25,25 @@ describe('fetchWithCache', () => {
   afterEach(() => {
     resetRequestCacheForTests();
     vi.unstubAllGlobals();
+  });
+
+  it('invalidates cached GET responses when mutations go through BackendService', async () => {
+    vi.stubGlobal('window', {});
+    setRequestCacheScope('user-1:session-1');
+    const json = (value: string) =>
+      new Response(JSON.stringify({value}), {headers: {'content-type': 'application/json'}});
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(json('old'))
+      .mockResolvedValueOnce(json('mutation'))
+      .mockImplementation(async () => json('fresh'));
+    vi.stubGlobal('fetch', fetchMock);
+    const service = new TestBackendService('', '');
+    await service.send('/private');
+    await service.send('/private', {method: 'POST'});
+    expect(await (await service.send('/private')).json()).toEqual({value: 'fresh'});
+    expect(await (await service.send('/private')).json()).toEqual({value: 'fresh'});
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it('deduplicates concurrent browser GET requests and returns independent responses', async () => {

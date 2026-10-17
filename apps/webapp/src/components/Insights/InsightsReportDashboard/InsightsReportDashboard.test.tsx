@@ -1,6 +1,6 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
-import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {buildReport, buildTransaction, categoryOption, paymentMethodOption} from '../InsightsReport.fixtures';
 import {InsightsReportDashboard} from './InsightsReportDashboard';
@@ -204,6 +204,65 @@ describe('InsightsReportDashboard', () => {
     render(<InsightsReportDashboard />);
 
     expect(await screen.findByText('Report request failed')).toBeInTheDocument();
+  });
+
+  it.each(['report', 'transactions'] as const)('handles rejected %s requests and allows retry', async request => {
+    const mock = request === 'report' ? getReportMock : transactionGetAllMock;
+    mock.mockRejectedValueOnce(new Error('Request rejected'));
+    render(<InsightsReportDashboard />);
+    expect(await screen.findByText('Request rejected')).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', {name: request === 'report' ? 'Retry report' : 'Retry transactions'}));
+    expect(await screen.findByText('Receiver 1')).toBeInTheDocument();
+    expect(screen.queryByText('Request rejected')).not.toBeInTheDocument();
+  });
+
+  it.each(['report', 'transactions'] as const)('ignores rejected stale %s requests after navigation', async request => {
+    let rejectPrevious!: (error: Error) => void;
+    const mock = request === 'report' ? getReportMock : transactionGetAllMock;
+    mock.mockImplementationOnce(() => new Promise((_, reject) => (rejectPrevious = reject)));
+    const {rerender} = render(<InsightsReportDashboard />);
+    await waitFor(() => expect(mock).toHaveBeenCalled());
+    navigation.params = new URLSearchParams('from=2026-02-01&to=2026-02-28&granularity=month&comparison=none');
+    rerender(<InsightsReportDashboard />);
+    expect(await screen.findByText('Receiver 1')).toBeInTheDocument();
+    await act(async () => rejectPrevious(new Error('Old request rejected')));
+    expect(screen.queryByText('Old request rejected')).not.toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
+  it.each(['tuple', 'rejected'] as const)('preserves selected URL IDs when filter options fail: %s', async failure => {
+    navigation.params = new URLSearchParams(
+      'from=2026-02-01&to=2026-02-28&granularity=month&comparison=none&cat=cat-1&pm=pm-1',
+    );
+    if (failure === 'tuple') {
+      categoryValueHelpMock.mockResolvedValueOnce([null, new Error('Options unavailable')]);
+      paymentMethodValueHelpMock.mockResolvedValueOnce([null, new Error('Options unavailable')]);
+    } else categoryValueHelpMock.mockRejectedValueOnce(new Error('Options unavailable'));
+    render(<InsightsReportDashboard />);
+    expect(await screen.findByText('Options unavailable')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(getReportMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({$categories: ['cat-1'], $paymentMethods: ['pm-1']}),
+      ),
+    );
+    await waitFor(() =>
+      expect(transactionGetAllMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({$categories: ['cat-1'], $paymentMethods: ['pm-1']}),
+      ),
+    );
+    expect(await screen.findByText('Receiver 1')).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(replaceMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', {name: 'Retry filters'}));
+    expect(await screen.findByRole('button', {name: 'Food'})).toBeInTheDocument();
+    expect(await screen.findByRole('button', {name: 'Card'})).toBeInTheDocument();
+    expect(screen.queryByText('Options unavailable')).not.toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Grouping'}));
+    fireEvent.click(screen.getByRole('option', {name: 'Week'}));
+    const url = new URL(pushMock.mock.lastCall![0], window.location.origin);
+    expect(url.searchParams.get('cat')).toBe('cat-1');
+    expect(url.searchParams.get('pm')).toBe('pm-1');
   });
 
   it('changes the transaction page size and fetches the first page with the new size', async () => {
