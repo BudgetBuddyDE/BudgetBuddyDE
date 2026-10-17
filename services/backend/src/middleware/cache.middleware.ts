@@ -81,6 +81,10 @@ export async function invalidateUserCaches(userId: string, routePaths: readonly 
  * - Skips silently on errors so the request still reaches the route handler.
  */
 export async function cacheResponse(req: Request, res: Response, next: NextFunction): Promise<void> {
+  if (req.path.startsWith('/api/') && !req.path.startsWith('/api/auth/')) {
+    res.setHeader('Cache-Control', 'private, no-store');
+  }
+
   if (!isCacheAvailable() || req.method !== 'GET') {
     next();
     return;
@@ -91,6 +95,10 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
     next();
     return;
   }
+
+  // The application cache below is explicitly owner-scoped. Prevent browsers and
+  // intermediary proxies from reusing private API responses across sessions.
+  res.setHeader('Cache-Control', 'private, no-store');
 
   const route = findMatchingRoute(req.path);
   if (!route) {

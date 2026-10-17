@@ -87,9 +87,12 @@ export class BackendService {
    * This method does not verify that the actually content is valid JSON.
    */
   protected request(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const requestInit = typeof window === 'undefined' ? {...init, cache: 'no-store' as RequestCache} : init;
     const method = (init?.method ?? 'GET').toUpperCase();
     if (method !== 'GET') clearRequestCache();
-    return fetchWithCache(input, init);
+    const request = fetchWithCache(input, requestInit);
+    if (method === 'GET') return request;
+    return request.finally(clearRequestCache);
   }
 
   protected isJsonResponse(response: Response): boolean {

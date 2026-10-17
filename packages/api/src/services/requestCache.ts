@@ -9,14 +9,17 @@ type CachedResponse = {
 const responseCache = new Map<string, CachedResponse>();
 const inFlightRequests = new Map<string, Promise<Response>>();
 const DEFAULT_TTL_MS = 30_000;
+let cacheScope: string | null = null;
+let cacheGeneration = 0;
 
 function isBrowser() {
   return typeof window !== 'undefined';
 }
 
 function cacheKey(input: RequestInfo | URL, init?: RequestInit) {
-  const headers = new Headers(init?.headers);
-  return `${typeof input === 'string' ? input : input.toString()}|${headers.get('accept') ?? ''}`;
+  const headers = new Headers(input instanceof Request ? input.headers : undefined);
+  new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+  return `${cacheScope}|${typeof input === 'string' ? input : input.toString()}|${headers.get('accept') ?? ''}`;
 }
 
 function toResponse(cached: CachedResponse) {
@@ -32,8 +35,12 @@ export async function fetchWithCache(
   init?: RequestInit,
   ttlMs = DEFAULT_TTL_MS,
 ): Promise<Response> {
-  const method = (init?.method ?? 'GET').toUpperCase();
-  const canCache = isBrowser() && method === 'GET' && init?.cache !== 'no-store';
+  const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
+  const requestHeaders = new Headers(input instanceof Request ? input.headers : undefined);
+  new Headers(init?.headers).forEach((value, key) => requestHeaders.set(key, value));
+  const hasExplicitAuthorization = requestHeaders.has('authorization');
+  const canCache =
+    isBrowser() && method === 'GET' && init?.cache !== 'no-store' && cacheScope !== null && !hasExplicitAuthorization;
 
   if (!canCache) {
     const response = await fetch(input, init);
@@ -41,6 +48,7 @@ export async function fetchWithCache(
     return response;
   }
 
+  const generation = cacheGeneration;
   const key = cacheKey(input, init);
   const cached = responseCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return toResponse(cached);
@@ -54,7 +62,11 @@ export async function fetchWithCache(
 
   try {
     const response = await request;
-    if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+    if (
+      generation === cacheGeneration &&
+      response.ok &&
+      response.headers.get('content-type')?.includes('application/json')
+    ) {
       const body = await response.clone().text();
       responseCache.set(key, {
         body,
@@ -71,10 +83,21 @@ export async function fetchWithCache(
 }
 
 export function clearRequestCache() {
+  cacheGeneration += 1;
   responseCache.clear();
+  inFlightRequests.clear();
+}
+
+/** Sets the authenticated principal used to isolate browser-cached private responses. */
+export function setRequestCacheScope(scope: string | null) {
+  if (cacheScope === scope) return;
+  cacheScope = scope;
+  clearRequestCache();
 }
 
 export function resetRequestCacheForTests() {
+  cacheScope = null;
+  cacheGeneration = 0;
   responseCache.clear();
   inFlightRequests.clear();
 }
