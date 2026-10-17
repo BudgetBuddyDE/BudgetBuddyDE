@@ -370,6 +370,11 @@ suite('Filter - URL utils', () => {
         page: 0,
         pageSize: 15,
       });
+      expect(parsePaginationQuery(new URLSearchParams('page=Infinity&pageSize=0'))).toEqual({
+        filters: {},
+        page: 0,
+        pageSize: 15,
+      });
     });
 
     it('preserves repeated IDs once and rejects impossible calendar dates', () => {

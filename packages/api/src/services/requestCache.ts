@@ -49,8 +49,14 @@ export async function fetchWithCache(
   const requestHeaders = getRequestHeaders(input, init);
   const hasExplicitCredentials = [...SENSITIVE_HEADERS].some(header => requestHeaders.has(header));
   const cacheMode = init?.cache ?? (input instanceof Request ? input.cache : undefined);
+  const hasRequestBody = init?.body != null || (input instanceof Request && input.body !== null);
   const canCache =
-    isBrowser() && method === 'GET' && cacheMode !== 'no-store' && cacheScope !== null && !hasExplicitCredentials;
+    isBrowser() &&
+    method === 'GET' &&
+    !hasRequestBody &&
+    cacheMode !== 'no-store' &&
+    cacheScope !== null &&
+    !hasExplicitCredentials;
 
   if (!canCache) {
     if (method === 'GET') return fetch(input, init);

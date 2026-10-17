@@ -65,8 +65,12 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
   const [state, dispatch] = React.useReducer(FilterReducer, getInitialFilterState());
   const [categoryOptions, setCategoryOptions] = React.useState<TCategoryVH[]>([]);
   const [paymentMethodOptions, setPaymentMethodOptions] = React.useState<TPaymentMethodVH[]>([]);
+  const categorySelectionChanged = React.useRef(false);
+  const paymentMethodSelectionChanged = React.useRef(false);
 
   const handleOpen = () => {
+    categorySelectionChanged.current = false;
+    paymentMethodSelectionChanged.current = false;
     // Bump key so FilterDialog remounts fresh (DateRangePicker re-reads defaultValue)
     setDialogKey(k => k + 1);
     // Seed simple fields from current URL/Redux filters
@@ -153,13 +157,17 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
       result.paused = state.paused;
     }
     if (withCategories) {
-      result.categories = preserveUnavailableIds(state.categories, categoryOptions, currentFilters.categories);
+      result.categories = preserveUnavailableIds(
+        state.categories,
+        categoryOptions,
+        categorySelectionChanged.current ? [] : currentFilters.categories,
+      );
     }
     if (withPaymentMethods) {
       result.paymentMethods = preserveUnavailableIds(
         state.paymentMethods,
         paymentMethodOptions,
-        currentFilters.paymentMethods,
+        paymentMethodSelectionChanged.current ? [] : currentFilters.paymentMethods,
       );
     }
     onApply(result);
@@ -253,7 +261,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           value={categoryOptions.filter(category => currentFilters.categories?.includes(category.id))}
           onChange={(_, categories) => {
             applyQuickFilter({
-              categories: preserveUnavailableIds(categories, categoryOptions, currentFilters.categories),
+              categories: preserveUnavailableIds(categories, categoryOptions),
             });
           }}
           getOptionLabel={category => category.name}
@@ -277,11 +285,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           )}
           onChange={(_, paymentMethods) => {
             applyQuickFilter({
-              paymentMethods: preserveUnavailableIds(
-                paymentMethods,
-                paymentMethodOptions,
-                currentFilters.paymentMethods,
-              ),
+              paymentMethods: preserveUnavailableIds(paymentMethods, paymentMethodOptions),
             });
           }}
           getOptionLabel={paymentMethod => paymentMethod.name}
@@ -297,6 +301,8 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
         onClose={() => setOpen(false)}
         onReset={onFilterReset}
         onApply={onApplyFilters}
+        onCategorySelectionChange={() => (categorySelectionChanged.current = true)}
+        onPaymentMethodSelectionChange={() => (paymentMethodSelectionChanged.current = true)}
         withDateRange={withDateRange}
         withRecurringPaymentStatus={withRecurringPaymentStatus}
         withCategories={withCategories}

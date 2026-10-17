@@ -78,4 +78,26 @@ describe('FilterWrapper selected IDs', () => {
     fireEvent.click(await screen.findByRole('button', {name: 'Reset'}));
     expect(onApply).toHaveBeenCalledWith(expect.objectContaining({categories: [], paymentMethods: []}));
   });
+
+  it('drops unavailable IDs when the user explicitly changes a quick filter', async () => {
+    const unavailableId = 'deleted-category' as TCategoryVH['id'];
+    const onApply = vi.fn();
+    render(<FilterWrapper currentFilters={{categories: [unavailableId]}} onApply={onApply} withCategories />);
+    const input = screen.getByRole('combobox', {name: 'Category'});
+    fireEvent.mouseDown(input);
+    fireEvent.click(await screen.findByRole('option', {name: 'Food'}));
+
+    expect(onApply).toHaveBeenCalledWith({categories: [category.id]});
+  });
+
+  it('preserves unavailable IDs in the dialog until the selection is explicitly changed', async () => {
+    const unavailableId = 'deleted-category' as TCategoryVH['id'];
+    const onApply = vi.fn();
+    render(<FilterWrapper currentFilters={{categories: [unavailableId]}} onApply={onApply} withCategories />);
+    await waitFor(() => expect(getCategories).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', {name: 'Filters active'}));
+    fireEvent.click(await screen.findByRole('button', {name: 'Apply'}));
+
+    expect(onApply).toHaveBeenCalledWith({categories: [unavailableId]});
+  });
 });

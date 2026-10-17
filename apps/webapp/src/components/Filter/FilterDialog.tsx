@@ -27,6 +27,8 @@ export type FilterDialogProps = Pick<DialogProps, 'open'> & {
   onClose?: () => void;
   onReset?: () => void;
   onApply?: () => void;
+  onCategorySelectionChange?: () => void;
+  onPaymentMethodSelectionChange?: () => void;
   withDateRange?: boolean;
   withRecurringPaymentStatus?: boolean;
   withCategories?: boolean;
@@ -53,6 +55,8 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
   onClose,
   onReset,
   onApply,
+  onCategorySelectionChange,
+  onPaymentMethodSelectionChange,
   withDateRange,
   withRecurringPaymentStatus,
   withCategories,
@@ -150,7 +154,10 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
                 searchAsYouType={false}
                 retrieveOptionsFunc={() => categoryOptions}
                 value={state.categories}
-                onChange={(_, value) => dispatch({action: 'SET_CATEGORIES', categories: value})}
+                onChange={(_, value) => {
+                  onCategorySelectionChange?.();
+                  dispatch({action: 'SET_CATEGORIES', categories: value});
+                }}
                 getOptionLabel={opt => opt.name}
                 isOptionEqualToValue={(opt, val) => opt.id === val.id}
               />
@@ -169,7 +176,10 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
                 searchAsYouType={false}
                 retrieveOptionsFunc={() => paymentMethodOptions}
                 value={state.paymentMethods}
-                onChange={(_, value) => dispatch({action: 'SET_PAYMENT_METHODS', paymentMethods: value})}
+                onChange={(_, value) => {
+                  onPaymentMethodSelectionChange?.();
+                  dispatch({action: 'SET_PAYMENT_METHODS', paymentMethods: value});
+                }}
                 getOptionLabel={opt => opt.name}
                 isOptionEqualToValue={(opt, val) => opt.id === val.id}
               />

@@ -181,6 +181,19 @@ describe('fetchWithCache', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('does not cache a Request body when init overrides its method to GET', async () => {
+    vi.stubGlobal('window', {});
+    const fetchMock = vi.fn(async () => new Response('{}', {headers: {'content-type': 'application/json'}}));
+    vi.stubGlobal('fetch', fetchMock);
+    setRequestCacheScope('user-1:session-1');
+    const request = new Request('https://example.com/private', {method: 'POST', body: 'payload'});
+
+    await fetchWithCache(request, {method: 'GET'});
+    await fetchWithCache(request, {method: 'GET'});
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('does not let an in-flight response from a previous session populate the new scope', async () => {
     vi.stubGlobal('window', {});
     let resolvePrevious!: (response: Response) => void;
