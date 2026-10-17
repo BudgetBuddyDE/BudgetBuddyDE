@@ -116,6 +116,11 @@
       "dev-source": "./src/types/schemas/applicationImport.schema.ts",
       "types": "./lib/types/schemas/applicationImport.schema.d.ts",
       "default": "./lib/types/schemas/applicationImport.schema.js"
+    },
+    "./preference": {
+      "dev-source": "./src/preference.ts",
+      "types": "./lib/preference.d.ts",
+      "default": "./lib/preference.js"
     }
   },
   "typesVersions": {
@@ -164,6 +169,9 @@
       ],
       "applicationImport": [
         "./lib/types/schemas/applicationImport.schema.d.ts"
+      ],
+      "preference": [
+        "./lib/preference.d.ts"
       ]
     }
   }

@@ -357,6 +357,7 @@ export class AppConfig extends BackendConfig {
         routes: [
           {path: '/api/category', ttl: 300},
           {path: '/api/paymentMethod', ttl: 300},
+          {path: '/api/preference', ttl: 300},
           {path: '/api/transaction', ttl: 60},
           {path: '/api/recurringPayment', ttl: 300},
           {path: '/api/budget', ttl: 300},

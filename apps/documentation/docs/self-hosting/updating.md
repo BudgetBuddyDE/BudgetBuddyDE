@@ -25,7 +25,11 @@ npm run build
 
 Then restart your services so they run the new build.
 
-Migrations are the only step that touches existing data. They are additive in normal releases, but a backup is still the fastest way back if something goes wrong.
+Migrations and any explicitly documented data backfills can change database data. Schema migrations are additive in normal releases, but a backup is still the fastest way back if something goes wrong.
+
+## User preferences upgrade
+
+Apply the regular Drizzle schema migrations before starting the updated backend. If your instance already has users created before user preferences were introduced, we also recommend the optional [one-time SQL backfill](/developers/user-preferences#existing-installations-recommended-one-time-sql-backfill) during the upgrade. It pre-populates missing preferences with completed onboarding and avoids warnings on those users' first requests. Without the backfill, the backend repairs missing records with `onboardingCompleted: true`; it does not force existing users into onboarding. Stop all backend instances while applying migrations and the optional backfill, then start the updated backend. Do not run a blanket backfill after new registrations resume. New installations without existing users do not need this SQL step.
 
 ## Integrated authentication cutover
 

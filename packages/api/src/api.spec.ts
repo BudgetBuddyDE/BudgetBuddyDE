@@ -34,7 +34,7 @@ describe('Api', () => {
 
     new Api('https://backend.example', logger);
 
-    expect(child).toHaveBeenCalledTimes(9);
+    expect(child).toHaveBeenCalledTimes(10);
     expect(child).toHaveBeenCalledWith({module: 'AuthDataExportService'});
     expect(child).toHaveBeenCalledWith({module: 'ApplicationDataService'});
     expect(child).toHaveBeenCalledWith({module: 'AttachmentService'});
@@ -44,5 +44,6 @@ describe('Api', () => {
     expect(child).toHaveBeenCalledWith({module: 'RecurringPaymentService'});
     expect(child).toHaveBeenCalledWith({module: 'BudgetService'});
     expect(child).toHaveBeenCalledWith({module: 'InsightsService'});
+    expect(child).toHaveBeenCalledWith({module: 'PreferenceService'});
   });
 });

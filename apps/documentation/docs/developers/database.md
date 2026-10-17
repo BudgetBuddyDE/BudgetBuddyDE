@@ -16,6 +16,7 @@ icon: Database
 
 | Table                         | Purpose                              | Notable columns                                                                                                                                     |
 | ----------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `preference`                  | Per-user application preferences     | `onboarding_completed`, `language` (`en_US` locale), `time_zone`, `currency`                                                                        |
 | `payment_method`              | Payment methods                      | `name`, `provider`, `address`, `owner_id`                                                                                                           |
 | `category`                    | Categories                           | `name`, `description`, `owner_id`                                                                                                                   |
 | `transaction`                 | Income and expenses                  | `category_id`, `payment_method_id`, `processed_at`, `receiver`, `transfer_amount` (positive income, negative expense)                               |
@@ -35,6 +36,7 @@ Referential actions encode the data model:
 | Relation                                            | On user deletion  | On parent deletion                                                                                  |
 | --------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------- |
 | `payment_method` → user                             | cascade           | -                                                                                                   |
+| `preference` → user                                 | cascade           | -                                                                                                   |
 | `category` → user                                   | cascade           | -                                                                                                   |
 | `transaction` → category / payment_method           | cascade via those | **Deleting a category or payment method deletes its transactions**                                  |
 | `recurring_payment` → category / payment_method     | cascade via those | same as transactions                                                                                |

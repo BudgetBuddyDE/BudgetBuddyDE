@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/complexity/noStaticOnlyClass: This class is used as as a wrapper */
-
 import {createNoopLogger, type Logger} from '@budgetbuddyde/logger';
 import {ApplicationDataService} from './services/applicationData.service';
 import {AttachmentService} from './services/attachment.service';
@@ -8,6 +6,7 @@ import {BudgetService} from './services/budget.service';
 import {CategoryService} from './services/category.service';
 import {InsightsService} from './services/insights.service';
 import {PaymentMethodService} from './services/paymentMethod.service';
+import {PreferenceService} from './services/preference.service';
 import {RecurringPaymentService} from './services/recurringPayment.service';
 import {TransactionService} from './services/transaction.service';
 
@@ -21,6 +20,7 @@ export class Api {
     attachment: AttachmentService;
     category: CategoryService;
     paymentMethod: PaymentMethodService;
+    preference: PreferenceService;
     transaction: TransactionService;
     recurringPayment: RecurringPaymentService;
     budget: BudgetService;
@@ -45,6 +45,7 @@ export class Api {
         '/api/paymentMethod',
         logger.child({module: 'PaymentMethodService'}),
       ),
+      preference: new PreferenceService(backendHost, logger.child({module: 'PreferenceService'})),
       transaction: new TransactionService(
         backendHost,
         '/api/transaction',

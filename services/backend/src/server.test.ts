@@ -99,6 +99,7 @@ vi.mock('./router', async () => {
       'Category',
       'Insights',
       'PaymentMethod',
+      'Preference',
       'RecurringPayment',
       'Transaction',
     ].map(name => [`${name}Router`, router]),

@@ -7,6 +7,7 @@ import {config} from './config';
 import {db} from './db';
 import {getAuthRedisClient} from './db/redis';
 import {logger} from './lib/logger';
+import {initializePreferences} from './lib/preferences';
 import {resendManager} from './lib/resend';
 
 const authLogger = logger.child({module: 'auth'});
@@ -20,6 +21,20 @@ const options: BetterAuthOptions = {
     provider: 'pg',
     schema: authSchema,
   }),
+  databaseHooks: {
+    user: {
+      create: {
+        async after(user) {
+          try {
+            await initializePreferences(user.id);
+          } catch (error) {
+            authLogger.error('Failed to initialize preferences for newly registered user', error, {userId: user.id});
+            // User creation may already be committed; preferences can be repaired on the next request.
+          }
+        },
+      },
+    },
+  },
   secondaryStorage: config.auth.redis.url
     ? {
         set(key, value, ttl) {
