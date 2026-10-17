@@ -1,10 +1,16 @@
 import {describe, expect, it} from 'vitest';
 import {
   parseKeywordFilterFromParams,
+  parseKeywordQuery,
+  parsePaginationQuery,
   parseRecurringPaymentFiltersFromParams,
   parseTransactionFiltersFromParams,
   serializeKeywordFilter,
+  serializeKeywordQuery,
+  serializePaginationQuery,
+  serializeRecurringPaymentQuery,
   serializeRecurringPaymentFilters,
+  serializeTransactionQuery,
   serializeTransactionFilters,
 } from './URLUtil';
 
@@ -29,13 +35,13 @@ suite('Filter - URL utils', () => {
     it('parses valid dateFrom date string', () => {
       const result = parseTransactionFiltersFromParams({dateFrom: '2024-01-15'});
       expect(result.dateFrom).toBeInstanceOf(Date);
-      expect(result.dateFrom?.toISOString()).toBe('2024-01-15T00:00:00.000Z');
+      expect(result.dateFrom).toEqual(new Date(2024, 0, 15));
     });
 
     it('parses valid dateTo date string', () => {
       const result = parseTransactionFiltersFromParams({dateTo: '2024-12-31'});
       expect(result.dateTo).toBeInstanceOf(Date);
-      expect(result.dateTo?.toISOString()).toBe('2024-12-31T00:00:00.000Z');
+      expect(result.dateTo).toEqual(new Date(2024, 11, 31));
     });
 
     it('ignores invalid dateFrom', () => {
@@ -44,6 +50,12 @@ suite('Filter - URL utils', () => {
 
     it('ignores invalid dateTo', () => {
       expect(parseTransactionFiltersFromParams({dateTo: 'not-a-date'})).toEqual({});
+    });
+
+    it('falls back to the default date range when dates are reversed', () => {
+      expect(parseTransactionFiltersFromParams({dateFrom: '2024-12-31', dateTo: '2024-01-01', q: 'rent'})).toEqual({
+        keyword: 'rent',
+      });
     });
 
     it('parses comma-separated categories', () => {
@@ -173,13 +185,13 @@ suite('Filter - URL utils', () => {
     });
 
     it('serializes dateFrom as date-only string (yyyy-MM-dd)', () => {
-      const date = new Date('2024-03-01T00:00:00.000Z');
+      const date = new Date(2024, 2, 1);
       const p = serializeTransactionFilters({...emptyFilters, dateFrom: date});
       expect(p.get('dateFrom')).toBe('2024-03-01');
     });
 
     it('serializes dateTo as date-only string (yyyy-MM-dd)', () => {
-      const date = new Date('2024-03-31T00:00:00.000Z');
+      const date = new Date(2024, 2, 31);
       const p = serializeTransactionFilters({...emptyFilters, dateTo: date});
       expect(p.get('dateTo')).toBe('2024-03-31');
     });
@@ -272,7 +284,7 @@ suite('Filter - URL utils', () => {
 
   describe('round-trip: transaction filters', () => {
     it('serialized params can be parsed back to the same filters', () => {
-      const date = new Date('2024-06-15T00:00:00.000Z');
+      const date = new Date(2024, 5, 15);
       const original = {
         keyword: 'coffee',
         dateFrom: date,
@@ -320,6 +332,58 @@ suite('Filter - URL utils', () => {
       expect(parsed.excl_categories).toEqual(original.excl_categories);
       expect(parsed.paymentMethods).toEqual(original.paymentMethods);
       expect(parsed.excl_paymentMethods).toEqual(original.excl_paymentMethods);
+    });
+  });
+
+  describe('URL query state', () => {
+    it.each([
+      [serializeTransactionQuery, ['q', 'dateFrom', 'dateTo', 'cat', 'excl_cat', 'pm', 'excl_pm', 'page', 'pageSize']],
+      [serializeRecurringPaymentQuery, ['q', 'cat', 'excl_cat', 'pm', 'excl_pm', 'paused', 'page', 'pageSize']],
+      [serializeKeywordQuery, ['q', 'page', 'pageSize']],
+      [serializePaginationQuery, ['page', 'pageSize']],
+    ] as const)('removes old managed values when serializing cleared filters and defaults: %s', (serialize, keys) => {
+      const params = new URLSearchParams('foreign=keep');
+      keys.forEach(key => params.append(key, 'stale'));
+      const result = serialize({filters: {}, page: 0, pageSize: 15}, params);
+      expect(result.toString()).toBe('foreign=keep');
+    });
+
+    it.each(['2026-02-01', '2026-03-08', '2026-11-01', '2024-02-29'])(
+      'preserves date-only URL values across local calendar roundtrips: %s',
+      date => {
+        const filters = parseTransactionFiltersFromParams({dateFrom: date, dateTo: date});
+        const params = serializeTransactionFilters({keyword: null, ...filters});
+        expect(params.get('dateFrom')).toBe(date);
+        expect(params.get('dateTo')).toBe(date);
+        expect(filters.dateFrom?.getHours()).toBe(0);
+      },
+    );
+
+    it('restores one-based pages and validates supported page sizes', () => {
+      expect(parseKeywordQuery(new URLSearchParams('q=rent&page=3&pageSize=50'))).toEqual({
+        filters: {keyword: 'rent'},
+        page: 2,
+        pageSize: 50,
+      });
+      expect(parsePaginationQuery(new URLSearchParams('page=-2&pageSize=12'))).toEqual({
+        filters: {},
+        page: 0,
+        pageSize: 15,
+      });
+    });
+
+    it('preserves repeated IDs once and rejects impossible calendar dates', () => {
+      expect(parseTransactionFiltersFromParams({cat: ['food,rent', 'food'], dateFrom: '2024-02-31'})).toEqual({
+        categories: ['food', 'rent'],
+      });
+    });
+
+    it('retains unrelated parameters when filters are serialized', () => {
+      const params = serializeKeywordQuery(
+        {filters: {keyword: 'rent'}, page: 1, pageSize: 25},
+        new URLSearchParams('ibnEntity=budget&keep=yes'),
+      );
+      expect(params.toString()).toBe('ibnEntity=budget&keep=yes&q=rent&page=2&pageSize=25');
     });
   });
 });

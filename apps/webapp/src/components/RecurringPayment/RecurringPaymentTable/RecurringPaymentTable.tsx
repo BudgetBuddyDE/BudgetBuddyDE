@@ -17,7 +17,7 @@ import {
   PostAddRounded as CreateMultipleIcon,
 } from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, InputAdornment, Typography} from '@mui/material';
-import {usePathname, useRouter} from 'next/navigation';
+import {useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -33,6 +33,7 @@ import {
 } from '@/components/Drawer';
 import {AddFab, FabContainer} from '@/components/FAB';
 import {FilterWrapper, serializeRecurringPaymentFilters} from '@/components/Filter';
+import {parseRecurringPaymentQuery, serializeRecurringPaymentQuery} from '@/components/Filter/URLUtil';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {
   formatDateOnlyForDisplay,
@@ -46,6 +47,7 @@ import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringPaymentSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {useEntityUrlState} from '@/lib/useEntityUrlState';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 import {
@@ -75,8 +77,9 @@ export type RecurringPaymentTableProps = {
 };
 
 export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({initialFilters}) => {
+  const router = useRouter();
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = recurringPaymentSlice.actions;
+  const {refresh, getPage, setQueryState} = recurringPaymentSlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -87,8 +90,12 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     data: recurringPayments,
     filter: filters,
   } = useAppSelector(recurringPaymentSlice.selectors.getState);
-  const router = useRouter();
-  const pathname = usePathname();
+  const {updateFilters, updatePage, updatePageSize} = useEntityUrlState(
+    parseRecurringPaymentQuery,
+    serializeRecurringPaymentQuery,
+    ['q', 'cat', 'excl_cat', 'pm', 'excl_pm', 'paused', 'page', 'pageSize'],
+    setQueryState,
+  );
 
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
@@ -383,6 +390,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       message: result.message ?? 'Transaction created successfully',
     });
     dispatch(refresh());
+    router.refresh();
   };
 
   const handleDeleteEntity = async (entityId: TExpandedRecurringPayment['id']) => {
@@ -400,29 +408,18 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     dispatch(refresh());
   };
 
-  const updateUrl = React.useCallback(
-    (newFilters: EntityFilters) => {
-      const params = serializeRecurringPaymentFilters(newFilters);
-      const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
-    },
-    [router, pathname],
-  );
-
   const handleTextSearch = React.useCallback(
     (text: string) => {
-      updateUrl({...filters, keyword: text || null});
-      dispatch(applyFilters({keyword: text || null}));
+      updateFilters({keyword: text || null});
     },
-    [applyFilters, dispatch, filters, updateUrl],
+    [updateFilters],
   );
 
   const handleFilterApply = React.useCallback(
     (filterValues: Partial<EntityFilters>) => {
-      updateUrl({...filters, ...filterValues});
-      dispatch(applyFilters(filterValues));
+      updateFilters(filterValues);
     },
-    [applyFilters, dispatch, filters, updateUrl],
+    [updateFilters],
   );
 
   const dispatchNewPage = React.useCallback(
@@ -432,17 +429,16 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         return;
       }
 
-      dispatch(setPage(newPage));
+      updatePage(newPage);
     },
-    [dispatch, setPage],
+    [updatePage],
   );
 
   const dispatchNewRowsPerPage = React.useCallback(
     (newRowsPerPage: number) => {
-      // TODO: Implement validation, in order to ensure that only an valid option is passed
-      dispatch(setRowsPerPage(newRowsPerPage));
+      updatePageSize(newRowsPerPage);
     },
-    [dispatch, setRowsPerPage],
+    [updatePageSize],
   );
 
   const EntityFormFields: EntityDrawerField<EntityFormFields>[] =
@@ -712,12 +708,6 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
   );
   const hasActiveFilters = serializeRecurringPaymentFilters(filters).toString().length > 0;
 
-  // Initialize filters from URL params on mount — always dispatch to clear any stale Redux state
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
-  React.useLayoutEffect(() => {
-    dispatch(setFilters(initialFilters ?? {}));
-  }, []);
-
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -726,7 +716,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         rowsPerPage: rowsPerPage,
       }),
     );
-  }, [dispatch, getPage, currentPage, rowsPerPage]);
+  }, [dispatch, getPage, currentPage, rowsPerPage, JSON.stringify(filters)]);
 
   return (
     <React.Fragment>
@@ -740,7 +730,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           showCount: true,
           showSearch: true,
           searchPlaceholder: 'Search…',
-          searchDefaultValue: initialFilters?.keyword ?? undefined,
+          searchDefaultValue: filters.keyword ?? initialFilters?.keyword ?? undefined,
           onSearch: handleTextSearch,
           actions: [
             {
@@ -798,6 +788,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+        onRetry={() => dispatch(refresh())}
       />
 
       <BatchEntityDialog<RecurringPaymentDraftRow, TCreateOrUpdateRecurringPaymentPayload>

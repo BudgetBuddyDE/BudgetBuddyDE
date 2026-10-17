@@ -1,7 +1,7 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TInsightsReport} from '@budgetbuddyde/api/insights';
 import type {TExpandedTransaction} from '@budgetbuddyde/api/types';
-import {Box, LinearProgress, Skeleton, Stack} from '@mui/material';
+import {Box, Button, LinearProgress, Skeleton, Stack} from '@mui/material';
 import React from 'react';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {InsightsReportAnalysis} from '../InsightsReportAnalysis/InsightsReportAnalysis';
@@ -18,8 +18,12 @@ export type InsightsReportViewProps = {
   transactionCount: number;
   transactionPage: number;
   transactionRowsPerPage: number;
-  onTransactionPageChange: React.Dispatch<React.SetStateAction<number>>;
+  transactionsError?: Error | null;
+  transactionsLoading?: boolean;
+  onTransactionPageChange: (page: number) => void;
   onTransactionRowsPerPageChange: (rowsPerPage: number) => void;
+  onRetryTransactions?: () => void;
+  onRetryReport?: () => void;
 };
 
 export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
@@ -31,8 +35,12 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
   transactionCount,
   transactionPage,
   transactionRowsPerPage,
+  transactionsError = null,
+  transactionsLoading = false,
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
+  onRetryTransactions,
+  onRetryReport,
 }) => {
   const initialLoading = loading && !report;
   const refreshing = loading && Boolean(report);
@@ -42,7 +50,12 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
 
   return (
     <>
-      {error && <ErrorAlert error={error} />}
+      {error && (
+        <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
+          <ErrorAlert error={error} sx={{flexGrow: 1}} />
+          {onRetryReport && <Button onClick={onRetryReport}>Retry report</Button>}
+        </Stack>
+      )}
       {initialLoading ? (
         <Skeleton variant="rounded" height={520} />
       ) : report ? (
@@ -62,10 +75,13 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
               transactionCount={transactionCount}
               transactionPage={transactionPage}
               transactionRowsPerPage={transactionRowsPerPage}
+              transactionsError={transactionsError}
+              transactionsLoading={transactionsLoading}
               income={report.summary.income.value}
               expenses={report.summary.expenses.value}
               onTransactionPageChange={onTransactionPageChange}
               onTransactionRowsPerPageChange={onTransactionRowsPerPageChange}
+              onRetry={onRetryTransactions}
             />
           </Stack>
         </Box>

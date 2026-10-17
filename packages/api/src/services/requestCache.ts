@@ -9,14 +9,27 @@ type CachedResponse = {
 const responseCache = new Map<string, CachedResponse>();
 const inFlightRequests = new Map<string, Promise<Response>>();
 const DEFAULT_TTL_MS = 30_000;
+const SENSITIVE_HEADERS = new Set(['authorization', 'cookie', 'proxy-authorization', 'x-api-key']);
+let cacheScope: string | null = null;
+let cacheGeneration = 0;
 
 function isBrowser() {
   return typeof window !== 'undefined';
 }
 
-function cacheKey(input: RequestInfo | URL, init?: RequestInit) {
-  const headers = new Headers(init?.headers);
-  return `${typeof input === 'string' ? input : input.toString()}|${headers.get('accept') ?? ''}`;
+function cacheKey(input: RequestInfo | URL, init: RequestInit | undefined, method: string) {
+  const headers = getRequestHeaders(input, init);
+  const url = input instanceof Request ? input.url : String(input);
+  const varyHeaders = [...headers.entries()]
+    .filter(([name]) => !SENSITIVE_HEADERS.has(name))
+    .sort(([left], [right]) => left.localeCompare(right));
+  return JSON.stringify([cacheScope, method, url, varyHeaders]);
+}
+
+function getRequestHeaders(input: RequestInfo | URL, init: RequestInit | undefined) {
+  const headers = new Headers(input instanceof Request ? input.headers : undefined);
+  new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+  return headers;
 }
 
 function toResponse(cached: CachedResponse) {
@@ -32,16 +45,25 @@ export async function fetchWithCache(
   init?: RequestInit,
   ttlMs = DEFAULT_TTL_MS,
 ): Promise<Response> {
-  const method = (init?.method ?? 'GET').toUpperCase();
-  const canCache = isBrowser() && method === 'GET' && init?.cache !== 'no-store';
+  const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
+  const requestHeaders = getRequestHeaders(input, init);
+  const hasExplicitCredentials = [...SENSITIVE_HEADERS].some(header => requestHeaders.has(header));
+  const cacheMode = init?.cache ?? (input instanceof Request ? input.cache : undefined);
+  const canCache =
+    isBrowser() && method === 'GET' && cacheMode !== 'no-store' && cacheScope !== null && !hasExplicitCredentials;
 
   if (!canCache) {
-    const response = await fetch(input, init);
-    if (method !== 'GET') responseCache.clear();
-    return response;
+    if (method === 'GET') return fetch(input, init);
+    clearRequestCache();
+    try {
+      return await fetch(input, init);
+    } finally {
+      clearRequestCache();
+    }
   }
 
-  const key = cacheKey(input, init);
+  const generation = cacheGeneration;
+  const key = cacheKey(input, init, method);
   const cached = responseCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return toResponse(cached);
   responseCache.delete(key);
@@ -54,15 +76,21 @@ export async function fetchWithCache(
 
   try {
     const response = await request;
-    if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+    if (
+      generation === cacheGeneration &&
+      response.ok &&
+      response.headers.get('content-type')?.includes('application/json')
+    ) {
       const body = await response.clone().text();
-      responseCache.set(key, {
-        body,
-        headers: [...response.headers.entries()],
-        status: response.status,
-        statusText: response.statusText,
-        expiresAt: Date.now() + ttlMs,
-      });
+      if (generation === cacheGeneration) {
+        responseCache.set(key, {
+          body,
+          headers: [...response.headers.entries()],
+          status: response.status,
+          statusText: response.statusText,
+          expiresAt: Date.now() + ttlMs,
+        });
+      }
     }
     return response.clone();
   } finally {
@@ -71,10 +99,21 @@ export async function fetchWithCache(
 }
 
 export function clearRequestCache() {
+  cacheGeneration += 1;
   responseCache.clear();
+  inFlightRequests.clear();
+}
+
+/** Sets the authenticated principal used to isolate browser-cached private responses. */
+export function setRequestCacheScope(scope: string | null) {
+  if (cacheScope === scope) return;
+  cacheScope = scope;
+  clearRequestCache();
 }
 
 export function resetRequestCacheForTests() {
+  cacheScope = null;
+  cacheGeneration = 0;
   responseCache.clear();
   inFlightRequests.clear();
 }

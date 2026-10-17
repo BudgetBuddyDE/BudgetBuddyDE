@@ -32,6 +32,7 @@ export type EntitySliceState<T> = {
   rowsPerPage: number;
   status: 'idle' | 'loading' | 'failed';
   error: Error | null;
+  activeRequestId: string | null;
 };
 
 export function createInitialState<T>(initalData?: T): EntitySliceState<T> {
@@ -43,6 +44,7 @@ export function createInitialState<T>(initalData?: T): EntitySliceState<T> {
     rowsPerPage: appConfig.tables.itemPerPage,
     status: 'idle',
     error: null,
+    activeRequestId: null,
   };
 }
 
@@ -54,49 +56,53 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
   filterMapper?: (filters: EntityFilters) => Partial<Q>,
 ) {
   const initialState = createInitialState<T>();
+  const createQuery = (filters: EntityFilters, page: number, rowsPerPage: number, extra?: Partial<Q>) => {
+    const query = {
+      from: page * rowsPerPage,
+      to: page * rowsPerPage + rowsPerPage,
+      ...extra,
+    } as Q;
+    if (filters.keyword) query.search = filters.keyword;
+    if (filterMapper) Object.assign(query, filterMapper(filters));
+    return query;
+  };
   const entitySlice = createAppSlice({
     name,
     initialState,
     reducers: create => ({
       refresh: create.asyncThunk(
         async (_, api) => {
-          // REVISIT: Check if I can solve this logic more elegant
-          // Get cached filters
           const thunkState = api.getState() as RootState;
           const sliceState = thunkState[name];
-          const currentFilters = sliceState.filter;
-          const currentPage = sliceState.currentPage;
-          const rowsPerPage = sliceState.rowsPerPage;
-          const start = currentPage * rowsPerPage;
-          const query = {
-            from: start,
-            to: start + rowsPerPage,
-          } as Q;
-          if (currentFilters.keyword && currentFilters.keyword.length > 0) {
-            query.search = currentFilters.keyword;
-          }
-          if (filterMapper) {
-            Object.assign(query, filterMapper(currentFilters));
-          }
+          const query = createQuery(sliceState.filter, sliceState.currentPage, sliceState.rowsPerPage);
           const [data, err] = await Promise.resolve(getPageFunc(query));
           if (err) throw err;
           // The value we return becomes the `fulfilled` action payload
           return data;
         },
         {
-          pending: state => {
+          pending: (state, action) => {
             state.status = 'loading';
+            state.error = null;
+            state.activeRequestId = action.meta.requestId;
           },
           fulfilled: (state, action) => {
+            if (state.activeRequestId !== action.meta.requestId) return;
             state.status = 'idle';
+            state.activeRequestId = null;
             // @ts-expect-error
             state.data = action.payload.data;
             state.count = action.payload.totalCount || 0;
+            state.currentPage = Math.min(
+              state.currentPage,
+              Math.max(0, Math.ceil(state.count / state.rowsPerPage) - 1),
+            );
           },
-          rejected: (state, {error}) => {
+          rejected: (state, action) => {
+            if (state.activeRequestId !== action.meta.requestId) return;
             state.status = 'failed';
-            // @ts-expect-error
-            state.error = error;
+            state.activeRequestId = null;
+            state.error = action.error as Error;
           },
         },
       ),
@@ -122,39 +128,36 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           const thunkState = api.getState() as RootState;
           const sliceState = thunkState[name];
           const currentFilters = sliceState.filter;
-          const start = page * rowsPerPage;
-          const query = {
-            from: start,
-            to: start + rowsPerPage,
-            ...q,
-          } as Q;
-          if (currentFilters.keyword && currentFilters.keyword.length > 0) {
-            query.search = currentFilters.keyword;
-          }
-          if (filterMapper) {
-            Object.assign(query, filterMapper(currentFilters));
-          }
+          const query = createQuery(currentFilters, page, rowsPerPage, q);
           const [data, err] = await Promise.resolve(getPageFunc(query));
           if (err) throw err;
           // The value we return becomes the `fulfilled` action payload
           return data;
         },
         {
-          pending: state => {
+          pending: (state, action) => {
             state.status = 'loading';
+            state.error = null;
+            state.activeRequestId = action.meta.requestId;
           },
           fulfilled: (state, action) => {
+            if (state.activeRequestId !== action.meta.requestId) return;
             state.status = 'idle';
-            state.currentPage = action.meta.arg?.page;
+            state.activeRequestId = null;
+            state.currentPage = Math.min(
+              action.meta.arg?.page,
+              Math.max(0, Math.ceil((action.payload.totalCount || 0) / action.meta.arg.rowsPerPage) - 1),
+            );
             state.rowsPerPage = action.meta.arg?.rowsPerPage;
             // @ts-expect-error
             state.data = action.payload.data;
             state.count = action.payload.totalCount || 0;
           },
-          rejected: (state, {error}) => {
+          rejected: (state, action) => {
+            if (state.activeRequestId !== action.meta.requestId) return;
             state.status = 'failed';
-            // @ts-expect-error
-            state.error = error;
+            state.activeRequestId = null;
+            state.error = action.error as Error;
           },
         },
       ),
@@ -163,26 +166,21 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
           const state = api.getState() as RootState;
           const currentSliceState = state[name] as EntitySliceState<T>;
           const mergedFilters: EntityFilters = {...currentSliceState.filter, ...filters};
-          const query = {
-            from: 0,
-            to: currentSliceState.rowsPerPage,
-          } as Q;
-          if (mergedFilters.keyword && mergedFilters.keyword.length > 0) {
-            query.search = mergedFilters.keyword;
-          }
-          if (filterMapper) {
-            Object.assign(query, filterMapper(mergedFilters));
-          }
+          const query = createQuery(mergedFilters, 0, currentSliceState.rowsPerPage);
           const [data, err] = await Promise.resolve(getPageFunc(query));
           if (err) throw err;
           return {data: data, filters: filters};
         },
         {
-          pending: state => {
+          pending: (state, action) => {
             state.status = 'loading';
+            state.error = null;
+            state.activeRequestId = action.meta.requestId;
           },
           fulfilled: (state, action) => {
+            if (state.activeRequestId !== action.meta.requestId) return;
             state.status = 'idle';
+            state.activeRequestId = null;
             state.currentPage = 0; // Reset to first page, because we have a new set of data
             // Merge current filters with new applied filters
             state.filter = {...state.filter, ...action.payload.filters};
@@ -191,22 +189,46 @@ export function createEntitySlice<T, Q extends IBaseGetAllQuery>(
             state.data = data.data;
             state.count = data.totalCount || 0;
           },
-          rejected: state => {
+          rejected: (state, action) => {
+            if (state.activeRequestId !== action.meta.requestId) return;
             state.status = 'failed';
-            // @ts-expect-error
-            state.error = error;
+            state.activeRequestId = null;
+            state.error = action.error as Error;
           },
         },
       ),
       setFilters: create.reducer((state, action: PayloadAction<Partial<EntityFilters>>) => {
         state.filter = {keyword: null, ...action.payload};
       }),
+      setQueryState: create.reducer(
+        (state, action: PayloadAction<{filters: Partial<EntityFilters>; page: number; pageSize: number}>) => {
+          const nextFilter = {keyword: null, ...action.payload.filters};
+          const hasQueryChanged =
+            JSON.stringify(state.filter) !== JSON.stringify(nextFilter) ||
+            state.currentPage !== action.payload.page ||
+            state.rowsPerPage !== action.payload.pageSize;
+          state.filter = nextFilter;
+          state.currentPage = action.payload.page;
+          state.rowsPerPage = action.payload.pageSize;
+          if (hasQueryChanged) {
+            state.data = null;
+            state.count = 0;
+            state.status = 'loading';
+            state.error = null;
+            // A null ID rejects every pending request from the previous URL query, even before a new fetch starts.
+            state.activeRequestId = null;
+          } else if (state.data === null && state.status === 'idle') {
+            state.status = 'loading';
+          }
+        },
+      ),
       setPage: create.reducer((state, action: PayloadAction<number>) => {
         state.currentPage = action.payload;
       }),
       setRowsPerPage: create.reducer((state, action: PayloadAction<number>) => {
         state.rowsPerPage = action.payload;
       }),
+      reset: create.reducer(() => createInitialState<T>()),
     }),
     selectors: {
       getState: state => {

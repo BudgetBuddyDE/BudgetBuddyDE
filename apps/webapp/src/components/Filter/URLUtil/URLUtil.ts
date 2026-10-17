@@ -1,5 +1,109 @@
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
+import {tryParseLocalDateOnly} from '@/utils/dateOnly';
 import {Formatter} from '@/utils/Formatter';
+
+export type EntityUrlState = {filters: Partial<EntityFilters>; page: number; pageSize: number};
+
+const PAGE_PARAM = 'page';
+const PAGE_SIZE_PARAM = 'pageSize';
+const ENTITY_PAGE_SIZES = [15, 25, 50, 100];
+
+function parsePageState(
+  params: Record<string, string | string[] | undefined>,
+  defaultPageSize = 15,
+): Pick<EntityUrlState, 'page' | 'pageSize'> {
+  const pageValue = params[PAGE_PARAM];
+  const pageSizeValue = params[PAGE_SIZE_PARAM];
+  const page = typeof pageValue === 'string' ? Number(pageValue) : NaN;
+  const pageSize = typeof pageSizeValue === 'string' ? Number(pageSizeValue) : NaN;
+  return {
+    page: Number.isSafeInteger(page) && page > 0 ? page - 1 : 0,
+    pageSize: ENTITY_PAGE_SIZES.includes(pageSize) ? pageSize : defaultPageSize,
+  };
+}
+
+function toSearchRecord(params: URLSearchParams): Record<string, string | string[] | undefined> {
+  const record: Record<string, string | string[] | undefined> = {};
+  for (const key of Array.from(new Set(params.keys()))) {
+    const values = params.getAll(key);
+    record[key] = values.length > 1 ? values : values[0];
+  }
+  return record;
+}
+
+function serializePageState(state: EntityUrlState, params: URLSearchParams, defaultPageSize = 15) {
+  params.delete(PAGE_PARAM);
+  params.delete(PAGE_SIZE_PARAM);
+  if (state.page > 0) params.set(PAGE_PARAM, String(state.page + 1));
+  if (state.pageSize !== defaultPageSize) params.set(PAGE_SIZE_PARAM, String(state.pageSize));
+}
+
+export function parseTransactionQuery(params: URLSearchParams): EntityUrlState {
+  return {
+    filters: parseTransactionFiltersFromParams(toSearchRecord(params)),
+    ...parsePageState(toSearchRecord(params)),
+  };
+}
+
+export function parseRecurringPaymentQuery(params: URLSearchParams): EntityUrlState {
+  return {
+    filters: parseRecurringPaymentFiltersFromParams(toSearchRecord(params)),
+    ...parsePageState(toSearchRecord(params)),
+  };
+}
+
+export function parseKeywordQuery(params: URLSearchParams): EntityUrlState {
+  return {filters: parseKeywordFilterFromParams(toSearchRecord(params)), ...parsePageState(toSearchRecord(params))};
+}
+
+export function serializeTransactionQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
+  ['q', 'dateFrom', 'dateTo', 'cat', 'excl_cat', 'pm', 'excl_pm'].forEach(key => params.delete(key));
+  const filters = serializeTransactionFilters(state.filters as EntityFilters);
+  filters.forEach((value, key) => params.set(key, value));
+  serializePageState(state, params);
+  return params;
+}
+
+export function serializeRecurringPaymentQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
+  ['q', 'cat', 'excl_cat', 'pm', 'excl_pm', 'paused'].forEach(key => params.delete(key));
+  const filters = serializeRecurringPaymentFilters(state.filters as EntityFilters);
+  filters.forEach((value, key) => params.set(key, value));
+  serializePageState(state, params);
+  return params;
+}
+
+export function serializeKeywordQuery(state: EntityUrlState, params = new URLSearchParams()): URLSearchParams {
+  params.delete('q');
+  const filters = serializeKeywordFilter(state.filters as EntityFilters);
+  filters.forEach((value, key) => params.set(key, value));
+  serializePageState(state, params);
+  return params;
+}
+
+export function parsePaginationQuery(params: URLSearchParams, defaultPageSize = 15): EntityUrlState {
+  const record = toSearchRecord(params);
+  return {...parsePageState(record, defaultPageSize), filters: {}};
+}
+
+export function serializePaginationQuery(
+  state: EntityUrlState,
+  params = new URLSearchParams(),
+  defaultPageSize = 15,
+): URLSearchParams {
+  serializePageState(state, params, defaultPageSize);
+  return params;
+}
+
+export function updateManagedSearchParams(
+  current: URLSearchParams,
+  managedKeys: readonly string[],
+  next: URLSearchParams,
+): URLSearchParams {
+  const updated = new URLSearchParams(current);
+  managedKeys.forEach(key => updated.delete(key));
+  next.forEach((value, key) => updated.append(key, value));
+  return updated;
+}
 
 /**
  * URL parameter key names
@@ -28,7 +132,14 @@ const ID_FILTER_PARAMS = [
  */
 function parseIds(value: string | null): string[] {
   if (!value) return [];
-  return value.split(',').filter(Boolean);
+  return Array.from(
+    new Set(
+      value
+        .split(',')
+        .map(id => id.trim())
+        .filter(Boolean),
+    ),
+  );
 }
 
 function paramToString(value: string | string[] | undefined): string {
@@ -66,15 +177,16 @@ export function parseTransactionFiltersFromParams(
   if (typeof q === 'string' && q) filters.keyword = q;
 
   const dateFrom = params[PARAM.dateFrom];
-  if (typeof dateFrom === 'string' && dateFrom) {
-    const d = new Date(dateFrom);
-    if (!Number.isNaN(d.getTime())) filters.dateFrom = d;
-  }
+  const parsedDateFrom = typeof dateFrom === 'string' ? tryParseLocalDateOnly(dateFrom) : null;
+  if (parsedDateFrom) filters.dateFrom = parsedDateFrom;
 
   const dateTo = params[PARAM.dateTo];
-  if (typeof dateTo === 'string' && dateTo) {
-    const d = new Date(dateTo);
-    if (!Number.isNaN(d.getTime())) filters.dateTo = d;
+  const parsedDateTo = typeof dateTo === 'string' ? tryParseLocalDateOnly(dateTo) : null;
+  if (parsedDateTo) filters.dateTo = parsedDateTo;
+
+  if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
+    delete filters.dateFrom;
+    delete filters.dateTo;
   }
 
   return filters;

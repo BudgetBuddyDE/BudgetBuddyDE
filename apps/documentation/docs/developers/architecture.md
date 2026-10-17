@@ -65,7 +65,7 @@ Validation failures are answered centrally with status 400, message `Validation 
 
 There are two layers:
 
-1. **Client-side GET cache** in `BackendService`, invalidated after mutations.
+1. **Browser GET cache** in `BackendService`, limited to successful JSON responses for the confirmed user session. It uses a 30-second TTL, deduplicates concurrent requests, and advances a generation when cleared so an older in-flight response cannot repopulate the cache. Requests without a session scope, with explicit authorization headers, or with `cache: 'no-store'` bypass it.
 2. **Backend cache** in Redis, per route, with these TTLs:
 
 | Route                   | TTL   |
@@ -77,7 +77,9 @@ There are two layers:
 | `/api/budget`           | 300 s |
 | `/api/insights`         | 120 s |
 
-Only listed routes are cached. REST and MCP mutations invalidate affected owner-scoped keys through shared invalidation logic after successful writes. When Redis is not configured, the backend cache is disabled.
+Only listed routes are cached. Redis keys include the authenticated owner, route, full query, and generation. REST and MCP mutations invalidate affected owner-scoped keys through shared invalidation logic. Auth endpoints and archive import/export paths remain outside this cache. Domain API responses carry `Cache-Control: private, no-store` for browsers and intermediary proxies; the backend's owner-scoped Redis cache remains an explicit internal cache. When Redis is not configured, the backend cache is disabled.
+
+Next.js must not cache private financial API responses in a shared data or route cache. Server components that fetch private API data must explicitly use `cache: 'no-store'` and forward the current request's authentication headers. Cache only public, user-independent data with Next.js.
 
 ## Rate limiting
 
@@ -100,7 +102,21 @@ Production HTTP limits use Redis. Auth HTTP limits use `AUTH_REDIS_URL` when set
 
 ## Frontend state
 
-Paged entity lists live in Redux Toolkit slices (transactions, categories, payment methods, recurring payments, budgets). Component-only state such as open dialogs stays local. Server route pages parse URL and search filters, prefetch data, and pass it to client components.
+Paged entity lists live in Redux Toolkit slices (transactions, categories, payment methods, recurring payments, budgets). Insights keeps its report results locally; dialogs and in-progress form input also stay local. Better Auth keeps its own `{data, error}` contract, while domain API calls preserve `[data, null] | [null, error]`.
+
+The URL is the source of truth for committed filters, date ranges, and pagination. Pages use one-based `page` values; Redux and MUI use zero-based page indexes. Entity pages default to 15 rows, and Insights defaults to 10. Invalid values fall back to defaults. User changes push history entries; initial normalization and intent cleanup replace the current entry. Query updates retain unrelated parameters and fragments. Back/forward navigation restores controls and refetches the matching data.
+
+For each request, show a loading state until its result arrives. A result for an older request must not replace a newer query. Empty states are shown only after a successful empty response. Query failures offer a retry for the current URL; mutation failures continue using the existing Snackbar retry flow, and mutations are not retried automatically. Successful mutations invalidate the relevant cache entries and refresh the active view plus dependent summaries.
+
+### Migration checklist
+
+1. Keep the cache and request-generation guarantees above in place before migrating a page.
+2. Add one typed parser/serializer pair for the page's supported filters and pagination; preserve existing parameter names and unrelated query parameters.
+3. Parse the same URL state on the server page and client view. Keep paged entity results in Redux and transient UI state local.
+4. Make URL changes the sole trigger for fetching committed query state, and verify direct links, reload, and back/forward navigation.
+5. Verify loading, empty, error, retry, mutation invalidation, and owner-scoped caching for the page and its dependent data.
+
+The reference route is Transactions. Migrate Categories and Payment Methods, Recurring Payments, the Budget list, then Insights. Dashboard summaries, standalone attachments, and recurring-payment occurrences remain follow-up areas; inventory their queries, URL parameters, and cache behavior before migrating them.
 
 ## Next steps
 

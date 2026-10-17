@@ -1,8 +1,10 @@
 import type {TExpandedTransaction} from '@budgetbuddyde/api/types';
-import {Stack} from '@mui/material';
+import {Button, Stack} from '@mui/material';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {Card} from '@/components/Card';
+import {ErrorAlert} from '@/components/ErrorAlert';
+import {CircularProgress} from '@/components/Loading';
 import {Pagination} from '@/components/Table/Pagination';
 import {Formatter} from '@/utils/Formatter';
 import {ReportTable} from '../ReportTable/ReportTable';
@@ -12,10 +14,13 @@ export type InsightsReportTransactionsProps = {
   transactionCount: number;
   transactionPage: number;
   transactionRowsPerPage: number;
+  transactionsError?: Error | null;
+  transactionsLoading?: boolean;
   income: number;
   expenses: number;
-  onTransactionPageChange: React.Dispatch<React.SetStateAction<number>>;
+  onTransactionPageChange: (page: number) => void;
   onTransactionRowsPerPageChange: (rowsPerPage: number) => void;
+  onRetry?: () => void;
 };
 
 export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProps> = ({
@@ -23,10 +28,13 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
   transactionCount,
   transactionPage,
   transactionRowsPerPage,
+  transactionsError = null,
+  transactionsLoading = false,
   income,
   expenses,
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
+  onRetry,
 }) => {
   return (
     <Card>
@@ -39,6 +47,13 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
         </Stack>
       </Card.Header>
       <Card.Body>
+        {transactionsError && (
+          <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
+            <ErrorAlert error={transactionsError} sx={{flexGrow: 1}} />
+            {onRetry && <Button onClick={onRetry}>Retry transactions</Button>}
+          </Stack>
+        )}
+        {transactionsLoading && transactions.length === 0 && <CircularProgress />}
         <ReportTable
           headers={['Date', 'Receiver', 'Category', 'Payment method', 'Amount']}
           rightAlignedColumns={[4]}

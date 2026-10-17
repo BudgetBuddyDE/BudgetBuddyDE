@@ -31,6 +31,15 @@ const recurringPaymentStatusQuickFilterLabels: Record<RecurringPaymentStatusQuic
   inactive: 'Inactive',
 };
 
+function preserveUnavailableIds<T extends {id: string}>(
+  selected: T[],
+  options: T[],
+  currentIds: string[] = [],
+): string[] {
+  const availableIds = new Set(options.map(option => option.id));
+  return Array.from(new Set([...selected.map(option => option.id), ...currentIds.filter(id => !availableIds.has(id))]));
+}
+
 export type FilterWrapperProps = Pick<
   FilterDialogProps,
   'withCategories' | 'withRecurringPaymentStatus' | 'withPaymentMethods' | 'withDateRange'
@@ -74,11 +83,19 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     if (!withCategories) return;
 
     let ignoreResult = false;
-    void apiClient.backend.category.getValueHelp().then(([categories, error]) => {
-      if (ignoreResult) return;
-      if (error) logger.error('Failed to fetch category options', error);
-      else setCategoryOptions(categories ?? []);
-    });
+    void apiClient.backend.category
+      .getValueHelp()
+      .then(([categories, error]) => {
+        if (ignoreResult) return;
+        if (error) {
+          logger.error('Failed to fetch category options', error);
+        } else {
+          setCategoryOptions(categories ?? []);
+        }
+      })
+      .catch(error => {
+        if (!ignoreResult) logger.error('Failed to fetch category options', error);
+      });
 
     return () => {
       ignoreResult = true;
@@ -89,11 +106,19 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
     if (!withPaymentMethods) return;
 
     let ignoreResult = false;
-    void apiClient.backend.paymentMethod.getValueHelp().then(([paymentMethods, error]) => {
-      if (ignoreResult) return;
-      if (error) logger.error('Failed to fetch payment method options', error);
-      else setPaymentMethodOptions(paymentMethods ?? []);
-    });
+    void apiClient.backend.paymentMethod
+      .getValueHelp()
+      .then(([paymentMethods, error]) => {
+        if (ignoreResult) return;
+        if (error) {
+          logger.error('Failed to fetch payment method options', error);
+        } else {
+          setPaymentMethodOptions(paymentMethods ?? []);
+        }
+      })
+      .catch(error => {
+        if (!ignoreResult) logger.error('Failed to fetch payment method options', error);
+      });
 
     return () => {
       ignoreResult = true;
@@ -128,10 +153,14 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
       result.paused = state.paused;
     }
     if (withCategories) {
-      result.categories = state.categories.map(c => c.id);
+      result.categories = preserveUnavailableIds(state.categories, categoryOptions, currentFilters.categories);
     }
     if (withPaymentMethods) {
-      result.paymentMethods = state.paymentMethods.map(pm => pm.id);
+      result.paymentMethods = preserveUnavailableIds(
+        state.paymentMethods,
+        paymentMethodOptions,
+        currentFilters.paymentMethods,
+      );
     }
     onApply(result);
     setOpen(false);
@@ -222,7 +251,11 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           searchAsYouType={false}
           retrieveOptionsFunc={() => categoryOptions}
           value={categoryOptions.filter(category => currentFilters.categories?.includes(category.id))}
-          onChange={(_, categories) => applyQuickFilter({categories: categories.map(category => category.id)})}
+          onChange={(_, categories) => {
+            applyQuickFilter({
+              categories: preserveUnavailableIds(categories, categoryOptions, currentFilters.categories),
+            });
+          }}
           getOptionLabel={category => category.name}
           isOptionEqualToValue={(category, value) => category.id === value.id}
           noOptionsText="No categories found"
@@ -242,9 +275,15 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           value={paymentMethodOptions.filter(paymentMethod =>
             currentFilters.paymentMethods?.includes(paymentMethod.id),
           )}
-          onChange={(_, paymentMethods) =>
-            applyQuickFilter({paymentMethods: paymentMethods.map(paymentMethod => paymentMethod.id)})
-          }
+          onChange={(_, paymentMethods) => {
+            applyQuickFilter({
+              paymentMethods: preserveUnavailableIds(
+                paymentMethods,
+                paymentMethodOptions,
+                currentFilters.paymentMethods,
+              ),
+            });
+          }}
           getOptionLabel={paymentMethod => paymentMethod.name}
           isOptionEqualToValue={(paymentMethod, value) => paymentMethod.id === value.id}
           noOptionsText="No payment methods found"

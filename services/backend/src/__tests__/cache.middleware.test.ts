@@ -155,6 +155,19 @@ suite('Cache', () => {
       await cacheResponse(req, res, next);
       expect(next).toHaveBeenCalledOnce();
       expect(mockRedisGet).not.toHaveBeenCalled();
+      expect((res as unknown as {_headers: Record<string, string>})._headers['Cache-Control']).toBe(
+        'private, no-store',
+      );
+    });
+
+    it('marks private domain responses as private and non-cacheable by browsers', async () => {
+      mockRedisGet.mockResolvedValueOnce(null);
+      const req = makeRequest();
+      const res = makeResponse();
+      await cacheResponse(req, res, next);
+      expect((res as unknown as {_headers: Record<string, string>})._headers['Cache-Control']).toBe(
+        'private, no-store',
+      );
     });
 
     it('calls next() when caching is disabled (no REDIS_URL)', async () => {

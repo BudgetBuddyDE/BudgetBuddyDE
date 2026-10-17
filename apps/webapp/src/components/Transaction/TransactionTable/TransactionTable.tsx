@@ -17,7 +17,6 @@ import {
   PostAddRounded as CreateMultipleIcon,
 } from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, IconButton, InputAdornment, Typography} from '@mui/material';
-import {usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -34,6 +33,7 @@ import {
 } from '@/components/Drawer';
 import {AddFab, FabContainer} from '@/components/FAB';
 import {FilterWrapper, serializeTransactionFilters} from '@/components/Filter';
+import {parseTransactionQuery, serializeTransactionQuery} from '@/components/Filter/URLUtil';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {BatchEntityDialog, type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
@@ -42,6 +42,7 @@ import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {useEntityUrlState} from '@/lib/useEntityUrlState';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 import {
@@ -68,9 +69,9 @@ export type TransactionTableProps = {
   initialFilters?: Partial<EntityFilters>;
 };
 
-export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilters}) => {
+export const TransactionTable: React.FC<TransactionTableProps> = () => {
   const {showSnackbar} = useSnackbarContext();
-  const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = transactionSlice.actions;
+  const {refresh, getPage, setQueryState} = transactionSlice.actions;
   const dispatch = useAppDispatch();
   const {
     status,
@@ -81,8 +82,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     data: transactions,
     filter: filters,
   } = useAppSelector(transactionSlice.selectors.getState);
-  const router = useRouter();
-  const pathname = usePathname();
+  const {updateFilters, updatePage, updatePageSize} = useEntityUrlState(
+    parseTransactionQuery,
+    serializeTransactionQuery,
+    ['q', 'dateFrom', 'dateTo', 'cat', 'excl_cat', 'pm', 'excl_pm', 'page', 'pageSize'],
+    setQueryState,
+  );
 
   const [drawerState, dispatchDrawerAction] = React.useReducer(
     entityDrawerReducer,
@@ -356,29 +361,18 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     dispatch(refresh());
   };
 
-  const updateUrl = React.useCallback(
-    (newFilters: EntityFilters) => {
-      const params = serializeTransactionFilters(newFilters);
-      const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
-    },
-    [router, pathname],
-  );
-
   const handleTextSearch = React.useCallback(
     (text: string) => {
-      updateUrl({...filters, keyword: text || null});
-      dispatch(applyFilters({keyword: text || null}));
+      updateFilters({keyword: text || null});
     },
-    [applyFilters, dispatch, filters, updateUrl],
+    [updateFilters],
   );
 
   const handleFilterApply = React.useCallback(
     (filterValues: Partial<EntityFilters>) => {
-      updateUrl({...filters, ...filterValues});
-      dispatch(applyFilters(filterValues));
+      updateFilters(filterValues);
     },
-    [applyFilters, dispatch, filters, updateUrl],
+    [updateFilters],
   );
 
   const dispatchNewPage = React.useCallback(
@@ -388,17 +382,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         return;
       }
 
-      dispatch(setPage(newPage));
+      updatePage(newPage);
     },
-    [dispatch, setPage],
+    [updatePage],
   );
 
   const dispatchNewRowsPerPage = React.useCallback(
     (newRowsPerPage: number) => {
-      // TODO: Implement validation, in order to ensure that only an valid option is passed
-      dispatch(setRowsPerPage(newRowsPerPage));
+      updatePageSize(newRowsPerPage);
     },
-    [dispatch, setRowsPerPage],
+    [updatePageSize],
   );
 
   const EntityFormFields: EntityDrawerField<EntityFormFields>[] =
@@ -670,12 +663,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
   );
   const hasActiveFilters = serializeTransactionFilters(filters).toString().length > 0;
 
-  // Initialize filters from URL params on mount — always dispatch to clear any stale Redux state
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
-  React.useLayoutEffect(() => {
-    dispatch(setFilters(initialFilters ?? {}));
-  }, []);
-
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
     dispatch(
@@ -684,7 +671,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         rowsPerPage: rowsPerPage,
       }),
     );
-  }, [dispatch, getPage, currentPage, rowsPerPage]);
+  }, [dispatch, getPage, currentPage, rowsPerPage, JSON.stringify(filters)]);
 
   return (
     <React.Fragment>
@@ -698,7 +685,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           showCount: true,
           showSearch: true,
           searchPlaceholder: 'Search transactions…',
-          searchDefaultValue: initialFilters?.keyword ?? undefined,
+          searchDefaultValue: filters.keyword ?? undefined,
           onSearch: handleTextSearch,
           actions: [
             {
@@ -754,6 +741,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           onPageChange: dispatchNewPage,
           onRowsPerPageChange: dispatchNewRowsPerPage,
         }}
+        onRetry={() => dispatch(refresh())}
       />
 
       <BatchEntityDialog<TransactionDraftRow, TCreateOrUpdateTransactionPayload>

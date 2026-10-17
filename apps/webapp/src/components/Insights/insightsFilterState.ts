@@ -11,9 +11,15 @@ export function parseInsightsFilterIds(value: string | null): string[] {
   );
 }
 
-export function selectInsightsFilterOptions<T extends InsightsFilterOption>(options: T[], ids: string[]): T[] {
+export function selectInsightsFilterOptions<T extends InsightsFilterOption>(
+  options: T[],
+  ids: string[],
+  resolveMissing?: (id: string) => T,
+): T[] {
   const optionsById = new Map(options.map(option => [option.id, option]));
-  return ids.map(id => optionsById.get(id)).filter((option): option is T => option !== undefined);
+  return ids
+    .map(id => optionsById.get(id) ?? resolveMissing?.(id))
+    .filter((option): option is T => option !== undefined);
 }
 
 export function haveSameInsightsFilterIds(
@@ -30,6 +36,7 @@ export function serializeInsightsSearchParams({
   comparison,
   categories,
   paymentMethods,
+  params = new URLSearchParams(),
 }: {
   from: Date;
   to: Date;
@@ -37,8 +44,9 @@ export function serializeInsightsSearchParams({
   comparison: string;
   categories: readonly InsightsFilterOption[];
   paymentMethods: readonly InsightsFilterOption[];
+  params?: URLSearchParams;
 }): string {
-  const params = new URLSearchParams();
+  ['from', 'to', 'granularity', 'comparison', 'cat', 'pm'].forEach(key => params.delete(key));
   params.set('from', format(from, 'yyyy-MM-dd'));
   params.set('to', format(to, 'yyyy-MM-dd'));
   params.set('granularity', granularity);

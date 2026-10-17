@@ -61,6 +61,7 @@ export type EntityTableProps<T, K extends keyof T = keyof T> = {
   withSelection?: boolean;
   onDeleteSelectedEntities?: (selectedIds: T[K][]) => void;
   selectionActions?: SelectionAction<T>[];
+  onRetry?: () => void;
 };
 
 export const EntityTable = <T, K extends keyof T = keyof T>({
@@ -81,6 +82,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
   withSelection = false,
   onDeleteSelectedEntities,
   selectionActions = [],
+  onRetry,
 }: EntityTableProps<T, K>) => {
   const {data, isLoading, error, totalCount} = slice;
   const hasError = !!(error && (typeof error === 'object' || (typeof error === 'string' && error.length > 0)));
@@ -240,7 +242,12 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
       <Box sx={{px: 0}}>
         {!isLoading && !hasError && data.length === 0 && <NoResults text={emptyMessage} sx={{m: 2}} {...emptyState} />}
 
-        {hasError && <ErrorAlert error={errorMessage} sx={{m: 2}} />}
+        {hasError && (
+          <Stack direction="row" spacing={1} sx={{alignItems: 'center', m: 2}}>
+            <ErrorAlert error={errorMessage} sx={{flexGrow: 1}} />
+            {onRetry && <Button onClick={onRetry}>Retry</Button>}
+          </Stack>
+        )}
 
         {isLoading && data.length === 0 && <CircularProgress />}
 

@@ -22,8 +22,8 @@ describe('insightsFilterState', () => {
     expect(parseInsightsFilterIds(' second, first, ')).toEqual(['second', 'first']);
     expect(
       serializeInsightsSearchParams({
-        from: new Date('2026-01-01T00:00:00.000Z'),
-        to: new Date('2026-01-31T00:00:00.000Z'),
+        from: new Date(2026, 0, 1),
+        to: new Date(2026, 0, 31),
         granularity: 'month',
         comparison: 'previous',
         categories: [{id: 'second'}, {id: 'first'}],

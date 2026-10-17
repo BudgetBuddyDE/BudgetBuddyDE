@@ -1,4 +1,4 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {buildReport, buildTransaction, categoryOption} from '../InsightsReport.fixtures';
 import {InsightsReportView} from './InsightsReportView';
@@ -13,6 +13,42 @@ const report = buildReport();
 const transactions = [buildTransaction(1)];
 
 describe('InsightsReportView', () => {
+  const transactionStateProps = {
+    report,
+    error: null,
+    loading: false,
+    categories: [],
+    transactions: [],
+    transactionCount: 0,
+    transactionPage: 0,
+    transactionRowsPerPage: 10,
+    onTransactionPageChange: vi.fn(),
+    onTransactionRowsPerPageChange: vi.fn(),
+  };
+
+  it('shows transaction loading independently of the loaded report', () => {
+    render(<InsightsReportView {...transactionStateProps} transactionsLoading />);
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByText('Category analysis')).toBeInTheDocument();
+  });
+
+  it('shows transaction errors and retries independently of the loaded report', () => {
+    const retry = vi.fn();
+    render(
+      <InsightsReportView
+        {...transactionStateProps}
+        transactionsError={new Error('Transactions unavailable')}
+        onRetryTransactions={retry}
+      />,
+    );
+
+    expect(screen.getByText('Transactions unavailable')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', {name: 'Retry transactions'}));
+    expect(retry).toHaveBeenCalledOnce();
+    expect(screen.getByText('Category analysis')).toBeInTheDocument();
+  });
+
   it('renders a skeleton while the report is loading for the first time', () => {
     const {container} = render(
       <InsightsReportView

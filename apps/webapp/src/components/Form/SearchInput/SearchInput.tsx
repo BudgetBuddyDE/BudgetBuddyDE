@@ -77,6 +77,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     [debounceWaitInMilliseconds, onSearch],
   );
 
+  React.useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
     debouncedSearch(e.target.value);
