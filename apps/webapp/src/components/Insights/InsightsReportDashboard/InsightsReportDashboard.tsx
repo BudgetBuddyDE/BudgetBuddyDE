@@ -75,7 +75,20 @@ export const InsightsReportDashboard: React.FC = () => {
   const [transactionRowsPerPage, setTransactionRowsPerPage] = React.useState(() =>
     parseTransactionPageSize(searchParams.get('pageSize')),
   );
-  const latestPaginationRef = React.useRef({page: transactionPage, pageSize: transactionRowsPerPage});
+  const latestUrlStateRef = React.useRef({
+    from,
+    to,
+    categories,
+    paymentMethods,
+    granularity,
+    comparison,
+    page: transactionPage,
+    pageSize: transactionRowsPerPage,
+  });
+  const pendingUrlQueriesRef = React.useRef(new Set<string>());
+  const latestPendingUrlQueryRef = React.useRef<string | null>(null);
+  const isIntermediatePendingUrl =
+    pendingUrlQueriesRef.current.has(searchParamsString) && latestPendingUrlQueryRef.current !== searchParamsString;
 
   const query = React.useMemo<IGetInsightsReportQuery>(
     () => ({
@@ -102,28 +115,30 @@ export const InsightsReportDashboard: React.FC = () => {
         pageSize: number;
       }>,
     ) => {
-      const params = new URLSearchParams(searchParamsString);
-      const nextPage = overrides.page ?? latestPaginationRef.current.page;
-      const nextPageSize = overrides.pageSize ?? latestPaginationRef.current.pageSize;
-      latestPaginationRef.current = {page: nextPage, pageSize: nextPageSize};
+      const current = latestUrlStateRef.current;
+      const next = {...current, ...overrides};
+      latestUrlStateRef.current = next;
+      const params = new URLSearchParams(latestPendingUrlQueryRef.current ?? searchParamsString);
       const queryParams = serializeInsightsSearchParams({
-        from: overrides.from ?? from,
-        to: overrides.to ?? to,
-        categories: overrides.categories ?? categories,
-        paymentMethods: overrides.paymentMethods ?? paymentMethods,
-        granularity: overrides.granularity ?? granularity,
-        comparison: overrides.comparison ?? comparison,
+        from: next.from,
+        to: next.to,
+        categories: next.categories,
+        paymentMethods: next.paymentMethods,
+        granularity: next.granularity,
+        comparison: next.comparison,
         params,
       });
       const nextParams = new URLSearchParams(queryParams);
-      if (nextPage > 0) nextParams.set('page', String(nextPage + 1));
+      if (next.page > 0) nextParams.set('page', String(next.page + 1));
       else nextParams.delete('page');
-      if (nextPageSize !== 10) nextParams.set('pageSize', String(nextPageSize));
+      if (next.pageSize !== 10) nextParams.set('pageSize', String(next.pageSize));
       else nextParams.delete('pageSize');
       const queryString = nextParams.toString();
+      pendingUrlQueriesRef.current.add(queryString);
+      latestPendingUrlQueryRef.current = queryString;
       router.push(`${pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`, {scroll: false});
     },
-    [categories, comparison, from, granularity, paymentMethods, pathname, router, searchParamsString, to],
+    [pathname, router, searchParamsString],
   );
 
   React.useEffect(() => {
@@ -149,6 +164,10 @@ export const InsightsReportDashboard: React.FC = () => {
           setPaymentMethodOptions(paymentMethodResult.value[0] ?? []);
         setFilterOptionsError(categoryError ?? paymentMethodError ?? null);
       })
+      .catch(error => {
+        if (!ignored)
+          setFilterOptionsError(error instanceof Error ? error : new Error('Failed to process filter options'));
+      })
       .finally(() => {
         if (!ignored) setFilterOptionsReady(true);
       });
@@ -158,44 +177,51 @@ export const InsightsReportDashboard: React.FC = () => {
   }, [filterOptionsRetry]);
 
   React.useEffect(() => {
-    if (!filterOptionsReady) return;
+    if (!filterOptionsReady || isIntermediatePendingUrl) return;
     const params = new URLSearchParams(searchParamsString);
     const categoryIds = parseInsightsFilterIds(params.get('cat'));
     const paymentMethodIds = parseInsightsFilterIds(params.get('pm'));
     // URL IDs remain valid query state even when their display options could not be loaded.
-    setCategories(current => {
-      const next = selectInsightsFilterOptions(
-        categoryOptions,
-        categoryIds,
-        id => current.find(option => option.id === id) ?? {id: id as TCategoryVH['id'], name: id, description: null},
-      );
-      return current.length === next.length && current.every((option, index) => option === next[index])
+    const nextCategories = selectInsightsFilterOptions(categoryOptions, categoryIds, id => ({
+      id: id as TCategoryVH['id'],
+      name: id,
+      description: null,
+    }));
+    const nextPaymentMethods = selectInsightsFilterOptions(paymentMethodOptions, paymentMethodIds, id => ({
+      id: id as TPaymentMethodVH['id'],
+      name: id,
+      description: null,
+      address: '',
+      provider: '',
+    }));
+    latestUrlStateRef.current = {
+      ...latestUrlStateRef.current,
+      categories: nextCategories,
+      paymentMethods: nextPaymentMethods,
+    };
+    setCategories(current =>
+      current.length === nextCategories.length && current.every((option, index) => option === nextCategories[index])
         ? current
-        : next;
-    });
-    setPaymentMethods(current => {
-      const next = selectInsightsFilterOptions(
-        paymentMethodOptions,
-        paymentMethodIds,
-        id =>
-          current.find(option => option.id === id) ?? {
-            id: id as TPaymentMethodVH['id'],
-            name: id,
-            description: null,
-            address: '',
-            provider: '',
-          },
-      );
-      return current.length === next.length && current.every((option, index) => option === next[index])
+        : nextCategories,
+    );
+    setPaymentMethods(current =>
+      current.length === nextPaymentMethods.length &&
+      current.every((option, index) => option === nextPaymentMethods[index])
         ? current
-        : next;
-    });
+        : nextPaymentMethods,
+    );
     setFiltersHydrated(true);
-  }, [categoryOptions, paymentMethodOptions, filterOptionsReady, searchParamsString]);
+  }, [categoryOptions, paymentMethodOptions, filterOptionsReady, isIntermediatePendingUrl, searchParamsString]);
 
   React.useEffect(() => {
     if (previousSearchParamsRef.current === searchParamsString) return;
     previousSearchParamsRef.current = searchParamsString;
+    if (pendingUrlQueriesRef.current.has(searchParamsString)) {
+      pendingUrlQueriesRef.current.delete(searchParamsString);
+      if (latestPendingUrlQueryRef.current !== searchParamsString) return;
+    }
+    pendingUrlQueriesRef.current.clear();
+    latestPendingUrlQueryRef.current = null;
     setSyncedSearchParamsString(searchParamsString);
     const params = new URLSearchParams(searchParamsString);
     const fromParam = params.get('from');
@@ -209,7 +235,15 @@ export const InsightsReportDashboard: React.FC = () => {
     setComparison(parseComparison(params.get('comparison')));
     const nextPage = parseTransactionPage(params.get('page'));
     const nextPageSize = parseTransactionPageSize(params.get('pageSize'));
-    latestPaginationRef.current = {page: nextPage, pageSize: nextPageSize};
+    latestUrlStateRef.current = {
+      ...latestUrlStateRef.current,
+      from: rangeIsValid ? nextFrom : defaultFrom(),
+      to: rangeIsValid ? nextTo : new Date(),
+      granularity: parseGranularity(params.get('granularity')),
+      comparison: parseComparison(params.get('comparison')),
+      page: nextPage,
+      pageSize: nextPageSize,
+    };
     setTransactionPage(nextPage);
     setTransactionRowsPerPage(nextPageSize);
   }, [searchParamsString]);
