@@ -247,6 +247,38 @@ describe('InsightsReportDashboard', () => {
     );
   });
 
+  it('hydrates category and payment method IDs before normalizing a history URL', async () => {
+    navigation.params = new URLSearchParams(
+      'from=2026-01-01&to=2026-01-31&granularity=month&comparison=none&cat=cat-1&pm=pm-1',
+    );
+    const {rerender} = render(<InsightsReportDashboard />);
+    await waitFor(() =>
+      expect(getReportMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({$categories: ['cat-1'], $paymentMethods: ['pm-1']}),
+      ),
+    );
+
+    getReportMock.mockClear();
+    transactionGetAllMock.mockClear();
+    navigation.params = new URLSearchParams(
+      'from=2026-02-01&to=2026-02-28&granularity=month&comparison=none&cat=cat-2&pm=pm-2',
+    );
+    rerender(<InsightsReportDashboard />);
+
+    await waitFor(() =>
+      expect(getReportMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({$categories: ['cat-2'], $paymentMethods: ['pm-2']}),
+      ),
+    );
+    await waitFor(() =>
+      expect(transactionGetAllMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({$categories: ['cat-2'], $paymentMethods: ['pm-2']}),
+      ),
+    );
+    expect(replaceMock).not.toHaveBeenCalledWith(expect.stringContaining('cat=cat-1'), expect.anything());
+    expect(replaceMock).not.toHaveBeenCalledWith(expect.stringContaining('pm=pm-1'), expect.anything());
+  });
+
   it('does not normalize a history URL with dates from the previous route while options are loading', async () => {
     let resolveCategories!: (value: [TCategoryVH[], null]) => void;
     let resolvePaymentMethods!: (value: [TPaymentMethodVH[], null]) => void;

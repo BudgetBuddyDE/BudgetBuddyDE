@@ -22,7 +22,6 @@ import {InsightsReportView} from '../InsightsReportView/InsightsReportView';
 type Granularity = NonNullable<IGetInsightsReportQuery['$granularity']>;
 type Comparison = NonNullable<IGetInsightsReportQuery['$comparison']>;
 
-const defaultFrom = () => Formatter.date.startOfMonth(Formatter.date.subMonths(new Date(), 11));
 const parseDateParam = (value: string | null, fallback: Date) => tryParseLocalDateOnly(value) ?? fallback;
 const parseGranularity = (value: string | null): Granularity =>
   ['auto', 'day', 'week', 'month'].includes(value ?? '') ? (value as Granularity) : 'auto';
@@ -42,14 +41,24 @@ export const InsightsReportDashboard: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParamsString = searchParams.toString();
+  const defaultDatesRef = React.useRef<{from: Date; to: Date} | null>(null);
+  if (defaultDatesRef.current === null) {
+    const today = new Date();
+    defaultDatesRef.current = {
+      from: Formatter.date.startOfMonth(Formatter.date.subMonths(today, 11)),
+      to: today,
+    };
+  }
+  const defaultDates = defaultDatesRef.current;
   const [syncedSearchParamsString, setSyncedSearchParamsString] = React.useState(searchParamsString);
+  const [hydratedSearchParamsString, setHydratedSearchParamsString] = React.useState<string | null>(null);
   const previousSearchParamsRef = React.useRef(searchParamsString);
   const normalizedInitialUrlRef = React.useRef(false);
-  const initialFrom = parseDateParam(searchParams.get('from'), defaultFrom());
-  const initialTo = parseDateParam(searchParams.get('to'), new Date());
+  const initialFrom = parseDateParam(searchParams.get('from'), defaultDates.from);
+  const initialTo = parseDateParam(searchParams.get('to'), defaultDates.to);
   const initialRangeIsValid = initialFrom <= initialTo;
-  const [from, setFrom] = React.useState(initialRangeIsValid ? initialFrom : defaultFrom());
-  const [to, setTo] = React.useState(initialRangeIsValid ? initialTo : new Date());
+  const [from, setFrom] = React.useState(initialRangeIsValid ? initialFrom : defaultDates.from);
+  const [to, setTo] = React.useState(initialRangeIsValid ? initialTo : defaultDates.to);
   const [categories, setCategories] = React.useState<TCategoryVH[]>([]);
   const [paymentMethods, setPaymentMethods] = React.useState<TPaymentMethodVH[]>([]);
   const [categoryOptions, setCategoryOptions] = React.useState<TCategoryVH[]>([]);
@@ -210,6 +219,7 @@ export const InsightsReportDashboard: React.FC = () => {
         ? current
         : nextPaymentMethods,
     );
+    setHydratedSearchParamsString(searchParamsString);
     setFiltersHydrated(true);
   }, [categoryOptions, paymentMethodOptions, filterOptionsReady, isIntermediatePendingUrl, searchParamsString]);
 
@@ -226,19 +236,19 @@ export const InsightsReportDashboard: React.FC = () => {
     const params = new URLSearchParams(searchParamsString);
     const fromParam = params.get('from');
     const toParam = params.get('to');
-    const nextFrom = parseDateParam(fromParam, defaultFrom());
-    const nextTo = parseDateParam(toParam, new Date());
+    const nextFrom = parseDateParam(fromParam, defaultDates.from);
+    const nextTo = parseDateParam(toParam, defaultDates.to);
     const rangeIsValid = nextFrom <= nextTo;
-    setFrom(rangeIsValid ? nextFrom : defaultFrom());
-    setTo(rangeIsValid ? nextTo : new Date());
+    setFrom(rangeIsValid ? nextFrom : defaultDates.from);
+    setTo(rangeIsValid ? nextTo : defaultDates.to);
     setGranularity(parseGranularity(params.get('granularity')));
     setComparison(parseComparison(params.get('comparison')));
     const nextPage = parseTransactionPage(params.get('page'));
     const nextPageSize = parseTransactionPageSize(params.get('pageSize'));
     latestUrlStateRef.current = {
       ...latestUrlStateRef.current,
-      from: rangeIsValid ? nextFrom : defaultFrom(),
-      to: rangeIsValid ? nextTo : new Date(),
+      from: rangeIsValid ? nextFrom : defaultDates.from,
+      to: rangeIsValid ? nextTo : defaultDates.to,
       granularity: parseGranularity(params.get('granularity')),
       comparison: parseComparison(params.get('comparison')),
       page: nextPage,
@@ -252,6 +262,7 @@ export const InsightsReportDashboard: React.FC = () => {
     if (
       !filterOptionsReady ||
       !filtersHydrated ||
+      hydratedSearchParamsString !== searchParamsString ||
       syncedSearchParamsString !== searchParamsString ||
       normalizedInitialUrlRef.current
     )
@@ -272,6 +283,7 @@ export const InsightsReportDashboard: React.FC = () => {
   }, [
     filterOptionsReady,
     filtersHydrated,
+    hydratedSearchParamsString,
     syncedSearchParamsString,
     searchParamsString,
     categoryOptions.length,
