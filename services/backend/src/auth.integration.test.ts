@@ -57,11 +57,15 @@ let auth: AuthWithApiKeys;
 let userId: string;
 let cookie: string;
 
-beforeEach(async () => {
+// Allow cold module loading under CI contention without relaxing registration or test timeouts.
+beforeEach(async function initializeAuth() {
   vi.resetModules();
+  auth = (await import('./auth')).auth as AuthWithApiKeys;
+}, 30_000);
+
+beforeEach(async function registerTestUser() {
   state.secondary.clear();
   for (const table of Object.keys(state.database)) state.database[table] = [];
-  auth = (await import('./auth')).auth as AuthWithApiKeys;
   const signup = await auth.api.signUpEmail({
     body: {email: 'auth-unit@example.invalid', name: 'Unit User', password: 'unit-password-long-enough'},
     returnHeaders: true,
