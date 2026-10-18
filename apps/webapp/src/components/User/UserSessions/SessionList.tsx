@@ -65,6 +65,10 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
             }
           >
             <ListItemText
+              slotProps={{
+                primary: {component: 'div'},
+                secondary: {component: 'div'},
+              }}
               primary={
                 <React.Fragment>
                   <Typography variant="body2" sx={{mt: 1}}>
