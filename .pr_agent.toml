@@ -1,3 +1,6 @@
+[config]
+no_temperature_models = ["openai/code-review"]
+
 [pr_reviewer]
 require_tests_review = true
 require_security_review = true
