@@ -37,13 +37,13 @@ The API client is available as `apiClient.backend.preference`; use its `get()` a
 
 The API stores preferences independently of what the webapp currently supports:
 
-| Setting   | Supported in the webapp | Effective default |
-| --------- | ----------------------- | ----------------- |
-| Language  | English (`en_US`)       | `en_US`           |
-| Currency  | `EUR`, `USD`            | `EUR`             |
-| Time zone | `Europe/Berlin`         | `Europe/Berlin`   |
+| Setting   | Supported in the webapp             | Effective default |
+| --------- | ----------------------------------- | ----------------- |
+| Language  | English (`en_US`), German (`de_DE`) | `en_US`           |
+| Currency  | `EUR`, `USD`                        | `EUR`             |
+| Time zone | `Europe/Berlin`                     | `Europe/Berlin`   |
 
-The stored language identifier is `en_US`; pass the BCP 47 locale `en-US` to `Intl` APIs. Do not pass the underscore-separated database value directly to `Intl.NumberFormat`.
+Stored language identifiers use underscores: map `en_US` to the BCP 47 locale `en-US` and `de_DE` to `de-DE` for `Intl` APIs. Do not pass the underscore-separated database value directly to `Intl.NumberFormat`. Selecting German immediately updates client translations and number formatting; server-rendered translations resolve the same authenticated preference.
 
 Unsupported stored values remain intact. The webapp derives effective preferences for rendering instead of rewriting the raw preference record. An unsupported language, currency, or time zone falls back to the corresponding default above. Saving another setting must not silently replace unsupported values with those effective defaults.
 
@@ -59,14 +59,14 @@ Do not replace this flow with a shared server-side cache: preferences are user-s
 
 ## Translation contract
 
-The webapp uses `next-intl`, initially with English only. Routes do not receive a locale prefix: enabling translations does not introduce paths such as `/en/dashboard`.
+The webapp uses `next-intl` with English and German catalogs. Routes do not receive a locale prefix: translations do not introduce paths such as `/en/dashboard`.
 
-Client components call `useAppTranslations()` to obtain a translation function, then pass the source English text and optional interpolation values to that function:
+Client components call `useAppTranslations()` to obtain a typed translation function, then pass a semantic dot-separated catalog key and optional interpolation values:
 
 ```tsx
 const t = useAppTranslations();
 
-return <span>{t('Hello, {name}', {name: user.name})}</span>;
+return <span>{t('account.profile.yourNameHasBeenUpdatedToValue1', {value1: user.name})}</span>;
 ```
 
 Server components use the corresponding asynchronous helper:
@@ -74,23 +74,22 @@ Server components use the corresponding asynchronous helper:
 ```tsx
 const t = await getAppTranslations();
 
-return <span>{t('Hello, {name}', {name: user.name})}</span>;
+return <span>{t('account.profile.yourNameHasBeenUpdatedToValue1', {value1: user.name})}</span>;
 ```
 
-The hook itself does not take the English message: the returned `t(sourceEnglish, values)` function does. Keep user-authored content, API identifiers, and persisted values out of translation catalogs.
+The returned `t(key, values?)` function accepts a typed semantic catalog path, not an English source sentence. Add or update messages in the matching domain fragment under `apps/webapp/src/i18n/messages/en-US/` and `apps/webapp/src/i18n/messages/de-DE/`. Keep the key and ICU placeholder names aligned across both locales. Keep user-authored content, API identifiers, and persisted values out of translation catalogs.
 
-Future languages require translated catalogs and registration in the supported-language configuration before users can select them. A stored language value alone does not enable a language. Keep catalog organization and source-key registration aligned with the translation helpers rather than introducing a parallel lookup mechanism.
+Additional languages require translated catalogs and registration in the supported-language configuration before users can select them. A stored language value alone does not enable a language. Keep catalog organization and source-key registration aligned with the translation helpers rather than introducing a parallel lookup mechanism.
 
-Only English is currently enabled, including server request configuration. Before enabling another language, resolve the authenticated locale in the server request configuration, supply its matching catalog on both sides of the server/client boundary, and update the HTML language and MUI locale mappings.
+Server request configuration resolves the authenticated language and supplies its matching catalog. Server and client translations, the HTML language, and MUI locale mappings follow the effective language, with English as the default.
 
-After adding or changing literal translation messages, regenerate and verify the English catalog:
+After adding or changing a translation, edit the matching English and German domain fragments directly, then run the check-only validator:
 
 ```bash
-npm run i18n:generate --workspace @budgetbuddyde/webapp
 npm run i18n:check --workspace @budgetbuddyde/webapp
 ```
 
-The normal webapp `check` also verifies the catalog. Prefer literal ICU messages or finite literal unions; interpolated values belong in the second argument, not in dynamically constructed message keys.
+The validator does not generate or rewrite catalog content. It checks both locale fragment trees for matching key coverage, nonempty messages, ICU syntax, and interpolation placeholders, and checks typed translator calls in production sources. The normal webapp `check` also verifies the catalogs. Prefer literal ICU messages or finite literal unions; interpolated values belong in the second argument, not in dynamically constructed message keys.
 
 ## Currency formatting
 
@@ -107,7 +106,8 @@ Server components and pure utilities must use the pure formatter with explicit e
 ```ts
 import {createCurrencyFormatter} from '@/utils/Formatter/CurrencyFormatter';
 
-const formatter = createCurrencyFormatter('en-US', effectivePreferences.currency);
+// locale is the BCP 47 locale mapped from the effective language.
+const formatter = createCurrencyFormatter(locale, effectivePreferences.currency);
 const label = formatter.formatBalance(balance);
 ```
 

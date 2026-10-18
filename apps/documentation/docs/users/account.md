@@ -17,11 +17,13 @@ Use **Edit** to unlock the fields, then **Save changes** or **Discard**.
 
 ## Language, currency, and time zone
 
-Application preferences support English (United States), EUR or USD for currency display, and the Europe/Berlin time zone. The defaults are English, EUR, and Europe/Berlin.
+Application preferences support English (United States) and German (Germany), EUR or USD for currency display, and the Europe/Berlin time zone. The defaults are English, EUR, and Europe/Berlin.
+
+Selecting German immediately switches the interface translations and number formatting to German (`de-DE`). Server-rendered pages also use your selected language. Changing language does not change your selected currency or convert any amounts.
 
 **Changing currency does not convert your money.** It changes how amounts are displayed, while transaction amounts and budget limits remain unchanged. There are no exchange-rate calculations or separate balances per currency.
 
-If an account contains a preference that the webapp does not yet support, the app displays the supported default without overwriting the stored preference. Additional languages and time zones are not currently selectable.
+If an account contains a preference that the webapp does not yet support, the app displays the supported default without overwriting the stored preference. Languages other than English and German, and time zones other than Europe/Berlin, are not currently selectable.
 
 ## Linked accounts
 
