@@ -5,6 +5,19 @@ import {DateFormatter} from './DateFormatter';
 import {DurationFormatter} from './DurationFormatter';
 
 describe('CurrencyFormatter', () => {
+  it.each(['en-US', 'de-DE'])('exposes the Intl currency symbol for %s', locale => {
+    for (const currency of ['EUR', 'USD']) {
+      const formatter = createCurrencyFormatter(locale, currency);
+      const expectedSymbol = new Intl.NumberFormat(locale, {style: 'currency', currency})
+        .formatToParts(0)
+        .find(part => part.type === 'currency')?.value;
+
+      expect(expectedSymbol).toBeDefined();
+      expect(formatter.currencySymbol).toBe(expectedSymbol);
+      expect(formatter.currencySymbol).not.toBe('&euro;');
+    }
+  });
+
   it.each(['en-US', 'de-DE'])('uses explicit %s locale for every currency', locale => {
     for (const currency of ['EUR', 'USD', 'GBP']) {
       expect(CurrencyFormatter.formatBalance(1234.5, currency, locale)).toBe(
@@ -37,6 +50,16 @@ describe('CurrencyFormatter', () => {
     expect(english.formatBalance(1234.5)).toBe(CurrencyFormatter.formatBalance(1234.5, 'GBP', 'en-US'));
     expect(german.formatBalance(1234.5)).toBe(CurrencyFormatter.formatBalance(1234.5, 'EUR', 'de-DE'));
     expect(english.shortenBalance(5000)).toBe(CurrencyFormatter.shortenBalance(5000, 'GBP', 'en-US'));
+    expect(english.currencySymbol).toBe(
+      new Intl.NumberFormat('en-US', {style: 'currency', currency: 'GBP'})
+        .formatToParts(0)
+        .find(part => part.type === 'currency')?.value,
+    );
+    expect(german.currencySymbol).toBe(
+      new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'})
+        .formatToParts(0)
+        .find(part => part.type === 'currency')?.value,
+    );
   });
 
   describe('formatBalance', () => {

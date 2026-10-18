@@ -29,6 +29,7 @@ import {
   reducer as TransactionDialogReducer,
 } from '@/components/Transaction/TransactionDialog';
 import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
@@ -59,6 +60,7 @@ function toBudgetItemModel(entity: TBudget): Budget {
 
 export const BudgetList: React.FC<BudgetListProps> = () => {
   const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage} = budgetSlice.actions;
   const dispatch = useAppDispatch();
@@ -321,7 +323,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         placeholder: t('budgets.eG50000'),
         slotProps: {
           input: {
-            endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
+            endAdornment: <InputAdornment position="end">{currencyFormatter.currencySymbol}</InputAdornment>,
           },
         },
       },
@@ -358,7 +360,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         rows: 2,
       },
     ] as EntityDrawerField<EntityFormFields>[];
-  }, [t]);
+  }, [t, currencyFormatter.currencySymbol]);
 
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {

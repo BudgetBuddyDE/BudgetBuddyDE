@@ -27,6 +27,10 @@ export class CurrencyFormatter {
 
 export function createCurrencyFormatter(locale = 'en-US', currency = 'EUR') {
   return {
+    currencySymbol:
+      new Intl.NumberFormat(locale, {style: 'currency', currency})
+        .formatToParts(0)
+        .find(part => part.type === 'currency')?.value ?? currency,
     formatBalance: (value: number) => CurrencyFormatter.formatBalance(value, currency, locale),
     shortenBalance: (value: number) => CurrencyFormatter.shortenBalance(value, currency, locale),
   };

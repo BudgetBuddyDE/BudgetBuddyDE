@@ -523,7 +523,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           required: true,
           slotProps: {
             input: {
-              endAdornment: <InputAdornment position="end">{t('transactions.euro')}</InputAdornment>,
+              endAdornment: <InputAdornment position="end">{currencyFormatter.currencySymbol}</InputAdornment>,
             },
           },
         },
@@ -536,7 +536,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           rows: 2,
         },
       ];
-    }, []);
+    }, [t, currencyFormatter.currencySymbol]);
 
   const columns: ColumnDefinition<TExpandedTransaction>[] = React.useMemo(
     () => [

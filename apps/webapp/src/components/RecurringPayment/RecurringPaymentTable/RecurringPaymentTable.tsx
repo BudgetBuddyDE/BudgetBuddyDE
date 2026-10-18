@@ -581,7 +581,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           required: true,
           slotProps: {
             input: {
-              endAdornment: <InputAdornment position="end">{t('recurringPayments.euro')}</InputAdornment>,
+              endAdornment: <InputAdornment position="end">{currencyFormatter.currencySymbol}</InputAdornment>,
             },
           },
         },
@@ -594,7 +594,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           rows: 2,
         },
       ];
-    }, []);
+    }, [t, currencyFormatter.currencySymbol]);
 
   const columns: ColumnDefinition<TExpandedRecurringPayment>[] = React.useMemo(
     () => [
