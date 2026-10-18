@@ -1,6 +1,6 @@
 ---
 title: User Preferences
-description: Per-user application preferences and upgrade requirements.
+description: Per-user preferences, localization, currency formatting, and upgrade requirements.
 icon: SlidersHorizontal
 ---
 
@@ -32,6 +32,86 @@ This is a deliberate tradeoff: a missing record cannot distinguish an existing a
 Authenticated `PUT /api/preference` requests partially update the current user's settings. At least one supported field must be supplied. `language` uses an underscore-separated locale such as `en_US` or `de_DE`; `timeZone` must be a valid IANA time zone, and `currency` must be a valid ISO 4217 code. User IDs and server-managed timestamps cannot be updated through the payload.
 
 The API client is available as `apiClient.backend.preference`; use its `get()` and `update(payload)` methods to preserve the shared API response and error handling conventions.
+
+## Supported presentation settings
+
+The API stores preferences independently of what the webapp currently supports:
+
+| Setting   | Supported in the webapp | Effective default |
+| --------- | ----------------------- | ----------------- |
+| Language  | English (`en_US`)       | `en_US`           |
+| Currency  | `EUR`, `USD`            | `EUR`             |
+| Time zone | `Europe/Berlin`         | `Europe/Berlin`   |
+
+The stored language identifier is `en_US`; pass the BCP 47 locale `en-US` to `Intl` APIs. Do not pass the underscore-separated database value directly to `Intl.NumberFormat`.
+
+Unsupported stored values remain intact. The webapp derives effective preferences for rendering instead of rewriting the raw preference record. An unsupported language, currency, or time zone falls back to the corresponding default above. Saving another setting must not silently replace unsupported values with those effective defaults.
+
+Currency is a **display preference only**. Switching between EUR and USD changes formatting, not transaction amounts, budget limits, stored data, or exchange rates. BudgetBuddy does not convert money or provide multi-currency accounting.
+
+## Reading preferences in the webapp
+
+Use `usePreferences()` in client components under the preferences provider. It exposes preference state and the shared reload/update flow; avoid fetching a separate copy in each component. Use the effective values for presentation and retain the raw values when editing or persisting settings.
+
+In server components, use `getPreferences()` from `@/lib/preferences/getPreferences`. It forwards the authenticated request headers and reads the existing preference API with `cache: 'no-store'`. React's `cache()` deduplicates calls within the server render request; it is not a persistent or cross-user preference cache. Handle the existing `[result, error]` tuple rather than treating the return value as a preference record.
+
+Do not replace this flow with a shared server-side cache: preferences are user-specific and must reflect saved changes.
+
+## Translation contract
+
+The webapp uses `next-intl`, initially with English only. Routes do not receive a locale prefix: enabling translations does not introduce paths such as `/en/dashboard`.
+
+Client components call `useAppTranslations()` to obtain a translation function, then pass the source English text and optional interpolation values to that function:
+
+```tsx
+const t = useAppTranslations();
+
+return <span>{t('Hello, {name}', {name: user.name})}</span>;
+```
+
+Server components use the corresponding asynchronous helper:
+
+```tsx
+const t = await getAppTranslations();
+
+return <span>{t('Hello, {name}', {name: user.name})}</span>;
+```
+
+The hook itself does not take the English message: the returned `t(sourceEnglish, values)` function does. Keep user-authored content, API identifiers, and persisted values out of translation catalogs.
+
+Future languages require translated catalogs and registration in the supported-language configuration before users can select them. A stored language value alone does not enable a language. Keep catalog organization and source-key registration aligned with the translation helpers rather than introducing a parallel lookup mechanism.
+
+Only English is currently enabled, including server request configuration. Before enabling another language, resolve the authenticated locale in the server request configuration, supply its matching catalog on both sides of the server/client boundary, and update the HTML language and MUI locale mappings.
+
+After adding or changing literal translation messages, regenerate and verify the English catalog:
+
+```bash
+npm run i18n:generate --workspace @budgetbuddyde/webapp
+npm run i18n:check --workspace @budgetbuddyde/webapp
+```
+
+The normal webapp `check` also verifies the catalog. Prefer literal ICU messages or finite literal unions; interpolated values belong in the second argument, not in dynamically constructed message keys.
+
+## Currency formatting
+
+Client components should use `useCurrencyFormatter()` so rendered amounts follow the effective currency and locale:
+
+```tsx
+const {formatBalance, shortenBalance} = useCurrencyFormatter();
+
+return <span title={formatBalance(balance)}>{shortenBalance(balance)}</span>;
+```
+
+Server components and pure utilities must use the pure formatter with explicit effective values rather than calling a React hook or relying on implicit defaults:
+
+```ts
+import {createCurrencyFormatter} from '@/utils/Formatter/CurrencyFormatter';
+
+const formatter = createCurrencyFormatter('en-US', effectivePreferences.currency);
+const label = formatter.formatBalance(balance);
+```
+
+The formatter only produces display strings. Keep calculations and API payloads numeric; never parse formatted currency strings back into stored amounts.
 
 ## Existing installations: recommended one-time SQL backfill
 
