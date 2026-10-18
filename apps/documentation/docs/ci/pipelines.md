@@ -4,7 +4,7 @@ description: The current project and database pipelines, their jobs, and reusabl
 icon: GitBranch
 ---
 
-The active definitions are `ci/general.pipeline.yml` and `ci/database.pipeline.yml`. Normal project and database migration jobs load reusable task files through `ci-source` from `main`; the scheduled database backup defines its task inline. AI review tasks and cleanup hooks load from the pinned external AI Code Buddy Provider source. The historical `.ci/` templates have been removed.
+The active definitions are `ci/general.pipeline.yml` and `ci/database.pipeline.yml`. Project and database migration jobs load reusable task files through `ci-source` from `main`; the scheduled database backup defines its task inline. The historical `.ci/` templates have been removed.
 
 ## Project pipeline: `general.pipeline.yml`
 
@@ -27,20 +27,6 @@ Despite its filename, this pipeline covers the entire npm-workspace monorepo, no
 
 Both validation jobs have `public: true`, making build information and logs public subject to the Concourse deployment's visibility settings. They do not publish artifacts or create versions.
 
-### `pull-request-ai-review`
-
-- Processes every detected PR head targeting `main`, serially and independently of normal verification, using the maintained `cfcommunity/github-pr-resource:0.26.0` and `integration_tool: checkout`.
-- Fetches `ai-code-buddy-source` and `ai-code-buddy-image` without triggers, pinned by Provider commit and matching registry digest in `ai-code-buddy-settings`.
-- Verifies the actual task-source commit against image metadata without credentials before calling the shared preparation, analysis and publication tasks. It does not build an image locally.
-- Reads trusted `.pr_agent.toml` from the fixed target commit. PR code is never executed by operational review tasks. Only analysis receives the LiteLLM key; GitHub/S3 credentials stay outside that task.
-- Limits analysis to ten minutes and the lifecycle to fifteen, with at most three chunks per tool. Publishes a summary, up to fifteen inline findings/suggestions and the exact-head `ai-review/gate` check.
-- A complete `changes_required` produces a successful job and failed GitHub check. Technical or incomplete analyses fail the job and gate; cleanup publishes validated partial findings with “Analyse unvollständig”. Superseded or aborted runs grant no approval and post no new findings.
-- Reuses complete positive and negative results from S3 without repeated model calls or duplicate comments. Partial results are not cached.
-
-Provider updates do not automatically upgrade this Consumer. Publish and verify a
-release first, then update both pins together and run live acceptance. Preserve
-existing CI requirements and require the App-bound gate plus up-to-date branches.
-
 ### `update-dependencies`
 
 - Runs every 168 hours or manually, with `serial: true` to prevent overlapping update builds.
@@ -52,7 +38,7 @@ existing CI requirements and require the App-bound gate plus up-to-date branches
 
 Dependency commits use `build(dependencies): Automated update of dependencies` without `[skip ci]`, so the main repository resource detects them and starts normal validation. `git.name` and `git.email` supply the commit identity.
 
-Credentials: `github.private_key` for read/write Git access and `github.pat` for commit and PR statuses. npm tokens, GHCR publishing credentials, and S3 version credentials are not needed. AI review uses its separate App, LiteLLM, private result-cache and read-only Provider-source credentials.
+Credentials: `github.private_key` for read/write Git access and `github.pat` for commit and PR statuses. npm tokens, GHCR publishing credentials, and S3 version credentials are not needed.
 
 ## Database pipeline: `database.pipeline.yml`
 
