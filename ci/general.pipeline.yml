@@ -6,7 +6,6 @@ groups:
     jobs:
       - validate-build
       - pull-request
-      - pull-request-ai-review
   - name: maintenance
     jobs:
       - update-dependencies
@@ -25,23 +24,6 @@ resource_types:
       tag: '0.26.0'
 
 resources:
-  - name: ai-code-buddy-source
-    type: git
-    icon: git
-    source:
-      uri: git@github.com:tklein1801/ai-code-buddy.git
-      branch: main
-      private_key: ((github.private_key))
-    version:
-      ref: ((ai-code-buddy-settings.revision))
-  - name: ai-code-buddy-image
-    type: registry-image
-    icon: robot
-    source:
-      repository: ghcr.io/tklein1801/ai-code-buddy
-      tag: latest
-    version:
-      digest: ((ai-code-buddy-settings.digest))
   - name: ci-source
     type: git
     icon: git
@@ -97,86 +79,6 @@ resources:
       access_token: ((github.pat))
 
 jobs:
-  # Review tasks and runtime are pinned to one AI Code Buddy release.
-  - name: pull-request-ai-review
-    public: false
-    serial: true
-    plan:
-      - in_parallel:
-          - get: ai-code-buddy-source
-          - get: ai-code-buddy-image
-          - get: pull-request
-            resource: pr-((repo.pr.branch))
-            trigger: true
-            version: every
-            params:
-              integration_tool: checkout
-      - task: verify-ai-code-buddy-release
-        image: ai-code-buddy-image
-        file: ai-code-buddy-source/ci/tasks/verify-ai-code-buddy-release.task.yml
-      - do:
-          - task: prepare-ai-review
-            image: ai-code-buddy-image
-            file: ai-code-buddy-source/ci/tasks/prepare-ai-review.task.yml
-            params:
-              GITHUB_REPOSITORY: ((repo.owner))/((repo.name))
-              TARGET_BRANCH: ((repo.pr.branch))
-              GITHUB_APP_ID: ((ai-review.appId))
-              GITHUB_INSTALLATION_ID: ((ai-review.installationId))
-              GITHUB_APP_PRIVATE_KEY: ((ai-review.appPrivateKey))
-              S3_BUCKET: ((s3-ai-review.bucket))
-              AWS_REGION: ((s3-ai-review.region))
-              AWS_ACCESS_KEY_ID: ((s3-ai-review.access_key_id))
-              AWS_SECRET_ACCESS_KEY: ((s3-ai-review.access_key_secret))
-              LITELLM_BASE_URL: ((litellm.host))
-              LITELLM_MODEL: ((ai-review-settings.model))
-              LITELLM_CONTEXT_WINDOW: ((ai-review-settings.contextWindow))
-              LITELLM_PROFILE_REVISION: ((ai-review-settings.profileRevision))
-          - task: analyze-ai-review
-            image: ai-code-buddy-image
-            timeout: 10m
-            file: ai-code-buddy-source/ci/tasks/analyze-ai-review.task.yml
-            params:
-              LITELLM_API_KEY: ((litellm.apiKey))
-              LITELLM_BASE_URL: ((litellm.host))
-              LITELLM_MODEL: ((ai-review-settings.model))
-              LITELLM_CONTEXT_WINDOW: ((ai-review-settings.contextWindow))
-              LITELLM_PROFILE_REVISION: ((ai-review-settings.profileRevision))
-          - task: publish-ai-review
-            image: ai-code-buddy-image
-            file: ai-code-buddy-source/ci/tasks/publish-ai-review.task.yml
-            params:
-              <<: &ai-review-app-params
-                GITHUB_REPOSITORY: ((repo.owner))/((repo.name))
-                GITHUB_APP_ID: ((ai-review.appId))
-                GITHUB_INSTALLATION_ID: ((ai-review.installationId))
-                GITHUB_APP_PRIVATE_KEY: ((ai-review.appPrivateKey))
-              S3_BUCKET: ((s3-ai-review.bucket))
-              AWS_REGION: ((s3-ai-review.region))
-              AWS_ACCESS_KEY_ID: ((s3-ai-review.access_key_id))
-              AWS_SECRET_ACCESS_KEY: ((s3-ai-review.access_key_secret))
-        timeout: 15m
-        on_failure:
-          task: fail-ai-review
-          image: ai-code-buddy-image
-          file: ai-code-buddy-source/ci/tasks/finalize-ai-review.task.yml
-          params:
-            <<: *ai-review-app-params
-            REVIEW_CONCLUSION: failure
-        on_error:
-          task: error-ai-review
-          image: ai-code-buddy-image
-          file: ai-code-buddy-source/ci/tasks/finalize-ai-review.task.yml
-          params:
-            <<: *ai-review-app-params
-            REVIEW_CONCLUSION: failure
-        on_abort:
-          task: cancel-ai-review
-          image: ai-code-buddy-image
-          file: ai-code-buddy-source/ci/tasks/finalize-ai-review.task.yml
-          params:
-            <<: *ai-review-app-params
-            REVIEW_CONCLUSION: cancelled
   - name: update-dependencies
     public: false
     serial: true
