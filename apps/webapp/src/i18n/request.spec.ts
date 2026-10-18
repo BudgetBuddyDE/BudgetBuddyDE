@@ -1,5 +1,6 @@
 // @vitest-environment node
 import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {getMessagesForLocale} from './messages';
 import getConfig from './request';
 
 const mocks = vi.hoisted(() => ({headers: vi.fn(), getSession: vi.fn(), getPreferences: vi.fn()}));
@@ -18,8 +19,36 @@ beforeEach(() => {
 const resolveConfig = () => getConfig({requestLocale: Promise.resolve(undefined)});
 
 describe('request localization', () => {
+  it.each([
+    ['de-DE,de;q=0.9,en;q=0.8', 'de-DE', 'Hoppla!'],
+    ['de-AT', 'de-DE', 'Hoppla!'],
+    ['fr-FR,en-GB;q=0.8', 'en-US', 'Ooops!'],
+    ['fr-FR', 'en-US', 'Ooops!'],
+  ])('uses the supported browser language for auth pages: %s', async (language, locale, text) => {
+    mocks.headers.mockResolvedValue(new Headers({'x-budgetbuddy-auth-route': '1', 'accept-language': language}));
+    mocks.getSession.mockResolvedValue({data: {user: {id: 'user-1'}}, error: null});
+    const config = await resolveConfig();
+    expect(config).toMatchObject({locale, messages: {errors: {oops: text}}});
+    expect(config.messages).not.toBeInstanceOf(Promise);
+    expect(mocks.getSession).not.toHaveBeenCalled();
+    expect(mocks.getPreferences).not.toHaveBeenCalled();
+  });
+
+  it('prefers saved dashboard language over the browser language', async () => {
+    mocks.headers.mockResolvedValue(
+      new Headers({'x-budgetbuddy-authenticated-route': '1', 'accept-language': 'de-DE'}),
+    );
+    mocks.getSession.mockResolvedValue({data: {user: {id: 'user-1'}}, error: null});
+    mocks.getPreferences.mockResolvedValue([{data: {language: 'en_US'}}, null]);
+    expect(await resolveConfig()).toMatchObject({locale: 'en-US'});
+  });
+
   it('keeps public requests English without validating a session or fetching preferences', async () => {
-    expect(await resolveConfig()).toMatchObject({locale: 'en-US', timeZone: 'UTC'});
+    const config = await resolveConfig();
+    expect(config).toMatchObject({locale: 'en-US', timeZone: 'UTC'});
+    expect(config.messages).not.toBeInstanceOf(Promise);
+    expect(config.messages).toBe(getMessagesForLocale('en-US'));
+    expect(config.messages).toMatchObject({errors: {oops: 'Ooops!'}});
     expect(mocks.getSession).not.toHaveBeenCalled();
     expect(mocks.getPreferences).not.toHaveBeenCalled();
   });
@@ -39,7 +68,11 @@ describe('request localization', () => {
     mocks.headers.mockResolvedValue(requestHeaders);
     mocks.getSession.mockResolvedValue({data: {user: {id: 'user-1'}}, error: null});
 
-    expect(await resolveConfig()).toMatchObject({locale: 'de-DE'});
+    const config = await resolveConfig();
+    expect(config).toMatchObject({locale: 'de-DE'});
+    expect(config.messages).not.toBeInstanceOf(Promise);
+    expect(config.messages).toBe(getMessagesForLocale('de-DE'));
+    expect(config.messages).toMatchObject({errors: {oops: 'Hoppla!'}});
     expect(mocks.getSession).toHaveBeenCalledWith({fetchOptions: {headers: requestHeaders}});
     expect(mocks.getPreferences).toHaveBeenCalledOnce();
   });

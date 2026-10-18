@@ -49,14 +49,14 @@ export function Preferences() {
   }, [editing, preferences]);
 
   const saved = preferences && toDraft(preferences);
-  const changed = Boolean(
+  const hasChanged = Boolean(
     saved &&
     draft &&
     (draft.language !== saved.language || draft.currency !== saved.currency || draft.timeZone !== saved.timeZone),
   );
 
   const saveChanges = async () => {
-    if (!ownerId || currentOwnerScope.current !== ownerScope || !draft || !saved || !changed) return;
+    if (!ownerId || currentOwnerScope.current !== ownerScope || !draft || !saved || !hasChanged) return;
     const payload: TUpdatePreferencePayload = {};
     if (draft.language !== saved.language) payload.language = draft.language;
     if (draft.currency !== saved.currency) payload.currency = draft.currency;
@@ -250,7 +250,7 @@ export function Preferences() {
               >
                 {t('settings.preferences.discard')}
               </Button>
-              <Button variant="contained" disabled={!changed || isSaving} onClick={() => void saveChanges()}>
+              <Button variant="contained" disabled={!hasChanged || isSaving} onClick={() => void saveChanges()}>
                 {isSaving ? <CircularProgress size={18} color="inherit" /> : t('settings.preferences.saveChanges')}
               </Button>
             </>

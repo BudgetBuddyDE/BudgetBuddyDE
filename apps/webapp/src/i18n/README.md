@@ -1,5 +1,14 @@
 # Webapp localization
 
+Auth routes select a supported browser language from the request's `Accept-Language`
+header, respecting quality weights and regional variants (`de-AT` uses `de-DE`,
+`en-GB` uses `en-US`). Unsupported or missing preferences fall back to English.
+Dashboard routes use saved account preferences instead. Browser detection never
+updates account preferences. Other public pages retain the English default.
+The proxy overwrites internal route markers; auth localization does not require
+session or preference API requests. The root passes browser locale separately so
+client navigation from a dashboard cannot carry its account language into auth UI.
+
 Application translations use semantic, typed dot-separated catalog keys such
 as `common.save` and `transactions.deleteConfirmation`. The English fragments
 in `messages/en-US/<domain>.json` define the key union and are assembled into

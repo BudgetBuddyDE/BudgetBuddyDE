@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {useCurrencyFormatter} from './useCurrencyFormatter';
+import {useCurrencyFormatter} from '../useCurrencyFormatter';
 
 const {useOptionalPreferencesContext} = vi.hoisted(() => ({useOptionalPreferencesContext: vi.fn()}));
 vi.mock('@/components/Preferences/PreferencesProvider', () => ({useOptionalPreferencesContext}));

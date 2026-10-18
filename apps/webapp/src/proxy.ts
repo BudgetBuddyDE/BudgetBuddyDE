@@ -9,6 +9,11 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.delete('x-budgetbuddy-authenticated-route');
+  requestHeaders.delete('x-budgetbuddy-auth-route');
+  const isAuthRoute =
+    /^\/(?:sign-in|sign-up)$/.test(url.pathname) ||
+    /^\/(?:password\/(?:request-reset|reset)|email\/(?:changed|verified)|user\/confirm-deletion)$/.test(url.pathname);
+  if (isAuthRoute) requestHeaders.set('x-budgetbuddy-auth-route', '1');
   const isDashboardRoute =
     /^\/(?:dashboard|settings)(?:\/|$)/.test(url.pathname) ||
     /^\/(?:attachments|categories|paymentMethods|transactions|recurringPayments)(?:\/|$)/.test(url.pathname);

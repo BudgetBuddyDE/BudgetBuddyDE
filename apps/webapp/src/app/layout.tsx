@@ -1,7 +1,7 @@
 import type {Metadata, Viewport} from 'next';
 import type React from 'react';
 import {getMessagesForLocale} from '@/i18n/messages';
-import {getAppLocale, getAppTranslations} from '@/i18n/server';
+import {getAppLocale, getAppTranslations, getBrowserLocale} from '@/i18n/server';
 import {colors} from '@/theme/DarkTheme/colors';
 import {LayoutWrapper} from './layout-wrapper';
 import {StoreProvider} from './StoreProvider';
@@ -29,11 +29,12 @@ export const viewport: Viewport = {
 };
 export default async function RootLayout({children}: {children: React.ReactNode}) {
   const locale = await getAppLocale();
+  const browserLocale = await getBrowserLocale();
   return (
     <StoreProvider>
       <html lang={locale} suppressHydrationWarning>
         <body>
-          <LayoutWrapper locale={locale} messages={await getMessagesForLocale(locale)}>
+          <LayoutWrapper locale={locale} browserLocale={browserLocale} messages={getMessagesForLocale(locale)}>
             {children}
           </LayoutWrapper>
         </body>

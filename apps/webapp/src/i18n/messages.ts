@@ -1,4 +1,25 @@
 import {resolveAppLocale} from './config';
+import accountDe from './messages/de-DE/account.json';
+import attachmentsDe from './messages/de-DE/attachments.json';
+import authDe from './messages/de-DE/auth.json';
+import budgetsDe from './messages/de-DE/budgets.json';
+import categoriesDe from './messages/de-DE/categories.json';
+import chartsDe from './messages/de-DE/charts.json';
+import commandPaletteDe from './messages/de-DE/commandPalette.json';
+import commonDe from './messages/de-DE/common.json';
+import dashboardDe from './messages/de-DE/dashboard.json';
+import entitiesDe from './messages/de-DE/entities.json';
+import errorsDe from './messages/de-DE/errors.json';
+import formsDe from './messages/de-DE/forms.json';
+import insightsDe from './messages/de-DE/insights.json';
+import intentsDe from './messages/de-DE/intents.json';
+import navigationDe from './messages/de-DE/navigation.json';
+import paymentMethodsDe from './messages/de-DE/paymentMethods.json';
+import recurringPaymentsDe from './messages/de-DE/recurringPayments.json';
+import settingsDe from './messages/de-DE/settings.json';
+import tableDe from './messages/de-DE/table.json';
+import transactionsDe from './messages/de-DE/transactions.json';
+import validationDe from './messages/de-DE/validation.json';
 import accountEn from './messages/en-US/account.json';
 import attachmentsEn from './messages/en-US/attachments.json';
 import authEn from './messages/en-US/auth.json';
@@ -56,60 +77,30 @@ type StringKey<T> = {
 
 export type AppTranslationKey = StringKey<AppMessages>;
 
-async function loadGermanMessages(): Promise<AppMessages> {
-  const loaded = await Promise.all([
-    import('./messages/de-DE/account.json'),
-    import('./messages/de-DE/attachments.json'),
-    import('./messages/de-DE/auth.json'),
-    import('./messages/de-DE/budgets.json'),
-    import('./messages/de-DE/categories.json'),
-    import('./messages/de-DE/charts.json'),
-    import('./messages/de-DE/commandPalette.json'),
-    import('./messages/de-DE/common.json'),
-    import('./messages/de-DE/dashboard.json'),
-    import('./messages/de-DE/entities.json'),
-    import('./messages/de-DE/errors.json'),
-    import('./messages/de-DE/forms.json'),
-    import('./messages/de-DE/insights.json'),
-    import('./messages/de-DE/intents.json'),
-    import('./messages/de-DE/navigation.json'),
-    import('./messages/de-DE/paymentMethods.json'),
-    import('./messages/de-DE/recurringPayments.json'),
-    import('./messages/de-DE/settings.json'),
-    import('./messages/de-DE/table.json'),
-    import('./messages/de-DE/transactions.json'),
-    import('./messages/de-DE/validation.json'),
-  ]);
-  return {
-    account: loaded[0],
-    attachments: loaded[1],
-    auth: loaded[2],
-    budgets: loaded[3],
-    categories: loaded[4],
-    charts: loaded[5],
-    commandPalette: loaded[6],
-    common: loaded[7],
-    dashboard: loaded[8],
-    entities: loaded[9],
-    errors: loaded[10],
-    forms: loaded[11],
-    insights: loaded[12],
-    intents: loaded[13],
-    navigation: loaded[14],
-    paymentMethods: loaded[15],
-    recurringPayments: loaded[16],
-    settings: loaded[17],
-    table: loaded[18],
-    transactions: loaded[19],
-    validation: loaded[20],
-  } as unknown as AppMessages;
-}
+const germanMessages = {
+  account: accountDe,
+  attachments: attachmentsDe,
+  auth: authDe,
+  budgets: budgetsDe,
+  categories: categoriesDe,
+  charts: chartsDe,
+  commandPalette: commandPaletteDe,
+  common: commonDe,
+  dashboard: dashboardDe,
+  entities: entitiesDe,
+  errors: errorsDe,
+  forms: formsDe,
+  insights: insightsDe,
+  intents: intentsDe,
+  navigation: navigationDe,
+  paymentMethods: paymentMethodsDe,
+  recurringPayments: recurringPaymentsDe,
+  settings: settingsDe,
+  table: tableDe,
+  transactions: transactionsDe,
+  validation: validationDe,
+} satisfies AppMessages;
 
-const localeLoaders = {
-  'en-US': () => englishMessages,
-  'de-DE': loadGermanMessages,
-};
-
-export async function getMessagesForLocale(locale?: string | null): Promise<AppMessages> {
-  return localeLoaders[resolveAppLocale(locale)]();
+export function getMessagesForLocale(locale?: string | null): AppMessages {
+  return resolveAppLocale(locale) === 'de-DE' ? germanMessages : englishMessages;
 }

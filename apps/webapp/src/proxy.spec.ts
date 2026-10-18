@@ -13,6 +13,33 @@ beforeEach(() => {
 });
 
 describe('proxy localization routing', () => {
+  it.each([
+    '/sign-in',
+    '/sign-up',
+    '/password/request-reset',
+    '/password/reset',
+    '/email/changed',
+    '/email/verified',
+    '/user/confirm-deletion',
+  ])('marks auth route %s for browser-language detection without session access', async path => {
+    const response = await proxy(new NextRequest(`http://localhost${path}`));
+    expect(response.headers.get('x-middleware-request-x-budgetbuddy-auth-route')).toBe('1');
+    expect(response.headers.has('x-middleware-request-x-budgetbuddy-authenticated-route')).toBe(false);
+    expect(mocks.getSession).not.toHaveBeenCalled();
+  });
+
+  it.each(['/charts', '/dashboard', '/sign-in/unmatched', '/password/unmatched', '/api/health'])(
+    'strips a spoofed auth-route marker from %s',
+    async path => {
+      const response = await proxy(
+        new NextRequest(`http://localhost${path}`, {
+          headers: {'x-budgetbuddy-auth-route': '1'},
+        }),
+      );
+      expect(response.headers.has('x-middleware-request-x-budgetbuddy-auth-route')).toBe(false);
+    },
+  );
+
   it.each(['/sign-in', '/charts', '/unknown/path', '/unknown/page.html'])(
     'strips spoofed locale markers on public route %s without authenticating',
     async path => {
