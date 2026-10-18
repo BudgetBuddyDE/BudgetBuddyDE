@@ -4,6 +4,7 @@
     "architecture",
     "workspaces",
     "database",
+    "user-preferences",
     "authentication",
     "api-and-mcp",
     "adding-a-feature"

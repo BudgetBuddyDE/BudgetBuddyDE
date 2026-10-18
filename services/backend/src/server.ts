@@ -24,6 +24,7 @@ import {
   CategoryRouter,
   InsightsRouter,
   PaymentMethodRouter,
+  PreferenceRouter,
   RecurringPaymentRouter,
   TransactionRouter,
 } from './router';
@@ -161,6 +162,7 @@ export function createApp(): Express {
   app.use('/api/application', ApplicationRouter);
   app.use('/api/category', CategoryRouter);
   app.use('/api/paymentMethod', PaymentMethodRouter);
+  app.use('/api/preference', PreferenceRouter);
   app.use('/api/transaction', TransactionRouter);
   app.use('/api/recurringPayment', RecurringPaymentRouter);
   app.use('/api/budget', BudgetRouter);

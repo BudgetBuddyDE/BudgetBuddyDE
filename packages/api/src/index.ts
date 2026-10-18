@@ -1,4 +1,5 @@
 export * from './api';
+export * from './preference';
 export * from './error';
 export * from './services/entity.service';
 export * from './types/common';

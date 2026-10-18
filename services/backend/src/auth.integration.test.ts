@@ -11,6 +11,7 @@ const state = vi.hoisted(() => ({
     Record<string, unknown>[]
   >,
   secondary: new Map<string, string>(),
+  initializePreferences: vi.fn(),
 }));
 
 // Keep the migrated Better Auth options and plugins, replacing only infrastructure boundaries.
@@ -34,6 +35,7 @@ vi.mock('./config', async importOriginal => {
   };
 });
 vi.mock('./db', () => ({db: {}}));
+vi.mock('./lib/preferences', () => ({initializePreferences: state.initializePreferences}));
 vi.mock('./db/redis', () => ({
   getAuthRedisClient: () => ({
     set: async (key: string, value: string) => {
@@ -65,6 +67,7 @@ beforeEach(async function initializeAuth() {
 
 beforeEach(async function registerTestUser() {
   state.secondary.clear();
+  state.initializePreferences.mockReset();
   for (const table of Object.keys(state.database)) state.database[table] = [];
   const signup = await auth.api.signUpEmail({
     body: {email: 'auth-unit@example.invalid', name: 'Unit User', password: 'unit-password-long-enough'},
@@ -80,6 +83,28 @@ beforeEach(async function registerTestUser() {
 });
 
 describe('migrated authentication with real Better Auth', () => {
+  it('initializes preferences on registration but not on subsequent sign-in', async () => {
+    expect(state.initializePreferences).toHaveBeenCalledExactlyOnceWith(userId);
+    await auth.api.signInEmail({body: {email: 'auth-unit@example.invalid', password: 'unit-password-long-enough'}});
+    expect(state.initializePreferences).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows registration and sign-in when preferences initialization fails', async () => {
+    state.initializePreferences.mockRejectedValueOnce(new Error('Preferences database unavailable'));
+    const body = {
+      email: 'preferences-failure@example.invalid',
+      name: 'Preferences Failure',
+      password: 'unit-password-long-enough',
+    };
+
+    const signup = await auth.api.signUpEmail({body});
+    expect(signup.user.id).toBeDefined();
+    expect(state.initializePreferences).toHaveBeenLastCalledWith(signup.user.id);
+
+    const signin = await auth.api.signInEmail({body: {email: body.email, password: body.password}});
+    expect(signin.user.id).toBe(signup.user.id);
+    expect(state.initializePreferences).toHaveBeenCalledTimes(2);
+  }, 15_000);
   it('looks up signed cookie sessions from the existing secondary-storage format', async () => {
     const session = await auth.api.getSession({headers: new Headers({cookie})});
     expect(session?.user.id).toBe(userId);

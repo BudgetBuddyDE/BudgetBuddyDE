@@ -29,9 +29,11 @@ const mocks = vi.hoisted(() => ({
   redis: {set: vi.fn(), get: vi.fn(), del: vi.fn()},
   apiKey: vi.fn(),
   openAPI: vi.fn(),
+  initializePreferences: vi.fn(),
 }));
 vi.mock('./config', () => ({config: mocks.config}));
 vi.mock('./db', () => ({db: {}}));
+vi.mock('./lib/preferences', () => ({initializePreferences: mocks.initializePreferences}));
 vi.mock('./db/redis', () => ({getAuthRedisClient: () => mocks.redis}));
 vi.mock('./lib/logger', () => ({logger: {child: () => mocks.logger}}));
 vi.mock('./lib/resend', () => ({resendManager: mocks.mail}));
@@ -62,6 +64,36 @@ beforeEach(() => {
 });
 
 describe('integrated Better Auth', () => {
+  it('awaits preferences initialization after user creation', async () => {
+    await loadAuth();
+    let resolve!: () => void;
+    mocks.initializePreferences.mockReturnValueOnce(
+      new Promise<void>(done => {
+        resolve = done;
+      }),
+    );
+    let completed = false;
+    const pending = mocks.options.databaseHooks.user.create.after({id: 'new-user'}).then(() => {
+      completed = true;
+    });
+    expect(mocks.initializePreferences).toHaveBeenCalledWith('new-user');
+    expect(completed).toBe(false);
+    resolve();
+    await pending;
+    expect(completed).toBe(true);
+  });
+
+  it('logs preferences initialization failures without failing user registration', async () => {
+    await loadAuth();
+    const error = new Error('Database unavailable');
+    mocks.initializePreferences.mockRejectedValueOnce(error);
+    await expect(mocks.options.databaseHooks.user.create.after({id: 'new-user'})).resolves.toBeUndefined();
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      'Failed to initialize preferences for newly registered user',
+      error,
+      {userId: 'new-user'},
+    );
+  });
   it('preserves security and independently limits API keys', async () => {
     await loadAuth();
     expect(mocks.options).toMatchObject({
