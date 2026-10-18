@@ -4,6 +4,7 @@ import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
 import {AppInformation} from '@/components/Settings/AppInformation';
 import {DataManagement} from '@/components/Settings/DataManagement';
+import {Preferences} from '@/components/Settings/Preferences';
 import {EditUser} from '@/components/User/EditUser';
 import {UserAccounts} from '@/components/User/UserAccounts';
 import {UserSessions} from '@/components/User/UserSessions';
@@ -25,13 +26,17 @@ export default function SettingsProfilePage() {
         </Grid>
       </Grid>
 
-      <Grid container size={{xs: 12, md: 5}}>
+      <Grid container size={{xs: 12, md: 5}} spacing={2}>
         <Grid size={{xs: 12}}>
           <PathnameErrorBoundary>
             <React.Suspense fallback={<CircularProgress />}>
               <EditUser />
             </React.Suspense>
           </PathnameErrorBoundary>
+        </Grid>
+
+        <Grid size={{xs: 12}}>
+          <Preferences />
         </Grid>
       </Grid>
 
