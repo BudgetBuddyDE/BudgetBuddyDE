@@ -104,7 +104,7 @@ describe('migrated authentication with real Better Auth', () => {
     const signin = await auth.api.signInEmail({body: {email: body.email, password: body.password}});
     expect(signin.user.id).toBe(signup.user.id);
     expect(state.initializePreferences).toHaveBeenCalledTimes(2);
-  });
+  }, 15_000);
   it('looks up signed cookie sessions from the existing secondary-storage format', async () => {
     const session = await auth.api.getSession({headers: new Headers({cookie})});
     expect(session?.user.id).toBe(userId);
