@@ -53,21 +53,21 @@ describe('Preferences', () => {
     vi.resetAllMocks();
   });
 
-  it('renders saved supported fields read-only until Edit is selected', () => {
+  it('renders all saved fields disabled until Edit is selected', () => {
     render(<Preferences />);
 
     expect(screen.getByRole('combobox', {name: 'Language'})).toHaveValue('English (United States)');
-    expect(screen.getByRole('combobox', {name: 'Language'})).toHaveAttribute('readonly');
+    expect(screen.getByRole('combobox', {name: 'Language'})).toBeDisabled();
     expect(screen.getByRole('combobox', {name: 'Currency'})).toHaveTextContent('Euro (EUR)');
     expect(screen.getByRole('combobox', {name: 'Currency'})).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('combobox', {name: 'Time zone'})).toHaveValue('Europe/Berlin');
-    expect(screen.getByRole('combobox', {name: 'Time zone'})).toHaveAttribute('readonly');
+    expect(screen.getByRole('combobox', {name: 'Time zone'})).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
 
-    expect(screen.getByRole('combobox', {name: 'Language'})).not.toHaveAttribute('readonly');
+    expect(screen.getByRole('combobox', {name: 'Language'})).not.toBeDisabled();
     expect(screen.getByRole('combobox', {name: 'Currency'})).not.toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByRole('combobox', {name: 'Time zone'})).not.toHaveAttribute('readonly');
+    expect(screen.getByRole('combobox', {name: 'Time zone'})).not.toBeDisabled();
     expect(screen.getByRole('button', {name: 'Save changes'})).toBeDisabled();
     expect(screen.getByRole('button', {name: 'Discard'})).toBeEnabled();
     expect(updatePreferences).not.toHaveBeenCalled();

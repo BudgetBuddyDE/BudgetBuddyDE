@@ -171,7 +171,7 @@ export function Preferences() {
                 }}
                 isOptionEqualToValue={(option, value) => option.value === value.value}
                 getOptionDisabled={option => !LANGUAGE_OPTIONS.some(supported => supported.value === option.value)}
-                readOnly={!editing || isSaving}
+                disabled={!editing || isSaving}
                 onChange={(_, option) => option && setDraft(current => current && {...current, language: option.value})}
                 renderInput={params => (
                   <TextField
@@ -216,7 +216,7 @@ export function Preferences() {
                 getOptionLabel={option => option.label}
                 isOptionEqualToValue={(option, value) => option.value === value.value}
                 getOptionDisabled={option => !TIME_ZONE_OPTIONS.some(supported => supported.value === option.value)}
-                readOnly={!editing || isSaving}
+                disabled={!editing || isSaving}
                 onChange={(_, option) => option && setDraft(current => current && {...current, timeZone: option.value})}
                 renderInput={params => (
                   <TextField
