@@ -83,6 +83,8 @@ Additional languages require translated catalogs and registration in the support
 
 Server request configuration resolves the authenticated language and supplies its matching catalog. Server and client translations, the HTML language, and MUI locale mappings follow the effective language, with English as the default.
 
+Pages in the `(auth)` route group use the browser's `Accept-Language` header instead of account preferences. Supported languages are matched by quality-weighted priority, including regional variants such as `de-AT` and `en-GB`. Missing or unsupported languages fall back to English. Auth localization makes no session or preference requests and does not persist the browser language to the account. Other public pages keep their English default; dashboard pages continue to prefer saved account settings.
+
 After adding or changing a translation, edit the matching English and German domain fragments directly, then run the check-only validator:
 
 ```bash
