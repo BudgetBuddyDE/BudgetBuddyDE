@@ -1,6 +1,9 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
-import {describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {DataTable, type DataTableColumn} from './DataTable';
+
+const {useOptionalPreferencesContext} = vi.hoisted(() => ({useOptionalPreferencesContext: vi.fn()}));
+vi.mock('@/hooks/usePreferences', () => ({useOptionalPreferencesContext}));
 
 type Product = {
   id: number;
@@ -23,6 +26,25 @@ const mockColumns: DataTableColumn<Product>[] = [
 ];
 
 describe('DataTable', () => {
+  beforeEach(() => useOptionalPreferencesContext.mockReturnValue(null));
+
+  it('switches MUI pagination labels with the selected language and keeps caller overrides', () => {
+    const {rerender} = render(<DataTable data={mockProducts} columns={mockColumns} />);
+    expect(screen.getByText('Rows per page:')).toBeInTheDocument();
+    useOptionalPreferencesContext.mockReturnValue({locale: 'de-DE'});
+    rerender(<DataTable data={mockProducts} columns={mockColumns} />);
+    expect(screen.getByText('Zeilen pro Seite:')).toBeInTheDocument();
+    expect(screen.queryByText('Rows per page:')).not.toBeInTheDocument();
+    rerender(
+      <DataTable
+        data={mockProducts}
+        columns={mockColumns}
+        dataGridProps={{localeText: {paginationRowsPerPage: 'Custom page size'}}}
+      />,
+    );
+    expect(screen.getByText('Custom page size')).toBeInTheDocument();
+  });
+
   it('renders data grid with data', async () => {
     render(<DataTable data={mockProducts} columns={mockColumns} />);
 

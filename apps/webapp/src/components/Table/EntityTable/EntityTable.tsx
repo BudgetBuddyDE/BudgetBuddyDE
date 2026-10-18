@@ -198,8 +198,8 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
               }}
             >
               {selectedIds.size === 1
-                ? t('{count} item selected', {count: selectedIds.size})
-                : t('{count} items selected', {count: selectedIds.size})}
+                ? t('table.countItemSelected', {count: selectedIds.size})
+                : t('table.countItemsSelected', {count: selectedIds.size})}
             </Typography>
             <Stack direction="row" spacing={1}>
               <Button
@@ -207,7 +207,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                 onClick={() => setSelectedIds(new Set())}
                 startIcon={<ClearRounded fontSize={'small'} />}
               >
-                {t('Clear selection')}
+                {t('table.clearSelection')}
               </Button>
               {selectionActions.map(action => (
                 <Button
@@ -233,7 +233,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                     onDeleteSelectedEntities(Array.from(selectedIds));
                   }}
                 >
-                  {t('Delete')}
+                  {t('table.delete')}
                 </Button>
               )}
             </Stack>
@@ -243,7 +243,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
 
       <Box sx={{px: 0}}>
         {!isLoading && !hasError && data.length === 0 && (
-          <NoResults text={emptyMessage ?? t('No items found')} sx={{m: 2}} {...emptyState} />
+          <NoResults text={emptyMessage ?? t('table.noItemsFound')} sx={{m: 2}} {...emptyState} />
         )}
 
         {hasError && <ErrorAlert error={errorMessage} sx={{m: 2}} />}

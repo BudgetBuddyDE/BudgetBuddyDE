@@ -13,21 +13,21 @@ export const AdvancedSection: React.FC = () => {
   const {formatBalance: formatCurrency, shortenBalance: formatCompactCurrency} = useCurrencyFormatter();
   const kpis = [
     {
-      label: t('Net balance'),
+      label: t('charts.netBalance'),
       value: formatCurrency(9780),
       trend: balanceSparkline,
       color: 'var(--bb-chart-balance)',
       area: true,
     },
     {
-      label: t('Monthly expenses'),
+      label: t('charts.monthlyExpenses'),
       value: formatCurrency(3000),
       trend: expensesSparkline,
       color: 'var(--bb-chart-expense)',
       area: false,
     },
     {
-      label: t('Savings rate'),
+      label: t('charts.savingsRate'),
       value: `${Math.round((cashflow[cashflow.length - 1].net / cashflow[cashflow.length - 1].income) * 100)}%`,
       trend: cashflow.map(row => Math.round((row.net / row.income) * 100)),
       color: 'var(--bb-chart-income)',
@@ -36,19 +36,19 @@ export const AdvancedSection: React.FC = () => {
   ];
   return (
     <ShowcaseSection
-      title={t('Flows, investments & KPIs')}
-      description={t('Where the money goes, how investments move and at-a-glance key figures.')}
+      title={t('charts.flowsInvestmentsKPIs')}
+      description={t('charts.whereTheMoneyGoesHowInvestmentsMoveAndAtAGlanceKeyFigures')}
     >
       <Grid size={{xs: 12, lg: 7}}>
-        <ChartCard title={t('Money flow')} subtitle={t('Sankey diagram: income, categories and merchants')}>
+        <ChartCard title={t('charts.moneyFlow')} subtitle={t('charts.sankeyDiagramIncomeCategoriesAndMerchants')}>
           <SankeyChart data={moneyFlow} valueFormatter={formatCurrency} height={360} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 5}}>
         <ChartCard
-          title={t('Key figures')}
-          subtitle={t('Monthly trends, January to December')}
-          note={t('Each sparkline uses its own scale; compare changes within a trend, not heights across cards.')}
+          title={t('charts.keyFigures')}
+          subtitle={t('charts.monthlyTrendsJanuaryToDecember')}
+          note={t('charts.eachSparklineUsesItsOwnScaleCompareChangesWithinATrendNotHeightsAcrossCards')}
         >
           <Stack spacing={1.5}>
             {kpis.map(kpi => (
@@ -70,7 +70,7 @@ export const AdvancedSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12}}>
-        <ChartCard title={t('Portfolio price history')} subtitle={t('Candlestick / OHLC chart')}>
+        <ChartCard title={t('charts.portfolioPriceHistory')} subtitle={t('charts.candlestickOHLCChart')}>
           <CandlestickChart
             data={portfolioPrices}
             valueFormatter={value => formatCompactCurrency(value)}

@@ -72,8 +72,3 @@ describe('InsightsReportCharts reference lines', () => {
     expect(composedChartProps.mock.calls.map(([props]) => props.referenceLines)).toEqual([[], []]);
   });
 });
-
-vi.mock('@/hooks/useAppTranslations', () => ({
-  useAppTranslations: () => (source: string, values?: Record<string, string | number>) =>
-    source.replace(/\{(\w+)\}/g, (_, key: string) => String(values?.[key] ?? key)),
-}));

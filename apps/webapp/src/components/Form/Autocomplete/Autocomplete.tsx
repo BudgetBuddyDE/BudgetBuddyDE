@@ -132,11 +132,11 @@ export const Autocomplete = <
   }
   return (
     <MuiAutocomplete
-      clearText={t('Clear')}
-      closeText={t('Close')}
-      openText={t('Open')}
-      loadingText={t('Loading…')}
-      noOptionsText={t('No options')}
+      clearText={t('forms.clear')}
+      closeText={t('forms.close')}
+      openText={t('forms.open')}
+      loadingText={t('forms.loading')}
+      noOptionsText={t('forms.noOptions')}
       open={open}
       onOpen={handleOpen}
       onClose={handleClose}

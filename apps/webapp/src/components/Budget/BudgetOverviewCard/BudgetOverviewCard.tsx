@@ -42,7 +42,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
       <Card.Header>
         <Box>
           <Typography variant="h6" component="h2" sx={{fontWeight: 'bold'}}>
-            {t('Budget')}
+            {t('budgets.budget')}
           </Typography>
           <Typography variant="h5" component="p" sx={{fontWeight: 600}}>
             {currencyFormatter.formatBalance(totalBudget)}
@@ -53,30 +53,30 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
         <Stack spacing={2}>
           <Box
             role="img"
-            aria-label={t('Budget progress')}
+            aria-label={t('budgets.budgetProgress')}
             sx={{display: 'flex', height: 16, overflow: 'hidden', borderRadius: 1, bgcolor: 'action.hover'}}
           >
-            <Tooltip title={t('Spent · {value0}', {value0: currencyFormatter.formatBalance(spent)})}>
+            <Tooltip title={t('budgets.spentValue0', {value0: currencyFormatter.formatBalance(spent)})}>
               <Box
-                aria-label={t('Spent')}
+                aria-label={t('budgets.spent')}
                 sx={{width: `${spentPercent}%`, bgcolor: 'error.main', transition: 'width 300ms'}}
               />
             </Tooltip>
             <Tooltip
-              title={t('Upcoming Expenses · {value0}', {value0: currencyFormatter.formatBalance(futureExpenses)})}
+              title={t('budgets.upcomingExpensesValue0', {value0: currencyFormatter.formatBalance(futureExpenses)})}
             >
               <Box
-                aria-label={t('Upcoming Expenses')}
+                aria-label={t('budgets.upcomingExpenses')}
                 sx={{width: `${futurePercent}%`, bgcolor: 'warning.main', transition: 'width 300ms'}}
               />
             </Tooltip>
             <Tooltip
-              title={`${isOverBudget ? t('Overdrawn') : t('Available')} · ${currencyFormatter.formatBalance(
+              title={`${isOverBudget ? t('budgets.overdrawn') : t('budgets.available')} · ${currencyFormatter.formatBalance(
                 isOverBudget ? overBudgetAmount : available,
               )}`}
             >
               <Box
-                aria-label={isOverBudget ? t('Overdrawn') : t('Available')}
+                aria-label={isOverBudget ? t('budgets.overdrawn') : t('budgets.available')}
                 sx={{
                   width: `${availablePercent}%`,
                   bgcolor: isOverBudget ? 'error.main' : 'success.main',
@@ -91,7 +91,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
               <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
                 <Box aria-hidden sx={{width: 12, height: 12, borderRadius: 1, bgcolor: 'error.main'}} />
                 <Typography component="dt" color="text.secondary">
-                  {t('Spent')}
+                  {t('budgets.spent')}
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
@@ -103,7 +103,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
               <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
                 <Box aria-hidden sx={{width: 12, height: 12, borderRadius: 1, bgcolor: 'warning.main'}} />
                 <Typography component="dt" color="text.secondary">
-                  {t('Upcoming Expenses')}
+                  {t('budgets.upcomingExpenses')}
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
@@ -123,7 +123,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
                   }}
                 />
                 <Typography component="dt" color="text.secondary">
-                  {isOverBudget ? t('Overdrawn') : t('Available')}
+                  {isOverBudget ? t('budgets.overdrawn') : t('budgets.available')}
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500, color: isOverBudget ? 'error.main' : undefined}}>

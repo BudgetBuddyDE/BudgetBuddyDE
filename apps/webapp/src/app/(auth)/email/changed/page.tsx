@@ -4,7 +4,7 @@ import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function MailChangedPage() {
   const t = await getAppTranslations();
@@ -41,7 +41,7 @@ export default async function MailChangedPage() {
                 mt: 2,
               }}
             >
-              {t('Change of email address')}
+              {t('auth.email.changeOfEmailAddress')}
             </Typography>
           </Box>
 
@@ -49,26 +49,26 @@ export default async function MailChangedPage() {
 
           {!isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              {t('It seems like you are not signed in. Please sign in first...')}
+              {t('auth.email.itSeemsLikeYouAreNotSignedInPleaseSignInFirst')}
             </Typography>
           )}
 
           {isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              {t('You have successfully changed your email address to {email}.', {email: session.user.email})}
+              {t('auth.email.youHaveSuccessfullyChangedYourEmailAddressToEmail', {email: session.user.email})}
             </Typography>
           )}
 
-          <Divider sx={{my: 2}}>{t('Not signed in?')}</Divider>
+          <Divider sx={{my: 2}}>{t('auth.email.notSignedIn')}</Divider>
 
           {isSignedIn && (
             <LinkButton href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-              {t('Sign in first...')}
+              {t('auth.email.signInFirst')}
             </LinkButton>
           )}
 
           <LinkButton href="/sign-up" variant="contained" fullWidth>
-            {t('Create an account')}
+            {t('auth.email.createAnAccount')}
           </LinkButton>
         </Card>
       </Grid>

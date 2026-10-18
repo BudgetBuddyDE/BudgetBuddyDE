@@ -1,5 +1,5 @@
 import type {GridRowId} from '@mui/x-data-grid';
-import type {AppTranslator} from '@/lib/i18n/translate';
+import type {AppTranslator} from '@/i18n/translate';
 import {translateValidationIssue, type ValidationIssue} from '@/lib/validation/translateValidationIssue';
 
 type MappingResult<Payload> =

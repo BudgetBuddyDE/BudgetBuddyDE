@@ -28,7 +28,7 @@ export const EditUser = () => {
       logger.info('Submitting user profile changes');
       if (!sessionData) {
         logger.error('No session data available');
-        showSnackbar({message: t('No session data available')});
+        showSnackbar({message: t('account.profile.noSessionDataAvailable')});
         return;
       }
 
@@ -40,7 +40,7 @@ export const EditUser = () => {
         if (result.error) {
           throw result.error;
         }
-        showSnackbar({message: t('Your name has been updated to {value1}', {value1: name})});
+        showSnackbar({message: t('account.profile.yourNameHasBeenUpdatedToValue1', {value1: name})});
       }
 
       if (email && email !== sessionData.user.email) {
@@ -53,7 +53,7 @@ export const EditUser = () => {
           throw result.error;
         }
         showSnackbar({
-          message: t('An email change request has been sent to {value1}. Check your inbox', {value1: email}),
+          message: t('account.profile.anEmailChangeRequestHasBeenSentToValue1CheckYourInbox', {value1: email}),
         });
       }
 
@@ -66,7 +66,7 @@ export const EditUser = () => {
       else logger.error('Error while updating user profile', {reason: msg});
       showSnackbar({
         message: msg,
-        action: <Button onClick={() => onSubmit(formData)}>{t('Try again')}</Button>,
+        action: <Button onClick={() => onSubmit(formData)}>{t('account.profile.tryAgain')}</Button>,
       });
     }
   }
@@ -78,7 +78,7 @@ export const EditUser = () => {
   const handleDiscard = () => {
     formRef.current?.reset();
     setFormEditable(false);
-    showSnackbar({message: t('Changes were discarded')});
+    showSnackbar({message: t('account.profile.changesWereDiscarded')});
   };
 
   const accountDeletionHandler = {
@@ -96,16 +96,14 @@ export const EditUser = () => {
       if (error) {
         logger.error('Error while deleting user account', {reason: error.message});
         showSnackbar({
-          message: error.message ?? t('Error while deleting your account'),
-          action: <Button onClick={accountDeletionHandler.onClickDelete}>{t('Try again')}</Button>,
+          message: error.message ?? t('account.profile.errorWhileDeletingYourAccount'),
+          action: <Button onClick={accountDeletionHandler.onClickDelete}>{t('account.profile.tryAgain')}</Button>,
         });
         return;
       }
 
       showSnackbar({
-        message: t(
-          'The final account deletion verification mail has been sent to your inbox. Please check your email to complete the process.',
-        ),
+        message: t('account.profile.deletionVerificationEmailSent'),
       });
 
       accountDeletionHandler.onCancelDeletion();
@@ -120,7 +118,7 @@ export const EditUser = () => {
 
     if (sessionData.user.emailVerified) {
       logger.warn('Email is already verified, no need to send verification email');
-      showSnackbar({message: t('Your email is already verified')});
+      showSnackbar({message: t('account.profile.yourEmailIsAlreadyVerified')});
       return;
     }
 
@@ -132,13 +130,15 @@ export const EditUser = () => {
     if (error) {
       logger.error('Error while sending verification email', {reason: error.message});
       showSnackbar({
-        message: t('Error while sending verification email: {value1}', {value1: error.message ?? t('Unknown error')}),
+        message: t('account.profile.errorWhileSendingVerificationEmailValue1', {
+          value1: error.message ?? t('account.profile.unknownError'),
+        }),
       });
       return;
     }
 
     showSnackbar({
-      message: t('Verification email sent. Please check your inbox.'),
+      message: t('account.profile.verificationEmailSentPleaseCheckYourInbox'),
     });
   };
 
@@ -147,7 +147,7 @@ export const EditUser = () => {
     e => {
       if (!saveBtnRef.current || !isFormEditable) {
         return showSnackbar({
-          message: t('Make the form editable first by clicking the Edit button'),
+          message: t('account.profile.makeTheFormEditableFirstByClickingTheEditButton'),
         });
       }
       e.preventDefault();
@@ -171,8 +171,8 @@ export const EditUser = () => {
       <Card ref={cardRef}>
         <Card.Header>
           <Box>
-            <Card.Title>{t('Profile')}</Card.Title>
-            <Card.Subtitle>{t('Make changes to your account')}</Card.Subtitle>
+            <Card.Title>{t('account.profile.profile')}</Card.Title>
+            <Card.Subtitle>{t('account.profile.makeChangesToYourAccount')}</Card.Subtitle>
           </Box>
         </Card.Header>
         <Card.Body>
@@ -184,7 +184,7 @@ export const EditUser = () => {
                   disabled
                   id="uuid"
                   name="uuid"
-                  label={t('UUID')}
+                  label={t('account.profile.uuid')}
                   defaultValue={sessionData.user.id}
                   sx={{mt: 2}}
                   required
@@ -194,7 +194,7 @@ export const EditUser = () => {
                 <TextField
                   id="name"
                   name="name"
-                  label={t('Name')}
+                  label={t('account.profile.name')}
                   defaultValue={sessionData.user.name}
                   sx={{mt: 2}}
                   fullWidth
@@ -208,7 +208,7 @@ export const EditUser = () => {
                   fullWidth
                   id="email"
                   name="email"
-                  label={t('E-Mail')}
+                  label={t('account.profile.eMail')}
                   defaultValue={sessionData.user.email}
                   sx={{mt: 2}}
                   disabled={!isFormEditable}
@@ -216,10 +216,10 @@ export const EditUser = () => {
                 />
 
                 {!sessionData.user.emailVerified && (
-                  <Alert severity="warning" title={t('E-Mail')} sx={{mt: 2}}>
-                    {t('Please verify your email address to access all features of Budget Buddy.')}
+                  <Alert severity="warning" title={t('account.profile.eMail')} sx={{mt: 2}}>
+                    {t('account.profile.pleaseVerifyYourEmailAddressToAccessAllFeaturesOfBudgetBuddy')}
                     <Button size="small" variant="text" color="warning" onClick={handleSendVerificationEmail}>
-                      {t('Verify email')}
+                      {t('account.profile.verifyEmail')}
                     </Button>
                   </Alert>
                 )}
@@ -234,22 +234,22 @@ export const EditUser = () => {
               }}
             >
               <Button startIcon={<DeleteRounded />} color="error" onClick={accountDeletionHandler.onClickDelete}>
-                {t('Delete account')}
+                {t('account.profile.deleteAccount')}
               </Button>
 
               {isFormEditable ? (
                 <Box>
                   <Button variant="text" sx={{mr: 1}} onClick={handleDiscard}>
-                    {t('Discard')}
+                    {t('account.profile.discard')}
                   </Button>
 
                   <Button ref={saveBtnRef} type="submit" variant="contained">
-                    {t('Save changes')}
+                    {t('account.profile.saveChanges')}
                   </Button>
                 </Box>
               ) : (
                 <Button variant="contained" onClick={handleEdit}>
-                  {t('Edit')}
+                  {t('account.profile.edit')}
                 </Button>
               )}
             </Stack>

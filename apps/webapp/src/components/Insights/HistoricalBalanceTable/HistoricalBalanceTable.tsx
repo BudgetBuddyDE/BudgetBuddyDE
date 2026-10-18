@@ -9,6 +9,7 @@ import {DataTable, type DataTableColumn} from '@/components/Table';
 import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import {useFetch} from '@/hooks/useFetch';
+import {usePreferences} from '@/hooks/usePreferences';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 
@@ -24,6 +25,7 @@ type RowData = (THistoricalBalance | THistoricalCategoryBalance) & {id: string};
 export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({type, dense = false}) => {
   const t = useAppTranslations();
   const currencyFormatter = useCurrencyFormatter();
+  const {locale} = usePreferences();
   const DEFAULT_DATE_RANGE = {
     startDate: subMonths(new Date(), type === 'BASIC' ? 12 : 1),
     endDate: new Date(),
@@ -65,14 +67,14 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     const baseColumns: DataTableColumn<RowData>[] = [
       {
         field: 'date',
-        headerName: t('Period'),
+        headerName: t('insights.period'),
         flex: 1,
         minWidth: 120,
-        valueFormatter: value => Formatter.date.formatWithPattern(new Date(value as string), 'MMMM yyyy'),
+        valueFormatter: value => Formatter.date.formatWithPattern(new Date(value as string), 'MMMM yyyy', locale),
       },
       {
         field: 'income',
-        headerName: t('Income'),
+        headerName: t('insights.income'),
         flex: 1,
         minWidth: 100,
         align: 'right',
@@ -81,7 +83,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       },
       {
         field: 'expenses',
-        headerName: t('Expenses'),
+        headerName: t('insights.expenses'),
         flex: 1,
         minWidth: 100,
         align: 'right',
@@ -90,7 +92,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       },
       {
         field: 'balance',
-        headerName: t('Balance'),
+        headerName: t('insights.balance'),
         flex: 1,
         minWidth: 100,
         align: 'right',
@@ -102,7 +104,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     if (showCategory) {
       baseColumns.splice(1, 0, {
         field: 'category',
-        headerName: t('Category'),
+        headerName: t('insights.category'),
         flex: 1,
         minWidth: 120,
         valueGetter: (_value, row) => ('category' in row ? row.category?.name : '-'),
@@ -110,7 +112,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     }
 
     return baseColumns;
-  }, [showCategory, currencyFormatter, t]);
+  }, [showCategory, currencyFormatter, locale, t]);
 
   return (
     <DataTable
@@ -118,7 +120,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       columns={columns}
       isLoading={isLoading}
       error={error}
-      emptyMessage="Create a transaction to begin tracking your activity."
+      emptyMessage={t('insights.createATransactionToBeginTrackingYourActivity')}
       density={dense ? 'compact' : 'standard'}
       autoHeight
       pagination
@@ -130,8 +132,8 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       }}
       sx={{border: 'none'}}
       toolbar={{
-        title: t('Historical balances ({value0})', {value0: data?.length ?? 0}),
-        subtitle: showCategory ? t('Grouped by date and category') : t('Grouped by date'),
+        title: t('insights.historicalBalancesValue0', {value0: data?.length ?? 0}),
+        subtitle: showCategory ? t('insights.groupedByDateAndCategory') : t('insights.groupedByDate'),
         actions: [
           {
             id: 'date-range-picker',

@@ -20,10 +20,10 @@ export default function ResetPasswordPage() {
     const token = searchParams.get('token');
     if (!token) {
       showSnackbar({
-        message: t('No password reset token found in your URL.'),
+        message: t('auth.auth.noPasswordResetTokenFoundInYourURL'),
         action: (
           <Button LinkComponent={NextLink} href="/password/request-reset">
-            {t('Restart process')}
+            {t('auth.auth.restartProcess')}
           </Button>
         ),
       });
@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
     const confirmPassword = formData.get('confirm-password');
 
     if (password !== confirmPassword) {
-      showSnackbar({message: t('Passwords do not match')});
+      showSnackbar({message: t('auth.auth.passwordsDoNotMatch')});
       return;
     }
 
@@ -44,7 +44,7 @@ export default function ResetPasswordPage() {
     });
 
     showSnackbar({
-      message: t('Your password has been reset! You can now sign in.'),
+      message: t('auth.auth.yourPasswordHasBeenResetYouCanNowSignIn'),
     });
     redirect('/sign-in');
   }
@@ -74,7 +74,7 @@ export default function ResetPasswordPage() {
                 mt: 2,
               }}
             >
-              {t('Reset password')}
+              {t('auth.auth.resetPassword')}
             </Typography>
           </Box>
 
@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
               <Grid size={{xs: 12}}>
                 <PasswordInput
                   outlinedInputProps={{
-                    label: t('Confirm password'),
+                    label: t('auth.auth.confirmPassword'),
                     name: 'confirm-password',
                   }}
                 />
@@ -96,19 +96,19 @@ export default function ResetPasswordPage() {
 
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
               <Button type="submit" variant="contained" endIcon={<SendRounded />} sx={{mt: 1}}>
-                {t('Save new password')}
+                {t('auth.auth.saveNewPassword')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>{t('or')}</Divider>
+          <Divider sx={{my: 2}}>{t('auth.auth.or')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-            {t('Sign in')}
+            {t('auth.auth.signIn')}
           </Button>
 
           <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
-            {t('Create an account')}
+            {t('auth.auth.createAnAccount')}
           </Button>
         </Card>
       </Grid>

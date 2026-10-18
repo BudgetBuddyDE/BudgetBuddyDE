@@ -27,15 +27,15 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
       {
         type: 'text',
         name: 'name',
-        label: t('Name'),
-        placeholder: t('e.g. Personal automation'),
+        label: t('account.apiKeys.name'),
+        placeholder: t('account.apiKeys.eGPersonalAutomation'),
         required: true,
       },
       {
         type: 'date',
         name: 'expiresAt',
-        label: t('Expires at'),
-        placeholder: t('Leave empty for no expiration'),
+        label: t('account.apiKeys.expiresAt'),
+        placeholder: t('account.apiKeys.leaveEmptyForNoExpiration'),
       },
     ],
     [t],
@@ -43,8 +43,8 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
 
   return (
     <EntityDrawer<ApiKeyFormFields>
-      title={t('API Key')}
-      subtitle={t('Create new API key')}
+      title={t('account.apiKeys.apiKey')}
+      subtitle={t('account.apiKeys.createNewAPIKey')}
       open={open}
       onSubmit={onSubmit}
       onClose={onClose}
@@ -62,10 +62,8 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
           severity: 'warning',
           children: (
             <React.Fragment>
-              <AlertTitle>{t('Handle API keys like passwords')}</AlertTitle>
-              {t(
-                'An API key acts on behalf of your user account. Store it only in trusted secret managers or server-side environments, never commit it to source control, and delete it immediately if it may have been exposed.',
-              )}
+              <AlertTitle>{t('account.apiKeys.handleAPIKeysLikePasswords')}</AlertTitle>
+              {t('account.apiKeys.securityGuidance')}
             </React.Fragment>
           ),
         },

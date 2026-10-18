@@ -78,7 +78,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
       slots={{transition: ZoomTransition}}
       slotProps={{paper: {elevation: 0}}}
     >
-      <DialogTitle>{t('Filters')}</DialogTitle>
+      <DialogTitle>{t('table.filters')}</DialogTitle>
       <CloseIconButton
         onClick={onClose}
         sx={theme => ({
@@ -92,7 +92,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
         <Stack spacing={3}>
           {withDateRange && (
             <Stack spacing={1}>
-              <SectionLabel label={t('Date Range')} />
+              <SectionLabel label={t('table.dateRange')} />
               <DateRangePicker
                 defaultValue={{startDate: state.dateRange.startDate, endDate: state.dateRange.endDate}}
                 onDateRangeChange={(start, end) => dispatch({action: 'SET_DATE_RANGE', startDate: start, endDate: end})}
@@ -123,7 +123,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
 
           {withRecurringPaymentStatus && (
             <Stack spacing={1}>
-              <SectionLabel label={t('Status')} />
+              <SectionLabel label={t('table.status')} />
               <ToggleButtonGroup
                 size="small"
                 exclusive
@@ -132,21 +132,21 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
                   if (!value) return;
                   dispatch({action: 'SET_PAUSED', paused: value === 'inactive'});
                 }}
-                aria-label={t('Recurring payment status quick filters')}
+                aria-label={t('table.recurringPaymentStatusQuickFilters')}
               >
-                <ToggleButton value="active">{t('Active')}</ToggleButton>
-                <ToggleButton value="inactive">{t('Inactive')}</ToggleButton>
+                <ToggleButton value="active">{t('table.active')}</ToggleButton>
+                <ToggleButton value="inactive">{t('table.inactive')}</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
           )}
 
           {withCategories && (
             <Stack spacing={1}>
-              <SectionLabel label={t('Categories')} />
+              <SectionLabel label={t('table.categories')} />
               <Autocomplete<TCategoryVH, true>
                 name="filter-categories"
-                label={t('Categories')}
-                placeholder={t('Any category')}
+                label={t('table.categories')}
+                placeholder={t('table.anyCategory')}
                 multiple
                 disableCloseOnSelect
                 searchAsYouType={false}
@@ -161,11 +161,11 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
 
           {withPaymentMethods && (
             <Stack spacing={1}>
-              <SectionLabel label={t('Payment Methods')} />
+              <SectionLabel label={t('table.paymentMethods')} />
               <Autocomplete<TPaymentMethodVH, true>
                 name="filter-payment-methods"
-                label={t('Payment Methods')}
-                placeholder={t('Any payment method')}
+                label={t('table.paymentMethods')}
+                placeholder={t('table.anyPaymentMethod')}
                 multiple
                 disableCloseOnSelect
                 searchAsYouType={false}
@@ -181,9 +181,9 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onReset}>{t('Reset')}</Button>
+        <Button onClick={onReset}>{t('table.reset')}</Button>
         <Button variant="contained" onClick={onApply}>
-          {t('Apply')}
+          {t('table.apply')}
         </Button>
       </DialogActions>
     </Dialog>

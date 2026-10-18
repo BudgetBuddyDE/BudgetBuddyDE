@@ -48,12 +48,12 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'sourcePaymentMethods',
-        label: t('Source'),
-        placeholder: t('Select source payment methods to merge'),
+        label: t('paymentMethods.source'),
+        placeholder: t('paymentMethods.selectSourcePaymentMethodsToMerge'),
         required: true,
         multiple: true,
         disableCloseOnSelect: true,
-        noOptionsText: t('No payment methods available'),
+        noOptionsText: t('paymentMethods.noPaymentMethodsAvailable'),
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
@@ -72,10 +72,10 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'targetPaymentMethod',
-        label: t('Target'),
-        placeholder: t('Select target payment method to merge into'),
+        label: t('paymentMethods.target'),
+        placeholder: t('paymentMethods.selectTargetPaymentMethodToMergeInto'),
         required: true,
-        noOptionsText: t('No payment methods available'),
+        noOptionsText: t('paymentMethods.noPaymentMethodsAvailable'),
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
@@ -107,8 +107,8 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map(issue => translateValidationIssue(issue, t)).join(', ');
       showSnackbar({
-        message: t('Failed to merge payment methods: {issues}', {issues: issues}),
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('Retry')}</Button>,
+        message: t('paymentMethods.failedToMergePaymentMethodsIssues', {issues: issues}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('paymentMethods.retry')}</Button>,
       });
       return;
     }
@@ -116,11 +116,11 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
     const [mergedPaymentMethods, error] = await apiClient.backend.paymentMethod.merge(parsedPayload.data);
     if (!mergedPaymentMethods || error) {
       return showSnackbar({
-        message: t('Failed to merge payment methods: {error}', {error: error.message}),
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('Retry')}</Button>,
+        message: t('paymentMethods.failedToMergePaymentMethodsError', {error: error.message}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('paymentMethods.retry')}</Button>,
       });
     }
-    showSnackbar({message: t('Payment methods merged')});
+    showSnackbar({message: t('paymentMethods.paymentMethodsMerged')});
     onClose(); // close the drawer
     onSuccess?.();
     dispatch(refresh());
@@ -128,8 +128,8 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
 
   return (
     <EntityDrawer<MergePaymentMethodsForm>
-      title={t('Merge payment methods')}
-      subtitle={t('Merge multiple payment methods into a single one.')}
+      title={t('paymentMethods.mergePaymentMethods')}
+      subtitle={t('paymentMethods.mergeMultiplePaymentMethodsIntoASingleOne')}
       open={isOpen}
       onSubmit={handleSubmit}
       onClose={onClose}
@@ -147,7 +147,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
           variant: 'standard',
           severity: 'warning',
           children: t(
-            'Merging payment methods is irreversible. All items (e.g. transactions or recurring payments) associated with the source payment methods will be reassigned to the target payment method.',
+            'paymentMethods.mergingPaymentMethodsIsIrreversibleAllItemsEGTransactionsOrRecurringPaymentsAssociatedWithTheSourcePaymentMethodsWillBeReassignedToTheTargetPaymentMethod',
           ),
         },
       }}

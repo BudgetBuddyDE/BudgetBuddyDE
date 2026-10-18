@@ -56,7 +56,7 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
         <IconButton
           onClick={handleClick}
           color="primary"
-          aria-label={t('Open menu')}
+          aria-label={t('common.openMenu')}
           aria-haspopup="true"
           aria-expanded={open}
           aria-controls={open ? menuId : undefined}
@@ -72,7 +72,7 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
           aria-controls={open ? menuId : undefined}
           {...(props as {buttonProps?: ButtonProps}).buttonProps}
         >
-          {(props as {buttonProps?: ButtonProps}).buttonProps?.children || t('Menu')}
+          {(props as {buttonProps?: ButtonProps}).buttonProps?.children || t('common.menu')}
         </Button>
       )}
       <MuiMenu id={menuId} anchorEl={anchorEl} onClose={handleClose} {...menuProps} open={open}>

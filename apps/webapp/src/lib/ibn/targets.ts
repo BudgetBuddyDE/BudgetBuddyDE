@@ -1,4 +1,4 @@
-import type {AppTranslator} from '@/lib/i18n/translate';
+import type {AppTranslator} from '@/i18n/translate';
 import type {IntentAction, IntentEntity} from './types';
 
 /** Route and action metadata for one intent target. */
@@ -63,15 +63,19 @@ export const IBN_TARGETS = {
 } as const satisfies Record<IntentEntity, IntentTargetConfig>;
 
 export const getTranslatedIntentTargets = (t: AppTranslator) => ({
-  transaction: {...IBN_TARGETS.transaction, label: t('Transaction'), pluralLabel: t('Transactions')},
+  transaction: {...IBN_TARGETS.transaction, label: t('entities.transaction'), pluralLabel: t('entities.transactions')},
   recurringPayment: {
     ...IBN_TARGETS.recurringPayment,
-    label: t('Recurring Payment'),
-    pluralLabel: t('Recurring Payments'),
+    label: t('entities.recurringPayment'),
+    pluralLabel: t('entities.recurringPayments'),
   },
-  paymentMethod: {...IBN_TARGETS.paymentMethod, label: t('Payment Method'), pluralLabel: t('Payment Methods')},
-  category: {...IBN_TARGETS.category, label: t('Category'), pluralLabel: t('Categories')},
-  budget: {...IBN_TARGETS.budget, label: t('Budget'), pluralLabel: t('Budgets')},
-  attachment: {...IBN_TARGETS.attachment, label: t('Attachment'), pluralLabel: t('Attachments')},
-  apiKey: {...IBN_TARGETS.apiKey, label: t('API Key'), pluralLabel: t('API Keys')},
+  paymentMethod: {
+    ...IBN_TARGETS.paymentMethod,
+    label: t('entities.paymentMethod'),
+    pluralLabel: t('entities.paymentMethods'),
+  },
+  category: {...IBN_TARGETS.category, label: t('entities.category'), pluralLabel: t('entities.categories')},
+  budget: {...IBN_TARGETS.budget, label: t('entities.budget'), pluralLabel: t('entities.budgets')},
+  attachment: {...IBN_TARGETS.attachment, label: t('entities.attachment'), pluralLabel: t('entities.attachments')},
+  apiKey: {...IBN_TARGETS.apiKey, label: t('entities.apiKey'), pluralLabel: t('entities.apiKeys')},
 });

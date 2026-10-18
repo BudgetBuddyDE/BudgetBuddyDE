@@ -104,7 +104,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
           <ActionPaper sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
             {showSearch && onSearch && (
               <SearchInput
-                placeholder={searchPlaceholder ?? t('Search…')}
+                placeholder={searchPlaceholder ?? t('table.search')}
                 defaultValue={searchDefaultValue}
                 onSearch={onSearch}
                 debounceWaitInMilliseconds={searchDebounceMs}

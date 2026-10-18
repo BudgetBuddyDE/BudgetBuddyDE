@@ -78,12 +78,12 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
   const t = useAppTranslations();
   const RECURRING_PAYMENT_TYPE_META: Record<RecurringPaymentType, {label: string; emptyText: string}> = {
     INCOME: {
-      label: t('Income'),
-      emptyText: t('No recurring income found!'),
+      label: t('recurringPayments.income'),
+      emptyText: t('recurringPayments.noRecurringIncomeFound'),
     },
     EXPENSE: {
-      label: t('Expenses'),
-      emptyText: t('No recurring expenses found!'),
+      label: t('recurringPayments.expenses'),
+      emptyText: t('recurringPayments.noRecurringExpensesFound'),
     },
   } as const;
 
@@ -177,8 +177,8 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
     <Card>
       <Card.Header>
         <Box>
-          <Card.Title>{t('Recurring Payments')}</Card.Title>
-          <Card.Subtitle>{t('Scheduled occurrences this month')}</Card.Subtitle>
+          <Card.Title>{t('recurringPayments.recurringPayments')}</Card.Title>
+          <Card.Subtitle>{t('recurringPayments.scheduledOccurrencesThisMonth')}</Card.Subtitle>
         </Box>
         <Card.HeaderActions sx={{display: 'flex', flexDirection: 'row'}}>
           <ToggleButtonGroup
@@ -208,8 +208,12 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
               justifyContent: 'flex-end',
             }}
           >
-            <Button LinkComponent={NextLink} href={occurrenceViewHref} aria-label={t('View more recurring payments')}>
-              {t('View more...')}
+            <Button
+              LinkComponent={NextLink}
+              href={occurrenceViewHref}
+              aria-label={t('recurringPayments.viewMoreRecurringPayments')}
+            >
+              {t('recurringPayments.viewMore')}
             </Button>
           </Stack>
         </Card.Footer>

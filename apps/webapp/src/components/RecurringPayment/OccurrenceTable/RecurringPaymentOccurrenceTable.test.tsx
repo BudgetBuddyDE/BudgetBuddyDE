@@ -75,8 +75,3 @@ describe('RecurringPaymentOccurrenceTable', () => {
     expect(screen.getByText('2026-08-14 Gym')).toBeInTheDocument();
   });
 });
-
-vi.mock('@/hooks/useAppTranslations', () => ({
-  useAppTranslations: () => (source: string, values?: Record<string, string | number>) =>
-    source.replace(/\{(\w+)\}/g, (_, key: string) => String(values?.[key] ?? key)),
-}));

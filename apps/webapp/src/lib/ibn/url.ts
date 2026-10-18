@@ -1,5 +1,5 @@
-import type {AppTranslator} from '@/lib/i18n/translate';
-import {IBN_TARGETS} from './targets';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
+import {getTranslatedIntentTargets, IBN_TARGETS} from './targets';
 import {IBN_ACTIONS, IBN_ENTITIES, IBN_QUERY_KEYS, type Intent, type IntentAction, type IntentEntity} from './types';
 
 /** Result of parsing URL parameters: an intent, a validation error, or no intent. */
@@ -22,20 +22,22 @@ const canTargetHandleAction = (entity: IntentEntity, action: IntentAction) =>
  */
 export function parseIntentFromSearchParams(
   params: URLSearchParams,
-  t: AppTranslator = (source, values) =>
-    source.replace(/\{(\w+)\}/g, (_, name: string) => String(values?.[name] ?? `{${name}}`)),
+  t: AppTranslator = englishTranslator,
 ): ParsedIntent {
   const entityValue = params.get(IBN_QUERY_KEYS.entity);
   const actionValue = params.get(IBN_QUERY_KEYS.action);
 
   if (!entityValue && !actionValue) return null;
   if (!isIntentEntity(entityValue))
-    return {error: t('Invalid intent entity: {entity}', {entity: entityValue ?? t('missing')})};
+    return {error: t('intents.invalidEntity', {entity: entityValue ?? t('intents.missing')})};
   if (!isIntentAction(actionValue))
-    return {error: t('Invalid intent action: {action}', {action: actionValue ?? t('missing')})};
+    return {error: t('intents.invalidAction', {action: actionValue ?? t('intents.missing')})};
   if (!canTargetHandleAction(entityValue, actionValue)) {
     return {
-      error: t('{entity} does not support {action}', {entity: IBN_TARGETS[entityValue].label, action: actionValue}),
+      error: t('intents.entityDoesNotSupportAction', {
+        entity: getTranslatedIntentTargets(t)[entityValue].label,
+        action: actionValue,
+      }),
     };
   }
 
@@ -45,8 +47,8 @@ export function parseIntentFromSearchParams(
 
   if (actionValue === 'create') {
     if (entityValue === 'attachment') {
-      if (parentEntity !== 'transaction') return {error: t('Attachment creation requires transaction parent')};
-      if (!parentId) return {error: t('Attachment creation requires parent ID')};
+      if (parentEntity !== 'transaction') return {error: t('intents.attachmentRequiresTransactionParent')};
+      if (!parentId) return {error: t('intents.attachmentRequiresParentId')};
       return {intent: {entity: 'attachment', action: 'create', parentEntity, parentId}};
     }
 
@@ -59,11 +61,11 @@ export function parseIntentFromSearchParams(
       case 'apiKey':
         return {intent: {entity: entityValue, action: 'create'} as Intent};
       default:
-        return {error: t('{entity} does not support create', {entity: entityValue})};
+        return {error: t('intents.entityDoesNotSupportCreate', {entity: entityValue})};
     }
   }
 
-  if (!id) return {error: t('{action} intent requires ID', {action: actionValue})};
+  if (!id) return {error: t('intents.actionRequiresId', {action: actionValue})};
 
   switch (entityValue) {
     case 'transaction':
@@ -73,10 +75,10 @@ export function parseIntentFromSearchParams(
     case 'budget':
       return {intent: {entity: entityValue, action: actionValue, id} as Intent};
     case 'attachment':
-      if (actionValue !== 'delete') return {error: t('Attachment only supports create and delete')};
+      if (actionValue !== 'delete') return {error: t('intents.attachmentOnlyCreateDelete')};
       return {intent: {entity: 'attachment', action: 'delete', id}};
     case 'apiKey':
-      if (actionValue !== 'delete') return {error: t('API Key only supports create and delete')};
+      if (actionValue !== 'delete') return {error: t('intents.apiKeyOnlyCreateDelete')};
       return {intent: {entity: 'apiKey', action: 'delete', id}};
   }
 }

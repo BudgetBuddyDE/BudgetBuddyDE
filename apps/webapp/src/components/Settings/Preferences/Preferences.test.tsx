@@ -11,10 +11,6 @@ const {showSnackbar, updatePreferences, reloadPreferences} = vi.hoisted(() => ({
 }));
 
 vi.mock('@/hooks/usePreferences', () => ({usePreferences: vi.fn()}));
-vi.mock('@/hooks/useAppTranslations', () => ({
-  useAppTranslations: () => (message: string, values?: Record<string, unknown>) =>
-    message.replace(/\{(\w+)\}/g, (placeholder, key: string) => String(values?.[key] ?? placeholder)),
-}));
 vi.mock('@/components/Snackbar', () => ({useSnackbarContext: () => ({showSnackbar})}));
 
 const preferences: TPreference = {
@@ -88,6 +84,18 @@ describe('Preferences', () => {
     expect(showSnackbar).toHaveBeenCalledWith(expect.objectContaining({message: 'Preferences saved.'}));
   });
 
+  it('offers German and saves only the changed language', async () => {
+    render(<Preferences />);
+    fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
+    fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Language'}));
+    fireEvent.click(screen.getByRole('option', {name: 'German (Germany)'}));
+    expect(screen.getByRole('combobox', {name: 'Language'})).toHaveValue('German (Germany)');
+    fireEvent.click(screen.getByRole('button', {name: 'Save changes'}));
+
+    await waitFor(() => expect(updatePreferences).toHaveBeenCalledExactlyOnceWith({language: 'de_DE'}));
+    expect(await screen.findByRole('button', {name: 'Edit'})).toBeInTheDocument();
+  });
+
   it('discards draft changes without saving and restores the saved values on the next edit', () => {
     render(<Preferences />);
     fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
@@ -127,10 +135,10 @@ describe('Preferences', () => {
   });
 
   it('shows unsupported raw values instead of effective defaults and leaves untouched values out of saves', async () => {
-    mockPreferences({preferences: {...preferences, language: 'de_DE', currency: 'GBP', timeZone: 'Europe/London'}});
+    mockPreferences({preferences: {...preferences, language: 'fr_FR', currency: 'GBP', timeZone: 'Europe/London'}});
     render(<Preferences />);
 
-    expect(screen.getByRole('combobox', {name: 'Language'})).toHaveValue('Unsupported (de_DE)');
+    expect(screen.getByRole('combobox', {name: 'Language'})).toHaveValue('Unsupported (fr_FR)');
     expect(screen.getByRole('combobox', {name: 'Currency'})).toHaveTextContent('Unsupported (GBP)');
     expect(screen.getByRole('combobox', {name: 'Time zone'})).toHaveValue('Unsupported (Europe/London)');
     expect(updatePreferences).not.toHaveBeenCalled();

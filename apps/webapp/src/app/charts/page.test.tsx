@@ -1,8 +1,12 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import ChartsPage, {generateMetadata} from './page';
 
-vi.mock('@/lib/i18n/server', () => ({
-  getAppTranslations: async () => (source: string) => source,
+vi.mock('@/i18n/server', () => ({
+  getAppTranslations: async () => (key: string) =>
+    ({
+      'charts.charts': 'Charts',
+      'charts.rechartsChartGalleryForFinancialData': 'Recharts chart gallery for financial data.',
+    })[key] ?? key,
 }));
 
 vi.mock('next/navigation', () => ({

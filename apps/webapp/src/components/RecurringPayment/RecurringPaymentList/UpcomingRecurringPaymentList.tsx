@@ -1,7 +1,7 @@
 import {apiClient} from '@/apiClient';
 import {formatLocalDateOnly, parseLocalDateOnly} from '@/components/RecurringPayment/dateOnly';
+import {getAppTranslations} from '@/i18n/server';
 import {headers} from '@/lib/headers';
-import {getAppTranslations} from '@/lib/i18n/server';
 import {logger} from '@/logger';
 import {RecurringPaymentList, type RecurringPaymentListProps} from './RecurringPaymentList';
 
@@ -27,8 +27,8 @@ export const UpcomingRecurringPaymentList = async ({onAddEntity}: UpcomingRecurr
   }
   return (
     <RecurringPaymentList
-      title={t('Upcoming recurring payments')}
-      subtitle={t('Your upcoming recurring payments')}
+      title={t('recurringPayments.upcomingRecurringPayments')}
+      subtitle={t('recurringPayments.yourUpcomingRecurringPayments')}
       data={(recurringPayments.data ?? []).map(occurrence => ({
         ID: `${occurrence.recurringPayment.id}-${occurrence.scheduledFor}`,
         receiver: occurrence.recurringPayment.receiver,
@@ -44,7 +44,7 @@ export const UpcomingRecurringPaymentList = async ({onAddEntity}: UpcomingRecurr
         },
       }))}
       onAddEntity={onAddEntity}
-      noResultsMessage={t("You don't have any upcoming recurring payments")}
+      noResultsMessage={t('recurringPayments.youDonTHaveAnyUpcomingRecurringPayments')}
     />
   );
 };

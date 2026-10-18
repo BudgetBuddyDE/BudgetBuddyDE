@@ -99,8 +99,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         <SearchIcon />
       </SearchIconWrapper>
       <StyledInputBase
-        placeholder={placeholder ?? t('Search…')}
-        slotProps={{input: {'aria-label': t('search')}}}
+        placeholder={placeholder ?? t('forms.search')}
+        slotProps={{input: {'aria-label': t('forms.searchMessage')}}}
         {...props}
         value={value}
         onChange={handleChange}
@@ -111,7 +111,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
               <IconButton
                 size="small"
                 onClick={handleClear}
-                aria-label={t('clear search')}
+                aria-label={t('forms.clearSearch')}
                 edge="end"
                 sx={{mr: 0.5, color: 'inherit', opacity: 0.7, '&:hover': {opacity: 1}}}
               >

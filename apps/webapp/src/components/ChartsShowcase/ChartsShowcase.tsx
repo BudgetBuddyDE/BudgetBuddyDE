@@ -22,33 +22,31 @@ export const ChartsShowcase: React.FC = () => {
     <Container component="main" maxWidth="xl" sx={{py: {xs: 3, md: 5}}}>
       <Stack sx={{mb: 4}}>
         <Typography component="h1" variant="h4" sx={{fontWeight: 700}}>
-          {t('Financial charts')}
+          {t('charts.financialCharts')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          {t('Explore balances, budgets and money flows. All examples use fictional data.')}
+          {t('charts.exploreBalancesBudgetsAndMoneyFlowsAllExamplesUseFictionalData')}
         </Typography>
-        <Box component="nav" aria-label={t('Chart sections')} sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}>
+        <Box
+          component="nav"
+          aria-label={t('charts.chartSections')}
+          sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}
+        >
           {(
             [
-              'Time series',
-              'Comparison',
-              'Distribution & part-to-whole',
-              'Relationships & intensity',
-              'Flows, investments & KPIs',
+              {key: 'charts.timeSeries', label: t('charts.timeSeries')},
+              {key: 'charts.comparison', label: t('charts.comparison')},
+              {key: 'charts.distributionAndPartToWhole', label: t('charts.distributionPartToWhole')},
+              {key: 'charts.relationshipsIntensity', label: t('charts.relationshipsIntensity')},
+              {key: 'charts.flowsInvestmentsKPIs', label: t('charts.flowsInvestmentsKPIs')},
             ] as const
-          ).map(title => (
-            <Button
-              key={title}
-              href={`#${t(title)
-                .toLowerCase()
-                .replace(/[^a-z]+/g, '-')}`}
-              size="small"
-            >
-              {t(title)}
+          ).map(({key, label}) => (
+            <Button key={key} href={`#${label.toLowerCase().replace(/[^a-z]+/g, '-')}`} size="small">
+              {label}
             </Button>
           ))}
           <Button size="small" onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}>
-            {t('Switch appearance')}
+            {t('charts.switchAppearance')}
           </Button>
         </Box>
       </Stack>

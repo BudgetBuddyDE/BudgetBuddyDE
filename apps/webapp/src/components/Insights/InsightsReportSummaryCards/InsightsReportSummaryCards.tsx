@@ -29,37 +29,37 @@ export const InsightsReportSummaryCards: React.FC<InsightsReportSummaryCardsProp
   }[] = [
     {
       icon: 'trendingUp',
-      label: t('Income'),
+      label: t('insights.income'),
       metric: summary.income,
       format: currencyFormatter.formatBalance,
     },
     {
       icon: 'trendingDown',
-      label: t('Expenses'),
+      label: t('insights.expenses'),
       metric: summary.expenses,
       format: currencyFormatter.formatBalance,
     },
     {
       icon: 'balance',
-      label: t('Net. cash flow'),
+      label: t('insights.netCashFlow'),
       metric: summary.balance,
       format: currencyFormatter.formatBalance,
     },
     {
       icon: 'savings',
-      label: t('Savings rate'),
+      label: t('insights.savingsRate'),
       metric: summary.savingsRate,
       format: value => value.toFixed(1) + '%',
     },
     {
       icon: 'receipt',
-      label: t('Transactions'),
+      label: t('insights.transactions'),
       metric: summary.transactionCount,
       format: value => String(value),
     },
     {
       icon: 'requestQuote',
-      label: t('Average expense'),
+      label: t('insights.averageExpense'),
       metric: summary.expenses,
       format: currencyFormatter.formatBalance,
     },

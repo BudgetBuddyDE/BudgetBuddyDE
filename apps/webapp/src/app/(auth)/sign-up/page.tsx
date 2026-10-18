@@ -40,7 +40,7 @@ export default function SignUp() {
     const confirmPassword = formData.get('confirm-password');
 
     if (password !== confirmPassword) {
-      showSnackbar({message: t('Passwords do not match')});
+      showSnackbar({message: t('auth.signUp.passwordsDoNotMatch')});
       redirectWithFormData(firstName, surname, email);
       return;
     }
@@ -56,7 +56,7 @@ export default function SignUp() {
         },
         onSuccess: async () => {
           showSnackbar({
-            message: t("You have been signed up! You're getting redirected..."),
+            message: t('auth.signUp.youHaveBeenSignedUpYouReGettingRedirected'),
           });
           redirect('/dashboard');
         },
@@ -89,7 +89,7 @@ export default function SignUp() {
                 mt: 2,
               }}
             >
-              {t('Sign up')}
+              {t('auth.signUp.signUp')}
             </Typography>
           </Box>
 
@@ -102,15 +102,15 @@ export default function SignUp() {
               ))}
 
               <Grid size={{xs: 12}}>
-                <Divider>{t('or with')}</Divider>
+                <Divider>{t('auth.signUp.orWith')}</Divider>
               </Grid>
 
               <Grid size={{xs: 6}}>
                 <TextField
                   variant="outlined"
-                  placeholder={t('Name')}
+                  placeholder={t('auth.signUp.name')}
                   type="text"
-                  label={t('Name')}
+                  label={t('auth.signUp.name')}
                   name="name"
                   defaultValue={nameFromQuery}
                   fullWidth
@@ -121,9 +121,9 @@ export default function SignUp() {
               <Grid size={{xs: 6}}>
                 <TextField
                   variant="outlined"
-                  placeholder={t('Surname')}
+                  placeholder={t('auth.signUp.surname')}
                   type="text"
-                  label={t('Surname')}
+                  label={t('auth.signUp.surname')}
                   name="surname"
                   defaultValue={surnameFromQuery}
                   fullWidth
@@ -134,9 +134,9 @@ export default function SignUp() {
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder={t('Enter email')}
+                  placeholder={t('auth.signUp.enterEmail')}
                   type="email"
-                  label={t('E-Mail')}
+                  label={t('auth.signUp.eMail')}
                   name="email"
                   defaultValue={emailFromQuery}
                   fullWidth
@@ -151,7 +151,7 @@ export default function SignUp() {
               <Grid size={{xs: 12}}>
                 <PasswordInput
                   outlinedInputProps={{
-                    label: t('Confirm password'),
+                    label: t('auth.signUp.confirmPassword'),
                     name: 'confirm-password',
                   }}
                 />
@@ -163,9 +163,9 @@ export default function SignUp() {
                   control={<Checkbox />}
                   label={
                     <React.Fragment>
-                      {t('I accept the')}{' '}
+                      {t('auth.signUp.iAcceptThe')}{' '}
                       <Link href={'https://budget-buddy.de/tos'} target="_blank">
-                        {t('Terms of Service')}
+                        {t('auth.signUp.termsOfService')}
                       </Link>
                     </React.Fragment>
                   }
@@ -182,15 +182,15 @@ export default function SignUp() {
                 sx={{mt: 1}}
                 data-umami-event={'default-sign-up'}
               >
-                {t('Sign up')}
+                {t('auth.signUp.signUp')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>{t('Already registered?')}</Divider>
+          <Divider sx={{my: 2}}>{t('auth.signUp.alreadyRegistered')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth>
-            {t('Sign in')}
+            {t('auth.signUp.signIn')}
           </Button>
         </Card>
       </Grid>

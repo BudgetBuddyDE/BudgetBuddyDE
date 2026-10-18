@@ -1,7 +1,7 @@
 import {Grid, Stack, Typography} from '@mui/material';
 import {Brand} from '@/components/Brand';
 import {Card} from '@/components/Card';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function ConfirmUserDeletionPage() {
   const t = await getAppTranslations();
@@ -27,15 +27,13 @@ export default async function ConfirmUserDeletionPage() {
                 mt: 2,
               }}
             >
-              {t('Your account was deleted')}
+              {t('auth.account.yourAccountWasDeleted')}
             </Typography>
           </Card.Header>
 
           <Card.Header>
             <Typography variant="body1" gutterBottom>
-              {t(
-                "We're sorry to see you go. Your account deletion request has been received and is being processed. Please note that it may take up to 60 days for all of your data to be completely erased.",
-              )}
+              {t('account.account.yourAccountWasDeleted')}
             </Typography>
           </Card.Header>
         </Card>

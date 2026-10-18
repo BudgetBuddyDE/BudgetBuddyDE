@@ -39,18 +39,24 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
       <Card.Header>
         <Stack>
           <Card.Title>
-            {t('Executed transactions (')}
+            {t('insights.executedTransactions')}
             {transactionCount})
           </Card.Title>
           <Card.Subtitle>
-            {t('Filtered transactions behind this report. Volume:')}{' '}
+            {t('insights.filteredTransactionsBehindThisReportVolume')}{' '}
             {currencyFormatter.formatBalance(income + expenses)}
           </Card.Subtitle>
         </Stack>
       </Card.Header>
       <Card.Body>
         <ReportTable
-          headers={[t('Date'), t('Receiver'), t('Category'), t('Payment method'), t('Amount')]}
+          headers={[
+            t('insights.date'),
+            t('insights.receiver'),
+            t('insights.category'),
+            t('insights.paymentMethod'),
+            t('insights.amount'),
+          ]}
           rightAlignedColumns={[4]}
           rows={transactions.map(transaction => [
             Formatter.date.formatWithPattern(new Date(transaction.processedAt), 'dd.MM.yyyy'),

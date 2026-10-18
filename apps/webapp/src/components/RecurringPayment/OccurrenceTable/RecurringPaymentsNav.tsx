@@ -34,11 +34,11 @@ export const RecurringPaymentsNav: React.FC<{view: RecurringPaymentView}> = ({vi
           if (!nextView) return;
           router.push(nextView === 'occurrences' ? '/recurringPayments/occurrences' : '/recurringPayments');
         }}
-        aria-label={t('Recurring payment view')}
+        aria-label={t('recurringPayments.recurringPaymentView')}
         sx={{alignSelf: {xs: 'stretch', sm: 'flex-start'}, '& .MuiToggleButton-root': {flex: {xs: 1, sm: 'none'}}}}
       >
-        <ToggleButton value="schedules">{t('Schedules')}</ToggleButton>
-        <ToggleButton value="occurrences">{t('Occurrences')}</ToggleButton>
+        <ToggleButton value="schedules">{t('recurringPayments.schedules')}</ToggleButton>
+        <ToggleButton value="occurrences">{t('recurringPayments.occurrences')}</ToggleButton>
       </ToggleButtonGroup>
     </ActionPaper>
   );

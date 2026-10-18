@@ -19,10 +19,8 @@ export const ApiKeyDeleteDialog: React.FC<ApiKeyDeleteDialogProps> = ({open, onC
       onCancel={onClose}
       onConfirm={onConfirm}
       text={{
-        title: t('Delete API key'),
-        content: t(
-          'Are you sure you want to delete this API key? Applications using it will lose access immediately. This action cannot be undone.',
-        ),
+        title: t('account.apiKeys.deleteAPIKey'),
+        content: t('account.apiKeys.deleteConfirmation'),
       }}
     />
   );

@@ -1,13 +1,13 @@
 import type {TExecutionPlan} from '@budgetbuddyde/api/recurringPayment';
-import type {AppTranslator} from '@/lib/i18n/translate';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
 
 export const getExecutionPlanOptions = (t: AppTranslator): Array<{value: TExecutionPlan; label: string}> => [
-  {value: 'daily', label: t('Daily')},
-  {value: 'weekly', label: t('Weekly')},
-  {value: 'biweekly', label: t('BiWeekly')},
-  {value: 'monthly', label: t('Monthly')},
-  {value: 'quarterly', label: t('Quarterly')},
-  {value: 'yearly', label: t('Yearly')},
+  {value: 'daily', label: t('recurringPayments.daily')},
+  {value: 'weekly', label: t('recurringPayments.weekly')},
+  {value: 'biweekly', label: t('recurringPayments.biweekly')},
+  {value: 'monthly', label: t('recurringPayments.monthly')},
+  {value: 'quarterly', label: t('recurringPayments.quarterly')},
+  {value: 'yearly', label: t('recurringPayments.yearly')},
 ];
 
 export const getExecutionPlanLabels = (t: AppTranslator) =>
@@ -16,5 +16,5 @@ export const getExecutionPlanLabels = (t: AppTranslator) =>
     string
   >;
 
-export const executionPlanOptions = getExecutionPlanOptions(source => source);
-export const executionPlanLabels = getExecutionPlanLabels(source => source);
+export const executionPlanOptions = getExecutionPlanOptions(englishTranslator);
+export const executionPlanLabels = getExecutionPlanLabels(englishTranslator);

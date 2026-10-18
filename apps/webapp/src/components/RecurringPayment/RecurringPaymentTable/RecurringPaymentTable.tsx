@@ -137,11 +137,13 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map(issue => translateValidationIssue(issue, t)).join(', ');
       showSnackbar({
-        message: t('Failed to {value0} recurring payment: {value1}', {
+        message: t('recurringPayments.failedToValue0RecurringPaymentValue1', {
           value0: action === 'CREATE' ? 'create' : 'update',
           value1: issues,
         }),
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
+        action: (
+          <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('recurringPayments.retry')}</Button>
+        ),
       });
       return;
     }
@@ -161,8 +163,10 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       });
       if (!createdRecurringPayment || error) {
         return showSnackbar({
-          message: t('Failed to create recurring payment: {value0}', {value0: error.message}),
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
+          message: t('recurringPayments.failedToCreateRecurringPaymentValue0', {value0: error.message}),
+          action: (
+            <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('recurringPayments.retry')}</Button>
+          ),
         });
       }
       showSnackbar({
@@ -176,7 +180,9 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       if (!entityId) {
         return showSnackbar({
           message: `Failed to update recurring payment: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
+          action: (
+            <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('recurringPayments.retry')}</Button>
+          ),
         });
       }
       const {executionPlan, startsOn, category, paymentMethod, receiver, information, transferAmount} =
@@ -192,8 +198,10 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       });
       if (!updatedRecurringPayment || error) {
         return showSnackbar({
-          message: t('Failed to update recurring payment: {value0}', {value0: error.message}),
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
+          message: t('recurringPayments.failedToUpdateRecurringPaymentValue0', {value0: error.message}),
+          action: (
+            <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('recurringPayments.retry')}</Button>
+          ),
         });
       }
       showSnackbar({
@@ -225,7 +233,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     const [paymentMethods, paymentMethodsError] = paymentMethodsResult;
     if (categoriesError || paymentMethodsError) {
       showSnackbar({
-        message: t('Failed to load recurring payment options: {value0}', {
+        message: t('recurringPayments.failedToLoadRecurringPaymentOptionsValue0', {
           value0: (categoriesError ?? paymentMethodsError)?.message ?? 'Unknown error',
         }),
       });
@@ -267,8 +275,8 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         showSnackbar({
           message:
             batchDialogState.mode === 'CREATE'
-              ? t('Recurring payments created successfully')
-              : t('Recurring payments updated successfully'),
+              ? t('recurringPayments.recurringPaymentsCreatedSuccessfully')
+              : t('recurringPayments.recurringPaymentsUpdatedSuccessfully'),
         });
         dispatch(refresh());
         setBatchDialogState(current => ({...current, open: false}));
@@ -325,11 +333,11 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
 
       const [recurringPayment, error] = await apiClient.backend.recurringPayment.getById(id);
       if (error) {
-        showSnackbar({message: t('Failed to open recurring payment: {value0}', {value0: error.message})});
+        showSnackbar({message: t('recurringPayments.failedToOpenRecurringPaymentValue0', {value0: error.message})});
         return null;
       }
       if (!recurringPayment?.data) {
-        showSnackbar({message: t('Recurring payment not found')});
+        showSnackbar({message: t('recurringPayments.recurringPaymentNotFound')});
         return null;
       }
       return recurringPayment.data;
@@ -369,8 +377,8 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     });
     if (!updatedRecurringPayment || error) {
       return showSnackbar({
-        message: t('Failed to update recurring payment: {value0}', {value0: error.message}),
-        action: <Button onClick={() => handleTogglePauseOnEntity(entity)}>{t('Retry')}</Button>,
+        message: t('recurringPayments.failedToUpdateRecurringPaymentValue0', {value0: error.message}),
+        action: <Button onClick={() => handleTogglePauseOnEntity(entity)}>{t('recurringPayments.retry')}</Button>,
       });
     }
     showSnackbar({
@@ -384,8 +392,8 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     const [result, error] = await apiClient.backend.recurringPayment.executePayment(entity.id);
     if (!result || error) {
       return showSnackbar({
-        message: t('Failed to execute payment: {value0}', {value0: error.message}),
-        action: <Button onClick={() => handleExecutePayment(entity)}>{t('Retry')}</Button>,
+        message: t('recurringPayments.failedToExecutePaymentValue0', {value0: error.message}),
+        action: <Button onClick={() => handleExecutePayment(entity)}>{t('recurringPayments.retry')}</Button>,
       });
     }
     showSnackbar({
@@ -399,7 +407,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     if (!deletedRecurringPayment || error) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('Retry')}</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('recurringPayments.retry')}</Button>,
       });
     }
 
@@ -468,16 +476,16 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         {
           type: 'date',
           name: 'startsOn',
-          label: t('First execution date'),
-          placeholder: t('First execution date'),
+          label: t('recurringPayments.firstExecutionDate'),
+          placeholder: t('recurringPayments.firstExecutionDate'),
           required: true,
         },
         {
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'category',
-          label: t('Category'),
-          placeholder: t('Category'),
+          label: t('recurringPayments.category'),
+          placeholder: t('recurringPayments.category'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.category.getValueHelp();
@@ -493,14 +501,14 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           isOptionEqualToValue(option: TCategoryVH, value: TCategoryVH) {
             return option.id === value.id;
           },
-          noOptionsText: 'No categories found',
+          noOptionsText: t('recurringPayments.noCategoriesFound'),
         },
         {
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'paymentMethod',
-          label: t('Payment Method'),
-          placeholder: t('Payment Method'),
+          label: t('recurringPayments.paymentMethod'),
+          placeholder: t('recurringPayments.paymentMethod'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
@@ -516,13 +524,13 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           isOptionEqualToValue(option: TPaymentMethodVH, value: TPaymentMethodVH) {
             return option.id === value.id;
           },
-          noOptionsText: 'No payment methods found',
+          noOptionsText: t('recurringPayments.noPaymentMethodsFound'),
         },
         {
           type: 'autocomplete',
           name: 'receiver',
-          label: t('Receiver'),
-          placeholder: t('Receiver'),
+          label: t('recurringPayments.receiver'),
+          placeholder: t('recurringPayments.receiver'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.transaction.getReceiverVH();
@@ -558,30 +566,30 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
             const isNew = 'new' in option;
             return (
               <li {...props} key={option.receiver}>
-                {isNew && <Chip label={t('New')} size="small" sx={{mr: 0.5}} />}
+                {isNew && <Chip label={t('recurringPayments.new')} size="small" sx={{mr: 0.5}} />}
                 {option.receiver}
               </li>
             );
           },
-          noOptionsText: 'No receivers found',
+          noOptionsText: t('recurringPayments.noReceiversFound'),
         },
         {
           type: 'number',
           name: 'transferAmount',
-          label: t('Transfer Amount'),
-          placeholder: t('Transfer Amount'),
+          label: t('recurringPayments.transferAmount'),
+          placeholder: t('recurringPayments.transferAmount'),
           required: true,
           slotProps: {
             input: {
-              endAdornment: <InputAdornment position="end">{t('&euro;')}</InputAdornment>,
+              endAdornment: <InputAdornment position="end">{t('recurringPayments.euro')}</InputAdornment>,
             },
           },
         },
         {
           type: 'text',
           name: 'information',
-          label: t('Information'),
-          placeholder: t('Information'),
+          label: t('recurringPayments.information'),
+          placeholder: t('recurringPayments.information'),
           area: true,
           rows: 2,
         },
@@ -592,7 +600,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     () => [
       {
         key: 'startsOn',
-        label: t('Next'),
+        label: t('recurringPayments.next'),
         width: 136,
         renderCell: (_value, row) => (
           <Typography
@@ -608,7 +616,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'executionPlan',
-        label: t('Frequency'),
+        label: t('recurringPayments.frequency'),
         width: 152,
         renderCell: value => (
           <Typography variant="body2">{getExecutionPlanLabels(t)[value as TExecutionPlan]}</Typography>
@@ -616,7 +624,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'category',
-        label: t('Category'),
+        label: t('recurringPayments.category'),
         width: 132,
         renderCell: (_value, row) => (
           <CategoryChip
@@ -628,7 +636,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'paymentMethod',
-        label: t('Payment Method'),
+        label: t('recurringPayments.paymentMethod'),
         width: 178,
         renderCell: (_value, row) => (
           <PaymentMethodChip
@@ -640,7 +648,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'receiver',
-        label: t('Receiver'),
+        label: t('recurringPayments.receiver'),
         width: 168,
         renderCell: value => (
           <Typography variant="body2" noWrap title={value as string}>
@@ -650,7 +658,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'transferAmount',
-        label: t('Amount'),
+        label: t('recurringPayments.amount'),
         align: 'right',
         width: 112,
         renderCell: value => (
@@ -661,7 +669,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       },
       {
         key: 'information',
-        label: t('Information'),
+        label: t('recurringPayments.information'),
         width: '32%',
         renderCell: value => {
           const information = (value as string | null) ?? 'No information';
@@ -691,7 +699,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
             }}
             actions={[
               {
-                children: row.paused ? t('Resume') : t('Pause'),
+                children: row.paused ? t('recurringPayments.resume') : t('recurringPayments.pause'),
                 onClick: () => handleTogglePauseOnEntity(row),
               },
               {
@@ -746,24 +754,24 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         dataKey="id"
         columns={columns}
         toolbar={{
-          title: t('Recurring Payments'),
-          subtitle: t('Manage your recurring payments'),
+          title: t('recurringPayments.recurringPayments'),
+          subtitle: t('recurringPayments.manageYourRecurringPayments'),
           showCount: true,
           showSearch: true,
-          searchPlaceholder: 'Search…',
+          searchPlaceholder: t('recurringPayments.searchRecurringPayments'),
           searchDefaultValue: initialFilters?.keyword ?? undefined,
           onSearch: handleTextSearch,
           actions: [
             {
               id: 'create-recurring-payment',
               icon: <AddIcon />,
-              label: t('Create'),
+              label: t('recurringPayments.create'),
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-recurring-payments',
               icon: <CreateMultipleIcon />,
-              label: t('Create multiple'),
+              label: t('recurringPayments.createMultiple'),
               onClick: handleCreateMultiple,
             },
           ],
@@ -779,15 +787,17 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           ),
         }}
         emptyMessage={
-          filters.keyword ? `No recurring payments found for "${filters.keyword}"` : t('No recurring payments found')
+          filters.keyword
+            ? t('recurringPayments.noRecurringPaymentsFoundForKeyword', {keyword: filters.keyword})
+            : t('recurringPayments.noRecurringPaymentsFound')
         }
         emptyState={
           recurringPayments !== null && totalEntityCount === 0 && !hasActiveFilters
             ? {
                 variant: 'create',
-                title: t('Create your first recurring payment'),
-                description: t('Add a recurring income or expense to keep your schedule accurate.'),
-                createLabel: 'Create recurring payment',
+                title: t('recurringPayments.createYourFirstRecurringPayment'),
+                description: t('recurringPayments.addARecurringIncomeOrExpenseToKeepYourScheduleAccurate'),
+                createLabel: t('recurringPayments.createRecurringPayment'),
                 onCreate: handleCreateEntity,
               }
             : undefined
@@ -799,7 +809,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         selectionActions={[
           {
             icon: <EditIcon fontSize="small" />,
-            label: t('Edit selected'),
+            label: t('recurringPayments.editSelected'),
             onClick: handleEditSelected,
           },
         ]}
@@ -813,7 +823,11 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
 
       <BatchEntityDialog<RecurringPaymentDraftRow, TCreateOrUpdateRecurringPaymentPayload>
         open={batchDialogState.open}
-        title={batchDialogState.mode === 'CREATE' ? t('Create recurring payments') : t('Edit recurring payments')}
+        title={
+          batchDialogState.mode === 'CREATE'
+            ? t('recurringPayments.createRecurringPayments')
+            : t('recurringPayments.editRecurringPayments')
+        }
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
         columns={batchColumns}
@@ -826,7 +840,11 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
 
       <EntityDrawer<EntityFormFields>
         title={'Recurring payment'}
-        subtitle={drawerState.action === 'CREATE' ? t('Create recurring payment') : t('Edit recurring payment')}
+        subtitle={
+          drawerState.action === 'CREATE'
+            ? t('recurringPayments.createRecurringPaymentMessage')
+            : t('recurringPayments.editRecurringPayment')
+        }
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -850,7 +868,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         open={deleteDialogState.isOpen}
         text={{
           content: !Array.isArray(deleteDialogState.target)
-            ? t('Are you sure you want to delete this recurring payment?')
+            ? t('recurringPayments.areYouSureYouWantToDeleteThisRecurringPayment')
             : `Are you sure you want to delete these ${deleteDialogState.target.length} recurring payments?`,
         }}
         onCancel={() => {
@@ -876,7 +894,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       />
 
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label={t('Add recurring payment')} />
+        <AddFab onClick={handleCreateEntity} label={t('recurringPayments.addRecurringPayment')} />
       </FabContainer>
     </React.Fragment>
   );

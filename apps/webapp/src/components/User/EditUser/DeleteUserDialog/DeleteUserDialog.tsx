@@ -54,7 +54,7 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
     >
       <DialogTitle variant="h4" sx={{display: 'flex', flexDirection: 'column', textAlign: 'center'}}>
         <WarningRounded fontSize="large" sx={{mx: 'auto'}} />
-        {t('Attention')}
+        {t('account.profile.attention')}
       </DialogTitle>
       <form
         onSubmit={form.handleSubmit(({password}) => {
@@ -70,22 +70,20 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
               textAlign: 'center',
             }}
           >
-            {t(
-              'Are you sure you want to delete your account? This action is irreversible and will remove all your data permanently.',
-            )}
+            {t('account.profile.deleteConfirmation')}
           </DialogContentText>
 
           <Controller
             name="password"
             control={form.control}
-            rules={{required: t('Password is required to delete your account')}}
+            rules={{required: t('account.profile.passwordIsRequiredToDeleteYourAccount')}}
             render={({field, fieldState: {error}}) => (
               <PasswordInput
                 formControlProps={{sx: {mt: 2}}}
                 outlinedInputProps={{
                   ...field,
-                  label: t('Confirm with your password'),
-                  placeholder: t('Password123'),
+                  label: t('account.profile.confirmWithYourPassword'),
+                  placeholder: t('forms.enterPassword'),
                   error: !!error,
                 }}
               />
@@ -99,10 +97,10 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
               onCancel();
             }}
           >
-            {t('Cancel')}
+            {t('account.profile.cancel')}
           </Button>
           <Button type="submit" color="error" variant="contained" autoFocus>
-            {t('Yes, confirm deletion!')}
+            {t('account.profile.yesConfirmDeletion')}
           </Button>
         </DialogActions>
       </form>

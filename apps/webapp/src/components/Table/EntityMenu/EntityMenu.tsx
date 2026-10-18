@@ -40,11 +40,11 @@ export const EntityMenu = <T,>({
         }}
         actions={[
           {
-            children: t('Edit'),
+            children: t('table.edit'),
             onClick: () => handleEditEntity(entity),
           },
           {
-            children: t('Delete'),
+            children: t('table.delete'),
             onClick: () => handleDeleteEntity(entity),
           },
           ...actions,

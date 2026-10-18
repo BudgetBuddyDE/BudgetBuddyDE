@@ -7,8 +7,8 @@ import {PathnameErrorBoundary, RouteErrorFallback} from '@/components/ErrorBound
 import {CircularProgress} from '@/components/Loading';
 import {UpcomingRecurringPaymentList} from '@/components/RecurringPayment/RecurringPaymentList';
 import {LatestTransactionsList, UpcomingTransactionsList} from '@/components/Transaction/TransactionList';
+import {getAppTranslations} from '@/i18n/server';
 import {headers} from '@/lib/headers';
-import {getAppTranslations} from '@/lib/i18n/server';
 import {DashboardStatsWrapper} from './DashboardStatsWrapper';
 
 export default async function DashboardPage() {
@@ -20,8 +20,8 @@ export default async function DashboardPage() {
         <React.Suspense fallback={<CircularProgress />}>
           {error || !estimatedBudget ? (
             <RouteErrorFallback
-              error={error ?? new Error(t('Budget statistics are unavailable'))}
-              title={t('Dashboard statistics are temporarily unavailable')}
+              error={error ?? new Error(t('navigation.budgetStatisticsAreUnavailable'))}
+              title={t('navigation.dashboardStatisticsAreTemporarilyUnavailable')}
             />
           ) : (
             <DashboardStatsWrapper estimated={estimatedBudget} />
@@ -53,8 +53,8 @@ export default async function DashboardPage() {
             <React.Suspense fallback={<CircularProgress />}>
               {error || !estimatedBudget ? (
                 <RouteErrorFallback
-                  error={error ?? new Error(t('Budget data is unavailable'))}
-                  title={t('Budget chart is temporarily unavailable')}
+                  error={error ?? new Error(t('navigation.budgetDataIsUnavailable'))}
+                  title={t('navigation.budgetChartIsTemporarilyUnavailable')}
                 />
               ) : (
                 <BudgetOverviewCard

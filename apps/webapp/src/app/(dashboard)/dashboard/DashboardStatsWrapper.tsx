@@ -15,21 +15,25 @@ export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}
   const stats: TStatsCardProps[] = [
     {
       icon: 'add',
-      label: t('Income'),
+      label: t('navigation.income'),
       value: currencyFormatter.formatBalance(estimated.income.received),
-      valueInformation: t('Upcoming: {value0}', {value0: currencyFormatter.formatBalance(estimated.income.upcoming)}),
+      valueInformation: t('navigation.upcomingValue0', {
+        value0: currencyFormatter.formatBalance(estimated.income.upcoming),
+      }),
     },
     {
       icon: 'remove',
-      label: t('Spendings'),
+      label: t('navigation.spendings'),
       value: currencyFormatter.formatBalance(estimated.expenses.paid),
-      valueInformation: t('Upcoming: {value0}', {value0: currencyFormatter.formatBalance(estimated.expenses.upcoming)}),
+      valueInformation: t('navigation.upcomingValue0', {
+        value0: currencyFormatter.formatBalance(estimated.expenses.upcoming),
+      }),
     },
     {
       icon: 'balance',
-      label: t('Balance'),
+      label: t('navigation.balance'),
       value: currencyFormatter.formatBalance(currentBalance),
-      valueInformation: t('Estimated: {value0}', {value0: currencyFormatter.formatBalance(estimatedBalance)}),
+      valueInformation: t('navigation.estimatedValue0', {value0: currencyFormatter.formatBalance(estimatedBalance)}),
     },
   ];
 

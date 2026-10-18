@@ -4,7 +4,7 @@ import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function MailVerifiedPage() {
   const t = await getAppTranslations();
@@ -42,7 +42,7 @@ export default async function MailVerifiedPage() {
                 mt: 2,
               }}
             >
-              {t('Email Verification')}
+              {t('auth.email.emailVerification')}
             </Typography>
           </Box>
 
@@ -50,32 +50,28 @@ export default async function MailVerifiedPage() {
 
           {!isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              {t('It seems like you are not signed in. Please sign in first...')}
+              {t('auth.email.itSeemsLikeYouAreNotSignedInPleaseSignInFirst')}
             </Typography>
           )}
 
           {isSignedIn && (
             <Typography variant="body1" gutterBottom>
               {isEmailVerified
-                ? t(
-                    'Thank you for verifying your email address. You can now access all features of Budget Buddy. You can close this page and continue to the dashboard.',
-                  )
-                : t(
-                    'There was an issue verifying your email address. Please try again or contact support if the issue persists.',
-                  )}
+                ? t('auth.email.emailVerification')
+                : t('auth.email.itSeemsLikeYouAreNotSignedInPleaseSignInFirst')}
             </Typography>
           )}
 
-          <Divider sx={{my: 2}}>{t('Not signed in?')}</Divider>
+          <Divider sx={{my: 2}}>{t('auth.email.notSignedIn')}</Divider>
 
           {isSignedIn && (
             <LinkButton href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-              {t('Sign in first...')}
+              {t('auth.email.signInFirst')}
             </LinkButton>
           )}
 
           <LinkButton href="/sign-up" variant="contained" fullWidth>
-            {t('Create an account')}
+            {t('auth.email.createAnAccount')}
           </LinkButton>
         </Card>
       </Grid>

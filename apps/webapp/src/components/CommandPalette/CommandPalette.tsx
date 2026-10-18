@@ -192,14 +192,18 @@ export const CommandPalette: React.FC = () => {
     selectedIndex,
   ]);
 
-  const title = levels.length ? t('Choose entity') : activeCommand ? activeCommand.label : t('Commands');
+  const title = levels.length
+    ? t('commandPalette.chooseEntity')
+    : activeCommand
+      ? activeCommand.label
+      : t('commandPalette.commands');
   const placeholder =
     activeCommand?.placeholder ??
-    (activeCommand
-      ? t('Search {entity}', {entity: activeCommand.label.toLowerCase()})
-      : levels.length
-        ? t('Search entity...')
-        : t('Search commands...'));
+    (levels.length
+      ? t('commandPalette.searchEntityMessage', {entity: 'entity'})
+      : activeCommand
+        ? t('commandPalette.searchEntity', {entity: activeCommand.label.toLowerCase()})
+        : t('commandPalette.searchCommands'));
   const breadcrumb = [...levels.map(level => level.label), activeCommand?.label].filter(Boolean).join('  ›  ');
 
   return (
@@ -241,7 +245,7 @@ export const CommandPalette: React.FC = () => {
             <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
-                  <ListItemText primary={t('Loading...')} />
+                  <ListItemText primary={t('commandPalette.loading')} />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -250,36 +254,36 @@ export const CommandPalette: React.FC = () => {
             <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
-                  <ListItemText primary={activeCommand.emptyLabel ?? t('No matching records')} />
+                  <ListItemText primary={activeCommand.emptyLabel ?? t('commandPalette.noMatchingRecords')} />
                 </ListItemButton>
               </ListItem>
             </List>
           )}
           {!isResolving && !groupedCommands.length && !isResolverMode && (
-            <NoResults text={t("No results for ''{query}''!", {query})} sx={{m: 2}} />
+            <NoResults text={t('commandPalette.noResultsForQuery', {query})} sx={{m: 2}} />
           )}
           {!isResolving &&
             groupedCommands.map(([section, items], groupIndex) => (
               <Box
                 key={
                   {
-                    Navigation: t('Navigation'),
-                    Actions: t('Actions'),
-                    Settings: t('Settings'),
-                    Session: t('Session'),
-                    General: t('General'),
-                    Entities: t('Entities'),
+                    Navigation: t('commandPalette.navigation'),
+                    Actions: t('commandPalette.actions'),
+                    Settings: t('commandPalette.settings'),
+                    Session: t('commandPalette.session'),
+                    General: t('commandPalette.general'),
+                    Entities: t('commandPalette.entities'),
                   }[section] ?? section
                 }
               >
                 <Typography variant="overline" sx={{px: 2, pt: 1, display: 'block', opacity: 0.7}}>
                   {{
-                    Navigation: t('Navigation'),
-                    Actions: t('Actions'),
-                    Settings: t('Settings'),
-                    Session: t('Session'),
-                    General: t('General'),
-                    Entities: t('Entities'),
+                    Navigation: t('commandPalette.navigation'),
+                    Actions: t('commandPalette.actions'),
+                    Settings: t('commandPalette.settings'),
+                    Session: t('commandPalette.session'),
+                    General: t('commandPalette.general'),
+                    Entities: t('commandPalette.entities'),
                   }[section] ?? section}
                 </Typography>
                 <List dense disablePadding>
@@ -312,7 +316,7 @@ export const CommandPalette: React.FC = () => {
           direction="row"
           spacing={1.5}
           useFlexGap
-          aria-label={t('Keyboard shortcuts')}
+          aria-label={t('commandPalette.keyboardShortcuts')}
           sx={{
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -324,10 +328,10 @@ export const CommandPalette: React.FC = () => {
           }}
         >
           {[
-            ['↑↓', t('Navigate')],
-            ['↵', t('Select')],
-            ['Esc', t('Back')],
-            ['⌫', t('Back')],
+            ['↑↓', t('commandPalette.navigate')],
+            ['↵', t('commandPalette.select')],
+            ['Esc', t('commandPalette.back')],
+            ['⌫', t('commandPalette.back')],
           ].map(([key, label]) => (
             <Box key={`${key}-${label}`} component="span" sx={{display: 'inline-flex', alignItems: 'center', gap: 0.5}}>
               <Box

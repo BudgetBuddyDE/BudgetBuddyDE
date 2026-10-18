@@ -117,26 +117,26 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
     () => [
       {
         key: 'scheduledFor',
-        label: t('Date'),
+        label: t('recurringPayments.date'),
         width: 120,
         renderCell: value => formatDateOnlyForDisplay(value as string),
       },
       {
         key: 'recurringPayment.executionPlan',
-        label: t('Plan / Frequency'),
+        label: t('recurringPayments.planFrequency'),
         width: 152,
         renderCell: (_value, row) => getExecutionPlanLabels(t)[row.recurringPayment.executionPlan as TExecutionPlan],
       },
-      {key: 'recurringPayment.receiver', label: t('Receiver'), width: 168},
+      {key: 'recurringPayment.receiver', label: t('recurringPayments.receiver'), width: 168},
       {
         key: 'recurringPayment.category',
-        label: t('Category'),
+        label: t('recurringPayments.category'),
         width: 140,
         renderCell: (_value, row) => <CategoryChip categoryName={row.recurringPayment.category.name} size="small" />,
       },
       {
         key: 'recurringPayment.paymentMethod',
-        label: t('Payment Method'),
+        label: t('recurringPayments.paymentMethod'),
         width: 180,
         renderCell: (_value, row) => (
           <PaymentMethodChip paymentMethodName={row.recurringPayment.paymentMethod.name} size="small" />
@@ -144,7 +144,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
       },
       {
         key: 'recurringPayment.transferAmount',
-        label: t('Amount'),
+        label: t('recurringPayments.amount'),
         align: 'right',
         width: 120,
         renderCell: (_value, row) => (
@@ -163,8 +163,8 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
       dataKey="rowId"
       columns={columns}
       toolbar={{
-        title: t('Occurrences'),
-        subtitle: t('Concrete recurring payment dates'),
+        title: t('recurringPayments.occurrences'),
+        subtitle: t('recurringPayments.concreteRecurringPaymentDates'),
         showCount: true,
         children: (
           <Stack
@@ -202,7 +202,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
                   }}
                 />
               }
-              label={t('Include paused')}
+              label={t('recurringPayments.includePaused')}
               sx={{whiteSpace: 'nowrap'}}
             />
             <FilterWrapper
@@ -214,7 +214,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
           </Stack>
         ),
       }}
-      emptyMessage="No recurring payment occurrences in this date range"
+      emptyMessage={t('recurringPayments.noRecurringPaymentOccurrencesInThisDateRange')}
       pagination={{
         page,
         rowsPerPage,

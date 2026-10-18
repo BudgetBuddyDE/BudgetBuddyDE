@@ -66,9 +66,9 @@ export const ChartCard: React.FC<ChartCardProps> = ({title, subtitle, children, 
             '& table': {fontVariantNumeric: 'tabular-nums'},
           }}
         >
-          <summary>{t('View data')}</summary>
+          <summary>{t('charts.viewData')}</summary>
           <Box sx={{overflowX: 'auto', mt: 1}}>
-            <Table size="small" aria-label={t('{title} data', {title})}>
+            <Table size="small" aria-label={t('charts.titleData', {title})}>
               <TableHead>
                 <TableRow>
                   {columns.map(key => (
@@ -81,7 +81,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({title, subtitle, children, 
                   <TableRow key={index}>
                     {columns.map(key => (
                       <TableCell key={key} align={typeof row[key] === 'number' ? 'right' : 'left'}>
-                        {row[key] === null || row[key] === undefined ? t('No data') : String(row[key])}
+                        {row[key] === null || row[key] === undefined ? t('charts.noData') : String(row[key])}
                       </TableCell>
                     ))}
                   </TableRow>

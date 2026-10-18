@@ -2,7 +2,7 @@ import {Stack} from '@mui/material';
 import {headers} from 'next/headers';
 import {authClient} from '@/authClient';
 import {Card} from '@/components/Card';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 import {RevokeSessionsButton} from './RevokeSessionsBtn';
 import {SessionList} from './SessionList';
 
@@ -19,8 +19,8 @@ export const UserSessions = async () => {
     <Card sx={{px: 0}}>
       <Card.Header sx={{px: 2}}>
         <Stack>
-          <Card.Title>{t('User Sessions')}</Card.Title>
-          <Card.Subtitle>{t('Manage your active sessions')}</Card.Subtitle>
+          <Card.Title>{t('account.sessions.userSessions')}</Card.Title>
+          <Card.Subtitle>{t('account.sessions.manageYourActiveSessions')}</Card.Subtitle>
         </Stack>
       </Card.Header>
       <Card.Body>

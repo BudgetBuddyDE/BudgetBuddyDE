@@ -11,5 +11,5 @@ export default function DashboardError({
   reset: () => void;
 }>) {
   const t = useAppTranslations();
-  return <RouteErrorFallback error={error} reset={reset} title={t('Dashboard is temporarily unavailable')} />;
+  return <RouteErrorFallback error={error} reset={reset} title={t('dashboard.dashboardIsTemporarilyUnavailable')} />;
 }

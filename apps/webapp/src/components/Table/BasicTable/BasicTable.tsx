@@ -91,7 +91,7 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
 
       <Box sx={{px: 0}}>
         {!isLoading && !hasError && data.length === 0 && (
-          <NoResults text={emptyMessage ?? t('No items found')} sx={{m: 2}} />
+          <NoResults text={emptyMessage ?? t('table.noItemsFound')} sx={{m: 2}} />
         )}
 
         {hasError && <ErrorAlert error={errorMessage} sx={{m: 2}} />}

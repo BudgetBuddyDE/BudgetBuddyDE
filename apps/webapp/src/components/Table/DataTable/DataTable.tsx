@@ -8,9 +8,10 @@ import {
   type GridRowSelectionModel,
   type GridValidRowModel,
 } from '@mui/x-data-grid';
-import {enUS} from '@mui/x-data-grid/locales';
+import {deDE, enUS} from '@mui/x-data-grid/locales';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useOptionalPreferencesContext} from '@/hooks/usePreferences';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
 
 export type DataTableColumn<T extends GridValidRowModel> = GridColDef<T>;
@@ -60,6 +61,8 @@ export const DataTable = <T extends GridValidRowModel & {id: string | number}>({
   dataGridProps,
 }: DataTableProps<T>) => {
   const t = useAppTranslations();
+  const preferences = useOptionalPreferencesContext();
+  const gridLocale = preferences?.locale === 'de-DE' ? deDE : enUS;
   const hasError = !!(error && (typeof error === 'object' || (typeof error === 'string' && error.length > 0)));
   const errorMessage = error instanceof Error ? error.message : error;
 
@@ -91,8 +94,8 @@ export const DataTable = <T extends GridValidRowModel & {id: string | number}>({
             }}
             {...dataGridProps}
             localeText={{
-              ...enUS.components.MuiDataGrid.defaultProps.localeText,
-              noRowsLabel: emptyMessage ?? t('No items found'),
+              ...gridLocale.components.MuiDataGrid.defaultProps.localeText,
+              noRowsLabel: emptyMessage ?? t('table.noItemsFound'),
               ...dataGridProps?.localeText,
             }}
           />

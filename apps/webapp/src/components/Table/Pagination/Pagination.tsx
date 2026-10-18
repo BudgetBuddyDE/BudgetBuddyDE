@@ -27,16 +27,16 @@ export const Pagination: React.FC<PaginationProps> = ({
       component="div"
       count={count}
       page={page}
-      labelRowsPerPage={t('Rows:')}
+      labelRowsPerPage={t('table.rows')}
       labelDisplayedRows={({from, to, count}) =>
-        t('{from}–{to} of {count}', {from, to, count: count !== -1 ? count : t('more than {to}', {to})})
+        t('table.fromToOfCount', {from, to, count: count !== -1 ? count : t('table.moreThanTo', {to})})
       }
       getItemAriaLabel={type =>
         ({
-          first: t('Go to first page'),
-          last: t('Go to last page'),
-          next: t('Go to next page'),
-          previous: t('Go to previous page'),
+          first: t('table.goToFirstPage'),
+          last: t('table.goToLastPage'),
+          next: t('table.goToNextPage'),
+          previous: t('table.goToPreviousPage'),
         })[type]
       }
       rowsPerPageOptions={rowsPerPageOptions}

@@ -24,19 +24,19 @@ export const RevokeSessionsButton: React.FC<RevokeSessionsButtonProps> = props =
     if (error) {
       logger.error('Error revoking all sessions', {reason: error.message});
       showSnackbar({
-        message: error.message || t('Failed to revoke all sessions'),
+        message: error.message || t('account.sessions.failedToRevokeAllSessions'),
       });
     }
 
     await revalidateSession();
     const msg = 'All active sessions have been revoked!';
     logger.info(msg);
-    showSnackbar({message: t('All active sessions have been revoked!')});
+    showSnackbar({message: t('account.sessions.allActiveSessionsHaveBeenRevoked')});
   };
 
   return (
     <Button {...props} color="warning" startIcon={<WarningRounded />} onClick={handleSessionRevoke}>
-      {t('Revoke all sessions')}
+      {t('account.sessions.revokeAllSessions')}
     </Button>
   );
 };

@@ -61,6 +61,10 @@ describe('CurrencyFormatter', () => {
 
 describe('DateFormatter', () => {
   describe('formatWithPattern', () => {
+    it('uses the selected language for month names', () => {
+      expect(DateFormatter.formatWithPattern(new Date(2024, 2, 15), 'MMMM yyyy', 'de-DE')).toBe('März 2024');
+      expect(DateFormatter.formatWithPattern(new Date(2024, 2, 15), 'MMMM yyyy', 'en-US')).toBe('March 2024');
+    });
     it('formats a date with the default dd.MM.yyyy pattern', () => {
       expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('15.01.2024');
     });

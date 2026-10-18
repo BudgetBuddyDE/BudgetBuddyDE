@@ -27,7 +27,7 @@ export default function RequestPasswordResetPage() {
     });
 
     showSnackbar({
-      message: t('If an account with that email exists, a password reset link has been sent. Check your inbox'),
+      message: t('auth.auth.ifAnAccountWithThatEmailExistsAPasswordResetLinkHasBeenSentCheckYourInbox'),
     });
   }
 
@@ -56,7 +56,7 @@ export default function RequestPasswordResetPage() {
                 mt: 2,
               }}
             >
-              {t('Request password reset')}
+              {t('auth.auth.requestPasswordReset')}
             </Typography>
           </Box>
 
@@ -65,9 +65,9 @@ export default function RequestPasswordResetPage() {
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder={t('Enter email')}
+                  placeholder={t('auth.auth.enterEmail')}
                   type="email"
-                  label={t('E-Mail')}
+                  label={t('auth.auth.eMail')}
                   name="email"
                   defaultValue={emailFromQuery}
                   disabled={isPending}
@@ -78,19 +78,19 @@ export default function RequestPasswordResetPage() {
             </Grid>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
               <Button type="submit" variant="contained" endIcon={<SendRounded />} sx={{mt: 1}} disabled={isPending}>
-                {t('Submit request')}
+                {t('auth.auth.submitRequest')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>{t('or')}</Divider>
+          <Divider sx={{my: 2}}>{t('auth.auth.or')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-            {t('Sign in')}
+            {t('auth.auth.signIn')}
           </Button>
 
           <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
-            {t('Create an account')}
+            {t('auth.auth.createAnAccount')}
           </Button>
         </Card>
       </Grid>

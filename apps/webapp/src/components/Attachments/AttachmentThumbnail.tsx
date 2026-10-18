@@ -28,12 +28,12 @@ const AttachmentActions: React.FC<AttachmentActionProps> = ({attachment, onDownl
   return (
     <Stack direction="row" className="attachment-actions" {...boxProps}>
       {onDownload && (
-        <ActionButton label={t('Download')} onClick={() => onDownload(attachment)}>
+        <ActionButton label={t('attachments.upload.download')} onClick={() => onDownload(attachment)}>
           <DownloadRounded />
         </ActionButton>
       )}
       {onDelete && (
-        <ActionButton label={t('Delete')} onClick={() => onDelete(attachment)}>
+        <ActionButton label={t('attachments.upload.delete')} onClick={() => onDelete(attachment)}>
           <DeleteRounded />
         </ActionButton>
       )}

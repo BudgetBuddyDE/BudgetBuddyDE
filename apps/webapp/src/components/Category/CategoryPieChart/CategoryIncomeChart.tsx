@@ -17,8 +17,8 @@ export const CategoryIncomeChart: React.FC<CategoryIncomeChartProps> = ({withVie
   const t = useAppTranslations();
   return (
     <CategoryPieChart
-      title={t('Category Income')}
-      subtitle={t('Income per category')}
+      title={t('categories.categoryIncome')}
+      subtitle={t('categories.incomePerCategory')}
       transactionsType={'INCOME'}
       withViewMore={withViewMore}
     />

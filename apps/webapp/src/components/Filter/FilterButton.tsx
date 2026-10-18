@@ -12,10 +12,10 @@ export type FilterButtonProps = Pick<IconButtonProps, 'onClick'> & {
 export const FilterButton: React.FC<FilterButtonProps> = ({isActive, onClick}) => {
   const t = useAppTranslations();
   return (
-    <Tooltip title={isActive ? t('Filters active') : t('Filter')} placement="bottom">
+    <Tooltip title={isActive ? t('table.filtersActive') : t('table.filter')} placement="bottom">
       <IconButton
         color={isActive ? 'primary' : 'default'}
-        aria-label={isActive ? t('Filters active') : t('Filter')}
+        aria-label={isActive ? t('table.filtersActive') : t('table.filter')}
         onClick={onClick}
       >
         <FilterListRounded />

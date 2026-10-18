@@ -143,7 +143,7 @@ export const EntityDrawer = <T extends FieldValues>({
           return (
             <Grid key={`field-unknown-${(field as {name?: string}).name ?? 'unknown'}`} size={{xs: 12}}>
               <ErrorAlert
-                error={new Error(t('Unknown field type: {type}', {type: String((field as {type?: unknown}).type)}))}
+                error={new Error(t('forms.unknownFieldTypeType', {type: String((field as {type?: unknown}).type)}))}
                 sx={{width: '100%'}}
               />
             </Grid>

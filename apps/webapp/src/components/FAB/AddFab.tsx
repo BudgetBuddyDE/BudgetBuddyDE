@@ -13,9 +13,9 @@ export type AddFabProps = Omit<FabProps, 'children'> & {
 export const AddFab: React.FC<AddFabProps> = ({label, ...props}) => {
   const t = useAppTranslations();
   return (
-    <Fab color="primary" variant="extended" aria-label={t('add')} {...props}>
+    <Fab color="primary" variant="extended" aria-label={t('common.add')} {...props}>
       <AddIcon sx={{mr: 1}} />
-      {label ?? t('Add')}
+      {label ?? t('common.addMessage')}
     </Fab>
   );
 };

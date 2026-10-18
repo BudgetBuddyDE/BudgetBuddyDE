@@ -3,7 +3,8 @@ import {authClient} from '@/authClient';
 import {Formatter} from '@/utils/Formatter';
 import {formatDateOnlyForDisplay} from '@/components/RecurringPayment/dateOnly';
 import {getExecutionPlanLabels} from '@/components/RecurringPayment/executionPlan';
-import type {AppTranslator} from '@/lib/i18n/translate';
+import {englishTranslator} from '@/i18n/translate';
+import type {AppTranslator} from '@/i18n/translate';
 import type {IntentEntity} from './types';
 
 /** Search result that can be selected as an edit or delete intent target. */
@@ -14,7 +15,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 const withUuidFallback = (query: string, options: IntentTargetOption[], t: AppTranslator) => {
   const trimmedQuery = query.trim();
   if (!UUID_PATTERN.test(trimmedQuery) || options.some(option => option.id === trimmedQuery)) return options;
-  return [...options, {id: trimmedQuery, label: t('Use ID "{id}"', {id: trimmedQuery}), keywords: [trimmedQuery]}];
+  return [...options, {id: trimmedQuery, label: t('intents.useId', {id: trimmedQuery}), keywords: [trimmedQuery]}];
 };
 
 /**
@@ -27,7 +28,7 @@ export async function searchIntentTargets(
   entity: IntentEntity,
   query: string,
   formatCurrency: (value: number) => string = Formatter.currency.formatBalance,
-  t: AppTranslator = (source, values) => source.replace(/\{(\w+)\}/g, (_, key: string) => String(values?.[key] ?? key)),
+  t: AppTranslator = englishTranslator,
 ): Promise<IntentTargetOption[]> {
   const search = query.trim();
   let options: IntentTargetOption[] = [];
@@ -62,7 +63,7 @@ export async function searchIntentTargets(
       if (error) throw new Error(error.message);
       options = (result?.data ?? []).map(payment => ({
         id: payment.id,
-        label: `${payment.receiver} · ${formatCurrency(payment.transferAmount)} · ${getExecutionPlanLabels(t)[payment.executionPlan]} ${t('from')} ${formatDateOnlyForDisplay(payment.startsOn)}`,
+        label: `${payment.receiver} · ${formatCurrency(payment.transferAmount)} · ${getExecutionPlanLabels(t)[payment.executionPlan]} ${t('entities.from')} ${formatDateOnlyForDisplay(payment.startsOn)}`,
         description: payment.information ?? undefined,
         keywords: [payment.receiver, payment.category.name, payment.paymentMethod.name, payment.information ?? ''],
       }));
@@ -123,7 +124,7 @@ export async function searchIntentTargets(
       const {data, error} = await authClient.apiKey.list({
         query: {limit: 10, offset: 0, sortBy: 'createdAt', sortDirection: 'desc'},
       });
-      if (error) throw new Error(error.message ?? 'Failed to fetch API keys');
+      if (error) throw new Error(error.message ?? t('intents.apiKeysFetchFailed'));
       const normalizedSearch = search.toLowerCase();
       options = ((data?.apiKeys ?? []) as Array<{id: string; name?: string | null}>)
         .filter(apiKey => {

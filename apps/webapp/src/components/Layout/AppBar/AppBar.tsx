@@ -37,19 +37,19 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
   const isUserMenuOpen = anchorElUser !== null;
 
   const MenuLinks = [
-    {label: t('Website'), href: 'https://budgetbuddy.dev'},
+    {label: t('navigation.website'), href: 'https://budgetbuddy.dev'},
     {label: 'GitHub', href: 'https://github.com/BudgetBuddyDE'},
   ];
 
   const handleLogOut = async () => {
     await signOut(
       () => {
-        showSnackbar({message: t('You have been logged out.')});
+        showSnackbar({message: t('navigation.youHaveBeenLoggedOut')});
       },
       () => {
         showSnackbar({
-          message: t('Logout failed. Please try again.'),
-          action: <Button onClick={handleLogOut}>{t('Retry')}</Button>,
+          message: t('navigation.logoutFailedPleaseTryAgain'),
+          action: <Button onClick={handleLogOut}>{t('navigation.retry')}</Button>,
         });
       },
     );
@@ -58,12 +58,12 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
   const ProfileMenu = [
     {
       icon: <SettingsIcon />,
-      label: t('Settings'),
+      label: t('navigation.settings'),
       onClick: () => router.push('/settings/profile'),
     },
     {
       icon: <LogoutIcon />,
-      label: t('Logout'),
+      label: t('navigation.logout'),
       onClick: handleLogOut,
     },
   ];
@@ -113,10 +113,10 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
             </Box>
 
             {/* Profile */}
-            <Tooltip title={t('Profile')}>
+            <Tooltip title={t('navigation.profile')}>
               <IconButton
                 onClick={handleOpenUserMenu}
-                aria-label={t('Profile')}
+                aria-label={t('navigation.profile')}
                 aria-haspopup="true"
                 aria-expanded={isUserMenuOpen}
                 aria-controls={isUserMenuOpen ? 'menu-appbar' : undefined}

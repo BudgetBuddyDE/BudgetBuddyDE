@@ -19,7 +19,7 @@ export const DrawerHamburger: React.FC<DrawerHeaderProps> = ({...iconButtonProps
 
   return (
     <IconButton
-      aria-label={t('Toggle navigation')}
+      aria-label={t('forms.toggleNavigation')}
       aria-expanded={open}
       onClick={() => toggleVisibility(screenSize)}
       {...iconButtonProps}

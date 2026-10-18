@@ -61,7 +61,7 @@ export type ErrorBoundaryState = {
  *     <div>
  *       <h2>Something wen't wrong</h2>
  *       <pre>{error.message}</pre>
- *       <button onClick={reset}>{t('Retry')}</button>
+ *       <button onClick={reset}>{t('common.retry')}</button>
  *     </div>
  *   )}
  * >
@@ -145,12 +145,12 @@ function DefaultErrorFallback({error, reset}: ErrorBoundaryFallbackProps) {
       severity="error"
       action={
         <Button color="inherit" size="small" onClick={reset}>
-          {t('Retry')}
+          {t('common.retry')}
         </Button>
       }
     >
-      <AlertTitle>{t("Something wen't wrong")}</AlertTitle>
-      {error.message === 'Unknown error' ? t('Unknown error') : error.message}
+      <AlertTitle>{t('common.somethingWenTWrong')}</AlertTitle>
+      {error.message === 'Unknown error' ? t('common.unknownError') : error.message}
     </Alert>
   );
 }

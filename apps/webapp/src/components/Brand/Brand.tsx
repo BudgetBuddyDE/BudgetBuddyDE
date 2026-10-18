@@ -28,7 +28,7 @@ export const Brand: React.FC<TBrandProps> = ({
   const content = (
     <Stack direction="row" sx={{alignItems: 'center', gap: 1.5, minWidth: 0, ...boxStyle}}>
       <AppLogo
-        alt={showTitle ? '' : t('BudgetBuddyDE logo')}
+        alt={showTitle ? '' : t('common.budgetbuddydeLogo')}
         width={logoSize}
         height={logoSize}
         loading="eager"

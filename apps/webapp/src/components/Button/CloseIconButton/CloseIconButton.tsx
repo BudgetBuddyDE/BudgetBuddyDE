@@ -10,7 +10,7 @@ export type CloseIconButtonProps = Omit<IconButtonProps, 'children'>;
 export const CloseIconButton: React.FC<CloseIconButtonProps> = ({...props}) => {
   const t = useAppTranslations();
   return (
-    <IconButton aria-label={t('close')} {...props}>
+    <IconButton aria-label={t('common.closeMessage')} {...props}>
       <CloseIcon />
     </IconButton>
   );

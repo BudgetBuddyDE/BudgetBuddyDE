@@ -17,8 +17,8 @@ export const CategoryExpenseChart: React.FC<CategoryExpenseChartProps> = ({withV
   const t = useAppTranslations();
   return (
     <CategoryPieChart
-      title={t('Category Expenses')}
-      subtitle={t('Expenses per category')}
+      title={t('categories.categoryExpenses')}
+      subtitle={t('categories.expensesPerCategory')}
       transactionsType={'EXPENSE'}
       withViewMore={withViewMore}
     />

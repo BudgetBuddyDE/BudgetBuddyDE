@@ -28,25 +28,32 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
         <Grid size={{xs: 12, lg: 7}}>
           <Card>
             <Card.Header>
-              <Card.Title>{t('Category analysis')}</Card.Title>
+              <Card.Title>{t('insights.categoryAnalysis')}</Card.Title>
               <FormControl size="small" sx={{minWidth: 130}}>
-                <InputLabel id="insights-report-category-metric-label">{t('Metric')}</InputLabel>
+                <InputLabel id="insights-report-category-metric-label">{t('insights.metric')}</InputLabel>
                 <Select
                   labelId="insights-report-category-metric-label"
                   id="insights-report-category-metric"
-                  label={t('Metric')}
+                  label={t('insights.metric')}
                   value={categoryMetric}
                   onChange={event => setCategoryMetric(event.target.value as CategoryMetric)}
                 >
-                  <MenuItem value="expenses">{t('Expenses')}</MenuItem>
-                  <MenuItem value="income">{t('Income')}</MenuItem>
-                  <MenuItem value="balance">{t('Balance')}</MenuItem>
+                  <MenuItem value="expenses">{t('insights.expenses')}</MenuItem>
+                  <MenuItem value="income">{t('insights.income')}</MenuItem>
+                  <MenuItem value="balance">{t('insights.balance')}</MenuItem>
                 </Select>
               </FormControl>
             </Card.Header>
             <Card.Body>
               <ReportTable
-                headers={[t('Category'), t('Selected metric'), t('Expenses'), t('Income'), t('Balance'), t('Share')]}
+                headers={[
+                  t('insights.category'),
+                  t('insights.selectedMetric'),
+                  t('insights.expenses'),
+                  t('insights.income'),
+                  t('insights.balance'),
+                  t('insights.share'),
+                ]}
                 rightAlignedColumns={[1, 2, 3, 4, 5]}
                 rows={selectedCategoryRows.map(row => [
                   row.category.name,
@@ -63,24 +70,24 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
         <Grid size={{xs: 12, lg: 5}}>
           <Card>
             <Card.Header>
-              <Card.Title>{t('Payment method usage')}</Card.Title>
+              <Card.Title>{t('insights.paymentMethodUsage')}</Card.Title>
               <FormControl size="small" sx={{minWidth: 110}}>
-                <InputLabel id="insights-report-payment-metric-label">{t('Rank by')}</InputLabel>
+                <InputLabel id="insights-report-payment-metric-label">{t('insights.rankBy')}</InputLabel>
                 <Select
                   labelId="insights-report-payment-metric-label"
                   id="insights-report-payment-metric"
-                  label={t('Rank by')}
+                  label={t('insights.rankBy')}
                   value={paymentMetric}
                   onChange={event => setPaymentMetric(event.target.value as PaymentMetric)}
                 >
-                  <MenuItem value="count">{t('Uses')}</MenuItem>
-                  <MenuItem value="volume">{t('Volume')}</MenuItem>
+                  <MenuItem value="count">{t('insights.uses')}</MenuItem>
+                  <MenuItem value="volume">{t('insights.volume')}</MenuItem>
                 </Select>
               </FormControl>
             </Card.Header>
             <Card.Body>
               <ReportTable
-                headers={[t('Method'), t('Uses'), t('Share'), t('Expenses')]}
+                headers={[t('insights.method'), t('insights.uses'), t('insights.share'), t('insights.expenses')]}
                 rightAlignedColumns={[1, 2, 3]}
                 rows={[...report.paymentMethods]
                   .sort((a, b) =>
@@ -103,13 +110,19 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
         <Card>
           <Card.Header>
             <Box>
-              <Card.Title>{t('Current month budget health')}</Card.Title>
-              <Card.Subtitle>{t('Budgets are evaluated independently from the report period')}</Card.Subtitle>
+              <Card.Title>{t('insights.currentMonthBudgetHealth')}</Card.Title>
+              <Card.Subtitle>{t('insights.budgetsAreEvaluatedIndependentlyFromTheReportPeriod')}</Card.Subtitle>
             </Box>
           </Card.Header>
           <Card.Body>
             <ReportTable
-              headers={[t('Budget'), t('Target'), t('Spent'), t('Remaining'), t('Usage')]}
+              headers={[
+                t('insights.budget'),
+                t('insights.target'),
+                t('insights.spent'),
+                t('insights.remaining'),
+                t('insights.usage'),
+              ]}
               rightAlignedColumns={[1, 2, 3, 4]}
               rows={report.budgets.map(row => [
                 row.name,

@@ -12,7 +12,7 @@ export type FullscreenIconButtonProps = Omit<IconButtonProps, 'children'> & {
 export const FullscreenIconButton: React.FC<FullscreenIconButtonProps> = ({isFullscreen, ...props}) => {
   const t = useAppTranslations();
   return (
-    <IconButton aria-label={isFullscreen ? t('exit fullscreen') : t('enter fullscreen')} {...props}>
+    <IconButton aria-label={isFullscreen ? t('common.exitFullscreen') : t('common.enterFullscreen')} {...props}>
       {isFullscreen ? <CloseFullscreenRounded /> : <OpenInFullRounded />}
     </IconButton>
   );

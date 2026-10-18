@@ -98,8 +98,8 @@ export const RegisterIntentCommands: React.FC = () => {
         section: 'Entities',
         icon: <EntityIcon entity={entity} />,
         keywords: [config.pluralLabel, config.pluralLabel, entity],
-        placeholder: t('Search {entity}...', {entity: config.label}),
-        emptyLabel: t('No matching {entities}', {entities: config.pluralLabel}),
+        placeholder: t('commandPalette.searchEntityMessage', {entity: config.label}),
+        emptyLabel: t('commandPalette.noMatchingEntities', {entities: config.pluralLabel}),
         resolve: async query => {
           try {
             const targets = await searchIntentTargets(resolvedEntity, query, formatBalance, t);
@@ -128,7 +128,7 @@ export const RegisterIntentCommands: React.FC = () => {
                   ),
             );
           } catch (error) {
-            showSnackbar({message: error instanceof Error ? error.message : t('Failed to load targets')});
+            showSnackbar({message: error instanceof Error ? error.message : t('commandPalette.failedToLoadTargets')});
             return [];
           }
         },
@@ -142,15 +142,21 @@ export const RegisterIntentCommands: React.FC = () => {
     const commands: Command[] = [
       {
         id: 'ibn-create',
-        label: t('Create...'),
+        label: t('commandPalette.create'),
         section: 'Actions',
         icon: <EntityIcon entity="transaction" />,
         children: entitiesFor('create'),
       },
-      {id: 'ibn-edit', label: t('Edit...'), section: 'Actions', icon: <EditRounded />, children: entitiesFor('edit')},
+      {
+        id: 'ibn-edit',
+        label: t('commandPalette.edit'),
+        section: 'Actions',
+        icon: <EditRounded />,
+        children: entitiesFor('edit'),
+      },
       {
         id: 'ibn-delete',
-        label: t('Delete...'),
+        label: t('commandPalette.delete'),
         section: 'Actions',
         icon: <DeleteRounded />,
         children: entitiesFor('delete'),

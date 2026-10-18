@@ -22,7 +22,7 @@ export const NumberFieldComponent = <T extends FieldValues>({
 }: NumberFieldComponentProps<T>) => {
   const t = useAppTranslations();
   const inputRequiredMessage = field.required
-    ? t('{name} is required', {name: String(field.label ?? field.name)})
+    ? t('forms.nameIsRequired', {name: String(field.label ?? field.name)})
     : undefined;
 
   const htmlInputMode = isRunningOnIOs() ? 'text' : 'numeric';

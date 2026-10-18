@@ -40,7 +40,7 @@ export default function SignInPage() {
         },
         onSuccess: async () => {
           showSnackbar({
-            message: t("You have been signed in! You're getting redirected..."),
+            message: t('auth.signIn.youHaveBeenSignedInYouReGettingRedirected'),
           });
           redirect('/dashboard');
         },
@@ -73,7 +73,7 @@ export default function SignInPage() {
                 mt: 2,
               }}
             >
-              {t('Sign in')}
+              {t('auth.signIn.signIn')}
             </Typography>
           </Box>
 
@@ -86,15 +86,15 @@ export default function SignInPage() {
               ))}
 
               <Grid size={{xs: 12}}>
-                <Divider>{t('or with')}</Divider>
+                <Divider>{t('auth.signIn.orWith')}</Divider>
               </Grid>
 
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder={t('Enter email')}
+                  placeholder={t('auth.signIn.enterEmail')}
                   type="email"
-                  label={t('E-Mail')}
+                  label={t('auth.signIn.eMail')}
                   name="email"
                   defaultValue={emailFromQuery}
                   disabled={isPending}
@@ -114,21 +114,21 @@ export default function SignInPage() {
                   size="small"
                   sx={{mt: 0.5}}
                 >
-                  {t('Forgot password?')}
+                  {t('auth.signIn.forgotPassword')}
                 </Button>
               </Grid>
             </Grid>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
               <Button type="submit" variant="contained" endIcon={<SendRounded />} sx={{mt: 1}} disabled={isPending}>
-                {t('Sign in')}
+                {t('auth.signIn.signIn')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>{t('No account?')}</Divider>
+          <Divider sx={{my: 2}}>{t('auth.signIn.noAccount')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
-            {t('Create an account')}
+            {t('auth.signIn.createAnAccount')}
           </Button>
         </Card>
       </Grid>

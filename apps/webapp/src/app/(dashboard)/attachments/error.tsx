@@ -5,5 +5,7 @@ import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export default function AttachmentsError({error, reset}: {error: Error & {digest?: string}; reset: () => void}) {
   const t = useAppTranslations();
-  return <RouteErrorFallback error={error} reset={reset} title={t('Attachments are temporarily unavailable')} />;
+  return (
+    <RouteErrorFallback error={error} reset={reset} title={t('attachments.attachmentsAreTemporarilyUnavailable')} />
+  );
 }

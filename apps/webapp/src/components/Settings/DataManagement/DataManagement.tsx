@@ -38,18 +38,20 @@ export const DataManagement = () => {
               if (!nextAction) return;
               setAction(nextAction);
             }}
-            aria-label={t('Data management action')}
+            aria-label={t('settings.dataManagement.dataManagementAction')}
             sx={{alignSelf: {xs: 'stretch', sm: 'flex-start'}, '& .MuiToggleButton-root': {flex: {xs: 1, sm: 'none'}}}}
           >
-            <ToggleButton value="export">{t('Export')}</ToggleButton>
-            <ToggleButton value="import">{t('Import')}</ToggleButton>
+            <ToggleButton value="export">{t('settings.dataManagement.export')}</ToggleButton>
+            <ToggleButton value="import">{t('settings.dataManagement.import')}</ToggleButton>
           </ToggleButtonGroup>
         </ActionPaper>
       </Card.Header>
       {action === 'export' ? (
         <>
           <Card.Body>
-            <Typography variant="body2">{t('Download a copy of your account and application data.')}</Typography>
+            <Typography variant="body2">
+              {t('settings.dataManagement.downloadACopyOfYourAccountAndApplicationData')}
+            </Typography>
           </Card.Body>
           <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
             <DataExport asButton />
@@ -58,7 +60,9 @@ export const DataManagement = () => {
       ) : (
         <>
           <Card.Body>
-            <Typography variant="body2">{t('Restore application data from a BudgetBuddy export archive.')}</Typography>
+            <Typography variant="body2">
+              {t('settings.dataManagement.restoreApplicationDataFromABudgetBuddyExportArchive')}
+            </Typography>
           </Card.Body>
           <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
             <DataImport asButton />

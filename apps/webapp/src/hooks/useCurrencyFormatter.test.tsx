@@ -21,15 +21,15 @@ describe('useCurrencyFormatter', () => {
     rerender();
     expect(result.current).toBe(original);
     expect(result.current.formatBalance(1234.5)).toBe('$1,234.50');
-    useOptionalPreferencesContext.mockReturnValue({locale: 'de-DE', effectivePreferences: {currency: 'GBP'}});
+    useOptionalPreferencesContext.mockReturnValue({locale: 'de-DE', effectivePreferences: {currency: 'EUR'}});
     rerender();
     expect(result.current.formatBalance(1234.5)).toBe(
-      new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'GBP'}).format(1234.5),
+      new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format(1234.5),
     );
     expect(result.current.shortenBalance(2500)).toBe(
       new Intl.NumberFormat('de-DE', {
         style: 'currency',
-        currency: 'GBP',
+        currency: 'EUR',
         notation: 'compact',
         maximumFractionDigits: 1,
       }).format(2500),

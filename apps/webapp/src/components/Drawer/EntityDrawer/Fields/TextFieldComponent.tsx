@@ -22,7 +22,7 @@ export const TextFieldComponent = <T extends FieldValues>({
 }: TextFieldComponentProps<T>) => {
   const t = useAppTranslations();
   const inputRequiredMessage = field.required
-    ? t('{name} is required', {name: String(field.label ?? field.name)})
+    ? t('forms.nameIsRequired', {name: String(field.label ?? field.name)})
     : undefined;
 
   return (

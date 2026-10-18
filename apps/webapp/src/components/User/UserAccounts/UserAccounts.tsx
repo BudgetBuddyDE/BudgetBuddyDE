@@ -2,7 +2,7 @@ import {Stack} from '@mui/material';
 import {headers} from 'next/headers';
 import {authClient} from '@/authClient';
 import {Card} from '@/components/Card';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 import {AccountList} from './AccountList';
 
 export const UserAccounts = async () => {
@@ -18,8 +18,8 @@ export const UserAccounts = async () => {
     <Card sx={{px: 0}}>
       <Card.Header sx={{px: 2}}>
         <Stack>
-          <Card.Title>{t('Linked accounts')}</Card.Title>
-          <Card.Subtitle>{t('Manage your linked accounts')}</Card.Subtitle>
+          <Card.Title>{t('account.linkedAccounts.linkedAccounts')}</Card.Title>
+          <Card.Subtitle>{t('account.linkedAccounts.manageYourLinkedAccounts')}</Card.Subtitle>
         </Stack>
       </Card.Header>
       <Card.Body>

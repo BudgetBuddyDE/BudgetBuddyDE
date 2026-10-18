@@ -61,7 +61,7 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
             <IntentButton
               intent={{entity: 'recurringPayment', action: 'create'}}
               iconButton
-              aria-label={t('Create Recurring-Payment')}
+              aria-label={t('recurringPayments.createRecurringPayment')}
               color="primary"
             >
               <AddIcon />
@@ -82,7 +82,9 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
                 subtitle={
                   <Box>
                     <Chip
-                      label={t('Next {date}', {date: Formatter.date.format(recurringPayment.nextExecution, true)})}
+                      label={t('recurringPayments.nextDate', {
+                        date: Formatter.date.format(recurringPayment.nextExecution, true),
+                      })}
                       sx={{mr: 1}}
                       {...chipProps}
                     />
@@ -95,7 +97,7 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
             );
           })
         ) : (
-          <NoResults text={noResultsMessage ?? t('There are no recurring payments')} />
+          <NoResults text={noResultsMessage ?? t('recurringPayments.thereAreNoRecurringPayments')} />
         )}
       </Card.Body>
     </Card>

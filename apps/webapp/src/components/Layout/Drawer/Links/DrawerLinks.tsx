@@ -5,32 +5,32 @@ import {EntityIcon} from '@/lib/ibn';
 export const getDrawerLinks = (t: ReturnType<typeof useAppTranslations>) =>
   [
     {
-      text: t('Dashboard'),
+      text: t('forms.dashboard'),
       path: '/dashboard',
       icon: DashboardViewIconMapping['/dashboard'],
     },
     {
-      text: t('Transactions'),
+      text: t('forms.transactions'),
       path: '/transactions',
       icon: <EntityIcon entity="transaction" />,
     },
     {
-      text: t('Recurring Payments'),
+      text: t('forms.recurringPayments'),
       path: '/recurringPayments',
       icon: <EntityIcon entity="recurringPayment" />,
     },
     {
-      text: t('Payment Methods'),
+      text: t('forms.paymentMethods'),
       path: '/paymentMethods',
       icon: <EntityIcon entity="paymentMethod" />,
     },
     {
-      text: t('Categories'),
+      text: t('forms.categories'),
       path: '/categories',
       icon: <EntityIcon entity="category" />,
     },
     {
-      text: t('Attachments'),
+      text: t('forms.attachments'),
       path: '/attachments',
       icon: <EntityIcon entity="attachment" />,
     },

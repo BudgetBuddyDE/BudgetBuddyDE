@@ -2,8 +2,8 @@ import AddIcon from '@mui/icons-material/AddRounded';
 import {addDays} from 'date-fns';
 import {apiClient} from '@/apiClient';
 import {IntentButton} from '@/components/IBN';
+import {getAppTranslations} from '@/i18n/server';
 import {headers} from '@/lib/headers';
-import {getAppTranslations} from '@/lib/i18n/server';
 import {logger} from '@/logger';
 import {TransactionList, type TransactionListProps} from './TransactionList';
 
@@ -24,8 +24,8 @@ export const UpcomingTransactionsList = async ({onAddEntity}: UpcomingTransactio
   }
   return (
     <TransactionList
-      title={t('Transactions')}
-      subtitle={t('Your upcoming transactions')}
+      title={t('transactions.transactionsMessage')}
+      subtitle={t('transactions.yourUpcomingTransactions')}
       data={(transactions.data ?? []).map(t => ({
         ID: t.id,
         receiver: t.receiver,
@@ -45,13 +45,13 @@ export const UpcomingTransactionsList = async ({onAddEntity}: UpcomingTransactio
         <IntentButton
           intent={{entity: 'transaction', action: 'create'}}
           iconButton
-          aria-label={t('Create Transaction')}
+          aria-label={t('transactions.createTransaction')}
           color="primary"
         >
           <AddIcon />
         </IntentButton>
       }
-      noResultsMessage={t("You don't have any upcoming transactions for this month")}
+      noResultsMessage={t('transactions.youDonTHaveAnyUpcomingTransactionsForThisMonth')}
     />
   );
 };

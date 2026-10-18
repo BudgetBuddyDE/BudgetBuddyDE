@@ -8,7 +8,7 @@ import {
 import type {GridColDef} from '@mui/x-data-grid';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
-import type {AppTranslator} from '@/lib/i18n/translate';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
 
 export type PaymentMethodDraftRow = {
   id: string;
@@ -46,31 +46,31 @@ export const fromEntity = (entity: TPaymentMethod): DraftRow => ({
 
 export type PaymentMethodBatchColumnOptions = {t?: AppTranslator};
 
-export const columns = ({t = source => source}: PaymentMethodBatchColumnOptions = {}): GridColDef<DraftRow>[] => [
+export const columns = ({t = englishTranslator}: PaymentMethodBatchColumnOptions = {}): GridColDef<DraftRow>[] => [
   {
     field: 'name',
-    headerName: t('Name'),
+    headerName: t('paymentMethods.name'),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'provider',
-    headerName: t('Provider'),
+    headerName: t('paymentMethods.provider'),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'address',
-    headerName: t('Address'),
+    headerName: t('paymentMethods.address'),
     flex: 1,
     minWidth: 220,
     editable: true,
   },
   {
     field: 'description',
-    headerName: t('Description'),
+    headerName: t('paymentMethods.description'),
     flex: 2,
     minWidth: 240,
     editable: true,
@@ -93,4 +93,4 @@ export const createMapRowsToPayload =
       t,
     );
 
-export const mapRowsToPayload = createMapRowsToPayload(source => source);
+export const mapRowsToPayload = createMapRowsToPayload(englishTranslator);

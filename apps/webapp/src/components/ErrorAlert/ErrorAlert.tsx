@@ -31,8 +31,8 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({error, isDismissable = fa
     alertProps.onClose = () => setShow(false);
   }
   return (
-    <Alert closeText={t('Close')} variant="standard" severity="error" {...alertProps}>
-      <AlertTitle>{typeof error === 'string' ? t('Error') : error.name}</AlertTitle>
+    <Alert closeText={t('common.close')} variant="standard" severity="error" {...alertProps}>
+      <AlertTitle>{typeof error === 'string' ? t('common.error') : error.name}</AlertTitle>
       {typeof error === 'string' ? error : error.message}
     </Alert>
   );

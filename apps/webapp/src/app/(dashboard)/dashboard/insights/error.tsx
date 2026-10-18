@@ -5,5 +5,7 @@ import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export default function InsightsError({error, reset}: {error: Error & {digest?: string}; reset: () => void}) {
   const t = useAppTranslations();
-  return <RouteErrorFallback error={error} reset={reset} title={t('Insights are temporarily unavailable')} />;
+  return (
+    <RouteErrorFallback error={error} reset={reset} title={t('insights.dashboardInsightsAreTemporarilyUnavailable')} />
+  );
 }

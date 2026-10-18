@@ -11,7 +11,7 @@ import type {GridColDef} from '@mui/x-data-grid';
 import {z} from 'zod';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
-import type {AppTranslator} from '@/lib/i18n/translate';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
 
 export type TransactionDraftRow = {
   id: string;
@@ -64,7 +64,7 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
   return [
     {
       field: 'processedAt',
-      headerName: t('Date'),
+      headerName: t('transactions.date'),
       type: 'date',
       flex: 1,
       minWidth: 160,
@@ -72,7 +72,7 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
     },
     {
       field: 'categoryId',
-      headerName: t('Category'),
+      headerName: t('transactions.category'),
       type: 'singleSelect',
       valueOptions: options.categories.map(category => ({value: category.id, label: category.name})),
       flex: 1,
@@ -81,7 +81,7 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
     },
     {
       field: 'paymentMethodId',
-      headerName: t('Payment method'),
+      headerName: t('transactions.paymentMethodMessage'),
       type: 'singleSelect',
       valueOptions: options.paymentMethods.map(paymentMethod => ({
         value: paymentMethod.id,
@@ -93,14 +93,14 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
     },
     {
       field: 'receiver',
-      headerName: t('Receiver'),
+      headerName: t('transactions.receiver'),
       flex: 1,
       minWidth: 180,
       editable: true,
     },
     {
       field: 'transferAmount',
-      headerName: t('Amount'),
+      headerName: t('transactions.amount'),
       type: 'number',
       flex: 1,
       minWidth: 140,
@@ -108,7 +108,7 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
     },
     {
       field: 'information',
-      headerName: t('Information'),
+      headerName: t('transactions.information'),
       flex: 2,
       minWidth: 240,
       editable: true,
@@ -134,4 +134,4 @@ export const createMapRowsToPayload =
       t,
     );
 
-export const mapRowsToPayload = createMapRowsToPayload(source => source);
+export const mapRowsToPayload = createMapRowsToPayload(englishTranslator);

@@ -69,7 +69,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   return (
     <Stack direction={'row'} spacing={2} {...slotProps?.stack}>
       <DatePicker
-        label={t('Start')}
+        label={t('forms.start')}
         defaultValue={value.startDate}
         onChange={handleStartDateChange}
         open={openField === 'START'}
@@ -102,7 +102,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         })}
       />
       <DatePicker
-        label={t('End')}
+        label={t('forms.end')}
         defaultValue={value.endDate}
         onChange={handleEndDateChange}
         minDate={value.startDate ?? undefined}

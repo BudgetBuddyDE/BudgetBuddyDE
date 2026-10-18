@@ -5,5 +5,11 @@ import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export default function RecurringPaymentsError({error, reset}: {error: Error & {digest?: string}; reset: () => void}) {
   const t = useAppTranslations();
-  return <RouteErrorFallback error={error} reset={reset} title={t('Recurring payments are temporarily unavailable')} />;
+  return (
+    <RouteErrorFallback
+      error={error}
+      reset={reset}
+      title={t('transactions.recurringPaymentsAreTemporarilyUnavailable')}
+    />
+  );
 }

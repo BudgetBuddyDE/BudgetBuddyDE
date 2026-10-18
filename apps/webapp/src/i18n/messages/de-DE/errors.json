@@ -1,0 +1,12 @@
+{
+  "pageTemporarilyUnavailable": "Diese Seite ist vorübergehend nicht verfügbar",
+  "error": "Fehler",
+  "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten.",
+  "oops": "Hoppla!",
+  "somethingWentWrong": "Etwas ist schiefgelaufen!",
+  "errorTypeErrorName": "Fehler: {errorName}",
+  "referenceReference": "Referenz: {reference}",
+  "occurredAtOccurredAt": "Aufgetreten am: {occurredAt}",
+  "pageNotFound": "Seite nicht gefunden",
+  "pageMayHaveBeenRemovedOrMoved": "Die gesuchte Seite wurde möglicherweise entfernt oder verschoben."
+}

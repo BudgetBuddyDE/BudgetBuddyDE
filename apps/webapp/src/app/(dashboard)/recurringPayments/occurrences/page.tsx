@@ -8,7 +8,7 @@ import {
   RecurringPaymentOccurrenceTable,
   RecurringPaymentsNav,
 } from '@/components/RecurringPayment/OccurrenceTable';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function RecurringPaymentOccurrencesPage({
   searchParams,
@@ -20,7 +20,7 @@ export default async function RecurringPaymentOccurrencesPage({
   const initialRange = parseOccurrenceRangeParams(params);
 
   return (
-    <ContentGrid title={t('Recurring Payments')}>
+    <ContentGrid title={t('transactions.recurringPayments')}>
       <Grid size="grow">
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

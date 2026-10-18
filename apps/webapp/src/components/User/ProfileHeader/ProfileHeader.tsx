@@ -8,8 +8,8 @@ import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {Avatar} from '../Avatar';
 
 const TABS = [
-  {label: 'Profile', icon: <SettingsRounded />, path: '/settings/profile'},
-  {label: 'API Keys', icon: <VpnKeyRounded />, path: '/settings/api-keys'},
+  {labelKey: 'account.profile.profile', icon: <SettingsRounded />, path: '/settings/profile'},
+  {labelKey: 'account.apiKeys.apiKeys', icon: <VpnKeyRounded />, path: '/settings/api-keys'},
 ] as const;
 
 export const ProfileHeader = () => {
@@ -87,7 +87,7 @@ export const ProfileHeader = () => {
                   key={tab.path}
                   // icon={tab.icon}
                   iconPosition="start"
-                  label={t(tab.label)}
+                  label={t(tab.labelKey)}
                 />
               ))}
             </Tabs>

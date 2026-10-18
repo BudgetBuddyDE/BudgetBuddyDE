@@ -60,10 +60,10 @@ export const AttachmentLightbox: React.FC<AttachmentLightboxProps> = ({attachmen
       <DialogActions>
         {attachment && (
           <Button startIcon={<DownloadRounded />} onClick={() => onDownload(attachment)}>
-            {t('Download')}
+            {t('attachments.upload.download')}
           </Button>
         )}
-        <Button onClick={onClose}>{t('Close')}</Button>
+        <Button onClick={onClose}>{t('attachments.upload.close')}</Button>
       </DialogActions>
     </Dialog>
   );

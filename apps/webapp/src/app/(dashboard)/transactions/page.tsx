@@ -5,7 +5,7 @@ import {parseTransactionFiltersFromParams} from '@/components/Filter';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {CircularProgress} from '@/components/Loading';
 import {TransactionTable} from '@/components/Transaction/TransactionTable';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function TransactionsPage({
   searchParams,
@@ -17,7 +17,7 @@ export default async function TransactionsPage({
   const initialFilters = parseTransactionFiltersFromParams(params);
 
   return (
-    <ContentGrid title={t('Transactions')}>
+    <ContentGrid title={t('transactions.transactions')}>
       <Grid size="grow">
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

@@ -5,7 +5,7 @@ import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {parseKeywordFilterFromParams} from '@/components/Filter';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {CircularProgress} from '@/components/Loading';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function CategoriesPage({
   searchParams,
@@ -17,7 +17,7 @@ export default async function CategoriesPage({
   const {keyword} = parseKeywordFilterFromParams(params);
 
   return (
-    <ContentGrid title={t('Categories')}>
+    <ContentGrid title={t('categories.categories')}>
       <Grid size={{xs: 12, md: 12}}>
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

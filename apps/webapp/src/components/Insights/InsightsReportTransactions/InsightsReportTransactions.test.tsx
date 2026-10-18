@@ -97,8 +97,3 @@ describe('InsightsReportTransactions', () => {
     expect(screen.getByTestId('current-page')).toHaveTextContent('0');
   });
 });
-
-vi.mock('@/hooks/useAppTranslations', () => ({
-  useAppTranslations: () => (source: string, values?: Record<string, string | number>) =>
-    source.replace(/\{(\w+)\}/g, (_, key: string) => String(values?.[key] ?? key)),
-}));

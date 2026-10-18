@@ -1,0 +1,17 @@
+{
+  "transaction": "Transaction",
+  "transactions": "Transactions",
+  "recurringPayment": "Recurring payment",
+  "recurringPayments": "Recurring payments",
+  "paymentMethod": "Payment method",
+  "paymentMethods": "Payment methods",
+  "category": "Category",
+  "categories": "Categories",
+  "budget": "Budget",
+  "budgets": "Budgets",
+  "attachment": "Attachment",
+  "attachments": "Attachments",
+  "apiKey": "API key",
+  "apiKeys": "API keys",
+  "from": "from"
+}

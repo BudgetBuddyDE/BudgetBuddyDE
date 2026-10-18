@@ -45,7 +45,7 @@ export const EntityHeader: React.FC<EntityHeaderProps> = ({title, subtitle, onCl
         )}
       </Stack>
       <ActionPaper>
-        <IconButton color="primary" aria-label={t('Close')} onClick={onClose}>
+        <IconButton color="primary" aria-label={t('forms.close')} onClick={onClose}>
           <CloseRounded />
         </IconButton>
       </ActionPaper>

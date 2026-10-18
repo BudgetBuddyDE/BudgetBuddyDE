@@ -48,8 +48,8 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
     <Card>
       <Card.Header>
         <Stack>
-          <Card.Title>{t('Report filters')}</Card.Title>
-          <Card.Subtitle>{t('All analytics use the same selection')}</Card.Subtitle>
+          <Card.Title>{t('insights.reportFilters')}</Card.Title>
+          <Card.Subtitle>{t('insights.allAnalyticsUseTheSameSelection')}</Card.Subtitle>
         </Stack>
         <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', justifyContent: 'flex-end'}}>
           <DateRangePicker
@@ -58,31 +58,31 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
             onDateRangeChange={onDateRangeChange}
           />
           <FormControl size="small" sx={{minWidth: 120}}>
-            <InputLabel id="insights-report-granularity-label">{t('Grouping')}</InputLabel>
+            <InputLabel id="insights-report-granularity-label">{t('insights.grouping')}</InputLabel>
             <Select
               labelId="insights-report-granularity-label"
               id="insights-report-granularity"
-              label={t('Grouping')}
+              label={t('insights.grouping')}
               value={granularity}
               onChange={event => onGranularityChange(event.target.value as Granularity)}
             >
-              <MenuItem value="auto">{t('Automatic')}</MenuItem>
-              <MenuItem value="day">{t('Day')}</MenuItem>
-              <MenuItem value="week">{t('Week')}</MenuItem>
-              <MenuItem value="month">{t('Month')}</MenuItem>
+              <MenuItem value="auto">{t('insights.automatic')}</MenuItem>
+              <MenuItem value="day">{t('insights.day')}</MenuItem>
+              <MenuItem value="week">{t('insights.week')}</MenuItem>
+              <MenuItem value="month">{t('insights.month')}</MenuItem>
             </Select>
           </FormControl>
           <FormControl size="small" sx={{minWidth: 140}}>
-            <InputLabel id="insights-report-comparison-label">{t('Compare')}</InputLabel>
+            <InputLabel id="insights-report-comparison-label">{t('insights.compare')}</InputLabel>
             <Select
               labelId="insights-report-comparison-label"
               id="insights-report-comparison"
-              label={t('Compare')}
+              label={t('insights.compare')}
               value={comparison}
               onChange={event => onComparisonChange(event.target.value as Comparison)}
             >
-              <MenuItem value="previous">{t('Previous period')}</MenuItem>
-              <MenuItem value="none">{t('No comparison')}</MenuItem>
+              <MenuItem value="previous">{t('insights.previousPeriod')}</MenuItem>
+              <MenuItem value="none">{t('insights.noComparison')}</MenuItem>
             </Select>
           </FormControl>
         </Stack>
@@ -97,7 +97,7 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
             onChange={(_, value) => onCategoriesChange(value)}
             getOptionLabel={option => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderInput={params => <TextField {...params} label={t('Categories')} />}
+            renderInput={params => <TextField {...params} label={t('insights.categories')} />}
             disableCloseOnSelect
           />
         </Grid>
@@ -110,7 +110,7 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
             onChange={(_, value) => onPaymentMethodsChange(value)}
             getOptionLabel={option => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderInput={params => <TextField {...params} label={t('Payment methods')} />}
+            renderInput={params => <TextField {...params} label={t('insights.paymentMethods')} />}
             disableCloseOnSelect
           />
         </Grid>

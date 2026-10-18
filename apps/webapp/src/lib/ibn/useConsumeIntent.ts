@@ -93,7 +93,7 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
     };
 
     consume().catch(error => {
-      const message = error instanceof Error ? error.message : t('Failed to consume intent');
+      const message = error instanceof Error ? error.message : t('intents.consumeFailed');
       handlers.onInvalid?.(message);
       const stripped = stripIntentSearchParams(params);
       const strippedQuery = stripped.toString();

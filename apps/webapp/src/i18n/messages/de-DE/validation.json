@@ -1,0 +1,32 @@
+{
+  "invalidType": {
+    "string": "Gib einen gültigen Text ein.",
+    "number": "Gib eine gültige Zahl ein.",
+    "date": "Gib ein gültiges Datum ein.",
+    "boolean": "Wähle einen gültigen Wahrheitswert aus.",
+    "array": "Wähle gültige Elemente aus.",
+    "default": "Gib einen Wert im richtigen Format ein."
+  },
+  "tooSmall": {
+    "default": "Der Wert ist zu klein.",
+    "string": "Gib mindestens {minimum} Zeichen ein.",
+    "array": "Wähle mindestens {minimum} Elemente aus.",
+    "exclusive": "Gib einen Wert größer als {minimum} ein.",
+    "inclusive": "Gib einen Wert von mindestens {minimum} ein."
+  },
+  "tooBig": {
+    "default": "Der Wert ist zu groß.",
+    "string": "Gib höchstens {maximum} Zeichen ein.",
+    "array": "Wähle höchstens {maximum} Elemente aus.",
+    "exclusive": "Gib einen Wert kleiner als {maximum} ein.",
+    "inclusive": "Gib einen Wert von höchstens {maximum} ein."
+  },
+  "invalidFormat": {
+    "uuid": "Wähle ein gültiges Element aus.",
+    "email": "Gib eine gültige E-Mail-Adresse ein.",
+    "url": "Gib eine gültige URL ein.",
+    "default": "Gib einen Wert im richtigen Format ein."
+  },
+  "invalidValue": "Wähle eine gültige Option aus.",
+  "default": "Gib einen gültigen Wert ein."
+}

@@ -31,7 +31,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   const t = useAppTranslations();
   const [showPassword, setShowPassword] = React.useState(false);
   const inputId = React.useId();
-  const label = outlinedInputProps?.label || t('Password');
+  const label = outlinedInputProps?.label || t('forms.password');
 
   return (
     <FormControl variant="outlined" fullWidth required {...formControlProps} disabled={disabled}>
@@ -43,12 +43,12 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         type={showPassword ? 'text' : 'password'}
         name="password"
         label={label}
-        placeholder={t('Enter password')}
+        placeholder={t('forms.enterPassword')}
         disabled={disabled}
         endAdornment={
           <InputAdornment position="end">
             <IconButton
-              aria-label={t('toggle password visibility')}
+              aria-label={t('forms.togglePasswordVisibility')}
               onClick={() => setShowPassword(prev => !prev)}
               sx={{mr: 0}}
               edge="end"

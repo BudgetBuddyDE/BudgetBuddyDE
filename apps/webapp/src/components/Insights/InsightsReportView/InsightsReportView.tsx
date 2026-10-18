@@ -53,7 +53,7 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
         <Box sx={{position: 'relative'}}>
           {refreshing && (
             <LinearProgress
-              aria-label={t('Refreshing insights report')}
+              aria-label={t('insights.refreshingInsightsReport')}
               sx={{position: 'absolute', top: -8, left: 0, right: 0, zIndex: 1, borderRadius: 1}}
             />
           )}

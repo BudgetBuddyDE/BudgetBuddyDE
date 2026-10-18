@@ -5,7 +5,7 @@ import {parseKeywordFilterFromParams} from '@/components/Filter';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {CircularProgress} from '@/components/Loading';
 import {PaymentMethodTable} from '@/components/PaymentMethod/PaymentMethodTable';
-import {getAppTranslations} from '@/lib/i18n/server';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function PaymentMethodsPage({
   searchParams,
@@ -17,7 +17,7 @@ export default async function PaymentMethodsPage({
   const {keyword} = parseKeywordFilterFromParams(params);
 
   return (
-    <ContentGrid title={t('Payment Methods')}>
+    <ContentGrid title={t('settings.paymentMethods')}>
       <Grid size={{xs: 12, md: 12}}>
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

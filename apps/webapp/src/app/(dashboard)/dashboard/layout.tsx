@@ -12,8 +12,8 @@ export default function DashboardLayout({children}: React.PropsWithChildren) {
   const views = getDashboardViewMapping(t);
   const pathname = usePathname() as keyof typeof views;
   const currentView = views[pathname] || {
-    label: t('Dashboard'),
-    description: t('Welcome to your dashboard!'),
+    label: t('navigation.dashboard'),
+    description: t('navigation.welcomeToYourDashboard'),
   };
 
   return (

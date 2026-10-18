@@ -50,7 +50,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
       }}
     >
       <DialogTitle variant="h2" sx={{textAlign: 'center'}}>
-        {text?.title || t('Attention')}
+        {text?.title || t('common.attention')}
       </DialogTitle>
       <DialogContent>
         <DialogContentText
@@ -59,13 +59,13 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
             textAlign: 'center',
           }}
         >
-          {text?.content || t('Are you sure you want to delete these entries?')}
+          {text?.content || t('common.areYouSureYouWantToDeleteTheseEntries')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>{t('Cancel')}</Button>
+        <Button onClick={onCancel}>{t('common.cancel')}</Button>
         <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
-          {t('Yes, delete')}
+          {t('common.yesDelete')}
         </Button>
       </DialogActions>
     </Dialog>

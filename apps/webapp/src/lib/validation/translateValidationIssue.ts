@@ -1,4 +1,4 @@
-import type {AppTranslator} from '@/lib/i18n/translate';
+import type {AppTranslator} from '@/i18n/translate';
 
 export type ValidationIssue = {
   message: string;
@@ -17,54 +17,54 @@ export function translateValidationIssue(issue: ValidationIssue, t: AppTranslato
     case 'invalid_type':
       switch (issue.expected) {
         case 'string':
-          return t('Enter a valid text value.');
+          return t('validation.invalidType.string');
         case 'number':
-          return t('Enter a valid number.');
+          return t('validation.invalidType.number');
         case 'date':
-          return t('Enter a valid date.');
+          return t('validation.invalidType.date');
         case 'boolean':
-          return t('Select a valid boolean value.');
+          return t('validation.invalidType.boolean');
         case 'array':
-          return t('Select valid items.');
+          return t('validation.invalidType.array');
         default:
-          return t('Enter a valid value.');
+          return t('validation.invalidType.default');
       }
     case 'too_small':
-      if (issue.minimum === undefined) return t('The value is too small.');
+      if (issue.minimum === undefined) return t('validation.tooSmall.default');
       if (issue.origin === 'string') {
-        return t('Enter at least {minimum} characters.', {minimum: String(issue.minimum)});
+        return t('validation.tooSmall.string', {minimum: String(issue.minimum)});
       }
       if (issue.origin === 'array') {
-        return t('Select at least {minimum} items.', {minimum: String(issue.minimum)});
+        return t('validation.tooSmall.array', {minimum: String(issue.minimum)});
       }
       return issue.inclusive === false
-        ? t('Enter a value greater than {minimum}.', {minimum: String(issue.minimum)})
-        : t('Enter a value of at least {minimum}.', {minimum: String(issue.minimum)});
+        ? t('validation.tooSmall.exclusive', {minimum: String(issue.minimum)})
+        : t('validation.tooSmall.inclusive', {minimum: String(issue.minimum)});
     case 'too_big':
-      if (issue.maximum === undefined) return t('The value is too large.');
+      if (issue.maximum === undefined) return t('validation.tooBig.default');
       if (issue.origin === 'string') {
-        return t('Enter no more than {maximum} characters.', {maximum: String(issue.maximum)});
+        return t('validation.tooBig.string', {maximum: String(issue.maximum)});
       }
       if (issue.origin === 'array') {
-        return t('Select no more than {maximum} items.', {maximum: String(issue.maximum)});
+        return t('validation.tooBig.array', {maximum: String(issue.maximum)});
       }
       return issue.inclusive === false
-        ? t('Enter a value less than {maximum}.', {maximum: String(issue.maximum)})
-        : t('Enter a value of at most {maximum}.', {maximum: String(issue.maximum)});
+        ? t('validation.tooBig.exclusive', {maximum: String(issue.maximum)})
+        : t('validation.tooBig.inclusive', {maximum: String(issue.maximum)});
     case 'invalid_format':
       switch (issue.format) {
         case 'uuid':
-          return t('Select a valid item.');
+          return t('validation.invalidFormat.uuid');
         case 'email':
-          return t('Enter a valid email address.');
+          return t('validation.invalidFormat.email');
         case 'url':
-          return t('Enter a valid URL.');
+          return t('validation.invalidFormat.url');
         default:
-          return t('Enter a value in the correct format.');
+          return t('validation.invalidFormat.default');
       }
     case 'invalid_value':
-      return t('Select a valid option.');
+      return t('validation.invalidValue');
     default:
-      return t('Enter a valid value.');
+      return t('validation.default');
   }
 }

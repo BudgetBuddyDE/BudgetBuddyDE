@@ -23,46 +23,46 @@ export const DistributionSection: React.FC = () => {
   const {formatBalance: formatCurrency} = useCurrencyFormatter();
   return (
     <ShowcaseSection
-      title={t('Distribution & part-to-whole')}
-      description={t('How a total is composed - by category, source, hierarchy, budget stage or goal progress.')}
+      title={t('charts.distributionPartToWhole')}
+      description={t('charts.howATotalIsComposedByCategorySourceHierarchyBudgetStageOrGoalProgress')}
     >
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Spending by category')} subtitle={t('Donut chart with center label')}>
+        <ChartCard title={t('charts.spendingByCategory')} subtitle={t('charts.donutChartWithCenterLabel')}>
           <DonutChart
             data={spendingByCategory}
             showLegend
             valueFormatter={formatCurrency}
             primaryText={formatCurrency(totalSpending)}
-            secondaryText={t('Total spending')}
+            secondaryText={t('charts.totalSpending')}
           />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Income by source')} subtitle={t('Donut chart with legend')}>
+        <ChartCard title={t('charts.incomeBySource')} subtitle={t('charts.donutChartWithLegend')}>
           <DonutChart data={incomeBySource} showLegend valueFormatter={formatCurrency} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Budget usage')} subtitle={t('Radial gauge (percent of budget)')}>
+        <ChartCard title={t('charts.budgetUsage')} subtitle={t('charts.radialGaugePercentOfBudget')}>
           <RadialBarChart data={budgetUsage} gauge max={100} valueFormatter={formatPercent} height={260} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
         <ChartCard
-          title={t('Reimbursement stages')}
-          subtitle={t('From submitted to paid claims')}
-          note={t('These are descending stages of the same process. Remaining budget is not a conversion stage.')}
+          title={t('charts.reimbursementStages')}
+          subtitle={t('charts.fromSubmittedToPaidClaims')}
+          note={t('charts.theseAreDescendingStagesOfTheSameProcessRemainingBudgetIsNotAConversionStage')}
         >
           <FunnelChart data={budgetFunnel} valueFormatter={formatCurrency} height={260} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Spending hierarchy')} subtitle={t('Treemap (category -> subcategory)')}>
+        <ChartCard title={t('charts.spendingHierarchy')} subtitle={t('charts.treemapCategorySubcategory')}>
           <TreemapChart data={spendingTreemap} height={320} valueFormatter={formatCurrency} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Spending sunburst')} subtitle={t('Hierarchical part-to-whole')}>
+        <ChartCard title={t('charts.spendingSunburst')} subtitle={t('charts.hierarchicalPartToWhole')}>
           <SunburstChart data={spendingSunburst} height={320} valueFormatter={formatCurrency} />
         </ChartCard>
       </Grid>

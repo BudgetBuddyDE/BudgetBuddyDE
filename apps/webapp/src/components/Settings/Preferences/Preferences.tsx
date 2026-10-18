@@ -65,15 +65,24 @@ export function Preferences() {
     const schema = z.object({
       language: z
         .string()
-        .refine(value => LANGUAGE_OPTIONS.some(option => option.value === value), t('Choose a supported language.'))
+        .refine(
+          value => LANGUAGE_OPTIONS.some(option => option.value === value),
+          t('settings.preferences.chooseASupportedLanguage'),
+        )
         .optional(),
       currency: z
         .string()
-        .refine(value => CURRENCY_OPTIONS.some(option => option.value === value), t('Choose a supported currency.'))
+        .refine(
+          value => CURRENCY_OPTIONS.some(option => option.value === value),
+          t('settings.preferences.chooseASupportedCurrency'),
+        )
         .optional(),
       timeZone: z
         .string()
-        .refine(value => TIME_ZONE_OPTIONS.some(option => option.value === value), t('Choose a supported time zone.'))
+        .refine(
+          value => TIME_ZONE_OPTIONS.some(option => option.value === value),
+          t('settings.preferences.chooseASupportedTimeZone'),
+        )
         .optional(),
     });
     const parsed = schema.safeParse(payload);
@@ -86,24 +95,28 @@ export function Preferences() {
       await updatePreferences(parsed.data);
       if (currentOwnerScope.current !== ownerScope) return;
       setEditing(false);
-      showSnackbar({message: t('Preferences saved.')});
+      showSnackbar({message: t('settings.preferences.preferencesSaved')});
     } catch (saveError) {
       if (currentOwnerScope.current !== ownerScope) return;
-      const message = saveError instanceof Error ? saveError.message : t('Preferences could not be saved.');
-      showSnackbar({message, action: <Button onClick={() => void saveChanges()}>{t('Try again')}</Button>});
+      const message =
+        saveError instanceof Error ? saveError.message : t('settings.preferences.preferencesCouldNotBeSaved');
+      showSnackbar({
+        message,
+        action: <Button onClick={() => void saveChanges()}>{t('settings.preferences.tryAgain')}</Button>,
+      });
     }
   };
 
   const languageOption = draft
     ? (LANGUAGE_OPTIONS.find(option => option.value === draft.language) ?? {
         value: draft.language,
-        label: t('Unsupported ({value})', {value: draft.language}),
+        label: t('settings.preferences.unsupportedValue', {value: draft.language}),
       })
     : null;
   const timeZoneOption = draft
     ? (TIME_ZONE_OPTIONS.find(option => option.value === draft.timeZone) ?? {
         value: draft.timeZone,
-        label: t('Unsupported ({value})', {value: draft.timeZone}),
+        label: t('settings.preferences.unsupportedValue', {value: draft.timeZone}),
       })
     : null;
   const languageOptions =
@@ -119,40 +132,42 @@ export function Preferences() {
     <Card>
       <Card.Header>
         <Box>
-          <Card.Title>{t('Preferences')}</Card.Title>
-          <Card.Subtitle>{t('Manage your personal preferences')}</Card.Subtitle>
+          <Card.Title>{t('settings.preferences.preferences')}</Card.Title>
+          <Card.Subtitle>{t('settings.preferences.manageYourPersonalPreferences')}</Card.Subtitle>
         </Box>
       </Card.Header>
       <Card.Body>
         <Stack spacing={2} sx={{pt: 1}}>
           <Alert severity="info">
-            {t('Language, currency and time zone are saved to your account and applied throughout the app.')}
+            {t('settings.preferences.languageCurrencyAndTimeZoneAreSavedToYourAccountAndAppliedThroughoutTheApp')}
           </Alert>
           {isLoading && !preferences ? (
             <Box sx={{display: 'flex', justifyContent: 'center', py: 3}}>
-              <CircularProgress aria-label={t('Loading preferences')} />
+              <CircularProgress aria-label={t('settings.preferences.loadingPreferences')} />
             </Box>
           ) : error && !preferences ? (
             <Alert
               severity="error"
               action={
                 <Button color="inherit" size="small" onClick={() => void reloadPreferences()}>
-                  {t('Try again')}
+                  {t('settings.preferences.tryAgain')}
                 </Button>
               }
             >
-              {t('Preferences could not be loaded: {error}', {error})}
+              {t('settings.preferences.preferencesCouldNotBeLoadedError', {error})}
             </Alert>
           ) : preferences && draft ? (
             <>
-              {error && <Alert severity="warning">{t('Preferences may be out of date: {error}', {error})}</Alert>}
+              {error && (
+                <Alert severity="warning">{t('settings.preferences.preferencesMayBeOutOfDateError', {error})}</Alert>
+              )}
               <Autocomplete
                 id={`${fieldId}-language`}
                 options={languageOptions}
                 value={languageOption}
                 getOptionLabel={option => {
                   const supported = LANGUAGE_OPTIONS.find(supported => supported.value === option.value);
-                  return supported ? t(supported.label) : option.label;
+                  return supported ? t(supported.labelKey) : 'label' in option ? option.label : t(option.labelKey);
                 }}
                 isOptionEqualToValue={(option, value) => option.value === value.value}
                 getOptionDisabled={option => !LANGUAGE_OPTIONS.some(supported => supported.value === option.value)}
@@ -161,7 +176,7 @@ export function Preferences() {
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label={t('Language')}
+                    label={t('settings.preferences.language')}
                     error={!!validationErrors.language}
                     helperText={validationErrors.language}
                   />
@@ -171,7 +186,7 @@ export function Preferences() {
                 select
                 fullWidth
                 id={`${fieldId}-currency`}
-                label={t('Currency')}
+                label={t('settings.preferences.currency')}
                 error={!!validationErrors.currency}
                 value={draft.currency}
                 disabled={!editing || isSaving}
@@ -180,17 +195,17 @@ export function Preferences() {
                   validationErrors.currency ??
                   (CURRENCY_OPTIONS.some(option => option.value === draft.currency)
                     ? undefined
-                    : t('Unsupported saved value: {value}', {value: draft.currency}))
+                    : t('settings.preferences.unsupportedSavedValueValue', {value: draft.currency}))
                 }
               >
                 {!CURRENCY_OPTIONS.some(option => option.value === draft.currency) && (
                   <MenuItem value={draft.currency} disabled>
-                    {t('Unsupported ({value})', {value: draft.currency})}
+                    {t('settings.preferences.unsupportedValue', {value: draft.currency})}
                   </MenuItem>
                 )}
                 {CURRENCY_OPTIONS.map(option => (
                   <MenuItem key={option.value} value={option.value}>
-                    {t(option.label)}
+                    {t(option.labelKey)}
                   </MenuItem>
                 ))}
               </TextField>
@@ -206,13 +221,13 @@ export function Preferences() {
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label={t('Time zone')}
+                    label={t('settings.preferences.timeZone')}
                     error={!!validationErrors.timeZone}
                     helperText={
                       validationErrors.timeZone ??
                       (TIME_ZONE_OPTIONS.some(option => option.value === draft.timeZone)
                         ? undefined
-                        : t('Unsupported saved value: {value}', {value: draft.timeZone}))
+                        : t('settings.preferences.unsupportedSavedValueValue', {value: draft.timeZone}))
                     }
                   />
                 )}
@@ -233,15 +248,15 @@ export function Preferences() {
                   setEditing(false);
                 }}
               >
-                {t('Discard')}
+                {t('settings.preferences.discard')}
               </Button>
               <Button variant="contained" disabled={!changed || isSaving} onClick={() => void saveChanges()}>
-                {isSaving ? <CircularProgress size={18} color="inherit" /> : t('Save changes')}
+                {isSaving ? <CircularProgress size={18} color="inherit" /> : t('settings.preferences.saveChanges')}
               </Button>
             </>
           ) : (
             <Button variant="contained" onClick={() => setEditing(true)}>
-              {t('Edit')}
+              {t('settings.preferences.edit')}
             </Button>
           )}
         </Card.Footer>

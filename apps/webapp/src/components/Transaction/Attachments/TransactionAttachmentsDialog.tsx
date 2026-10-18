@@ -39,7 +39,7 @@ export const TransactionAttachmentsDialog: React.FC<TransactionAttachmentsDialog
       slotProps={{paper: {elevation: 0}}}
     >
       <DialogTitle>
-        {t('Attachments')}
+        {t('attachments.attachments')}
         {transaction && (
           <Typography
             variant="body2"
@@ -65,7 +65,7 @@ export const TransactionAttachmentsDialog: React.FC<TransactionAttachmentsDialog
         {transaction ? (
           <TransactionAttachments transactionId={transaction.id} />
         ) : (
-          <ErrorAlert error={t('No transaction selected. Please select a transaction to view its attachments.')} />
+          <ErrorAlert error={t('attachments.noTransactionSelected')} />
         )}
       </DialogContent>
     </Dialog>

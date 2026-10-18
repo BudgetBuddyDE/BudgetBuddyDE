@@ -17,9 +17,7 @@ export const DismissableAlert: React.FC<DismissableAlertProps> = ({...alertProps
         action={<CloseIconButton size="small" onClick={() => setShow(false)} />}
         {...alertProps}
         children={
-          alertProps.children
-            ? alertProps.children
-            : t('Click the close icon to see the Collapse transition in action!')
+          alertProps.children ? alertProps.children : t('common.clickTheCloseIconToSeeTheCollapseTransitionInAction')
         }
       />
     </Collapse>

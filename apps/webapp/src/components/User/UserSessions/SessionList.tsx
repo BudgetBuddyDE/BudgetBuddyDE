@@ -19,7 +19,7 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
   const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   if (sessions.length === 0) {
-    return <NoResults text={t('No active sessions found.')} sx={{mx: 2}} />;
+    return <NoResults text={t('account.sessions.noActiveSessionsFound')} sx={{mx: 2}} />;
   }
   const handleRevokeSession = async (token: string) => {
     try {
@@ -27,14 +27,14 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
       if (error) throw error;
 
       await revalidateSession();
-      showSnackbar({message: t('The session was revoked!')});
+      showSnackbar({message: t('account.sessions.theSessionWasRevoked')});
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (e instanceof Error) logger.error('Error revoking session', e);
       else logger.error('Error revoking session', {reason: msg});
       showSnackbar({
         message: msg,
-        action: <Button onClick={() => handleRevokeSession(token)}>{t('Retry')}</Button>,
+        action: <Button onClick={() => handleRevokeSession(token)}>{t('account.sessions.retry')}</Button>,
       });
     }
   };
@@ -44,18 +44,18 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
         const token = session.token;
         const createdAt = Formatter.date.format(session.createdAt);
         const expiresAt = Formatter.date.format(session.expiresAt);
-        const userAgent = session.userAgent || t('Unknown User Agent');
-        const ipAddress = session.ipAddress || t('Unknown IP Address');
+        const userAgent = session.userAgent || t('account.sessions.unknownUserAgent');
+        const ipAddress = session.ipAddress || t('account.sessions.unknownIPAddress');
         const key = session.id || session.token || idx;
         const elements = [
           <ListItem
             key={key}
             dense
             secondaryAction={
-              <Tooltip title={t('Revoke session')}>
+              <Tooltip title={t('account.sessions.revokeSession')}>
                 <IconButton
                   edge="end"
-                  aria-label={t('Revoke session')}
+                  aria-label={t('account.sessions.revokeSession')}
                   onClick={() => handleRevokeSession(token)}
                   size="small"
                 >
@@ -68,11 +68,11 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
               primary={
                 <React.Fragment>
                   <Typography variant="body2" sx={{mt: 1}}>
-                    <strong>{t('IP:')}</strong> {ipAddress}
+                    <strong>{t('account.sessions.ip')}</strong> {ipAddress}
                   </Typography>
                   <Tooltip title={userAgent}>
                     <Typography variant="body2" sx={{mt: 0.5}}>
-                      <strong>{t('User Agent:')}</strong>{' '}
+                      <strong>{t('account.sessions.userAgent')}</strong>{' '}
                       {userAgent.length > 32 ? `${userAgent.substring(0, 32)}...` : userAgent}
                     </Typography>
                   </Tooltip>
@@ -95,7 +95,7 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
                         color: 'text.primary',
                       }}
                     >
-                      {t('Created at')}
+                      {t('account.sessions.createdAt')}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -117,7 +117,7 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
                         color: 'text.primary',
                       }}
                     >
-                      {t('Expires at')}
+                      {t('account.sessions.expiresAt')}
                     </Typography>
                     <Typography
                       variant="body2"

@@ -13,29 +13,29 @@ export const TimeSeriesSection: React.FC = () => {
   const {formatBalance: formatCurrency, shortenBalance: formatCompactCurrency} = useCurrencyFormatter();
   return (
     <ShowcaseSection
-      title={t('Time series')}
-      description={t('Balances, income and expenses over time - the backbone of financial dashboards.')}
+      title={t('charts.timeSeries')}
+      description={t('charts.balancesIncomeAndExpensesOverTimeTheBackboneOfFinancialDashboards')}
     >
       <Grid size={{xs: 12, lg: 8}}>
-        <ChartCard title={t('Balance trend')} subtitle={t('Line chart with average reference line')}>
+        <ChartCard title={t('charts.balanceTrend')} subtitle={t('charts.lineChartWithAverageReferenceLine')}>
           <LineChart
             data={balanceTrend}
             xKey="month"
-            series={[{key: 'balance', label: t('Balance'), role: 'balance'}]}
+            series={[{key: 'balance', label: t('charts.balance'), role: 'balance'}]}
             showDots
             showEndLabel
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
-            referenceLines={[{y: averageBalance, label: t('Average')}]}
+            referenceLines={[{y: averageBalance, label: t('charts.average')}]}
           />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 4}}>
-        <ChartCard title={t('Long range with brush')} subtitle={t('Zoom into a range')}>
+        <ChartCard title={t('charts.longRangeWithBrush')} subtitle={t('charts.zoomIntoARange')}>
           <LineChart
             data={balanceTrend}
             xKey="month"
-            series={[{key: 'balance', label: t('Balance'), role: 'balance'}]}
+            series={[{key: 'balance', label: t('charts.balance'), role: 'balance'}]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
             brush
@@ -44,13 +44,13 @@ export const TimeSeriesSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Income vs. expenses')} subtitle={t('Synced tooltip (syncId)')}>
+        <ChartCard title={t('charts.incomeVsExpenses')} subtitle={t('charts.syncedTooltipSyncId')}>
           <LineChart
             data={cashflow}
             xKey="month"
             series={[
-              {key: 'income', label: t('Income'), role: 'income'},
-              {key: 'expenses', label: t('Expenses'), role: 'expense'},
+              {key: 'income', label: t('charts.income'), role: 'income'},
+              {key: 'expenses', label: t('charts.expenses'), role: 'expense'},
             ]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
@@ -60,7 +60,7 @@ export const TimeSeriesSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Spending by category')} subtitle={t('Stacked area, synced tooltip (syncId)')}>
+        <ChartCard title={t('charts.spendingByCategory')} subtitle={t('charts.stackedAreaSyncedTooltipSyncId')}>
           <AreaChart
             data={categoryStack}
             xKey="month"
@@ -74,12 +74,12 @@ export const TimeSeriesSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Cumulative balance')} subtitle={t('Filled area chart')}>
+        <ChartCard title={t('charts.cumulativeBalance')} subtitle={t('charts.filledAreaChart')}>
           <AreaChart
             data={balanceTrend}
             xKey="month"
             gradient
-            series={[{key: 'balance', label: t('Balance'), role: 'balance'}]}
+            series={[{key: 'balance', label: t('charts.balance'), role: 'balance'}]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
           />
@@ -87,10 +87,10 @@ export const TimeSeriesSection: React.FC = () => {
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
         <ChartCard
-          title={t('Cashflow overview')}
-          subtitle={t('Monthly flows and cumulative balance')}
+          title={t('charts.cashflowOverview')}
+          subtitle={t('charts.monthlyFlowsAndCumulativeBalance')}
           note={t(
-            'Left axis: monthly income and expenses. Right axis: accumulated balance; heights across axes are not directly comparable.',
+            'charts.leftAxisMonthlyIncomeAndExpensesRightAxisAccumulatedBalanceHeightsAcrossAxesAreNotDirectlyComparable',
           )}
         >
           <ComposedChart
@@ -101,24 +101,24 @@ export const TimeSeriesSection: React.FC = () => {
             }))}
             xKey="month"
             series={[
-              {key: 'income', label: t('Income'), type: 'bar', role: 'income'},
-              {key: 'expenses', label: t('Expenses'), type: 'bar', role: 'expense'},
-              {key: 'balance', label: t('Balance'), type: 'line', role: 'balance', yAxisId: 'right'},
+              {key: 'income', label: t('charts.income'), type: 'bar', role: 'income'},
+              {key: 'expenses', label: t('charts.expenses'), type: 'bar', role: 'expense'},
+              {key: 'balance', label: t('charts.balance'), type: 'line', role: 'balance', yAxisId: 'right'},
             ]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
-            leftAxisLabel={t('Monthly flow')}
-            rightAxisLabel={t('Balance')}
+            leftAxisLabel={t('charts.monthlyFlow')}
+            rightAxisLabel={t('charts.balance')}
             showZeroLine
           />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12}}>
-        <ChartCard title={t('Detailed income')} subtitle={t('Single series line with full currency tooltip')}>
+        <ChartCard title={t('charts.detailedIncome')} subtitle={t('charts.singleSeriesLineWithFullCurrencyTooltip')}>
           <LineChart
             data={balanceTrend}
             xKey="month"
-            series={[{key: 'balance', label: t('Balance'), role: 'balance'}]}
+            series={[{key: 'balance', label: t('charts.balance'), role: 'balance'}]}
             valueFormatter={formatCurrency}
             showGrid={false}
             height={260}

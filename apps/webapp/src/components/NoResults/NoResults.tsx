@@ -49,15 +49,15 @@ export const NoResults: React.FC<NoResultsProps> = ({
 }) => {
   const t = useAppTranslations();
   const defaultTitle: Record<NoResultsVariant, string> = {
-    empty: t('Nothing to show yet'),
-    filtered: t('No matching results'),
-    create: t('Create your first item'),
+    empty: t('common.nothingToShowYet'),
+    filtered: t('common.noMatchingResults'),
+    create: t('common.createYourFirstItem'),
   };
 
   const defaultDescription: Partial<Record<NoResultsVariant, string>> = {
-    empty: t('Items will appear here as soon as they are available.'),
-    filtered: t('Try a different search term or clear one of your filters.'),
-    create: t('Add your first item to get started and keep everything organized.'),
+    empty: t('common.itemsWillAppearHereAsSoonAsTheyAreAvailable'),
+    filtered: t('common.tryADifferentSearchTermOrClearOneOfYourFilters'),
+    create: t('common.addYourFirstItemToGetStartedAndKeepEverythingOrganized'),
   };
 
   const resolvedTitle = title ?? (typeof text === 'string' ? text : undefined) ?? defaultTitle[variant];
@@ -69,7 +69,7 @@ export const NoResults: React.FC<NoResultsProps> = ({
     action ??
     (isCreateState && onCreate ? (
       <Button color="inherit" onClick={onCreate} variant="outlined">
-        {createLabel ?? t('Create item')}
+        {createLabel ?? t('common.createItem')}
       </Button>
     ) : null);
   const surfaceSx = [
@@ -104,7 +104,7 @@ export const NoResults: React.FC<NoResultsProps> = ({
       </Box>
       <Stack spacing={0.5} sx={{alignItems: 'center'}}>
         <Typography component="h2" variant="subtitle2" sx={{fontWeight: 600, letterSpacing: '-0.01em'}}>
-          {variant === 'filtered' && query ? t('No results for "{query}"', {query}) : resolvedTitle}
+          {variant === 'filtered' && query ? t('common.noResultsForQuery', {query}) : resolvedTitle}
         </Typography>
         {resolvedDescription && (
           <Typography color="text.secondary" sx={{lineHeight: 1.6, maxWidth: 400}} variant="body2">

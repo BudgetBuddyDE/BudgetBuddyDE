@@ -22,7 +22,7 @@ export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProp
       }}
     >
       <Button sx={{mr: 2}} onClick={onClose}>
-        {t('Close')}
+        {t('forms.close')}
       </Button>
       <Button
         ref={ref}
@@ -31,7 +31,7 @@ export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProp
         startIcon={isLoading ? <CircularProgress color="inherit" size={16} /> : undefined}
         tabIndex={0}
       >
-        {t('Save')}
+        {t('forms.save')}
       </Button>
     </Stack>
   );

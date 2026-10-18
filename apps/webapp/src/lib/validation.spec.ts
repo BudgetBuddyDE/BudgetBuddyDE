@@ -1,4 +1,3 @@
-import {createTranslator} from 'next-intl';
 import {describe, expect, it} from 'vitest';
 import {z} from 'zod';
 import {
@@ -18,11 +17,10 @@ import {
   createEmptyRow as transactionRow,
   createMapRowsToPayload as transactionMapper,
 } from '@/components/Transaction/TransactionTable/transactionBatchAdapter';
-import {getMessageKey} from './i18n/config';
-import {createAppTranslator} from './i18n/translate';
+import {englishTranslator} from '@/i18n/translate';
 import {translateValidationIssue, type ValidationIssue} from './validation/translateValidationIssue';
 
-const english = createAppTranslator(createTranslator({locale: 'en-US', messages: {} as Record<string, string>}));
+const english = englishTranslator;
 
 describe('validation translations', () => {
   it('routes schema issues from all four batch adapters through the supplied translator', () => {
@@ -68,14 +66,11 @@ describe('validation translations', () => {
     expect(translateValidationIssue(issue, english)).toBe(expected);
   });
 
-  it('uses the supplied catalog without affecting another translator or global Zod errors', () => {
-    const source = 'Enter at least {minimum} characters.';
-    const localized = createAppTranslator(
-      createTranslator({
-        locale: 'en-US',
-        messages: {[getMessageKey(source)]: 'Minimum length: {minimum}'} as Record<string, string>,
-      }),
-    );
+  it('uses the supplied semantic catalog without affecting global Zod errors', () => {
+    const localized = ((key: Parameters<typeof english>[0], values?: Record<string, string | number>) =>
+      key === 'validation.tooSmall.string'
+        ? `Minimum length: ${values?.minimum}`
+        : english(key, values)) as typeof english;
     const schema = z.object({name: z.string().min(2)});
     const rows = [{id: 'row-1', name: ''}];
     const before = schema.safeParse(rows[0]);

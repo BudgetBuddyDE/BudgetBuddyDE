@@ -13,7 +13,6 @@ import {Drawer, DrawerProvider} from '@/components/Layout/Drawer';
 import {Footer} from '@/components/Layout/Footer';
 import {AuthenticatedMain} from '@/components/Layout/Main';
 import {PreferencesProvider} from '@/components/Preferences/PreferencesProvider';
-import {englishMessages} from '@/lib/i18n/messages';
 import {getPreferences} from '@/lib/preferences/getPreferences';
 
 export default async function Layout({children}: React.PropsWithChildren) {
@@ -28,7 +27,7 @@ export default async function Layout({children}: React.PropsWithChildren) {
       initialPreferences={preferenceResponse?.data ?? null}
       initialError={preferenceError?.message ?? null}
     >
-      <PreferencesI18nProvider initialLanguage={preferenceResponse?.data.language} messages={englishMessages}>
+      <PreferencesI18nProvider initialLanguage={preferenceResponse?.data.language}>
         <Box sx={{display: 'flex'}}>
           <DrawerProvider initialState={initialDrawerState} hasPersistedState={hasPersistedDrawerState}>
             <Drawer />

@@ -8,7 +8,7 @@ import {
 import type {GridColDef} from '@mui/x-data-grid';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
-import type {AppTranslator} from '@/lib/i18n/translate';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
 
 export type CategoryDraftRow = {
   id: string;
@@ -37,17 +37,17 @@ export const fromEntity = (entity: TCategory): DraftRow => ({
 
 export type CategoryBatchColumnOptions = {t?: AppTranslator};
 
-export const columns = ({t = source => source}: CategoryBatchColumnOptions = {}): GridColDef<DraftRow>[] => [
+export const columns = ({t = englishTranslator}: CategoryBatchColumnOptions = {}): GridColDef<DraftRow>[] => [
   {
     field: 'name',
-    headerName: t('Name'),
+    headerName: t('categories.name'),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'description',
-    headerName: t('Description'),
+    headerName: t('categories.description'),
     flex: 2,
     minWidth: 240,
     editable: true,
@@ -68,4 +68,4 @@ export const createMapRowsToPayload =
       t,
     );
 
-export const mapRowsToPayload = createMapRowsToPayload(source => source);
+export const mapRowsToPayload = createMapRowsToPayload(englishTranslator);

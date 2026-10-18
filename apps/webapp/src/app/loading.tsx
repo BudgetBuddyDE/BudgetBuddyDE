@@ -38,7 +38,7 @@ export default function Loading() {
             bounce: 10,
           }}
         >
-          <CircularProgress aria-label={t('Loading')} sx={{mb: 0.5}} size={33} />
+          <CircularProgress aria-label={t('common.loading')} sx={{mb: 0.5}} size={33} />
           <Brand showTitle />
         </motion.div>
       </Box>

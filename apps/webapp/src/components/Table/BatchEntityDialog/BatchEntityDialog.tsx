@@ -274,13 +274,13 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
         >
           {validationIssues.length > 0 && (
             <Alert severity="error" role="alert">
-              <AlertTitle>{t('Validation errors')}</AlertTitle>
+              <AlertTitle>{t('table.validationErrors')}</AlertTitle>
               <List dense disablePadding>
                 {validationIssues.map((issue, index) => {
                   const rowIndex = draftRows.findIndex(row => row.id === issue.rowId);
                   return (
                     <ListItem key={`${String(issue.rowId)}-${index}`} disableGutters>
-                      {t('Row {row}: {message}', {
+                      {t('table.rowRowMessage', {
                         row: rowIndex >= 0 ? rowIndex + 1 : String(issue.rowId),
                         message: issue.message,
                       })}
@@ -327,18 +327,18 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
             {mode === 'CREATE' && (
               <>
                 <Button onClick={handleAddRow} disabled={isSubmitting || draftRows.length >= MAX_ROWS}>
-                  {t('Add row')}
+                  {t('table.addRow')}
                 </Button>
                 <Button onClick={handleRemoveSelected} disabled={isSubmitting || selectedRowIds.size === 0}>
-                  {t('Remove selected')}
+                  {t('table.removeSelected')}
                 </Button>
               </>
             )}
           </Stack>
           <Stack direction="row" spacing={1}>
-            <Button onClick={handleRequestClose}>{t('Cancel')}</Button>
+            <Button onClick={handleRequestClose}>{t('table.cancel')}</Button>
             <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
-              {t('Save')}
+              {t('table.save')}
             </Button>
           </Stack>
         </DialogActions>
@@ -352,18 +352,18 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
         fullWidth
         slotProps={{paper: {elevation: 0}}}
       >
-        <DialogTitle id={confirmationTitleId}>{t('Discard unsaved changes?')}</DialogTitle>
+        <DialogTitle id={confirmationTitleId}>{t('table.discardUnsavedChanges')}</DialogTitle>
         <DialogContent>
           <DialogContentText id={confirmationDescriptionId}>
-            {t('Your unsaved changes will be lost. Do you want to discard them?')}
+            {t('table.yourUnsavedChangesWillBeLostDoYouWantToDiscardThem')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleKeepEditing} autoFocus>
-            {t('Keep editing')}
+            {t('table.keepEditing')}
           </Button>
           <Button onClick={handleDiscard} disabled={isSubmitting} color="error" variant="contained">
-            {t('Discard changes')}
+            {t('table.discardChanges')}
           </Button>
         </DialogActions>
       </Dialog>

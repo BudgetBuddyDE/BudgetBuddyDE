@@ -21,17 +21,17 @@ export const ComparisonSection: React.FC = () => {
   const {formatBalance: formatCurrency, shortenBalance: formatCompactCurrency} = useCurrencyFormatter();
   return (
     <ShowcaseSection
-      title={t('Comparison')}
-      description={t('Bars, budget targets and cash flow bridges for comparing values across categories and time.')}
+      title={t('charts.comparison')}
+      description={t('charts.barsBudgetTargetsAndCashFlowBridgesForComparingValuesAcrossCategoriesAndTime')}
     >
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Budget vs. actual')} subtitle={t('Grouped bar chart')}>
+        <ChartCard title={t('charts.budgetVsActual')} subtitle={t('charts.groupedBarChart')}>
           <BarChart
             data={budgetVsActual}
             xKey="category"
             series={[
-              {key: 'budget', label: t('Budget'), role: 'target'},
-              {key: 'actual', label: t('Actual'), role: 'balance'},
+              {key: 'budget', label: t('charts.budget'), role: 'target'},
+              {key: 'actual', label: t('charts.actual'), role: 'balance'},
             ]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
@@ -40,7 +40,7 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Spending by category')} subtitle={t('Stacked bar chart')}>
+        <ChartCard title={t('charts.spendingByCategory')} subtitle={t('charts.stackedBarChart')}>
           <BarChart
             data={categoryStack}
             xKey="month"
@@ -53,11 +53,11 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Top categories')} subtitle={t('Horizontal bar chart')}>
+        <ChartCard title={t('charts.topCategories')} subtitle={t('charts.horizontalBarChart')}>
           <BarChart
             data={spendingByCategory}
             xKey="label"
-            series={[{key: 'value', label: t('Spent')}]}
+            series={[{key: 'value', label: t('charts.spent')}]}
             horizontal
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
@@ -66,11 +66,11 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Monthly net')} subtitle={t('Negative values with zero baseline')}>
+        <ChartCard title={t('charts.monthlyNet')} subtitle={t('charts.negativeValuesWithZeroBaseline')}>
           <BarChart
             data={cashflow}
             xKey="month"
-            series={[{key: 'net', label: t('Net')}]}
+            series={[{key: 'net', label: t('charts.net')}]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
             showZeroLine
@@ -78,12 +78,12 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Cash flow bridge')} subtitle={t('Waterfall chart')}>
+        <ChartCard title={t('charts.cashFlowBridge')} subtitle={t('charts.waterfallChart')}>
           <WaterfallChart data={waterfallData} valueFormatter={formatCompactCurrency} height={320} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Budget utilization')} subtitle={t('Bullet chart: actual vs. target within range')}>
+        <ChartCard title={t('charts.budgetUtilization')} subtitle={t('charts.bulletChartActualVsTargetWithinRange')}>
           <BulletChart data={bulletBudgets} valueFormatter={formatCurrency} />
         </ChartCard>
       </Grid>

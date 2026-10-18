@@ -59,7 +59,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
       }}
     >
       <DialogTitle id="scroll-dialog-title">
-        {t('Transactions (')}
+        {t('transactions.transactions')}
         {transactions.length})
       </DialogTitle>
       <CloseIconButton
@@ -84,26 +84,26 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
             [
               {
                 key: 'processedAt',
-                label: t('Date'),
+                label: t('transactions.date'),
                 renderCell: (_, row) => Formatter.date.format(row.processedAt),
               },
               {
                 key: 'category',
-                label: t('Category'),
+                label: t('transactions.category'),
                 renderCell: (_, row) => <CategoryChip categoryName={row.category.name} size="small" sx={{mr: 1}} />,
               },
               {
                 key: 'paymentMethod',
-                label: t('Payment Method'),
+                label: t('transactions.paymentMethod'),
                 renderCell: (_, row) => <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />,
               },
               {
                 key: 'receiver',
-                label: t('Receiver'),
+                label: t('transactions.receiver'),
               },
               {
                 key: 'transferAmount',
-                label: t('Amount'),
+                label: t('transactions.amount'),
                 renderCell: (_, row) => currencyFormatter.formatBalance(row.transferAmount),
               },
             ] satisfies ColumnDefinition<TExpandedTransaction>[]
@@ -116,7 +116,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
             handleDialogClose(event, 'escapeKeyDown');
           }}
         >
-          {t('Close')}
+          {t('transactions.close')}
         </Button>
       </DialogActions>
     </Dialog>

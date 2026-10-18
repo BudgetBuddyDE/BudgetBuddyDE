@@ -72,10 +72,10 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
 
     const [, error] = await apiClient.backend.attachment.deleteById(id);
     if (error) {
-      showSnackbar({message: t('Delete failed: {error}', {error: error.message})});
+      showSnackbar({message: t('attachments.deleteFailedError', {error: error.message})});
       return;
     }
-    showSnackbar({message: t('Attachment deleted')});
+    showSnackbar({message: t('attachments.attachmentDeleted')});
     setAttachments(prev => prev.filter(a => a.id !== id));
   }, [t, deletingAttachmentId, showSnackbar]);
 
@@ -91,7 +91,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
     setIsLoadingMore(false);
 
     if (error) {
-      showSnackbar({message: t('Failed to load more attachments: {error}', {error: error.message})});
+      showSnackbar({message: t('attachments.failedToLoadMoreAttachmentsError', {error: error.message})});
       return;
     }
 
@@ -115,11 +115,11 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
 
       const [attachment, error] = await apiClient.backend.attachment.getById(id as TAttachmentWithUrl['id']);
       if (error) {
-        showSnackbar({message: t('Failed to open attachment: {error}', {error: error.message})});
+        showSnackbar({message: t('attachments.failedToOpenAttachmentError', {error: error.message})});
         return;
       }
       if (!attachment?.data) {
-        showSnackbar({message: t('Attachment not found')});
+        showSnackbar({message: t('attachments.attachmentNotFound')});
         return;
       }
       setDeletingAttachmentId(attachment.data.id);
@@ -141,7 +141,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
       {attachments.length === 0 ? (
         <NoResults
           icon={<EntityIcon entity="attachment" />}
-          text={t('No attachments have been added yet')}
+          text={t('attachments.noAttachmentsHaveBeenAddedYet')}
           sx={{boxShadow: 6}}
         />
       ) : (
@@ -161,8 +161,8 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
             <Grid size={{xs: 12}} sx={{display: 'flex', justifyContent: 'center', pt: 1}}>
               <Button variant="outlined" onClick={handleLoadMore} disabled={isLoadingMore}>
                 {isLoadingMore
-                  ? t('Loading…')
-                  : t('Load more ({count} remaining)', {count: totalCount - attachments.length})}
+                  ? t('common.loadingEllipsis')
+                  : t('attachments.loadMoreCountRemaining', {count: totalCount - attachments.length})}
               </Button>
             </Grid>
           )}
@@ -173,7 +173,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
 
       <DeleteDialog
         open={deletingAttachmentId !== null}
-        text={{content: t('Are you sure you want to delete this attachment?')}}
+        text={{content: t('attachments.areYouSureYouWantToDeleteThisAttachment')}}
         onCancel={handleCancelDelete}
         onClose={handleCancelDelete}
         onConfirm={handleDeleteConfirm}

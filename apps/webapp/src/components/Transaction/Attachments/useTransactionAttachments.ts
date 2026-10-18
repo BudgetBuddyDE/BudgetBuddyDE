@@ -45,7 +45,7 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       });
       if (error) {
         dispatch({type: 'LOAD_ERROR'});
-        showSnackbar({message: t('Failed to load attachments: {value1}', {value1: error.message})});
+        showSnackbar({message: t('attachments.failedToLoadAttachments', {value1: error.message})});
         return;
       }
       dispatch({
@@ -75,7 +75,7 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       if (invalidFiles.length > 0) {
         const names = invalidFiles.map(f => f.name).join(', ');
         showSnackbar({
-          message: t('Unsupported file type(s): {value1}. Allowed types: PNG, JPG, WebP, HEIC.', {value1: names}),
+          message: t('attachments.unsupportedFileTypes', {value1: names}),
         });
         return;
       }
@@ -84,11 +84,11 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       const [result, error] = await apiClient.backend.transaction.uploadTransactionAttachments(transactionId, files);
       if (error) {
         dispatch({type: 'UPLOAD_ERROR'});
-        showSnackbar({message: t('Upload failed: {value1}', {value1: error.message})});
+        showSnackbar({message: t('attachments.uploadFailed', {value1: error.message})});
         return;
       }
       dispatch({type: 'UPLOAD_SUCCESS', newAttachments: result.data ?? []});
-      showSnackbar({message: t('{value1} file(s) uploaded successfully', {value1: result.data?.length ?? 0})});
+      showSnackbar({message: t('attachments.filesUploadedSuccessfully', {value1: result.data?.length ?? 0})});
     },
     [transactionId, showSnackbar, t],
   );
@@ -112,11 +112,11 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       attachmentIds: [id],
     });
     if (error) {
-      showSnackbar({message: t('Delete failed: {value1}', {value1: error.message})});
+      showSnackbar({message: t('attachments.deleteFailed', {value1: error.message})});
       return;
     }
     dispatch({type: 'DELETE_SUCCESS', attachmentId: id});
-    showSnackbar({message: t('Attachment deleted')});
+    showSnackbar({message: t('attachments.attachmentDeleted')});
   }, [state.deletingAttachmentId, transactionId, showSnackbar, t]);
 
   return {state, dispatch, handleUpload, handleDownload, handleDeleteConfirm, handleLoadMore};

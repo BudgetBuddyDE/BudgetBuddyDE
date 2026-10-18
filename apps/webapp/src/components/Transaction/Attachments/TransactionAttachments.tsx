@@ -75,7 +75,7 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
               mb: 1,
             }}
           >
-            {t('Showing {count} of {total} attachments', {count: attachments.length, total: totalCount})}
+            {t('attachments.showingAttachments', {count: attachments.length, total: totalCount})}
           </Typography>
           <Grid container spacing={1}>
             {attachments.map((attachment, index) => (
@@ -93,13 +93,13 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
           {hasMoreAttachments && (
             <Box sx={{display: 'flex', justifyContent: 'center', mt: 2}}>
               <Button variant="outlined" loading={isLoadingMore} onClick={handleLoadMore}>
-                {t('Load more attachments')}
+                {t('attachments.loadMoreAttachments')}
               </Button>
             </Box>
           )}
         </>
       ) : (
-        <NoResults icon={<EntityIcon entity="attachment" />} text={t('No attachments yet')} />
+        <NoResults icon={<EntityIcon entity="attachment" />} text={t('attachments.noAttachmentsYet')} />
       )}
 
       <AttachmentLightbox
@@ -110,7 +110,7 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
 
       <DeleteDialog
         open={deletingAttachmentId !== null}
-        text={{content: t('Are you sure you want to delete this attachment?')}}
+        text={{content: t('attachments.confirmDeleteAttachment')}}
         onCancel={() => dispatch({type: 'DELETE_CLOSE'})}
         onClose={() => dispatch({type: 'DELETE_CLOSE'})}
         onConfirm={handleDeleteConfirm}

@@ -21,15 +21,15 @@ export const RelationshipSection: React.FC = () => {
   const {shortenBalance: formatCompactCurrency} = useCurrencyFormatter();
   return (
     <ShowcaseSection
-      title={t('Relationships & intensity')}
-      description={t('Correlations, distributions and density - finding outliers and spending patterns.')}
+      title={t('charts.relationshipsIntensity')}
+      description={t('charts.correlationsDistributionsAndDensityFindingOutliersAndSpendingPatterns')}
     >
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Transactions over time')} subtitle={t('Scatter chart with two series')}>
+        <ChartCard title={t('charts.transactionsOverTime')} subtitle={t('charts.scatterChartWithTwoSeries')}>
           <ScatterChart
             series={[
-              {key: 'transactions', label: t('One-off'), data: transactionsScatter},
-              {key: 'recurring', label: t('Recurring'), color: '#DEA500', data: recurringScatter},
+              {key: 'transactions', label: t('charts.oneOff'), data: transactionsScatter},
+              {key: 'recurring', label: t('charts.recurring'), color: '#DEA500', data: recurringScatter},
             ]}
             xLabel="Transaction"
             yLabel="Amount"
@@ -40,12 +40,12 @@ export const RelationshipSection: React.FC = () => {
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
         <ChartCard
-          title={t('Accounts')}
-          subtitle={t('Bubble chart (size = volume)')}
-          note={t('Horizontal: activity count. Vertical: account balance. Bubble area: transaction volume.')}
+          title={t('charts.accounts')}
+          subtitle={t('charts.bubbleChartSizeVolume')}
+          note={t('charts.horizontalActivityCountVerticalAccountBalanceBubbleAreaTransactionVolume')}
         >
           <ScatterChart
-            series={[{key: 'accounts', label: t('Accounts'), data: accountBubble}]}
+            series={[{key: 'accounts', label: t('charts.accounts'), data: accountBubble}]}
             xLabel="Activity"
             yLabel="Balance"
             yFormatter={formatCompactCurrency}
@@ -55,13 +55,13 @@ export const RelationshipSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Budget vs. actual')} subtitle={t('Radar chart across categories')}>
+        <ChartCard title={t('charts.budgetVsActual')} subtitle={t('charts.radarChartAcrossCategories')}>
           <RadarChart
             data={budgetRadar}
             metricKey="metric"
             series={[
-              {key: 'Goal', label: t('Goal'), role: 'target'},
-              {key: 'Actual', label: t('Actual'), role: 'balance'},
+              {key: 'Goal', label: t('charts.goal'), role: 'target'},
+              {key: 'Actual', label: t('charts.actual'), role: 'balance'},
             ]}
             fillArea
             showMarkers
@@ -70,7 +70,7 @@ export const RelationshipSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title={t('Spending intensity')} subtitle={t('Heatmap (week x weekday)')}>
+        <ChartCard title={t('charts.spendingIntensity')} subtitle={t('charts.heatmapWeekXWeekday')}>
           <HeatmapChart
             data={spendingHeatmap}
             xLabels={HEATMAP_DAYS}

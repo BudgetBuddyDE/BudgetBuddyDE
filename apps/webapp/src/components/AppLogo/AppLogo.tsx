@@ -17,7 +17,7 @@ export const AppLogo: React.FC<TAppLogoProps> = ({sx, ...imageProps}) => {
   return (
     <Image
       src={mode === 'light' ? '/mobile-logo-dark.svg' : '/mobile-logo-light.svg'}
-      alt={t('BudgetBuddy Logo')}
+      alt={t('common.budgetbuddyLogo')}
       {...imageProps}
       sx={{
         width: '6rem',

@@ -16,9 +16,9 @@ export const AppInformation = () => {
     <Card>
       <Card.Header>
         <Box>
-          <Card.Title>{t('App information')}</Card.Title>
+          <Card.Title>{t('settings.appInformation.appInformation')}</Card.Title>
           <Card.Subtitle>
-            {t('ReactJS bases web-app to keep track of your finances and manage your montly budget.')}
+            {t('settings.appInformation.reactjsBasesWebAppToKeepTrackOfYourFinancesAndManageYourMontlyBudget')}
           </Card.Subtitle>
         </Box>
       </Card.Header>
@@ -33,7 +33,7 @@ export const AppInformation = () => {
         >
           <LanguageRounded />
           <Link href="https://budget-buddy.de" target="_blank">
-            {t('Website')}
+            {t('settings.appInformation.website')}
           </Link>
         </Stack>
 
@@ -46,7 +46,7 @@ export const AppInformation = () => {
           }}
         >
           <AlternateEmailRounded />
-          <Link href="mailto:contact@budget-buddy.de">{t('Contact')}</Link>
+          <Link href="mailto:contact@budget-buddy.de">{t('settings.appInformation.contact')}</Link>
         </Stack>
 
         <Stack
@@ -59,7 +59,7 @@ export const AppInformation = () => {
         >
           <CodeRounded />
           <Link href="https://github.com/BudgetBuddyDE/BudgetBuddyDE" target="_blank">
-            {t('Source Code')}
+            {t('settings.appInformation.sourceCode')}
           </Link>
         </Stack>
 
@@ -72,7 +72,7 @@ export const AppInformation = () => {
           }}
         >
           <AppSettingsAltRounded />
-          <Typography noWrap>{t('Version {version}', {version: webappConfig.version})}</Typography>
+          <Typography noWrap>{t('settings.appInformation.versionVersion', {version: webappConfig.version})}</Typography>
         </Stack>
       </Card.Body>
     </Card>

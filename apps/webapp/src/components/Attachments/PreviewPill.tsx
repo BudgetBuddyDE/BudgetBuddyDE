@@ -19,7 +19,7 @@ export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) =
       type="button"
       direction="row"
       spacing={0.75}
-      aria-label={t('View')}
+      aria-label={t('attachments.upload.view')}
       onClick={() => onClick(attachment)}
       sx={{
         alignItems: 'center',
@@ -42,7 +42,7 @@ export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) =
           fontWeight: 600,
         }}
       >
-        {t('Preview')}
+        {t('attachments.upload.preview')}
       </Typography>
     </Stack>
   );

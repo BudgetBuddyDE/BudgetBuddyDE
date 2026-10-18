@@ -65,7 +65,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         {(headerAction || onAddEntity) && (
           <Card.HeaderActions>
             {headerAction ?? (
-              <IconButton color="primary" aria-label={t('Add transaction')} onClick={onAddEntity}>
+              <IconButton color="primary" aria-label={t('transactions.addTransaction')} onClick={onAddEntity}>
                 <AddIcon />
               </IconButton>
             )}
@@ -90,7 +90,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             />
           ))
         ) : (
-          <NoResults text={noResultsMessage ?? t("You haven't made any purchases yet")} />
+          <NoResults text={noResultsMessage ?? t('transactions.youHavenTMadeAnyPurchasesYet')} />
         )}
       </Card.Body>
     </Card>

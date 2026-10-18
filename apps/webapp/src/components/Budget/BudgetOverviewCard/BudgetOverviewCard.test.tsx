@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {BudgetOverviewCard} from './BudgetOverviewCard';
 
 describe('BudgetOverviewCard', () => {
@@ -37,8 +37,3 @@ describe('BudgetOverviewCard', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent(/100.00/);
   });
 });
-
-vi.mock('@/hooks/useAppTranslations', () => ({
-  useAppTranslations: () => (source: string, values?: Record<string, string | number>) =>
-    source.replace(/\{(\w+)\}/g, (_, key: string) => String(values?.[key] ?? key)),
-}));

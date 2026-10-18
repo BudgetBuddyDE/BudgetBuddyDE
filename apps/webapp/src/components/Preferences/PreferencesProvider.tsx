@@ -27,7 +27,7 @@ import type {AppStore} from '@/lib/store';
 export type PreferencesContextValue = {
   preferences: TPreference | null;
   effectivePreferences: EffectivePreferences;
-  locale: 'en-US';
+  locale: ReturnType<typeof getPreferenceLocale>;
   isLoading: boolean;
   isSaving: boolean;
   error: string | null;

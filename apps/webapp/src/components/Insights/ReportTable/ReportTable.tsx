@@ -38,7 +38,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({headers, rows, rightAli
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={headers.length}>{t('No data for the selected filters.')}</TableCell>
+              <TableCell colSpan={headers.length}>{t('insights.noDataForTheSelectedFilters')}</TableCell>
             </TableRow>
           )}
         </TableBody>

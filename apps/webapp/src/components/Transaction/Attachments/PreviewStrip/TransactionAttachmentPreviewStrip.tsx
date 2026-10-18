@@ -43,7 +43,7 @@ export const TransactionAttachmentPreviewStrip: React.FC<TransactionAttachmentPr
         event.stopPropagation();
         onClick();
       }}
-      aria-label={t('Open {count} transaction attachments', {count: totalAttachments})}
+      aria-label={t('attachments.openTransactionAttachments', {count: totalAttachments})}
       sx={{
         borderRadius: 1.25,
         justifyContent: 'flex-start',

@@ -26,12 +26,12 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
   const handleLogout = async () => {
     await signOut(
       () => {
-        showSnackbar({message: t('You have been logged out.')});
+        showSnackbar({message: t('forms.youHaveBeenLoggedOut')});
       },
       () => {
         showSnackbar({
-          message: t('Logout failed. Please try again.'),
-          action: <Button onClick={handleLogout}>{t('Retry')}</Button>,
+          message: t('forms.logoutFailedPleaseTryAgain'),
+          action: <Button onClick={handleLogout}>{t('forms.retry')}</Button>,
         });
       },
     );
@@ -88,7 +88,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
             >
               {sessionData.user.name}
             </Typography>
-            <Chip label={t('Basic')} variant="outlined" size="small" />
+            <Chip label={t('forms.basic')} variant="outlined" size="small" />
           </Box>
         </Box>
         <LogoutButton
@@ -109,7 +109,7 @@ export const LogoutButton: React.FC<ButtonProps> = props => {
   const t = useAppTranslations();
   return (
     <Button
-      aria-label={t('Logout')}
+      aria-label={t('forms.logout')}
       {...props}
       sx={{
         minWidth: 48,

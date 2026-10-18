@@ -93,7 +93,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
           color: 'text.secondary',
         }}
       >
-        {isUploading ? t('Uploading…') : t('Click or drag & drop files to upload')}
+        {isUploading ? t('attachments.upload.uploading') : t('attachments.upload.clickOrDragDropFilesToUpload')}
       </Typography>
       <input
         ref={fileInputRef}

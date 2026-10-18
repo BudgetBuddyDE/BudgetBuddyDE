@@ -92,27 +92,27 @@ export function CategoryPieChart({
     {label: string; range: () => [Date, Date]; emptyText: string}
   > = {
     MONTH: {
-      label: t('Month'),
+      label: t('categories.month'),
       range: () => {
         const now = new Date();
         return [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
       },
-      emptyText: t('There are no transactions for this month!'),
+      emptyText: t('categories.thereAreNoTransactionsForThisMonth'),
     },
     YTD: {
-      label: t('YTD'),
+      label: t('categories.ytd'),
       range: () => {
         const now = new Date();
         return [new Date(now.getFullYear(), 0, 1), now];
       },
-      emptyText: t('There are no transactions for this year!'),
+      emptyText: t('categories.thereAreNoTransactionsForThisYear'),
     },
     ALL_TIME: {
-      label: t('All Time'),
+      label: t('categories.allTime'),
       range: () => {
         return [new Date('1900-01-01'), new Date('2999-12-31')];
       },
-      emptyText: t('There are no transactions for all time!'),
+      emptyText: t('categories.thereAreNoTransactionsForAllTime'),
     },
   };
 
@@ -199,7 +199,7 @@ export function CategoryPieChart({
             value={currentTimeframe}
             onChange={handleTimeframeChange}
             exclusive
-            aria-label={t('Select timeframe')}
+            aria-label={t('categories.selectTimeframe')}
             disabled={isLoading} // <-- important change
           >
             {TIMEFRAMES.map(tf => (
@@ -219,7 +219,7 @@ export function CategoryPieChart({
           <DonutChart
             data={chartData}
             primaryText={currencyFormatter.formatBalance(totalValue)}
-            secondaryText={transactionsType === 'EXPENSE' ? t('Expenses') : t('Income')}
+            secondaryText={transactionsType === 'EXPENSE' ? t('categories.expenses') : t('categories.income')}
             valueFormatter={value => currencyFormatter.formatBalance(value)}
           />
         ) : (
@@ -234,8 +234,8 @@ export function CategoryPieChart({
               justifyContent: 'flex-end',
             }}
           >
-            <Button LinkComponent={NextLink} href="/transactions" aria-label={t('View more transactions')}>
-              {t('View more...')}
+            <Button LinkComponent={NextLink} href="/transactions" aria-label={t('categories.viewMoreTransactions')}>
+              {t('categories.viewMore')}
             </Button>
           </Stack>
         </Card.Footer>

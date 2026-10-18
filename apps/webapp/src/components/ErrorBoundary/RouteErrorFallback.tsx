@@ -30,11 +30,11 @@ export function RouteErrorFallback({error, reset, title}: RouteErrorFallbackProp
           fontWeight: 700,
         }}
       >
-        {title ?? t('This section is temporarily unavailable')}
+        {title ?? t('common.thisSectionIsTemporarilyUnavailable')}
       </Typography>
       <Alert severity="error">
-        <AlertTitle>{t('We could not load this section')}</AlertTitle>
-        {t('Please try again. Your other page sections remain available.')}
+        <AlertTitle>{t('common.weCouldNotLoadThisSection')}</AlertTitle>
+        {t('common.pleaseTryAgainYourOtherPageSectionsRemainAvailable')}
       </Alert>
       {error.digest ? (
         <Typography
@@ -43,11 +43,11 @@ export function RouteErrorFallback({error, reset, title}: RouteErrorFallbackProp
             color: 'text.secondary',
           }}
         >
-          {t('Error reference: {reference}', {reference: error.digest})}
+          {t('common.errorReferenceReference', {reference: error.digest})}
         </Typography>
       ) : null}
       <Button variant="outlined" onClick={() => (reset ? reset() : router.refresh())} sx={{alignSelf: 'flex-start'}}>
-        {t('Try again')}
+        {t('common.tryAgain')}
       </Button>
     </Stack>
   );

@@ -24,7 +24,7 @@ vi.mock('next/navigation', () => ({useRouter: () => ({refresh: mocks.refresh})})
 
 const initial: TPreference = {
   ownerId: 'alice' as TPreference['ownerId'],
-  language: 'de_DE',
+  language: 'en_US',
   currency: 'USD',
   timeZone: 'America/New_York',
   onboardingCompleted: false,
@@ -69,6 +69,46 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('PreferencesProvider', () => {
+  it('exposes German server preferences before client authentication resolves', () => {
+    mocks.session = {data: null, isPending: true};
+    renderToString(
+      <Provider store={makeStore()}>
+        <PreferencesProvider initialPreferences={{...initial, language: 'de_DE'}} initialError={null}>
+          <Consumer />
+        </PreferencesProvider>
+      </Provider>,
+    );
+    expect(context.locale).toBe('de-DE');
+    expect(context.effectivePreferences.language).toBe('de_DE');
+    expect(mocks.get).not.toHaveBeenCalled();
+  });
+
+  it('switches the locale and currency display after saving German without changing the time zone', async () => {
+    function CurrencyConsumer() {
+      return <output aria-label="Balance">{useCurrencyFormatter().formatBalance(1234.5)}</output>;
+    }
+    render(
+      <Provider store={makeStore()}>
+        <PreferencesProvider initialPreferences={initial} initialError={null}>
+          <Consumer />
+          <CurrencyConsumer />
+        </PreferencesProvider>
+      </Provider>,
+    );
+    expect(screen.getByLabelText('Balance')).toHaveTextContent('$1,234.50');
+    mocks.update.mockResolvedValue(success({...initial, language: 'de_DE'}));
+    await act(async () => {
+      await context.updatePreferences({language: 'de_DE'});
+    });
+    expect(context.locale).toBe('de-DE');
+    expect(context.effectivePreferences).toEqual({language: 'de_DE', currency: 'USD', timeZone: 'Europe/Berlin'});
+    expect(context.preferences?.timeZone).toBe('America/New_York');
+    expect(screen.getByLabelText('Balance').textContent).toBe(
+      new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'USD'}).format(1234.5),
+    );
+    expect(mocks.update).toHaveBeenCalledExactlyOnceWith({language: 'de_DE'});
+  });
+
   it('formats USD on the initial server render and updates both currency consumers after a save', async () => {
     mocks.session = {data: null, isPending: true};
     function CurrencyConsumer({label}: {label: string}) {

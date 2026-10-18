@@ -45,13 +45,9 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
         paper: {elevation: 0},
       }}
     >
-      <DialogTitle>{t('Copy your API key now')}</DialogTitle>
+      <DialogTitle>{t('account.apiKeys.copyYourAPIKeyNow')}</DialogTitle>
       <DialogContent>
-        <DialogContentText sx={{mb: 2}}>
-          {t(
-            'This is the only time the full API key will be shown. Copy it and store it somewhere secure before closing this dialog.',
-          )}
-        </DialogContentText>
+        <DialogContentText sx={{mb: 2}}>{t('account.apiKeys.copyKeyWarning')}</DialogContentText>
         <TextField
           fullWidth
           value={apiKey ?? ''}
@@ -59,8 +55,8 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
             input: {
               readOnly: true,
               endAdornment: apiKey ? (
-                <Tooltip title={t('Copy API key')}>
-                  <IconButton onClick={() => onCopy(apiKey)} edge="end" aria-label={t('Copy API key')}>
+                <Tooltip title={t('account.apiKeys.copyAPIKey')}>
+                  <IconButton onClick={() => onCopy(apiKey)} edge="end" aria-label={t('account.apiKeys.copyAPIKey')}>
                     <ContentCopyRounded />
                   </IconButton>
                 </Tooltip>
@@ -78,16 +74,16 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
                 }}
               />
             }
-            label={t('I have copied and securely stored this API key.')}
+            label={t('account.apiKeys.iHaveCopiedAndSecurelyStoredThisAPIKey')}
           />
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={() => apiKey && onCopy(apiKey)} color="inherit">
-          {copied ? t('Copied') : t('Copy')}
+          {copied ? t('account.apiKeys.copied') : t('account.apiKeys.copy')}
         </Button>
         <Button onClick={onClose} variant="contained" disabled={!acknowledged}>
-          {t('I understand, close')}
+          {t('account.apiKeys.iUnderstandClose')}
         </Button>
       </DialogActions>
     </Dialog>
