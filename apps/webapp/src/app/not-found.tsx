@@ -3,8 +3,10 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {LinkButton} from '@/components/Button';
 import {Footer} from '@/components/Layout/Footer';
 import {UnauthenticatedMain} from '@/components/Layout/Main/UnauthenticatedMain';
+import {getAppTranslations} from '@/i18n/server';
 
-export default function NotFoundPage() {
+export default async function NotFoundPage() {
+  const t = await getAppTranslations();
   return (
     <UnauthenticatedMain sx={{display: 'flex'}}>
       <ActionPaper
@@ -15,27 +17,27 @@ export default function NotFoundPage() {
           textAlign: 'center',
         }}
       >
-        <Typography variant="h1">Ooops!</Typography>
+        <Typography variant="h1">{t('errors.oops')}</Typography>
         <Typography variant="h2" sx={{mt: 1.5}}>
-          Page Not Found
+          {t('errors.pageNotFound')}
         </Typography>
 
-        <Typography sx={{my: 1}}>The page you are looking for might have been removed or moved.</Typography>
+        <Typography sx={{my: 1}}>{t('errors.pageMayHaveBeenRemovedOrMoved')}</Typography>
 
         <Grid container spacing={2}>
           <Grid size={{xs: 12, md: 4}}>
             <LinkButton href="/" fullWidth>
-              Home
+              {t('navigation.home')}
             </LinkButton>
           </Grid>
           <Grid size={{xs: 12, md: 4}}>
             <LinkButton href="/sign-in" fullWidth>
-              Sign in
+              {t('auth.signIn.signIn')}
             </LinkButton>
           </Grid>
           <Grid size={{xs: 12, md: 4}}>
             <LinkButton href="/sign-up" fullWidth>
-              Sign up
+              {t('auth.signUp.signUp')}
             </LinkButton>
           </Grid>
         </Grid>

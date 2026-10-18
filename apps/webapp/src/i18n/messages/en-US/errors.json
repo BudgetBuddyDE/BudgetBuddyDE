@@ -1,0 +1,12 @@
+{
+  "pageTemporarilyUnavailable": "This page is temporarily unavailable",
+  "error": "Error",
+  "unexpectedError": "An unexpected error occurred.",
+  "oops": "Ooops!",
+  "somethingWentWrong": "Something went wrong!",
+  "errorTypeErrorName": "Error: {errorName}",
+  "referenceReference": "Reference: {reference}",
+  "occurredAtOccurredAt": "Occurred at: {occurredAt}",
+  "pageNotFound": "Page Not Found",
+  "pageMayHaveBeenRemovedOrMoved": "The page you are looking for might have been removed or moved."
+}

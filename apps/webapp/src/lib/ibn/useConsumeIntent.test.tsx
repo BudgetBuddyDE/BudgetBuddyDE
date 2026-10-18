@@ -4,6 +4,7 @@ import React from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {IntentHandlers} from './useConsumeIntent';
 import {useConsumeIntent} from './useConsumeIntent';
+import {englishTranslator} from '@/i18n/translate';
 
 const replace = vi.fn();
 const push = vi.fn();
@@ -53,7 +54,9 @@ describe('useConsumeIntent', () => {
 
     render(<Harness handlers={{onInvalid}} />);
 
-    await waitFor(() => expect(onInvalid).toHaveBeenCalledWith('edit intent requires ID'));
+    await waitFor(() =>
+      expect(onInvalid).toHaveBeenCalledWith(englishTranslator('intents.actionRequiresId', {action: 'edit'})),
+    );
     expect(replace).toHaveBeenCalledWith('/transactions?q=food');
   });
 

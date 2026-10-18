@@ -1,8 +1,5 @@
 import type {ValueFormatter} from '@budgetbuddyde/charts';
-import {Formatter} from '@/utils/Formatter';
 
-export const formatCurrency: ValueFormatter = value => Formatter.currency.formatBalance(value);
-export const formatCompactCurrency: ValueFormatter = value => Formatter.currency.shortenBalance(value);
 export const formatPercent: ValueFormatter = value => `${Math.round(value)}%`;
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -1,4 +1,5 @@
 import {describe, expect, it} from 'vitest';
+import {englishTranslator} from '@/i18n/translate';
 import {
   buildIntentHref,
   parseIntentFromSearchParams,
@@ -74,10 +75,10 @@ describe('IBN URL contract', () => {
 
   it('returns errors for edit and delete without ID', () => {
     expect(parseIntentFromSearchParams(new URLSearchParams('ibnEntity=transaction&ibnAction=edit'))).toEqual({
-      error: 'edit intent requires ID',
+      error: englishTranslator('intents.actionRequiresId', {action: 'edit'}),
     });
     expect(parseIntentFromSearchParams(new URLSearchParams('ibnEntity=transaction&ibnAction=delete'))).toEqual({
-      error: 'delete intent requires ID',
+      error: englishTranslator('intents.actionRequiresId', {action: 'delete'}),
     });
   });
 
@@ -86,15 +87,15 @@ describe('IBN URL contract', () => {
       parseIntentFromSearchParams(
         new URLSearchParams('ibnEntity=attachment&ibnAction=create&ibnParentEntity=transaction'),
       ),
-    ).toEqual({error: 'Attachment creation requires parent ID'});
+    ).toEqual({error: englishTranslator('intents.attachmentRequiresParentId')});
   });
 
   it('returns errors for unknown entity and action', () => {
     expect(parseIntentFromSearchParams(new URLSearchParams('ibnEntity=nope&ibnAction=create'))).toEqual({
-      error: 'Invalid intent entity: nope',
+      error: englishTranslator('intents.invalidEntity', {entity: 'nope'}),
     });
     expect(parseIntentFromSearchParams(new URLSearchParams('ibnEntity=transaction&ibnAction=nope'))).toEqual({
-      error: 'Invalid intent action: nope',
+      error: englishTranslator('intents.invalidAction', {action: 'nope'}),
     });
   });
 

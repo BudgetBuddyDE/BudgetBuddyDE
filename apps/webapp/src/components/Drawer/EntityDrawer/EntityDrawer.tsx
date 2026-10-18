@@ -2,6 +2,7 @@ import {Alert, type AlertProps, Box, Grid} from '@mui/material';
 import React, {type JSX} from 'react';
 import {type DefaultValues, type FieldValues, useForm} from 'react-hook-form';
 import {ErrorAlert} from '@/components/ErrorAlert';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {useKeyPress} from '@/hooks/useKeyPress';
 import {parseNumber} from '@/utils/parseNumber';
 import {Drawer, type DrawerProps} from '../Drawer';
@@ -54,6 +55,7 @@ export const EntityDrawer = <T extends FieldValues>({
   fields = [],
   slots,
 }: EntityDrawerProps<T>) => {
+  const t = useAppTranslations();
   const drawerRef = React.useRef<HTMLDivElement | null>(null);
   const saveBtnRef = React.useRef<HTMLButtonElement | null>(null);
   const form = useForm<T>({
@@ -141,21 +143,14 @@ export const EntityDrawer = <T extends FieldValues>({
           return (
             <Grid key={`field-unknown-${(field as {name?: string}).name ?? 'unknown'}`} size={{xs: 12}}>
               <ErrorAlert
-                error={
-                  new Error(
-                    `Unbekannter Feldtyp: ${
-                      // biome-ignore lint/suspicious/noExplicitAny: I can't type it properly here
-                      (field as any).type
-                    }`,
-                  )
-                }
+                error={new Error(t('forms.unknownFieldTypeType', {type: String((field as {type?: unknown}).type)}))}
                 sx={{width: '100%'}}
               />
             </Grid>
           );
       }
     });
-  }, [fields, form.control]);
+  }, [fields, form.control, t]);
 
   return (
     <Drawer

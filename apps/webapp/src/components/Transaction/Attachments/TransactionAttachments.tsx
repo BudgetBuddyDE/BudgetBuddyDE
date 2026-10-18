@@ -6,6 +6,7 @@ import type React from 'react';
 import {AttachmentLightbox, AttachmentThumbnail, FileDropZone} from '@/components/Attachments';
 import {DeleteDialog} from '@/components/Dialog';
 import {NoResults} from '@/components/NoResults';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {EntityIcon} from '@/lib/ibn';
 import {useTransactionAttachments} from './useTransactionAttachments';
 
@@ -23,6 +24,7 @@ export type TransactionAttachmentsProps = {
  * {@link AttachmentLightbox}, and `DeleteDialog`.
  */
 export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({transactionId}) => {
+  const t = useAppTranslations();
   const {state, dispatch, handleUpload, handleDownload, handleDeleteConfirm, handleLoadMore} =
     useTransactionAttachments(transactionId);
   const {
@@ -73,7 +75,7 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
               mb: 1,
             }}
           >
-            Showing {attachments.length} of {totalCount} attachments
+            {t('attachments.showingAttachments', {count: attachments.length, total: totalCount})}
           </Typography>
           <Grid container spacing={1}>
             {attachments.map((attachment, index) => (
@@ -91,13 +93,13 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
           {hasMoreAttachments && (
             <Box sx={{display: 'flex', justifyContent: 'center', mt: 2}}>
               <Button variant="outlined" loading={isLoadingMore} onClick={handleLoadMore}>
-                Load more attachments
+                {t('attachments.loadMoreAttachments')}
               </Button>
             </Box>
           )}
         </>
       ) : (
-        <NoResults icon={<EntityIcon entity="attachment" />} text={'No attachments yet'} />
+        <NoResults icon={<EntityIcon entity="attachment" />} text={t('attachments.noAttachmentsYet')} />
       )}
 
       <AttachmentLightbox
@@ -108,7 +110,7 @@ export const TransactionAttachments: React.FC<TransactionAttachmentsProps> = ({t
 
       <DeleteDialog
         open={deletingAttachmentId !== null}
-        text={{content: 'Are you sure you want to delete this attachment?'}}
+        text={{content: t('attachments.confirmDeleteAttachment')}}
         onCancel={() => dispatch({type: 'DELETE_CLOSE'})}
         onClose={() => dispatch({type: 'DELETE_CLOSE'})}
         onConfirm={handleDeleteConfirm}

@@ -2,6 +2,7 @@
 
 import {Box, Container, Stack, Typography, Button, useColorScheme} from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {AdvancedSection} from './sections/AdvancedSection';
 import {ComparisonSection} from './sections/ComparisonSection';
 import {DistributionSection} from './sections/DistributionSection';
@@ -15,30 +16,37 @@ import {TimeSeriesSection} from './sections/TimeSeriesSection';
  * wrappers can be reviewed in both light and dark mode.
  */
 export const ChartsShowcase: React.FC = () => {
+  const t = useAppTranslations();
   const {mode, setMode} = useColorScheme();
   return (
     <Container component="main" maxWidth="xl" sx={{py: {xs: 3, md: 5}}}>
       <Stack sx={{mb: 4}}>
         <Typography component="h1" variant="h4" sx={{fontWeight: 700}}>
-          Financial charts
+          {t('charts.financialCharts')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Explore balances, budgets and money flows. All examples use fictional data.
+          {t('charts.exploreBalancesBudgetsAndMoneyFlowsAllExamplesUseFictionalData')}
         </Typography>
-        <Box component="nav" aria-label="Chart sections" sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}>
-          {[
-            'Time series',
-            'Comparison',
-            'Distribution & part-to-whole',
-            'Relationships & intensity',
-            'Flows, investments & KPIs',
-          ].map(title => (
-            <Button key={title} href={`#${title.toLowerCase().replace(/[^a-z]+/g, '-')}`} size="small">
-              {title}
+        <Box
+          component="nav"
+          aria-label={t('charts.chartSections')}
+          sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}
+        >
+          {(
+            [
+              {key: 'charts.timeSeries', label: t('charts.timeSeries')},
+              {key: 'charts.comparison', label: t('charts.comparison')},
+              {key: 'charts.distributionAndPartToWhole', label: t('charts.distributionPartToWhole')},
+              {key: 'charts.relationshipsIntensity', label: t('charts.relationshipsIntensity')},
+              {key: 'charts.flowsInvestmentsKPIs', label: t('charts.flowsInvestmentsKPIs')},
+            ] as const
+          ).map(({key, label}) => (
+            <Button key={key} href={`#${label.toLowerCase().replace(/[^a-z]+/g, '-')}`} size="small">
+              {label}
             </Button>
           ))}
           <Button size="small" onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}>
-            Switch appearance
+            {t('charts.switchAppearance')}
           </Button>
         </Box>
       </Stack>

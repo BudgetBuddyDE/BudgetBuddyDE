@@ -1,14 +1,19 @@
 import type {Metadata, Viewport} from 'next';
 import type React from 'react';
+import {getMessagesForLocale} from '@/i18n/messages';
+import {getAppLocale, getAppTranslations, getBrowserLocale} from '@/i18n/server';
 import {colors} from '@/theme/DarkTheme/colors';
 import {LayoutWrapper} from './layout-wrapper';
 import {StoreProvider} from './StoreProvider';
 
-export const metadata: Metadata = {
-  title: 'Budget Buddy',
-  description: 'Manage your budgets effortlessly with Budget Buddy.',
-  manifest: '/manifest.json',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getAppTranslations();
+  return {
+    title: 'Budget Buddy',
+    description: t('charts.description'),
+    manifest: '/manifest.json',
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
@@ -22,12 +27,16 @@ export const viewport: Viewport = {
     },
   ],
 };
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default async function RootLayout({children}: {children: React.ReactNode}) {
+  const locale = await getAppLocale();
+  const browserLocale = await getBrowserLocale();
   return (
     <StoreProvider>
-      <html lang="en" suppressHydrationWarning>
+      <html lang={locale} suppressHydrationWarning>
         <body>
-          <LayoutWrapper>{children}</LayoutWrapper>
+          <LayoutWrapper locale={locale} browserLocale={browserLocale} messages={getMessagesForLocale(locale)}>
+            {children}
+          </LayoutWrapper>
         </body>
       </html>
     </StoreProvider>

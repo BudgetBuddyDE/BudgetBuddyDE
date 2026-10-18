@@ -3,6 +3,7 @@
 import {AlertTitle} from '@mui/material';
 import React from 'react';
 import {EntityDrawer, type EntityDrawerField, type EntityDrawerFormHandler} from '@/components/Drawer';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import type {ApiKeyFormFields} from './types';
 
 export type ApiKeyCreateDrawerProps = {
@@ -20,29 +21,30 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const t = useAppTranslations();
   const fields: EntityDrawerField<ApiKeyFormFields>[] = React.useMemo(
     () => [
       {
         type: 'text',
         name: 'name',
-        label: 'Name',
-        placeholder: 'e.g. Personal automation',
+        label: t('account.apiKeys.name'),
+        placeholder: t('account.apiKeys.eGPersonalAutomation'),
         required: true,
       },
       {
         type: 'date',
         name: 'expiresAt',
-        label: 'Expires at',
-        placeholder: 'Leave empty for no expiration',
+        label: t('account.apiKeys.expiresAt'),
+        placeholder: t('account.apiKeys.leaveEmptyForNoExpiration'),
       },
     ],
-    [],
+    [t],
   );
 
   return (
     <EntityDrawer<ApiKeyFormFields>
-      title="API Key"
-      subtitle="Create new API key"
+      title={t('account.apiKeys.apiKey')}
+      subtitle={t('account.apiKeys.createNewAPIKey')}
       open={open}
       onSubmit={onSubmit}
       onClose={onClose}
@@ -60,9 +62,8 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
           severity: 'warning',
           children: (
             <React.Fragment>
-              <AlertTitle>Handle API keys like passwords</AlertTitle>
-              An API key acts on behalf of your user account. Store it only in trusted secret managers or server-side
-              environments, never commit it to source control, and delete it immediately if it may have been exposed.
+              <AlertTitle>{t('account.apiKeys.handleAPIKeysLikePasswords')}</AlertTitle>
+              {t('account.apiKeys.securityGuidance')}
             </React.Fragment>
           ),
         },

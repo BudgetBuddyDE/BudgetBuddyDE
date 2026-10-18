@@ -38,17 +38,20 @@ import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {BatchEntityDialog, type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
 import {TransactionAttachmentPreviewStrip, TransactionAttachmentsDialog} from '@/components/Transaction/Attachments';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {translateValidationIssue} from '@/lib/validation/translateValidationIssue';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 import {
   columns as transactionBatchColumns,
   createEmptyRow as createEmptyTransactionRow,
   fromEntity as transactionDraftFromEntity,
-  mapRowsToPayload as mapTransactionRowsToPayload,
+  createMapRowsToPayload,
   type DraftRow as TransactionDraftRow,
 } from './transactionBatchAdapter';
 
@@ -69,6 +72,8 @@ export type TransactionTableProps = {
 };
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilters}) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = transactionSlice.actions;
   const dispatch = useAppDispatch();
@@ -129,10 +134,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         transferAmount: Number(payload.transferAmount),
       });
     if (!parsedPayload.success) {
-      const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
+      const issues: string = parsedPayload.error.issues.map(issue => translateValidationIssue(issue, t)).join(', ');
       showSnackbar({
-        message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} transaction: ${issues}`,
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        message: t('transactions.failedToValue0TransactionValue1', {
+          value0: action === 'CREATE' ? 'create' : 'update',
+          value1: issues,
+        }),
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('transactions.retry')}</Button>,
       });
       return;
     }
@@ -149,8 +157,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       });
       if (error) {
         return showSnackbar({
-          message: `Failed to create transaction: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('transactions.failedToCreateTransactionValue0', {value0: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('transactions.retry')}</Button>,
         });
       }
       showSnackbar({message: `Transaction created successfully`});
@@ -162,7 +170,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       if (!entityId) {
         return showSnackbar({
           message: `Failed to update transaction: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('transactions.retry')}</Button>,
         });
       }
       const {processedAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
@@ -176,8 +184,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       });
       if (error) {
         return showSnackbar({
-          message: `Failed to update transaction: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('transactions.failedToUpdateTransactionValue0', {value0: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('transactions.retry')}</Button>,
         });
       }
       showSnackbar({message: `Transaction updated successfully`});
@@ -206,7 +214,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     const [paymentMethods, paymentMethodsError] = paymentMethodsResult;
     if (categoriesError || paymentMethodsError) {
       showSnackbar({
-        message: `Failed to load transaction options: ${(categoriesError ?? paymentMethodsError)?.message ?? 'Unknown error'}`,
+        message: t('transactions.failedToLoadTransactionOptionsValue0', {
+          value0: (categoriesError ?? paymentMethodsError)?.message ?? 'Unknown error',
+        }),
       });
       return false;
     }
@@ -246,8 +256,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         showSnackbar({
           message:
             batchDialogState.mode === 'CREATE'
-              ? 'Transactions created successfully'
-              : 'Transactions updated successfully',
+              ? t('transactions.transactionsCreatedSuccessfully')
+              : t('transactions.transactionsUpdatedSuccessfully'),
         });
         dispatch(refresh());
         setBatchDialogState(current => ({...current, open: false}));
@@ -294,11 +304,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
 
       const [transaction, error] = await apiClient.backend.transaction.getById(id);
       if (error) {
-        showSnackbar({message: `Failed to open transaction: ${error.message}`});
+        showSnackbar({message: t('transactions.failedToOpenTransactionValue0', {value0: error.message})});
         return null;
       }
       if (!transaction?.data) {
-        showSnackbar({message: 'Transaction not found'});
+        showSnackbar({message: t('transactions.transactionNotFound')});
         return null;
       }
       return transaction.data;
@@ -346,7 +356,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     if (error || !deletedTransaction) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('transactions.retry')}</Button>,
       });
     }
 
@@ -408,16 +418,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         {
           type: 'date',
           name: 'processedAt',
-          label: 'Processed at',
-          placeholder: 'Processed at',
+          label: t('transactions.processedAt'),
+          placeholder: t('transactions.processedAt'),
           required: true,
         },
         {
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'category',
-          label: 'Category',
-          placeholder: 'Category',
+          label: t('transactions.category'),
+          placeholder: t('transactions.category'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.category.getValueHelp();
@@ -433,14 +443,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           isOptionEqualToValue(option: TCategoryVH, value: TCategoryVH) {
             return option.id === value.id;
           },
-          noOptionsText: 'No categories found',
+          noOptionsText: t('transactions.noCategoriesFound'),
         },
         {
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'paymentMethod',
-          label: 'Payment Method',
-          placeholder: 'Payment Method',
+          label: t('transactions.paymentMethod'),
+          placeholder: t('transactions.paymentMethod'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
@@ -456,13 +466,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           isOptionEqualToValue(option: TPaymentMethodVH, value: TPaymentMethodVH) {
             return option.id === value.id;
           },
-          noOptionsText: 'No payment methods found',
+          noOptionsText: t('transactions.noPaymentMethodsFound'),
         },
         {
           type: 'autocomplete',
           name: 'receiver',
-          label: 'Receiver',
-          placeholder: 'Receiver',
+          label: t('transactions.receiver'),
+          placeholder: t('transactions.receiver'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.transaction.getReceiverVH();
@@ -498,45 +508,45 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             const isNew = 'new' in option;
             return (
               <li {...props} key={option.receiver}>
-                {isNew && <Chip label="New" size="small" sx={{mr: 0.5}} />}
+                {isNew && <Chip label={t('transactions.new')} size="small" sx={{mr: 0.5}} />}
                 {option.receiver}
               </li>
             );
           },
-          noOptionsText: 'No receivers found',
+          noOptionsText: t('transactions.noReceiversFound'),
         },
         {
           type: 'number',
           name: 'transferAmount',
-          label: 'Transfer Amount',
-          placeholder: 'Transfer Amount',
+          label: t('transactions.transferAmount'),
+          placeholder: t('transactions.transferAmount'),
           required: true,
           slotProps: {
             input: {
-              endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
+              endAdornment: <InputAdornment position="end">{currencyFormatter.currencySymbol}</InputAdornment>,
             },
           },
         },
         {
           type: 'text',
           name: 'information',
-          label: 'Information',
-          placeholder: 'Information',
+          label: t('transactions.information'),
+          placeholder: t('transactions.information'),
           area: true,
           rows: 2,
         },
       ];
-    }, []);
+    }, [t, currencyFormatter.currencySymbol]);
 
   const columns: ColumnDefinition<TExpandedTransaction>[] = React.useMemo(
     () => [
       {
         key: 'processedAt',
-        label: 'Processed at',
+        label: t('transactions.processedAt'),
         width: 120,
         renderHeader: () => (
           <Typography variant="body1" noWrap sx={{fontWeight: 'bolder'}}>
-            Processed at
+            {t('transactions.processedAt')}
           </Typography>
         ),
         renderCell: value => (
@@ -547,7 +557,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
       {
         key: 'category',
-        label: 'Category',
+        label: t('transactions.category'),
         width: 132,
         renderCell: (_value, row) => (
           <CategoryChip
@@ -559,7 +569,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
       {
         key: 'paymentMethod',
-        label: 'Payment Method',
+        label: t('transactions.paymentMethod'),
         width: 178,
         renderCell: (_value, row) => (
           <PaymentMethodChip
@@ -571,7 +581,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
       {
         key: 'receiver',
-        label: 'Receiver',
+        label: t('transactions.receiver'),
         width: 168,
         renderCell: value => (
           <Typography variant="body2" noWrap title={value as string}>
@@ -581,18 +591,18 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
       {
         key: 'transferAmount',
-        label: 'Amount',
+        label: t('transactions.amount'),
         align: 'right',
         width: 112,
         renderCell: value => (
           <Typography variant="body2" noWrap>
-            {Formatter.currency.formatBalance(value as number)}
+            {currencyFormatter.formatBalance(value as number)}
           </Typography>
         ),
       },
       {
         key: 'information',
-        label: 'Information',
+        label: t('transactions.information'),
         width: '28%',
         renderCell: value => {
           const information = (value as string | null) ?? 'No information';
@@ -610,7 +620,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
       {
         key: 'attachments',
-        label: 'Attachments',
+        label: t('transactions.attachments'),
         align: 'left',
         width: 136,
         renderCell: (_value, row) =>
@@ -624,7 +634,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           ) : (
             <ActionPaper sx={{width: 'min-content'}}>
               <IconButton
-                aria-label="View attachments"
+                aria-label={t('transactions.viewAttachments')}
                 onClick={() => {
                   setAttachmentsDialog({open: true, transaction: row});
                 }}
@@ -651,12 +661,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       },
     ],
     // biome-ignore lint/correctness/useExhaustiveDependencies: handleEditEntity is stable within render context
-    [handleEditEntity],
+    [handleEditEntity, currencyFormatter, t],
   );
 
   const batchColumns = React.useMemo(
-    () => transactionBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods}),
-    [batchCategories, batchPaymentMethods],
+    () => transactionBatchColumns({t, categories: batchCategories, paymentMethods: batchPaymentMethods}),
+    [batchCategories, batchPaymentMethods, t],
   );
 
   const slice: EntitySlice<TExpandedTransaction> = React.useMemo(
@@ -693,24 +703,24 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         dataKey="id"
         columns={columns}
         toolbar={{
-          title: 'Transactions',
-          subtitle: 'Manage your transactions',
+          title: t('transactions.transactionsMessage'),
+          subtitle: t('transactions.manageYourTransactions'),
           showCount: true,
           showSearch: true,
-          searchPlaceholder: 'Search transactions…',
+          searchPlaceholder: t('transactions.searchTransactions'),
           searchDefaultValue: initialFilters?.keyword ?? undefined,
           onSearch: handleTextSearch,
           actions: [
             {
               id: 'create-transaction',
               icon: <AddRoundedIcon />,
-              label: 'Create',
+              label: t('transactions.create'),
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-transactions',
               icon: <CreateMultipleIcon />,
-              label: 'Create multiple',
+              label: t('transactions.createMultiple'),
               onClick: handleCreateMultiple,
             },
           ],
@@ -725,14 +735,18 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             />
           ),
         }}
-        emptyMessage={filters.keyword ? `No transactions found for "${filters.keyword}"` : 'No transactions found'}
+        emptyMessage={
+          filters.keyword
+            ? t('transactions.noTransactionsFoundForKeyword', {keyword: filters.keyword})
+            : t('transactions.noTransactionsFound')
+        }
         emptyState={
           transactions !== null && totalEntityCount === 0 && !hasActiveFilters
             ? {
                 variant: 'create',
-                title: 'Create your first transaction',
-                description: 'Add an income or expense to keep your finances up to date.',
-                createLabel: 'Create transaction',
+                title: t('transactions.createYourFirstTransaction'),
+                description: t('transactions.addAnIncomeOrExpenseToKeepYourFinancesUpToDate'),
+                createLabel: t('transactions.createTransaction'),
                 onCreate: handleCreateEntity,
               }
             : undefined
@@ -744,7 +758,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         selectionActions={[
           {
             icon: <EditRoundedIcon fontSize="small" />,
-            label: 'Edit selected',
+            label: t('transactions.editSelected'),
             onClick: handleEditSelected,
           },
         ]}
@@ -758,12 +772,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
 
       <BatchEntityDialog<TransactionDraftRow, TCreateOrUpdateTransactionPayload>
         open={batchDialogState.open}
-        title={batchDialogState.mode === 'CREATE' ? 'Create transactions' : 'Edit transactions'}
+        title={
+          batchDialogState.mode === 'CREATE' ? t('transactions.createTransactions') : t('transactions.editTransactions')
+        }
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
         columns={batchColumns}
         createEmptyRow={createEmptyTransactionRow}
-        mapRowsToPayload={mapTransactionRowsToPayload}
+        mapRowsToPayload={createMapRowsToPayload(t)}
         onSubmit={handleBatchSubmit}
         onClose={() => setBatchDialogState(current => ({...current, open: false}))}
         isSubmitting={isBatchSubmitting}
@@ -771,7 +787,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
 
       <EntityDrawer<EntityFormFields>
         title={'Transaction'}
-        subtitle={drawerState.action === 'CREATE' ? 'Create new transaction' : 'Edit transaction'}
+        subtitle={
+          drawerState.action === 'CREATE' ? t('transactions.createNewTransaction') : t('transactions.editTransaction')
+        }
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -794,7 +812,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         open={deleteDialogState.isOpen}
         text={{
           content: !Array.isArray(deleteDialogState.target)
-            ? 'Are you sure you want to delete this transaction?'
+            ? t('transactions.areYouSureYouWantToDeleteThisTransaction')
             : `Are you sure you want to delete these ${deleteDialogState.target.length} transactions?`,
         }}
         onCancel={() => {
@@ -820,7 +838,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       />
 
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label="Add transaction" />
+        <AddFab onClick={handleCreateEntity} label={t('transactions.addTransaction')} />
       </FabContainer>
 
       <TransactionAttachmentsDialog

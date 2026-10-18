@@ -1,3 +1,5 @@
+'use client';
+
 import AlternateEmailRounded from '@mui/icons-material/AlternateEmailRounded';
 import AppSettingsAltRounded from '@mui/icons-material/AppSettingsAltRounded';
 import CodeRounded from '@mui/icons-material/CodeRounded';
@@ -6,15 +8,17 @@ import {Box, Link, Stack, Typography} from '@mui/material';
 
 import {Card} from '@/components/Card';
 import {webappConfig} from '@/config';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export const AppInformation = () => {
+  const t = useAppTranslations();
   return (
     <Card>
       <Card.Header>
         <Box>
-          <Card.Title>App information</Card.Title>
+          <Card.Title>{t('settings.appInformation.appInformation')}</Card.Title>
           <Card.Subtitle>
-            ReactJS bases web-app to keep track of your finances and manage your montly budget.
+            {t('settings.appInformation.reactjsBasesWebAppToKeepTrackOfYourFinancesAndManageYourMontlyBudget')}
           </Card.Subtitle>
         </Box>
       </Card.Header>
@@ -29,7 +33,7 @@ export const AppInformation = () => {
         >
           <LanguageRounded />
           <Link href="https://budget-buddy.de" target="_blank">
-            Website
+            {t('settings.appInformation.website')}
           </Link>
         </Stack>
 
@@ -42,7 +46,7 @@ export const AppInformation = () => {
           }}
         >
           <AlternateEmailRounded />
-          <Link href="mailto:contact@budget-buddy.de">Contact</Link>
+          <Link href="mailto:contact@budget-buddy.de">{t('settings.appInformation.contact')}</Link>
         </Stack>
 
         <Stack
@@ -55,7 +59,7 @@ export const AppInformation = () => {
         >
           <CodeRounded />
           <Link href="https://github.com/BudgetBuddyDE/BudgetBuddyDE" target="_blank">
-            Source Code
+            {t('settings.appInformation.sourceCode')}
           </Link>
         </Stack>
 
@@ -68,7 +72,7 @@ export const AppInformation = () => {
           }}
         >
           <AppSettingsAltRounded />
-          <Typography noWrap>Version {webappConfig.version}</Typography>
+          <Typography noWrap>{t('settings.appInformation.versionVersion', {version: webappConfig.version})}</Typography>
         </Stack>
       </Card.Body>
     </Card>

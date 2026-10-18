@@ -11,6 +11,7 @@ import type {GridColDef} from '@mui/x-data-grid';
 import {z} from 'zod';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
 
 export type TransactionDraftRow = {
   id: string;
@@ -53,73 +54,84 @@ export const fromEntity = (entity: TExpandedTransaction): DraftRow => ({
 });
 
 export type TransactionBatchColumnOptions = {
+  t?: AppTranslator;
   categories: readonly Pick<TCategoryVH, 'id' | 'name'>[];
   paymentMethods: readonly Pick<TPaymentMethodVH, 'id' | 'name'>[];
 };
 
-export const columns = (options: TransactionBatchColumnOptions): GridColDef<DraftRow>[] => [
-  {
-    field: 'processedAt',
-    headerName: 'Date',
-    type: 'date',
-    flex: 1,
-    minWidth: 160,
-    editable: true,
-  },
-  {
-    field: 'categoryId',
-    headerName: 'Category',
-    type: 'singleSelect',
-    valueOptions: options.categories.map(category => ({value: category.id, label: category.name})),
-    flex: 1,
-    minWidth: 180,
-    editable: true,
-  },
-  {
-    field: 'paymentMethodId',
-    headerName: 'Payment method',
-    type: 'singleSelect',
-    valueOptions: options.paymentMethods.map(paymentMethod => ({
-      value: paymentMethod.id,
-      label: paymentMethod.name,
-    })),
-    flex: 1,
-    minWidth: 180,
-    editable: true,
-  },
-  {
-    field: 'receiver',
-    headerName: 'Receiver',
-    flex: 1,
-    minWidth: 180,
-    editable: true,
-  },
-  {
-    field: 'transferAmount',
-    headerName: 'Amount',
-    type: 'number',
-    flex: 1,
-    minWidth: 140,
-    editable: true,
-  },
-  {
-    field: 'information',
-    headerName: 'Information',
-    flex: 2,
-    minWidth: 240,
-    editable: true,
-  },
-];
+export const columns = (options: TransactionBatchColumnOptions): GridColDef<DraftRow>[] => {
+  const t = options.t ?? ((source: string) => source);
+  return [
+    {
+      field: 'processedAt',
+      headerName: t('transactions.date'),
+      type: 'date',
+      flex: 1,
+      minWidth: 160,
+      editable: true,
+    },
+    {
+      field: 'categoryId',
+      headerName: t('transactions.category'),
+      type: 'singleSelect',
+      valueOptions: options.categories.map(category => ({value: category.id, label: category.name})),
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: 'paymentMethodId',
+      headerName: t('transactions.paymentMethodMessage'),
+      type: 'singleSelect',
+      valueOptions: options.paymentMethods.map(paymentMethod => ({
+        value: paymentMethod.id,
+        label: paymentMethod.name,
+      })),
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: 'receiver',
+      headerName: t('transactions.receiver'),
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: 'transferAmount',
+      headerName: t('transactions.amount'),
+      type: 'number',
+      flex: 1,
+      minWidth: 140,
+      editable: true,
+    },
+    {
+      field: 'information',
+      headerName: t('transactions.information'),
+      flex: 2,
+      minWidth: 240,
+      editable: true,
+    },
+  ];
+};
 
-export const mapRowsToPayload: BatchEntityDialogProps<
-  DraftRow,
-  TCreateOrUpdateTransactionPayload
->['mapRowsToPayload'] = rows =>
-  mapDraftRowsToPayload(rows, transactionDraftSchema, row => ({
-    processedAt: row.processedAt,
-    categoryId: row.categoryId,
-    paymentMethodId: row.paymentMethodId,
-    receiver: row.receiver,
-    transferAmount: row.transferAmount,
-    information: row.information && row.information.length > 0 ? row.information : null,
-  }));
+export const createMapRowsToPayload =
+  (t: AppTranslator): BatchEntityDialogProps<DraftRow, TCreateOrUpdateTransactionPayload>['mapRowsToPayload'] =>
+  rows =>
+    mapDraftRowsToPayload(
+      rows,
+      transactionDraftSchema,
+      row => ({
+        processedAt: row.processedAt,
+        categoryId: row.categoryId,
+        paymentMethodId: row.paymentMethodId,
+        receiver: row.receiver,
+        transferAmount: row.transferAmount,
+        information: row.information && row.information.length > 0 ? row.information : null,
+      }),
+      undefined,
+      t,
+    );
+
+export const mapRowsToPayload = createMapRowsToPayload(englishTranslator);

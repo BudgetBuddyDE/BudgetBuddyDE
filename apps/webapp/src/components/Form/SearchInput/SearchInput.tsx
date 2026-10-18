@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/SearchRounded';
 import {alpha, IconButton, InputAdornment, InputBase, type InputBaseProps, styled} from '@mui/material';
 import debounce from 'lodash.debounce';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 const Search = styled('div')(({theme}) => ({
   position: 'relative',
@@ -55,7 +56,7 @@ export type SearchInputProps = Omit<InputBaseProps, 'onChange' | 'value' | 'defa
 };
 
 export const SearchInput: React.FC<SearchInputProps> = ({
-  placeholder = 'Search…',
+  placeholder,
   onSearch,
   sx,
   debounceWaitInMilliseconds = 500,
@@ -64,6 +65,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   enabled,
   ...props
 }) => {
+  const t = useAppTranslations();
   const [value, setValue] = React.useState(defaultValue);
 
   // Sync with external defaultValue changes (e.g. URL cleared after navigation)
@@ -97,8 +99,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         <SearchIcon />
       </SearchIconWrapper>
       <StyledInputBase
-        placeholder={placeholder}
-        slotProps={{input: {'aria-label': 'search'}}}
+        placeholder={placeholder ?? t('forms.search')}
+        slotProps={{input: {'aria-label': t('forms.searchMessage')}}}
         {...props}
         value={value}
         onChange={handleChange}
@@ -109,7 +111,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
               <IconButton
                 size="small"
                 onClick={handleClear}
-                aria-label="clear search"
+                aria-label={t('forms.clearSearch')}
                 edge="end"
                 sx={{mr: 0.5, color: 'inherit', opacity: 0.7, '&:hover': {opacity: 1}}}
               >

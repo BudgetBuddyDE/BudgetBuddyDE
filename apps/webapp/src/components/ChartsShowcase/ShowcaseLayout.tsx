@@ -3,6 +3,7 @@
 import {Box, Grid, Typography, Table, TableBody, TableCell, TableHead, TableRow} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type ChartCardProps = {
   title: string;
@@ -12,6 +13,7 @@ export type ChartCardProps = {
 };
 
 export const ChartCard: React.FC<ChartCardProps> = ({title, subtitle, children, note}) => {
+  const t = useAppTranslations();
   const headingId = React.useId();
   const elements = React.Children.toArray(children);
   const child = elements.find(React.isValidElement) as
@@ -64,9 +66,9 @@ export const ChartCard: React.FC<ChartCardProps> = ({title, subtitle, children, 
             '& table': {fontVariantNumeric: 'tabular-nums'},
           }}
         >
-          <summary>View data</summary>
+          <summary>{t('charts.viewData')}</summary>
           <Box sx={{overflowX: 'auto', mt: 1}}>
-            <Table size="small" aria-label={`${title} data`}>
+            <Table size="small" aria-label={t('charts.titleData', {title})}>
               <TableHead>
                 <TableRow>
                   {columns.map(key => (
@@ -79,7 +81,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({title, subtitle, children, 
                   <TableRow key={index}>
                     {columns.map(key => (
                       <TableCell key={key} align={typeof row[key] === 'number' ? 'right' : 'left'}>
-                        {row[key] === null || row[key] === undefined ? 'No data' : String(row[key])}
+                        {row[key] === null || row[key] === undefined ? t('charts.noData') : String(row[key])}
                       </TableCell>
                     ))}
                   </TableRow>

@@ -11,6 +11,7 @@ import {
 import debounce from 'lodash.debounce';
 import React from 'react';
 import {ErrorAlert} from '@/components/ErrorAlert';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {logger} from '@/logger';
 
 export type AutocompleteProps<
@@ -61,6 +62,7 @@ export const Autocomplete = <
   searchAsYouType = false,
   ...props
 }: AutocompleteProps<Value, Multiple, DisableClearable, FreeSolo, ChipComponent>) => {
+  const t = useAppTranslations();
   const [open, setOpen] = React.useState(false);
   const [options, setOptions] = React.useState<readonly Value[]>([]);
   const [fetchError, setFetchError] = React.useState<Error | null>(null);
@@ -130,6 +132,11 @@ export const Autocomplete = <
   }
   return (
     <MuiAutocomplete
+      clearText={t('forms.clear')}
+      closeText={t('forms.close')}
+      openText={t('forms.open')}
+      loadingText={t('forms.loading')}
+      noOptionsText={t('forms.noOptions')}
       open={open}
       onOpen={handleOpen}
       onClose={handleClose}

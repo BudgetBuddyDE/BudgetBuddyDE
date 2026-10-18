@@ -7,8 +7,8 @@ import {Box, Chip, Stack, Typography} from '@mui/material';
 import type React from 'react';
 import {Icon} from '@/components/Icon';
 import {EntityMenu} from '@/components/Table/EntityMenu';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import {HideHorizontalScrollbarStyle} from '@/theme/style';
-import {Formatter} from '@/utils/Formatter';
 
 export type Budget = {
   ID: string;
@@ -28,6 +28,7 @@ export type BudgetItemProps = {
 };
 
 export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onDeleteBudget, onClickBudget}) => {
+  const currencyFormatter = useCurrencyFormatter();
   const isOverBudget: boolean = (budget.balance ?? 0) > budget.budget;
 
   return (
@@ -100,8 +101,8 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
               fontWeight: 'bold',
             }}
           >
-            {Formatter.currency.formatBalance(budget.balance <= 0 ? 0 : budget.balance)} /{' '}
-            {Formatter.currency.formatBalance(budget.budget)}
+            {currencyFormatter.formatBalance(budget.balance <= 0 ? 0 : budget.balance)} /{' '}
+            {currencyFormatter.formatBalance(budget.budget)}
           </Typography>
         </Box>
       </Stack>

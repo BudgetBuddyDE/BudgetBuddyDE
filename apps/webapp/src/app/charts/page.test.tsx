@@ -1,5 +1,13 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import ChartsPage from './page';
+import ChartsPage, {generateMetadata} from './page';
+
+vi.mock('@/i18n/server', () => ({
+  getAppTranslations: async () => (key: string) =>
+    ({
+      'charts.charts': 'Charts',
+      'charts.rechartsChartGalleryForFinancialData': 'Recharts chart gallery for financial data.',
+    })[key] ?? key,
+}));
 
 vi.mock('next/navigation', () => ({
   notFound: () => {
@@ -14,6 +22,13 @@ vi.mock('@/components/ChartsShowcase/ChartsShowcase', () => ({
 afterEach(() => vi.unstubAllEnvs());
 
 describe('charts route access', () => {
+  it('preserves the English metadata', async () => {
+    await expect(generateMetadata()).resolves.toEqual({
+      title: 'Charts | Budget Buddy',
+      description: 'Recharts chart gallery for financial data.',
+    });
+  });
+
   it('returns not found in production', () => {
     vi.stubEnv('NODE_ENV', 'production');
     expect(() => ChartsPage()).toThrow('NEXT_NOT_FOUND');

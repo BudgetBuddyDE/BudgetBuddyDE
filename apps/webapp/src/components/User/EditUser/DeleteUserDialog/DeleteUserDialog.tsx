@@ -14,6 +14,7 @@ import type React from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {PasswordInput} from '@/components/Form/PasswordInput';
 import {ZoomTransition} from '@/components/Transition';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type DeleteDialogProps = Pick<MuiDialogProps, 'open' | 'onClose' | 'maxWidth' | 'transitionDuration'> & {
   onCancel: () => void;
@@ -30,6 +31,7 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
   withTransition = false,
   transitionDuration,
 }) => {
+  const t = useAppTranslations();
   const form = useForm<{password: string}>({mode: 'onBlur'});
 
   return (
@@ -52,7 +54,7 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
     >
       <DialogTitle variant="h4" sx={{display: 'flex', flexDirection: 'column', textAlign: 'center'}}>
         <WarningRounded fontSize="large" sx={{mx: 'auto'}} />
-        Attention
+        {t('account.profile.attention')}
       </DialogTitle>
       <form
         onSubmit={form.handleSubmit(({password}) => {
@@ -68,21 +70,20 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
               textAlign: 'center',
             }}
           >
-            Are you sure you want to delete your account? This action is irreversible and will remove all your data
-            permanently.
+            {t('account.profile.deleteConfirmation')}
           </DialogContentText>
 
           <Controller
             name="password"
             control={form.control}
-            rules={{required: 'Password is required to delete your account'}}
+            rules={{required: t('account.profile.passwordIsRequiredToDeleteYourAccount')}}
             render={({field, fieldState: {error}}) => (
               <PasswordInput
                 formControlProps={{sx: {mt: 2}}}
                 outlinedInputProps={{
                   ...field,
-                  label: 'Confirm with your password',
-                  placeholder: 'Password123',
+                  label: t('account.profile.confirmWithYourPassword'),
+                  placeholder: t('forms.enterPassword'),
                   error: !!error,
                 }}
               />
@@ -96,10 +97,10 @@ export const DeleteUserDialog: React.FC<DeleteDialogProps> = ({
               onCancel();
             }}
           >
-            Cancel
+            {t('account.profile.cancel')}
           </Button>
           <Button type="submit" color="error" variant="contained" autoFocus>
-            Yes, confirm deletion!
+            {t('account.profile.yesConfirmDeletion')}
           </Button>
         </DialogActions>
       </form>

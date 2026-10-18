@@ -4,13 +4,16 @@ import {Grid} from '@mui/material';
 import {usePathname} from 'next/navigation';
 import type React from 'react';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
-import {DashboardNavigation, DashboardViewMapping} from './DashboardNavigation';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {DashboardNavigation, getDashboardViewMapping} from './DashboardNavigation';
 
 export default function DashboardLayout({children}: React.PropsWithChildren) {
-  const pathname = usePathname() as keyof typeof DashboardViewMapping;
-  const currentView = DashboardViewMapping[pathname] || {
-    label: 'Dashboard',
-    description: 'Welcome to your dashboard!',
+  const t = useAppTranslations();
+  const views = getDashboardViewMapping(t);
+  const pathname = usePathname() as keyof typeof views;
+  const currentView = views[pathname] || {
+    label: t('navigation.dashboard'),
+    description: t('navigation.welcomeToYourDashboard'),
   };
 
   return (

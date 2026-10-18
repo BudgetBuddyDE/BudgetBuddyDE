@@ -1,5 +1,8 @@
+'use client';
+
 import {Grid, type GridProps, TextField} from '@mui/material';
 import {type Control, Controller, type FieldValues} from 'react-hook-form';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {logger} from '@/logger';
 import {isRunningOnIOs} from '@/utils/determineOS';
 import type {BaseAttributes} from '../types';
@@ -17,7 +20,10 @@ export const NumberFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: NumberFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label ?? field.name} is required` : undefined;
+  const t = useAppTranslations();
+  const inputRequiredMessage = field.required
+    ? t('forms.nameIsRequired', {name: String(field.label ?? field.name)})
+    : undefined;
 
   const htmlInputMode = isRunningOnIOs() ? 'text' : 'numeric';
   logger.debug('Using number-field input mode', {htmlInputMode, field: field.name});

@@ -5,11 +5,13 @@ import {Button, type ButtonProps, Skeleton} from '@mui/material';
 import type React from 'react';
 import {authClient, revalidateSession} from '@/authClient';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {logger} from '@/logger';
 
 export type RevokeSessionsButtonProps = ButtonProps;
 
 export const RevokeSessionsButton: React.FC<RevokeSessionsButtonProps> = props => {
+  const t = useAppTranslations();
   const {isPending} = authClient.useSession();
   const {showSnackbar} = useSnackbarContext();
 
@@ -22,19 +24,19 @@ export const RevokeSessionsButton: React.FC<RevokeSessionsButtonProps> = props =
     if (error) {
       logger.error('Error revoking all sessions', {reason: error.message});
       showSnackbar({
-        message: error.message || 'Failed to revoke all sessions',
+        message: error.message || t('account.sessions.failedToRevokeAllSessions'),
       });
     }
 
     await revalidateSession();
     const msg = 'All active sessions have been revoked!';
     logger.info(msg);
-    showSnackbar({message: msg});
+    showSnackbar({message: t('account.sessions.allActiveSessionsHaveBeenRevoked')});
   };
 
   return (
     <Button {...props} color="warning" startIcon={<WarningRounded />} onClick={handleSessionRevoke}>
-      Revoke all sessions
+      {t('account.sessions.revokeAllSessions')}
     </Button>
   );
 };

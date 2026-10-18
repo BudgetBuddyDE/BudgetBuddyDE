@@ -8,6 +8,7 @@ import {
 import type {GridColDef} from '@mui/x-data-grid';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
 
 export type PaymentMethodDraftRow = {
   id: string;
@@ -43,46 +44,53 @@ export const fromEntity = (entity: TPaymentMethod): DraftRow => ({
   description: entity.description,
 });
 
-export type PaymentMethodBatchColumnOptions = Record<never, never>;
+export type PaymentMethodBatchColumnOptions = {t?: AppTranslator};
 
-export const columns = (_options?: PaymentMethodBatchColumnOptions): GridColDef<DraftRow>[] => [
+export const columns = ({t = englishTranslator}: PaymentMethodBatchColumnOptions = {}): GridColDef<DraftRow>[] => [
   {
     field: 'name',
-    headerName: 'Name',
+    headerName: t('paymentMethods.name'),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'provider',
-    headerName: 'Provider',
+    headerName: t('paymentMethods.provider'),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'address',
-    headerName: 'Address',
+    headerName: t('paymentMethods.address'),
     flex: 1,
     minWidth: 220,
     editable: true,
   },
   {
     field: 'description',
-    headerName: 'Description',
+    headerName: t('paymentMethods.description'),
     flex: 2,
     minWidth: 240,
     editable: true,
   },
 ];
 
-export const mapRowsToPayload: BatchEntityDialogProps<
-  DraftRow,
-  TCreateOrUpdatePaymentMethodPayload
->['mapRowsToPayload'] = rows =>
-  mapDraftRowsToPayload(rows, paymentMethodDraftSchema, row => ({
-    name: row.name,
-    provider: row.provider,
-    address: row.address,
-    description: row.description && row.description.length > 0 ? row.description : null,
-  }));
+export const createMapRowsToPayload =
+  (t: AppTranslator): BatchEntityDialogProps<DraftRow, TCreateOrUpdatePaymentMethodPayload>['mapRowsToPayload'] =>
+  rows =>
+    mapDraftRowsToPayload(
+      rows,
+      paymentMethodDraftSchema,
+      row => ({
+        name: row.name,
+        provider: row.provider,
+        address: row.address,
+        description: row.description && row.description.length > 0 ? row.description : null,
+      }),
+      undefined,
+      t,
+    );
+
+export const mapRowsToPayload = createMapRowsToPayload(englishTranslator);

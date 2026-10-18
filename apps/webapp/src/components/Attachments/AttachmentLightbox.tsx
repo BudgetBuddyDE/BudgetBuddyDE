@@ -6,6 +6,7 @@ import {Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography} f
 import type React from 'react';
 import {Image} from '@/components/Image';
 import {ZoomTransition} from '@/components/Transition';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 /** Props for {@link AttachmentLightbox}. */
 export type AttachmentLightboxProps = {
@@ -22,6 +23,7 @@ export type AttachmentLightboxProps = {
  * The dialog opens whenever `attachment` is non-null and closes via `onClose`.
  */
 export const AttachmentLightbox: React.FC<AttachmentLightboxProps> = ({attachment, onClose, onDownload}) => {
+  const t = useAppTranslations();
   return (
     <Dialog
       open={attachment !== null}
@@ -58,10 +60,10 @@ export const AttachmentLightbox: React.FC<AttachmentLightboxProps> = ({attachmen
       <DialogActions>
         {attachment && (
           <Button startIcon={<DownloadRounded />} onClick={() => onDownload(attachment)}>
-            Download
+            {t('attachments.upload.download')}
           </Button>
         )}
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose}>{t('attachments.upload.close')}</Button>
       </DialogActions>
     </Dialog>
   );

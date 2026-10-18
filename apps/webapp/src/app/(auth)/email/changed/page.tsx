@@ -4,8 +4,10 @@ import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
+import {getAppTranslations} from '@/i18n/server';
 
 export default async function MailChangedPage() {
+  const t = await getAppTranslations();
   const {data: session, error} = await authClient.getSession({
     fetchOptions: {
       headers: await headers(),
@@ -39,7 +41,7 @@ export default async function MailChangedPage() {
                 mt: 2,
               }}
             >
-              Change of email address
+              {t('auth.email.changeOfEmailAddress')}
             </Typography>
           </Box>
 
@@ -47,26 +49,26 @@ export default async function MailChangedPage() {
 
           {!isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              It seems like you are not signed in. Please sign in first...
+              {t('auth.email.itSeemsLikeYouAreNotSignedInPleaseSignInFirst')}
             </Typography>
           )}
 
           {isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              You have successfully changed your email address to {session.user.email}.
+              {t('auth.email.youHaveSuccessfullyChangedYourEmailAddressToEmail', {email: session.user.email})}
             </Typography>
           )}
 
-          <Divider sx={{my: 2}}>Not signed in?</Divider>
+          <Divider sx={{my: 2}}>{t('auth.email.notSignedIn')}</Divider>
 
           {isSignedIn && (
             <LinkButton href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-              Sign in first...
+              {t('auth.email.signInFirst')}
             </LinkButton>
           )}
 
           <LinkButton href="/sign-up" variant="contained" fullWidth>
-            Create an account
+            {t('auth.email.createAnAccount')}
           </LinkButton>
         </Card>
       </Grid>

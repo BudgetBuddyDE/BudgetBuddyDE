@@ -1,0 +1,32 @@
+{
+  "invalidType": {
+    "string": "Enter a valid text value.",
+    "number": "Enter a valid number.",
+    "date": "Enter a valid date.",
+    "boolean": "Select a valid boolean value.",
+    "array": "Select valid items.",
+    "default": "Enter a value in the correct format."
+  },
+  "tooSmall": {
+    "default": "The value is too small.",
+    "string": "Enter at least {minimum} characters.",
+    "array": "Select at least {minimum} items.",
+    "exclusive": "Enter a value greater than {minimum}.",
+    "inclusive": "Enter a value of at least {minimum}."
+  },
+  "tooBig": {
+    "default": "The value is too large.",
+    "string": "Enter no more than {maximum} characters.",
+    "array": "Select no more than {maximum} items.",
+    "exclusive": "Enter a value less than {maximum}.",
+    "inclusive": "Enter a value of at most {maximum}."
+  },
+  "invalidFormat": {
+    "uuid": "Select a valid item.",
+    "email": "Enter a valid email address.",
+    "url": "Enter a valid URL.",
+    "default": "Enter a value in the correct format."
+  },
+  "invalidValue": "Select a valid option.",
+  "default": "Enter a valid value."
+}

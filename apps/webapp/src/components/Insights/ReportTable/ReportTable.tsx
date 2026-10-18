@@ -1,6 +1,9 @@
+'use client';
+
 import {Table, TableBody, TableCell, TableHead, TableRow} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type ReportTableProps = {
   headers: string[];
@@ -9,6 +12,7 @@ export type ReportTableProps = {
 };
 
 export const ReportTable: React.FC<ReportTableProps> = ({headers, rows, rightAlignedColumns = []}) => {
+  const t = useAppTranslations();
   return (
     <Card variant="outlined" sx={{overflowX: 'auto', p: 0}}>
       <Table size="small">
@@ -34,7 +38,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({headers, rows, rightAli
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={headers.length}>No data for the selected filters.</TableCell>
+              <TableCell colSpan={headers.length}>{t('insights.noDataForTheSelectedFilters')}</TableCell>
             </TableRow>
           )}
         </TableBody>

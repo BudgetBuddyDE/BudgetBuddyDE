@@ -1,7 +1,10 @@
+'use client';
+
 import MoreVertRounded from '@mui/icons-material/MoreVertRounded';
 import type React from 'react';
 import {ActionPaper, type ActionPaperProps} from '@/components/ActionPaper';
 import {Menu, type MenuProps} from '@/components/Menu';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type EntityMenuProps<T> = {
   entity: T;
@@ -18,6 +21,7 @@ export const EntityMenu = <T,>({
   children,
   ...actionPaperProps
 }: React.PropsWithChildren<EntityMenuProps<T>>) => {
+  const t = useAppTranslations();
   return (
     <ActionPaper
       {...actionPaperProps}
@@ -36,11 +40,11 @@ export const EntityMenu = <T,>({
         }}
         actions={[
           {
-            children: 'Edit',
+            children: t('table.edit'),
             onClick: () => handleEditEntity(entity),
           },
           {
-            children: 'Delete',
+            children: t('table.delete'),
             onClick: () => handleDeleteEntity(entity),
           },
           ...actions,

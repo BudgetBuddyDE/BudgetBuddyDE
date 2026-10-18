@@ -3,17 +3,19 @@
 import FilterListRounded from '@mui/icons-material/FilterListRounded';
 import {IconButton, type IconButtonProps, Tooltip} from '@mui/material';
 import type React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type FilterButtonProps = Pick<IconButtonProps, 'onClick'> & {
   isActive?: boolean;
 };
 
 export const FilterButton: React.FC<FilterButtonProps> = ({isActive, onClick}) => {
+  const t = useAppTranslations();
   return (
-    <Tooltip title={isActive ? 'Filters active' : 'Filter'} placement="bottom">
+    <Tooltip title={isActive ? t('table.filtersActive') : t('table.filter')} placement="bottom">
       <IconButton
         color={isActive ? 'primary' : 'default'}
-        aria-label={isActive ? 'Filters active' : 'Filter'}
+        aria-label={isActive ? t('table.filtersActive') : t('table.filter')}
         onClick={onClick}
       >
         <FilterListRounded />

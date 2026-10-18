@@ -11,8 +11,10 @@ import {Card} from '@/components/Card';
 import {PasswordInput} from '@/components/Form/PasswordInput';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {type AuthProvider, SocialAuthButton} from '@/components/User/SocialAuthButton';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export default function SignInPage() {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const {pending: isPending} = useFormStatus();
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function SignInPage() {
         },
         onSuccess: async () => {
           showSnackbar({
-            message: "You have been signed in! You're getting redirected...",
+            message: t('auth.signIn.youHaveBeenSignedInYouReGettingRedirected'),
           });
           redirect('/dashboard');
         },
@@ -71,7 +73,7 @@ export default function SignInPage() {
                 mt: 2,
               }}
             >
-              Sign in
+              {t('auth.signIn.signIn')}
             </Typography>
           </Box>
 
@@ -84,15 +86,15 @@ export default function SignInPage() {
               ))}
 
               <Grid size={{xs: 12}}>
-                <Divider>or with</Divider>
+                <Divider>{t('auth.signIn.orWith')}</Divider>
               </Grid>
 
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Enter email"
+                  placeholder={t('auth.signIn.enterEmail')}
                   type="email"
-                  label="E-Mail"
+                  label={t('auth.signIn.eMail')}
                   name="email"
                   defaultValue={emailFromQuery}
                   disabled={isPending}
@@ -112,21 +114,21 @@ export default function SignInPage() {
                   size="small"
                   sx={{mt: 0.5}}
                 >
-                  Forgot password?
+                  {t('auth.signIn.forgotPassword')}
                 </Button>
               </Grid>
             </Grid>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
               <Button type="submit" variant="contained" endIcon={<SendRounded />} sx={{mt: 1}} disabled={isPending}>
-                Sign in
+                {t('auth.signIn.signIn')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>No account?</Divider>
+          <Divider sx={{my: 2}}>{t('auth.signIn.noAccount')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
-            Create an account
+            {t('auth.signIn.createAnAccount')}
           </Button>
         </Card>
       </Grid>

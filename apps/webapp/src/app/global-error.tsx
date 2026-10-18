@@ -7,14 +7,16 @@ import {useEffect, useMemo} from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {Footer} from '@/components/Layout/Footer';
 import {UnauthenticatedMain} from '@/components/Layout/Main';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {logger} from '@/logger';
 import {LayoutWrapper} from './layout-wrapper';
 
 export default function GlobalError({error, reset}: {error: Error & {digest?: string}; reset?: () => void}) {
+  const t = useAppTranslations();
   const router = useRouter();
   const occurredAt = useMemo(() => new Date().toISOString(), []);
-  const errorName = error.name || 'Error';
-  const errorMessage = error.message || 'An unexpected error occurred.';
+  const errorName = error.name || t('errors.error');
+  const errorMessage = error.message || t('errors.unexpectedError');
 
   useEffect(() => {
     logger.error('Global error boundary triggered', error, {
@@ -37,9 +39,9 @@ export default function GlobalError({error, reset}: {error: Error & {digest?: st
                 textAlign: 'center',
               }}
             >
-              <Typography variant="h1">Ooops!</Typography>
+              <Typography variant="h1">{t('errors.oops')}</Typography>
               <Typography variant="h2" sx={{mt: 1.5}}>
-                Something went wrong!
+                {t('errors.somethingWentWrong')}
               </Typography>
 
               <Alert severity="error" sx={{my: 2}}>
@@ -53,7 +55,7 @@ export default function GlobalError({error, reset}: {error: Error & {digest?: st
                     color: 'text.secondary',
                   }}
                 >
-                  Error type: {errorName}
+                  {t('errors.errorTypeErrorName', {errorName})}
                 </Typography>
                 {error.digest ? (
                   <Typography
@@ -62,7 +64,7 @@ export default function GlobalError({error, reset}: {error: Error & {digest?: st
                       color: 'text.secondary',
                     }}
                   >
-                    Reference: {error.digest}
+                    {t('errors.referenceReference', {reference: error.digest})}
                   </Typography>
                 ) : null}
                 <Typography
@@ -71,7 +73,7 @@ export default function GlobalError({error, reset}: {error: Error & {digest?: st
                     color: 'text.secondary',
                   }}
                 >
-                  Occurred at: {occurredAt}
+                  {t('errors.occurredAtOccurredAt', {occurredAt})}
                 </Typography>
                 {process.env.NODE_ENV !== 'production' && error.stack ? (
                   <Typography component="pre" variant="caption" sx={{mt: 1, whiteSpace: 'pre-wrap'}}>
@@ -83,19 +85,19 @@ export default function GlobalError({error, reset}: {error: Error & {digest?: st
               <Grid container spacing={2}>
                 <Grid size={{xs: 12, md: 6}}>
                   <Button LinkComponent={NextLink} href="/" fullWidth>
-                    Home
+                    {t('navigation.home')}
                   </Button>
                 </Grid>
                 {reset ? (
                   <Grid size={{xs: 12, md: 6}}>
                     <Button onClick={() => reset()} fullWidth>
-                      Try again
+                      {t('common.tryAgain')}
                     </Button>
                   </Grid>
                 ) : (
                   <Grid size={{xs: 12, md: 6}}>
                     <Button onClick={() => router.refresh()} fullWidth>
-                      Refresh
+                      {t('common.refresh')}
                     </Button>
                   </Grid>
                 )}

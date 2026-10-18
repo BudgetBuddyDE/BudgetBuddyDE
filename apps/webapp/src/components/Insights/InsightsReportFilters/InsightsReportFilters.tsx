@@ -1,3 +1,5 @@
+'use client';
+
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {IGetInsightsReportQuery} from '@budgetbuddyde/api/interfaces';
 import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
@@ -5,6 +7,7 @@ import {Autocomplete, FormControl, Grid, InputLabel, MenuItem, Select, Stack, Te
 import React from 'react';
 import {Card} from '@/components/Card';
 import {DateRangePicker} from '@/components/Form/DateRangePicker';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 type Granularity = NonNullable<IGetInsightsReportQuery['$granularity']>;
 type Comparison = NonNullable<IGetInsightsReportQuery['$comparison']>;
@@ -40,12 +43,13 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
   onGranularityChange,
   onComparisonChange,
 }) => {
+  const t = useAppTranslations();
   return (
     <Card>
       <Card.Header>
         <Stack>
-          <Card.Title>Report filters</Card.Title>
-          <Card.Subtitle>All analytics use the same selection</Card.Subtitle>
+          <Card.Title>{t('insights.reportFilters')}</Card.Title>
+          <Card.Subtitle>{t('insights.allAnalyticsUseTheSameSelection')}</Card.Subtitle>
         </Stack>
         <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', justifyContent: 'flex-end'}}>
           <DateRangePicker
@@ -54,31 +58,31 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
             onDateRangeChange={onDateRangeChange}
           />
           <FormControl size="small" sx={{minWidth: 120}}>
-            <InputLabel id="insights-report-granularity-label">Grouping</InputLabel>
+            <InputLabel id="insights-report-granularity-label">{t('insights.grouping')}</InputLabel>
             <Select
               labelId="insights-report-granularity-label"
               id="insights-report-granularity"
-              label="Grouping"
+              label={t('insights.grouping')}
               value={granularity}
               onChange={event => onGranularityChange(event.target.value as Granularity)}
             >
-              <MenuItem value="auto">Automatic</MenuItem>
-              <MenuItem value="day">Day</MenuItem>
-              <MenuItem value="week">Week</MenuItem>
-              <MenuItem value="month">Month</MenuItem>
+              <MenuItem value="auto">{t('insights.automatic')}</MenuItem>
+              <MenuItem value="day">{t('insights.day')}</MenuItem>
+              <MenuItem value="week">{t('insights.week')}</MenuItem>
+              <MenuItem value="month">{t('insights.month')}</MenuItem>
             </Select>
           </FormControl>
           <FormControl size="small" sx={{minWidth: 140}}>
-            <InputLabel id="insights-report-comparison-label">Compare</InputLabel>
+            <InputLabel id="insights-report-comparison-label">{t('insights.compare')}</InputLabel>
             <Select
               labelId="insights-report-comparison-label"
               id="insights-report-comparison"
-              label="Compare"
+              label={t('insights.compare')}
               value={comparison}
               onChange={event => onComparisonChange(event.target.value as Comparison)}
             >
-              <MenuItem value="previous">Previous period</MenuItem>
-              <MenuItem value="none">No comparison</MenuItem>
+              <MenuItem value="previous">{t('insights.previousPeriod')}</MenuItem>
+              <MenuItem value="none">{t('insights.noComparison')}</MenuItem>
             </Select>
           </FormControl>
         </Stack>
@@ -93,7 +97,7 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
             onChange={(_, value) => onCategoriesChange(value)}
             getOptionLabel={option => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderInput={params => <TextField {...params} label="Categories" />}
+            renderInput={params => <TextField {...params} label={t('insights.categories')} />}
             disableCloseOnSelect
           />
         </Grid>
@@ -106,7 +110,7 @@ export const InsightsReportFilters: React.FC<InsightsReportFiltersProps> = ({
             onChange={(_, value) => onPaymentMethodsChange(value)}
             getOptionLabel={option => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderInput={params => <TextField {...params} label="Payment methods" />}
+            renderInput={params => <TextField {...params} label={t('insights.paymentMethods')} />}
             disableCloseOnSelect
           />
         </Grid>

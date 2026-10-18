@@ -1,5 +1,8 @@
+'use client';
+
 import {Button, CircularProgress, Stack} from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type EntityFooterProps = {
   onClose: () => void;
@@ -7,6 +10,7 @@ export type EntityFooterProps = {
 };
 
 export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProps>(({isLoading, onClose}, ref) => {
+  const t = useAppTranslations();
   return (
     <Stack
       direction={'row'}
@@ -18,7 +22,7 @@ export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProp
       }}
     >
       <Button sx={{mr: 2}} onClick={onClose}>
-        Close
+        {t('forms.close')}
       </Button>
       <Button
         ref={ref}
@@ -27,7 +31,7 @@ export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProp
         startIcon={isLoading ? <CircularProgress color="inherit" size={16} /> : undefined}
         tabIndex={0}
       >
-        Save
+        {t('forms.save')}
       </Button>
     </Stack>
   );

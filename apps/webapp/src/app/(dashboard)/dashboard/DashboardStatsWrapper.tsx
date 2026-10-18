@@ -1,30 +1,39 @@
+'use client';
+
 import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
 import {Grid} from '@mui/material';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
-import {Formatter} from '@/utils/Formatter';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 
 export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   const currentBalance = estimated.income.received - estimated.expenses.paid;
   const estimatedBalance =
     estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);
   const stats: TStatsCardProps[] = [
     {
       icon: 'add',
-      label: 'Income',
-      value: Formatter.currency.formatBalance(estimated.income.received),
-      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.income.upcoming)}`,
+      label: t('navigation.income'),
+      value: currencyFormatter.formatBalance(estimated.income.received),
+      valueInformation: t('navigation.upcomingValue0', {
+        value0: currencyFormatter.formatBalance(estimated.income.upcoming),
+      }),
     },
     {
       icon: 'remove',
-      label: 'Spendings',
-      value: Formatter.currency.formatBalance(estimated.expenses.paid),
-      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.expenses.upcoming)}`,
+      label: t('navigation.spendings'),
+      value: currencyFormatter.formatBalance(estimated.expenses.paid),
+      valueInformation: t('navigation.upcomingValue0', {
+        value0: currencyFormatter.formatBalance(estimated.expenses.upcoming),
+      }),
     },
     {
       icon: 'balance',
-      label: 'Balance',
-      value: Formatter.currency.formatBalance(currentBalance),
-      valueInformation: `Estimated: ${Formatter.currency.formatBalance(estimatedBalance)}`,
+      label: t('navigation.balance'),
+      value: currencyFormatter.formatBalance(currentBalance),
+      valueInformation: t('navigation.estimatedValue0', {value0: currencyFormatter.formatBalance(estimatedBalance)}),
     },
   ];
 

@@ -2,6 +2,7 @@
 
 import {Alert, type AlertProps, AlertTitle} from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 /**
  * Props for the {@link ErrorAlert} component.
@@ -23,14 +24,15 @@ export type ErrorAlertProps = {
  * The alert can be closed by clicking the close button, which will hide the component.
  */
 export const ErrorAlert: React.FC<ErrorAlertProps> = ({error, isDismissable = false, ...alertProps}) => {
+  const t = useAppTranslations();
   const [show, setShow] = React.useState(true);
   if (!show || !error) return null;
   if (isDismissable) {
     alertProps.onClose = () => setShow(false);
   }
   return (
-    <Alert variant="standard" severity="error" {...alertProps}>
-      <AlertTitle>{typeof error === 'string' ? 'Error' : error.name}</AlertTitle>
+    <Alert closeText={t('common.close')} variant="standard" severity="error" {...alertProps}>
+      <AlertTitle>{typeof error === 'string' ? t('common.error') : error.name}</AlertTitle>
       {typeof error === 'string' ? error : error.message}
     </Alert>
   );

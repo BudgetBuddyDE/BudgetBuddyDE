@@ -26,6 +26,7 @@ import {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {CloseIconButton} from '@/components/Button/CloseIconButton';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {ZoomTransition} from '@/components/Transition';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {DataTable} from '../DataTable';
 import {cloneDraftValue, draftRowsEqual} from './draftRows';
 
@@ -72,6 +73,7 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
   isSubmitting = false,
   error = null,
 }: BatchEntityDialogProps<Row, Payload>) => {
+  const t = useAppTranslations();
   const [draftRows, setDraftRows] = useState<Row[]>([]);
   const [selectionModel, setSelectionModel] = useState<SelectionModel>(emptySelection);
   const [validationIssues, setValidationIssues] = useState<MappingFailure['issues']>([]);
@@ -272,13 +274,16 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
         >
           {validationIssues.length > 0 && (
             <Alert severity="error" role="alert">
-              <AlertTitle>Validation errors</AlertTitle>
+              <AlertTitle>{t('table.validationErrors')}</AlertTitle>
               <List dense disablePadding>
                 {validationIssues.map((issue, index) => {
                   const rowIndex = draftRows.findIndex(row => row.id === issue.rowId);
                   return (
                     <ListItem key={`${String(issue.rowId)}-${index}`} disableGutters>
-                      Row {rowIndex >= 0 ? rowIndex + 1 : String(issue.rowId)}: {issue.message}
+                      {t('table.rowRowMessage', {
+                        row: rowIndex >= 0 ? rowIndex + 1 : String(issue.rowId),
+                        message: issue.message,
+                      })}
                     </ListItem>
                   );
                 })}
@@ -322,18 +327,18 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
             {mode === 'CREATE' && (
               <>
                 <Button onClick={handleAddRow} disabled={isSubmitting || draftRows.length >= MAX_ROWS}>
-                  Add row
+                  {t('table.addRow')}
                 </Button>
                 <Button onClick={handleRemoveSelected} disabled={isSubmitting || selectedRowIds.size === 0}>
-                  Remove selected
+                  {t('table.removeSelected')}
                 </Button>
               </>
             )}
           </Stack>
           <Stack direction="row" spacing={1}>
-            <Button onClick={handleRequestClose}>Cancel</Button>
+            <Button onClick={handleRequestClose}>{t('table.cancel')}</Button>
             <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
-              Save
+              {t('table.save')}
             </Button>
           </Stack>
         </DialogActions>
@@ -347,18 +352,18 @@ export const BatchEntityDialog = <Row extends GridValidRowModel & {id: GridRowId
         fullWidth
         slotProps={{paper: {elevation: 0}}}
       >
-        <DialogTitle id={confirmationTitleId}>Discard unsaved changes?</DialogTitle>
+        <DialogTitle id={confirmationTitleId}>{t('table.discardUnsavedChanges')}</DialogTitle>
         <DialogContent>
           <DialogContentText id={confirmationDescriptionId}>
-            Your unsaved changes will be lost. Do you want to discard them?
+            {t('table.yourUnsavedChangesWillBeLostDoYouWantToDiscardThem')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleKeepEditing} autoFocus>
-            Keep editing
+            {t('table.keepEditing')}
           </Button>
           <Button onClick={handleDiscard} disabled={isSubmitting} color="error" variant="contained">
-            Discard changes
+            {t('table.discardChanges')}
           </Button>
         </DialogActions>
       </Dialog>

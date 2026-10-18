@@ -22,6 +22,7 @@ import {signOut} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {Avatar} from '@/components/User';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {DrawerHamburger} from '../Drawer/Hamburger';
 
 export type AppBarProps = {
@@ -29,25 +30,26 @@ export type AppBarProps = {
 };
 
 export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
+  const t = useAppTranslations();
   const router = useRouter();
   const {showSnackbar} = useSnackbarContext();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const isUserMenuOpen = anchorElUser !== null;
 
   const MenuLinks = [
-    {label: 'Website', href: 'https://budgetbuddy.dev'},
+    {label: t('navigation.website'), href: 'https://budgetbuddy.dev'},
     {label: 'GitHub', href: 'https://github.com/BudgetBuddyDE'},
   ];
 
   const handleLogOut = async () => {
     await signOut(
       () => {
-        showSnackbar({message: 'You have been logged out.'});
+        showSnackbar({message: t('navigation.youHaveBeenLoggedOut')});
       },
       () => {
         showSnackbar({
-          message: 'Logout failed. Please try again.',
-          action: <Button onClick={handleLogOut}>Retry</Button>,
+          message: t('navigation.logoutFailedPleaseTryAgain'),
+          action: <Button onClick={handleLogOut}>{t('navigation.retry')}</Button>,
         });
       },
     );
@@ -56,12 +58,12 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
   const ProfileMenu = [
     {
       icon: <SettingsIcon />,
-      label: 'Settings',
+      label: t('navigation.settings'),
       onClick: () => router.push('/settings/profile'),
     },
     {
       icon: <LogoutIcon />,
-      label: 'Logout',
+      label: t('navigation.logout'),
       onClick: handleLogOut,
     },
   ];
@@ -111,10 +113,10 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
             </Box>
 
             {/* Profile */}
-            <Tooltip title="Profile">
+            <Tooltip title={t('navigation.profile')}>
               <IconButton
                 onClick={handleOpenUserMenu}
-                aria-label="Profile"
+                aria-label={t('navigation.profile')}
                 aria-haspopup="true"
                 aria-expanded={isUserMenuOpen}
                 aria-controls={isUserMenuOpen ? 'menu-appbar' : undefined}

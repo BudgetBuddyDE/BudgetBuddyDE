@@ -1,8 +1,11 @@
+'use client';
+
 import type {TInsightsReport} from '@budgetbuddyde/api/insights';
 import {Grid} from '@mui/material';
 import React from 'react';
 import {StatsCard} from '@/components/Analytics/StatsCard';
-import {Formatter} from '@/utils/Formatter';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 
 type SummaryMetric = TInsightsReport['summary']['income'];
 
@@ -16,6 +19,8 @@ export type InsightsReportSummaryCardsProps = {
 };
 
 export const InsightsReportSummaryCards: React.FC<InsightsReportSummaryCardsProps> = ({summary}) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   const cards: {
     icon: 'balance' | 'receipt' | 'requestQuote' | 'savings' | 'trendingDown' | 'trendingUp';
     label: string;
@@ -24,39 +29,39 @@ export const InsightsReportSummaryCards: React.FC<InsightsReportSummaryCardsProp
   }[] = [
     {
       icon: 'trendingUp',
-      label: 'Income',
+      label: t('insights.income'),
       metric: summary.income,
-      format: Formatter.currency.formatBalance,
+      format: currencyFormatter.formatBalance,
     },
     {
       icon: 'trendingDown',
-      label: 'Expenses',
+      label: t('insights.expenses'),
       metric: summary.expenses,
-      format: Formatter.currency.formatBalance,
+      format: currencyFormatter.formatBalance,
     },
     {
       icon: 'balance',
-      label: 'Net. cash flow',
+      label: t('insights.netCashFlow'),
       metric: summary.balance,
-      format: Formatter.currency.formatBalance,
+      format: currencyFormatter.formatBalance,
     },
     {
       icon: 'savings',
-      label: 'Savings rate',
+      label: t('insights.savingsRate'),
       metric: summary.savingsRate,
       format: value => value.toFixed(1) + '%',
     },
     {
       icon: 'receipt',
-      label: 'Transactions',
+      label: t('insights.transactions'),
       metric: summary.transactionCount,
       format: value => String(value),
     },
     {
       icon: 'requestQuote',
-      label: 'Average expense',
+      label: t('insights.averageExpense'),
       metric: summary.expenses,
-      format: Formatter.currency.formatBalance,
+      format: currencyFormatter.formatBalance,
     },
   ];
 

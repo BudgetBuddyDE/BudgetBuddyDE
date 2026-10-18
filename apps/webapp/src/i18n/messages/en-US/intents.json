@@ -1,0 +1,15 @@
+{
+  "consumeFailed": "A navigation action could not be completed. Please try again.",
+  "useId": "useId",
+  "apiKeysFetchFailed": "Failed to fetch API keys",
+  "invalidEntity": "Invalid intent entity: {entity}",
+  "missing": "missing",
+  "invalidAction": "Invalid intent action: {action}",
+  "entityDoesNotSupportAction": "{entity} does not support {action}",
+  "attachmentRequiresTransactionParent": "Attachment creation requires transaction parent",
+  "attachmentRequiresParentId": "Attachment creation requires parent ID",
+  "entityDoesNotSupportCreate": "{entity} does not support create",
+  "actionRequiresId": "{action} intent requires ID",
+  "attachmentOnlyCreateDelete": "Attachment only supports create and delete",
+  "apiKeyOnlyCreateDelete": "API Key only supports create and delete"
+}

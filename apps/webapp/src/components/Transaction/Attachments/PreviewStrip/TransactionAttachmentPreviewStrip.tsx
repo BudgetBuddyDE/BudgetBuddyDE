@@ -4,6 +4,7 @@ import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import CloudUploadRounded from '@mui/icons-material/CloudUploadRounded';
 import {Avatar, AvatarGroup, Box, ButtonBase} from '@mui/material';
 import type React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type TransactionAttachmentPreviewStripProps = {
   attachments?: TAttachmentWithUrl[];
@@ -18,6 +19,7 @@ export const TransactionAttachmentPreviewStrip: React.FC<TransactionAttachmentPr
   previewLimit = 3,
   onClick,
 }) => {
+  const t = useAppTranslations();
   const totalAttachments = attachmentCount ?? attachments.length;
   if (totalAttachments <= 0) return null;
   const avatarContent = (
@@ -41,7 +43,7 @@ export const TransactionAttachmentPreviewStrip: React.FC<TransactionAttachmentPr
         event.stopPropagation();
         onClick();
       }}
-      aria-label={`Open ${totalAttachments} transaction attachments`}
+      aria-label={t('attachments.openTransactionAttachments', {count: totalAttachments})}
       sx={{
         borderRadius: 1.25,
         justifyContent: 'flex-start',

@@ -1,17 +1,21 @@
+'use client';
+
 import type {TInsightsReport} from '@budgetbuddyde/api/insights';
 import {ComposedChart} from '@budgetbuddyde/charts';
 import {Grid, Stack} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
-import {Formatter} from '@/utils/Formatter';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 
 export type InsightsReportChartsProps = {
   report: TInsightsReport;
 };
 
-const formatBalance = (value: number | null) => Formatter.currency.formatBalance(value ?? 0);
-
 export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({report}) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
+  const formatBalance = (value: number | null) => currencyFormatter.formatBalance(value ?? 0);
   const timeline = report.timeline;
 
   const timelineData = React.useMemo(
@@ -52,10 +56,10 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
         <Card>
           <Card.Header>
             <Stack>
-              <Card.Title>Income, expenses and balance</Card.Title>
+              <Card.Title>{t('insights.incomeExpensesAndBalance')}</Card.Title>
               <Card.Subtitle>
-                {report.granularity} aggregation · currency flows use the left scale; cumulative balance uses the right
-                scale
+                {report.granularity}{' '}
+                {t('insights.aggregationCurrencyFlowsUseTheLeftScaleCumulativeBalanceUsesTheRightScale')}
               </Card.Subtitle>
             </Stack>
           </Card.Header>
@@ -64,26 +68,28 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
               height={320}
               data={timelineData}
               xKey="label"
-              axisValueFormatter={value => Formatter.currency.shortenBalance(value)}
+              axisValueFormatter={value => currencyFormatter.shortenBalance(value)}
               tooltipValueFormatter={value => formatBalance(value)}
               showLegend
               showGrid
-              leftAxisLabel="Period amount"
-              rightAxisLabel="Cumulative balance"
+              leftAxisLabel={t('insights.periodAmount')}
+              rightAxisLabel={t('insights.cumulativeBalance')}
               referenceLines={[
                 ...(averageExpenses === null
                   ? []
-                  : [{y: averageExpenses, label: 'Avg. expenses', role: 'expense' as const, yAxisId: 'left'}]),
+                  : [
+                      {y: averageExpenses, label: t('insights.avgExpenses'), role: 'expense' as const, yAxisId: 'left'},
+                    ]),
                 ...(averageIncome === null
                   ? []
-                  : [{y: averageIncome, label: 'Avg. income', role: 'income' as const, yAxisId: 'left'}]),
+                  : [{y: averageIncome, label: t('insights.avgIncome'), role: 'income' as const, yAxisId: 'left'}]),
               ]}
               series={[
-                {key: 'expenses', label: 'Expenses', type: 'bar', role: 'expense'},
-                {key: 'income', label: 'Income', type: 'bar', role: 'income'},
+                {key: 'expenses', label: t('insights.expenses'), type: 'bar', role: 'expense'},
+                {key: 'income', label: t('insights.income'), type: 'bar', role: 'income'},
                 {
                   key: 'cumulativeBalance',
-                  label: 'Cumulative balance',
+                  label: t('insights.cumulativeBalance'),
                   type: 'line',
                   role: 'balance',
                   yAxisId: 'right',
@@ -97,8 +103,8 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
         <Card>
           <Card.Header>
             <Stack>
-              <Card.Title>Accumulated expenses</Card.Title>
-              <Card.Subtitle>Running total from the start of the period</Card.Subtitle>
+              <Card.Title>{t('insights.accumulatedExpenses')}</Card.Title>
+              <Card.Subtitle>{t('insights.runningTotalFromTheStartOfThePeriod')}</Card.Subtitle>
             </Stack>
           </Card.Header>
           <Card.Body>
@@ -106,7 +112,7 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
               height={320}
               data={categoryData}
               xKey="label"
-              axisValueFormatter={value => Formatter.currency.shortenBalance(value)}
+              axisValueFormatter={value => currencyFormatter.shortenBalance(value)}
               tooltipValueFormatter={value => formatBalance(value)}
               showLegend
               showGrid
@@ -116,7 +122,7 @@ export const InsightsReportCharts: React.FC<InsightsReportChartsProps> = ({repor
                   : [
                       {
                         y: averageAccumulatedExpenses,
-                        label: 'Avg. total expenses',
+                        label: t('insights.avgTotalExpenses'),
                         role: 'target',
                         yAxisId: 'left',
                       },

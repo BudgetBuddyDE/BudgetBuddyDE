@@ -9,6 +9,7 @@ import {AttachmentLightbox, AttachmentThumbnail} from '@/components/Attachments'
 import {DeleteDialog} from '@/components/Dialog';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {EntityIcon, useConsumeIntent} from '@/lib/ibn';
 
 const PAGE_SIZE = 20;
@@ -29,6 +30,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
   initialAttachments,
   initialTotalCount = initialAttachments.length,
 }) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const [attachments, setAttachments] = useState(initialAttachments);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
@@ -70,12 +72,12 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
 
     const [, error] = await apiClient.backend.attachment.deleteById(id);
     if (error) {
-      showSnackbar({message: `Delete failed: ${error.message}`});
+      showSnackbar({message: t('attachments.deleteFailedError', {error: error.message})});
       return;
     }
-    showSnackbar({message: 'Attachment deleted'});
+    showSnackbar({message: t('attachments.attachmentDeleted')});
     setAttachments(prev => prev.filter(a => a.id !== id));
-  }, [deletingAttachmentId, showSnackbar]);
+  }, [t, deletingAttachmentId, showSnackbar]);
 
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || attachments.length >= totalCount) return;
@@ -89,7 +91,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
     setIsLoadingMore(false);
 
     if (error) {
-      showSnackbar({message: `Failed to load more attachments: ${error.message}`});
+      showSnackbar({message: t('attachments.failedToLoadMoreAttachmentsError', {error: error.message})});
       return;
     }
 
@@ -97,7 +99,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
     setAttachments(prev => [...prev, ...nextAttachments]);
     setTotalCount(result?.totalCount ?? totalCount);
     setVisibleCount(prev => prev + nextAttachments.length);
-  }, [attachments.length, isLoadingMore, showSnackbar, totalCount]);
+  }, [t, attachments.length, isLoadingMore, showSnackbar, totalCount]);
 
   const handleLightboxClose = useCallback(() => {
     setViewedAttachment(null);
@@ -113,16 +115,16 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
 
       const [attachment, error] = await apiClient.backend.attachment.getById(id as TAttachmentWithUrl['id']);
       if (error) {
-        showSnackbar({message: `Failed to open attachment: ${error.message}`});
+        showSnackbar({message: t('attachments.failedToOpenAttachmentError', {error: error.message})});
         return;
       }
       if (!attachment?.data) {
-        showSnackbar({message: 'Attachment not found'});
+        showSnackbar({message: t('attachments.attachmentNotFound')});
         return;
       }
       setDeletingAttachmentId(attachment.data.id);
     },
-    [attachments, showSnackbar],
+    [t, attachments, showSnackbar],
   );
 
   const handleInvalidIntent = useCallback(
@@ -139,7 +141,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
       {attachments.length === 0 ? (
         <NoResults
           icon={<EntityIcon entity="attachment" />}
-          text="No attachments have been added yet"
+          text={t('attachments.noAttachmentsHaveBeenAddedYet')}
           sx={{boxShadow: 6}}
         />
       ) : (
@@ -158,7 +160,9 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
           {hasMore && (
             <Grid size={{xs: 12}} sx={{display: 'flex', justifyContent: 'center', pt: 1}}>
               <Button variant="outlined" onClick={handleLoadMore} disabled={isLoadingMore}>
-                {isLoadingMore ? 'Loading…' : `Load more (${totalCount - attachments.length} remaining)`}
+                {isLoadingMore
+                  ? t('common.loadingEllipsis')
+                  : t('attachments.loadMoreCountRemaining', {count: totalCount - attachments.length})}
               </Button>
             </Grid>
           )}
@@ -169,7 +173,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
 
       <DeleteDialog
         open={deletingAttachmentId !== null}
-        text={{content: 'Are you sure you want to delete this attachment?'}}
+        text={{content: t('attachments.areYouSureYouWantToDeleteThisAttachment')}}
         onCancel={handleCancelDelete}
         onClose={handleCancelDelete}
         onConfirm={handleDeleteConfirm}

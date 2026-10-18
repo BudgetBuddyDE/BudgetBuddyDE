@@ -5,22 +5,27 @@ import {ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {englishTranslator, type AppTranslator} from '@/i18n/translate';
 import {EntityIcon} from '@/lib/ibn';
 
-export const DashboardViewMapping = {
-  '/dashboard': {
-    label: 'Dashboard',
-    description: 'Overview of your dashboard',
-  },
-  '/dashboard/budget': {
-    label: 'Budget',
-    description: 'All about your monthly budget',
-  },
-  '/dashboard/insights': {
-    label: 'Insights',
-    description: 'Insights into your data',
-  },
-} as const;
+export const getDashboardViewMapping = (t: AppTranslator) =>
+  ({
+    '/dashboard': {
+      label: t('navigation.dashboard'),
+      description: t('navigation.overviewOfYourDashboard'),
+    },
+    '/dashboard/budget': {
+      label: t('navigation.budget'),
+      description: t('navigation.allAboutYourMonthlyBudget'),
+    },
+    '/dashboard/insights': {
+      label: t('navigation.insights'),
+      description: t('navigation.insightsIntoYourData'),
+    },
+  }) as const;
+
+export const DashboardViewMapping = getDashboardViewMapping(englishTranslator);
 
 export const DashboardViewIconMapping: Record<keyof typeof DashboardViewMapping, React.ReactNode | undefined> = {
   '/dashboard': <DashboardRounded />,
@@ -32,6 +37,7 @@ export const DashboardViewIconMapping: Record<keyof typeof DashboardViewMapping,
 export type TDashboardNavigationProps = {};
 
 export const DashboardNavigation: React.FC<TDashboardNavigationProps> = () => {
+  const t = useAppTranslations();
   const pathname = usePathname();
   const router = useRouter();
   return (
@@ -58,7 +64,7 @@ export const DashboardNavigation: React.FC<TDashboardNavigationProps> = () => {
         }}
         exclusive
       >
-        {Object.entries(DashboardViewMapping).map(([path, {label}]) => (
+        {Object.entries(getDashboardViewMapping(t)).map(([path, {label}]) => (
           <ToggleButton key={path} value={path}>
             {label}
           </ToggleButton>

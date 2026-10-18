@@ -14,8 +14,8 @@ describe('InsightsReportAnalysis', () => {
     expect(screen.getByText('Groceries')).toBeInTheDocument();
     expect(screen.getByText('Housing')).toBeInTheDocument();
     // "Selected metric" column mirrors expenses for the default metric
-    expect(screen.getAllByText(/120,50/)).toHaveLength(2);
-    expect(screen.getAllByText(/95,00/)).toHaveLength(2);
+    expect(screen.getAllByText(/120\.50/)).toHaveLength(2);
+    expect(screen.getAllByText(/95\.00/)).toHaveLength(2);
     expect(screen.getByText('40.2%')).toBeInTheDocument();
   });
 
@@ -27,9 +27,9 @@ describe('InsightsReportAnalysis', () => {
     fireEvent.click(screen.getByRole('option', {name: 'Income'}));
 
     // Income column and the "Selected metric" column both show the income value
-    expect(screen.getAllByText(/600,00/)).toHaveLength(2);
-    expect(screen.getAllByText(/400,00/)).toHaveLength(2);
-    expect(screen.getAllByText(/120,50/)).toHaveLength(1);
+    expect(screen.getAllByText(/600\.00/)).toHaveLength(2);
+    expect(screen.getAllByText(/400\.00/)).toHaveLength(2);
+    expect(screen.getAllByText(/120\.50/)).toHaveLength(1);
   });
 
   it('sorts payment methods by usage count by default', () => {

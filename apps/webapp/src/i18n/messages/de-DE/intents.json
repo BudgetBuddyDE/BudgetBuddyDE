@@ -1,0 +1,15 @@
+{
+  "consumeFailed": "Die Navigationsaktion konnte nicht abgeschlossen werden. Bitte erneut versuchen.",
+  "useId": "useId",
+  "apiKeysFetchFailed": "API-Schlüssel konnten nicht geladen werden",
+  "invalidEntity": "Ungültige Intent-Entität: {entity}",
+  "missing": "fehlt",
+  "invalidAction": "Ungültige Intent-Aktion: {action}",
+  "entityDoesNotSupportAction": "{entity} unterstützt die Aktion {action} nicht",
+  "attachmentRequiresTransactionParent": "Ein Anhang benötigt eine Transaktion als übergeordnetes Element",
+  "attachmentRequiresParentId": "Für den Anhang fehlt die ID des übergeordneten Elements",
+  "entityDoesNotSupportCreate": "{entity} unterstützt das Erstellen nicht",
+  "actionRequiresId": "Für die Intent-Aktion {action} ist eine ID erforderlich",
+  "attachmentOnlyCreateDelete": "Anhänge unterstützen nur das Erstellen und Löschen",
+  "apiKeyOnlyCreateDelete": "API-Schlüssel unterstützen nur das Erstellen und Löschen"
+}

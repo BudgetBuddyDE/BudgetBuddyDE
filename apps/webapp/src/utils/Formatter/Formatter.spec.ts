@@ -1,14 +1,71 @@
 import {describe, expect, it} from 'vitest';
 
-import {CurrencyFormatter} from './CurrencyFormatter';
+import {createCurrencyFormatter, CurrencyFormatter} from './CurrencyFormatter';
 import {DateFormatter} from './DateFormatter';
 import {DurationFormatter} from './DurationFormatter';
 
 describe('CurrencyFormatter', () => {
+  it.each(['en-US', 'de-DE'])('exposes the Intl currency symbol for %s', locale => {
+    for (const currency of ['EUR', 'USD']) {
+      const formatter = createCurrencyFormatter(locale, currency);
+      const expectedSymbol = new Intl.NumberFormat(locale, {style: 'currency', currency})
+        .formatToParts(0)
+        .find(part => part.type === 'currency')?.value;
+
+      expect(expectedSymbol).toBeDefined();
+      expect(formatter.currencySymbol).toBe(expectedSymbol);
+      expect(formatter.currencySymbol).not.toBe('&euro;');
+    }
+  });
+
+  it.each(['en-US', 'de-DE'])('uses explicit %s locale for every currency', locale => {
+    for (const currency of ['EUR', 'USD', 'GBP']) {
+      expect(CurrencyFormatter.formatBalance(1234.5, currency, locale)).toBe(
+        new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(1234.5),
+      );
+    }
+  });
+
+  it.each([0, -1250, 999, 1250, 2500000, 3000000000])('uses localized compact notation for %s', value => {
+    for (const locale of ['en-US', 'de-DE']) {
+      expect(CurrencyFormatter.shortenBalance(value, 'USD', locale)).toBe(
+        new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency: 'USD',
+          notation: 'compact',
+          maximumFractionDigits: 1,
+        }).format(value),
+      );
+    }
+  });
+
+  it('keeps independent formatters isolated', () => {
+    const german = createCurrencyFormatter('de-DE', 'EUR');
+    const english = createCurrencyFormatter('en-US', 'GBP');
+    expect(english.formatBalance(1234.5)).toBe(CurrencyFormatter.formatBalance(1234.5, 'GBP', 'en-US'));
+    expect(german.formatBalance(1234.5)).toBe(CurrencyFormatter.formatBalance(1234.5, 'EUR', 'de-DE'));
+    expect(english.shortenBalance(5000)).toBe(CurrencyFormatter.shortenBalance(5000, 'GBP', 'en-US'));
+    expect(english.currencySymbol).toBe(
+      new Intl.NumberFormat('en-US', {style: 'currency', currency: 'GBP'})
+        .formatToParts(0)
+        .find(part => part.type === 'currency')?.value,
+    );
+    expect(german.currencySymbol).toBe(
+      new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'})
+        .formatToParts(0)
+        .find(part => part.type === 'currency')?.value,
+    );
+  });
+
   describe('formatBalance', () => {
     it('formats a number as EUR currency by default', () => {
       const result = CurrencyFormatter.formatBalance(1234.5);
-      expect(result).toMatch(/1\.234,50/);
+      expect(result).toMatch(/1,234\.50/);
       expect(result).toMatch(/€/);
     });
 
@@ -27,6 +84,10 @@ describe('CurrencyFormatter', () => {
 
 describe('DateFormatter', () => {
   describe('formatWithPattern', () => {
+    it('uses the selected language for month names', () => {
+      expect(DateFormatter.formatWithPattern(new Date(2024, 2, 15), 'MMMM yyyy', 'de-DE')).toBe('März 2024');
+      expect(DateFormatter.formatWithPattern(new Date(2024, 2, 15), 'MMMM yyyy', 'en-US')).toBe('March 2024');
+    });
     it('formats a date with the default dd.MM.yyyy pattern', () => {
       expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('15.01.2024');
     });

@@ -13,6 +13,7 @@ import {
   type OutlinedInputProps,
 } from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type PasswordInputProps = {
   formControlProps?: FormControlProps;
@@ -27,9 +28,10 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   outlinedInputProps,
   disabled = false,
 }) => {
+  const t = useAppTranslations();
   const [showPassword, setShowPassword] = React.useState(false);
   const inputId = React.useId();
-  const label = outlinedInputProps?.label || 'Password';
+  const label = outlinedInputProps?.label || t('forms.password');
 
   return (
     <FormControl variant="outlined" fullWidth required {...formControlProps} disabled={disabled}>
@@ -41,12 +43,12 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         type={showPassword ? 'text' : 'password'}
         name="password"
         label={label}
-        placeholder="Enter password"
+        placeholder={t('forms.enterPassword')}
         disabled={disabled}
         endAdornment={
           <InputAdornment position="end">
             <IconButton
-              aria-label="toggle password visibility"
+              aria-label={t('forms.togglePasswordVisibility')}
               onClick={() => setShowPassword(prev => !prev)}
               sx={{mr: 0}}
               edge="end"

@@ -3,6 +3,7 @@ import {combineSlices, configureStore} from '@reduxjs/toolkit';
 import {budgetSlice} from './features/budgets/budgetSlice';
 import {categorySlice} from './features/categories/categorySlice';
 import {paymentMethodSlice} from './features/paymentMethods/paymentMethodSlice';
+import {preferenceReducer} from './features/preferences/preferenceSlice';
 import {recurringPaymentSlice} from './features/recurringPayments/recurringPaymentSlice';
 import {transactionSlice} from './features/transactions/transactionSlice';
 
@@ -14,6 +15,7 @@ const rootReducer = combineSlices(
   transactionSlice,
   recurringPaymentSlice,
   budgetSlice,
+  {reducerPath: 'preferences', reducer: preferenceReducer},
 );
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof rootReducer>;

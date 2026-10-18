@@ -46,14 +46,14 @@ describe('InsightsReportTransactions', () => {
     expect(screen.getByText('Receiver 1')).toBeInTheDocument();
     expect(screen.getByText('Receiver 2')).toBeInTheDocument();
     expect(screen.getAllByText('01.02.2026')).toHaveLength(2);
-    expect(screen.getAllByText(/42,50/)).toHaveLength(2);
+    expect(screen.getAllByText(/42\.50/)).toHaveLength(2);
     expect(screen.getAllByText('Groceries')).toHaveLength(2);
   });
 
   it('renders the combined volume of income and expenses', () => {
     render(<Harness transactionCount={20} initialPage={0} />);
 
-    expect(screen.getByText(/140,00/)).toBeInTheDocument();
+    expect(screen.getByText(/140\.00/)).toBeInTheDocument();
   });
 
   it('navigates to the next page and keeps the current page', () => {

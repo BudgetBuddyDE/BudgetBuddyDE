@@ -22,6 +22,7 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults, type NoResultsProps} from '@/components/NoResults';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import type {BasicTableProps, ColumnDefinition} from '../BasicTable';
 import {Pagination, type PaginationProps} from '../Pagination';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
@@ -69,7 +70,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
   columns,
   toolbar,
   pagination,
-  emptyMessage = 'No items found',
+  emptyMessage,
   emptyState,
   stickyHeader = true,
   maxHeight,
@@ -82,6 +83,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
   onDeleteSelectedEntities,
   selectionActions = [],
 }: EntityTableProps<T, K>) => {
+  const t = useAppTranslations();
   const {data, isLoading, error, totalCount} = slice;
   const hasError = !!(error && (typeof error === 'object' || (typeof error === 'string' && error.length > 0)));
   const errorMessage = error instanceof Error ? error.message : error;
@@ -195,7 +197,9 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                 fontWeight: 'bolder',
               }}
             >
-              {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
+              {selectedIds.size === 1
+                ? t('table.countItemSelected', {count: selectedIds.size})
+                : t('table.countItemsSelected', {count: selectedIds.size})}
             </Typography>
             <Stack direction="row" spacing={1}>
               <Button
@@ -203,7 +207,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                 onClick={() => setSelectedIds(new Set())}
                 startIcon={<ClearRounded fontSize={'small'} />}
               >
-                Clear selection
+                {t('table.clearSelection')}
               </Button>
               {selectionActions.map(action => (
                 <Button
@@ -229,7 +233,7 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
                     onDeleteSelectedEntities(Array.from(selectedIds));
                   }}
                 >
-                  Delete
+                  {t('table.delete')}
                 </Button>
               )}
             </Stack>
@@ -238,7 +242,9 @@ export const EntityTable = <T, K extends keyof T = keyof T>({
       )}
 
       <Box sx={{px: 0}}>
-        {!isLoading && !hasError && data.length === 0 && <NoResults text={emptyMessage} sx={{m: 2}} {...emptyState} />}
+        {!isLoading && !hasError && data.length === 0 && (
+          <NoResults text={emptyMessage ?? t('table.noItemsFound')} sx={{m: 2}} {...emptyState} />
+        )}
 
         {hasError && <ErrorAlert error={errorMessage} sx={{m: 2}} />}
 

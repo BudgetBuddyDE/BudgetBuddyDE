@@ -1,57 +1,54 @@
+'use client';
+
 import {CandlestickChart, SankeyChart, Sparkline} from '@budgetbuddyde/charts';
 import {Box, Grid, Stack, Typography} from '@mui/material';
 import React from 'react';
-import {
-  balanceSparkline,
-  cashflow,
-  expensesSparkline,
-  formatCompactCurrency,
-  formatCurrency,
-  moneyFlow,
-  portfolioPrices,
-} from '../data/fixtures';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
+import {balanceSparkline, cashflow, expensesSparkline, moneyFlow, portfolioPrices} from '../data/fixtures';
 import {ChartCard, ShowcaseSection} from '../ShowcaseLayout';
 
-const kpis = [
-  {
-    label: 'Net balance',
-    value: formatCurrency(9780),
-    trend: balanceSparkline,
-    color: 'var(--bb-chart-balance)',
-    area: true,
-  },
-  {
-    label: 'Monthly expenses',
-    value: formatCurrency(3000),
-    trend: expensesSparkline,
-    color: 'var(--bb-chart-expense)',
-    area: false,
-  },
-  {
-    label: 'Savings rate',
-    value: `${Math.round((cashflow[cashflow.length - 1].net / cashflow[cashflow.length - 1].income) * 100)}%`,
-    trend: cashflow.map(row => Math.round((row.net / row.income) * 100)),
-    color: 'var(--bb-chart-income)',
-    area: true,
-  },
-];
-
 export const AdvancedSection: React.FC = () => {
+  const t = useAppTranslations();
+  const {formatBalance: formatCurrency, shortenBalance: formatCompactCurrency} = useCurrencyFormatter();
+  const kpis = [
+    {
+      label: t('charts.netBalance'),
+      value: formatCurrency(9780),
+      trend: balanceSparkline,
+      color: 'var(--bb-chart-balance)',
+      area: true,
+    },
+    {
+      label: t('charts.monthlyExpenses'),
+      value: formatCurrency(3000),
+      trend: expensesSparkline,
+      color: 'var(--bb-chart-expense)',
+      area: false,
+    },
+    {
+      label: t('charts.savingsRate'),
+      value: `${Math.round((cashflow[cashflow.length - 1].net / cashflow[cashflow.length - 1].income) * 100)}%`,
+      trend: cashflow.map(row => Math.round((row.net / row.income) * 100)),
+      color: 'var(--bb-chart-income)',
+      area: true,
+    },
+  ];
   return (
     <ShowcaseSection
-      title="Flows, investments & KPIs"
-      description="Where the money goes, how investments move and at-a-glance key figures."
+      title={t('charts.flowsInvestmentsKPIs')}
+      description={t('charts.whereTheMoneyGoesHowInvestmentsMoveAndAtAGlanceKeyFigures')}
     >
       <Grid size={{xs: 12, lg: 7}}>
-        <ChartCard title="Money flow" subtitle="Sankey diagram: income, categories and merchants">
+        <ChartCard title={t('charts.moneyFlow')} subtitle={t('charts.sankeyDiagramIncomeCategoriesAndMerchants')}>
           <SankeyChart data={moneyFlow} valueFormatter={formatCurrency} height={360} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 5}}>
         <ChartCard
-          title="Key figures"
-          subtitle="Monthly trends, January to December"
-          note="Each sparkline uses its own scale; compare changes within a trend, not heights across cards."
+          title={t('charts.keyFigures')}
+          subtitle={t('charts.monthlyTrendsJanuaryToDecember')}
+          note={t('charts.eachSparklineUsesItsOwnScaleCompareChangesWithinATrendNotHeightsAcrossCards')}
         >
           <Stack spacing={1.5}>
             {kpis.map(kpi => (
@@ -73,7 +70,7 @@ export const AdvancedSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12}}>
-        <ChartCard title="Portfolio price history" subtitle="Candlestick / OHLC chart">
+        <ChartCard title={t('charts.portfolioPriceHistory')} subtitle={t('charts.candlestickOHLCChart')}>
           <CandlestickChart
             data={portfolioPrices}
             valueFormatter={value => formatCompactCurrency(value)}

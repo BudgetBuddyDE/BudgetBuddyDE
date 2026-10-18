@@ -1,9 +1,11 @@
+'use client';
+
 import {Box, Chip, Typography} from '@mui/material';
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {Icon} from '@/components/Icon';
 import {Image} from '@/components/Image';
-import {Formatter} from '@/utils/Formatter';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 
 export type TListWithIconProps = {
   icon?: React.ReactNode;
@@ -15,6 +17,7 @@ export type TListWithIconProps = {
 };
 
 export const ListWithIcon: React.FC<TListWithIconProps> = ({icon, imageUrl, title, subtitle, amount, onClick}) => {
+  const currencyFormatter = useCurrencyFormatter();
   return (
     <Box
       sx={{
@@ -78,7 +81,7 @@ export const ListWithIcon: React.FC<TListWithIconProps> = ({icon, imageUrl, titl
               ? amount
               : typeof amount === 'object'
                 ? amount
-                : Formatter.currency.formatBalance(amount as number)}
+                : currencyFormatter.formatBalance(amount as number)}
           </Typography>
         </Box>
       )}

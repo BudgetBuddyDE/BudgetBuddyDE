@@ -1,6 +1,9 @@
+'use client';
+
 import {Grid, type GridProps} from '@mui/material';
 import {type Control, Controller, type FieldValues} from 'react-hook-form';
 import {DatePicker} from '@/components/Form/DatePicker';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import type {BaseAttributes} from '../types';
 
 export type DateField<T extends FieldValues> = BaseAttributes<
@@ -21,7 +24,10 @@ export const DateFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: DateFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label ?? field.name} is required` : undefined;
+  const t = useAppTranslations();
+  const inputRequiredMessage = field.required
+    ? t('forms.nameIsRequired', {name: String(field.label ?? field.name)})
+    : undefined;
 
   return (
     <Grid key={field.name} size={wrapperSize}>

@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type CreatedApiKeyDialogProps = {
   apiKey: string | null;
@@ -34,6 +35,7 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
   onAcknowledgedChange,
   onClose,
 }) => {
+  const t = useAppTranslations();
   return (
     <Dialog
       open={Boolean(apiKey)}
@@ -43,12 +45,9 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
         paper: {elevation: 0},
       }}
     >
-      <DialogTitle>Copy your API key now</DialogTitle>
+      <DialogTitle>{t('account.apiKeys.copyYourAPIKeyNow')}</DialogTitle>
       <DialogContent>
-        <DialogContentText sx={{mb: 2}}>
-          This is the only time the full API key will be shown. Copy it and store it somewhere secure before closing
-          this dialog.
-        </DialogContentText>
+        <DialogContentText sx={{mb: 2}}>{t('account.apiKeys.copyKeyWarning')}</DialogContentText>
         <TextField
           fullWidth
           value={apiKey ?? ''}
@@ -56,8 +55,8 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
             input: {
               readOnly: true,
               endAdornment: apiKey ? (
-                <Tooltip title="Copy API key">
-                  <IconButton onClick={() => onCopy(apiKey)} edge="end" aria-label="Copy API key">
+                <Tooltip title={t('account.apiKeys.copyAPIKey')}>
+                  <IconButton onClick={() => onCopy(apiKey)} edge="end" aria-label={t('account.apiKeys.copyAPIKey')}>
                     <ContentCopyRounded />
                   </IconButton>
                 </Tooltip>
@@ -75,16 +74,16 @@ export const CreatedApiKeyDialog: React.FC<CreatedApiKeyDialogProps> = ({
                 }}
               />
             }
-            label="I have copied and securely stored this API key."
+            label={t('account.apiKeys.iHaveCopiedAndSecurelyStoredThisAPIKey')}
           />
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={() => apiKey && onCopy(apiKey)} color="inherit">
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? t('account.apiKeys.copied') : t('account.apiKeys.copy')}
         </Button>
         <Button onClick={onClose} variant="contained" disabled={!acknowledged}>
-          I understand, close
+          {t('account.apiKeys.iUnderstandClose')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,9 +1,13 @@
+'use client';
+
 import type {TExpandedTransaction} from '@budgetbuddyde/api/types';
 import {Stack} from '@mui/material';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {Card} from '@/components/Card';
 import {Pagination} from '@/components/Table/Pagination';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import {Formatter} from '@/utils/Formatter';
 import {ReportTable} from '../ReportTable/ReportTable';
 
@@ -28,26 +32,38 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
 }) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   return (
     <Card>
       <Card.Header>
         <Stack>
-          <Card.Title>Executed transactions ({transactionCount})</Card.Title>
+          <Card.Title>
+            {t('insights.executedTransactions')}
+            {transactionCount})
+          </Card.Title>
           <Card.Subtitle>
-            Filtered transactions behind this report. Volume: {Formatter.currency.formatBalance(income + expenses)}
+            {t('insights.filteredTransactionsBehindThisReportVolume')}{' '}
+            {currencyFormatter.formatBalance(income + expenses)}
           </Card.Subtitle>
         </Stack>
       </Card.Header>
       <Card.Body>
         <ReportTable
-          headers={['Date', 'Receiver', 'Category', 'Payment method', 'Amount']}
+          headers={[
+            t('insights.date'),
+            t('insights.receiver'),
+            t('insights.category'),
+            t('insights.paymentMethod'),
+            t('insights.amount'),
+          ]}
           rightAlignedColumns={[4]}
           rows={transactions.map(transaction => [
             Formatter.date.formatWithPattern(new Date(transaction.processedAt), 'dd.MM.yyyy'),
             transaction.receiver,
             transaction.category.name,
             transaction.paymentMethod.name,
-            Formatter.currency.formatBalance(transaction.transferAmount),
+            currencyFormatter.formatBalance(transaction.transferAmount),
           ])}
         />
       </Card.Body>
