@@ -3,6 +3,7 @@
 import {Alert, AlertTitle, Button, Stack, Typography} from '@mui/material';
 import {useRouter} from 'next/navigation';
 import {useEffect} from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {logger} from '@/logger';
 
 export type RouteErrorFallbackProps = {
@@ -11,11 +12,8 @@ export type RouteErrorFallbackProps = {
   title?: string;
 };
 
-export function RouteErrorFallback({
-  error,
-  reset,
-  title = 'This section is temporarily unavailable',
-}: RouteErrorFallbackProps) {
+export function RouteErrorFallback({error, reset, title}: RouteErrorFallbackProps) {
+  const t = useAppTranslations();
   const router = useRouter();
 
   useEffect(() => {
@@ -32,11 +30,11 @@ export function RouteErrorFallback({
           fontWeight: 700,
         }}
       >
-        {title}
+        {title ?? t('This section is temporarily unavailable')}
       </Typography>
       <Alert severity="error">
-        <AlertTitle>We could not load this section</AlertTitle>
-        Please try again. Your other page sections remain available.
+        <AlertTitle>{t('We could not load this section')}</AlertTitle>
+        {t('Please try again. Your other page sections remain available.')}
       </Alert>
       {error.digest ? (
         <Typography
@@ -45,11 +43,11 @@ export function RouteErrorFallback({
             color: 'text.secondary',
           }}
         >
-          Error reference: {error.digest}
+          {t('Error reference: {reference}', {reference: error.digest})}
         </Typography>
       ) : null}
       <Button variant="outlined" onClick={() => (reset ? reset() : router.refresh())} sx={{alignSelf: 'flex-start'}}>
-        Try again
+        {t('Try again')}
       </Button>
     </Stack>
   );

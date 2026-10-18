@@ -27,6 +27,7 @@ import {apiClient} from '@/apiClient';
 import {CloseIconButton, FullscreenIconButton} from '@/components/Button';
 import {Card} from '@/components/Card';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 type TExportFormat = 'csv' | 'json';
 
@@ -63,6 +64,7 @@ export type DataExportProps = {
 };
 
 export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const [open, setOpen] = React.useState(false);
   const [format, setFormat] = React.useState<TExportFormat>('json');
@@ -130,11 +132,11 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
 
       await Promise.all(downloads);
       setOpen(false);
-      showSnackbar({message: 'Your export is downloading.'});
+      showSnackbar({message: t('Your export is downloading.')});
     } catch (error) {
       showSnackbar({
-        message: error instanceof Error ? error.message : 'The export could not be created.',
-        action: <Button onClick={handleExport}>Try again</Button>,
+        message: error instanceof Error ? error.message : t('The export could not be created.'),
+        action: <Button onClick={handleExport}>{t('Try again')}</Button>,
       });
     } finally {
       setIsExporting(false);
@@ -145,19 +147,19 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
     <React.Fragment>
       {asButton ? (
         <Button variant="contained" startIcon={<FileDownloadOutlined />} onClick={() => setOpen(true)}>
-          Export data
+          {t('Export data')}
         </Button>
       ) : (
         <Card>
           <Card.Header>
             <Stack>
-              <Card.Title>Export data</Card.Title>
-              <Card.Subtitle>Download a copy of your account and application data</Card.Subtitle>
+              <Card.Title>{t('Export data')}</Card.Title>
+              <Card.Subtitle>{t('Download a copy of your account and application data')}</Card.Subtitle>
             </Stack>
           </Card.Header>
           <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
             <Button variant="contained" startIcon={<FileDownloadOutlined />} onClick={() => setOpen(true)}>
-              Export data
+              {t('Export data')}
             </Button>
           </Card.Footer>
         </Card>
@@ -173,7 +175,7 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
           paper: {elevation: 0},
         }}
       >
-        <DialogTitle>Export data</DialogTitle>
+        <DialogTitle>{t('Export data')}</DialogTitle>
         <Box sx={theme => ({position: 'absolute', top: theme.spacing(1), right: theme.spacing(1)})}>
           <FullscreenIconButton onClick={toggleFullscreen} isFullscreen={isFullscreenActive} />
           <CloseIconButton onClick={close} />
@@ -181,15 +183,15 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
         <DialogContent>
           <Stack spacing={3} sx={{pt: 1}}>
             <FormControl>
-              <FormLabel id="export-format-label">Format</FormLabel>
+              <FormLabel id="export-format-label">{t('Format')}</FormLabel>
               <RadioGroup
                 row
                 aria-labelledby="export-format-label"
                 value={format}
                 onChange={event => setFormat(event.target.value as TExportFormat)}
               >
-                <FormControlLabel value="json" control={<Radio />} label="JSON" />
-                <FormControlLabel value="csv" control={<Radio />} label="CSV" />
+                <FormControlLabel value="json" control={<Radio />} label={t('JSON')} />
+                <FormControlLabel value="csv" control={<Radio />} label={t('CSV')} />
               </RadioGroup>
             </FormControl>
 
@@ -200,12 +202,12 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                   fontWeight: 'bold',
                 }}
               >
-                Include
+                {t('Include')}
               </Typography>
               <FormGroup>
                 <FormControlLabel
                   control={<Checkbox checked={includeAuth} onChange={event => setIncludeAuth(event.target.checked)} />}
-                  label="Auth data"
+                  label={t('Auth data')}
                 />
                 <Typography
                   variant="caption"
@@ -214,7 +216,7 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                     ml: 4.5,
                   }}
                 >
-                  Profile, sessions, linked accounts and API-key metadata. Secrets are never exported.
+                  {t('Profile, sessions, linked accounts and API-key metadata. Secrets are never exported.')}
                 </Typography>
 
                 <FormControlLabel
@@ -225,7 +227,7 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                       onChange={event => toggleApplication(event.target.checked)}
                     />
                   }
-                  label="Application data"
+                  label={t('Application data')}
                 />
                 <Collapse in={includeApplication} unmountOnExit>
                   <FormGroup sx={{ml: 4}}>
@@ -238,7 +240,7 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                             onChange={event => toggleResource(resource, event.target.checked)}
                           />
                         }
-                        label={label}
+                        label={t(label)}
                       />
                     ))}
                   </FormGroup>
@@ -251,7 +253,7 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                       onChange={event => setIncludeAttachments(event.target.checked)}
                     />
                   }
-                  label="Attachments"
+                  label={t('Attachments')}
                 />
                 <Typography
                   variant="caption"
@@ -260,20 +262,21 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
                     ml: 4.5,
                   }}
                 >
-                  Uploaded files, attachment metadata and transaction assignments.
+                  {t('Uploaded files, attachment metadata and transaction assignments.')}
                 </Typography>
               </FormGroup>
             </Box>
 
             <Alert severity="info">
-              Each selected main category downloads as a separate ZIP archive. The archive contains one file per
-              selected resource and an export manifest.
+              {t(
+                'Each selected main category downloads as a separate ZIP archive. The archive contains one file per selected resource and an export manifest.',
+              )}
             </Alert>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button disabled={isExporting} onClick={() => setOpen(false)}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             variant="contained"
@@ -281,7 +284,7 @@ export const DataExport: React.FC<DataExportProps> = ({asButton}) => {
             startIcon={isExporting ? <CircularProgress size={16} color="inherit" /> : <FileDownloadOutlined />}
             onClick={handleExport}
           >
-            Export
+            {t('Export')}
           </Button>
         </DialogActions>
       </Dialog>

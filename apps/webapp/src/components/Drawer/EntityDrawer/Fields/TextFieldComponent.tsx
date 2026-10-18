@@ -1,5 +1,8 @@
+'use client';
+
 import {Grid, type GridProps, TextField as MuiTextField} from '@mui/material';
 import {type Control, Controller, type FieldValues} from 'react-hook-form';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import type {BaseAttributes} from '../types';
 
 export type TextField<T extends FieldValues> = BaseAttributes<
@@ -17,7 +20,10 @@ export const TextFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: TextFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label ?? field.name} is required` : undefined;
+  const t = useAppTranslations();
+  const inputRequiredMessage = field.required
+    ? t('{name} is required', {name: String(field.label ?? field.name)})
+    : undefined;
 
   return (
     <Grid key={field.name} size={wrapperSize}>

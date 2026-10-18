@@ -10,9 +10,10 @@ import {
 } from '@budgetbuddyde/api/recurringPayment';
 import type {GridColDef} from '@mui/x-data-grid';
 import {formatLocalDateOnly, parseLocalDateOnly} from '@/components/RecurringPayment/dateOnly';
-import {executionPlanOptions} from '@/components/RecurringPayment/executionPlan';
+import {getExecutionPlanOptions} from '@/components/RecurringPayment/executionPlan';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
+import type {AppTranslator} from '@/lib/i18n/translate';
 export type RecurringPaymentDraftRow = {
   id: string;
   executionPlan: TExecutionPlan;
@@ -59,100 +60,106 @@ export const fromEntity = (entity: TExpandedRecurringPayment): DraftRow => ({
 });
 
 export type RecurringPaymentBatchColumnOptions = {
+  t?: AppTranslator;
   categories: readonly Pick<TCategoryVH, 'id' | 'name'>[];
   paymentMethods: readonly Pick<TPaymentMethodVH, 'id' | 'name'>[];
 };
 
-export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef<DraftRow>[] => [
-  {
-    field: 'executionPlan',
-    headerName: 'Plan',
-    type: 'singleSelect',
-    valueOptions: executionPlanOptions,
-    flex: 1,
-    minWidth: 160,
-    editable: true,
-  },
-  {
-    field: 'startsOn',
-    headerName: 'First execution date',
-    type: 'date',
-    flex: 1,
-    minWidth: 180,
-    editable: true,
-  },
-  {
-    field: 'paused',
-    headerName: 'Paused',
-    type: 'boolean',
-    flex: 1,
-    minWidth: 120,
-    editable: true,
-  },
-  {
-    field: 'categoryId',
-    headerName: 'Category',
-    type: 'singleSelect',
-    valueOptions: options.categories.map(category => ({value: category.id, label: category.name})),
-    flex: 1,
-    minWidth: 180,
-    editable: true,
-  },
-  {
-    field: 'paymentMethodId',
-    headerName: 'Payment method',
-    type: 'singleSelect',
-    valueOptions: options.paymentMethods.map(paymentMethod => ({
-      value: paymentMethod.id,
-      label: paymentMethod.name,
-    })),
-    flex: 1,
-    minWidth: 180,
-    editable: true,
-  },
-  {
-    field: 'receiver',
-    headerName: 'Receiver',
-    flex: 1,
-    minWidth: 180,
-    editable: true,
-  },
-  {
-    field: 'transferAmount',
-    headerName: 'Amount',
-    type: 'number',
-    flex: 1,
-    minWidth: 140,
-    editable: true,
-  },
-  {
-    field: 'information',
-    headerName: 'Information',
-    flex: 2,
-    minWidth: 240,
-    editable: true,
-  },
-];
+export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef<DraftRow>[] => {
+  const t = options.t ?? ((source: string) => source);
+  return [
+    {
+      field: 'executionPlan',
+      headerName: t('Plan'),
+      type: 'singleSelect',
+      valueOptions: getExecutionPlanOptions(t),
+      flex: 1,
+      minWidth: 160,
+      editable: true,
+    },
+    {
+      field: 'startsOn',
+      headerName: t('First execution date'),
+      type: 'date',
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: 'paused',
+      headerName: t('Paused'),
+      type: 'boolean',
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      field: 'categoryId',
+      headerName: t('Category'),
+      type: 'singleSelect',
+      valueOptions: options.categories.map(category => ({value: category.id, label: category.name})),
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: 'paymentMethodId',
+      headerName: t('Payment method'),
+      type: 'singleSelect',
+      valueOptions: options.paymentMethods.map(paymentMethod => ({
+        value: paymentMethod.id,
+        label: paymentMethod.name,
+      })),
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: 'receiver',
+      headerName: t('Receiver'),
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: 'transferAmount',
+      headerName: t('Amount'),
+      type: 'number',
+      flex: 1,
+      minWidth: 140,
+      editable: true,
+    },
+    {
+      field: 'information',
+      headerName: t('Information'),
+      flex: 2,
+      minWidth: 240,
+      editable: true,
+    },
+  ];
+};
 
-export const mapRowsToPayload: BatchEntityDialogProps<
-  DraftRow,
-  TCreateOrUpdateRecurringPaymentPayload
->['mapRowsToPayload'] = rows =>
-  mapDraftRowsToPayload(
-    rows,
-    recurringPaymentDraftSchema,
-    row => ({
-      executionPlan: row.executionPlan,
-      startsOn: formatLocalDateOnly(row.startsOn),
-      paused: row.paused,
-      categoryId: row.categoryId,
-      paymentMethodId: row.paymentMethodId,
-      receiver: row.receiver,
-      transferAmount: row.transferAmount,
-      information: row.information && row.information.length > 0 ? row.information : null,
-    }),
-    row =>
-      !(row.startsOn instanceof Date) || Number.isNaN(row.startsOn.getTime())
-        ? 'First execution date is required'
-        : undefined,
-  );
+export const createMapRowsToPayload =
+  (t: AppTranslator): BatchEntityDialogProps<DraftRow, TCreateOrUpdateRecurringPaymentPayload>['mapRowsToPayload'] =>
+  rows =>
+    mapDraftRowsToPayload(
+      rows,
+      recurringPaymentDraftSchema,
+      row => ({
+        executionPlan: row.executionPlan,
+        startsOn: formatLocalDateOnly(row.startsOn),
+        paused: row.paused,
+        categoryId: row.categoryId,
+        paymentMethodId: row.paymentMethodId,
+        receiver: row.receiver,
+        transferAmount: row.transferAmount,
+        information: row.information && row.information.length > 0 ? row.information : null,
+      }),
+      row =>
+        !(row.startsOn instanceof Date) || Number.isNaN(row.startsOn.getTime())
+          ? t('First execution date is required')
+          : undefined,
+      t,
+    );
+
+export const mapRowsToPayload = createMapRowsToPayload(source => source);

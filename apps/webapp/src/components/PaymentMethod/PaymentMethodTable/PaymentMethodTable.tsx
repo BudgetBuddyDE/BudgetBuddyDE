@@ -30,15 +30,17 @@ import {
   EntityTable,
   type SelectionAction,
 } from '@/components/Table';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {paymentMethodSlice} from '@/lib/features/paymentMethods/paymentMethodSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {translateValidationIssue} from '@/lib/validation/translateValidationIssue';
 import {logger} from '@/logger';
 import {
   columns as paymentMethodBatchColumns,
   createEmptyRow as createEmptyPaymentMethodRow,
   fromEntity as paymentMethodDraftFromEntity,
-  mapRowsToPayload as mapPaymentMethodRowsToPayload,
+  createMapRowsToPayload as createMapPaymentMethodRowsToPayload,
   type DraftRow as PaymentMethodDraftRow,
 } from './paymentMethodBatchAdapter';
 import {MergePaymentMethodsDialog, type MergePaymentMethodsForm} from '../MergePaymentMethodsDialog';
@@ -52,6 +54,7 @@ export type PaymentMethodTableProps = {
 };
 
 export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKeyword}) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = paymentMethodSlice.actions;
   const dispatch = useAppDispatch();
@@ -121,8 +124,8 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         showSnackbar({
           message:
             batchDialogState.mode === 'CREATE'
-              ? 'Payment methods created successfully'
-              : 'Payment methods updated successfully',
+              ? t('Payment methods created successfully')
+              : t('Payment methods updated successfully'),
         });
         dispatch(refresh());
         setBatchDialogState(current => ({...current, open: false}));
@@ -130,7 +133,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         setIsBatchSubmitting(false);
       }
     },
-    [batchDialogState, dispatch, refresh, showSnackbar],
+    [t, batchDialogState, dispatch, refresh, showSnackbar],
   );
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
@@ -138,10 +141,13 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
 
     const parsedPayload = CreateOrUpdatePaymentMethodPayload.safeParse(payload);
     if (!parsedPayload.success) {
-      const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
+      const issues: string = parsedPayload.error.issues.map(issue => translateValidationIssue(issue, t)).join(', ');
       showSnackbar({
-        message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} payment method: ${issues}`,
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        message:
+          action === 'CREATE'
+            ? t('Failed to create payment method: {issues}', {issues})
+            : t('Failed to update payment method: {issues}', {issues}),
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
       });
       return;
     }
@@ -150,12 +156,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       const [createdPaymentMethod, error] = await apiClient.backend.paymentMethod.create(parsedPayload.data);
       if (!createdPaymentMethod || error) {
         return showSnackbar({
-          message: `Failed to create payment method: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('Failed to create payment method: {error}', {error: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
         });
       }
       showSnackbar({
-        message: createdPaymentMethod.message || 'Payment Method created',
+        message: createdPaymentMethod.message || t('Payment Method created'),
       });
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
@@ -164,8 +170,8 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       const entityId = drawerState.defaultValues?.id;
       if (!entityId) {
         return showSnackbar({
-          message: `Failed to update payment method: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('Failed to update payment method: Missing entity ID'),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
         });
       }
       const [updatedPaymentMethod, error] = await apiClient.backend.paymentMethod.updateById(
@@ -174,12 +180,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       );
       if (error) {
         return showSnackbar({
-          message: `Failed to update payment method: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('Failed to update payment method: {error}', {error: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
         });
       }
       showSnackbar({
-        message: updatedPaymentMethod.message || 'Payment Method updated',
+        message: updatedPaymentMethod.message || t('Payment Method updated'),
       });
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
@@ -208,16 +214,16 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
 
       const [paymentMethod, error] = await apiClient.backend.paymentMethod.getById(id);
       if (error) {
-        showSnackbar({message: `Failed to open payment method: ${error.message}`});
+        showSnackbar({message: t('Failed to open payment method: {error}', {error: error.message})});
         return null;
       }
       if (!paymentMethod?.data) {
-        showSnackbar({message: 'Payment method not found'});
+        showSnackbar({message: t('Payment method not found')});
         return null;
       }
       return paymentMethod.data;
     },
-    [paymentMethods, showSnackbar],
+    [t, paymentMethods, showSnackbar],
   );
 
   const handleIntentEdit = React.useCallback(
@@ -251,12 +257,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     if (error || !deletedPaymentMethod) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('Retry')}</Button>,
       });
     }
 
     showSnackbar({
-      message: deletedPaymentMethod.message ?? 'Payment Method was deleted successfully',
+      message: deletedPaymentMethod.message ?? t('Payment Method was deleted successfully'),
     });
     dispatch(refresh());
   };
@@ -295,23 +301,23 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     () => [
       {
         key: 'name',
-        label: 'Name',
+        label: t('Name'),
         renderCell: value => <Typography variant="body1">{value as string}</Typography>,
       },
       {
         key: 'address',
-        label: 'Address',
+        label: t('Address'),
         renderCell: value => <Typography variant="body1">{value as string}</Typography>,
       },
       {
         key: 'provider',
-        label: 'Provider',
+        label: t('Provider'),
         renderCell: value => <Typography variant="body1">{value as string}</Typography>,
       },
       {
         key: 'description',
-        label: 'Description',
-        renderCell: value => <Typography variant="body1">{(value as string | null) || 'No description'}</Typography>,
+        label: t('Description'),
+        renderCell: value => <Typography variant="body1">{(value as string | null) || t('No description')}</Typography>,
       },
       {
         key: 'id' as keyof TPaymentMethod,
@@ -329,10 +335,10 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       },
     ],
     // biome-ignore lint/correctness/useExhaustiveDependencies: handleEditEntity is stable within render context
-    [handleEditEntity],
+    [t, handleEditEntity],
   );
 
-  const batchColumns = React.useMemo(() => paymentMethodBatchColumns(), []);
+  const batchColumns = React.useMemo(() => paymentMethodBatchColumns({t}), [t]);
 
   const slice: EntitySlice<TPaymentMethod> = React.useMemo(
     () => ({
@@ -349,12 +355,12 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     return [
       {
         icon: <EditIcon fontSize="small" />,
-        label: 'Edit selected',
+        label: t('Edit selected'),
         onClick: handleEditSelected,
       },
       {
         icon: <MergeIcon fontSize="small" />,
-        label: 'Merge',
+        label: t('Merge'),
         onClick(paymentMethods) {
           dispatchMergeDrawerAction({
             type: 'OPEN',
@@ -366,7 +372,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         },
       },
     ];
-  }, [handleEditSelected]);
+  }, [t, handleEditSelected]);
 
   // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
@@ -391,38 +397,40 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         dataKey="id"
         columns={columns}
         toolbar={{
-          title: 'Payment Methods',
-          subtitle: 'Manage your payment methods',
+          title: t('Payment Methods'),
+          subtitle: t('Manage your payment methods'),
           showCount: true,
           showSearch: true,
-          searchPlaceholder: 'Search payment methods…',
+          searchPlaceholder: t('Search payment methods…'),
           searchDefaultValue: initialKeyword,
           onSearch: handleTextSearch,
           actions: [
             {
               id: 'create-payment-method',
               icon: <AddIcon />,
-              label: 'Create',
+              label: t('Create'),
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-payment-methods',
               icon: <CreateMultipleIcon />,
-              label: 'Create multiple',
+              label: t('Create multiple'),
               onClick: handleCreateMultiple,
             },
           ],
         }}
         emptyMessage={
-          filters.keyword ? `No payment methods found for "${filters.keyword}"` : 'No payment methods found'
+          filters.keyword
+            ? t('No payment methods found for "{keyword}"', {keyword: filters.keyword})
+            : t('No payment methods found')
         }
         emptyState={
           paymentMethods !== null && totalEntityCount === 0 && !hasActiveFilters
             ? {
                 variant: 'create',
-                title: 'Create your first payment method',
-                description: 'Add the accounts, cards, or services you use to pay.',
-                createLabel: 'Create payment method',
+                title: t('Create your first payment method'),
+                description: t('Add the accounts, cards, or services you use to pay.'),
+                createLabel: t('Create payment method'),
                 onCreate: handleCreateEntity,
               }
             : undefined
@@ -445,20 +453,20 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         Parameters<typeof apiClient.backend.paymentMethod.createMany>[0][number]
       >
         open={batchDialogState.open}
-        title={batchDialogState.mode === 'CREATE' ? 'Create payment methods' : 'Edit payment methods'}
+        title={batchDialogState.mode === 'CREATE' ? t('Create payment methods') : t('Edit payment methods')}
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
         columns={batchColumns}
         createEmptyRow={createEmptyPaymentMethodRow}
-        mapRowsToPayload={mapPaymentMethodRowsToPayload}
+        mapRowsToPayload={createMapPaymentMethodRowsToPayload(t)}
         onSubmit={handleBatchSubmit}
         onClose={() => setBatchDialogState(current => ({...current, open: false}))}
         isSubmitting={isBatchSubmitting}
       />
 
       <EntityDrawer<EntityFormFields>
-        title={'Payment Method'}
-        subtitle={drawerState.action === 'CREATE' ? 'Create new payment method' : 'Edit payment method'}
+        title={t('Payment Method')}
+        subtitle={drawerState.action === 'CREATE' ? t('Create new payment method') : t('Edit payment method')}
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -477,29 +485,29 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
           {
             type: 'text',
             name: 'name',
-            label: 'Name',
-            placeholder: 'Name',
+            label: t('Name'),
+            placeholder: t('Name'),
             required: true,
           },
           {
             type: 'text',
             name: 'address',
-            label: 'Address',
-            placeholder: 'IBAN, E-Mail, Wallet Address, etc.',
+            label: t('Address'),
+            placeholder: t('IBAN, E-Mail, Wallet Address, etc.'),
             required: true,
           },
           {
             type: 'text',
             name: 'provider',
-            label: 'Provider',
-            placeholder: 'Visa, Mastercard, PayPal, etc.',
+            label: t('Provider'),
+            placeholder: t('Visa, Mastercard, PayPal, etc.'),
             required: true,
           },
           {
             type: 'text',
             name: 'description',
-            label: 'Description',
-            placeholder: 'Description',
+            label: t('Description'),
+            placeholder: t('Description'),
             area: true,
             rows: 2,
           },
@@ -515,7 +523,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content: `${!Array.isArray(deleteDialogState.target) ? 'Are you sure you want to delete this payment method?' : `Are you sure you want to delete these ${deleteDialogState.target.length} payment methods?`}\nThis will delete all associated transactions and recurring payments as well.`,
+          content: `${!Array.isArray(deleteDialogState.target) ? t('Are you sure you want to delete this payment method?') : t('Are you sure you want to delete these {count} payment methods?', {count: deleteDialogState.target.length})}\n${t('This will delete all associated transactions and recurring payments as well.')}`,
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});
@@ -540,7 +548,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       />
 
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label="Add payment method" />
+        <AddFab onClick={handleCreateEntity} label={t('Add payment method')} />
       </FabContainer>
     </React.Fragment>
   );

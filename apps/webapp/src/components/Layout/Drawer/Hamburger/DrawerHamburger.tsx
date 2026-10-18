@@ -2,6 +2,7 @@
 
 import {IconButton, SvgIcon, type IconButtonProps} from '@mui/material';
 import type React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 import {useScreenSize} from '@/hooks/useScreenSize';
 
@@ -10,6 +11,7 @@ import {useDrawerContext} from '../DrawerContext';
 export type DrawerHeaderProps = IconButtonProps;
 
 export const DrawerHamburger: React.FC<DrawerHeaderProps> = ({...iconButtonProps}) => {
+  const t = useAppTranslations();
   const screenSize = useScreenSize();
   const {isOpen, toggleVisibility} = useDrawerContext();
 
@@ -17,7 +19,7 @@ export const DrawerHamburger: React.FC<DrawerHeaderProps> = ({...iconButtonProps
 
   return (
     <IconButton
-      aria-label="Toggle navigation"
+      aria-label={t('Toggle navigation')}
       aria-expanded={open}
       onClick={() => toggleVisibility(screenSize)}
       {...iconButtonProps}

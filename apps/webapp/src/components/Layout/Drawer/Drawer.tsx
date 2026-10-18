@@ -2,10 +2,11 @@
 
 import {Divider, List, Drawer as MuiDrawer} from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {useDrawerContext} from './DrawerContext';
 import {DrawerHeader} from './Header';
 import {DrawerItem} from './Item';
-import {DrawerLinks} from './Links/DrawerLinks';
+import {getDrawerLinks} from './Links/DrawerLinks';
 import {DrawerProfile} from './Profile/DrawerProfile';
 import {StyledDrawer} from './StyledDrawer';
 
@@ -13,13 +14,15 @@ import {StyledDrawer} from './StyledDrawer';
  * We're inverting the showDrawer-value on mobile devices because it should be hidden by default on mobile devices for better UX
  */
 export const Drawer = () => {
+  const t = useAppTranslations();
+  const drawerLinks = getDrawerLinks(t);
   const {isOpen, toggleVisibility} = useDrawerContext();
   const DrawerItems: React.FC<{open: boolean; closeOnClick?: boolean}> = ({open, closeOnClick = false}) => {
     return (
       <React.Fragment>
         <Divider />
         <List>
-          {DrawerLinks.map(link => (
+          {drawerLinks.map(link => (
             <DrawerItem key={link.path} open={open} {...link} closeOnClick={closeOnClick} />
           ))}
         </List>

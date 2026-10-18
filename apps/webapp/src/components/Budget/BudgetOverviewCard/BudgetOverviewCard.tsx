@@ -3,7 +3,8 @@
 import {Box, Stack, Tooltip, Typography} from '@mui/material';
 import type React from 'react';
 import {Card} from '@/components/Card';
-import {Formatter} from '@/utils/Formatter';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 
 /** Props for the {@link BudgetOverviewCard} component. */
 export type BudgetOverviewCardProps = {
@@ -20,6 +21,8 @@ export type BudgetOverviewCardProps = {
  * has been spent, is reserved for upcoming expenses, and remains available (or overdrawn).
  */
 export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudget, spent, futureExpenses}) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   const rawAvailable = totalBudget - spent - futureExpenses;
   const isOverBudget = rawAvailable < 0;
   const available = Math.max(0, rawAvailable);
@@ -39,10 +42,10 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
       <Card.Header>
         <Box>
           <Typography variant="h6" component="h2" sx={{fontWeight: 'bold'}}>
-            Budget
+            {t('Budget')}
           </Typography>
           <Typography variant="h5" component="p" sx={{fontWeight: 600}}>
-            {Formatter.currency.formatBalance(totalBudget)}
+            {currencyFormatter.formatBalance(totalBudget)}
           </Typography>
         </Box>
       </Card.Header>
@@ -50,28 +53,30 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
         <Stack spacing={2}>
           <Box
             role="img"
-            aria-label="Budget progress"
+            aria-label={t('Budget progress')}
             sx={{display: 'flex', height: 16, overflow: 'hidden', borderRadius: 1, bgcolor: 'action.hover'}}
           >
-            <Tooltip title={`Spent · ${Formatter.currency.formatBalance(spent)}`}>
+            <Tooltip title={t('Spent · {value0}', {value0: currencyFormatter.formatBalance(spent)})}>
               <Box
-                aria-label="Spent"
+                aria-label={t('Spent')}
                 sx={{width: `${spentPercent}%`, bgcolor: 'error.main', transition: 'width 300ms'}}
               />
             </Tooltip>
-            <Tooltip title={`Upcoming Expenses · ${Formatter.currency.formatBalance(futureExpenses)}`}>
+            <Tooltip
+              title={t('Upcoming Expenses · {value0}', {value0: currencyFormatter.formatBalance(futureExpenses)})}
+            >
               <Box
-                aria-label="Upcoming Expenses"
+                aria-label={t('Upcoming Expenses')}
                 sx={{width: `${futurePercent}%`, bgcolor: 'warning.main', transition: 'width 300ms'}}
               />
             </Tooltip>
             <Tooltip
-              title={`${isOverBudget ? 'Overdrawn' : 'Available'} · ${Formatter.currency.formatBalance(
+              title={`${isOverBudget ? t('Overdrawn') : t('Available')} · ${currencyFormatter.formatBalance(
                 isOverBudget ? overBudgetAmount : available,
               )}`}
             >
               <Box
-                aria-label={isOverBudget ? 'Overdrawn' : 'Available'}
+                aria-label={isOverBudget ? t('Overdrawn') : t('Available')}
                 sx={{
                   width: `${availablePercent}%`,
                   bgcolor: isOverBudget ? 'error.main' : 'success.main',
@@ -86,11 +91,11 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
               <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
                 <Box aria-hidden sx={{width: 12, height: 12, borderRadius: 1, bgcolor: 'error.main'}} />
                 <Typography component="dt" color="text.secondary">
-                  Spent
+                  {t('Spent')}
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
-                {Formatter.currency.formatBalance(spent)}
+                {currencyFormatter.formatBalance(spent)}
               </Typography>
             </Stack>
 
@@ -98,11 +103,11 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
               <Stack direction="row" spacing={1} sx={{alignItems: 'center'}}>
                 <Box aria-hidden sx={{width: 12, height: 12, borderRadius: 1, bgcolor: 'warning.main'}} />
                 <Typography component="dt" color="text.secondary">
-                  Upcoming Expenses
+                  {t('Upcoming Expenses')}
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
-                {Formatter.currency.formatBalance(futureExpenses)}
+                {currencyFormatter.formatBalance(futureExpenses)}
               </Typography>
             </Stack>
 
@@ -118,11 +123,11 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
                   }}
                 />
                 <Typography component="dt" color="text.secondary">
-                  {isOverBudget ? 'Overdrawn' : 'Available'}
+                  {isOverBudget ? t('Overdrawn') : t('Available')}
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500, color: isOverBudget ? 'error.main' : undefined}}>
-                {Formatter.currency.formatBalance(isOverBudget ? overBudgetAmount : available)}
+                {currencyFormatter.formatBalance(isOverBudget ? overBudgetAmount : available)}
               </Typography>
             </Stack>
           </Stack>

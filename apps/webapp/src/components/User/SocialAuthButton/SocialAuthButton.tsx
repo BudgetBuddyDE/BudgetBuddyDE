@@ -6,6 +6,7 @@ import {Button, type ButtonProps} from '@mui/material';
 import type React from 'react';
 import {authClient} from '@/authClient';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {logger} from '@/logger';
 
 export type AuthProvider = 'github' | 'google';
@@ -25,6 +26,7 @@ export type SocialAuthButton = {
 } & Omit<ButtonProps, 'onClick'>;
 
 export const SocialAuthButton: React.FC<SocialAuthButton> = ({provider, ...buttonProps}) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
 
   const handleClick = async () => {
@@ -37,13 +39,13 @@ export const SocialAuthButton: React.FC<SocialAuthButton> = ({provider, ...butto
       if (result.error) throw result.error;
 
       showSnackbar({
-        message: `Authentication with ${NameMapping[provider]} successful! Redirecting...`,
+        message: t('Authentication with {value1} successful! Redirecting...', {value1: NameMapping[provider]}),
       });
     } catch (error) {
       if (error instanceof Error) logger.error('Social authentication failed', error);
       else logger.error('Social authentication failed', {reason: String(error)});
       showSnackbar({
-        message: error instanceof Error ? error.message : 'Authentication failed',
+        message: error instanceof Error ? error.message : t('Authentication failed'),
       });
     }
   };

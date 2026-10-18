@@ -1,33 +1,37 @@
+'use client';
+
 import {BarChart, BulletChart, WaterfallChart} from '@budgetbuddyde/charts';
 import {Grid} from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import {
   CATEGORIES,
   budgetVsActual,
   bulletBudgets,
   cashflow,
   categoryStack,
-  formatCompactCurrency,
-  formatCurrency,
   spendingByCategory,
   waterfallData,
 } from '../data/fixtures';
 import {ChartCard, ShowcaseSection} from '../ShowcaseLayout';
 
 export const ComparisonSection: React.FC = () => {
+  const t = useAppTranslations();
+  const {formatBalance: formatCurrency, shortenBalance: formatCompactCurrency} = useCurrencyFormatter();
   return (
     <ShowcaseSection
-      title="Comparison"
-      description="Bars, budget targets and cash flow bridges for comparing values across categories and time."
+      title={t('Comparison')}
+      description={t('Bars, budget targets and cash flow bridges for comparing values across categories and time.')}
     >
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Budget vs. actual" subtitle="Grouped bar chart">
+        <ChartCard title={t('Budget vs. actual')} subtitle={t('Grouped bar chart')}>
           <BarChart
             data={budgetVsActual}
             xKey="category"
             series={[
-              {key: 'budget', label: 'Budget', role: 'target'},
-              {key: 'actual', label: 'Actual', role: 'balance'},
+              {key: 'budget', label: t('Budget'), role: 'target'},
+              {key: 'actual', label: t('Actual'), role: 'balance'},
             ]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
@@ -36,7 +40,7 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Spending by category" subtitle="Stacked bar chart">
+        <ChartCard title={t('Spending by category')} subtitle={t('Stacked bar chart')}>
           <BarChart
             data={categoryStack}
             xKey="month"
@@ -49,11 +53,11 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Top categories" subtitle="Horizontal bar chart">
+        <ChartCard title={t('Top categories')} subtitle={t('Horizontal bar chart')}>
           <BarChart
             data={spendingByCategory}
             xKey="label"
-            series={[{key: 'value', label: 'Spent'}]}
+            series={[{key: 'value', label: t('Spent')}]}
             horizontal
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
@@ -62,11 +66,11 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Monthly net" subtitle="Negative values with zero baseline">
+        <ChartCard title={t('Monthly net')} subtitle={t('Negative values with zero baseline')}>
           <BarChart
             data={cashflow}
             xKey="month"
-            series={[{key: 'net', label: 'Net'}]}
+            series={[{key: 'net', label: t('Net')}]}
             axisValueFormatter={formatCompactCurrency}
             tooltipValueFormatter={formatCurrency}
             showZeroLine
@@ -74,12 +78,12 @@ export const ComparisonSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Cash flow bridge" subtitle="Waterfall chart">
+        <ChartCard title={t('Cash flow bridge')} subtitle={t('Waterfall chart')}>
           <WaterfallChart data={waterfallData} valueFormatter={formatCompactCurrency} height={320} />
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Budget utilization" subtitle="Bullet chart: actual vs. target within range">
+        <ChartCard title={t('Budget utilization')} subtitle={t('Bullet chart: actual vs. target within range')}>
           <BulletChart data={bulletBudgets} valueFormatter={formatCurrency} />
         </ChartCard>
       </Grid>

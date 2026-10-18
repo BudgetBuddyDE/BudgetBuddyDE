@@ -37,15 +37,17 @@ import {
   type TransactionDialogProps,
   reducer as TransactionDialogReducer,
 } from '@/components/Transaction/TransactionDialog';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
+import {translateValidationIssue} from '@/lib/validation/translateValidationIssue';
 import {logger} from '@/logger';
 import {
   columns as categoryBatchColumns,
   createEmptyRow as createEmptyCategoryRow,
   fromEntity as categoryDraftFromEntity,
-  mapRowsToPayload as mapCategoryRowsToPayload,
+  createMapRowsToPayload as createMapCategoryRowsToPayload,
   type DraftRow as CategoryDraftRow,
 } from './categoryBatchAdapter';
 import {MergeCategoriesDialog, type MergeCategoriesForm} from '../MergeCategoriesDialog';
@@ -57,6 +59,7 @@ export type CategoryTableProps = {
 };
 
 export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = categorySlice.actions;
   const dispatch = useAppDispatch();
@@ -129,7 +132,9 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         }
         showSnackbar({
           message:
-            batchDialogState.mode === 'CREATE' ? 'Categories created successfully' : 'Categories updated successfully',
+            batchDialogState.mode === 'CREATE'
+              ? t('Categories created successfully')
+              : t('Categories updated successfully'),
         });
         dispatch(refresh());
         setBatchDialogState(current => ({...current, open: false}));
@@ -137,17 +142,20 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         setIsBatchSubmitting(false);
       }
     },
-    [batchDialogState, dispatch, refresh, showSnackbar],
+    [t, batchDialogState, dispatch, refresh, showSnackbar],
   );
 
   const handleFormSubmission: EntityDrawerFormHandler<EntityFormFields> = async (payload, onSuccess) => {
     const action = drawerState.action;
     const parsedPayload = CreateOrUpdateCategoryPayload.safeParse(payload);
     if (!parsedPayload.success) {
-      const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
+      const issues: string = parsedPayload.error.issues.map(issue => translateValidationIssue(issue, t)).join(', ');
       showSnackbar({
-        message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} category: ${issues}`,
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        message:
+          action === 'CREATE'
+            ? t('Failed to create category: {issues}', {issues})
+            : t('Failed to update category: {issues}', {issues}),
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
       });
       return;
     }
@@ -156,11 +164,11 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       const [createdCategory, error] = await apiClient.backend.category.create(parsedPayload.data);
       if (!createdCategory || error) {
         return showSnackbar({
-          message: `Failed to create category: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('Failed to create category: {error}', {error: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
         });
       }
-      showSnackbar({message: createdCategory.message || 'Category created'});
+      showSnackbar({message: createdCategory.message || t('Category created')});
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
       dispatch(refresh());
@@ -168,18 +176,18 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       const entityId = drawerState.defaultValues?.id;
       if (!entityId) {
         return showSnackbar({
-          message: `Failed to update category: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('Failed to update category: Missing entity ID'),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
         });
       }
       const [updatedCategory, error] = await apiClient.backend.category.updateById(entityId, parsedPayload.data);
       if (error) {
         return showSnackbar({
-          message: `Failed to update category: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('Failed to update category: {error}', {error: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('Retry')}</Button>,
         });
       }
-      showSnackbar({message: updatedCategory.message || 'Category updated'});
+      showSnackbar({message: updatedCategory.message || t('Category updated')});
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
       dispatch(refresh());
@@ -226,16 +234,16 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
 
       const [category, error] = await apiClient.backend.category.getById(id);
       if (error) {
-        showSnackbar({message: `Failed to open category: ${error.message}`});
+        showSnackbar({message: t('Failed to open category: {error}', {error: error.message})});
         return null;
       }
       if (!category?.data) {
-        showSnackbar({message: 'Category not found'});
+        showSnackbar({message: t('Category not found')});
         return null;
       }
       return category.data;
     },
-    [categories, showSnackbar],
+    [t, categories, showSnackbar],
   );
 
   const handleIntentEdit = React.useCallback(
@@ -269,12 +277,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     if (error || !deletedCategory) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('Retry')}</Button>,
       });
     }
 
     showSnackbar({
-      message: deletedCategory.message ?? `Category was deleted successfully`,
+      message: deletedCategory.message ?? t('Category was deleted successfully'),
     });
     dispatch(refresh());
   };
@@ -313,13 +321,13 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     () => [
       {
         key: 'name',
-        label: 'Name',
+        label: t('Name'),
         renderCell: value => <Typography variant="body1">{value as string}</Typography>,
       },
       {
         key: 'description',
-        label: 'Description',
-        renderCell: value => <Typography variant="body1">{(value as string | null) || 'No description'}</Typography>,
+        label: t('Description'),
+        renderCell: value => <Typography variant="body1">{(value as string | null) || t('No description')}</Typography>,
       },
       {
         key: 'id' as keyof TCategory,
@@ -337,10 +345,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       },
     ],
     // biome-ignore lint/correctness/useExhaustiveDependencies: handleEditEntity is stable within render context
-    [handleEditEntity],
+    [t, handleEditEntity],
   );
 
-  const batchColumns = React.useMemo(() => categoryBatchColumns(), []);
+  const batchColumns = React.useMemo(() => categoryBatchColumns({t}), [t]);
 
   const slice: EntitySlice<TCategory> = React.useMemo(
     () => ({
@@ -357,12 +365,12 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     return [
       {
         icon: <EditIcon fontSize="small" />,
-        label: 'Edit selected',
+        label: t('Edit selected'),
         onClick: handleEditSelected,
       },
       {
         icon: <MergeIcon fontSize={'small'} />,
-        label: 'Merge',
+        label: t('Merge'),
         onClick(categories) {
           dispatchMergeDrawerAction({
             type: 'OPEN',
@@ -374,7 +382,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         },
       },
     ];
-  }, [handleEditSelected]);
+  }, [t, handleEditSelected]);
 
   // Initialize keyword from URL params on mount — always dispatch to clear any stale Redux state
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
@@ -399,37 +407,41 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         dataKey="id"
         columns={columns}
         toolbar={{
-          title: 'Categories',
-          subtitle: 'Manage your categories',
+          title: t('Categories'),
+          subtitle: t('Manage your categories'),
           showCount: true,
           showSearch: true,
-          searchPlaceholder: 'Search categories…',
+          searchPlaceholder: t('Search categories…'),
           searchDefaultValue: initialKeyword,
           onSearch: handleTextSearch,
           actions: [
             {
               id: 'create-category',
               icon: <AddIcon />,
-              label: 'Create',
+              label: t('Create'),
               onClick: handleCreateEntity,
             },
             {
               id: 'create-multiple-categories',
               icon: <CreateMultipleIcon />,
-              label: 'Create multiple',
+              label: t('Create multiple'),
               onClick: handleCreateMultiple,
             },
           ],
         }}
         onRowClick={handleClickEntity}
-        emptyMessage={filters.keyword ? `No categories found for "${filters.keyword}"` : 'No categories found'}
+        emptyMessage={
+          filters.keyword
+            ? t('No categories found for "{keyword}"', {keyword: filters.keyword})
+            : t('No categories found')
+        }
         emptyState={
           categories !== null && totalEntityCount === 0 && !hasActiveFilters
             ? {
                 variant: 'create',
-                title: 'Create your first category',
-                description: 'Organize your transactions with categories that match your spending.',
-                createLabel: 'Create category',
+                title: t('Create your first category'),
+                description: t('Organize your transactions with categories that match your spending.'),
+                createLabel: t('Create category'),
                 onCreate: handleCreateEntity,
               }
             : undefined
@@ -449,20 +461,20 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
 
       <BatchEntityDialog<CategoryDraftRow, Parameters<typeof apiClient.backend.category.createMany>[0][number]>
         open={batchDialogState.open}
-        title={batchDialogState.mode === 'CREATE' ? 'Create categories' : 'Edit categories'}
+        title={batchDialogState.mode === 'CREATE' ? t('Create categories') : t('Edit categories')}
         mode={batchDialogState.mode}
         initialRows={batchDialogState.initialRows}
         columns={batchColumns}
         createEmptyRow={createEmptyCategoryRow}
-        mapRowsToPayload={mapCategoryRowsToPayload}
+        mapRowsToPayload={createMapCategoryRowsToPayload(t)}
         onSubmit={handleBatchSubmit}
         onClose={() => setBatchDialogState(current => ({...current, open: false}))}
         isSubmitting={isBatchSubmitting}
       />
 
       <EntityDrawer<EntityFormFields>
-        title={'Category'}
-        subtitle={drawerState.action === 'CREATE' ? 'Create new category' : 'Edit category'}
+        title={t('Category')}
+        subtitle={drawerState.action === 'CREATE' ? t('Create new category') : t('Edit category')}
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -479,15 +491,15 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           {
             type: 'text',
             name: 'name',
-            label: 'Name',
-            placeholder: 'Name',
+            label: t('Name'),
+            placeholder: t('Name'),
             required: true,
           },
           {
             type: 'text',
             name: 'description',
-            label: 'Description',
-            placeholder: 'Description',
+            label: t('Description'),
+            placeholder: t('Description'),
             area: true,
             rows: 2,
           },
@@ -503,7 +515,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content: `${!Array.isArray(deleteDialogState.target) ? 'Are you sure you want to delete this category?' : `Are you sure you want to delete these ${deleteDialogState.target.length} categories?`}\nThis will delete all associated transactions and recurring payments as well.`,
+          content: `${!Array.isArray(deleteDialogState.target) ? t('Are you sure you want to delete this category?') : t('Are you sure you want to delete these {count} categories?', {count: deleteDialogState.target.length})}\n${t('This will delete all associated transactions and recurring payments as well.')}`,
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});
@@ -528,7 +540,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       />
       <TransactionDialog {...transactionDialogState} onClose={handleCloseTransactionDialog} />
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label="Add category" />
+        <AddFab onClick={handleCreateEntity} label={t('Add category')} />
       </FabContainer>
     </React.Fragment>
   );

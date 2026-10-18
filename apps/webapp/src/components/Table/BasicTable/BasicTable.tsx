@@ -19,6 +19,7 @@ import type React from 'react';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
 import {getNestedValue} from '../utils';
 
@@ -53,7 +54,7 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
   columns,
   isLoading = false,
   error,
-  emptyMessage = 'No items found',
+  emptyMessage,
   toolbar,
   tableProps,
   stickyHeader = true,
@@ -62,6 +63,7 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
   onRowClick,
   renderRow,
 }: BasicTableProps<T, K>) => {
+  const t = useAppTranslations();
   const hasError = !!(error && (typeof error === 'object' || (typeof error === 'string' && error.length > 0)));
   const errorMessage = error instanceof Error ? error.message : error;
 
@@ -88,7 +90,9 @@ export const BasicTable = <T, K extends keyof T = keyof T>({
       {toolbar && <TableToolbar {...toolbar} isLoading={isLoading && data.length === 0} />}
 
       <Box sx={{px: 0}}>
-        {!isLoading && !hasError && data.length === 0 && <NoResults text={emptyMessage} sx={{m: 2}} />}
+        {!isLoading && !hasError && data.length === 0 && (
+          <NoResults text={emptyMessage ?? t('No items found')} sx={{m: 2}} />
+        )}
 
         {hasError && <ErrorAlert error={errorMessage} sx={{m: 2}} />}
 

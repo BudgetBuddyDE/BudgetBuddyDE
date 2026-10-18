@@ -7,6 +7,7 @@ import type React from 'react';
 import {authClient, signOut} from '@/authClient';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {Avatar} from '@/components/User';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {useScreenSize} from '@/hooks/useScreenSize';
 import {useDrawerContext} from '../DrawerContext';
 
@@ -14,6 +15,7 @@ import {useDrawerContext} from '../DrawerContext';
 export type DrawerProfileProps = {};
 
 export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
+  const t = useAppTranslations();
   const theme = useTheme();
   const router = useRouter();
   const screenSize = useScreenSize();
@@ -24,12 +26,12 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
   const handleLogout = async () => {
     await signOut(
       () => {
-        showSnackbar({message: 'You have been logged out.'});
+        showSnackbar({message: t('You have been logged out.')});
       },
       () => {
         showSnackbar({
-          message: 'Logout failed. Please try again.',
-          action: <Button onClick={handleLogout}>Retry</Button>,
+          message: t('Logout failed. Please try again.'),
+          action: <Button onClick={handleLogout}>{t('Retry')}</Button>,
         });
       },
     );
@@ -86,7 +88,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
             >
               {sessionData.user.name}
             </Typography>
-            <Chip label={'Basic'} variant="outlined" size="small" />
+            <Chip label={t('Basic')} variant="outlined" size="small" />
           </Box>
         </Box>
         <LogoutButton
@@ -104,9 +106,10 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
 };
 
 export const LogoutButton: React.FC<ButtonProps> = props => {
-  const _theme = useTheme();
+  const t = useAppTranslations();
   return (
     <Button
+      aria-label={t('Logout')}
       {...props}
       sx={{
         minWidth: 48,

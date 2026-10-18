@@ -33,6 +33,15 @@ const renderPalette = (commands: Command[]) =>
   );
 
 describe('CommandPalette', () => {
+  it('interpolates the unmatched query while preserving quotation marks', async () => {
+    renderPalette([{id: 'open-ledger', label: 'Open Ledger', onSelect: vi.fn()}]);
+
+    fireEvent.change(await screen.findByPlaceholderText('Search commands...'), {target: {value: 'unmatched'}});
+
+    expect(await screen.findByText("No results for 'unmatched'!")).toBeInTheDocument();
+    expect(screen.queryByText(/\{query\}/)).not.toBeInTheDocument();
+  });
+
   it('finds top-level commands through keywords', async () => {
     renderPalette([{id: 'open-ledger', label: 'Open Ledger', keywords: ['transactions'], onSelect: vi.fn()}]);
 

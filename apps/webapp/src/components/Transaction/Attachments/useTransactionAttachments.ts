@@ -6,6 +6,7 @@ import type {TTransaction} from '@budgetbuddyde/api/transaction';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {transactionAttachmentsInitialState, transactionAttachmentsReducer} from './transactionAttachmentsReducer';
 
 const ALLOWED_CONTENT_TYPES = new Set<string>(ATTACHMENT_CONTENT_TYPES);
@@ -31,6 +32,7 @@ function isAllowedFileType(file: File): boolean {
  * @param transactionId - The ID of the transaction whose attachments are managed.
  */
 export function useTransactionAttachments(transactionId: TTransaction['id']) {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const [state, dispatch] = React.useReducer(transactionAttachmentsReducer, transactionAttachmentsInitialState);
 
@@ -43,7 +45,7 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       });
       if (error) {
         dispatch({type: 'LOAD_ERROR'});
-        showSnackbar({message: `Failed to load attachments: ${error.message}`});
+        showSnackbar({message: t('Failed to load attachments: {value1}', {value1: error.message})});
         return;
       }
       dispatch({
@@ -53,7 +55,7 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
         append,
       });
     },
-    [transactionId, showSnackbar],
+    [transactionId, showSnackbar, t],
   );
 
   React.useEffect(() => {
@@ -72,7 +74,9 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       const invalidFiles = files.filter(f => !isAllowedFileType(f));
       if (invalidFiles.length > 0) {
         const names = invalidFiles.map(f => f.name).join(', ');
-        showSnackbar({message: `Unsupported file type(s): ${names}. Allowed types: PNG, JPG, WebP, HEIC.`});
+        showSnackbar({
+          message: t('Unsupported file type(s): {value1}. Allowed types: PNG, JPG, WebP, HEIC.', {value1: names}),
+        });
         return;
       }
 
@@ -80,13 +84,13 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       const [result, error] = await apiClient.backend.transaction.uploadTransactionAttachments(transactionId, files);
       if (error) {
         dispatch({type: 'UPLOAD_ERROR'});
-        showSnackbar({message: `Upload failed: ${error.message}`});
+        showSnackbar({message: t('Upload failed: {value1}', {value1: error.message})});
         return;
       }
       dispatch({type: 'UPLOAD_SUCCESS', newAttachments: result.data ?? []});
-      showSnackbar({message: `${result.data?.length ?? 0} file(s) uploaded successfully`});
+      showSnackbar({message: t('{value1} file(s) uploaded successfully', {value1: result.data?.length ?? 0})});
     },
-    [transactionId, showSnackbar],
+    [transactionId, showSnackbar, t],
   );
 
   const handleDownload = React.useCallback((attachment: TAttachmentWithUrl) => {
@@ -108,12 +112,12 @@ export function useTransactionAttachments(transactionId: TTransaction['id']) {
       attachmentIds: [id],
     });
     if (error) {
-      showSnackbar({message: `Delete failed: ${error.message}`});
+      showSnackbar({message: t('Delete failed: {value1}', {value1: error.message})});
       return;
     }
     dispatch({type: 'DELETE_SUCCESS', attachmentId: id});
-    showSnackbar({message: 'Attachment deleted'});
-  }, [state.deletingAttachmentId, transactionId, showSnackbar]);
+    showSnackbar({message: t('Attachment deleted')});
+  }, [state.deletingAttachmentId, transactionId, showSnackbar, t]);
 
   return {state, dispatch, handleUpload, handleDownload, handleDeleteConfirm, handleLoadMore};
 }

@@ -1,33 +1,33 @@
-// biome-ignore lint/complexity/noStaticOnlyClass: Justification: Utility class with static methods is fine
+// biome-ignore lint/complexity/noStaticOnlyClass: Pure formatting utilities
 export class CurrencyFormatter {
-  /**
-   * Formats the balance amount as a currency string.
-   *
-   * @param balance - The balance amount to format.
-   * @param currency - The currency code to use for formatting. Defaults to 'EUR'.
-   * @returns The formatted balance as a string.
-   */
   static formatBalance(
     balance: number,
-    currency?: string,
+    currency = 'EUR',
+    locale = 'en-US',
     minimumFractionDigits = 2,
     maximumFractionDigits = 2,
   ): string {
-    return balance.toLocaleString('de-DE', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: currency ? currency : 'EUR',
+      currency,
       minimumFractionDigits,
       maximumFractionDigits,
-    });
+    }).format(balance);
   }
 
-  static shortenBalance(value: number) {
-    const absoluteValue = Math.abs(value);
-    if (absoluteValue < 1_000) return this.formatBalance(value);
-
-    const divisor = absoluteValue >= 1_000_000_000 ? 1_000_000_000 : absoluteValue >= 1_000_000 ? 1_000_000 : 1_000;
-    const unit = divisor === 1_000_000_000 ? 'B' : divisor === 1_000_000 ? 'M' : 'k';
-    const formattedValue = (value / divisor).toLocaleString('de-DE', {maximumFractionDigits: 1});
-    return `${formattedValue} ${unit} €`;
+  static shortenBalance(value: number, currency = 'EUR', locale = 'en-US'): string {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(value);
   }
+}
+
+export function createCurrencyFormatter(locale = 'en-US', currency = 'EUR') {
+  return {
+    formatBalance: (value: number) => CurrencyFormatter.formatBalance(value, currency, locale),
+    shortenBalance: (value: number) => CurrencyFormatter.shortenBalance(value, currency, locale),
+  };
 }

@@ -6,17 +6,19 @@ import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {CircularProgress} from '@/components/Loading';
 import {RecurringPaymentsNav} from '@/components/RecurringPayment/OccurrenceTable';
 import {RecurringPaymentTable} from '@/components/RecurringPayment/RecurringPaymentTable';
+import {getAppTranslations} from '@/lib/i18n/server';
 
 export default async function RecurringPaymentsPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const t = await getAppTranslations();
   const params = await searchParams;
   const initialFilters = parseRecurringPaymentFiltersFromParams(params);
 
   return (
-    <ContentGrid title="Recurring Payments">
+    <ContentGrid title={t('Recurring Payments')}>
       <Grid size="grow">
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

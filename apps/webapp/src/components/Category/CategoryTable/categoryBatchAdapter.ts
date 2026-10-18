@@ -8,6 +8,7 @@ import {
 import type {GridColDef} from '@mui/x-data-grid';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
+import type {AppTranslator} from '@/lib/i18n/translate';
 
 export type CategoryDraftRow = {
   id: string;
@@ -34,30 +35,37 @@ export const fromEntity = (entity: TCategory): DraftRow => ({
   description: entity.description,
 });
 
-export type CategoryBatchColumnOptions = Record<never, never>;
+export type CategoryBatchColumnOptions = {t?: AppTranslator};
 
-export const columns = (_options?: CategoryBatchColumnOptions): GridColDef<DraftRow>[] => [
+export const columns = ({t = source => source}: CategoryBatchColumnOptions = {}): GridColDef<DraftRow>[] => [
   {
     field: 'name',
-    headerName: 'Name',
+    headerName: t('Name'),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'description',
-    headerName: 'Description',
+    headerName: t('Description'),
     flex: 2,
     minWidth: 240,
     editable: true,
   },
 ];
 
-export const mapRowsToPayload: BatchEntityDialogProps<
-  DraftRow,
-  TCreateOrUpdateCategoryPayload
->['mapRowsToPayload'] = rows =>
-  mapDraftRowsToPayload(rows, categoryDraftSchema, row => ({
-    name: row.name,
-    description: row.description && row.description.length > 0 ? row.description : null,
-  }));
+export const createMapRowsToPayload =
+  (t: AppTranslator): BatchEntityDialogProps<DraftRow, TCreateOrUpdateCategoryPayload>['mapRowsToPayload'] =>
+  rows =>
+    mapDraftRowsToPayload(
+      rows,
+      categoryDraftSchema,
+      row => ({
+        name: row.name,
+        description: row.description && row.description.length > 0 ? row.description : null,
+      }),
+      undefined,
+      t,
+    );
+
+export const mapRowsToPayload = createMapRowsToPayload(source => source);

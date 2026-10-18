@@ -1,6 +1,7 @@
 'use client';
 
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import React from 'react';
 import type {Intent, IntentEntity} from './types';
 import {parseIntentFromSearchParams, stripIntentSearchParams} from './url';
@@ -41,6 +42,7 @@ const intentKeyFromParams = (params: URLSearchParams) => {
  * removed as well, preventing repeated execution on subsequent renders.
  */
 export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers): void {
+  const t = useAppTranslations();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -48,7 +50,7 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
 
   React.useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    const parsed = parseIntentFromSearchParams(params);
+    const parsed = parseIntentFromSearchParams(params, t);
 
     if (!parsed) {
       consumedIntentKeyRef.current = null;
@@ -91,11 +93,11 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
     };
 
     consume().catch(error => {
-      const message = error instanceof Error ? error.message : 'Failed to consume intent';
+      const message = error instanceof Error ? error.message : t('Failed to consume intent');
       handlers.onInvalid?.(message);
       const stripped = stripIntentSearchParams(params);
       const strippedQuery = stripped.toString();
       router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
     });
-  }, [entity, handlers, pathname, router, searchParams]);
+  }, [entity, handlers, pathname, router, searchParams, t]);
 }

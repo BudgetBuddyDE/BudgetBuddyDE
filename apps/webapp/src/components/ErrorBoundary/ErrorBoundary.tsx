@@ -3,6 +3,7 @@
 import {Alert, AlertTitle, Button} from '@mui/material';
 import {usePathname} from 'next/navigation';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type ErrorBoundaryFallbackProps = {
   error: Error;
@@ -60,7 +61,7 @@ export type ErrorBoundaryState = {
  *     <div>
  *       <h2>Something wen't wrong</h2>
  *       <pre>{error.message}</pre>
- *       <button onClick={reset}>Retry</button>
+ *       <button onClick={reset}>{t('Retry')}</button>
  *     </div>
  *   )}
  * >
@@ -101,7 +102,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     if (this.state.hasError) {
       const {FallbackComponent, fallbackRender, fallback} = this.props;
       const props: ErrorBoundaryFallbackProps = {
-        error: this.state.error ?? new Error('Unbekannter Fehler'),
+        error: this.state.error ?? new Error('Unknown error'),
         reset: this.reset,
       };
 
@@ -117,20 +118,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
         return fallback;
       }
 
-      return (
-        <Alert
-          variant="standard"
-          severity="error"
-          action={
-            <Button color="inherit" size="small" onClick={this.reset}>
-              Retry
-            </Button>
-          }
-        >
-          <AlertTitle>Something wen't wrong</AlertTitle>
-          {props.error.message}
-        </Alert>
-      );
+      return <DefaultErrorFallback {...props} />;
     }
 
     return this.props.children;
@@ -147,6 +135,24 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     }
     return false;
   }
+}
+
+function DefaultErrorFallback({error, reset}: ErrorBoundaryFallbackProps) {
+  const t = useAppTranslations();
+  return (
+    <Alert
+      variant="standard"
+      severity="error"
+      action={
+        <Button color="inherit" size="small" onClick={reset}>
+          {t('Retry')}
+        </Button>
+      }
+    >
+      <AlertTitle>{t("Something wen't wrong")}</AlertTitle>
+      {error.message === 'Unknown error' ? t('Unknown error') : error.message}
+    </Alert>
+  );
 }
 
 /**

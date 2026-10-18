@@ -10,15 +10,18 @@ import {FilterWrapper} from '@/components/Filter';
 import {DateRangePicker} from '@/components/Form/DateRangePicker';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {EntityTable, type ColumnDefinition} from '@/components/Table';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
-import {Formatter} from '@/utils/Formatter';
 import {formatDateOnlyForDisplay, formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
-import {executionPlanLabels} from '../executionPlan';
+import {getExecutionPlanLabels} from '../executionPlan';
 import type {OccurrenceRange} from './occurrenceRange';
 
 type OccurrenceRow = TRecurringPaymentOccurrence & {rowId: string};
 
 export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: OccurrenceRange}> = ({initialRange}) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -114,26 +117,26 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
     () => [
       {
         key: 'scheduledFor',
-        label: 'Date',
+        label: t('Date'),
         width: 120,
         renderCell: value => formatDateOnlyForDisplay(value as string),
       },
       {
         key: 'recurringPayment.executionPlan',
-        label: 'Plan / Frequency',
+        label: t('Plan / Frequency'),
         width: 152,
-        renderCell: (_value, row) => executionPlanLabels[row.recurringPayment.executionPlan as TExecutionPlan],
+        renderCell: (_value, row) => getExecutionPlanLabels(t)[row.recurringPayment.executionPlan as TExecutionPlan],
       },
-      {key: 'recurringPayment.receiver', label: 'Receiver', width: 168},
+      {key: 'recurringPayment.receiver', label: t('Receiver'), width: 168},
       {
         key: 'recurringPayment.category',
-        label: 'Category',
+        label: t('Category'),
         width: 140,
         renderCell: (_value, row) => <CategoryChip categoryName={row.recurringPayment.category.name} size="small" />,
       },
       {
         key: 'recurringPayment.paymentMethod',
-        label: 'Payment Method',
+        label: t('Payment Method'),
         width: 180,
         renderCell: (_value, row) => (
           <PaymentMethodChip paymentMethodName={row.recurringPayment.paymentMethod.name} size="small" />
@@ -141,17 +144,17 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
       },
       {
         key: 'recurringPayment.transferAmount',
-        label: 'Amount',
+        label: t('Amount'),
         align: 'right',
         width: 120,
         renderCell: (_value, row) => (
           <Typography variant="body2">
-            {Formatter.currency.formatBalance(row.recurringPayment.transferAmount)}
+            {currencyFormatter.formatBalance(row.recurringPayment.transferAmount)}
           </Typography>
         ),
       },
     ],
-    [],
+    [currencyFormatter, t],
   );
 
   return (
@@ -160,8 +163,8 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
       dataKey="rowId"
       columns={columns}
       toolbar={{
-        title: 'Occurrences',
-        subtitle: 'Concrete recurring payment dates',
+        title: t('Occurrences'),
+        subtitle: t('Concrete recurring payment dates'),
         showCount: true,
         children: (
           <Stack
@@ -199,7 +202,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
                   }}
                 />
               }
-              label="Include paused"
+              label={t('Include paused')}
               sx={{whiteSpace: 'nowrap'}}
             />
             <FilterWrapper

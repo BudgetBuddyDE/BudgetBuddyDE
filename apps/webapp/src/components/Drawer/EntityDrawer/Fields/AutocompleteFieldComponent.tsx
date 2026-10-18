@@ -3,6 +3,7 @@
 import {Grid, type GridProps} from '@mui/material';
 import {type Control, Controller, type FieldValues} from 'react-hook-form';
 import {Autocomplete, type AutocompleteProps} from '@/components/Form/Autocomplete';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import type {BaseAttributes} from '../types';
 
 export type AutocompleteField<T extends FieldValues, Value> = Omit<
@@ -40,7 +41,10 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
   control,
   wrapperSize,
 }: AutocompleteFieldComponentProps<T>) => {
-  const inputRequiredMessage = field.required ? `${field.label ?? field.name} is required` : undefined;
+  const t = useAppTranslations();
+  const inputRequiredMessage = field.required
+    ? t('{name} is required', {name: String(field.label ?? field.name)})
+    : undefined;
 
   return (
     <Grid key={field.name} size={wrapperSize}>

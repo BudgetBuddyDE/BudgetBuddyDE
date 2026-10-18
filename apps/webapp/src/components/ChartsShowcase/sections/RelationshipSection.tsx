@@ -1,12 +1,15 @@
+'use client';
+
 import {HeatmapChart, RadarChart, ScatterChart} from '@budgetbuddyde/charts';
 import {Grid} from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import {
   HEATMAP_DAYS,
   HEATMAP_WEEKS,
   accountBubble,
   budgetRadar,
-  formatCompactCurrency,
   recurringScatter,
   spendingHeatmap,
   transactionsScatter,
@@ -14,17 +17,19 @@ import {
 import {ChartCard, ShowcaseSection} from '../ShowcaseLayout';
 
 export const RelationshipSection: React.FC = () => {
+  const t = useAppTranslations();
+  const {shortenBalance: formatCompactCurrency} = useCurrencyFormatter();
   return (
     <ShowcaseSection
-      title="Relationships & intensity"
-      description="Correlations, distributions and density - finding outliers and spending patterns."
+      title={t('Relationships & intensity')}
+      description={t('Correlations, distributions and density - finding outliers and spending patterns.')}
     >
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Transactions over time" subtitle="Scatter chart with two series">
+        <ChartCard title={t('Transactions over time')} subtitle={t('Scatter chart with two series')}>
           <ScatterChart
             series={[
-              {key: 'transactions', label: 'One-off', data: transactionsScatter},
-              {key: 'recurring', label: 'Recurring', color: '#DEA500', data: recurringScatter},
+              {key: 'transactions', label: t('One-off'), data: transactionsScatter},
+              {key: 'recurring', label: t('Recurring'), color: '#DEA500', data: recurringScatter},
             ]}
             xLabel="Transaction"
             yLabel="Amount"
@@ -35,12 +40,12 @@ export const RelationshipSection: React.FC = () => {
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
         <ChartCard
-          title="Accounts"
-          subtitle="Bubble chart (size = volume)"
-          note="Horizontal: activity count. Vertical: account balance. Bubble area: transaction volume."
+          title={t('Accounts')}
+          subtitle={t('Bubble chart (size = volume)')}
+          note={t('Horizontal: activity count. Vertical: account balance. Bubble area: transaction volume.')}
         >
           <ScatterChart
-            series={[{key: 'accounts', label: 'Accounts', data: accountBubble}]}
+            series={[{key: 'accounts', label: t('Accounts'), data: accountBubble}]}
             xLabel="Activity"
             yLabel="Balance"
             yFormatter={formatCompactCurrency}
@@ -50,13 +55,13 @@ export const RelationshipSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Budget vs. actual" subtitle="Radar chart across categories">
+        <ChartCard title={t('Budget vs. actual')} subtitle={t('Radar chart across categories')}>
           <RadarChart
             data={budgetRadar}
             metricKey="metric"
             series={[
-              {key: 'Goal', label: 'Goal', role: 'target'},
-              {key: 'Actual', label: 'Actual', role: 'balance'},
+              {key: 'Goal', label: t('Goal'), role: 'target'},
+              {key: 'Actual', label: t('Actual'), role: 'balance'},
             ]}
             fillArea
             showMarkers
@@ -65,7 +70,7 @@ export const RelationshipSection: React.FC = () => {
         </ChartCard>
       </Grid>
       <Grid size={{xs: 12, lg: 6}}>
-        <ChartCard title="Spending intensity" subtitle="Heatmap (week x weekday)">
+        <ChartCard title={t('Spending intensity')} subtitle={t('Heatmap (week x weekday)')}>
           <HeatmapChart
             data={spendingHeatmap}
             xLabels={HEATMAP_DAYS}

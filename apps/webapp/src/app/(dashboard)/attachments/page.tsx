@@ -4,11 +4,13 @@ import {apiClient} from '@/apiClient';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {ContentGrid} from '@/components/Layout/ContentGrid';
 import {headers} from '@/lib/headers';
+import {getAppTranslations} from '@/lib/i18n/server';
 import {AllAttachmentsClient} from './AllAttachmentsClient';
 
 const attachmentSkeletonKeys = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5', 'skeleton-6'];
 
 export default async function AttachmentsPage() {
+  const t = await getAppTranslations();
   const [result, error] = await apiClient.backend.transaction.getAllTransactionAttachments(
     {from: 0, to: 20},
     {headers: await headers()},
@@ -19,7 +21,7 @@ export default async function AttachmentsPage() {
   );
 
   return (
-    <ContentGrid title={'Attachments'} description="All your transaction attachments in one place">
+    <ContentGrid title={t('Attachments')} description={t('All your transaction attachments in one place')}>
       <Grid size={{xs: 12}}>
         {error ? <ErrorAlert error={error} /> : null}
         <React.Suspense

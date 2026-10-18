@@ -9,6 +9,7 @@ import {CategoryChip} from '@/components/Category/CategoryChip';
 import {ListWithIcon} from '@/components/ListWithIcon';
 import {NoResults} from '@/components/NoResults';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {EntityIcon} from '@/lib/ibn';
 import {Formatter} from '@/utils/Formatter';
 
@@ -41,12 +42,13 @@ export type TransactionListProps = EntityListProps<{
 export const TransactionList: React.FC<TransactionListProps> = ({
   title,
   subtitle,
-  noResultsMessage = "You haven't made any purchases yet",
+  noResultsMessage,
   data,
   onAddEntity,
   headerAction,
   cardProps,
 }) => {
+  const t = useAppTranslations();
   const chipProps: ChipProps = {
     variant: 'outlined',
     size: 'small',
@@ -63,7 +65,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         {(headerAction || onAddEntity) && (
           <Card.HeaderActions>
             {headerAction ?? (
-              <IconButton color="primary" aria-label="Add transaction" onClick={onAddEntity}>
+              <IconButton color="primary" aria-label={t('Add transaction')} onClick={onAddEntity}>
                 <AddIcon />
               </IconButton>
             )}
@@ -88,7 +90,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             />
           ))
         ) : (
-          <NoResults text={noResultsMessage} />
+          <NoResults text={noResultsMessage ?? t("You haven't made any purchases yet")} />
         )}
       </Card.Body>
     </Card>

@@ -14,6 +14,7 @@ import {
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {SearchInput} from '@/components/Form/SearchInput';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 type BaseToolbarActionArgs = {
   id: string;
@@ -46,7 +47,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
   title,
   subtitle,
   showSearch = false,
-  searchPlaceholder = 'Search…',
+  searchPlaceholder,
   searchDefaultValue,
   onSearch,
   searchDebounceMs = 500,
@@ -55,6 +56,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
   isLoading = false,
   sx,
 }) => {
+  const t = useAppTranslations();
   const hasTitle = title && title.length > 0;
   const hasSubtitle = subtitle && subtitle.length > 0;
 
@@ -102,7 +104,7 @@ export const TableToolbar: React.FC<TableToolbarProps & {isLoading?: boolean}> =
           <ActionPaper sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
             {showSearch && onSearch && (
               <SearchInput
-                placeholder={searchPlaceholder}
+                placeholder={searchPlaceholder ?? t('Search…')}
                 defaultValue={searchDefaultValue}
                 onSearch={onSearch}
                 debounceWaitInMilliseconds={searchDebounceMs}

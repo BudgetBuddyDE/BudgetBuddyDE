@@ -20,7 +20,7 @@ export const ApiKeyStatistic: React.FC<ApiKeyStatisticProps> = ({label, value, v
       </Typography>
       <Typography variant="h6" sx={{fontWeight: 500}}>
         {value === null ? (
-          <Skeleton width={label === 'Last created' ? 180 : 48} />
+          <Skeleton width="70%" />
         ) : valueTooltip ? (
           <Tooltip title={valueTooltip}>
             <Box component="span">{value}</Box>

@@ -1,3 +1,4 @@
+import type {AppTranslator} from '@/lib/i18n/translate';
 import type {IntentAction, IntentEntity} from './types';
 
 /** Route and action metadata for one intent target. */
@@ -60,3 +61,17 @@ export const IBN_TARGETS = {
     actions: ['create', 'delete'],
   },
 } as const satisfies Record<IntentEntity, IntentTargetConfig>;
+
+export const getTranslatedIntentTargets = (t: AppTranslator) => ({
+  transaction: {...IBN_TARGETS.transaction, label: t('Transaction'), pluralLabel: t('Transactions')},
+  recurringPayment: {
+    ...IBN_TARGETS.recurringPayment,
+    label: t('Recurring Payment'),
+    pluralLabel: t('Recurring Payments'),
+  },
+  paymentMethod: {...IBN_TARGETS.paymentMethod, label: t('Payment Method'), pluralLabel: t('Payment Methods')},
+  category: {...IBN_TARGETS.category, label: t('Category'), pluralLabel: t('Categories')},
+  budget: {...IBN_TARGETS.budget, label: t('Budget'), pluralLabel: t('Budgets')},
+  attachment: {...IBN_TARGETS.attachment, label: t('Attachment'), pluralLabel: t('Attachments')},
+  apiKey: {...IBN_TARGETS.apiKey, label: t('API Key'), pluralLabel: t('API Keys')},
+});

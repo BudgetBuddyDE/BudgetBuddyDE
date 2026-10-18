@@ -6,6 +6,7 @@ import React from 'react';
 import {authClient, revalidateSession} from '@/authClient';
 import {NoResults} from '@/components/NoResults';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
 
@@ -22,10 +23,11 @@ export type AccountListProps = {
 };
 
 export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
 
   if (accounts.length === 0) {
-    return <NoResults text="No linked accounts found." sx={{mx: 2}} />;
+    return <NoResults text={t('No linked accounts found.')} sx={{mx: 2}} />;
   }
 
   const handleAccountUnlink = async (providerId: string, accountId: string) => {
@@ -35,11 +37,11 @@ export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
 
       await revalidateSession(undefined, () => {
         showSnackbar({
-          message: "Wasn't able to revalidate session after unlinking account",
+          message: t("Wasn't able to revalidate session after unlinking account"),
         });
       });
       showSnackbar({
-        message: `Account unlinked successfully from ${providerId}`,
+        message: t('Account unlinked successfully from {value1}', {value1: providerId}),
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -47,7 +49,7 @@ export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
       else logger.error('Error unlinking account', {reason: msg});
       showSnackbar({
         message: msg,
-        action: <Button onClick={() => handleAccountUnlink(providerId, accountId)}>Retry</Button>,
+        action: <Button onClick={() => handleAccountUnlink(providerId, accountId)}>{t('Retry')}</Button>,
       });
     }
   };
@@ -63,10 +65,10 @@ export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
             <ListItem
               dense
               secondaryAction={
-                <Tooltip title="Unlink account">
+                <Tooltip title={t('Unlink account')}>
                   <IconButton
                     edge="end"
-                    aria-label="Unlink account"
+                    aria-label={t('Unlink account')}
                     onClick={() => handleAccountUnlink(providerId, accountId)}
                     size="small"
                   >
@@ -79,10 +81,10 @@ export const AccountList: React.FC<AccountListProps> = ({accounts}) => {
                 primary={
                   <React.Fragment>
                     <Typography variant="body2" sx={{mt: 1}}>
-                      <strong>Provider:</strong> {providerId}
+                      <strong>{t('Provider:')}</strong> {providerId}
                     </Typography>
                     <Typography variant="body2" sx={{mt: 0.5}}>
-                      <strong>CreatedAt:</strong> {createdAt}
+                      <strong>{t('CreatedAt:')}</strong> {createdAt}
                     </Typography>
                   </React.Fragment>
                 }

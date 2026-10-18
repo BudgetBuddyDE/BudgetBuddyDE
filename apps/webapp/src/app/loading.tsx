@@ -4,6 +4,7 @@ import {Box, CircularProgress, styled} from '@mui/material';
 import {motion} from 'framer-motion';
 import {Brand} from '@/components/Brand';
 import {Footer} from '@/components/Layout/Footer';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 const Main = styled('main')(() => ({
   display: 'flex',
@@ -14,6 +15,7 @@ const Main = styled('main')(() => ({
 }));
 
 export default function Loading() {
+  const t = useAppTranslations();
   return (
     <Main>
       <Box
@@ -36,7 +38,7 @@ export default function Loading() {
             bounce: 10,
           }}
         >
-          <CircularProgress sx={{mb: 0.5}} size={33} />
+          <CircularProgress aria-label={t('Loading')} sx={{mb: 0.5}} size={33} />
           <Brand showTitle />
         </motion.div>
       </Box>

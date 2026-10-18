@@ -1,8 +1,11 @@
 import {cleanup, render, screen} from '@testing-library/react';
-import {afterEach, describe, expect, it} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {buildReport, metric} from '../InsightsReport.fixtures';
 import {InsightsReportSummaryCards} from './InsightsReportSummaryCards';
 
+const {useOptionalPreferencesContext} = vi.hoisted(() => ({useOptionalPreferencesContext: vi.fn()}));
+vi.mock('@/components/Preferences/PreferencesProvider', () => ({useOptionalPreferencesContext}));
+beforeEach(() => useOptionalPreferencesContext.mockReturnValue(null));
 afterEach(() => cleanup());
 
 describe('InsightsReportSummaryCards', () => {
@@ -17,13 +20,21 @@ describe('InsightsReportSummaryCards', () => {
     expect(screen.getByText('Average expense')).toBeInTheDocument();
   });
 
-  it('formats currency values in German locale', () => {
+  it('formats currency values in the default en-US locale', () => {
     render(<InsightsReportSummaryCards summary={buildReport().summary} />);
 
-    expect(screen.getByText(/1\.200,00/)).toBeInTheDocument();
+    expect(screen.getByText(/€1,200\.00/)).toBeInTheDocument();
     // The expenses value feeds both the Expenses and Average expense cards
-    expect(screen.getAllByText(/300,00/)).toHaveLength(2);
-    expect(screen.getByText(/900,00/)).toBeInTheDocument();
+    expect(screen.getAllByText(/€300\.00/)).toHaveLength(2);
+    expect(screen.getByText(/€900\.00/)).toBeInTheDocument();
+  });
+
+  it('uses the preferred USD currency for all monetary summary cards', () => {
+    useOptionalPreferencesContext.mockReturnValue({locale: 'en-US', effectivePreferences: {currency: 'USD'}});
+    render(<InsightsReportSummaryCards summary={buildReport().summary} />);
+    expect(screen.getByText('$1,200.00')).toBeInTheDocument();
+    expect(screen.getAllByText('$300.00')).toHaveLength(2);
+    expect(screen.getByText('$900.00')).toBeInTheDocument();
   });
 
   it('formats the savings rate as percentage', () => {

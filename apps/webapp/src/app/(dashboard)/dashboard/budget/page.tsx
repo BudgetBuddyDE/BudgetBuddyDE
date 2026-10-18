@@ -8,9 +8,11 @@ import {PathnameErrorBoundary, RouteErrorFallback} from '@/components/ErrorBound
 import {CircularProgress} from '@/components/Loading';
 import {RecurringPaymentPieChart} from '@/components/RecurringPayment/RecurringPaymentPieChart';
 import {headers} from '@/lib/headers';
+import {getAppTranslations} from '@/lib/i18n/server';
 import {DashboardStatsWrapper} from '../DashboardStatsWrapper';
 
 export default async function BudgetView() {
+  const t = await getAppTranslations();
   const requestHeaders = await headers();
   const [[budgets, error], [estimated, estimatedError]] = await Promise.all([
     apiClient.backend.budget.getAll(
@@ -28,8 +30,8 @@ export default async function BudgetView() {
         <React.Suspense fallback={<CircularProgress />}>
           {estimatedError || !estimated ? (
             <RouteErrorFallback
-              error={estimatedError ?? new Error('Budget statistics are unavailable')}
-              title="Budget statistics are temporarily unavailable"
+              error={estimatedError ?? new Error(t('Budget statistics are unavailable'))}
+              title={t('Budget statistics are temporarily unavailable')}
             />
           ) : (
             <DashboardStatsWrapper estimated={estimated} />

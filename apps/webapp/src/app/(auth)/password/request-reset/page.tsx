@@ -9,8 +9,10 @@ import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {Card} from '@/components/Card';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export default function RequestPasswordResetPage() {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const {pending: isPending} = useFormStatus();
   const searchParams = useSearchParams();
@@ -25,7 +27,7 @@ export default function RequestPasswordResetPage() {
     });
 
     showSnackbar({
-      message: 'If an account with that email exists, a password reset link has been sent. Check your inbox',
+      message: t('If an account with that email exists, a password reset link has been sent. Check your inbox'),
     });
   }
 
@@ -54,7 +56,7 @@ export default function RequestPasswordResetPage() {
                 mt: 2,
               }}
             >
-              Request password reset
+              {t('Request password reset')}
             </Typography>
           </Box>
 
@@ -63,9 +65,9 @@ export default function RequestPasswordResetPage() {
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Enter email"
+                  placeholder={t('Enter email')}
                   type="email"
-                  label="E-Mail"
+                  label={t('E-Mail')}
                   name="email"
                   defaultValue={emailFromQuery}
                   disabled={isPending}
@@ -76,19 +78,19 @@ export default function RequestPasswordResetPage() {
             </Grid>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
               <Button type="submit" variant="contained" endIcon={<SendRounded />} sx={{mt: 1}} disabled={isPending}>
-                Submit request
+                {t('Submit request')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>or</Divider>
+          <Divider sx={{my: 2}}>{t('or')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-            Sign in
+            {t('Sign in')}
           </Button>
 
           <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
-            Create an account
+            {t('Create an account')}
           </Button>
         </Card>
       </Grid>

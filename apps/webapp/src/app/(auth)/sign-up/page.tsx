@@ -11,8 +11,10 @@ import {Card} from '@/components/Card';
 import {PasswordInput} from '@/components/Form/PasswordInput';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {type AuthProvider, SocialAuthButton} from '@/components/User/SocialAuthButton';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export default function SignUp() {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,7 +40,7 @@ export default function SignUp() {
     const confirmPassword = formData.get('confirm-password');
 
     if (password !== confirmPassword) {
-      showSnackbar({message: 'Passwords do not match'});
+      showSnackbar({message: t('Passwords do not match')});
       redirectWithFormData(firstName, surname, email);
       return;
     }
@@ -54,7 +56,7 @@ export default function SignUp() {
         },
         onSuccess: async () => {
           showSnackbar({
-            message: "You have been signed up! You're getting redirected...",
+            message: t("You have been signed up! You're getting redirected..."),
           });
           redirect('/dashboard');
         },
@@ -87,7 +89,7 @@ export default function SignUp() {
                 mt: 2,
               }}
             >
-              Sign up
+              {t('Sign up')}
             </Typography>
           </Box>
 
@@ -100,15 +102,15 @@ export default function SignUp() {
               ))}
 
               <Grid size={{xs: 12}}>
-                <Divider>or with</Divider>
+                <Divider>{t('or with')}</Divider>
               </Grid>
 
               <Grid size={{xs: 6}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Name"
+                  placeholder={t('Name')}
                   type="text"
-                  label="Name"
+                  label={t('Name')}
                   name="name"
                   defaultValue={nameFromQuery}
                   fullWidth
@@ -119,9 +121,9 @@ export default function SignUp() {
               <Grid size={{xs: 6}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Surname"
+                  placeholder={t('Surname')}
                   type="text"
-                  label="Surname"
+                  label={t('Surname')}
                   name="surname"
                   defaultValue={surnameFromQuery}
                   fullWidth
@@ -132,9 +134,9 @@ export default function SignUp() {
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Enter email"
+                  placeholder={t('Enter email')}
                   type="email"
-                  label="E-Mail"
+                  label={t('E-Mail')}
                   name="email"
                   defaultValue={emailFromQuery}
                   fullWidth
@@ -149,7 +151,7 @@ export default function SignUp() {
               <Grid size={{xs: 12}}>
                 <PasswordInput
                   outlinedInputProps={{
-                    label: 'Confirm password',
+                    label: t('Confirm password'),
                     name: 'confirm-password',
                   }}
                 />
@@ -161,9 +163,9 @@ export default function SignUp() {
                   control={<Checkbox />}
                   label={
                     <React.Fragment>
-                      I accept the{' '}
+                      {t('I accept the')}{' '}
                       <Link href={'https://budget-buddy.de/tos'} target="_blank">
-                        Terms of Service
+                        {t('Terms of Service')}
                       </Link>
                     </React.Fragment>
                   }
@@ -180,15 +182,15 @@ export default function SignUp() {
                 sx={{mt: 1}}
                 data-umami-event={'default-sign-up'}
               >
-                Sign up
+                {t('Sign up')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>Already registered?</Divider>
+          <Divider sx={{my: 2}}>{t('Already registered?')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth>
-            Sign in
+            {t('Sign in')}
           </Button>
         </Card>
       </Grid>

@@ -4,8 +4,10 @@ import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
+import {getAppTranslations} from '@/lib/i18n/server';
 
 export default async function MailVerifiedPage() {
+  const t = await getAppTranslations();
   const {data: session, error} = await authClient.getSession({
     fetchOptions: {
       headers: await headers(),
@@ -40,7 +42,7 @@ export default async function MailVerifiedPage() {
                 mt: 2,
               }}
             >
-              Email Verification
+              {t('Email Verification')}
             </Typography>
           </Box>
 
@@ -48,28 +50,32 @@ export default async function MailVerifiedPage() {
 
           {!isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              It seems like you are not signed in. Please sign in first...
+              {t('It seems like you are not signed in. Please sign in first...')}
             </Typography>
           )}
 
           {isSignedIn && (
             <Typography variant="body1" gutterBottom>
               {isEmailVerified
-                ? 'Thank you for verifying your email address. You can now access all features of Budget Buddy. You can close this page and continue to the dashboard.'
-                : 'There was an issue verifying your email address. Please try again or contact support if the issue persists.'}
+                ? t(
+                    'Thank you for verifying your email address. You can now access all features of Budget Buddy. You can close this page and continue to the dashboard.',
+                  )
+                : t(
+                    'There was an issue verifying your email address. Please try again or contact support if the issue persists.',
+                  )}
             </Typography>
           )}
 
-          <Divider sx={{my: 2}}>Not signed in?</Divider>
+          <Divider sx={{my: 2}}>{t('Not signed in?')}</Divider>
 
           {isSignedIn && (
             <LinkButton href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-              Sign in first...
+              {t('Sign in first...')}
             </LinkButton>
           )}
 
           <LinkButton href="/sign-up" variant="contained" fullWidth>
-            Create an account
+            {t('Create an account')}
           </LinkButton>
         </Card>
       </Grid>

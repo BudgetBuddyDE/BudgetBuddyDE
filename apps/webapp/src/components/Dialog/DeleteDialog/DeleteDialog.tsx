@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import {SlideTransition} from '@/components/Transition';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type DeleteDialogProps = Pick<MuiDialogProps, 'open' | 'onClose' | 'maxWidth' | 'transitionDuration'> & {
   onCancel: () => void;
@@ -32,6 +33,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
   text,
   transitionDuration,
 }) => {
+  const t = useAppTranslations();
   return (
     <Dialog
       open={open}
@@ -48,7 +50,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
       }}
     >
       <DialogTitle variant="h2" sx={{textAlign: 'center'}}>
-        {text?.title || 'Attention'}
+        {text?.title || t('Attention')}
       </DialogTitle>
       <DialogContent>
         <DialogContentText
@@ -57,13 +59,13 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
             textAlign: 'center',
           }}
         >
-          {text?.content || 'Are you sure you want to delete these entries?'}
+          {text?.content || t('Are you sure you want to delete these entries?')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{t('Cancel')}</Button>
         <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
-          Yes, delete
+          {t('Yes, delete')}
         </Button>
       </DialogActions>
     </Dialog>

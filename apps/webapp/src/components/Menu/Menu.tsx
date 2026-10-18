@@ -12,6 +12,7 @@ import {
   type MenuProps as MuiMenuProps,
 } from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type MenuProps = {
   menuProps?: MuiMenuProps;
@@ -28,6 +29,7 @@ export type MenuProps = {
 );
 
 export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, actions, ...props}) => {
+  const t = useAppTranslations();
   const id = React.useId();
   const menuId = `${id}-menu`;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -54,7 +56,7 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
         <IconButton
           onClick={handleClick}
           color="primary"
-          aria-label="Open menu"
+          aria-label={t('Open menu')}
           aria-haspopup="true"
           aria-expanded={open}
           aria-controls={open ? menuId : undefined}
@@ -70,7 +72,7 @@ export const Menu: React.FC<MenuProps> = ({useIconButton = false, menuProps, act
           aria-controls={open ? menuId : undefined}
           {...(props as {buttonProps?: ButtonProps}).buttonProps}
         >
-          {(props as {buttonProps?: ButtonProps}).buttonProps?.children || 'Menu'}
+          {(props as {buttonProps?: ButtonProps}).buttonProps?.children || t('Menu')}
         </Button>
       )}
       <MuiMenu id={menuId} anchorEl={anchorEl} onClose={handleClose} {...menuProps} open={open}>

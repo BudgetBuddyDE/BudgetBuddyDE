@@ -2,6 +2,7 @@
 
 import {TablePagination} from '@mui/material';
 import type React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type PaginationProps = {
   count: number;
@@ -20,12 +21,24 @@ export const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   onRowsPerPageChange,
 }) => {
+  const t = useAppTranslations();
   return (
     <TablePagination
       component="div"
       count={count}
       page={page}
-      labelRowsPerPage="Rows:"
+      labelRowsPerPage={t('Rows:')}
+      labelDisplayedRows={({from, to, count}) =>
+        t('{from}–{to} of {count}', {from, to, count: count !== -1 ? count : t('more than {to}', {to})})
+      }
+      getItemAriaLabel={type =>
+        ({
+          first: t('Go to first page'),
+          last: t('Go to last page'),
+          next: t('Go to next page'),
+          previous: t('Go to previous page'),
+        })[type]
+      }
       rowsPerPageOptions={rowsPerPageOptions}
       rowsPerPage={rowsPerPage}
       onPageChange={(_, newPage) => onPageChange(newPage)}

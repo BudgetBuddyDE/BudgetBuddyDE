@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {NoResults} from '../NoResults';
 import {type Command, useCommandPalette} from './CommandPaletteContext';
 
@@ -35,6 +36,7 @@ const SECTION_ORDER: Record<string, number> = {
 };
 
 export const CommandPalette: React.FC = () => {
+  const t = useAppTranslations();
   const {open, setOpen, commands} = useCommandPalette();
   const [query, setQuery] = React.useState('');
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
@@ -190,14 +192,14 @@ export const CommandPalette: React.FC = () => {
     selectedIndex,
   ]);
 
-  const title = levels.length ? 'Choose entity' : activeCommand ? activeCommand.label : 'Commands';
+  const title = levels.length ? t('Choose entity') : activeCommand ? activeCommand.label : t('Commands');
   const placeholder =
     activeCommand?.placeholder ??
     (activeCommand
-      ? `Search ${activeCommand.label.toLowerCase()}`
+      ? t('Search {entity}', {entity: activeCommand.label.toLowerCase()})
       : levels.length
-        ? 'Search entity...'
-        : 'Search commands...');
+        ? t('Search entity...')
+        : t('Search commands...'));
   const breadcrumb = [...levels.map(level => level.label), activeCommand?.label].filter(Boolean).join('  ›  ');
 
   return (
@@ -239,7 +241,7 @@ export const CommandPalette: React.FC = () => {
             <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
-                  <ListItemText primary="Loading..." />
+                  <ListItemText primary={t('Loading...')} />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -248,19 +250,37 @@ export const CommandPalette: React.FC = () => {
             <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
-                  <ListItemText primary={activeCommand.emptyLabel ?? 'No matching records'} />
+                  <ListItemText primary={activeCommand.emptyLabel ?? t('No matching records')} />
                 </ListItemButton>
               </ListItem>
             </List>
           )}
           {!isResolving && !groupedCommands.length && !isResolverMode && (
-            <NoResults text={`No results for '${query}'!`} sx={{m: 2}} />
+            <NoResults text={t("No results for ''{query}''!", {query})} sx={{m: 2}} />
           )}
           {!isResolving &&
             groupedCommands.map(([section, items], groupIndex) => (
-              <Box key={section}>
+              <Box
+                key={
+                  {
+                    Navigation: t('Navigation'),
+                    Actions: t('Actions'),
+                    Settings: t('Settings'),
+                    Session: t('Session'),
+                    General: t('General'),
+                    Entities: t('Entities'),
+                  }[section] ?? section
+                }
+              >
                 <Typography variant="overline" sx={{px: 2, pt: 1, display: 'block', opacity: 0.7}}>
-                  {section}
+                  {{
+                    Navigation: t('Navigation'),
+                    Actions: t('Actions'),
+                    Settings: t('Settings'),
+                    Session: t('Session'),
+                    General: t('General'),
+                    Entities: t('Entities'),
+                  }[section] ?? section}
                 </Typography>
                 <List dense disablePadding>
                   {items.map(item => {
@@ -292,7 +312,7 @@ export const CommandPalette: React.FC = () => {
           direction="row"
           spacing={1.5}
           useFlexGap
-          aria-label="Keyboard shortcuts"
+          aria-label={t('Keyboard shortcuts')}
           sx={{
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -304,10 +324,10 @@ export const CommandPalette: React.FC = () => {
           }}
         >
           {[
-            ['↑↓', 'Navigate'],
-            ['↵', 'Select'],
-            ['Esc', 'Back'],
-            ['⌫', 'Back'],
+            ['↑↓', t('Navigate')],
+            ['↵', t('Select')],
+            ['Esc', t('Back')],
+            ['⌫', t('Back')],
           ].map(([key, label]) => (
             <Box key={`${key}-${label}`} component="span" sx={{display: 'inline-flex', alignItems: 'center', gap: 0.5}}>
               <Box

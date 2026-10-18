@@ -5,6 +5,7 @@ import CloudUploadRounded from '@mui/icons-material/CloudUploadRounded';
 import {alpha, Box, type BoxProps, CircularProgress, Typography, useTheme} from '@mui/material';
 import type React from 'react';
 import {useRef} from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 const DEFAULT_ACCEPT = ATTACHMENT_CONTENT_TYPES.join(',');
 
@@ -38,6 +39,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
   accept = DEFAULT_ACCEPT,
   sx,
 }) => {
+  const t = useAppTranslations();
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,7 +93,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
           color: 'text.secondary',
         }}
       >
-        {isUploading ? 'Uploading…' : 'Click or drag & drop files to upload'}
+        {isUploading ? t('Uploading…') : t('Click or drag & drop files to upload')}
       </Typography>
       <input
         ref={fileInputRef}

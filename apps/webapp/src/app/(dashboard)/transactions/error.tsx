@@ -1,7 +1,9 @@
 'use client';
 
 import {RouteErrorFallback} from '@/components/ErrorBoundary';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export default function TransactionsError({error, reset}: {error: Error & {digest?: string}; reset: () => void}) {
-  return <RouteErrorFallback error={error} reset={reset} title="Transactions are temporarily unavailable" />;
+  const t = useAppTranslations();
+  return <RouteErrorFallback error={error} reset={reset} title={t('Transactions are temporarily unavailable')} />;
 }

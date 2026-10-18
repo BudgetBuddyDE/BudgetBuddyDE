@@ -13,8 +13,10 @@ import {
   type FirstLevelNullable,
 } from '@/components/Drawer';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch} from '@/lib/hooks';
+import {translateValidationIssue} from '@/lib/validation/translateValidationIssue';
 import {logger} from '@/logger';
 
 export type MergeCategoriesForm = FirstLevelNullable<{
@@ -29,6 +31,7 @@ export type MergeCategoriesDialogProps = {
 };
 
 export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({source, isOpen, onClose}) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const {refresh} = categorySlice.actions;
   const dispatch = useAppDispatch();
@@ -45,12 +48,12 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
       {
         type: 'autocomplete',
         name: 'sourceCategories',
-        label: 'Source',
-        placeholder: 'Select source categories to merge',
+        label: t('Source'),
+        placeholder: t('Select source categories to merge'),
         required: true,
         multiple: true,
         disableCloseOnSelect: true,
-        noOptionsText: 'No categories available',
+        noOptionsText: t('No categories available'),
         async retrieveOptionsFunc(_keywords) {
           const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
@@ -69,10 +72,10 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
       {
         type: 'autocomplete',
         name: 'targetCategory',
-        label: 'Target',
-        placeholder: 'Select target category to merge into',
+        label: t('Target'),
+        placeholder: t('Select target category to merge into'),
         required: true,
-        noOptionsText: 'No categories available',
+        noOptionsText: t('No categories available'),
         async retrieveOptionsFunc(_keywords) {
           const [categories, error] = await apiClient.backend.category.getValueHelp();
           if (error) {
@@ -89,7 +92,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
         },
       },
     ] as EntityDrawerField<MergeCategoriesForm>[];
-  }, []);
+  }, [t]);
 
   const handleSubmit: EntityDrawerFormHandler<MergeCategoriesForm> = async (payload, onSuccess) => {
     const parsedPayload = z
@@ -102,10 +105,10 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
         target: payload.targetCategory?.id,
       });
     if (!parsedPayload.success) {
-      const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
+      const issues: string = parsedPayload.error.issues.map(issue => translateValidationIssue(issue, t)).join(', ');
       showSnackbar({
-        message: `Failed to merge categories: ${issues}`,
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>Retry</Button>,
+        message: t('Failed to merge categories: {issues}', {issues: issues}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('Retry')}</Button>,
       });
       return;
     }
@@ -113,11 +116,11 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
     const [mergedCategories, error] = await apiClient.backend.category.merge(parsedPayload.data);
     if (!mergedCategories || error) {
       return showSnackbar({
-        message: `Failed to merge categories: ${error.message}`,
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>Retry</Button>,
+        message: t('Failed to merge categories: {error}', {error: error.message}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('Retry')}</Button>,
       });
     }
-    showSnackbar({message: 'Categories merged'});
+    showSnackbar({message: t('Categories merged')});
     onClose(); // close the drawer
     onSuccess?.();
     dispatch(refresh());
@@ -125,8 +128,8 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
 
   return (
     <EntityDrawer<MergeCategoriesForm>
-      title={'Merge categories'}
-      subtitle={'Merge multiple categories into a single one.'}
+      title={t('Merge categories')}
+      subtitle={t('Merge multiple categories into a single one.')}
       open={isOpen}
       onSubmit={handleSubmit}
       onClose={onClose}
@@ -143,8 +146,9 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
         alert: {
           variant: 'standard',
           severity: 'warning',
-          children:
+          children: t(
             'Merging categories is irreversible. All items (e.g. transactions or recurring payments) associated with the source categories will be reassigned to the target category.',
+          ),
         },
       }}
     />

@@ -36,6 +36,7 @@ import {CloseIconButton, FullscreenIconButton} from '@/components/Button';
 import {Card} from '@/components/Card';
 import {DismissableAlert} from '@/components/DismissableAlert';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {paymentMethodSlice} from '@/lib/features/paymentMethods/paymentMethodSlice';
@@ -43,7 +44,7 @@ import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringP
 import {transactionSlice} from '@/lib/features/transactions/transactionSlice';
 import {useAppDispatch} from '@/lib/hooks';
 
-const steps = ['Upload file', 'Preview files', 'Successful imports', 'Failed imports', 'Finish'];
+const steps = ['Upload file', 'Preview files', 'Successful imports', 'Failed imports', 'Finish'] as const;
 
 const resourceLabels = {
   categories: 'Categories',
@@ -53,11 +54,32 @@ const resourceLabels = {
   budgets: 'Budgets',
 } as const;
 
-type TResource = keyof typeof resourceLabels;
-type TTableRow = {preview: TApplicationImportPreviewRecord; record?: TApplicationImportRecord; status?: string};
+type TImportStatus = 'Imported' | 'Skipped' | 'Failed';
 
-function labelForField(field: string): string {
-  return field.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase());
+type TResource = keyof typeof resourceLabels;
+type TTableRow = {preview: TApplicationImportPreviewRecord; record?: TApplicationImportRecord; status?: TImportStatus};
+
+function labelForField(field: string, t: ReturnType<typeof useAppTranslations>): string {
+  const labels: Record<string, string> = {
+    id: t('Id'),
+    name: t('Name'),
+    description: t('Description'),
+    provider: t('Provider'),
+    address: t('Address'),
+    categoryId: t('Category Id'),
+    paymentMethodId: t('Payment Method Id'),
+    processedAt: t('Processed At'),
+    receiver: t('Receiver'),
+    transferAmount: t('Transfer Amount'),
+    information: t('Information'),
+    executionPlan: t('Execution Plan'),
+    startsOn: t('Starts On'),
+    paused: t('Paused'),
+    type: t('Type'),
+    budget: t('Budget'),
+    categoryIds: t('Category Ids'),
+  };
+  return labels[field] ?? field.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase());
 }
 
 function displayValue(value: boolean | number | string | null | undefined): string {
@@ -70,7 +92,7 @@ function resultRows(
   result: TApplicationImportResult,
   resource: TResource,
   records: TApplicationImportRecord[],
-  status: string,
+  status: TImportStatus,
 ): TTableRow[] {
   const previewByRow = new Map(result.preview[resource].map(record => [record.row, record]));
   return records.map(record => ({
@@ -81,6 +103,7 @@ function resultRows(
 }
 
 function ResourceTable({resource, rows, title}: {resource: TResource; rows: TTableRow[]; title: string}) {
+  const t = useAppTranslations();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row.preview.data))));
@@ -97,15 +120,15 @@ function ResourceTable({resource, rows, title}: {resource: TResource; rows: TTab
   return (
     <Stack spacing={1}>
       <TableContainer component={Paper} variant="outlined">
-        <Table stickyHeader size="small" aria-label={`${title} ${resourceLabels[resource]}`}>
+        <Table stickyHeader size="small" aria-label={`${title} ${t(resourceLabels[resource])}`}>
           <TableHead>
             <TableRow>
-              <TableCell>Archive line</TableCell>
+              <TableCell>{t('Archive line')}</TableCell>
               {columns.map(column => (
-                <TableCell key={column}>{labelForField(column)}</TableCell>
+                <TableCell key={column}>{labelForField(column, t)}</TableCell>
               ))}
-              {hasStatus && <TableCell>Status</TableCell>}
-              {hasReason && <TableCell>Reason</TableCell>}
+              {hasStatus && <TableCell>{t('Status')}</TableCell>}
+              {hasReason && <TableCell>{t('Reason')}</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -117,10 +140,14 @@ function ResourceTable({resource, rows, title}: {resource: TResource; rows: TTab
                     key={column}
                     sx={{maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}
                   >
-                    {displayValue(row.preview.data[column])}
+                    {typeof row.preview.data[column] === 'boolean'
+                      ? row.preview.data[column]
+                        ? t('Yes')
+                        : t('No')
+                      : displayValue(row.preview.data[column])}
                   </TableCell>
                 ))}
-                {hasStatus && <TableCell>{row.status}</TableCell>}
+                {hasStatus && <TableCell>{row.status ? t(row.status) : null}</TableCell>}
                 {hasReason && <TableCell>{row.record?.message ?? '-'}</TableCell>}
               </TableRow>
             ))}
@@ -133,6 +160,17 @@ function ResourceTable({resource, rows, title}: {resource: TResource; rows: TTab
         page={page}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[10, 25, 50]}
+        labelRowsPerPage={t('Rows per page:')}
+        labelDisplayedRows={({from, to, count}) => t('{from}-{to} of {count}', {from, to, count})}
+        getItemAriaLabel={type =>
+          type === 'first'
+            ? t('Go to first page')
+            : type === 'last'
+              ? t('Go to last page')
+              : type === 'next'
+                ? t('Go to next page')
+                : t('Go to previous page')
+        }
         onPageChange={(_event, nextPage) => setPage(nextPage)}
         onRowsPerPageChange={event => {
           setRowsPerPage(Number(event.target.value));
@@ -150,20 +188,21 @@ function ResourceTabs({
   title: string;
   rowsForResource: (resource: TResource) => TTableRow[];
 }) {
+  const t = useAppTranslations();
   const resources = (Object.keys(resourceLabels) as TResource[]).filter(
     resource => rowsForResource(resource).length > 0,
   );
   const [selectedResource, setSelectedResource] = React.useState<TResource>(resources[0] ?? 'categories');
   const activeResource = resources.includes(selectedResource) ? selectedResource : resources[0];
 
-  if (!activeResource) return <Typography>No records found in this archive.</Typography>;
+  if (!activeResource) return <Typography>{t('No records found in this archive.')}</Typography>;
 
   return (
     <Stack spacing={2}>
       <Tabs
         value={activeResource}
         onChange={(_event, resource: TResource) => setSelectedResource(resource)}
-        aria-label={`${title} resource tabs`}
+        aria-label={t('{value1} resource tabs', {value1: title})}
         variant="scrollable"
         scrollButtons="auto"
       >
@@ -171,7 +210,10 @@ function ResourceTabs({
           <Tab
             key={resource}
             value={resource}
-            label={`${resourceLabels[resource]} (${rowsForResource(resource).length})`}
+            label={t('{resource} ({count})', {
+              resource: t(resourceLabels[resource]),
+              count: rowsForResource(resource).length,
+            })}
           />
         ))}
       </Tabs>
@@ -185,6 +227,7 @@ export type DataImportProps = {
 };
 
 export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
+  const t = useAppTranslations();
   const dispatch = useAppDispatch();
   const {showSnackbar} = useSnackbarContext();
   const [open, setOpen] = React.useState(false);
@@ -216,10 +259,10 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
       setActiveStep(mode === 'preview' ? 1 : 2);
       if (mode === 'commit') {
         refreshEntities();
-        showSnackbar({message: 'Import completed.'});
+        showSnackbar({message: t('Import completed.')});
       }
     } catch (error) {
-      showSnackbar({message: error instanceof Error ? error.message : 'The archive could not be imported.'});
+      showSnackbar({message: error instanceof Error ? error.message : t('The archive could not be imported.')});
     } finally {
       setIsSubmitting(false);
     }
@@ -249,10 +292,10 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
       return (
         <Stack spacing={3}>
           <DismissableAlert severity="info">
-            Select a ZIP archive created by Application data export. Auth data and attachments are not imported.
+            {t('Select a ZIP archive created by Application data export. Auth data and attachments are not imported.')}
           </DismissableAlert>
           <Button component="label" variant="outlined" startIcon={<FileUploadOutlined />} disabled={isSubmitting}>
-            Choose export archive
+            {t('Choose export archive')}
             <input
               hidden
               type="file"
@@ -263,7 +306,7 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
               }}
             />
           </Button>
-          {file && <Typography variant="body2">Selected: {file.name}</Typography>}
+          {file && <Typography variant="body2">{t('Selected: {name}', {name: file.name})}</Typography>}
         </Stack>
       );
     }
@@ -272,10 +315,12 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
       return (
         <Stack spacing={3}>
           <DismissableAlert severity={result.summary.failed > 0 ? 'warning' : 'success'}>
-            {result.summary.received} records found. {result.summary.created} are ready to import and{' '}
-            {result.summary.failed} have validation or reference errors.
+            {t(
+              '{received} records found. {created} are ready to import and {failed} have validation or reference errors.',
+              {received: result.summary.received, created: result.summary.created, failed: result.summary.failed},
+            )}
           </DismissableAlert>
-          <ResourceTabs key="preview" title="Preview" rowsForResource={previewRows} />
+          <ResourceTabs key="preview" title={t('Preview')} rowsForResource={previewRows} />
         </Stack>
       );
     }
@@ -283,9 +328,12 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
       return (
         <Stack spacing={3}>
           <DismissableAlert severity="success">
-            Imported: {result.summary.created}, skipped because they already exist: {result.summary.skipped}.
+            {t('Imported: {created}, skipped because they already exist: {skipped}.', {
+              created: result.summary.created,
+              skipped: result.summary.skipped,
+            })}
           </DismissableAlert>
-          <ResourceTabs key="successful-imports" title="Successful imports" rowsForResource={successfulRows} />
+          <ResourceTabs key="successful-imports" title={t('Successful imports')} rowsForResource={successfulRows} />
         </Stack>
       );
     }
@@ -293,12 +341,12 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
       return (
         <Stack spacing={3}>
           <DismissableAlert severity={result.summary.failed > 0 ? 'warning' : 'success'}>
-            Failed imports: {result.summary.failed}.
+            {t('Failed imports: {failed}.', {failed: result.summary.failed})}
           </DismissableAlert>
           {result.summary.failed > 0 ? (
-            <ResourceTabs key="failed-imports" title="Failed imports" rowsForResource={failedRows} />
+            <ResourceTabs key="failed-imports" title={t('Failed imports')} rowsForResource={failedRows} />
           ) : (
-            <Typography>No imports failed.</Typography>
+            <Typography>{t('No imports failed.')}</Typography>
           )}
         </Stack>
       );
@@ -306,35 +354,38 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
     return (
       <Stack spacing={2}>
         <DismissableAlert severity={result.summary.failed > 0 ? 'warning' : 'success'}>
-          Import finished. Imported: {result.summary.created}, skipped: {result.summary.skipped}, failed:{' '}
-          {result.summary.failed}.
+          {t('Import finished. Imported: {created}, skipped: {skipped}, failed: {failed}.', {
+            created: result.summary.created,
+            skipped: result.summary.skipped,
+            failed: result.summary.failed,
+          })}
         </DismissableAlert>
-        <Typography>Review failed records before retrying with a corrected export archive.</Typography>
+        <Typography>{t('Review failed records before retrying with a corrected export archive.')}</Typography>
       </Stack>
     );
   };
 
   const primaryAction = () => {
     if (activeStep === 0)
-      return {disabled: !file || isSubmitting, label: 'Preview files', onClick: () => submit('preview')};
+      return {disabled: !file || isSubmitting, label: t('Preview files'), onClick: () => submit('preview')};
     if (activeStep === 1) {
       if (!result || result.summary.created === 0) {
         const hasFailures = Boolean(result?.summary.failed);
         return {
           disabled: false,
-          label: hasFailures ? 'Show failed imports' : 'Show import results',
+          label: hasFailures ? t('Show failed imports') : t('Show import results'),
           onClick: () => setActiveStep(hasFailures ? 3 : 2),
         };
       }
       return {
         disabled: isSubmitting,
-        label: `Import ${result.summary.created} records`,
+        label: t('Import {value1} records', {value1: result.summary.created}),
         onClick: () => submit('commit'),
       };
     }
-    if (activeStep === 2) return {disabled: false, label: 'Show failed imports', onClick: () => setActiveStep(3)};
-    if (activeStep === 3) return {disabled: false, label: 'Finish', onClick: () => setActiveStep(4)};
-    return {disabled: false, label: 'Close', onClick: close};
+    if (activeStep === 2) return {disabled: false, label: t('Show failed imports'), onClick: () => setActiveStep(3)};
+    if (activeStep === 3) return {disabled: false, label: t('Finish'), onClick: () => setActiveStep(4)};
+    return {disabled: false, label: t('Close'), onClick: close};
   };
   const action = primaryAction();
 
@@ -342,19 +393,19 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
     <React.Fragment>
       {asButton ? (
         <Button variant="contained" startIcon={<FileUploadOutlined />} onClick={() => setOpen(true)}>
-          Import data
+          {t('Import data')}
         </Button>
       ) : (
         <Card>
           <Card.Header>
             <Stack>
-              <Card.Title>Import data</Card.Title>
-              <Card.Subtitle>Restore application data from a BudgetBuddy export archive</Card.Subtitle>
+              <Card.Title>{t('Import data')}</Card.Title>
+              <Card.Subtitle>{t('Restore application data from a BudgetBuddy export archive')}</Card.Subtitle>
             </Stack>
           </Card.Header>
           <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
             <Button variant="contained" startIcon={<FileUploadOutlined />} onClick={() => setOpen(true)}>
-              Import data
+              {t('Import data')}
             </Button>
           </Card.Footer>
         </Card>
@@ -368,7 +419,7 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
         maxWidth="xl"
         slotProps={{paper: {elevation: 0}}}
       >
-        <DialogTitle>Import data</DialogTitle>
+        <DialogTitle>{t('Import data')}</DialogTitle>
         <Box sx={theme => ({position: 'absolute', top: theme.spacing(1), right: theme.spacing(1)})}>
           <FullscreenIconButton onClick={toggleFullscreen} isFullscreen={isFullscreenActive} />
           <CloseIconButton onClick={close} />
@@ -378,7 +429,7 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
             <Stepper activeStep={activeStep} alternativeLabel>
               {steps.map(step => (
                 <Step key={step}>
-                  <StepLabel>{step}</StepLabel>
+                  <StepLabel>{t(step)}</StepLabel>
                 </Step>
               ))}
             </Stepper>
@@ -387,11 +438,11 @@ export const DataImport: React.FC<DataImportProps> = ({asButton}) => {
         </DialogContent>
         <DialogActions>
           <Button disabled={isSubmitting} onClick={close}>
-            Cancel
+            {t('Cancel')}
           </Button>
           {activeStep > 0 && activeStep < 2 && (
             <Button disabled={isSubmitting} onClick={() => setActiveStep(activeStep - 1)}>
-              Back
+              {t('Back')}
             </Button>
           )}
           <Button

@@ -8,9 +8,11 @@ import {CircularProgress} from '@/components/Loading';
 import {UpcomingRecurringPaymentList} from '@/components/RecurringPayment/RecurringPaymentList';
 import {LatestTransactionsList, UpcomingTransactionsList} from '@/components/Transaction/TransactionList';
 import {headers} from '@/lib/headers';
+import {getAppTranslations} from '@/lib/i18n/server';
 import {DashboardStatsWrapper} from './DashboardStatsWrapper';
 
 export default async function DashboardPage() {
+  const t = await getAppTranslations();
   const [estimatedBudget, error] = await apiClient.backend.budget.getEstimatedBudget({headers: await headers()});
   return (
     <React.Fragment>
@@ -18,8 +20,8 @@ export default async function DashboardPage() {
         <React.Suspense fallback={<CircularProgress />}>
           {error || !estimatedBudget ? (
             <RouteErrorFallback
-              error={error ?? new Error('Budget statistics are unavailable')}
-              title="Dashboard statistics are temporarily unavailable"
+              error={error ?? new Error(t('Budget statistics are unavailable'))}
+              title={t('Dashboard statistics are temporarily unavailable')}
             />
           ) : (
             <DashboardStatsWrapper estimated={estimatedBudget} />
@@ -51,8 +53,8 @@ export default async function DashboardPage() {
             <React.Suspense fallback={<CircularProgress />}>
               {error || !estimatedBudget ? (
                 <RouteErrorFallback
-                  error={error ?? new Error('Budget data is unavailable')}
-                  title="Budget chart is temporarily unavailable"
+                  error={error ?? new Error(t('Budget data is unavailable'))}
+                  title={t('Budget chart is temporarily unavailable')}
                 />
               ) : (
                 <BudgetOverviewCard

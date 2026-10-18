@@ -1,10 +1,11 @@
 import type {GridRowId} from '@mui/x-data-grid';
+import type {AppTranslator} from '@/lib/i18n/translate';
+import {translateValidationIssue, type ValidationIssue} from '@/lib/validation/translateValidationIssue';
 
 type MappingResult<Payload> =
   {success: true; payload: Payload[]} | {success: false; issues: Array<{rowId: GridRowId; message: string}>};
 
-type ParseResult<Payload> =
-  {success: true; data: Payload} | {success: false; error: {issues: Array<{message: string}>}};
+type ParseResult<Payload> = {success: true; data: Payload} | {success: false; error: {issues: ValidationIssue[]}};
 
 /**
  * Validates each draft row against `schema` and collects per-row issues instead of failing on the
@@ -16,6 +17,7 @@ export function mapDraftRowsToPayload<Row extends {id: GridRowId}, Payload>(
   schema: {safeParse: (input: unknown) => ParseResult<Payload>},
   toInput: (row: Row) => unknown,
   validateRow?: (row: Row) => string | undefined,
+  t?: AppTranslator,
 ): MappingResult<Payload> {
   const issues: Array<{rowId: GridRowId; message: string}> = [];
   const payload: Payload[] = [];
@@ -31,7 +33,7 @@ export function mapDraftRowsToPayload<Row extends {id: GridRowId}, Payload>(
     if (!parsed.success) {
       issues.push({
         rowId: row.id,
-        message: parsed.error.issues.map(issue => issue.message).join(', '),
+        message: parsed.error.issues.map(issue => (t ? translateValidationIssue(issue, t) : issue.message)).join(', '),
       });
       continue;
     }

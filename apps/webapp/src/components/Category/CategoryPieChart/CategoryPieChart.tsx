@@ -10,7 +10,8 @@ import {Card} from '@/components/Card';
 import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
-import {Formatter} from '@/utils/Formatter';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 
 export type CategoryPieChartTimeframe = 'MONTH' | 'YTD' | 'ALL_TIME';
 export type CategoryPieChartTransactionType = 'INCOME' | 'EXPENSE';
@@ -31,32 +32,6 @@ export type CategoryPieChartProps = {
  * - Date range function
  * - Empty-state text
  */
-const TIMEFRAME_META: Record<CategoryPieChartTimeframe, {label: string; range: () => [Date, Date]; emptyText: string}> =
-  {
-    MONTH: {
-      label: 'Month',
-      range: () => {
-        const now = new Date();
-        return [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
-      },
-      emptyText: 'There are no transactions for this month!',
-    },
-    YTD: {
-      label: 'YTD',
-      range: () => {
-        const now = new Date();
-        return [new Date(now.getFullYear(), 0, 1), now];
-      },
-      emptyText: 'There are no transactions for this year!',
-    },
-    ALL_TIME: {
-      label: 'All Time',
-      range: () => {
-        return [new Date('1900-01-01'), new Date('2999-12-31')];
-      },
-      emptyText: 'There are no transactions for all time!',
-    },
-  };
 
 const TIMEFRAMES: CategoryPieChartTimeframe[] = ['MONTH', 'YTD', 'ALL_TIME'];
 
@@ -110,6 +85,37 @@ export function CategoryPieChart({
   transactionsType,
   withViewMore = false,
 }: CategoryPieChartProps) {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
+  const TIMEFRAME_META: Record<
+    CategoryPieChartTimeframe,
+    {label: string; range: () => [Date, Date]; emptyText: string}
+  > = {
+    MONTH: {
+      label: t('Month'),
+      range: () => {
+        const now = new Date();
+        return [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
+      },
+      emptyText: t('There are no transactions for this month!'),
+    },
+    YTD: {
+      label: t('YTD'),
+      range: () => {
+        const now = new Date();
+        return [new Date(now.getFullYear(), 0, 1), now];
+      },
+      emptyText: t('There are no transactions for this year!'),
+    },
+    ALL_TIME: {
+      label: t('All Time'),
+      range: () => {
+        return [new Date('1900-01-01'), new Date('2999-12-31')];
+      },
+      emptyText: t('There are no transactions for all time!'),
+    },
+  };
+
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [currentTimeframe, setCurrentTimeframe] = React.useState<CategoryPieChartTimeframe>(defaultTimeframe);
 
@@ -193,7 +199,7 @@ export function CategoryPieChart({
             value={currentTimeframe}
             onChange={handleTimeframeChange}
             exclusive
-            aria-label="Select timeframe"
+            aria-label={t('Select timeframe')}
             disabled={isLoading} // <-- important change
           >
             {TIMEFRAMES.map(tf => (
@@ -212,9 +218,9 @@ export function CategoryPieChart({
         ) : chartData.length > 0 ? (
           <DonutChart
             data={chartData}
-            primaryText={Formatter.currency.formatBalance(totalValue)}
-            secondaryText={transactionsType === 'EXPENSE' ? 'Expenses' : 'Income'}
-            valueFormatter={value => Formatter.currency.formatBalance(value)}
+            primaryText={currencyFormatter.formatBalance(totalValue)}
+            secondaryText={transactionsType === 'EXPENSE' ? t('Expenses') : t('Income')}
+            valueFormatter={value => currencyFormatter.formatBalance(value)}
           />
         ) : (
           <NoResults text={TIMEFRAME_META[currentTimeframe].emptyText} />
@@ -228,8 +234,8 @@ export function CategoryPieChart({
               justifyContent: 'flex-end',
             }}
           >
-            <Button LinkComponent={NextLink} href="/transactions" aria-label="View more transactions">
-              View more...
+            <Button LinkComponent={NextLink} href="/transactions" aria-label={t('View more transactions')}>
+              {t('View more...')}
             </Button>
           </Stack>
         </Card.Footer>

@@ -5,6 +5,7 @@ import {IconButton} from '@mui/material';
 import NextLink from 'next/link';
 import {useRouter} from 'next/navigation';
 import type React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 
 export type TGoBackProps = {
   withNavigation?: boolean;
@@ -13,12 +14,13 @@ export type TGoBackProps = {
 };
 
 export const GoBack: React.FC<TGoBackProps> = ({withNavigation, navigationPath, big}) => {
+  const t = useAppTranslations();
   const router = useRouter();
   return (
     <IconButton
       size="large"
       color="primary"
-      aria-label="Go back"
+      aria-label={t('Go back')}
       {...(withNavigation && {
         component: NextLink,
         ...(navigationPath

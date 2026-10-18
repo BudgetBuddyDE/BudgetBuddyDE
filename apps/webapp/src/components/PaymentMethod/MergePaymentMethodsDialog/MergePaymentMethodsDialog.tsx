@@ -13,8 +13,10 @@ import {
   type FirstLevelNullable,
 } from '@/components/Drawer';
 import {useSnackbarContext} from '@/components/Snackbar';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {categorySlice} from '@/lib/features/categories/categorySlice';
 import {useAppDispatch} from '@/lib/hooks';
+import {translateValidationIssue} from '@/lib/validation/translateValidationIssue';
 import {logger} from '@/logger';
 
 export type MergePaymentMethodsForm = FirstLevelNullable<{
@@ -29,6 +31,7 @@ export type MergePaymentMethodsDialogProps = {
 };
 
 export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps> = ({source, isOpen, onClose}) => {
+  const t = useAppTranslations();
   const {showSnackbar} = useSnackbarContext();
   const {refresh} = categorySlice.actions;
   const dispatch = useAppDispatch();
@@ -45,12 +48,12 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'sourcePaymentMethods',
-        label: 'Source',
-        placeholder: 'Select source payment methods to merge',
+        label: t('Source'),
+        placeholder: t('Select source payment methods to merge'),
         required: true,
         multiple: true,
         disableCloseOnSelect: true,
-        noOptionsText: 'No payment methods available',
+        noOptionsText: t('No payment methods available'),
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
@@ -69,10 +72,10 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'targetPaymentMethod',
-        label: 'Target',
-        placeholder: 'Select target payment method to merge into',
+        label: t('Target'),
+        placeholder: t('Select target payment method to merge into'),
         required: true,
-        noOptionsText: 'No payment methods available',
+        noOptionsText: t('No payment methods available'),
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
@@ -89,7 +92,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         },
       },
     ] as EntityDrawerField<MergePaymentMethodsForm>[];
-  }, []);
+  }, [t]);
 
   const handleSubmit: EntityDrawerFormHandler<MergePaymentMethodsForm> = async (payload, onSuccess) => {
     const parsedPayload = z
@@ -102,10 +105,10 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         target: payload.targetPaymentMethod?.id,
       });
     if (!parsedPayload.success) {
-      const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
+      const issues: string = parsedPayload.error.issues.map(issue => translateValidationIssue(issue, t)).join(', ');
       showSnackbar({
-        message: `Failed to merge payment methods: ${issues}`,
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>Retry</Button>,
+        message: t('Failed to merge payment methods: {issues}', {issues: issues}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('Retry')}</Button>,
       });
       return;
     }
@@ -113,11 +116,11 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
     const [mergedPaymentMethods, error] = await apiClient.backend.paymentMethod.merge(parsedPayload.data);
     if (!mergedPaymentMethods || error) {
       return showSnackbar({
-        message: `Failed to merge payment methods: ${error.message}`,
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>Retry</Button>,
+        message: t('Failed to merge payment methods: {error}', {error: error.message}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('Retry')}</Button>,
       });
     }
-    showSnackbar({message: 'Payment methods merged'});
+    showSnackbar({message: t('Payment methods merged')});
     onClose(); // close the drawer
     onSuccess?.();
     dispatch(refresh());
@@ -125,8 +128,8 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
 
   return (
     <EntityDrawer<MergePaymentMethodsForm>
-      title={'Merge payment methods'}
-      subtitle={'Merge multiple payment methods into a single one.'}
+      title={t('Merge payment methods')}
+      subtitle={t('Merge multiple payment methods into a single one.')}
       open={isOpen}
       onSubmit={handleSubmit}
       onClose={onClose}
@@ -143,8 +146,9 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         alert: {
           variant: 'standard',
           severity: 'warning',
-          children:
+          children: t(
             'Merging payment methods is irreversible. All items (e.g. transactions or recurring payments) associated with the source payment methods will be reassigned to the target payment method.',
+          ),
         },
       }}
     />

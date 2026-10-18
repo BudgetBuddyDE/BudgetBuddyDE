@@ -6,6 +6,8 @@ import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangePicker';
 import {DataTable, type DataTableColumn} from '@/components/Table';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
+import {useCurrencyFormatter} from '@/hooks/useCurrencyFormatter';
 import {useFetch} from '@/hooks/useFetch';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
@@ -20,6 +22,8 @@ export type HistoricalBalanceTableProps = {
 type RowData = (THistoricalBalance | THistoricalCategoryBalance) & {id: string};
 
 export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({type, dense = false}) => {
+  const t = useAppTranslations();
+  const currencyFormatter = useCurrencyFormatter();
   const DEFAULT_DATE_RANGE = {
     startDate: subMonths(new Date(), type === 'BASIC' ? 12 : 1),
     endDate: new Date(),
@@ -61,44 +65,44 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     const baseColumns: DataTableColumn<RowData>[] = [
       {
         field: 'date',
-        headerName: 'Period',
+        headerName: t('Period'),
         flex: 1,
         minWidth: 120,
         valueFormatter: value => Formatter.date.formatWithPattern(new Date(value as string), 'MMMM yyyy'),
       },
       {
         field: 'income',
-        headerName: 'Income',
+        headerName: t('Income'),
         flex: 1,
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+        valueFormatter: value => currencyFormatter.formatBalance(value as number),
       },
       {
         field: 'expenses',
-        headerName: 'Expenses',
+        headerName: t('Expenses'),
         flex: 1,
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+        valueFormatter: value => currencyFormatter.formatBalance(value as number),
       },
       {
         field: 'balance',
-        headerName: 'Balance',
+        headerName: t('Balance'),
         flex: 1,
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+        valueFormatter: value => currencyFormatter.formatBalance(value as number),
       },
     ];
 
     if (showCategory) {
       baseColumns.splice(1, 0, {
         field: 'category',
-        headerName: 'Category',
+        headerName: t('Category'),
         flex: 1,
         minWidth: 120,
         valueGetter: (_value, row) => ('category' in row ? row.category?.name : '-'),
@@ -106,7 +110,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     }
 
     return baseColumns;
-  }, [showCategory]);
+  }, [showCategory, currencyFormatter, t]);
 
   return (
     <DataTable
@@ -126,8 +130,8 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       }}
       sx={{border: 'none'}}
       toolbar={{
-        title: `Historical balances (${data?.length ?? 0})`,
-        subtitle: showCategory ? 'Grouped by date and category' : 'Grouped by date',
+        title: t('Historical balances ({value0})', {value0: data?.length ?? 0}),
+        subtitle: showCategory ? t('Grouped by date and category') : t('Grouped by date'),
         actions: [
           {
             id: 'date-range-picker',

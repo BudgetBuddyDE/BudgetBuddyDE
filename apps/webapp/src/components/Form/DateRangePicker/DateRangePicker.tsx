@@ -2,6 +2,7 @@
 
 import {Stack, type StackProps} from '@mui/material';
 import React from 'react';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {DatePicker, type DateTickerProps} from '../DatePicker';
 
 export type DateRangeState = {
@@ -36,6 +37,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   size = 'medium',
   dateFormat = 'MMM yyyy',
 }) => {
+  const t = useAppTranslations();
   const [value, setValue] = React.useState<DateRangeState>({
     startDate: defaultValue?.startDate ?? null,
     endDate: defaultValue?.endDate ?? null,
@@ -67,7 +69,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   return (
     <Stack direction={'row'} spacing={2} {...slotProps?.stack}>
       <DatePicker
-        label="Start"
+        label={t('Start')}
         defaultValue={value.startDate}
         onChange={handleStartDateChange}
         open={openField === 'START'}
@@ -100,7 +102,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         })}
       />
       <DatePicker
-        label="End"
+        label={t('End')}
         defaultValue={value.endDate}
         onChange={handleEndDateChange}
         minDate={value.startDate ?? undefined}

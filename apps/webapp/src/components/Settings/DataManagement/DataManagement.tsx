@@ -4,12 +4,14 @@ import {ToggleButton, ToggleButtonGroup, Typography} from '@mui/material';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {Card} from '@/components/Card';
+import {useAppTranslations} from '@/hooks/useAppTranslations';
 import {DataExport} from '../DataExport';
 import {DataImport} from '../DataImport';
 
 type TDataAction = 'export' | 'import';
 
 export const DataManagement = () => {
+  const t = useAppTranslations();
   const [action, setAction] = React.useState<TDataAction>('export');
 
   return (
@@ -36,18 +38,18 @@ export const DataManagement = () => {
               if (!nextAction) return;
               setAction(nextAction);
             }}
-            aria-label="Recurring payment view"
+            aria-label={t('Data management action')}
             sx={{alignSelf: {xs: 'stretch', sm: 'flex-start'}, '& .MuiToggleButton-root': {flex: {xs: 1, sm: 'none'}}}}
           >
-            <ToggleButton value="export">Export</ToggleButton>
-            <ToggleButton value="import">Import</ToggleButton>
+            <ToggleButton value="export">{t('Export')}</ToggleButton>
+            <ToggleButton value="import">{t('Import')}</ToggleButton>
           </ToggleButtonGroup>
         </ActionPaper>
       </Card.Header>
       {action === 'export' ? (
         <>
           <Card.Body>
-            <Typography variant="body2">Download a copy of your account and application data.</Typography>
+            <Typography variant="body2">{t('Download a copy of your account and application data.')}</Typography>
           </Card.Body>
           <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
             <DataExport asButton />
@@ -56,7 +58,7 @@ export const DataManagement = () => {
       ) : (
         <>
           <Card.Body>
-            <Typography variant="body2">Restore application data from a BudgetBuddy export archive.</Typography>
+            <Typography variant="body2">{t('Restore application data from a BudgetBuddy export archive.')}</Typography>
           </Card.Body>
           <Card.Footer sx={{display: 'flex', justifyContent: 'flex-end'}}>
             <DataImport asButton />
