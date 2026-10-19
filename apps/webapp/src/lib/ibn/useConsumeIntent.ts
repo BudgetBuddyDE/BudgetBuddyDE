@@ -45,8 +45,20 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
   const pathname = usePathname();
   const router = useRouter();
   const consumedIntentKeyRef = React.useRef<string | null>(null);
+  const handlersRef = React.useRef(handlers);
+  const currentRouteRef = React.useRef('');
+  const mountedRef = React.useRef(false);
+  handlersRef.current = handlers;
+  currentRouteRef.current = `${pathname}?${searchParams.toString()}`;
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  React.useLayoutEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     const parsed = parseIntentFromSearchParams(params);
 
@@ -60,7 +72,7 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
 
     if ('error' in parsed) {
       consumedIntentKeyRef.current = intentKey;
-      handlers.onInvalid?.(parsed.error);
+      handlersRef.current.onInvalid?.(parsed.error);
       const stripped = stripIntentSearchParams(params);
       const strippedQuery = stripped.toString();
       router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
@@ -71,31 +83,33 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
     if (!shouldConsumeIntent(entity, intent)) return;
 
     consumedIntentKeyRef.current = intentKey;
-
+    const currentRoute = currentRouteRef.current;
     const consume = async () => {
       if (intent.action === 'create') {
         if (intent.entity === 'attachment') {
-          await handlers.onAttachmentCreate?.({entity: intent.parentEntity, id: intent.parentId});
+          await handlersRef.current.onAttachmentCreate?.({entity: intent.parentEntity, id: intent.parentId});
         } else {
-          await handlers.onCreate?.();
+          await handlersRef.current.onCreate?.();
         }
       } else if (intent.action === 'edit') {
-        await handlers.onEdit?.(intent.id);
+        await handlersRef.current.onEdit?.(intent.id);
       } else {
-        await handlers.onDelete?.(intent.id);
+        await handlersRef.current.onDelete?.(intent.id);
       }
 
+      if (!mountedRef.current || currentRouteRef.current !== currentRoute) return;
       const stripped = stripIntentSearchParams(params);
       const strippedQuery = stripped.toString();
       router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
     };
 
     consume().catch(error => {
+      if (!mountedRef.current || currentRouteRef.current !== currentRoute) return;
       const message = error instanceof Error ? error.message : 'Failed to consume intent';
-      handlers.onInvalid?.(message);
+      handlersRef.current.onInvalid?.(message);
       const stripped = stripIntentSearchParams(params);
       const strippedQuery = stripped.toString();
       router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
     });
-  }, [entity, handlers, pathname, router, searchParams]);
+  }, [entity, pathname, router, searchParams]);
 }

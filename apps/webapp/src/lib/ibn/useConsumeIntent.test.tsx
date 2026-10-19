@@ -1,4 +1,4 @@
-import {render, waitFor} from '@testing-library/react';
+import {act, render, waitFor} from '@testing-library/react';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import React from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
@@ -30,7 +30,34 @@ describe('useConsumeIntent', () => {
     rerender(<Harness handlers={{onCreate}} />);
 
     await waitFor(() => expect(onCreate).toHaveBeenCalledTimes(1));
-    expect(replace).toHaveBeenCalledWith('/transactions?q=food');
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/transactions?q=food'));
+  });
+
+  it('opens synchronous create intents in the layout effect before paint', () => {
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('ibnEntity=transaction&ibnAction=create') as never);
+    const onCreate = vi.fn();
+
+    render(<Harness handlers={{onCreate}} />);
+
+    expect(onCreate).toHaveBeenCalledOnce();
+  });
+
+  it('does not replace the URL after an async intent handler is cancelled', async () => {
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('q=food&ibnEntity=transaction&ibnAction=edit&ibnId=tx-1') as never,
+    );
+    let finish: (() => void) | undefined;
+    const onEdit = vi.fn(() => new Promise<void>(resolve => (finish = resolve)));
+
+    const {unmount} = render(<Harness handlers={{onEdit}} />);
+    await waitFor(() => expect(onEdit).toHaveBeenCalledWith('tx-1'));
+    unmount();
+    await act(async () => {
+      finish?.();
+      await Promise.resolve();
+    });
+
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it('calls onEdit with the provided ID', async () => {
