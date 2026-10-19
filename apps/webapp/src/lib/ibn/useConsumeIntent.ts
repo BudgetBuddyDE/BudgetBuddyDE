@@ -1,7 +1,8 @@
 'use client';
 
-import {usePathname, useRouter, useSearchParams} from 'next/navigation';
+import {usePathname, useSearchParams} from 'next/navigation';
 import React from 'react';
+import {waitForPageTransitions} from '@/lib/viewTransitions';
 import type {Intent, IntentEntity} from './types';
 import {parseIntentFromSearchParams, stripIntentSearchParams} from './url';
 
@@ -43,23 +44,15 @@ const intentKeyFromParams = (params: URLSearchParams) => {
 export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers): void {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const router = useRouter();
+  const query = searchParams.toString();
   const consumedIntentKeyRef = React.useRef<string | null>(null);
   const handlersRef = React.useRef(handlers);
   const currentRouteRef = React.useRef('');
-  const mountedRef = React.useRef(false);
   handlersRef.current = handlers;
-  currentRouteRef.current = `${pathname}?${searchParams.toString()}`;
+  currentRouteRef.current = `${pathname}?${query}`;
 
-  React.useLayoutEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  React.useLayoutEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+  React.useEffect(() => {
+    const params = new URLSearchParams(query);
     const parsed = parseIntentFromSearchParams(params);
 
     if (!parsed) {
@@ -69,47 +62,57 @@ export function useConsumeIntent(entity: IntentEntity, handlers: IntentHandlers)
 
     const intentKey = intentKeyFromParams(params);
     if (consumedIntentKeyRef.current === intentKey) return;
+    if ('intent' in parsed && !shouldConsumeIntent(entity, parsed.intent)) return;
 
-    if ('error' in parsed) {
-      consumedIntentKeyRef.current = intentKey;
-      handlersRef.current.onInvalid?.(parsed.error);
-      const stripped = stripIntentSearchParams(params);
-      const strippedQuery = stripped.toString();
-      router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
-      return;
-    }
-
-    const {intent} = parsed;
-    if (!shouldConsumeIntent(entity, intent)) return;
-
-    consumedIntentKeyRef.current = intentKey;
-    const currentRoute = currentRouteRef.current;
-    const consume = async () => {
-      if (intent.action === 'create') {
-        if (intent.entity === 'attachment') {
-          await handlersRef.current.onAttachmentCreate?.({entity: intent.parentEntity, id: intent.parentId});
-        } else {
-          await handlersRef.current.onCreate?.();
-        }
-      } else if (intent.action === 'edit') {
-        await handlersRef.current.onEdit?.(intent.id);
-      } else {
-        await handlersRef.current.onDelete?.(intent.id);
-      }
-
-      if (!mountedRef.current || currentRouteRef.current !== currentRoute) return;
-      const stripped = stripIntentSearchParams(params);
-      const strippedQuery = stripped.toString();
-      router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
+    const controller = new AbortController();
+    const currentRoute = `${pathname}?${query}`;
+    const isCurrent = () => !controller.signal.aborted && currentRouteRef.current === currentRoute;
+    const stripIntent = () => {
+      if (!isCurrent()) return;
+      const strippedQuery = stripIntentSearchParams(params).toString();
+      const href = strippedQuery ? `${pathname}?${strippedQuery}` : pathname;
+      // This only changes URL bookkeeping, without navigating/refetching the page.
+      const state = {...window.history.state};
+      // Next copies its markers back in. Passing them here bypasses its URL sync.
+      delete state.__NA;
+      delete state._N;
+      window.history.replaceState(state, '', `${href}${window.location.hash}`);
     };
 
-    consume().catch(error => {
-      if (!mountedRef.current || currentRouteRef.current !== currentRoute) return;
-      const message = error instanceof Error ? error.message : 'Failed to consume intent';
-      handlersRef.current.onInvalid?.(message);
-      const stripped = stripIntentSearchParams(params);
-      const strippedQuery = stripped.toString();
-      router.replace(strippedQuery ? `${pathname}?${strippedQuery}` : pathname);
-    });
-  }, [entity, pathname, router, searchParams]);
+    const consume = async () => {
+      await waitForPageTransitions(controller.signal);
+      if (!isCurrent() || consumedIntentKeyRef.current === intentKey) return;
+
+      // Claim only after waiting: Strict Mode may cancel and replay the effect.
+      consumedIntentKeyRef.current = intentKey;
+      try {
+        if ('error' in parsed) {
+          handlersRef.current.onInvalid?.(parsed.error);
+          return;
+        }
+
+        const {intent} = parsed;
+        if (intent.action === 'create') {
+          if (intent.entity === 'attachment') {
+            await handlersRef.current.onAttachmentCreate?.({entity: intent.parentEntity, id: intent.parentId});
+          } else {
+            await handlersRef.current.onCreate?.();
+          }
+        } else if (intent.action === 'edit') {
+          await handlersRef.current.onEdit?.(intent.id);
+        } else {
+          await handlersRef.current.onDelete?.(intent.id);
+        }
+      } catch (error) {
+        if (!isCurrent()) return;
+        const message = error instanceof Error ? error.message : 'Failed to consume intent';
+        handlersRef.current.onInvalid?.(message);
+      } finally {
+        stripIntent();
+      }
+    };
+
+    void consume();
+    return () => controller.abort();
+  }, [entity, pathname, query]);
 }

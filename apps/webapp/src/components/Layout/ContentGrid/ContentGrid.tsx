@@ -1,6 +1,7 @@
 import {Grid, type GridProps} from '@mui/material';
 import React from 'react';
 import {PageHeader, type TPageHeaderProps} from '../PageHeader';
+import {PageTransition} from './PageTransition';
 
 export type TContentGrid = React.PropsWithChildren<TPageHeaderProps & GridProps>;
 
@@ -13,7 +14,7 @@ export const ContentGrid: React.FC<TContentGrid> = ({
   ...gridProps
 }) => {
   return (
-    <React.ViewTransition>
+    <PageTransition>
       <Grid container spacing={2} {...gridProps}>
         <PageHeader
           title={title}
@@ -23,6 +24,6 @@ export const ContentGrid: React.FC<TContentGrid> = ({
         />
         {children}
       </Grid>
-    </React.ViewTransition>
+    </PageTransition>
   );
 };
