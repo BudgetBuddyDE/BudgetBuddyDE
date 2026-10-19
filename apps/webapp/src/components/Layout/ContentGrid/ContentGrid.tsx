@@ -3,18 +3,19 @@ import React from 'react';
 import {PageHeader, type TPageHeaderProps} from '../PageHeader';
 import {PageTransition} from './PageTransition';
 
-export type TContentGrid = React.PropsWithChildren<TPageHeaderProps & GridProps>;
+export type TContentGrid = React.PropsWithChildren<TPageHeaderProps & GridProps & {transitionKey?: React.Key}>;
 
 export const ContentGrid: React.FC<TContentGrid> = ({
   title,
   description,
   withNavigateBack,
   navigateBackPath,
+  transitionKey,
   children,
   ...gridProps
 }) => {
   return (
-    <PageTransition>
+    <PageTransition transitionKey={transitionKey}>
       <Grid container spacing={2} {...gridProps}>
         <PageHeader
           title={title}
