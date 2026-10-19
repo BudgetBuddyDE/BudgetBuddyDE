@@ -1,0 +1,13 @@
+name: BudgetBuddyDE CodeQL configuration
+
+queries:
+  - uses: security-extended
+
+paths-ignore:
+  - '**/node_modules/**'
+  - '**/lib/**'
+  - '**/build/**'
+  - '**/dist/**'
+  - '**/.next/**'
+  - '**/coverage/**'
+  - '.agents/**'
