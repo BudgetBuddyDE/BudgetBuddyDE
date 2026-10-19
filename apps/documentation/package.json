@@ -21,8 +21,8 @@
     "fumadocs-ui": "npm:@fumadocs/base-ui@^16.15.7",
     "fumapress": "^1.2.0",
     "lucide-react": "^0.511.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
