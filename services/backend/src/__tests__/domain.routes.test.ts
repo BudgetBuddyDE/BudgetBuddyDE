@@ -44,7 +44,9 @@ vi.mock('../lib', () => ({logger: mocks.log}));
 vi.mock('../lib/cache/attachment.cache', () => ({AttachmentCache: vi.fn()}));
 vi.mock('../lib/attachment', () => ({
   TransactionAttachmentHandler: Object.assign(
-    vi.fn(() => mocks.attachments),
+    vi.fn(function () {
+      return mocks.attachments;
+    }),
     {resolveMimeType: vi.fn(), hasValidImageSignature: vi.fn()},
   ),
 }));
