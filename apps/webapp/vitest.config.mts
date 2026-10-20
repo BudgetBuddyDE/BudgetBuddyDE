@@ -1,7 +1,6 @@
 import {defineConfig, mergeConfig} from 'vite-plus';
 import baseConfig from '../../vite.shared';
 import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default mergeConfig(
   baseConfig,
@@ -9,9 +8,10 @@ export default mergeConfig(
     // Only this local React package uses source resolution. A global dev-source
     // condition would also select unpublished source files in Better Auth.
     resolve: {
+      tsconfigPaths: true,
       alias: {'@budgetbuddyde/charts': new URL('../../packages/charts/src/index.ts', import.meta.url).pathname},
     },
-    plugins: [tsconfigPaths(), react()],
+    plugins: [react()],
     test: {
       name: 'webapp',
       exclude: ['**/build/**', '**/node_modules/**'],
