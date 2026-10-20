@@ -44,7 +44,17 @@ npm test --workspace @budgetbuddyde/api
 npx turbo run test --filter=@budgetbuddyde/api
 ```
 
-## Tests
+## Vite+ toolchain
+
+Vite+ 1.3.0 is pinned locally; a global installation is optional. Use `npm exec -- vp install` (or `npm install`) with the pinned npm package manager, `npm exec -- vp check` for Oxfmt/Oxlint, and `npm run typecheck` for the existing workspace TypeScript checks. The bundled TS7 checker is not enabled because the CommonJS packages still use Node10 module resolution.
+
+`npm exec -- vp test run --maxWorkers=2` selects the workspace test configurations. `npm test` retains Turbo dependency builds, prechecks, and backend coverage enforcement.
+
+Built-ins do not replace scripts: `vp dev` starts Vite, while `vp run dev` runs this repository's Turbo development script, including Next.js and the backend. Likewise, use `vp run build` (or `npm run build`) for Next.js, Fumapress and CommonJS library builds. Libraries keep their `tsc` output layouts and exports; they do not use `vp pack`.
+
+Husky and lint-staged remain in place, invoking `vp fmt` and `vp lint` before the existing Turbo typecheck. Shared formatting/lint rules live in root `vite.config.ts`; shared test transforms and defaults live in `vite.shared.ts`.
+
+## Test conventions
 
 Vitest runs in every tested workspace. Root defaults are global APIs, a Node environment, and exclusions for `build/**` and `node_modules/**`.
 
@@ -58,10 +68,12 @@ Test boundaries and observable behavior - Zod validation, query serialization, `
 
 - One root `package-lock.json`. Workspaces are `packages/*`, `services/*`, `apps/webapp`, `apps/documentation`, and `examples/*`.
 - Strict TypeScript. Packages emit to `lib/`, services to `build/`, the web app uses Next.js no-emit configuration.
-- Prettier: 2 spaces, 120 columns, LF, single quotes, semicolons, trailing commas. ESLint import ordering is warning-level; duplicate and unused imports are errors.
+- Oxfmt: 2 spaces, 120 columns, LF, single quotes, semicolons, trailing commas. Oxlint retains import ordering through the existing JS plugin; duplicate and unused imports are errors.
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`). Never commit secrets or generated output.
 
 ## Next steps
+
+- [Vite+ migration decisions](/developers/vite-plus-migration)
 
 - [Architecture](/developers/architecture)
 - [Workspaces](/developers/workspaces)

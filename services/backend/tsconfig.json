@@ -3,6 +3,8 @@
     "lib": ["ESNext", "DOM"],
     "target": "ES2022",
     "module": "CommonJS",
+    // Vite+ re-exports Vitest; retain CommonJS resolution without changing emitted application imports.
+    "paths": {"vite-plus/test": ["../../node_modules/vitest"]},
     "moduleDetection": "force",
     "esModuleInterop": true,
     "resolveJsonModule": true,

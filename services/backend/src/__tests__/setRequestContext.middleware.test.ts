@@ -1,5 +1,5 @@
 import type {NextFunction, Request, Response} from 'express';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 
 const {getSession, loggerFunctions} = vi.hoisted(() => ({
   getSession: vi.fn(),

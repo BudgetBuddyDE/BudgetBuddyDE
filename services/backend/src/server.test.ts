@@ -1,6 +1,6 @@
 import type {AddressInfo} from 'node:net';
 import type {Request, Response} from 'express';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 
 const mocks = vi.hoisted(() => ({
   config: {

@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vite-plus/test';
 import {createAuthExportArchive, createAuthExportHandler, type TAuthExportData} from './dataExport';
 
 function readStoredZipEntries(archive: Buffer): Record<string, string> {

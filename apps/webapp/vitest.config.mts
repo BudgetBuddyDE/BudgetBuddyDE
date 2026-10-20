@@ -1,5 +1,5 @@
-import {defineConfig, mergeConfig} from 'vitest/config';
-import baseConfig from '../../vitest.config';
+import {defineConfig, mergeConfig} from 'vite-plus';
+import baseConfig from '../../vite.shared';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -19,9 +19,9 @@ export default mergeConfig(
       // and DOM operations while remaining fully compatible with @testing-library/react
       environment: 'happy-dom',
       setupFiles: ['./src/vitest.setup.ts'],
-      // vmThreads uses Node.js Worker Threads instead of child processes,
-      // which reduces per-worker startup overhead
-      pool: 'vmThreads',
+      // VM workers exhaust Windows file handles while loading the MUI icon barrel.
+      pool: 'forks',
+      maxWorkers: 2,
       deps: {
         optimizer: {
           // Pre-bundle heavy web dependencies (MUI, React, etc.) into fast ESM

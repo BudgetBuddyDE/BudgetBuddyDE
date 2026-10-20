@@ -1,7 +1,7 @@
 import type {TApplicationImportResult} from '@budgetbuddyde/api/applicationImport';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {Provider} from 'react-redux';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vite-plus/test';
 import {SnackbarProvider} from '@/components/Snackbar';
 import {makeStore} from '@/lib/store';
 import {DataImport} from './DataImport';

@@ -1,5 +1,5 @@
 import type {TExpandedTransaction, TTransaction} from '@budgetbuddyde/api/transaction';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vite-plus/test';
 import {columns, createEmptyRow, fromEntity, mapRowsToPayload} from './transactionBatchAdapter';
 
 const categoryId = '00000000-0000-4000-8000-000000000011' as TTransaction['categoryId'];

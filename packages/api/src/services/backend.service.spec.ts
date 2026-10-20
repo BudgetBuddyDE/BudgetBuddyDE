@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {BackendService} from './backend.service';
 import {fetchWithCache, resetRequestCacheForTests} from './requestCache';
 

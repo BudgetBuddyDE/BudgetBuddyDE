@@ -8,7 +8,7 @@ import {
   TrendingUpRounded,
 } from '@mui/icons-material';
 
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vite-plus/test';
 import {ENTITY_ICONS} from './EntityIcon';
 
 describe('ENTITY_ICONS', () => {

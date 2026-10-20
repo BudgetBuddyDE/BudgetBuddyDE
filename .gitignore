@@ -8,3 +8,4 @@ build/
 coverage/
 local-docs/
 apps/documentation/.source/
+.vitest/

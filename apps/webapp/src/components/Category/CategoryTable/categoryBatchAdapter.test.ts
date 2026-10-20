@@ -1,5 +1,5 @@
 import type {TCategory} from '@budgetbuddyde/api/category';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vite-plus/test';
 import {columns, createEmptyRow, fromEntity, mapRowsToPayload} from './categoryBatchAdapter';
 
 describe('category batch adapter', () => {

@@ -1,6 +1,6 @@
 import EditRounded from '@mui/icons-material/EditRounded';
 import {fireEvent, render, screen} from '@testing-library/react';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vite-plus/test';
 import type {ColumnDefinition} from '../BasicTable';
 import type {EntitySlice} from './EntityTable';
 import {EntityTable} from './EntityTable';

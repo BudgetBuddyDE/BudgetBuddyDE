@@ -11,7 +11,7 @@ import {
 } from '@budgetbuddyde/charts';
 import {act, cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import React from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {ChartsShowcase} from './ChartsShowcase';
 import {ChartCard} from './ShowcaseLayout';
 

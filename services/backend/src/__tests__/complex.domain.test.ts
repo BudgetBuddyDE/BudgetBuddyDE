@@ -1,5 +1,5 @@
 import {PgDialect} from 'drizzle-orm/pg-core';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {getAttachment} from '../domain/attachment';
 import {
   createRecurringPayment,

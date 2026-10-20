@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import {defineConfig} from 'vitest/config';
+import {defineConfig} from 'vite-plus';
 
 export default defineConfig({
   plugins: [
@@ -18,6 +18,8 @@ export default defineConfig({
     },
   ],
   test: {
+    // Concurrent Turbo runners must not prune each other's transformed modules.
+    fsModuleCachePath: `${process.cwd()}/node_modules/.vitest-cache`,
     globals: true,
     silent: 'passed-only',
     environment: 'node',
