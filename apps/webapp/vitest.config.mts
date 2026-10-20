@@ -27,7 +27,7 @@ export default mergeConfig(
           // Pre-bundle heavy web dependencies (MUI, React, etc.) into fast ESM
           // chunks on first run; subsequent runs reuse the cache and skip
           // per-file re-transformation of node_modules
-          web: {
+          client: {
             enabled: true,
             include: ['recharts'],
           },
