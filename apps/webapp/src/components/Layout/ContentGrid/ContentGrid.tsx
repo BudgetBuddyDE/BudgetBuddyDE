@@ -1,26 +1,30 @@
 import {Grid, type GridProps} from '@mui/material';
-import type React from 'react';
+import React from 'react';
 import {PageHeader, type TPageHeaderProps} from '../PageHeader';
+import {PageTransition} from './PageTransition';
 
-export type TContentGrid = React.PropsWithChildren<TPageHeaderProps & GridProps>;
+export type TContentGrid = React.PropsWithChildren<TPageHeaderProps & GridProps & {transitionKey?: React.Key}>;
 
 export const ContentGrid: React.FC<TContentGrid> = ({
   title,
   description,
   withNavigateBack,
   navigateBackPath,
+  transitionKey,
   children,
   ...gridProps
 }) => {
   return (
-    <Grid container spacing={2} {...gridProps}>
-      <PageHeader
-        title={title}
-        description={description}
-        withNavigateBack={withNavigateBack}
-        navigateBackPath={navigateBackPath}
-      />
-      {children}
-    </Grid>
+    <PageTransition transitionKey={transitionKey}>
+      <Grid container spacing={2} {...gridProps}>
+        <PageHeader
+          title={title}
+          description={description}
+          withNavigateBack={withNavigateBack}
+          navigateBackPath={navigateBackPath}
+        />
+        {children}
+      </Grid>
+    </PageTransition>
   );
 };

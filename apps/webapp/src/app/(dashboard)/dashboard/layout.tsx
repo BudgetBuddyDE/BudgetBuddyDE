@@ -14,7 +14,7 @@ export default function DashboardLayout({children}: React.PropsWithChildren) {
   };
 
   return (
-    <ContentGrid title={currentView.label} description={currentView.description}>
+    <ContentGrid title={currentView.label} description={currentView.description} transitionKey={pathname}>
       <Grid size={{xs: 12}}>
         <DashboardNavigation />
       </Grid>
