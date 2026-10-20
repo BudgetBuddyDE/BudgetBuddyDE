@@ -228,8 +228,8 @@ export default defineConfig({
     ],
     options: {
       // shortcut: TS7 removes our Node10 resolution; keep workspace tsc until the CommonJS build migration.
-      typeAware: false,
-      typeCheck: false,
+      typeAware: true,
+      typeCheck: true,
     },
     jsPlugins: [
       {name: 'import-order', specifier: 'eslint-plugin-import'},
