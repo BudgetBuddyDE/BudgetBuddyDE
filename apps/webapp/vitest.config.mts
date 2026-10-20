@@ -21,7 +21,7 @@ export default mergeConfig(
       setupFiles: ['./src/vitest.setup.ts'],
       // VM workers exhaust Windows file handles while loading the MUI icon barrel.
       pool: 'forks',
-      maxWorkers: 2,
+      maxWorkers: 6,
       // Vitest requires a separate execution group for this project's worker limit.
       sequence: {groupOrder: 1},
       deps: {

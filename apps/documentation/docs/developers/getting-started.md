@@ -48,7 +48,7 @@ npx turbo run test --filter=@budgetbuddyde/api
 
 Vite+ 1.3.0 is pinned locally; a global installation is optional. Use `npm exec -- vp install` (or `npm install`) with the pinned npm package manager, `npm exec -- vp check` for Oxfmt/Oxlint, and `npm run typecheck` for the existing workspace TypeScript checks. The bundled TS7 checker is not enabled because the CommonJS packages still use Node10 module resolution.
 
-`npm exec -- vp test` selects the workspace test configurations. The webapp runs in a separate execution group with two workers. `npm test` retains Turbo dependency builds, prechecks, and backend coverage enforcement.
+`npm exec -- vp test` selects the workspace test configurations. The webapp runs in a separate execution group with six workers. `npm test` retains Turbo dependency builds, prechecks, and backend coverage enforcement.
 
 Built-ins do not replace scripts: `vp dev` starts Vite, while `vp run dev` runs this repository's Turbo development script, including Next.js and the backend. Likewise, use `vp run build` (or `npm run build`) for Next.js, Fumapress and CommonJS library builds. Libraries keep their `tsc` output layouts and exports; they do not use `vp pack`.
 
