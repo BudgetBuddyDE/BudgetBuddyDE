@@ -4,7 +4,8 @@ import baseConfig from './vite.shared';
 export default defineConfig({
   ...baseConfig,
   staged: {
-    '*.{js,jsx,ts,tsx,mjs,cjs,json,css,md}': ['vp fmt', 'vp lint --fix --max-warnings=0'],
+    '*.{js,jsx,ts,tsx,mjs,cjs}': ['vp fmt', 'vp lint --fix --max-warnings=0'],
+    '*.{json,css,md}': 'vp fmt',
   },
   lint: {
     settings: {'import/internal-regex': '^@/'},
