@@ -3,6 +3,9 @@ import baseConfig from './vite.shared';
 
 export default defineConfig({
   ...baseConfig,
+  staged: {
+    '*.{js,jsx,ts,tsx,mjs,cjs,json,css,md}': ['vp fmt', 'vp lint --fix --max-warnings=0'],
+  },
   lint: {
     settings: {'import/internal-regex': '^@/'},
     plugins: ['oxc', 'typescript', 'unicorn'],

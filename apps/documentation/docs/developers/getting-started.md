@@ -52,7 +52,7 @@ Vite+ 1.3.0 is pinned locally; a global installation is optional. Use `npm exec 
 
 Built-ins do not replace scripts: `vp dev` starts Vite, while `vp run dev` runs this repository's Turbo development script, including Next.js and the backend. Likewise, use `vp run build` (or `npm run build`) for Next.js, Fumapress and CommonJS library builds. Libraries keep their `tsc` output layouts and exports; they do not use `vp pack`.
 
-Husky and lint-staged remain in place, invoking `vp fmt` and `vp lint` before the existing Turbo typecheck. Shared formatting/lint rules live in root `vite.config.ts`; shared test transforms and defaults live in `vite.shared.ts`.
+`vp hooks` manages the Git dispatcher and `vp staged` applies the root staged-file rules from `vite.config.ts` before the existing Turbo typecheck. Generated dispatcher files live under `.vite-hooks/_`; the project hook is `.vite-hooks/pre-commit`. Shared formatting/lint rules live in root `vite.config.ts`; shared test transforms and defaults live in `vite.shared.ts`.
 
 ## Test conventions
 

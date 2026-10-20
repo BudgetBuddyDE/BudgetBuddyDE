@@ -28,5 +28,5 @@
     "types": ["node", "vitest/globals", "express", "multer", "./index.d.ts"]
   },
   "include": ["src/**/*.ts", "instrumentation.ts"],
-  "exclude": ["**/node_modules/**", "**/build/**", "./vitest.config.ts"]
+  "exclude": ["**/node_modules/**", "**/build/**", "./vitest.config.ts", "../../vite.config.ts", "../../vite.shared.ts"]
 }
