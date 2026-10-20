@@ -27,7 +27,7 @@ The migrated rules retain the existing policy rather than opt into additional co
 
 Workspace `tsc` checks remain mandatory. The bundled TS7 checker removes Node10 resolution, and switching the backend directly to Node16 resolution produces split Drizzle ESM/CommonJS types. The backend maps only `vite-plus/test` to the same pinned upstream Vitest declarations so application output is unchanged. A broader module-resolution migration is deferred, not hidden by weakening assertions or build checks.
 
-Husky/lint-staged policy and npm's package-manager pin remain unchanged. Vite/Vitest overrides align transitive toolchain consumers; React/React DOM overrides and root peer providers prevent Testing Library from loading a different React copy. The Waku override remains necessary for Fumapress.
+Vite+ hooks replace Husky and direct lint-staged integration; npm's package-manager pin remains unchanged. Staged source files run formatting and lint fixes, while staged JSON/CSS/Markdown run formatting only. The project hook runs `vp staged` followed by the existing Turbo typecheck and retains the CI bypass. `vp hooks status` confirms the dispatcher is active under `.vite-hooks/_`. Vite/Vitest overrides align transitive toolchain consumers; React/React DOM overrides and root peer providers prevent Testing Library from loading a different React copy. The Waku override remains necessary for Fumapress.
 
 ## Validation
 

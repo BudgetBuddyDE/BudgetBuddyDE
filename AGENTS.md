@@ -88,9 +88,9 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - `services/backend/src/server.ts`: middleware, health routes, router composition, and global error handling.
 - `services/backend/src/router/index.ts`: domain router mounts.
 - `vitest.config.ts` and workspace `vitest.config.*`: shared and workspace test settings.
-- `eslint.config.mjs`, `.prettierrc.json`, `.lintstagedrc.json`: quality tooling.
+- Root `vite.config.ts` defines Vite+ lint, format and staged-file tooling; `vite.shared.ts` contains shared Vitest settings.
 - `ci/general.pipeline.yml` and `ci/tasks/*.task.yml`: current Concourse main/PR verification and weekly dependency updates, using Node.js 24.21.0; `ci/database.pipeline.yml` handles database backups and migrations independently. See `ci/README.md`. The app pipeline does not version, tag, or publish packages/images.
-- `.husky/pre-commit`: lint-staged and pre-commit checks.
+- `.vite-hooks/pre-commit`: `vp staged` and pre-commit typecheck; manage the dispatcher with `vp hooks`.
 
 ## Runtime/Tooling Preferences
 
