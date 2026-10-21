@@ -27,6 +27,24 @@ npm start
 
 Turbo builds dependencies before their consumers. Run the services under a process manager such as systemd, Docker, PM2, or your hosting platform. The backend must remain running for its recurring-payment job.
 
+The backend Dockerfile builds from the repository root and uses the pinned Vite+ image only for build and dependency stages. Its runtime is glibc-based and runs as a non-root user. Build it with:
+
+```bash
+docker build --build-arg SOURCE_SHA="$(git rev-parse HEAD)" -f services/backend/Dockerfile -t budgetbuddyde/backend:local .
+```
+
+The documentation image also builds from the repository root, using the root lockfile and Turbo dependency graph, then serves the static output with nginx:
+
+```bash
+docker build -f apps/documentation/Dockerfile -t budgetbuddyde/documentation:local .
+```
+
+The Next.js webapp has no Dockerfile in this repository. For any separately maintained webapp image, pass `NEXT_PUBLIC_BACKEND_SERVICE_HOST` and other public Next.js build-time variables during the build; setting them only when starting a container does not change the compiled frontend. The website Dockerfile is separate and builds from `apps/website` because it serves checked-in static files directly:
+
+```bash
+docker build -f Dockerfile -t budgetbuddyde/website:local apps/website
+```
+
 ## Reverse proxy
 
 A minimal Caddy configuration routes the web app and backend, including authentication and MCP:

@@ -67,8 +67,10 @@ repository inputs owned by root, so the tasks need write access for dependency
 installation, builds and dependency updates. This does not enable privileged
 containers and requires no manual `chown`.
 
-The database backup task keeps `postgres:17`. Application runtime Dockerfiles
-are unchanged; this toolchain image is only used for the Concourse Node tasks.
+The database backup task keeps `postgres:17`. Backend and documentation Docker
+build stages also use this pinned Vite+ toolchain image; their production stages
+remain separate runtime images. The static website continues to use nginx without
+a Node build stage.
 
 ### Updating the toolchain
 
