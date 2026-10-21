@@ -18,12 +18,6 @@ resources:
       branch: main
       private_key: ((github.private_key))
       disable_ci_skip: false
-  - name: node-image
-    type: registry-image
-    icon: nodejs
-    source:
-      repository: node
-      tag: 24.21.0
   - name: repository
     type: git
     icon: git
@@ -85,13 +79,11 @@ jobs:
     plan:
       - in_parallel:
           - get: ci-source
-          - get: node-image
           - get: repository
             resource: repository
             trigger: true
       - task: apply-migrations
         file: ci-source/ci/tasks/apply-db-migration.task.yml
-        image: node-image
         params:
           REPO_PATH: packages/db/drizzle
           DATABASE_URL: ((database.test-database-url))
@@ -100,13 +92,11 @@ jobs:
     plan:
       - in_parallel:
           - get: ci-source
-          - get: node-image
           - get: repository
             resource: repository
             passed: [update-test-database]
       - task: apply-migrations
         file: ci-source/ci/tasks/apply-db-migration.task.yml
-        image: node-image
         params:
           REPO_PATH: packages/db/drizzle
           DATABASE_URL: ((database.prod-database-url))

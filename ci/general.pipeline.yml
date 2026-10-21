@@ -37,12 +37,6 @@ resources:
     icon: clock-outline
     source:
       interval: 168h
-  - name: node-image
-    type: registry-image
-    icon: nodejs
-    source:
-      repository: node
-      tag: 24.21.0
   - name: repository
     type: git
     icon: git
@@ -124,7 +118,6 @@ jobs:
     plan:
       - in_parallel:
           - get: ci-source
-          - get: node-image
           - get: repository
             trigger: true
             version: every
@@ -134,7 +127,6 @@ jobs:
         no_get: true
       - task: verify
         file: ci-source/ci/tasks/verify.task.yml
-        image: node-image
   - name: pull-request
     public: true
     on_success:
@@ -160,7 +152,6 @@ jobs:
     plan:
       - in_parallel:
           - get: ci-source
-          - get: node-image
           - get: pr-((repo.pr.branch))
             trigger: true
             version: every
@@ -170,6 +161,5 @@ jobs:
           status: pending
       - task: verify
         file: ci-source/ci/tasks/verify.task.yml
-        image: node-image
         input_mapping:
           repository: pr-((repo.pr.branch))

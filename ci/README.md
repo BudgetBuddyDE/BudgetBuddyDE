@@ -13,11 +13,12 @@
   Only one update build runs at a time. Concurrent external pushes fail safely
   rather than forcing or rebasing the update.
 
-Verification uses Node 24.21.0, `npm ci` and `npm run ci`: formatting, lint,
+Verification uses Node 24.21.0, npm 11.4.2, `npm ci` and `npm run ci`: formatting, lint,
 type checking, tests and builds, with dependencies orchestrated by Turborepo.
 The GitHub PR resource uses the maintained cloudfoundry-community fork, published
 as `cfcommunity/github-pr-resource`, pinned to image tag `0.26.0`.
-The update task uses Node 24.21.0-alpine because it installs Git with `apk`.
+The dependency-update task uses the same Vite+ image as verification and migrations.
+Git is already installed in this Debian-based image; no `apk` installation is needed.
 Unresolved audit findings or failed validation prevent the dependency push.
 Dependency commits do not contain `[skip ci]`, so main validation runs afterward.
 
@@ -36,6 +37,54 @@ Jobs fetch `ci-source` without a trigger; existing repository, PR and schedule
 resources continue to control when they run. PR verification still checks the PR
 input, and builds and migrations keep their existing repository inputs and input
 mappings. Task changes in a PR take effect after merging into `main`.
+
+## CI toolchain images
+
+Each shared task file owns its runtime image through its `image_resource`:
+`verify.task.yml`, `update-dependencies.task.yml` and
+`apply-db-migration.task.yml`. They currently use
+`ghcr.io/voidzero-dev/vite-plus:1.3.0`, pinned to an immutable digest. The parent
+pipelines do not fetch or override the task image, so each task can select and
+upgrade its image independently. Keep an explicit digest pin for reproducibility.
+
+The image supplies Vite+ and its Node/npm shims, not a replacement for the
+project's npm/Turborepo workflow. After changing into the repository input,
+each task prints `vp`, Node and npm versions and checks Node/npm against the
+repository pins before `npm ci`:
+
+- `.node-version` selects Node.js 24.21.0.
+- `package.json`'s `packageManager: "npm@11.4.2"` selects npm 11.4.2.
+
+The shims download the selected Node.js and npm versions on first use. Workers
+therefore need outbound access for those downloads as well as npm dependencies;
+the image digest does not make the tasks offline-ready. No new Concourse caches
+are introduced. The image's `PATH` and `VP_HOME` remain unchanged so its shims and
+managed toolchain stay available; no task `params` overrides are needed for them.
+
+All three shared task files explicitly set `run.user: root` to preserve the
+permissions of the previous Node images. Older Concourse workers can leave
+repository inputs owned by root, so the tasks need write access for dependency
+installation, builds and dependency updates. This does not enable privileged
+containers and requires no manual `chown`.
+
+The database backup task keeps `postgres:17`. Application runtime Dockerfiles
+are unchanged; this toolchain image is only used for the Concourse Node tasks.
+
+### Updating the toolchain
+
+Update the repository, tag and digest in the relevant task file when changing
+its image, and verify the digest against the selected release. An image upgrade
+is separate from a Node/npm upgrade: update `.node-version` and `package.json`'s
+`packageManager` when changing those runtime versions. The version checks fail
+before dependency installation if the shims do not resolve the repository's
+requested versions.
+
+Both pipelines load task definitions from `main`, not from the PR. A task image
+change therefore takes effect in Concourse after the change is merged to `main`.
+
+Upstream references: [Vite+ Docker images](https://viteplus.dev/guide/docker),
+[Vite+ environment management](https://viteplus.dev/guide/env), and
+[published image versions and digests](https://github.com/voidzero-dev/vite-plus/pkgs/container/vite-plus).
 
 ## Database migrations
 
@@ -76,3 +125,18 @@ npm run ci
 
 Pipeline validation does not run tasks or push changes. The dependency-update
 task mutates dependencies and pushes only when executed through its pipeline.
+
+### Standalone verification task
+
+To run the verification task on a Concourse worker using its task-local image:
+
+```sh
+fly -t <target> execute -c ci/tasks/verify.task.yml -i repository=.
+```
+
+Unlike pipeline validation, this command uploads the local repository input and
+executes the task remotely. Review the upload contents first and exclude secrets,
+including ignored `.env` files and other `.gitignored` credentials. Do not assume
+Git ignore rules alone protect a local input upload. The task needs no production
+secrets. No pipeline image override or CI variables file is needed to resolve the
+task's image.
