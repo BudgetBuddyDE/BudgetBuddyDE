@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1
 
+ARG NGINX_IMAGE=nginx:1.27-alpine
+
 ARG VITE_PLUS_IMAGE=ghcr.io/voidzero-dev/vite-plus:1.3.0@sha256:61860c1b58bf35878605280802809973c668f1594675298c3be553a98ac06e59
 
-FROM ${VITE_PLUS_IMAGE} AS build
+FROM ${VITE_PLUS_IMAGE} AS manifests
 
 WORKDIR /app
 
@@ -17,6 +19,8 @@ COPY --chown=vp:vp packages/db/package.json packages/db/package.json
 COPY --chown=vp:vp packages/logger/package.json packages/logger/package.json
 COPY --chown=vp:vp services/backend/package.json services/backend/package.json
 
+FROM manifests AS build
+
 ENV VP_GIT_HOOKS=0
 
 RUN vp install --frozen-lockfile
@@ -25,9 +29,9 @@ COPY --chown=vp:vp . .
 
 RUN npm run build -- --filter=@budgetbuddyde/documentation
 
-FROM nginx:1.27-alpine AS runtime
+FROM ${NGINX_IMAGE} AS runtime
 
-COPY --from=build /app/apps/documentation/dist/public /usr/share/nginx/html
+COPY --from=build --chown=nginx:nginx /app/apps/documentation/dist/public /usr/share/nginx/html
 COPY --from=build /app/apps/documentation/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

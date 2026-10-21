@@ -1,13 +1,12 @@
-FROM nginx:1.27-alpine
+ARG NGINX_IMAGE=nginx:1.27-alpine
 
-# Remove default nginx static content
-RUN rm -rf /usr/share/nginx/html/*
+FROM ${NGINX_IMAGE}
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy static site files
-COPY public/ /usr/share/nginx/html/
+COPY --chown=nginx:nginx public/ /usr/share/nginx/html/
 
 EXPOSE 80
 
