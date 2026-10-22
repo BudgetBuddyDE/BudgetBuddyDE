@@ -2,14 +2,21 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
-    "buildCommand": "npx turbo run build --filter=@budgetbuddyde/webapp",
-    "watchPatterns": ["/apps/webapp/**", "/packages/**"],
+    "buildCommand": "vp install --frozen-lockfile && pnpm exec turbo run build --filter=@budgetbuddyde/webapp",
+    "watchPatterns": [
+      "/apps/webapp/**",
+      "/packages/**",
+      "/package.json",
+      "/pnpm-lock.yaml",
+      "/pnpm-workspace.yaml",
+      "/turbo.json"
+    ],
     "buildEnvironment": "V3"
   },
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "npx turbo run start --filter=@budgetbuddyde/webapp",
+    "startCommand": "pnpm --filter=@budgetbuddyde/webapp start",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 15,
     "sleepApplication": false,

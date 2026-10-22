@@ -6,7 +6,7 @@ FROM ${VITE_PLUS_IMAGE} AS manifests
 
 WORKDIR /app
 
-COPY --chown=vp:vp package.json package-lock.json .node-version ./
+COPY --chown=vp:vp package.json pnpm-lock.yaml pnpm-workspace.yaml .node-version ./
 COPY --chown=vp:vp packages/api/package.json packages/api/package.json
 COPY --chown=vp:vp packages/charts/package.json packages/charts/package.json
 COPY --chown=vp:vp packages/core/package.json packages/core/package.json
@@ -19,25 +19,25 @@ FROM manifests AS build
 
 ENV VP_GIT_HOOKS=0
 
-RUN vp install --frozen-lockfile
+RUN vp install --frozen-lockfile --filter=@budgetbuddyde/backend... --filter=@budgetbuddyde/db --filter=@budgetbuddyde/core --filter=@budgetbuddyde/api --filter=@budgetbuddyde/logger
 
 COPY --chown=vp:vp . .
 
-RUN npm run build -- --filter=@budgetbuddyde/backend \
+RUN pnpm exec turbo run build --filter=@budgetbuddyde/backend \
   && cp "$(vp env which node | head -1)" /tmp/node
 
 FROM manifests AS production-dependencies
 
 ENV VP_GIT_HOOKS=0
 
-RUN npm_config_ignore_scripts=true npm install --omit=dev --omit=peer --no-audit --no-fund \
-  --workspace=@budgetbuddyde/backend --include-workspace-root=false
+RUN vp install --frozen-lockfile --prod --filter=@budgetbuddyde/backend...
 
 FROM debian:bookworm-slim AS runtime-files
 
 WORKDIR /runtime
 
 COPY --from=production-dependencies /app/node_modules ./node_modules
+COPY --from=production-dependencies /app/services/backend/node_modules ./services/backend/node_modules
 COPY --from=build /app/services/backend/package.json ./services/backend/package.json
 COPY --from=build /app/services/backend/build ./services/backend/build
 COPY --from=build /app/packages/api/package.json ./packages/api/package.json

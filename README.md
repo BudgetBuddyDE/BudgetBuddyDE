@@ -29,7 +29,7 @@ An open-source personal finance manager for tracking transactions, recurring pay
 
 ## Getting started
 
-For hosted use, visit the [BudgetBuddyDE app](https://app.budget-buddy.de). To run the full stack locally, use Node.js 24.21.0, npm 11.4.2 and Docker Compose.
+For hosted use, visit the [BudgetBuddyDE app](https://app.budget-buddy.de). To run the full stack locally, use Node.js 24.21.0, pnpm as pinned in `package.json`, Vite+ and Docker Compose.
 
 ```bash
 git clone https://github.com/BudgetBuddyDE/BudgetBuddyDE.git
@@ -49,8 +49,8 @@ The backend needs a secure `AUTH_SECRET` and a valid `RESEND_API_KEY`. The web a
 Install the workspace dependencies and build internal packages:
 
 ```bash
-npm install
-npm run build-packages
+pnpm install --frozen-lockfile
+vp run build-packages
 ```
 
 See the [installation guide](https://docs.budget-buddy.de/self-hosting/installation) for complete setup instructions.
@@ -60,38 +60,38 @@ See the [installation guide](https://docs.budget-buddy.de/self-hosting/installat
 Start all Turbo-managed development services:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Or run only the backend services:
 
 ```bash
-npm run dev-services
+pnpm run dev-services
 ```
 
-Vite+ 1.3.0 provides the repository's formatting, linting and test tools. Use the installed project CLI through npm:
+Vite+ 1.3.0 provides the repository's formatting, linting and test tools. Use Vite+ through pnpm:
 
 ```bash
-npm exec -- vp check
-npm exec -- vp test
-npm run typecheck
+pnpm exec vp check
+pnpm exec vp test
+pnpm run typecheck
 ```
 
-Use `vp run <task>` to invoke a project script: `vp dev` is Vite's built-in dev server, while `vp run dev` runs this repository's Turbo/Next.js development script. Likewise, `vp run build` invokes the workspace build scripts; use `npm run build` to build the complete monorepo in dependency order.
+Use `vp run <task>` to invoke a project script: `vp dev` is Vite's built-in dev server, while `vp run dev` runs this repository's Turbo/Next.js development script. Likewise, `vp run build` invokes the workspace build scripts and builds the complete monorepo in dependency order.
 
 Useful checks include:
 
 ```bash
-npm run lint:check
-npm run typecheck
-npm test
-npm run build
-npm run ci
+pnpm run lint:check
+pnpm run typecheck
+pnpm test
+pnpm run build
+pnpm run ci
 ```
 
-Run a single workspace with npm, for example `npm test --workspace @budgetbuddyde/api`. Webapp tests use happy-dom and four workers on Windows. Backend tests collect V8 coverage and enforce 80% minimum statements, branches, functions and lines.
+Run a single workspace with pnpm, for example `pnpm --filter @budgetbuddyde/api test`. Webapp tests use happy-dom and four workers on Windows. Backend tests collect V8 coverage and enforce 80% minimum statements, branches, functions and lines.
 
-The repository is an npm-workspace monorepo orchestrated by Turborepo:
+The repository is a pnpm-workspace monorepo orchestrated by Turborepo:
 
 - `apps/webapp` : Next.js personal-finance application.
 - `apps/documentation` : Fumapress documentation site.

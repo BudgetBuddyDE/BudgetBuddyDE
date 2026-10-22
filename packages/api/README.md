@@ -12,7 +12,7 @@ A type-safe, Zod-validated API client for BudgetBuddy backend services. This pac
 The package can be installed via NPM:
 
 ```bash
-npm install @budgetbuddyde/api
+pnpm add @budgetbuddyde/api
 ```
 
 ### Peer Dependencies
@@ -21,7 +21,7 @@ npm install @budgetbuddyde/api
 > The package uses Zod for schema validation, therefore `zod` must be installed as a peer dependency.
 >
 > ```bash
-> npm install zod
+> pnpm add zod
 > ```
 
 ## Getting Started
@@ -128,7 +128,7 @@ const [data, error] = await api.backend.transaction.getAll(undefined, {
 ### Build
 
 ```bash
-npm run build
+vp run build
 ```
 
 Compiles TypeScript to JavaScript in the `lib/` folder.
@@ -137,26 +137,26 @@ Compiles TypeScript to JavaScript in the `lib/` folder.
 
 ```bash
 # Run tests once
-npm test
+pnpm test
 
 # Run tests in watch mode
-npm run test:watch
+vp run test:watch
 ```
 
 ### Code Quality
 
 ```bash
 # Biome Check (Linting + Formatting)
-npm run check
+vp run check
 
 # Auto-fix
-npm run check:write
+vp run check:write
 
 # Linting only
-npm run lint
+vp run lint
 
 # Formatting only
-npm run format
+vp run format
 ```
 
 ## API Reference

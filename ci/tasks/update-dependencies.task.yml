@@ -19,10 +19,6 @@ params:
   HUSKY: '0'
   FORCE_COLOR: 1
   NEXT_TELEMETRY_DISABLED: 1
-  NPM_CONFIG_LOGLEVEL: 'error'
-  NPM_CONFIG_FUND: false
-  NPM_CONFIG_AUDIT: false
-  NPM_CONFIG_UPDATE_NOTIFIER: false
   GIT_NAME:
   GIT_EMAIL:
 
@@ -38,14 +34,14 @@ run:
       cd repository/
       vp --version
       node --version
-      npm --version
+      pnpm --version
       test "$(node --version)" = "v$(cat .node-version)"
-      test "$(npm --version)" = "$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")"
-      npm ci
-      npm update -D
-      npm audit fix
-      npm run ci
-      git add package.json package-lock.json ':(glob)packages/*/package.json' ':(glob)services/*/package.json' ':(glob)apps/*/package.json' ':(glob)examples/*/package.json'
+      test "$(pnpm --version)" = "$(node -p "require('./package.json').packageManager.replace(/^pnpm@/, '')")"
+      vp install --frozen-lockfile
+      vp update --latest
+      vp pm audit --fix
+      pnpm run ci
+      git add package.json pnpm-lock.yaml ':(glob)packages/*/package.json' ':(glob)services/*/package.json' ':(glob)apps/*/package.json' ':(glob)examples/*/package.json'
       if ! git diff --cached --quiet; then
         git -c user.name="$GIT_NAME" -c user.email="$GIT_EMAIL" commit -m 'build(dependencies): Automated update of dependencies'
       fi

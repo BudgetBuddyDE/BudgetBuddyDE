@@ -69,7 +69,7 @@ not native Recharts chart types.
 ## Validation
 
 ```bash
-npx turbo run build typecheck test format:check lint:check --filter=@budgetbuddyde/charts --filter=@budgetbuddyde/webapp
+pnpm exec turbo run build typecheck test format:check lint:check --filter=@budgetbuddyde/charts --filter=@budgetbuddyde/webapp
 ```
 
 The webapp tests load the local package sources and prebundle Recharts to

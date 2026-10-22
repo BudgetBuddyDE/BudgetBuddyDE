@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-BudgetBuddyDE is an open-source personal-finance manager for transactions, recurring payments, budgets, analytics, categories, payment methods, attachments, and insights. It is a strict TypeScript npm-workspace monorepo orchestrated by Turborepo, with a Next.js frontend and authenticated backend services.
+BudgetBuddyDE is an open-source personal-finance manager for transactions, recurring payments, budgets, analytics, categories, payment methods, attachments, and insights. It is a strict TypeScript pnpm-workspace monorepo orchestrated by Turborepo, with a Next.js frontend and authenticated backend services.
 
 ## Architecture & Data Flow
 
@@ -34,29 +34,29 @@ BudgetBuddyDE is an open-source personal-finance manager for transactions, recur
 - `examples/api-key-client`: runnable API-key client example.
 - `apps/documentation`: project and development documentation.
 
-Workspaces are `packages/*`, `services/*`, `apps/webapp`, `apps/documentation`, and `examples/*`. Keep one root `package-lock.json`; do not add workspace-specific lockfiles.
+Workspaces are `packages/*`, `services/*`, `apps/webapp`, `apps/documentation`, and `examples/*`. Keep one root `pnpm-lock.yaml`; do not add workspace-specific lockfiles.
 
 ## Development Commands
 
-Run from the repository root unless using `--workspace`:
+Run from the repository root unless using pnpm filters:
 
 ```bash
-npm install
-npm run build-packages   # build dependencies before apps/services when needed
-npm run dev              # all development tasks through Turbo
-npm run dev-services     # services only
-npm run build            # all workspaces in dependency order
-npm run build-services
-npm run build-apps
-npm run build-examples
-npm run format:check
-npm run lint:check
-npm run typecheck
-npm test
-npm run ci               # format, lint, typecheck, test, build
+pnpm install --frozen-lockfile
+pnpm run build-packages   # build dependencies before apps/services when needed
+pnpm run dev              # all development tasks through Turbo
+pnpm run dev-services     # services only
+pnpm run build            # all workspaces in dependency order
+pnpm run build-services
+pnpm run build-apps
+pnpm run build-examples
+pnpm run format:check
+pnpm run lint:check
+pnpm run typecheck
+pnpm test
+pnpm run ci               # format, lint, typecheck, test, build
 ```
 
-For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Drizzle gateway, then provide workspace `.env` files from the relevant `.env.example` files. Use `npm run check` for read-only formatting/lint checks and `npm run check:write` to apply fixes; run `npm run typecheck` separately. Documentation provides `format:check` and `typecheck`, but no `check`, lint, or test script. Run one workspace with `npm test --workspace <workspace-path>` or filter Turbo directly, for example `npx turbo run test --filter=@budgetbuddyde/api`.
+For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Drizzle gateway, then provide workspace `.env` files from the relevant `.env.example` files. Use `pnpm run check` for read-only formatting/lint checks and `pnpm run check:write` to apply fixes; run `pnpm run typecheck` separately. Documentation provides `format:check` and `typecheck`, but no `check`, lint, or test script. Run one workspace with `pnpm --filter <workspace> test` or filter Turbo directly, for example `pnpm exec turbo run test --filter=@budgetbuddyde/api`.
 
 ## Code Conventions & Common Patterns
 
@@ -74,7 +74,7 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 ## Important Files
 
 - `package.json`: workspace boundaries and root commands.
-- `package-lock.json`: sole dependency lockfile.
+- `pnpm-lock.yaml`: sole dependency lockfile.
 - `turbo.json`: task dependencies, cache behavior, environment inputs, and outputs; builds use `dependsOn: ["^build"]`.
 - `apps/webapp/src/apiClient.ts` and `apps/webapp/src/authClient.ts`: domain API and Better Auth client construction.
 - `apps/webapp/src/proxy.ts`: Next.js auth redirects and route matcher; do not assume every dashboard route is covered.
@@ -94,14 +94,15 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 
 ## Runtime/Tooling Preferences
 
-- Required baseline: Node.js 24.21.0 and npm 11.x (`packageManager: npm@11.4.2`). Use npm, not pnpm or yarn.
+- Required baseline: Node.js 24.21.0 and pnpm as pinned by `packageManager`. Use pnpm, not npm or yarn.
 - Use Turborepo via `turbo run` and preserve its dependency graph; do not manually chain or bypass workspace build dependencies. `turbo.json` uses `^build`, Turbo cache outputs include `lib/**`, `build/**`, and `.next/**` (excluding Next cache and dev output), and environment mode is `loose`. Documentation overrides its build output to `dist/**` in `apps/documentation/turbo.json`.
-- Use `npm ci` in CI and update dependencies with npm. When an internal package version changes, update consumers and refresh the root lockfile with `npm install --package-lock-only --ignore-scripts`.
+- Use `pnpm install --frozen-lockfile` in CI and update dependencies with pnpm. Keep the root `pnpm-lock.yaml` synchronized with workspace manifests.
 - Use `tsx`/the existing service scripts for backend development and Next.js with Turbopack for webapp development. Do not introduce another package-resolution or API-client pattern.
 - Local runtime dependencies are PostgreSQL, Redis, and the Drizzle gateway from `docker-compose.yml`. Keep secrets in ignored `.env` files.
 - `startServer()` schedules recurring-payment processing in each backend process. Automatic bookings are deduplicated by owner, recurring-payment ID, scheduled date, and SHA-256 fingerprint of the deterministic UTF-8 JSON payment snapshot through `recurring_payment_execution`, atomically with the generated transaction. Changed payment content allows an additional full booking; reverting to any previously booked content is skipped. Legacy execution records without content block the whole occurrence. No distributed job lock is used. Execution records survive schedule/transaction deletion and are removed with the user; manual executions remain unprotected extra bookings. The job processes only today and does not catch up missed days. Old backend versions bypass this protection, so upgrades require a coordinated cutover.
 - Attachment storage cleanup is request-scoped with retries, not a durable outbox. Database cascades alone do not remove storage objects; preserve explicit storage cleanup and cache invalidation when changing deletion flows.
-- Documentation uses the `@budgetbuddyde/documentation` npm workspace and Fumapress/Fumadocs; content lives in `apps/documentation/docs`, with `press.config.tsx`, `source.config.ts`, and a static `dist/` build served by nginx in its Dockerfile. Follow the existing Waku override in the root/package manifests. Fumapress requires Node.js 24 or later.
+- Documentation uses the `@budgetbuddyde/documentation` pnpm workspace and Fumapress/Fumadocs; content lives in `apps/documentation/docs`, with `press.config.tsx`, `source.config.ts`, and a static `dist/` build served by nginx in its Dockerfile. Follow the existing Waku override in the root/package manifests. Fumapress requires Node.js 24 or later.
+- Build the documentation Dockerfile with repository root as context so the root pnpm lockfile and workspace manifests are available.
 - Optional OpenTelemetry instrumentation exists in the backend and webapp. Preserve the existing configuration and entry points (`OTEL_EXPORTER_OTLP_ENDPOINT` server-side, `NEXT_PUBLIC_OTEL_ENDPOINT` browser-side).
 
 ## Testing & QA
@@ -112,7 +113,7 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - Prefer deterministic inline fixtures and mocks (`vi.mock`, `vi.fn`, `vi.hoisted`), semantic Testing Library queries, interaction assertions, and `waitFor` for async UI behavior. Restore environment variables, spies, and mock state in `afterEach`.
 - Test boundaries and observable behavior: Zod validation, query serialization, API error tuples, auth headers/context, owner isolation, transaction/error paths, cache hit/miss/invalidation, and UI state transitions. Do not test incidental implementation details.
 - Backend tests collect coverage with 80% minimum thresholds for statements, branches, functions, and lines; other workspaces retain their existing coverage defaults. `packages/logger`, `packages/db`, and `packages/api` allow no-test passes where configured; do not infer coverage from that setting.
-- Before submitting a permanent change, run the narrow workspace test, then relevant `npm run format:check`, `npm run lint:check`, `npm run typecheck`, and build. CI runs formatting, linting, typechecking, tests, then builds on Node 24.21.0.
+- Before submitting a permanent change, run the narrow workspace test, then relevant `pnpm run format:check`, `pnpm run lint:check`, `pnpm run typecheck`, and build. CI runs formatting, linting, typechecking, tests, then builds on Node 24.21.0.
 
 ## Integrated authentication
 

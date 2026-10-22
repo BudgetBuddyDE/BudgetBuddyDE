@@ -20,9 +20,10 @@ Cross-subdomain cookies retain the existing `.budget-buddy.de` production domain
 ## Build and run
 
 ```bash
-npm install
-npm run build
-npm start
+pnpm install --frozen-lockfile
+pnpm run build
+pnpm --filter @budgetbuddyde/backend start
+pnpm --filter @budgetbuddyde/webapp start
 ```
 
 Turbo builds dependencies before their consumers. Run the services under a process manager such as systemd, Docker, PM2, or your hosting platform. The backend must remain running for its recurring-payment job.
@@ -77,6 +78,8 @@ Auth HTTP limits use `AUTH_REDIS_URL` when configured, otherwise cache `REDIS_UR
 ## Hosting integrations
 
 The backend Dockerfile and Railway configuration include authentication and MCP. Route `/mcp` to the backend and update all MCP clients to that public URL; no separate MCP process or domain is required. Follow the [MCP cutover guide](/self-hosting/updating#integrated-mcp-cutover) to retire its previous deployment, pipeline, and monitoring. Existing hosted installations and one-click templates must replace standalone auth service environment bindings and retire that deployment during the coordinated cutover. Reverse proxies, OAuth registrations, hosting templates, and live Concourse pipelines require operator updates; repository changes do not modify those external resources.
+
+Build the documentation image with the repository root as the Docker context, for example `docker build -f apps/documentation/Dockerfile .`. The Dockerfile needs the root `pnpm-lock.yaml`, workspace definition, and shared package manifests.
 
 ## Next step
 

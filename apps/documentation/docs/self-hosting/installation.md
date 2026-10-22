@@ -6,7 +6,7 @@ icon: Rocket
 
 ## Prerequisites
 
-- **Node.js 24.21.0** and **npm 11 or later**
+- **Node.js 24.21.0** and **pnpm as pinned by `packageManager`**
 - **Docker** (recommended, for PostgreSQL, Redis, and the Drizzle Gateway) - or your own PostgreSQL 16 and Redis 7 installations
 - An **S3-compatible object storage** if you want attachments
 - A **Resend API key** for transactional emails (the backend requires one)
@@ -16,7 +16,7 @@ icon: Rocket
 ```bash
 git clone https://github.com/BudgetBuddyDE/BudgetBuddyDE.git
 cd BudgetBuddyDE
-npm install
+pnpm install --frozen-lockfile
 ```
 
 ## 2. Start the infrastructure
@@ -49,8 +49,8 @@ Every variable is documented in [Configuration](/self-hosting/configuration).
 ## 4. Prepare the database
 
 ```bash
-npm run build-packages
-npm run db:migrate --workspace @budgetbuddyde/db
+pnpm run build-packages
+pnpm --filter @budgetbuddyde/db run db:migrate
 ```
 
 The migration scripts read `DATABASE_URL` from `packages/db/.env`.
@@ -60,7 +60,7 @@ The migration scripts read `DATABASE_URL` from `packages/db/.env`.
 For development:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Turbo starts the web app and backend, including integrated authentication and MCP. The web app is available at [http://localhost:3000](http://localhost:3000).

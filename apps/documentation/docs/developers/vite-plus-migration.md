@@ -5,7 +5,7 @@ description: Toolchain migration decisions and compatibility review.
 
 ## Scope
 
-The repository uses Vite+ 1.3.0 (Vite 8.3.4, Vitest 5.0.5, Oxlint and Oxfmt), npm workspaces and the existing Turbo dependency graph. Next.js and Fumapress keep their framework build commands. Libraries retain CommonJS JavaScript, declarations, subpath exports and `tsc` builds; no tsdown/`vp pack` configuration or compatibility defaults were introduced.
+The repository uses Vite+ 1.3.0 (Vite 8.3.4, Vitest 5.0.5, Oxlint and Oxfmt), pnpm workspaces and the existing Turbo dependency graph. Next.js and Fumapress keep their framework build commands. Libraries retain CommonJS JavaScript, declarations, subpath exports and `tsc` builds; no tsdown/`vp pack` configuration or compatibility defaults were introduced.
 
 Vitest was upgraded from 3 to 4.1.12 before running the Vite+ migrator. Explicit Node/Intl types, constructor-safe mock factories and a targeted TypeScript decorator transform preserve existing behavior. Oxc does not lower standard decorators. The webapp uses two fork workers because VM workers exhausted Windows file handles loading MUI icons. Each Turbo runner gets its own filesystem transform cache.
 
@@ -27,7 +27,7 @@ The migrated rules retain the existing policy rather than opt into additional co
 
 Workspace `tsc` checks remain mandatory. The bundled TS7 checker removes Node10 resolution, and switching the backend directly to Node16 resolution produces split Drizzle ESM/CommonJS types. The backend maps only `vite-plus/test` to the same pinned upstream Vitest declarations so application output is unchanged. A broader module-resolution migration is deferred, not hidden by weakening assertions or build checks.
 
-Vite+ hooks replace Husky and direct lint-staged integration; npm's package-manager pin remains unchanged. Staged source files run formatting and lint fixes, while staged JSON/CSS/Markdown run formatting only. The project hook runs `vp staged` followed by the existing Turbo typecheck and retains the CI bypass. `vp hooks status` confirms the dispatcher is active under `.vite-hooks/_`. Vite/Vitest overrides align transitive toolchain consumers; React/React DOM overrides and root peer providers prevent Testing Library from loading a different React copy. The Waku override remains necessary for Fumapress.
+Vite+ hooks replace Husky and direct lint-staged integration; pnpm 11.28.6 is pinned in `package.json`. Staged source files run formatting and lint fixes, while staged JSON/CSS/Markdown run formatting only. The project hook runs `vp staged` followed by the existing Turbo typecheck and retains the CI bypass. `vp hooks status` confirms the dispatcher is active under `.vite-hooks/_`. Vite/Vitest overrides align transitive toolchain consumers; React/React DOM overrides and root peer providers prevent Testing Library from loading a different React copy. The Waku override remains necessary for Fumapress.
 
 ## Validation
 

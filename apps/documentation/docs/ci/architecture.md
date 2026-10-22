@@ -4,7 +4,7 @@ description: Concourse resources, repository access, and Vault credentials.
 icon: Network
 ---
 
-The documented Concourse instance is `https://ci.tklein.it`, with pipelines in the `budgetbuddyde` team. Current definitions live in `ci/`. Reusable tasks load from `ci-source` on `main`. The project pipeline validates all npm workspaces; the database pipeline handles migrations and backups separately.
+The documented Concourse instance is `https://ci.tklein.it`, with pipelines in the `budgetbuddyde` team. Current definitions live in `ci/`. Reusable tasks load from `ci-source` on `main`. The project pipeline validates all pnpm workspaces; the database pipeline handles migrations and backups separately.
 
 ## HashiCorp Vault credential manager
 

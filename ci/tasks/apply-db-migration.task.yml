@@ -15,10 +15,6 @@ params:
   CI: 'true'
   FORCE_COLOR: 1
   DATABASE_URL: ''
-  NPM_CONFIG_LOGLEVEL: 'error'
-  NPM_CONFIG_FUND: false
-  NPM_CONFIG_AUDIT: false
-  NPM_CONFIG_UPDATE_NOTIFIER: false
 
 run:
   # Preserve the previous Node image's user for writable inputs on older Concourse workers.
@@ -31,12 +27,12 @@ run:
       : "${DATABASE_URL:?DATABASE_URL has not been set}"
       vp --version
       node --version
-      npm --version
+      pnpm --version
       test "$(node --version)" = "v$(cat .node-version)"
-      test "$(npm --version)" = "$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")"
-      npm ci
-      npm run build -- --filter=@budgetbuddyde/db
+      test "$(pnpm --version)" = "$(node -p "require('./package.json').packageManager.replace(/^pnpm@/, '')")"
+      vp install --frozen-lockfile
+      pnpm exec turbo run build --filter=@budgetbuddyde/db
 
       cd packages/db
-      npx --no-install drizzle-kit check
-      npm run db:migrate
+      pnpm exec drizzle-kit check
+      pnpm run db:migrate
