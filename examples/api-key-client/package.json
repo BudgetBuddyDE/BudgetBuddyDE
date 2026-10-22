@@ -7,11 +7,11 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "rimraf lib && tsc",
-    "pretest": "npm run check",
+    "pretest": "pnpm run check",
     "test": "vp test run --silent",
     "test:watch": "vp test",
-    "check": "npm run format:check && npm run lint:check",
-    "check:write": "npm run lint && npm run format",
+    "check": "pnpm run format:check && pnpm run lint:check",
+    "check:write": "pnpm run lint && pnpm run format",
     "lint": "vp lint src --fix --max-warnings=0",
     "lint:check": "vp lint src --max-warnings=0",
     "format": "vp fmt \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{js,jsx,ts,tsx,json,css,md}\"",
@@ -20,8 +20,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@budgetbuddyde/api": "*",
-    "@budgetbuddyde/core": "0.1.0",
+    "@budgetbuddyde/api": "workspace:*",
+    "@budgetbuddyde/core": "workspace:*",
     "dotenv": "^17.2.3",
     "zod": "^4.1.12"
   },
