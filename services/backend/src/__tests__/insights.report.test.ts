@@ -171,19 +171,23 @@ describe('insights calculations', () => {
     if (expected === 'week') expect(report.timeline[0].label).toMatch(/^W\d{2} 202/);
     if (expected === 'month') expect(report.timeline[0].label).toBe('2026-01');
   });
-  it('calculates include/exclude budgets from current month negative transactions only', async () => {
+  it('calculates include/exclude budgets from current month net transactions', async () => {
     vi.setSystemTime(new Date('2026-01-10T12:00:00Z'));
+    const monthTransactions = [row('rent', -120), row('refund', 80), row('other', -20, 'category-2')];
     transactions
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([row('rent', -120), row('other', -20, 'category-2'), row('income', 500)]);
+      .mockResolvedValueOnce(monthTransactions)
+      .mockResolvedValueOnce(monthTransactions)
+      .mockResolvedValueOnce(monthTransactions);
     budgets.mockResolvedValue([
       {id: 'include', name: 'Rent', type: 'i', budget: 100, categories: [{categoryId: 'category-1'}]},
       {id: 'exclude', name: 'Other', type: 'e', budget: 0, categories: [{categoryId: 'category-1'}]},
     ]);
-    const report = await buildInsightsReport('owner', query);
+    const report = await buildInsightsReport('owner', {
+      ...query,
+      $dateTo: new Date('2026-01-31T12:00:00Z'),
+    });
     expect(report.budgets).toEqual([
-      {id: 'include', name: 'Rent', budget: 100, spent: 120, remaining: -20, utilization: 120, overBudget: true},
+      {id: 'include', name: 'Rent', budget: 100, spent: 40, remaining: 60, utilization: 40, overBudget: false},
       {id: 'exclude', name: 'Other', budget: 0, spent: 20, remaining: -20, utilization: 0, overBudget: true},
     ]);
     expect(new PgDialect().sqlToQuery(budgets.mock.calls[0][0].where).params).toContain('owner');

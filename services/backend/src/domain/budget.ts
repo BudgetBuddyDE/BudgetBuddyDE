@@ -338,7 +338,7 @@ type TBudgetBalanceTarget = {
 /**
  * Computes monthly balances for multiple budgets with a single grouped query.
  *
- * Type `i` sums expenses of the assigned categories; type `e` sums all other
+ * Type `i` sums net expenses of assigned categories; type `e` sums all other
  * categories. Budgets without categories keep their previous zero balance.
  */
 async function calculateBudgetBalances(
@@ -354,7 +354,7 @@ async function calculateBudgetBalances(
   const rows = await db
     .select({
       categoryId: transactionHistoryView.categoryId,
-      expenses: sql<number>`COALESCE(SUM(${transactionHistoryView.expenses}), 0)`.as('expenses'),
+      balance: sql<number>`COALESCE(SUM(${transactionHistoryView.balance}), 0)`.as('balance'),
     })
     .from(transactionHistoryView)
     .where(
@@ -366,18 +366,22 @@ async function calculateBudgetBalances(
     )
     .groupBy(transactionHistoryView.categoryId);
 
-  const expensesByCategory = new Map<string, number>();
-  let totalExpenses = 0;
+  const netExpensesByCategory = new Map<string, number>();
+  let totalNetExpenses = 0;
   for (const row of rows) {
     if (row.categoryId === null) continue;
-    expensesByCategory.set(row.categoryId, row.expenses);
-    totalExpenses += row.expenses;
+    const netExpenses = -row.balance;
+    netExpensesByCategory.set(row.categoryId, netExpenses);
+    totalNetExpenses += netExpenses;
   }
 
   return budgets.map(budget => {
     const categories = budget.categories.map(category => category.categoryId);
     if (categories.length === 0) return 0;
-    const assignedExpenses = categories.reduce((sum, categoryId) => sum + (expensesByCategory.get(categoryId) ?? 0), 0);
-    return budget.type === 'i' ? assignedExpenses : totalExpenses - assignedExpenses;
+    const assignedNetExpenses = categories.reduce(
+      (sum, categoryId) => sum + (netExpensesByCategory.get(categoryId) ?? 0),
+      0,
+    );
+    return Math.max(0, budget.type === 'i' ? assignedNetExpenses : totalNetExpenses - assignedNetExpenses);
   });
 }

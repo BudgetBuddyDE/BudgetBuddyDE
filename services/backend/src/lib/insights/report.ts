@@ -386,18 +386,18 @@ async function buildCurrentBudgets(ownerId: string, period: Period): Promise<TIn
   return budgetRows.map(budget => {
     const ids = new Set(budget.categories.map(category => category.categoryId));
     const spent = monthTransactions.reduce((sum, transaction) => {
-      if (transaction.transferAmount >= 0) return sum;
       const applies = budget.type === 'i' ? ids.has(transaction.categoryId) : !ids.has(transaction.categoryId);
-      return applies ? sum + Math.abs(transaction.transferAmount) : sum;
+      return applies ? sum - transaction.transferAmount : sum;
     }, 0);
+    const netSpent = Math.max(0, spent);
     return {
       id: budget.id,
       name: budget.name,
       budget: budget.budget,
-      spent: round(spent),
-      remaining: round(budget.budget - spent),
-      utilization: budget.budget === 0 ? 0 : round((spent / budget.budget) * 100),
-      overBudget: spent > budget.budget,
+      spent: round(netSpent),
+      remaining: round(budget.budget - netSpent),
+      utilization: budget.budget === 0 ? 0 : round((netSpent / budget.budget) * 100),
+      overBudget: netSpent > budget.budget,
     };
   });
 }

@@ -4,6 +4,7 @@ import {CreateOrUpdateBudgetPayload, type TBudget} from '@budgetbuddyde/api/budg
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import AddRounded from '@mui/icons-material/AddRounded';
 import {Box, Button, IconButton, InputAdornment, Stack} from '@mui/material';
+import {endOfMonth} from 'date-fns';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {ActionPaper} from '@/components/ActionPaper';
@@ -176,7 +177,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     const relatedCategories = budget.categories.map(category => category.id);
     const [relatedTransactions, error] = await apiClient.backend.transaction.getAll({
       $dateFrom: firstDayOfMonth,
-      $dateTo: today,
+      $dateTo: endOfMonth(today),
       [budget.type === 'i' ? '$categories' : '$excl_categories']: relatedCategories,
     });
     if (error) {
