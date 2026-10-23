@@ -97,6 +97,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
               {
                 key: 'transferAmount',
                 label: 'Amount',
+                align: 'right',
                 renderCell: (_, row) => Formatter.currency.formatBalance(row.transferAmount),
               },
             ] satisfies ColumnDefinition<TExpandedTransaction>[]
