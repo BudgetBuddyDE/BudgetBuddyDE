@@ -480,16 +480,16 @@ describe('category statistics and budget balances', () => {
     });
     expect(new PgDialect().sqlToQuery(mocks.chain.where.mock.calls[0][0]).params).toContain(OWNER);
   });
-  it('computes include/exclude/empty budget balances from one owner scoped aggregate', async () => {
+  it('computes net include/exclude/empty budget balances from one owner scoped aggregate', async () => {
     mocks.db.query.budgets.findMany.mockResolvedValueOnce([
       {id: 'include', type: 'i', categories: [{categoryId: CATEGORY}, {categoryId: 'no-expenses'}]},
       {id: 'exclude', type: 'e', categories: [{categoryId: CATEGORY}]},
       {id: 'empty', type: 'i', categories: []},
     ]);
     mocks.chain.groupBy.mockResolvedValueOnce([
-      {categoryId: CATEGORY, expenses: 30},
-      {categoryId: PAYMENT, expenses: 20},
-      {categoryId: null, expenses: 999},
+      {categoryId: CATEGORY, balance: -30},
+      {categoryId: PAYMENT, balance: -20},
+      {categoryId: null, balance: 999},
     ]);
     const response = await requestRouter(budgetRouter, OWNER, '/', {method: 'GET'});
     expect(response.status).toBe(200);
@@ -502,6 +502,23 @@ describe('category statistics and budget balances', () => {
     });
     expect(mocks.chain.groupBy).toHaveBeenCalledOnce();
     expect(new PgDialect().sqlToQuery(mocks.chain.where.mock.calls[1][0]).params).toContain(OWNER);
+  });
+  it('nets positive transactions against expenses and never reports negative progress', async () => {
+    mocks.db.query.budgets.findMany.mockResolvedValueOnce([
+      {id: 'include', type: 'i', categories: [{categoryId: CATEGORY}]},
+      {id: 'cleared', type: 'i', categories: [{categoryId: PAYMENT}]},
+    ]);
+    mocks.chain.groupBy.mockResolvedValueOnce([
+      {categoryId: CATEGORY, balance: -53.71},
+      {categoryId: PAYMENT, balance: 12},
+    ]);
+    const response = await requestRouter(budgetRouter, OWNER, '/', {method: 'GET'});
+    expect(response.body).toMatchObject({
+      data: [
+        {id: 'include', balance: 53.71},
+        {id: 'cleared', balance: 0},
+      ],
+    });
   });
   it('creates and reads budget category links within the same transaction', async () => {
     const response = await requestRouter(budgetRouter, OWNER, '/', {
