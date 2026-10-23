@@ -81,7 +81,7 @@ describe('budget lookup by id', () => {
     select.mockReturnValue({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnValue({
-        groupBy: vi.fn().mockResolvedValue([{categoryId: OWNED_CATEGORY_ID, expenses: 42}]),
+        groupBy: vi.fn().mockResolvedValue([{categoryId: OWNED_CATEGORY_ID, balance: -42}]),
       }),
     });
   });

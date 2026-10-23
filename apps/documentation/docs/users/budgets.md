@@ -20,10 +20,9 @@ Open the **Budget** page in the dashboard and create an entry with:
 
 ## How budgets are evaluated
 
-BudgetBuddy evaluates budgets for the current calendar month in the instance timezone:
+BudgetBuddy evaluates budgets for the current calendar month in the instance timezone. Progress is the net spending in the applicable categories: expenses increase it and positive transactions reduce it. The displayed progress does not go below zero.
 
-- Transactions that already happened count as paid.
-- Transactions dated in the future count as upcoming.
+- Transactions dated within the current month are included, including future-dated transactions.
 - Active recurring payments count with every occurrence between today and the end of the month.
 - Paused recurring payments are ignored.
 
