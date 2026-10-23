@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vite-plus/test';
 import {DateRangePicker} from './DateRangePicker';
 
 const startDate = new Date('2024-01-01T00:00:00.000Z');

@@ -1,5 +1,5 @@
 import {PgDialect} from 'drizzle-orm/pg-core';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {requestRouter} from './router.test-utils';
 import {transactionRouter} from '../router/transaction.router';
 
@@ -60,10 +60,12 @@ vi.mock('../config', () => ({
 vi.mock('../lib', () => ({logger: {...attachmentLogger, child: vi.fn(() => attachmentLogger)}}));
 vi.mock('../lib/attachment', () => ({
   TransactionAttachmentHandler: Object.assign(
-    vi.fn(() => ({
-      generateSignedUrls: vi.fn().mockResolvedValue({signedUrls: new Map()}),
-      uploadTransactionAttachments,
-    })),
+    vi.fn(function () {
+      return {
+        generateSignedUrls: vi.fn().mockResolvedValue({signedUrls: new Map()}),
+        uploadTransactionAttachments,
+      };
+    }),
     {
       resolveMimeType: (file: Express.Multer.File) => file.mimetype,
       hasValidImageSignature: () => true,

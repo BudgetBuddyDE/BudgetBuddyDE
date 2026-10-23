@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {requestRouter} from './router.test-utils';
 import {recurringPaymentRouter} from '../router/recurringPayment.router';
 

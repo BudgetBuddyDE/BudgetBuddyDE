@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vite-plus/test';
 import {z} from 'zod';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, MAX_BATCH_SIZE, updateBatchSchema} from '../router/batch';
 

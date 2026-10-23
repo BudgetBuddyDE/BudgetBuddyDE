@@ -56,7 +56,7 @@ Redis is optional. When `REDIS_URL` is not set, the backend response cache and d
 Migrations were not applied. Run:
 
 ```bash
-npm run db:migrate --workspace @budgetbuddyde/db
+pnpm --filter @budgetbuddyde/db run db:migrate
 ```
 
 The command reads `DATABASE_URL` from `packages/db/.env`; make sure it points to the same database the backend uses.

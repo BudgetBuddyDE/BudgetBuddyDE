@@ -1,31 +1,41 @@
-# Build stage
-FROM node:24.21.0-alpine AS builder
+# syntax=docker/dockerfile:1
+
+ARG NGINX_IMAGE=nginx:1.27-alpine
+ARG VITE_PLUS_IMAGE=ghcr.io/voidzero-dev/vite-plus:1.3.0@sha256:61860c1b58bf35878605280802809973c668f1594675298c3be553a98ac06e59
+
+FROM ${VITE_PLUS_IMAGE} AS manifests
 
 WORKDIR /app
 
-# The documentation can be built independently from this directory.
-COPY package.json ./
+COPY --chown=vp:vp package.json pnpm-lock.yaml pnpm-workspace.yaml .node-version ./
+COPY --chown=vp:vp apps/documentation/package.json apps/documentation/package.json
+COPY --chown=vp:vp apps/webapp/package.json apps/webapp/package.json
+COPY --chown=vp:vp examples/api-key-client/package.json examples/api-key-client/package.json
+COPY --chown=vp:vp packages/api/package.json packages/api/package.json
+COPY --chown=vp:vp packages/charts/package.json packages/charts/package.json
+COPY --chown=vp:vp packages/core/package.json packages/core/package.json
+COPY --chown=vp:vp packages/db/package.json packages/db/package.json
+COPY --chown=vp:vp packages/logger/package.json packages/logger/package.json
+COPY --chown=vp:vp services/backend/package.json services/backend/package.json
 
-# No workspace lockfile is needed because the repository keeps a single root lockfile.
-RUN npm install --ignore-scripts --no-package-lock
-COPY . .
-RUN npm run build
+FROM manifests AS build
 
-# Production stage
-FROM nginx:alpine
+ENV VP_GIT_HOOKS=0
 
-# Copy built documentation from builder
-COPY --from=builder /app/dist/public /usr/share/nginx/html
+RUN vp install --frozen-lockfile
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --chown=vp:vp . .
 
-# Expose port 80
+RUN pnpm run build --filter=@budgetbuddyde/documentation
+
+FROM ${NGINX_IMAGE} AS runtime
+
+COPY --from=build --chown=nginx:nginx /app/apps/documentation/dist/public /usr/share/nginx/html
+COPY --from=build /app/apps/documentation/nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
 
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import {vi} from 'vitest';
+import {vi} from 'vite-plus/test';
 
 // Render next/image as a plain <img> in tests — strips NextImage-only props
 // so they don't land on the DOM element and cause React warnings.

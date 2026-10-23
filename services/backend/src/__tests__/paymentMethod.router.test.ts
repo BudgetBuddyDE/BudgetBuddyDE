@@ -1,6 +1,6 @@
 import {paymentMethods, recurringPayments, transactions} from '@budgetbuddyde/db/backend';
 import {PgDialect} from 'drizzle-orm/pg-core';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {requestRouter} from './router.test-utils';
 import {paymentMethodRouter} from '../router/paymentMethod.router';
 

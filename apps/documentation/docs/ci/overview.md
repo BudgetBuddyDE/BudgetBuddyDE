@@ -9,7 +9,7 @@ The current definitions live directly in `ci/`, with reusable tasks in `ci/tasks
 
 ## What Concourse does
 
-- Validates, tests, and builds all npm workspaces when a new commit is detected on `main`.
+- Validates, tests, and builds all pnpm workspaces when a new commit is detected on `main`.
 - Runs the same verification for GitHub pull requests and reports their status.
 - Reports main build statuses to GitHub through Cogito.
 - Updates development dependencies weekly or manually, validates changes, and pushes successful updates to `main`.

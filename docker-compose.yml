@@ -2,14 +2,14 @@ services:
   drizzle_db_gateway:
     image: ghcr.io/drizzle-team/gateway:latest
     container_name: drizzle_dateway
-    environment: 
+    environment:
       PORT: 4983
       MASTERPASS: your_master_password
       STORE_PATH: /app
       DB: postgres://myuser:mypassword@db:5432/mydatabase
     depends_on:
       - db
-    ports: 
+    ports:
       - '4983:4983'
     volumes:
       - drizzle_db_gateway:/app
@@ -27,9 +27,9 @@ services:
   cache:
     image: redis:7-alpine
     container_name: cache
-    command: ["redis-server", "--requirepass", "mycachepassword"]
+    command: ['redis-server', '--requirepass', 'mycachepassword']
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - cache_data:/data
 

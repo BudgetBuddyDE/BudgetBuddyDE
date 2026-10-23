@@ -18,9 +18,9 @@ If you use attachments, back up your object storage bucket as well.
 
 ```bash
 git pull
-npm install
-npm run db:migrate --workspace @budgetbuddyde/db
-npm run build
+pnpm install --frozen-lockfile
+pnpm --filter @budgetbuddyde/db run db:migrate
+pnpm run build
 ```
 
 Then restart your services so they run the new build.
@@ -63,7 +63,7 @@ The idempotency update adds internal execution records. They protect automatic b
 
 1. Back up the complete database and retain the previous build and configuration.
 2. Stop **all** old backend instances and allow their in-flight jobs to finish before starting the new version.
-3. Apply the migrations with `npm run db:migrate --workspace @budgetbuddyde/db`.
+3. Apply the migrations with `pnpm --filter @budgetbuddyde/db run db:migrate`.
 4. Start only the updated backend, before the first scheduled run of a day for which the old version has not already generated transactions. If the old version already booked today's occurrences, do not run the new job for today; the first protected run must be on a later day. Dates follow the configured `TIMEZONE`.
 5. Check the first run's logs: newly booked occurrences count as processed, existing records as skipped, and unsuccessful attempts as failed.
 
@@ -86,7 +86,7 @@ After restarting:
 1. Stop the services.
 2. Check out the previous release (`git checkout <tag>`).
 3. Restore the backup if the update included a schema migration you need to undo.
-4. Run `npm install` and `npm run build` again, then restart.
+4. Run `pnpm install --frozen-lockfile` and `pnpm run build` again, then restart.
 
 ## Next step
 

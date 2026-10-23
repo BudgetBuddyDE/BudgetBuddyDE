@@ -20,12 +20,31 @@ Cross-subdomain cookies retain the existing `.budget-buddy.de` production domain
 ## Build and run
 
 ```bash
-npm install
-npm run build
-npm start
+pnpm install --frozen-lockfile
+pnpm run build
+pnpm --filter @budgetbuddyde/backend start
+pnpm --filter @budgetbuddyde/webapp start
 ```
 
 Turbo builds dependencies before their consumers. Run the services under a process manager such as systemd, Docker, PM2, or your hosting platform. The backend must remain running for its recurring-payment job.
+
+The backend Dockerfile builds from the repository root and uses the pinned Vite+ image only for build and dependency stages. Its runtime is glibc-based and runs as a non-root user. Build it with:
+
+```bash
+docker build --build-arg SOURCE_SHA="$(git rev-parse HEAD)" -f services/backend/Dockerfile -t budgetbuddyde/backend:local .
+```
+
+The documentation image also builds from the repository root, using the root lockfile and Turbo dependency graph, then serves the static output with nginx:
+
+```bash
+docker build -f apps/documentation/Dockerfile -t budgetbuddyde/documentation:local .
+```
+
+The Next.js webapp has no Dockerfile in this repository. For any separately maintained webapp image, pass `NEXT_PUBLIC_BACKEND_SERVICE_HOST` and other public Next.js build-time variables during the build; setting them only when starting a container does not change the compiled frontend. The website Dockerfile is separate and builds from `apps/website` because it serves checked-in static files directly:
+
+```bash
+docker build -f Dockerfile -t budgetbuddyde/website:local apps/website
+```
 
 ## Reverse proxy
 
@@ -59,6 +78,8 @@ Auth HTTP limits use `AUTH_REDIS_URL` when configured, otherwise cache `REDIS_UR
 ## Hosting integrations
 
 The backend Dockerfile and Railway configuration include authentication and MCP. Route `/mcp` to the backend and update all MCP clients to that public URL; no separate MCP process or domain is required. Follow the [MCP cutover guide](/self-hosting/updating#integrated-mcp-cutover) to retire its previous deployment, pipeline, and monitoring. Existing hosted installations and one-click templates must replace standalone auth service environment bindings and retire that deployment during the coordinated cutover. Reverse proxies, OAuth registrations, hosting templates, and live Concourse pipelines require operator updates; repository changes do not modify those external resources.
+
+Build the documentation image with the repository root as the Docker context, for example `docker build -f apps/documentation/Dockerfile .`. The Dockerfile needs the root `pnpm-lock.yaml`, workspace definition, and shared package manifests.
 
 ## Next step
 

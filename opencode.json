@@ -3,11 +3,7 @@
     "servers": {
       "mui": {
         "type": "local",
-        "command": [
-          "npx",
-	  "@mui/mcp@latest",
-	  "-y"
-        ]
+        "command": ["npx", "@mui/mcp@latest", "-y"]
       }
     }
   }

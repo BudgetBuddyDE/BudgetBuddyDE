@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 
 const {findMany, createTransaction, info, error, invalidateUserCaches} = vi.hoisted(() => ({
   findMany: vi.fn(),

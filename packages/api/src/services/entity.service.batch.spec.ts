@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {BackendError, ResponseNotJsonError} from '../error';
 import {CategoryService} from './category.service';
 import {PaymentMethodService} from './paymentMethod.service';

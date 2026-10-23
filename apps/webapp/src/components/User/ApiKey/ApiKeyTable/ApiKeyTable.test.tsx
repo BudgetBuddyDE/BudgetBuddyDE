@@ -1,6 +1,6 @@
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import type {PropsWithChildren} from 'react';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {appConfig} from '@/appConfig';
 import {Formatter} from '@/utils/Formatter';
 import {ApiKeyTable} from './ApiKeyTable';

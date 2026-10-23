@@ -1,5 +1,5 @@
 import type {TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vite-plus/test';
 import {columns, createEmptyRow, fromEntity, mapRowsToPayload} from './paymentMethodBatchAdapter';
 
 describe('payment method batch adapter', () => {

@@ -35,7 +35,7 @@ export const setupTracing = (serviceName: string) => {
   provider.register();
 
   // This shutdown is important to ensure that buffered tracing data is
-  // flushed on process shutdown (e.g. for `npm run client`).
+  // flushed on process shutdown (e.g. for `pnpm run client`).
   process.once('beforeExit', async () => {
     await provider.shutdown();
   });

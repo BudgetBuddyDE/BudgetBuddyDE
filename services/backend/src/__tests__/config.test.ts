@@ -1,6 +1,6 @@
 import {BackendConfig} from '@budgetbuddyde/core/config/BackendConfig';
 import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSetError';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vite-plus/test';
 import {AppConfig} from '../config';
 
 function createConfig(environment: NodeJS.ProcessEnv = {}): AppConfig {

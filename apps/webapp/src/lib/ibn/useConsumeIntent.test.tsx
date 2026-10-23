@@ -1,7 +1,7 @@
 import {act, render, waitFor} from '@testing-library/react';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import React from 'react';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {registerPageTransition} from '../viewTransitions';
 import type {IntentHandlers} from './useConsumeIntent';
 import {useConsumeIntent} from './useConsumeIntent';

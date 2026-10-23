@@ -1,5 +1,5 @@
 import type {Logger} from '@budgetbuddyde/logger';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {Api} from './api';
 
 describe('Api', () => {

@@ -51,7 +51,7 @@ The example client's `BUDGETBUDDY_BACKEND_URL` remains supported, as documented 
 | `OTEL_EXPORTER_OTLP_ENDPOINT`      | No       | -       | Set to enable server-side tracing via the OTLP endpoint (see below). |
 | `NEXT_PUBLIC_OTEL_ENDPOINT`        | No       | -       | Set to enable client-side tracing via the OTLP endpoint (see below). |
 
-> `NEXT_PUBLIC_*` variables are inlined during the build. Set them before running `npm run build`, and rebuild after changing them.
+> `NEXT_PUBLIC_*` variables are inlined during the build. Set them before running `vp run build`, and rebuild after changing them.
 
 ## Database migrations (`packages/db/.env`)
 
@@ -86,15 +86,15 @@ Attachments work with any S3-compatible storage. Set all five `AWS_*` variables 
 
 ## Tracing (OpenTelemetry)
 
-The backend ships with OpenTelemetry tracing for the HTTP and Express layers, including MCP. Regular `npm start` runs without tracing; start the backend with instrumentation to enable it:
+The backend ships with OpenTelemetry tracing for the HTTP and Express layers, including MCP. Regular `pnpm start` runs without tracing; start the backend with instrumentation to enable it:
 
 ```bash
-npm run start:instrumentation --workspace services/backend
+pnpm --filter @budgetbuddyde/backend run start:instrumentation
 ```
 
 Traces are exported via OTLP to the endpoint configured with `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), so any OTLP-compatible collector or backend such as Jaeger or Grafana Tempo works. Health-check requests to `/health` are filtered out and not sampled.
 
-The web app uses Next.js' built-in instrumentation instead. Server-side tracing is enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` (Next.js spans for routing, rendering, and fetch are emitted automatically; set `NEXT_OTEL_VERBOSE=1` to see more). Client-side tracing is enabled by setting `NEXT_PUBLIC_OTEL_ENDPOINT` - it is inlined at build time, so set it before `npm run build`. Because the browser sends spans directly to the collector, the collector must allow cross-origin requests from your web app origin (for example, Jaeger with `--collector.otlp.http.cors.allowed-origins=https://your-app-origin`).
+The web app uses Next.js' built-in instrumentation instead. Server-side tracing is enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` (Next.js spans for routing, rendering, and fetch are emitted automatically; set `NEXT_OTEL_VERBOSE=1` to see more). Client-side tracing is enabled by setting `NEXT_PUBLIC_OTEL_ENDPOINT` - it is inlined at build time, so set it before `vp run build`. Because the browser sends spans directly to the collector, the collector must allow cross-origin requests from your web app origin (for example, Jaeger with `--collector.otlp.http.cors.allowed-origins=https://your-app-origin`).
 
 ## Next step
 

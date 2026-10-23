@@ -4,7 +4,7 @@ description: Concourse resources, repository access, and Vault credentials.
 icon: Network
 ---
 
-The documented Concourse instance is `https://ci.tklein.it`, with pipelines in the `budgetbuddyde` team. Current definitions live in `ci/`. Reusable tasks load from `ci-source` on `main`. The project pipeline validates all npm workspaces; the database pipeline handles migrations and backups separately.
+The documented Concourse instance is `https://ci.tklein.it`, with pipelines in the `budgetbuddyde` team. Current definitions live in `ci/`. Reusable tasks load from `ci-source` on `main`. The project pipeline validates all pnpm workspaces; the database pipeline handles migrations and backups separately.
 
 ## HashiCorp Vault credential manager
 
@@ -29,7 +29,7 @@ The project pipeline does not use `s3-versions`, `npm_token`, Docker registry cr
 | Resource type    | Purpose                                                                             |
 | ---------------- | ----------------------------------------------------------------------------------- |
 | `git`            | Main checkouts, dependency-update pushes, and migration-filtered database checkouts |
-| `registry-image` | Node 24.21.0 task images and PostgreSQL 17 backup image                             |
+| `registry-image` | Pinned Vite+ 1.3.0 task images and PostgreSQL 17 backup image                       |
 | `github-pr`      | PR discovery and statuses through `cfcommunity/github-pr-resource:0.26.0`           |
 | `cogito`         | GitHub commit statuses through `pix4d/cogito`                                       |
 | `time`           | Weekly dependency updates and daily database backups                                |

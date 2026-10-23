@@ -6,7 +6,11 @@ const {service, log} = vi.hoisted(() => ({
 }));
 vi.mock('../lib', () => ({logger: {...log, child: () => log}}));
 vi.mock('../config', () => ({config: {getRequiredObjectStorageConfig: () => ({bucketName: 'test'})}}));
-vi.mock('../lib/attachment', () => ({TransactionAttachmentHandler: vi.fn(() => service)}));
+vi.mock('../lib/attachment', () => ({
+  TransactionAttachmentHandler: vi.fn(function () {
+    return service;
+  }),
+}));
 const ID = '00000000-0000-4000-8000-000000000001';
 const attachment = {
   id: ID,

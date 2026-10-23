@@ -1,5 +1,5 @@
 import type {Logger} from '@budgetbuddyde/logger';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vite-plus/test';
 import {log} from './log.decorator';
 
 const context = {name: 'loadData'} as ClassMethodDecoratorContext<object, (...args: unknown[]) => unknown>;

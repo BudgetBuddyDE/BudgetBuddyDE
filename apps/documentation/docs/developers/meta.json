@@ -1,6 +1,7 @@
 {
   "pages": [
     "getting-started",
+    "vite-plus-migration",
     "architecture",
     "workspaces",
     "database",

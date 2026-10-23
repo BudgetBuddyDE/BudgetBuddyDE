@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {ApplicationDataService} from './applicationData.service';
 import {BudgetService} from './budget.service';
 import {CategoryService} from './category.service';
@@ -89,7 +89,7 @@ describe('domain service operations', () => {
     await service.uploadTransactionAttachments('txn-id', [new File(['receipt'], 'receipt.png', {type: 'image/png'})]);
     await service.deleteTransactionAttachments('txn-id');
     expect(fetchMock.mock.calls[0][1]?.body).toBeInstanceOf(FormData);
-    expect((fetchMock.mock.calls[0][1]?.body as FormData).get('files')).toBeInstanceOf(File);
+    expect((fetchMock.mock.calls[0][1]!.body as FormData).get('files')).toBeInstanceOf(File);
     expect(fetchMock.mock.calls[1][1]).toMatchObject({method: 'DELETE', body: undefined});
   });
 
