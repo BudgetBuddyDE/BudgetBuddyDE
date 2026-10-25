@@ -1,12 +1,14 @@
 {
   "pages": [
     "getting-started",
+    "vite-plus-migration",
     "architecture",
     "workspaces",
     "database",
     "user-preferences",
     "authentication",
     "api-and-mcp",
-    "adding-a-feature"
+    "adding-a-feature",
+    "...archive"
   ]
 }

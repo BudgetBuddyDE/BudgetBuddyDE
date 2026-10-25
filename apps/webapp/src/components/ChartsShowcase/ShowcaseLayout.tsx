@@ -15,7 +15,8 @@ export const ChartCard: React.FC<ChartCardProps> = ({title, subtitle, children, 
   const headingId = React.useId();
   const elements = React.Children.toArray(children);
   const child = elements.find(React.isValidElement) as
-    React.ReactElement<{data?: unknown[]; series?: {data?: unknown[]}[]}> | undefined;
+    | React.ReactElement<{data?: unknown[]; series?: {data?: unknown[]}[]}>
+    | undefined;
   const source = child?.props.data;
   const flatten = (node: unknown, parent = ''): Record<string, unknown>[] => {
     if (!node || typeof node !== 'object') return [];

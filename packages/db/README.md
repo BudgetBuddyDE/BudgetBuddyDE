@@ -241,7 +241,7 @@ The database schema is defined using Drizzle ORM. To modify the schema:
 The database schema required for the integrated Better Auth backend can be generated using the @better-auth/cli:
 
 ```bash
-npm run ba:schema-generate
+vp run ba:schema-generate
 ```
 
 > [!WARNING]
@@ -252,7 +252,7 @@ npm run ba:schema-generate
 Generate migration SQL files from your schema definitions:
 
 ```bash
-npm run db:generate
+vp run db:generate
 ```
 
 This command will:
@@ -268,7 +268,7 @@ The migration files will be created in the `drizzle/` directory of the services 
 Apply the generated migrations to your database:
 
 ```bash
-npm run db:migrate
+vp run db:migrate
 ```
 
 This will execute all pending migrations in the correct order.
@@ -278,7 +278,7 @@ This will execute all pending migrations in the correct order.
 Drizzle Kit provides a web-based database browser:
 
 ```bash
-npm run db:studio
+vp run db:studio
 ```
 
 This opens a local web interface where you can browse and edit your database tables.
@@ -288,7 +288,7 @@ This opens a local web interface where you can browse and edit your database tab
 ### Build
 
 ```bash
-npm run build
+vp run build
 ```
 
 Compiles TypeScript to JavaScript in the `lib/` folder.
@@ -297,26 +297,26 @@ Compiles TypeScript to JavaScript in the `lib/` folder.
 
 ```bash
 # Run tests once
-npm test
+pnpm test
 
 # Run tests in watch mode
-npm run test:watch
+vp run test:watch
 ```
 
 ### Code Quality
 
 ```bash
 # Biome Check (Linting + Formatting)
-npm run check
+vp run check
 
 # Auto-fix issues
-npm run check:write
+vp run check:write
 
 # Linting only
-npm run lint
+vp run lint
 
 # Formatting only
-npm run format
+vp run format
 ```
 
 ## Usage in Services

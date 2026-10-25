@@ -1,6 +1,6 @@
 import type {apiKey} from '@better-auth/api-key';
 import type {betterAuth} from 'better-auth';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import type {auth as BackendAuth} from './auth';
 
 type AuthWithApiKeys = typeof BackendAuth & ReturnType<typeof betterAuth<{plugins: [ReturnType<typeof apiKey>]}>>;

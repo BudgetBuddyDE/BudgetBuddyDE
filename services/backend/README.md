@@ -6,19 +6,19 @@ For full documentation, visit **[docs.budget-buddy.de › Services › Backend](
 
 ```bash
 # Install dependencies
-npm install
+pnpm install --frozen-lockfile
 
 # Copy and configure environment variables
 cp .env.example .env
 
 # Start in development mode
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Start in production mode
-npm start
+pnpm start
 ```
 
 ## Integrated authentication
@@ -46,7 +46,7 @@ Follow the [MCP cutover guide](https://docs.budget-buddy.de/self-hosting/updatin
 Backend unit tests mock external database, Redis, mail, storage, and HTTP boundaries. Coverage requires at least 80% for statements, branches, functions, and lines:
 
 ```bash
-npx turbo run test --filter=@budgetbuddyde/backend
+pnpm exec turbo run test --filter=@budgetbuddyde/backend
 ```
 
 ## Credits

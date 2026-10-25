@@ -5,5 +5,5 @@ if [ -n "$CI" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
   exit 0
 fi
 
-lint-staged
+vp staged
 turbo run typecheck

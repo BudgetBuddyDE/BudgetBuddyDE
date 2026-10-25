@@ -33,7 +33,7 @@ Express API under `/api/*`. Routers validate with Zod, enforce ownership, and an
 - `src/middleware` - request context, auth, cache, logging.
 - `src/lib` - S3 client, attachment handler, logger.
 - `src/mcp` - stateless Streamable HTTP transport, tools, and local API-key authentication.
-- `src/tracer.ts` / `src/instrumentation.ts` - OpenTelemetry setup, loaded via `npm run start:instrumentation`.
+- `src/tracer.ts` / `src/instrumentation.ts` - OpenTelemetry setup, loaded via `pnpm --filter @budgetbuddyde/backend run start:instrumentation`.
 
 ## Packages
 

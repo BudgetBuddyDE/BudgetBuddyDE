@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {AuthDataExportService} from './authDataExport.service';
 
 describe('AuthDataExportService', () => {

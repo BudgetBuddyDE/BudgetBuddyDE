@@ -58,7 +58,7 @@ fly -t ci trigger-job --team budgetbuddyde -j general/update-dependencies --watc
 fly -t ci trigger-job --team budgetbuddyde -j manage-database/database-backup --watch
 ```
 
-Dependency updates run automatically every 168 hours and are serialized. Unresolved audit findings or failures in `npm run ci` prevent the push. Concurrent external main changes can reject a push; the workflow does not force-push or rebase validated changes.
+Dependency updates run automatically every 168 hours and are serialized. Unresolved audit findings or failures in `pnpm run ci` prevent the push. Concurrent external main changes can reject a push; the workflow does not force-push or rebase validated changes.
 
 Useful management commands:
 

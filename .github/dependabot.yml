@@ -25,8 +25,11 @@ updates:
         patterns:
           - '@mui/*'
           - '@emotion/*'
-      vitest:
+      vite-plus:
         patterns:
+          - vite-plus
+          - vite
+          - '@voidzero-dev/vite-plus-core'
           - vitest
           - '@vitest/*'
       drizzle:

@@ -4,7 +4,7 @@ description: How a request flows through the monorepo.
 icon: Network
 ---
 
-BudgetBuddyDE is a TypeScript npm-workspace monorepo orchestrated by Turborepo. Builds follow the dependency graph (`dependsOn: ["^build"]`); packages build before the services and apps that consume them.
+BudgetBuddyDE is a TypeScript pnpm-workspace monorepo orchestrated by Turborepo. Builds follow the dependency graph (`dependsOn: ["^build"]`); packages build before the services and apps that consume them.
 
 ## Request flow
 

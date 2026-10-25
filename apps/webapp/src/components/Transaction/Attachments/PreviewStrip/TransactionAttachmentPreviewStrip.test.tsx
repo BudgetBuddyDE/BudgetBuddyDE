@@ -1,6 +1,6 @@
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {render, screen} from '@testing-library/react';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vite-plus/test';
 import {TransactionAttachmentPreviewStrip} from './TransactionAttachmentPreviewStrip';
 
 function makeAttachment(id: string): TAttachmentWithUrl {

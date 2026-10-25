@@ -12,8 +12,8 @@ This directory contains small, runnable examples for using BudgetBuddyDE package
 export BUDGETBUDDY_API_KEY="bb-your-api-key"
 export BUDGETBUDDY_BACKEND_URL="https://backend.budgetbuddy.de"
 
-npm run build --workspace=@budgetbuddyde/example-api-key-client
-npm run start --workspace=@budgetbuddyde/example-api-key-client
+pnpm --filter @budgetbuddyde/example-api-key-client run build
+pnpm --filter @budgetbuddyde/example-api-key-client run start
 ```
 
 ### Environment Variables
@@ -31,4 +31,4 @@ npm run start --workspace=@budgetbuddyde/example-api-key-client
 - Calling `api.backend.recurringPayment.getAll()`.
 - Handling the API package's `[data, error]` result tuples.
 
-The example is part of the local npm workspace and Turborepo setup, so formatting, linting, typechecking, tests, and builds are covered by CI.
+The example is part of the local pnpm workspace and Turborepo setup, so formatting, linting, typechecking, tests, and builds are covered by CI.

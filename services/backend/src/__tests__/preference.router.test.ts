@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {requestRouter} from './router.test-utils';
 
 const mocks = vi.hoisted(() => ({get: vi.fn(), update: vi.fn()}));

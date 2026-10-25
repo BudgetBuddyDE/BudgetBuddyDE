@@ -13,8 +13,8 @@ This checklist follows the flow of a domain feature through the monorepo. The ca
 3. Generate and apply a migration:
 
 ```bash
-npm run db:generate --workspace @budgetbuddyde/db
-npm run db:migrate --workspace @budgetbuddyde/db
+pnpm --filter @budgetbuddyde/db run db:generate
+pnpm --filter @budgetbuddyde/db run db:migrate
 ```
 
 ## 2. Contracts
@@ -51,9 +51,9 @@ npm run db:migrate --workspace @budgetbuddyde/db
 Run the narrow test first, then the full checks:
 
 ```bash
-npm test --workspace @budgetbuddyde/backend
-npm run check
-npm run typecheck
+pnpm --filter @budgetbuddyde/backend test
+pnpm run check
+pnpm run typecheck
 ```
 
 ## 6. Documentation

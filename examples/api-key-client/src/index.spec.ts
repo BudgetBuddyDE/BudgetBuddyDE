@@ -1,6 +1,6 @@
 import type {TExpandedRecurringPayment, TExpandedTransaction} from '@budgetbuddyde/api/types';
 import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSetError';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {createApiKeyRequestConfig, fetchBudgetBuddyOverview, formatPaymentDetails, readConfigFromEnv} from './index';
 
 const now = '2026-06-28T12:00:00.000Z';

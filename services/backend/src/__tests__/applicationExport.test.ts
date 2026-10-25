@@ -1,6 +1,6 @@
 import {Readable} from 'node:stream';
 import {gzipSync} from 'node:zlib';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vite-plus/test';
 import {
   applicationExportQuerySchema,
   attachmentExportPath,

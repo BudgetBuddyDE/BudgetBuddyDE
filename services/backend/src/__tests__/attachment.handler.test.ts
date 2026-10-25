@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import {beforeEach, describe, expect, it, suite, vi} from 'vitest';
+import {beforeEach, describe, expect, it, suite, vi} from 'vite-plus/test';
 
 // ---------------------------------------------------------------------------
 // Module mocks – must be declared before the module under test is imported.

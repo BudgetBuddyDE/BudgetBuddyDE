@@ -1,5 +1,5 @@
-import {defineConfig, mergeConfig} from 'vitest/config';
-import baseConfig from '../../vitest.config';
+import {defineConfig, mergeConfig} from 'vite-plus';
+import baseConfig from '../../vite.shared';
 
 export default mergeConfig(
   baseConfig,

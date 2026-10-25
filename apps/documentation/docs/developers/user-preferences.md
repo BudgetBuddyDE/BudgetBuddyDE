@@ -40,7 +40,7 @@ The API client is available as `apiClient.backend.preference`; use its `get()` a
 Back up the database first and stop all backend instances during the cutover so registrations or preference requests cannot race with the backfill. Apply the regular migrations before running the backfill, and start the updated backend only after these upgrade steps are complete:
 
 ```bash
-npm run db:migrate --workspace @budgetbuddyde/db
+pnpm --filter @budgetbuddyde/db run db:migrate
 ```
 
 Run this SQL against the same database used by the backend:

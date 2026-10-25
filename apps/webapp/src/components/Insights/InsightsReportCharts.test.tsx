@@ -1,6 +1,6 @@
 import {cleanup, render} from '@testing-library/react';
 import React from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {buildReport} from './InsightsReport.fixtures';
 
 const {composedChartProps} = vi.hoisted(() => ({composedChartProps: vi.fn()}));

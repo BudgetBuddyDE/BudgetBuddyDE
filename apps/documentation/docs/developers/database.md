@@ -69,7 +69,7 @@ Run from the repository root against a separately provisioned test database:
 
 ```bash
 RECURRING_PAYMENT_TEST_DATABASE_URL='postgres://USER:PASSWORD@localhost:5432/budgetbuddy_test_recurring' \
-  npx turbo run test --filter=@budgetbuddyde/backend --force
+  pnpm exec turbo run test --filter=@budgetbuddyde/backend --force
 ```
 
 Only use a disposable database: the suite applies the repository migrations and temporarily installs a failure-injection trigger. Do not run other clients or concurrent test suites against that database. Remove the database after testing. `--force` prevents a cached test result from replacing the actual database test.
@@ -78,18 +78,18 @@ Only use a disposable database: the suite applies the repository migrations and 
 
 Migrations run through drizzle-kit from `packages/db`:
 
-| Script                       | Purpose                                                  |
-| ---------------------------- | -------------------------------------------------------- |
-| `npm run db:generate`        | Generate a migration from schema changes                 |
-| `npm run db:full-generate`   | Regenerate Better Auth tables, then generate migrations  |
-| `npm run ba:schema-generate` | Regenerate `src/auth/tables.ts` from the Better Auth CLI |
-| `npm run db:migrate`         | Apply pending migrations                                 |
-| `npm run db:studio`          | Open Drizzle Studio                                      |
+| Script                                                   | Purpose                                                  |
+| -------------------------------------------------------- | -------------------------------------------------------- |
+| `pnpm --filter @budgetbuddyde/db run db:generate`        | Generate a migration from schema changes                 |
+| `pnpm --filter @budgetbuddyde/db run db:full-generate`   | Regenerate Better Auth tables, then generate migrations  |
+| `pnpm --filter @budgetbuddyde/db run ba:schema-generate` | Regenerate `src/auth/tables.ts` from the Better Auth CLI |
+| `pnpm --filter @budgetbuddyde/db run db:migrate`         | Apply pending migrations                                 |
+| `pnpm --filter @budgetbuddyde/db run db:studio`          | Open Drizzle Studio                                      |
 
 Run them from the workspace or from the root, for example:
 
 ```bash
-npm run db:migrate --workspace @budgetbuddyde/db
+pnpm --filter @budgetbuddyde/db run db:migrate
 ```
 
 The scripts read `DATABASE_URL` from `packages/db/.env`. The development `docker-compose.yml` also runs the Drizzle Gateway (port 4983) for remote Drizzle Studio access.
@@ -97,7 +97,7 @@ The scripts read `DATABASE_URL` from `packages/db/.env`. The development `docker
 After schema changes, build the package so consumers see updated types:
 
 ```bash
-npm run build-packages
+pnpm run build-packages
 ```
 
 ## Next steps

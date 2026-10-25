@@ -23,7 +23,84 @@
   </p>
 </p>
 
-A modern, open-source personal finance manager built with React. Track transactions, manage recurring payments, and visualize your budget all in one place.
+# BudgetBuddyDE
+
+An open-source personal finance manager for tracking transactions, recurring payments, budgets and insights. The application consists of a Next.js web app, an authenticated Express API and shared TypeScript packages. Track income and expenses, organize categories and payment methods, manage subscriptions, and explore your financial history with interactive analytics.
+
+## Getting started
+
+For hosted use, visit the [BudgetBuddyDE app](https://app.budget-buddy.de). To run the full stack locally, use Node.js 24.21.0, pnpm as pinned in `package.json`, Vite+ and Docker Compose.
+
+```bash
+git clone https://github.com/BudgetBuddyDE/BudgetBuddyDE.git
+cd BudgetBuddyDE
+docker compose up -d
+```
+
+Copy the workspace environment templates, then set the required secrets and service URLs:
+
+```powershell
+Copy-Item apps/webapp/.env.example apps/webapp/.env.local
+Copy-Item services/backend/.env.example services/backend/.env
+```
+
+The backend needs a secure `AUTH_SECRET` and a valid `RESEND_API_KEY`. The web app needs `NEXT_PUBLIC_BACKEND_SERVICE_HOST=http://localhost:9000`. See the [environment variable reference](https://docs.budget-buddy.de/self-hosting/configuration) for all required and optional values.
+
+Install the workspace dependencies and build internal packages:
+
+```bash
+pnpm install --frozen-lockfile
+vp run build-packages
+```
+
+See the [installation guide](https://docs.budget-buddy.de/self-hosting/installation) for complete setup instructions.
+
+## Development
+
+Start all Turbo-managed development services:
+
+```bash
+pnpm run dev
+```
+
+Or run only the backend services:
+
+```bash
+pnpm run dev-services
+```
+
+Vite+ 1.3.0 provides the repository's formatting, linting and test tools. Use Vite+ through pnpm:
+
+```bash
+pnpm exec vp check
+pnpm exec vp test
+pnpm run typecheck
+```
+
+Use `vp run <task>` to invoke a project script: `vp dev` is Vite's built-in dev server, while `vp run dev` runs this repository's Turbo/Next.js development script. Likewise, `vp run build` invokes the workspace build scripts and builds the complete monorepo in dependency order.
+
+Useful checks include:
+
+```bash
+pnpm run lint:check
+pnpm run typecheck
+pnpm test
+pnpm run build
+pnpm run ci
+```
+
+Run a single workspace with pnpm, for example `pnpm --filter @budgetbuddyde/api test`. Webapp tests use happy-dom and four workers on Windows. Backend tests collect V8 coverage and enforce 80% minimum statements, branches, functions and lines.
+
+The repository is a pnpm-workspace monorepo orchestrated by Turborepo:
+
+- `apps/webapp` : Next.js personal-finance application.
+- `apps/documentation` : Fumapress documentation site.
+- `apps/website` : static landing page.
+- `services/backend` : Express, Better Auth, REST API and MCP endpoint.
+- `packages/api`, `packages/db`, `packages/core`, `packages/logger`, `packages/charts` : shared API, data, runtime, logging and chart packages.
+- `examples/api-key-client` : runnable API-key integration example.
+
+## Deployment
 
 <p align="center">
   <strong>One-click deploy on Railway:</strong><br/>
@@ -32,44 +109,22 @@ A modern, open-source personal finance manager built with React. Track transacti
   </a>
 </p>
 
-## Features
+For self-hosting, configure the backend, PostgreSQL, Redis and object storage using the [production guide](https://docs.budget-buddy.de/self-hosting/production). The [updating guide](https://docs.budget-buddy.de/self-hosting/updating) covers database migrations, backups and deployment upgrades. The one-click Railway template may not include every optional integration, such as attachment object storage.
 
-- **Dashboard** — Real-time overview of your financial health, upcoming payments, and recent transactions
-- **Transactions** — Record and categorize income & expenses
-- **Recurring Payments** — Track subscriptions and regular bills so you never miss one
-- **Analytics** — Interactive charts and budget monitoring
-- **Customization** — Manage your own categories and payment methods
+## Resources
 
-## Project Structure
+- [Website](https://budget-buddy.de) · [Hosted app](https://app.budget-buddy.de) · [Documentation](https://docs.budget-buddy.de)
+- [Development setup](https://docs.budget-buddy.de/developers/getting-started) · [Architecture](https://docs.budget-buddy.de/developers/architecture)
+- [API and MCP](https://docs.budget-buddy.de/developers/api-and-mcp) · [Self-hosting](https://docs.budget-buddy.de/self-hosting/overview)
+- [Issues and feature requests](https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues) · [Contributing](https://github.com/BudgetBuddyDE/BudgetBuddyDE/blob/main/CONTRIBUTING.md)
 
-Monorepo powered by [Turbo](https://turbo.build/).
+## Credits
 
-### Apps
+Built with open-source projects:
 
-- **[Webapp](apps/webapp):** The main application for managing your budget.
-- **[Website](apps/website):** The landing page.
-- **[Documentation](apps/documentation):** The documentation.
-
-### Services
-
-- **[Auth Service](./apps/documentation/docs/architecture/authentication.md):** Handles user authentication and authorization.
-- **[Backend](./apps/documentation/docs/architecture/overview.md):** The main backend service providing the API.
-- **[MCP](./apps/documentation/docs/developers/api-and-mcp.md):** Integrated backend endpoint at `/mcp` for interacting with BudgetBuddy through LLM clients.
-
-### Packages
-
-- **[Database](./apps/documentation/docs/architecture/data-model.md):** DrizzleORM database schema definitions.
-- **[Api](./apps/documentation/docs/reference/api.md):** Type-safe API client for backend communication.
-- **[Logger](packages/logger):** (Deprecated) Shared logging utility.
-
-## Getting Started
-
-> [!TIP]
-> For a full setup guide (local & production), see the [documentation](https://docs.budget-buddy.de).
-
-```bash
-git clone git@github.com:BudgetBuddyDE/BudgetBuddyDE.git
-cd BudgetBuddyDE
-npm install
-npm run build-packages
-```
+- [Vite+](https://viteplus.dev/) and [Vite](https://vite.dev/) : unified development toolchain and build tooling.
+- [Turborepo](https://turbo.build/repo) : monorepo task orchestration.
+- [Concourse CI](https://concourse-ci.org/) : continuous integration pipelines.
+- [Next.js](https://nextjs.org/) : web application framework.
+- [Material UI](https://mui.com/) : React UI components and data grid.
+- [Express.js](https://expressjs.com/) : backend HTTP framework.

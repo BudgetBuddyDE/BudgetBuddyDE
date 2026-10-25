@@ -1,5 +1,5 @@
 import {account, apikey, session, user} from '@budgetbuddyde/db/auth';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 
 const mocks = vi.hoisted(() => ({select: vi.fn(), eq: vi.fn(), getSession: vi.fn()}));
 vi.mock('./db', () => ({db: {select: mocks.select}}));

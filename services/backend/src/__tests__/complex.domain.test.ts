@@ -1,5 +1,5 @@
 import {PgDialect} from 'drizzle-orm/pg-core';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {getAttachment} from '../domain/attachment';
 import {
   createRecurringPayment,
@@ -61,12 +61,14 @@ vi.mock('../config', () => ({
 }));
 vi.mock('../lib', () => ({logger: {child: () => ({error: vi.fn()})}}));
 vi.mock('../lib/attachment', () => ({
-  TransactionAttachmentHandler: vi.fn(() => ({
-    verifyOwnership: mocks.verifyOwnership,
-    generateSignedUrl: mocks.generateSignedUrl,
-    generateSignedUrls: mocks.generateSignedUrls,
-    findAttachmentsByTransactionId: mocks.findAttachmentsByTransactionId,
-  })),
+  TransactionAttachmentHandler: vi.fn(function () {
+    return {
+      verifyOwnership: mocks.verifyOwnership,
+      generateSignedUrl: mocks.generateSignedUrl,
+      generateSignedUrls: mocks.generateSignedUrls,
+      findAttachmentsByTransactionId: mocks.findAttachmentsByTransactionId,
+    };
+  }),
 }));
 const id = '00000000-0000-4000-8000-000000000001';
 const categoryId = '00000000-0000-4000-8000-000000000002';

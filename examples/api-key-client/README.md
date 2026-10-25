@@ -18,6 +18,6 @@ Copy `.env.example` to `.env` as a starting point, or export the variables in yo
 export BUDGETBUDDY_API_KEY="bb-your-api-key"
 export BUDGETBUDDY_BACKEND_URL="https://backend.budgetbuddy.de"
 
-npm run build --workspace=@budgetbuddyde/example-api-key-client
-npm run start --workspace=@budgetbuddyde/example-api-key-client
+pnpm --filter @budgetbuddyde/example-api-key-client run build
+pnpm --filter=@budgetbuddyde/example-api-key-client start
 ```
