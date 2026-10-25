@@ -1,3 +1,5 @@
+'use client';
+
 import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
 import {Grid} from '@mui/material';
 import {useTranslations} from 'next-intl';
