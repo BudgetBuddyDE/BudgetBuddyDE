@@ -16,6 +16,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {CloseIconButton} from '@/components/Button';
 import type {FilterAction, FilterState} from '@/components/Filter/FilterReducer';
@@ -62,6 +63,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
   categoryOptions,
   paymentMethodOptions,
 }) => {
+  const t = useTranslations('Filters');
   const theme = useTheme();
   const isFullscreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -76,7 +78,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
       slots={{transition: ZoomTransition}}
       slotProps={{paper: {elevation: 0}}}
     >
-      <DialogTitle>Filters</DialogTitle>
+      <DialogTitle>{t('title')}</DialogTitle>
       <CloseIconButton
         onClick={onClose}
         sx={theme => ({
@@ -90,11 +92,11 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
         <Stack spacing={3}>
           {withDateRange && (
             <Stack spacing={1}>
-              <SectionLabel label="Date Range" />
+              <SectionLabel label={t('dateRange')} />
               <DateRangePicker
                 defaultValue={{startDate: state.dateRange.startDate, endDate: state.dateRange.endDate}}
                 onDateRangeChange={(start, end) => dispatch({action: 'SET_DATE_RANGE', startDate: start, endDate: end})}
-                dateFormat="dd.MM.yyyy"
+                dateFormat="MM/dd/yyyy"
                 slotProps={{
                   startDatePicker: {
                     slotProps: {
@@ -121,7 +123,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
 
           {withRecurringPaymentStatus && (
             <Stack spacing={1}>
-              <SectionLabel label="Status" />
+              <SectionLabel label={t('status')} />
               <ToggleButtonGroup
                 size="small"
                 exclusive
@@ -130,21 +132,21 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
                   if (!value) return;
                   dispatch({action: 'SET_PAUSED', paused: value === 'inactive'});
                 }}
-                aria-label="Recurring payment status quick filters"
+                aria-label={t('recurringStatusQuickFilters')}
               >
-                <ToggleButton value="active">Active</ToggleButton>
-                <ToggleButton value="inactive">Inactive</ToggleButton>
+                <ToggleButton value="active">{t('active')}</ToggleButton>
+                <ToggleButton value="inactive">{t('inactive')}</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
           )}
 
           {withCategories && (
             <Stack spacing={1}>
-              <SectionLabel label="Categories" />
+              <SectionLabel label={t('categories')} />
               <Autocomplete<TCategoryVH, true>
                 name="filter-categories"
-                label="Categories"
-                placeholder="Any category"
+                label={t('categories')}
+                placeholder={t('anyCategory')}
                 multiple
                 disableCloseOnSelect
                 searchAsYouType={false}
@@ -159,11 +161,11 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
 
           {withPaymentMethods && (
             <Stack spacing={1}>
-              <SectionLabel label="Payment Methods" />
+              <SectionLabel label={t('paymentMethods')} />
               <Autocomplete<TPaymentMethodVH, true>
                 name="filter-payment-methods"
-                label="Payment Methods"
-                placeholder="Any payment method"
+                label={t('paymentMethods')}
+                placeholder={t('anyPaymentMethod')}
                 multiple
                 disableCloseOnSelect
                 searchAsYouType={false}
@@ -179,9 +181,9 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onReset}>Reset</Button>
+        <Button onClick={onReset}>{t('reset')}</Button>
         <Button variant="contained" onClick={onApply}>
-          Apply
+          {t('apply')}
         </Button>
       </DialogActions>
     </Dialog>

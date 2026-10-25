@@ -1,5 +1,6 @@
 import type {TInsightsReport} from '@budgetbuddyde/api/insights';
 import {Box, FormControl, Grid, InputLabel, MenuItem, Select} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {Card} from '@/components/Card';
 import {Formatter} from '@/utils/Formatter';
@@ -15,6 +16,7 @@ export type InsightsReportAnalysisProps = {
 };
 
 export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({report, selectedCategoryRows}) => {
+  const t = useTranslations('InsightsAnalysis');
   const currency = useCurrencyPreference();
   const [categoryMetric, setCategoryMetric] = React.useState<CategoryMetric>('expenses');
   const [paymentMetric, setPaymentMetric] = React.useState<PaymentMetric>('count');
@@ -25,25 +27,25 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
         <Grid size={{xs: 12, lg: 7}}>
           <Card>
             <Card.Header>
-              <Card.Title>Category analysis</Card.Title>
+              <Card.Title>{t('categoryAnalysis')}</Card.Title>
               <FormControl size="small" sx={{minWidth: 130}}>
-                <InputLabel id="insights-report-category-metric-label">Metric</InputLabel>
+                <InputLabel id="insights-report-category-metric-label">{t('metric')}</InputLabel>
                 <Select
                   labelId="insights-report-category-metric-label"
                   id="insights-report-category-metric"
-                  label="Metric"
+                  label={t('metric')}
                   value={categoryMetric}
                   onChange={event => setCategoryMetric(event.target.value as CategoryMetric)}
                 >
-                  <MenuItem value="expenses">Expenses</MenuItem>
-                  <MenuItem value="income">Income</MenuItem>
-                  <MenuItem value="balance">Balance</MenuItem>
+                  <MenuItem value="expenses">{t('expenses')}</MenuItem>
+                  <MenuItem value="income">{t('income')}</MenuItem>
+                  <MenuItem value="balance">{t('balance')}</MenuItem>
                 </Select>
               </FormControl>
             </Card.Header>
             <Card.Body>
               <ReportTable
-                headers={['Category', 'Selected metric', 'Expenses', 'Income', 'Balance', 'Share']}
+                headers={[t('category'), t('selectedMetric'), t('expenses'), t('income'), t('balance'), t('share')]}
                 rightAlignedColumns={[1, 2, 3, 4, 5]}
                 rows={selectedCategoryRows.map(row => [
                   row.category.name,
@@ -60,24 +62,24 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
         <Grid size={{xs: 12, lg: 5}}>
           <Card>
             <Card.Header>
-              <Card.Title>Payment method usage</Card.Title>
+              <Card.Title>{t('paymentMethodUsage')}</Card.Title>
               <FormControl size="small" sx={{minWidth: 110}}>
-                <InputLabel id="insights-report-payment-metric-label">Rank by</InputLabel>
+                <InputLabel id="insights-report-payment-metric-label">{t('rankBy')}</InputLabel>
                 <Select
                   labelId="insights-report-payment-metric-label"
                   id="insights-report-payment-metric"
-                  label="Rank by"
+                  label={t('rankBy')}
                   value={paymentMetric}
                   onChange={event => setPaymentMetric(event.target.value as PaymentMetric)}
                 >
-                  <MenuItem value="count">Uses</MenuItem>
-                  <MenuItem value="volume">Volume</MenuItem>
+                  <MenuItem value="count">{t('uses')}</MenuItem>
+                  <MenuItem value="volume">{t('volume')}</MenuItem>
                 </Select>
               </FormControl>
             </Card.Header>
             <Card.Body>
               <ReportTable
-                headers={['Method', 'Uses', 'Share', 'Expenses']}
+                headers={[t('method'), t('uses'), t('share'), t('expenses')]}
                 rightAlignedColumns={[1, 2, 3]}
                 rows={[...report.paymentMethods]
                   .sort((a, b) =>
@@ -100,13 +102,13 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
         <Card>
           <Card.Header>
             <Box>
-              <Card.Title>Current month budget health</Card.Title>
-              <Card.Subtitle>Budgets are evaluated independently from the report period</Card.Subtitle>
+              <Card.Title>{t('currentMonthBudgetHealth')}</Card.Title>
+              <Card.Subtitle>{t('budgetIndependentPeriod')}</Card.Subtitle>
             </Box>
           </Card.Header>
           <Card.Body>
             <ReportTable
-              headers={['Budget', 'Target', 'Spent', 'Remaining', 'Usage']}
+              headers={[t('budget'), t('target'), t('spent'), t('remaining'), t('usage')]}
               rightAlignedColumns={[1, 2, 3, 4]}
               rows={report.budgets.map(row => [
                 row.name,

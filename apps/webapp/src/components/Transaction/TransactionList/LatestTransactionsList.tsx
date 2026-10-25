@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/AddRounded';
+import {getTranslations} from 'next-intl/server';
 import {apiClient} from '@/apiClient';
 import {IntentButton} from '@/components/IBN';
 import {headers} from '@/lib/headers';
@@ -8,6 +9,7 @@ import {TransactionList, type TransactionListProps} from './TransactionList';
 export type LatestTransactionsListProps = Pick<TransactionListProps, 'onAddEntity'>;
 
 export const LatestTransactionsList = async ({onAddEntity}: LatestTransactionsListProps) => {
+  const t = await getTranslations('TransactionList');
   const clientHeaders = await headers();
   const [transactions, error] = await apiClient.backend.transaction.getAll(
     {
@@ -22,8 +24,8 @@ export const LatestTransactionsList = async ({onAddEntity}: LatestTransactionsLi
   }
   return (
     <TransactionList
-      title="Transactions"
-      subtitle="Your latest transactions"
+      title={t('title')}
+      subtitle={t('latestTransactions')}
       data={(transactions.data ?? []).map(t => ({
         ID: t.id,
         receiver: t.receiver,
@@ -43,13 +45,13 @@ export const LatestTransactionsList = async ({onAddEntity}: LatestTransactionsLi
         <IntentButton
           intent={{entity: 'transaction', action: 'create'}}
           iconButton
-          aria-label="Create Transaction"
+          aria-label={t('createTransaction')}
           color="primary"
         >
           <AddIcon />
         </IntentButton>
       }
-      noResultsMessage="You haven't made any transactions yet"
+      noResultsMessage={t('noTransactions')}
     />
   );
 };

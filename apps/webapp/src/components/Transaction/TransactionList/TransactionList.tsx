@@ -2,6 +2,7 @@
 
 import AddIcon from '@mui/icons-material/AddRounded';
 import {Box, Chip, type ChipProps, IconButton} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 
 import {Card, type CardProps} from '@/components/Card';
@@ -41,12 +42,13 @@ export type TransactionListProps = EntityListProps<{
 export const TransactionList: React.FC<TransactionListProps> = ({
   title,
   subtitle,
-  noResultsMessage = "You haven't made any purchases yet",
+  noResultsMessage,
   data,
   onAddEntity,
   headerAction,
   cardProps,
 }) => {
+  const t = useTranslations('TransactionList');
   const chipProps: ChipProps = {
     variant: 'outlined',
     size: 'small',
@@ -63,7 +65,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         {(headerAction || onAddEntity) && (
           <Card.HeaderActions>
             {headerAction ?? (
-              <IconButton color="primary" aria-label="Add transaction" onClick={onAddEntity}>
+              <IconButton color="primary" aria-label={t('addTransaction')} onClick={onAddEntity}>
                 <AddIcon />
               </IconButton>
             )}
@@ -88,7 +90,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             />
           ))
         ) : (
-          <NoResults text={noResultsMessage} />
+          <NoResults text={noResultsMessage ?? t('noPurchases')} />
         )}
       </Card.Body>
     </Card>

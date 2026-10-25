@@ -1,11 +1,13 @@
 import {Box, Card, Divider, Grid, Typography} from '@mui/material';
 import {headers} from 'next/headers';
+import {getTranslations} from 'next-intl/server';
 import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {LinkButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
 
 export default async function MailChangedPage() {
+  const t = await getTranslations('EmailConfirmation');
   const {data: session, error} = await authClient.getSession({
     fetchOptions: {
       headers: await headers(),
@@ -39,7 +41,7 @@ export default async function MailChangedPage() {
                 mt: 2,
               }}
             >
-              Change of email address
+              {t('changedTitle')}
             </Typography>
           </Box>
 
@@ -47,26 +49,26 @@ export default async function MailChangedPage() {
 
           {!isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              It seems like you are not signed in. Please sign in first...
+              {t('notSignedInMessage')}
             </Typography>
           )}
 
           {isSignedIn && (
             <Typography variant="body1" gutterBottom>
-              You have successfully changed your email address to {session.user.email}.
+              {t('changedMessage', {email: session.user.email})}
             </Typography>
           )}
 
-          <Divider sx={{my: 2}}>Not signed in?</Divider>
+          <Divider sx={{my: 2}}>{t('notSignedIn')}</Divider>
 
           {isSignedIn && (
             <LinkButton href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-              Sign in first...
+              {t('signInFirst')}
             </LinkButton>
           )}
 
           <LinkButton href="/sign-up" variant="contained" fullWidth>
-            Create an account
+            {t('createAccount')}
           </LinkButton>
         </Card>
       </Grid>

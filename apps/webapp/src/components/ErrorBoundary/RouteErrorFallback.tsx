@@ -2,6 +2,7 @@
 
 import {Alert, AlertTitle, Button, Stack, Typography} from '@mui/material';
 import {useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import {useEffect} from 'react';
 import {logger} from '@/logger';
 
@@ -16,6 +17,7 @@ export function RouteErrorFallback({
   reset,
   title = 'This section is temporarily unavailable',
 }: RouteErrorFallbackProps) {
+  const t = useTranslations('RouteError');
   const router = useRouter();
 
   useEffect(() => {
@@ -35,8 +37,8 @@ export function RouteErrorFallback({
         {title}
       </Typography>
       <Alert severity="error">
-        <AlertTitle>We could not load this section</AlertTitle>
-        Please try again. Your other page sections remain available.
+        <AlertTitle>{t('title')}</AlertTitle>
+        {t('description')}
       </Alert>
       {error.digest ? (
         <Typography
@@ -45,11 +47,11 @@ export function RouteErrorFallback({
             color: 'text.secondary',
           }}
         >
-          Error reference: {error.digest}
+          {t('reference', {digest: error.digest})}
         </Typography>
       ) : null}
       <Button variant="outlined" onClick={() => (reset ? reset() : router.refresh())} sx={{alignSelf: 'flex-start'}}>
-        Try again
+        {t('retry')}
       </Button>
     </Stack>
   );

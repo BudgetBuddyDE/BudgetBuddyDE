@@ -9,6 +9,7 @@ import {
 } from '@mui/icons-material';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -52,6 +53,7 @@ export type PaymentMethodTableProps = {
 };
 
 export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKeyword}) => {
+  const t = useTranslations('PaymentMethodTable');
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = paymentMethodSlice.actions;
   const dispatch = useAppDispatch();
@@ -540,7 +542,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       />
 
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label="Add payment method" />
+        <AddFab onClick={handleCreateEntity} label={t('add')} />
       </FabContainer>
     </React.Fragment>
   );

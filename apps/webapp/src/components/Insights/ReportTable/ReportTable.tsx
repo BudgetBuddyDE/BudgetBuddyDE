@@ -1,4 +1,5 @@
 import {Table, TableBody, TableCell, TableHead, TableRow} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {Card} from '@/components/Card';
 
@@ -9,6 +10,7 @@ export type ReportTableProps = {
 };
 
 export const ReportTable: React.FC<ReportTableProps> = ({headers, rows, rightAlignedColumns = []}) => {
+  const t = useTranslations('ReportTable');
   return (
     <Card variant="outlined" sx={{overflowX: 'auto', p: 0}}>
       <Table size="small">
@@ -34,7 +36,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({headers, rows, rightAli
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={headers.length}>No data for the selected filters.</TableCell>
+              <TableCell colSpan={headers.length}>{t('noData')}</TableCell>
             </TableRow>
           )}
         </TableBody>

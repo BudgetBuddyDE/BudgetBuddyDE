@@ -4,6 +4,7 @@ import SendRounded from '@mui/icons-material/SendRounded';
 import {Box, Button, Divider, Grid, Link, TextField, Typography} from '@mui/material';
 import NextLink from 'next/link';
 import {redirect, useRouter, useSearchParams} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import {useFormStatus} from 'react-dom';
 import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
@@ -13,6 +14,7 @@ import {useSnackbarContext} from '@/components/Snackbar';
 import {type AuthProvider, SocialAuthButton} from '@/components/User/SocialAuthButton';
 
 export default function SignInPage() {
+  const t = useTranslations('Auth');
   const {showSnackbar} = useSnackbarContext();
   const {pending: isPending} = useFormStatus();
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function SignInPage() {
         },
         onSuccess: async () => {
           showSnackbar({
-            message: "You have been signed in! You're getting redirected...",
+            message: t('signedInRedirect'),
           });
           redirect('/dashboard');
         },
@@ -71,7 +73,7 @@ export default function SignInPage() {
                 mt: 2,
               }}
             >
-              Sign in
+              {t('signIn')}
             </Typography>
           </Box>
 
@@ -84,15 +86,15 @@ export default function SignInPage() {
               ))}
 
               <Grid size={{xs: 12}}>
-                <Divider>or with</Divider>
+                <Divider>{t('orWith')}</Divider>
               </Grid>
 
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Enter email"
+                  placeholder={t('enterEmail')}
                   type="email"
-                  label="E-Mail"
+                  label={t('email')}
                   name="email"
                   defaultValue={emailFromQuery}
                   disabled={isPending}
@@ -112,21 +114,21 @@ export default function SignInPage() {
                   size="small"
                   sx={{mt: 0.5}}
                 >
-                  Forgot password?
+                  {t('forgotPassword')}
                 </Button>
               </Grid>
             </Grid>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
               <Button type="submit" variant="contained" endIcon={<SendRounded />} sx={{mt: 1}} disabled={isPending}>
-                Sign in
+                {t('signIn')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>No account?</Divider>
+          <Divider sx={{my: 2}}>{t('noAccount')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
-            Create an account
+            {t('createAccount')}
           </Button>
         </Card>
       </Grid>

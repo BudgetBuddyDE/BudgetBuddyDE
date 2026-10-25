@@ -1,5 +1,6 @@
 import AddIcon from '@mui/icons-material/AddRounded';
 import {addDays} from 'date-fns';
+import {getTranslations} from 'next-intl/server';
 import {apiClient} from '@/apiClient';
 import {IntentButton} from '@/components/IBN';
 import {headers} from '@/lib/headers';
@@ -9,6 +10,7 @@ import {TransactionList, type TransactionListProps} from './TransactionList';
 export type UpcomingTransactionsList = Pick<TransactionListProps, 'onAddEntity'>;
 
 export const UpcomingTransactionsList = async ({onAddEntity}: UpcomingTransactionsList) => {
+  const t = await getTranslations('TransactionList');
   const [transactions, error] = await apiClient.backend.transaction.getAll(
     {
       to: 6,
@@ -22,8 +24,8 @@ export const UpcomingTransactionsList = async ({onAddEntity}: UpcomingTransactio
   }
   return (
     <TransactionList
-      title="Transactions"
-      subtitle="Your upcoming transactions"
+      title={t('title')}
+      subtitle={t('upcomingTransactions')}
       data={(transactions.data ?? []).map(t => ({
         ID: t.id,
         receiver: t.receiver,
@@ -43,13 +45,13 @@ export const UpcomingTransactionsList = async ({onAddEntity}: UpcomingTransactio
         <IntentButton
           intent={{entity: 'transaction', action: 'create'}}
           iconButton
-          aria-label="Create Transaction"
+          aria-label={t('createTransaction')}
           color="primary"
         >
           <AddIcon />
         </IntentButton>
       }
-      noResultsMessage="You don't have any upcoming transactions for this month"
+      noResultsMessage={t('noUpcomingTransactions')}
     />
   );
 };

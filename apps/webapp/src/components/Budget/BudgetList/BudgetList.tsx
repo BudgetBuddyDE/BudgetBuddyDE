@@ -5,6 +5,7 @@ import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import AddRounded from '@mui/icons-material/AddRounded';
 import {Box, Button, IconButton, InputAdornment, Stack} from '@mui/material';
 import {endOfMonth} from 'date-fns';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {ActionPaper} from '@/components/ActionPaper';
@@ -57,6 +58,7 @@ function toBudgetItemModel(entity: TBudget): Budget {
 }
 
 export const BudgetList: React.FC<BudgetListProps> = () => {
+  const t = useTranslations('BudgetList');
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage} = budgetSlice.actions;
   const dispatch = useAppDispatch();
@@ -118,11 +120,11 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
 
       const [budget, error] = await apiClient.backend.budget.getById(id);
       if (error) {
-        showSnackbar({message: `Failed to open budget: ${error.message}`});
+        showSnackbar({message: t('failedToOpen', {message: error.message})});
         return null;
       }
       if (!budget?.data) {
-        showSnackbar({message: 'Budget not found'});
+        showSnackbar({message: t('notFound')});
         return null;
       }
       return budget.data;
@@ -161,11 +163,11 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     if (error || !success) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('retry')}</Button>,
       });
     }
 
-    showSnackbar({message: success.message || 'Budget deleted successfully'});
+    showSnackbar({message: success.message || t('deletedSuccessfully')});
     dispatch(refresh());
   };
 
@@ -216,8 +218,8 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
       showSnackbar({
-        message: `Failed to validate payload for ${action === 'CREATE' ? 'creation' : 'update'} of budget: ${issues}`,
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        message: t('validationFailed', {action: action === 'CREATE' ? t('creation') : t('update'), issues}),
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
       });
       return;
     }
@@ -226,12 +228,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       const [createdBudgets, error] = await apiClient.backend.budget.create(parsedPayload.data);
       if (!createdBudgets || error) {
         return showSnackbar({
-          message: `Failed to create budget: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('createFailed', {message: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({
-        message: createdBudgets.message || 'Budget created successfully',
+        message: createdBudgets.message || t('createdSuccessfully'),
       });
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
@@ -240,8 +242,8 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       const entityId = drawerState.defaultValues?.id;
       if (!entityId) {
         return showSnackbar({
-          message: `Failed to update budget: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('updateFailedMissingId'),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
 
@@ -251,12 +253,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       });
       if (!updatedBudgets || error) {
         return showSnackbar({
-          message: `Failed to create budget: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('updateFailed', {message: error.message}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({
-        message: updatedBudgets.message || `Budget updated successfully`,
+        message: updatedBudgets.message || t('updatedSuccessfully'),
       });
       dispatchDrawerAction({type: 'CLOSE'});
       onSuccess?.();
@@ -288,15 +290,15 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         exclusive: true,
         options: [
           {
-            label: 'Include',
+            label: t('include'),
             value: 'i',
-            description: 'Include these categories in the budget',
+            description: t('includeDescription'),
             descriptionPlacement: 'bottom',
           },
           {
-            label: 'Exclude',
+            label: t('exclude'),
             value: 'e',
-            description: 'Exclude these categories from the budget',
+            description: t('excludeDescription'),
             descriptionPlacement: 'bottom',
           },
         ],
@@ -305,15 +307,15 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         type: 'text',
         name: 'name',
         required: true,
-        label: 'Name',
-        placeholder: 'e.g. Groceries, Rent, ...',
+        label: t('name'),
+        placeholder: t('namePlaceholder'),
       },
       {
         type: 'number',
         name: 'budget',
         required: true,
-        label: 'Budget Amount',
-        placeholder: 'e.g. 500.00',
+        label: t('budgetAmount'),
+        placeholder: t('amountPlaceholder'),
         slotProps: {
           input: {
             endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
@@ -323,8 +325,8 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       {
         type: 'autocomplete',
         name: 'toCategories',
-        label: 'Categories',
-        placeholder: 'Select categories',
+        label: t('categories'),
+        placeholder: t('selectCategories'),
         required: true,
         retrieveOptionsFunc: async () => {
           const [categories, error] = await apiClient.backend.category.getValueHelp();
@@ -342,18 +344,18 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         },
         multiple: true,
         disableCloseOnSelect: true,
-        noOptionsText: 'No categories found',
+        noOptionsText: t('noCategoriesFound'),
       },
       {
         type: 'text',
         name: 'description',
-        label: 'Description',
-        placeholder: 'e.g. Monthly grocery budget, ...',
+        label: t('description'),
+        placeholder: t('descriptionPlaceholder'),
         area: true,
         rows: 2,
       },
     ] as EntityDrawerField<EntityFormFields>[];
-  }, []);
+  }, [t]);
 
   // Retrieve new data, every time the page is changed
   React.useEffect(() => {
@@ -370,12 +372,12 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       <Card>
         <Card.Header sx={{mb: 1}}>
           <Box>
-            <Card.Title>Budget</Card.Title>
-            <Card.Subtitle>Keep your spendings on track</Card.Subtitle>
+            <Card.Title>{t('title')}</Card.Title>
+            <Card.Subtitle>{t('subtitle')}</Card.Subtitle>
           </Box>
 
           <Card.HeaderActions>
-            <IconButton color="primary" aria-label="Create budget" onClick={handleCreateEntity}>
+            <IconButton color="primary" aria-label={t('createBudget')} onClick={handleCreateEntity}>
               <AddRounded />
             </IconButton>
           </Card.HeaderActions>
@@ -410,9 +412,9 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
           ) : (
             <NoResults
               variant="create"
-              title="Create your first budget"
-              description="Set a spending limit to keep your finances on track."
-              createLabel="Create budget"
+              title={t('emptyTitle')}
+              description={t('emptyDescription')}
+              createLabel={t('createBudget')}
               onCreate={handleCreateEntity}
               sx={{borderStyle: 'solid'}}
             />
@@ -432,8 +434,8 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       </Card>
 
       <EntityDrawer<EntityFormFields>
-        title={'Budget'}
-        subtitle={drawerState.action === 'CREATE' ? 'Create new budget' : 'Edit an budget'}
+        title={t('title')}
+        subtitle={drawerState.action === 'CREATE' ? t('createNew') : t('edit')}
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -453,7 +455,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content: 'Are you sure you want to delete this budget?',
+          content: t('confirmDelete'),
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});

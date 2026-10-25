@@ -6,8 +6,9 @@ import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import ImageNotSupportedRounded from '@mui/icons-material/ImageNotSupportedRounded';
 import {alpha, Box, Skeleton, Stack, type StackProps, Tooltip, Typography, useTheme} from '@mui/material';
-import type React from 'react';
+import {useTranslations} from 'next-intl';
 import {memo, useState} from 'react';
+import type React from 'react';
 import {Card} from '@/components/Card';
 import {Image} from '@/components/Image';
 import {Formatter} from '@/utils/Formatter';
@@ -22,20 +23,23 @@ export type AttachmentActionProps = Omit<StackProps, 'onClick'> & {
   onDelete?: (attachment: TAttachmentWithUrl) => void;
 };
 
-const AttachmentActions: React.FC<AttachmentActionProps> = ({attachment, onDownload, onDelete, ...boxProps}) => (
-  <Stack direction="row" className="attachment-actions" {...boxProps}>
-    {onDownload && (
-      <ActionButton label="Download" onClick={() => onDownload(attachment)}>
-        <DownloadRounded />
-      </ActionButton>
-    )}
-    {onDelete && (
-      <ActionButton label="Delete" onClick={() => onDelete(attachment)}>
-        <DeleteRounded />
-      </ActionButton>
-    )}
-  </Stack>
-);
+const AttachmentActions: React.FC<AttachmentActionProps> = ({attachment, onDownload, onDelete, ...boxProps}) => {
+  const t = useTranslations('AttachmentThumbnail');
+  return (
+    <Stack direction="row" className="attachment-actions" {...boxProps}>
+      {onDownload && (
+        <ActionButton label={t('download')} onClick={() => onDownload(attachment)}>
+          <DownloadRounded />
+        </ActionButton>
+      )}
+      {onDelete && (
+        <ActionButton label={t('delete')} onClick={() => onDelete(attachment)}>
+          <DeleteRounded />
+        </ActionButton>
+      )}
+    </Stack>
+  );
+};
 
 /** Props for {@link AttachmentThumbnail}. */
 export type AttachmentThumbnailProps = {

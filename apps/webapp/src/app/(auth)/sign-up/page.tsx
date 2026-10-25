@@ -4,6 +4,7 @@ import SendRounded from '@mui/icons-material/SendRounded';
 import {Box, Button, Checkbox, Divider, FormControlLabel, Grid, Link, TextField, Typography} from '@mui/material';
 import NextLink from 'next/link';
 import {redirect, useRouter, useSearchParams} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
@@ -13,6 +14,7 @@ import {useSnackbarContext} from '@/components/Snackbar';
 import {type AuthProvider, SocialAuthButton} from '@/components/User/SocialAuthButton';
 
 export default function SignUp() {
+  const t = useTranslations('Auth');
   const {showSnackbar} = useSnackbarContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,7 +40,7 @@ export default function SignUp() {
     const confirmPassword = formData.get('confirm-password');
 
     if (password !== confirmPassword) {
-      showSnackbar({message: 'Passwords do not match'});
+      showSnackbar({message: t('passwordsDoNotMatch')});
       redirectWithFormData(firstName, surname, email);
       return;
     }
@@ -54,7 +56,7 @@ export default function SignUp() {
         },
         onSuccess: async () => {
           showSnackbar({
-            message: "You have been signed up! You're getting redirected...",
+            message: t('signedUpRedirect'),
           });
           redirect('/dashboard');
         },
@@ -87,7 +89,7 @@ export default function SignUp() {
                 mt: 2,
               }}
             >
-              Sign up
+              {t('signUp')}
             </Typography>
           </Box>
 
@@ -100,15 +102,15 @@ export default function SignUp() {
               ))}
 
               <Grid size={{xs: 12}}>
-                <Divider>or with</Divider>
+                <Divider>{t('orWith')}</Divider>
               </Grid>
 
               <Grid size={{xs: 6}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Name"
+                  placeholder={t('name')}
                   type="text"
-                  label="Name"
+                  label={t('name')}
                   name="name"
                   defaultValue={nameFromQuery}
                   fullWidth
@@ -119,9 +121,9 @@ export default function SignUp() {
               <Grid size={{xs: 6}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Surname"
+                  placeholder={t('surname')}
                   type="text"
-                  label="Surname"
+                  label={t('surname')}
                   name="surname"
                   defaultValue={surnameFromQuery}
                   fullWidth
@@ -132,9 +134,9 @@ export default function SignUp() {
               <Grid size={{xs: 12}}>
                 <TextField
                   variant="outlined"
-                  placeholder="Enter email"
+                  placeholder={t('enterEmail')}
                   type="email"
-                  label="E-Mail"
+                  label={t('email')}
                   name="email"
                   defaultValue={emailFromQuery}
                   fullWidth
@@ -149,7 +151,7 @@ export default function SignUp() {
               <Grid size={{xs: 12}}>
                 <PasswordInput
                   outlinedInputProps={{
-                    label: 'Confirm password',
+                    label: t('confirmPassword'),
                     name: 'confirm-password',
                   }}
                 />
@@ -161,9 +163,9 @@ export default function SignUp() {
                   control={<Checkbox />}
                   label={
                     <React.Fragment>
-                      I accept the{' '}
+                      {t('accept')}{' '}
                       <Link href={'https://budget-buddy.de/tos'} target="_blank">
-                        Terms of Service
+                        {t('termsOfService')}
                       </Link>
                     </React.Fragment>
                   }
@@ -180,15 +182,15 @@ export default function SignUp() {
                 sx={{mt: 1}}
                 data-umami-event={'default-sign-up'}
               >
-                Sign up
+                {t('signUp')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>Already registered?</Divider>
+          <Divider sx={{my: 2}}>{t('alreadyRegistered')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth>
-            Sign in
+            {t('signIn')}
           </Button>
         </Card>
       </Grid>

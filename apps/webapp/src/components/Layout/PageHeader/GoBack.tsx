@@ -4,6 +4,7 @@ import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded';
 import {IconButton} from '@mui/material';
 import NextLink from 'next/link';
 import {useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 
 export type TGoBackProps = {
@@ -13,12 +14,13 @@ export type TGoBackProps = {
 };
 
 export const GoBack: React.FC<TGoBackProps> = ({withNavigation, navigationPath, big}) => {
+  const t = useTranslations('Navigation');
   const router = useRouter();
   return (
     <IconButton
       size="large"
       color="primary"
-      aria-label="Go back"
+      aria-label={t('goBack')}
       {...(withNavigation && {
         component: NextLink,
         ...(navigationPath
