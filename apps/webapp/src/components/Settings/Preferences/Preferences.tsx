@@ -6,6 +6,7 @@ import {useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
+import {useSnackbarContext} from '@/components/Snackbar';
 import {normalizeLocale} from '@/i18n/config';
 import {setCurrentCurrency} from '@/utils/Formatter/preferenceFormat';
 
@@ -14,12 +15,15 @@ const currencies = ['EUR', 'USD'] as const;
 export const Preferences = () => {
   const router = useRouter();
   const t = useTranslations('Preferences');
+  const {showSnackbar} = useSnackbarContext();
   const [language, setLanguage] = React.useState('en_US');
   const [currency, setCurrency] = React.useState<(typeof currencies)[number] | null>(null);
+  const [savedLanguage, setSavedLanguage] = React.useState('en_US');
+  const [savedCurrency, setSavedCurrency] = React.useState<(typeof currencies)[number] | null>(null);
+  const [isEditing, setIsEditing] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [success, setSuccess] = React.useState(false);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -28,12 +32,14 @@ export const Preferences = () => {
     if (requestError) {
       setError(t('loadError'));
     } else {
-      setLanguage(result.data.language === 'en_US' ? 'en_US' : 'en_US');
-      setCurrency(
-        currencies.includes(result.data.currency as (typeof currencies)[number])
-          ? (result.data.currency as (typeof currencies)[number])
-          : 'EUR',
-      );
+      const nextLanguage = result.data.language === 'en_US' ? 'en_US' : 'en_US';
+      const nextCurrency = currencies.includes(result.data.currency as (typeof currencies)[number])
+        ? (result.data.currency as (typeof currencies)[number])
+        : 'EUR';
+      setLanguage(nextLanguage);
+      setSavedLanguage(nextLanguage);
+      setCurrency(nextCurrency);
+      setSavedCurrency(nextCurrency);
       setCurrentCurrency(result.data.currency === 'USD' ? 'USD' : 'EUR');
       document.documentElement.lang = normalizeLocale(result.data.language);
     }
@@ -45,28 +51,48 @@ export const Preferences = () => {
   }, [load]);
 
   const save = async () => {
-    if (!currency) return;
+    if (!currency || !isEditing) return;
     setSaving(true);
     setError(null);
-    setSuccess(false);
     const [result, requestError] = await apiClient.backend.preference.update({
       language,
       currency,
     });
     if (requestError) setError(t('saveError'));
     else {
-      setLanguage(result.data.language === 'en_US' ? 'en_US' : 'en_US');
-      setCurrency(
-        currencies.includes(result.data.currency as (typeof currencies)[number])
-          ? (result.data.currency as (typeof currencies)[number])
-          : 'EUR',
-      );
+      const nextLanguage = result.data.language === 'en_US' ? 'en_US' : 'en_US';
+      const nextCurrency = currencies.includes(result.data.currency as (typeof currencies)[number])
+        ? (result.data.currency as (typeof currencies)[number])
+        : 'EUR';
+      setLanguage(nextLanguage);
+      setSavedLanguage(nextLanguage);
+      setCurrency(nextCurrency);
+      setSavedCurrency(nextCurrency);
       setCurrentCurrency(result.data.currency === 'USD' ? 'USD' : 'EUR');
       document.documentElement.lang = normalizeLocale(result.data.language);
-      setSuccess(true);
+      setIsEditing(false);
+      showSnackbar({message: t('saved')});
       router.refresh();
     }
     setSaving(false);
+  };
+
+  const handleEdit = () => {
+    setError(null);
+    setIsEditing(true);
+  };
+
+  const handleDiscard = () => {
+    setLanguage(savedLanguage);
+    setCurrency(savedCurrency);
+    setError(null);
+    setIsEditing(false);
+    showSnackbar({message: t('discarded')});
+  };
+
+  const handleLoadRetry = async () => {
+    await load();
+    setIsEditing(false);
   };
 
   return (
@@ -83,7 +109,7 @@ export const Preferences = () => {
             <Alert
               severity="error"
               action={
-                <Button color="inherit" size="small" onClick={load}>
+                <Button color="inherit" size="small" onClick={handleLoadRetry}>
                   {t('retry')}
                 </Button>
               }
@@ -91,17 +117,15 @@ export const Preferences = () => {
               {error}
             </Alert>
           )}
-          {success && <Alert severity="success">{t('saved')}</Alert>}
           <Autocomplete
             options={[{code: 'en_US', label: t('languageEnglish')}]}
             value={{code: language, label: t('languageEnglish')}}
             loading={loading}
-            disabled={loading || saving}
+            disabled={loading || saving || !isEditing}
             getOptionLabel={option => option.label}
             isOptionEqualToValue={(option, value) => option.code === value.code}
             onChange={(_, value) => {
               setLanguage(value?.code ?? 'en_US');
-              setSuccess(false);
             }}
             renderInput={params => (
               <TextField
@@ -118,12 +142,11 @@ export const Preferences = () => {
             options={currencies.map(code => ({code, label: t(code === 'EUR' ? 'currencyEuro' : 'currencyUsd')}))}
             value={currency ? {code: currency, label: t(currency === 'EUR' ? 'currencyEuro' : 'currencyUsd')} : null}
             loading={loading}
-            disabled={loading || saving}
+            disabled={loading || saving || !isEditing}
             getOptionLabel={option => option.label}
             isOptionEqualToValue={(option, value) => option.code === value.code}
             onChange={(_, value) => {
               setCurrency(value?.code ?? null);
-              setSuccess(false);
             }}
             renderInput={params => (
               <TextField
@@ -140,9 +163,20 @@ export const Preferences = () => {
         </Stack>
       </Card.Body>
       <Card.Footer sx={{justifyContent: 'flex-end', mt: 2}}>
-        <Button variant="contained" onClick={save} disabled={loading || saving || !currency}>
-          {saving ? t('saving') : t('save')}
-        </Button>
+        {isEditing ? (
+          <Stack direction="row" spacing={1}>
+            <Button variant="text" onClick={handleDiscard} disabled={loading || saving}>
+              {t('discard')}
+            </Button>
+            <Button variant="contained" onClick={save} disabled={loading || saving || !currency}>
+              {saving ? t('saving') : t('save')}
+            </Button>
+          </Stack>
+        ) : (
+          <Button variant="contained" onClick={handleEdit} disabled={loading || saving || !currency}>
+            {t('edit')}
+          </Button>
+        )}
       </Card.Footer>
     </Card>
   );

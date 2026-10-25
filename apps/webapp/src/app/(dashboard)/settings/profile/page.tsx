@@ -22,9 +22,6 @@ export default function SettingsProfilePage() {
         </Grid>
 
         <Grid size={{xs: 12}}>
-          <Preferences />
-        </Grid>
-        <Grid size={{xs: 12}}>
           <DataManagement />
         </Grid>
       </Grid>
@@ -36,6 +33,9 @@ export default function SettingsProfilePage() {
               <EditUser />
             </React.Suspense>
           </PathnameErrorBoundary>
+        </Grid>
+        <Grid size={{xs: 12}}>
+          <Preferences />
         </Grid>
       </Grid>
 

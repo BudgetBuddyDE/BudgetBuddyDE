@@ -9,8 +9,11 @@
     "saveError": "Could not save preferences. Please try again.",
     "retry": "Retry",
     "saved": "Preferences saved.",
+    "discarded": "Preference changes were discarded.",
     "saving": "Saving...",
     "save": "Save preferences",
+    "edit": "Edit",
+    "discard": "Discard",
     "languageEnglish": "English (United States)",
     "currencyEuro": "Euro (EUR)",
     "currencyUsd": "US dollar (USD)"
