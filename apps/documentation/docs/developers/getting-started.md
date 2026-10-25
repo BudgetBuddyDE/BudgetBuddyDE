@@ -73,7 +73,7 @@ Test boundaries and observable behavior - Zod validation, query serialization, `
 
 ## Next steps
 
-- [Vite+ migration decisions](/developers/vite-plus-migration)
+- [Vite+ migration decisions](/developers/archive/vite-plus-migration)
 
 - [Architecture](/developers/architecture)
 - [Workspaces](/developers/workspaces)
