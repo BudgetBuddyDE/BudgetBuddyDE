@@ -13,8 +13,11 @@
   Only one update build runs at a time. Concurrent external pushes fail safely
   rather than forcing or rebasing the update.
 
-Verification uses Node 24.21.0, the pinned pnpm version, `vp install --frozen-lockfile` and `pnpm run ci`: formatting, lint,
-type checking, tests and builds, with dependencies orchestrated by Turborepo.
+Verification uses Node 24.21.0, the pinned pnpm version,
+`vp install --frozen-lockfile` and `pnpm run ci`: formatting, lint, type checking,
+tests and builds, with dependencies orchestrated by Turborepo.
+CI tasks use the pinned official `ghcr.io/voidzero-dev/vite-plus:1.3.0` image so
+the `vp` CLI is available; task steps do not override that image.
 The GitHub PR resource uses the maintained cloudfoundry-community fork, published
 as `cfcommunity/github-pr-resource`, pinned to image tag `0.26.0`.
 The dependency-update task uses the same Vite+ image as verification and migrations.
