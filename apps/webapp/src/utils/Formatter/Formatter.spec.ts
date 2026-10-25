@@ -50,6 +50,12 @@ describe('DateFormatter', () => {
     it('formats a date with a custom pattern', () => {
       expect(DateFormatter.formatWithPattern(new Date(2024, 5, 10), 'yyyy/MM/dd')).toBe('2024/06/10');
     });
+
+    it('formats German dates with the German locale and default pattern', () => {
+      document.documentElement.lang = 'de-DE';
+      expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('15.01.2024');
+      document.documentElement.lang = 'en-US';
+    });
   });
 
   describe('formatNullable', () => {

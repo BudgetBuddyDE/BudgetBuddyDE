@@ -14,3 +14,10 @@ export function setCurrentCurrency(currency: 'EUR' | 'USD') {
   document.documentElement.dataset.currency = currency;
   window.dispatchEvent(new CustomEvent('budgetbuddy-currency-change', {detail: currency}));
 }
+
+export function setCurrentLocale(locale: 'en-US' | 'de-DE') {
+  if (typeof window === 'undefined') return;
+  document.cookie = `budgetbuddy-locale=${locale}; Path=/; SameSite=Lax; Max-Age=31536000`;
+  document.documentElement.lang = locale;
+  window.dispatchEvent(new CustomEvent('budgetbuddy-locale-change', {detail: locale}));
+}

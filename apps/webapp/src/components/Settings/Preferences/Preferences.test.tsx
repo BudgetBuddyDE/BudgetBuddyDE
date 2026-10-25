@@ -84,6 +84,25 @@ describe('Preferences', () => {
     expect(screen.getByRole('button', {name: 'Save preferences'})).toBeEnabled();
   });
 
+  it('saves the German preference locale using the API locale format', async () => {
+    get.mockResolvedValueOnce([{data: {language: 'en_US', currency: 'EUR'}}, null]);
+    update.mockReset().mockResolvedValueOnce([{data: {language: 'de_DE', currency: 'EUR'}}, null]);
+    render(
+      <NextIntlClientProvider locale="en-US" messages={messages}>
+        <Preferences />
+      </NextIntlClientProvider>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', {name: 'Edit'}));
+    fireEvent.click(screen.getByLabelText('Language'));
+    fireEvent.change(screen.getByLabelText('Language'), {target: {value: 'German'}});
+    fireEvent.click(await screen.findByRole('option', {name: 'German (Germany)'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Save preferences'}));
+
+    await waitFor(() => expect(update).toHaveBeenCalledWith({language: 'de_DE', currency: 'EUR'}));
+    expect(showSnackbar).toHaveBeenCalledWith({message: 'Preferences saved.'});
+  });
+
   it('discards edits locally without saving', async () => {
     get.mockResolvedValueOnce([{data: {language: 'en_US', currency: 'EUR'}}, null]);
     update.mockReset();

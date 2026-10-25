@@ -7,18 +7,24 @@ import React from 'react';
 import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
 import {useSnackbarContext} from '@/components/Snackbar';
-import {normalizeLocale} from '@/i18n/config';
-import {setCurrentCurrency} from '@/utils/Formatter/preferenceFormat';
+import {normalizeLocale, toPreferenceLanguage} from '@/i18n/config';
+import {setCurrentCurrency, setCurrentLocale} from '@/utils/Formatter/preferenceFormat';
 
 const currencies = ['EUR', 'USD'] as const;
+const languages = ['en-US', 'de-DE'] as const;
+
+function setCurrentLanguage(language: string) {
+  const locale = normalizeLocale(language);
+  setCurrentLocale(locale);
+}
 
 export const Preferences = () => {
   const router = useRouter();
   const t = useTranslations('Preferences');
   const {showSnackbar} = useSnackbarContext();
-  const [language, setLanguage] = React.useState('en_US');
+  const [language, setLanguage] = React.useState<(typeof languages)[number]>('en-US');
   const [currency, setCurrency] = React.useState<(typeof currencies)[number] | null>(null);
-  const [savedLanguage, setSavedLanguage] = React.useState('en_US');
+  const [savedLanguage, setSavedLanguage] = React.useState<(typeof languages)[number]>('en-US');
   const [savedCurrency, setSavedCurrency] = React.useState<(typeof currencies)[number] | null>(null);
   const [isEditing, setIsEditing] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -32,7 +38,7 @@ export const Preferences = () => {
     if (requestError) {
       setError(t('loadError'));
     } else {
-      const nextLanguage = result.data.language === 'en_US' ? 'en_US' : 'en_US';
+      const nextLanguage = normalizeLocale(result.data.language);
       const nextCurrency = currencies.includes(result.data.currency as (typeof currencies)[number])
         ? (result.data.currency as (typeof currencies)[number])
         : 'EUR';
@@ -41,7 +47,7 @@ export const Preferences = () => {
       setCurrency(nextCurrency);
       setSavedCurrency(nextCurrency);
       setCurrentCurrency(result.data.currency === 'USD' ? 'USD' : 'EUR');
-      document.documentElement.lang = normalizeLocale(result.data.language);
+      setCurrentLanguage(nextLanguage);
     }
     setLoading(false);
   }, [t]);
@@ -55,12 +61,12 @@ export const Preferences = () => {
     setSaving(true);
     setError(null);
     const [result, requestError] = await apiClient.backend.preference.update({
-      language,
+      language: toPreferenceLanguage(language),
       currency,
     });
     if (requestError) setError(t('saveError'));
     else {
-      const nextLanguage = result.data.language === 'en_US' ? 'en_US' : 'en_US';
+      const nextLanguage = normalizeLocale(result.data.language);
       const nextCurrency = currencies.includes(result.data.currency as (typeof currencies)[number])
         ? (result.data.currency as (typeof currencies)[number])
         : 'EUR';
@@ -69,7 +75,7 @@ export const Preferences = () => {
       setCurrency(nextCurrency);
       setSavedCurrency(nextCurrency);
       setCurrentCurrency(result.data.currency === 'USD' ? 'USD' : 'EUR');
-      document.documentElement.lang = normalizeLocale(result.data.language);
+      setCurrentLanguage(nextLanguage);
       setIsEditing(false);
       showSnackbar({message: t('saved')});
       router.refresh();
@@ -118,14 +124,14 @@ export const Preferences = () => {
             </Alert>
           )}
           <Autocomplete
-            options={[{code: 'en_US', label: t('languageEnglish')}]}
-            value={{code: language, label: t('languageEnglish')}}
+            options={languages.map(code => ({code, label: t(code === 'en-US' ? 'languageEnglish' : 'languageGerman')}))}
+            value={{code: language, label: t(language === 'en-US' ? 'languageEnglish' : 'languageGerman')}}
             loading={loading}
             disabled={loading || saving || !isEditing}
             getOptionLabel={option => option.label}
             isOptionEqualToValue={(option, value) => option.code === value.code}
             onChange={(_, value) => {
-              setLanguage(value?.code ?? 'en_US');
+              setLanguage(value?.code ?? 'en-US');
             }}
             renderInput={params => (
               <TextField

@@ -1,5 +1,5 @@
 export const DEFAULT_LOCALE = 'en-US';
-export const SUPPORTED_LOCALES = ['en-US'] as const;
+export const SUPPORTED_LOCALES = ['en-US', 'de-DE'] as const;
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
@@ -12,4 +12,8 @@ export function normalizeLocale(locale: string | null | undefined): SupportedLoc
   } catch {
     return DEFAULT_LOCALE;
   }
+}
+
+export function toPreferenceLanguage(locale: string | null | undefined): 'en_US' | 'de_DE' {
+  return normalizeLocale(locale) === 'de-DE' ? 'de_DE' : 'en_US';
 }

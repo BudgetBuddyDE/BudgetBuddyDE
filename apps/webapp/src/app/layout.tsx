@@ -1,6 +1,7 @@
 import type {Metadata, Viewport} from 'next';
 import {getLocale, getMessages} from 'next-intl/server';
 import type React from 'react';
+import {normalizeLocale} from '@/i18n/config';
 import {colors} from '@/theme/DarkTheme/colors';
 import {LayoutWrapper} from './layout-wrapper';
 import {StoreProvider} from './StoreProvider';
@@ -25,12 +26,13 @@ export const viewport: Viewport = {
 };
 export default async function RootLayout({children}: {children: React.ReactNode}) {
   const locale = await getLocale();
+  const normalizedLocale = normalizeLocale(locale);
   const messages = await getMessages();
   return (
     <StoreProvider>
-      <html lang={locale} suppressHydrationWarning>
+      <html lang={normalizedLocale} suppressHydrationWarning>
         <body>
-          <LayoutWrapper locale={locale} messages={messages}>
+          <LayoutWrapper locale={normalizedLocale} messages={messages}>
             {children}
           </LayoutWrapper>
         </body>

@@ -1,5 +1,6 @@
 import {Box, Container} from '@mui/material';
 import {cookies, headers} from 'next/headers';
+import {getMessages} from 'next-intl/server';
 import type React from 'react';
 import {apiClient} from '@/apiClient';
 import {
@@ -13,7 +14,6 @@ import {Drawer, DrawerProvider} from '@/components/Layout/Drawer';
 import {Footer} from '@/components/Layout/Footer';
 import {AuthenticatedMain} from '@/components/Layout/Main';
 import {normalizeLocale} from '@/i18n/config';
-import messages from '@/messages/en-US.json';
 import {LayoutWrapper} from '../layout-wrapper';
 
 export default async function Layout({children}: React.PropsWithChildren) {
@@ -23,6 +23,7 @@ export default async function Layout({children}: React.PropsWithChildren) {
   });
   if (preferenceError) throw preferenceError;
   const locale = normalizeLocale(preferenceResult.data.language);
+  const messages = await getMessages();
   const cookieStore = await cookies();
   const selectedCurrency = cookieStore.get('budgetbuddy-currency')?.value;
   const currency = selectedCurrency === 'USD' ? 'USD' : preferenceResult.data.currency === 'USD' ? 'USD' : 'EUR';

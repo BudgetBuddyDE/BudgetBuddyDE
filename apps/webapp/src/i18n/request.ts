@@ -1,11 +1,15 @@
+import {cookies} from 'next/headers';
 import {getRequestConfig} from 'next-intl/server';
-import {DEFAULT_LOCALE} from './config';
+import {DEFAULT_LOCALE, normalizeLocale} from './config';
 
-export default getRequestConfig(async ({requestLocale}) => {
-  const requestedLocale = await requestLocale;
-  const locale = requestedLocale === DEFAULT_LOCALE ? requestedLocale : DEFAULT_LOCALE;
+export default getRequestConfig(async () => {
+  const cookieStore = await cookies();
+  const locale = normalizeLocale(cookieStore.get('budgetbuddy-locale')?.value ?? DEFAULT_LOCALE);
   return {
     locale,
-    messages: (await import('../messages/en-US.json')).default,
+    messages:
+      locale === 'de-DE'
+        ? (await import('../messages/de-DE.json')).default
+        : (await import('../messages/en-US.json')).default,
   };
 });
