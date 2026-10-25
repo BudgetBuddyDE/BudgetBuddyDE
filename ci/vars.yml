@@ -1,6 +1,11 @@
 git:
   name: Thorben
   email: 38816229+tklein1801@users.noreply.github.com
+ci:
+  source:
+    owner: budgetbuddyde
+    name: budgetbuddyde
+    branch: main
 repo:
   owner: budgetbuddyde
   name: budgetbuddyde

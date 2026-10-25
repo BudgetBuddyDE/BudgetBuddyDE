@@ -21,10 +21,11 @@ function visit(step, callback) {
   }
 }
 
-test('ordinary task definitions still use ci-source from main', () => {
+test('ordinary task definitions use the configured ci-source', () => {
   for (const pipeline of [general, database]) {
     const source = pipeline.resources.find(resource => resource.name === 'ci-source');
-    assert.equal(source.source.branch, 'main');
+    assert.equal(source.source.uri, 'git@github.com:((ci.source.owner))/((ci.source.name)).git');
+    assert.equal(source.source.branch, '((ci.source.branch))');
     assert.equal(source.source.disable_ci_skip, false);
     for (const job of pipeline.jobs) {
       let usesTask = false;

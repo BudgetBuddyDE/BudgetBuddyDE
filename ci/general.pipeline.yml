@@ -28,8 +28,8 @@ resources:
     type: git
     icon: git
     source:
-      uri: git@github.com:((repo.owner))/((repo.name)).git
-      branch: main
+      uri: git@github.com:((ci.source.owner))/((ci.source.name)).git
+      branch: ((ci.source.branch))
       private_key: ((github.private_key))
       disable_ci_skip: false
   - name: dependency-timer
