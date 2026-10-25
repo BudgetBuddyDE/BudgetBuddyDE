@@ -26,6 +26,6 @@ export const Avatar: React.FC<TAvatarProps> = props => {
     return <Skeleton variant="rounded" sx={style} />;
   }
 
-  const src = data.user.image ?? `/api/avatar?seed=${data.user.email}`;
+  const src = data.user.image ?? `/api/avatar?seed=${encodeURIComponent(data.user.id)}`;
   return <MuiAvatar src={src} variant={variant} {...props} sx={style} />;
 };
