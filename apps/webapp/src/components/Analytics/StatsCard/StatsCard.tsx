@@ -14,6 +14,8 @@ import {
 import {Skeleton, type SxProps, type Theme, Typography} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
+import {CurrencyFormatter} from '@/utils/Formatter/CurrencyFormatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type TStatsCardProps = {
   label: string | number;
@@ -45,7 +47,14 @@ const ICONS = {
 } as const;
 
 export const StatsCard: React.FC<TStatsCardProps> = ({label, value, valueInformation, icon, isLoading = false}) => {
+  const currency = useCurrencyPreference();
   const IconComponent = icon ? ICONS[icon] : QuestionMarkRounded;
+  const formatCurrency = (text: string | number) =>
+    typeof text === 'string'
+      ? text.replace(/(?:€|\$)\s?(-?[\d,.]+)/g, (_match, amount: string) =>
+          CurrencyFormatter.formatBalance(Number(amount.replace(/,/g, '')), currency),
+        )
+      : text;
 
   return (
     <Card sx={{position: 'relative', height: '100%', px: 2, py: 1.25}}>
@@ -65,12 +74,12 @@ export const StatsCard: React.FC<TStatsCardProps> = ({label, value, valueInforma
             fontWeight: 'bold',
           }}
         >
-          {isLoading ? <Skeleton width={150} /> : value}
+          {isLoading ? <Skeleton width={150} /> : formatCurrency(value)}
         </Typography>
       }
       {valueInformation && (
         <Typography variant="caption">
-          {isLoading ? <Skeleton width={100} height={'1.6rem'} /> : valueInformation}
+          {isLoading ? <Skeleton width={100} height={'1.6rem'} /> : formatCurrency(valueInformation)}
         </Typography>
       )}
 

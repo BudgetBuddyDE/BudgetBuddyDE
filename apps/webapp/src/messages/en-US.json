@@ -1,0 +1,107 @@
+{
+  "Preferences": {
+    "title": "Preferences",
+    "description": "Choose your language and preferred currency.",
+    "language": "Language",
+    "currency": "Currency",
+    "loading": "Loading preferences...",
+    "loadError": "Could not load preferences. Please try again.",
+    "saveError": "Could not save preferences. Please try again.",
+    "retry": "Retry",
+    "saved": "Preferences saved.",
+    "saving": "Saving...",
+    "save": "Save preferences",
+    "languageEnglish": "English (United States)",
+    "currencyEuro": "Euro (EUR)",
+    "currencyUsd": "US dollar (USD)"
+  },
+  "HistoricalBalanceTable": {
+    "period": "Period",
+    "income": "Income",
+    "expenses": "Expenses",
+    "balance": "Balance"
+  },
+  "DataTable": {
+    "noRows": "No items found"
+  },
+  "BudgetOverview": {
+    "title": "Budget",
+    "progress": "Budget progress",
+    "spent": "Spent",
+    "upcomingExpenses": "Upcoming Expenses",
+    "available": "Available",
+    "overdrawn": "Overdrawn"
+  },
+  "DateRangePicker": {
+    "start": "Start",
+    "end": "End"
+  },
+  "SpendingGoals": {
+    "title": "Spending goals",
+    "subtitle": "Quick budget overview",
+    "notEnough": "Not enough data points",
+    "explanation": "There are not enough budgets to display the spending goals radar chart. Please create at least 3 budgets to see the comparison.",
+    "goal": "Goal",
+    "actual": "Actual"
+  },
+  "CategoryPieChart": {
+    "selectTimeframe": "Select timeframe",
+    "expenses": "Expenses",
+    "income": "Income",
+    "viewMoreAria": "View more transactions",
+    "viewMore": "View more..."
+  },
+  "InsightsSummary": {
+    "income": "Income",
+    "expenses": "Expenses",
+    "netCashFlow": "Net. cash flow",
+    "savingsRate": "Savings rate",
+    "transactions": "Transactions",
+    "averageExpense": "Average expense"
+  },
+  "DashboardNavigation": {
+    "dashboard": "Dashboard",
+    "budget": "Budget",
+    "insights": "Insights",
+    "dashboardDescription": "Overview of your dashboard",
+    "budgetDescription": "All about your monthly budget",
+    "insightsDescription": "Insights into your data"
+  },
+  "DashboardStats": {
+    "income": "Income",
+    "spendings": "Spendings",
+    "balance": "Balance",
+    "upcoming": "Upcoming",
+    "estimated": "Estimated"
+  },
+  "Settings": {
+    "title": "Settings",
+    "description": "Manage your account settings"
+  },
+  "AppBar": {
+    "website": "Website",
+    "github": "GitHub",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "loggedOut": "You have been logged out.",
+    "logoutFailed": "Logout failed. Please try again.",
+    "retry": "Retry"
+  },
+  "InsightsCharts": {
+    "incomeExpensesBalance": "Income, expenses and balance",
+    "granularity": "{granularity} aggregation · currency flows use the left scale; cumulative balance uses the right scale",
+    "periodAmount": "Period amount",
+    "cumulativeBalance": "Cumulative balance",
+    "averageExpenses": "Avg. expenses",
+    "averageIncome": "Avg. income",
+    "expenses": "Expenses",
+    "income": "Income",
+    "accumulatedExpenses": "Accumulated expenses",
+    "runningTotal": "Running total from the start of the period",
+    "averageTotalExpenses": "Avg. total expenses"
+  },
+  "InsightsView": {
+    "refreshing": "Refreshing insights report"
+  }
+}

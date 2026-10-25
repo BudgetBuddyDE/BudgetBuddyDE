@@ -48,6 +48,7 @@ import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {
   columns as recurringPaymentBatchColumns,
   createEmptyRow as createEmptyRecurringPaymentRow,
@@ -75,6 +76,7 @@ export type RecurringPaymentTableProps = {
 };
 
 export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({initialFilters}) => {
+  const currency = useCurrencyPreference();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = recurringPaymentSlice.actions;
   const dispatch = useAppDispatch();
@@ -644,7 +646,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         width: 112,
         renderCell: value => (
           <Typography variant="body2" noWrap>
-            {Formatter.currency.formatBalance(value as number)}
+            {Formatter.currency.formatBalance(value as number, currency)}
           </Typography>
         ),
       },

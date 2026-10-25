@@ -12,6 +12,7 @@ import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {EntityTable, type ColumnDefinition} from '@/components/Table';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {formatDateOnlyForDisplay, formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
 import {executionPlanLabels} from '../executionPlan';
 import type {OccurrenceRange} from './occurrenceRange';
@@ -19,6 +20,7 @@ import type {OccurrenceRange} from './occurrenceRange';
 type OccurrenceRow = TRecurringPaymentOccurrence & {rowId: string};
 
 export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: OccurrenceRange}> = ({initialRange}) => {
+  const currency = useCurrencyPreference();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -146,7 +148,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
         width: 120,
         renderCell: (_value, row) => (
           <Typography variant="body2">
-            {Formatter.currency.formatBalance(row.recurringPayment.transferAmount)}
+            {Formatter.currency.formatBalance(row.recurringPayment.transferAmount, currency)}
           </Typography>
         ),
       },

@@ -3,22 +3,23 @@
 import {DashboardRounded, InsightsRounded} from '@mui/icons-material';
 import {ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {EntityIcon} from '@/lib/ibn';
 
 export const DashboardViewMapping = {
   '/dashboard': {
-    label: 'Dashboard',
-    description: 'Overview of your dashboard',
+    label: 'dashboard',
+    description: 'dashboardDescription',
   },
   '/dashboard/budget': {
-    label: 'Budget',
-    description: 'All about your monthly budget',
+    label: 'budget',
+    description: 'budgetDescription',
   },
   '/dashboard/insights': {
-    label: 'Insights',
-    description: 'Insights into your data',
+    label: 'insights',
+    description: 'insightsDescription',
   },
 } as const;
 
@@ -32,6 +33,7 @@ export const DashboardViewIconMapping: Record<keyof typeof DashboardViewMapping,
 export type TDashboardNavigationProps = {};
 
 export const DashboardNavigation: React.FC<TDashboardNavigationProps> = () => {
+  const t = useTranslations('DashboardNavigation');
   const pathname = usePathname();
   const router = useRouter();
   return (
@@ -58,9 +60,9 @@ export const DashboardNavigation: React.FC<TDashboardNavigationProps> = () => {
         }}
         exclusive
       >
-        {Object.entries(DashboardViewMapping).map(([path, {label}]) => (
+        {Object.keys(DashboardViewMapping).map(path => (
           <ToggleButton key={path} value={path}>
-            {label}
+            {t(DashboardViewMapping[path as keyof typeof DashboardViewMapping].label)}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>

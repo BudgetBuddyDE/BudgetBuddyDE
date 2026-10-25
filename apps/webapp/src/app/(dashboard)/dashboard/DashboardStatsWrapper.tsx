@@ -1,30 +1,34 @@
 import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
 import {Grid} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}) => {
+  const t = useTranslations('DashboardStats');
+  const currency = useCurrencyPreference();
   const currentBalance = estimated.income.received - estimated.expenses.paid;
   const estimatedBalance =
     estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);
   const stats: TStatsCardProps[] = [
     {
       icon: 'add',
-      label: 'Income',
-      value: Formatter.currency.formatBalance(estimated.income.received),
-      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.income.upcoming)}`,
+      label: t('income'),
+      value: Formatter.currency.formatBalance(estimated.income.received, currency),
+      valueInformation: `${t('upcoming')}: ${Formatter.currency.formatBalance(estimated.income.upcoming, currency)}`,
     },
     {
       icon: 'remove',
-      label: 'Spendings',
-      value: Formatter.currency.formatBalance(estimated.expenses.paid),
-      valueInformation: `Upcoming: ${Formatter.currency.formatBalance(estimated.expenses.upcoming)}`,
+      label: t('spendings'),
+      value: Formatter.currency.formatBalance(estimated.expenses.paid, currency),
+      valueInformation: `${t('upcoming')}: ${Formatter.currency.formatBalance(estimated.expenses.upcoming, currency)}`,
     },
     {
       icon: 'balance',
-      label: 'Balance',
-      value: Formatter.currency.formatBalance(currentBalance),
-      valueInformation: `Estimated: ${Formatter.currency.formatBalance(estimatedBalance)}`,
+      label: t('balance'),
+      value: Formatter.currency.formatBalance(currentBalance, currency),
+      valueInformation: `${t('estimated')}: ${Formatter.currency.formatBalance(estimatedBalance, currency)}`,
     },
   ];
 

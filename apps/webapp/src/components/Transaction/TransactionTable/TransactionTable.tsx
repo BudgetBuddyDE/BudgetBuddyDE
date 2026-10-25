@@ -44,6 +44,7 @@ import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {
   columns as transactionBatchColumns,
   createEmptyRow as createEmptyTransactionRow,
@@ -69,6 +70,7 @@ export type TransactionTableProps = {
 };
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilters}) => {
+  const currency = useCurrencyPreference();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = transactionSlice.actions;
   const dispatch = useAppDispatch();
@@ -586,7 +588,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         width: 112,
         renderCell: value => (
           <Typography variant="body2" noWrap>
-            {Formatter.currency.formatBalance(value as number)}
+            {Formatter.currency.formatBalance(value as number, currency)}
           </Typography>
         ),
       },

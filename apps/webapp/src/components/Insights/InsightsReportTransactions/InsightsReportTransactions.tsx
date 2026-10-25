@@ -5,6 +5,7 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {Card} from '@/components/Card';
 import {Pagination} from '@/components/Table/Pagination';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {ReportTable} from '../ReportTable/ReportTable';
 
 export type InsightsReportTransactionsProps = {
@@ -28,13 +29,15 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
 }) => {
+  const currency = useCurrencyPreference();
   return (
     <Card>
       <Card.Header>
         <Stack>
           <Card.Title>Executed transactions ({transactionCount})</Card.Title>
           <Card.Subtitle>
-            Filtered transactions behind this report. Volume: {Formatter.currency.formatBalance(income + expenses)}
+            Filtered transactions behind this report. Volume:{' '}
+            {Formatter.currency.formatBalance(income + expenses, currency)}
           </Card.Subtitle>
         </Stack>
       </Card.Header>
@@ -47,7 +50,7 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
             transaction.receiver,
             transaction.category.name,
             transaction.paymentMethod.name,
-            Formatter.currency.formatBalance(transaction.transferAmount),
+            Formatter.currency.formatBalance(transaction.transferAmount, currency),
           ])}
         />
       </Card.Body>

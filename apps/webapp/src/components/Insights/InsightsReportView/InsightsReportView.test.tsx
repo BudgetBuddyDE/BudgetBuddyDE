@@ -1,5 +1,7 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {cleanup, render as rtlRender, screen} from '@testing-library/react';
+import {NextIntlClientProvider} from 'next-intl';
 import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
+import messages from '@/messages/en-US.json';
 import {buildReport, buildTransaction, categoryOption} from '../InsightsReport.fixtures';
 import {InsightsReportView} from './InsightsReportView';
 
@@ -8,6 +10,13 @@ vi.mock('@budgetbuddyde/charts', () => ({
 }));
 
 afterEach(() => cleanup());
+
+const render = (children: React.ReactNode) =>
+  rtlRender(
+    <NextIntlClientProvider locale="en-US" messages={messages}>
+      {children}
+    </NextIntlClientProvider>,
+  );
 
 const report = buildReport();
 const transactions = [buildTransaction(1)];

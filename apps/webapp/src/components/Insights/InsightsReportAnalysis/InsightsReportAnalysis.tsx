@@ -3,6 +3,7 @@ import {Box, FormControl, Grid, InputLabel, MenuItem, Select} from '@mui/materia
 import React from 'react';
 import {Card} from '@/components/Card';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {ReportTable} from '../ReportTable/ReportTable';
 
 type CategoryMetric = 'expenses' | 'income' | 'balance';
@@ -14,6 +15,7 @@ export type InsightsReportAnalysisProps = {
 };
 
 export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({report, selectedCategoryRows}) => {
+  const currency = useCurrencyPreference();
   const [categoryMetric, setCategoryMetric] = React.useState<CategoryMetric>('expenses');
   const [paymentMetric, setPaymentMetric] = React.useState<PaymentMetric>('count');
 
@@ -45,10 +47,10 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
                 rightAlignedColumns={[1, 2, 3, 4, 5]}
                 rows={selectedCategoryRows.map(row => [
                   row.category.name,
-                  Formatter.currency.formatBalance(row[categoryMetric].value),
-                  Formatter.currency.formatBalance(row.expenses.value),
-                  Formatter.currency.formatBalance(row.income.value),
-                  Formatter.currency.formatBalance(row.balance.value),
+                  Formatter.currency.formatBalance(row[categoryMetric].value, currency),
+                  Formatter.currency.formatBalance(row.expenses.value, currency),
+                  Formatter.currency.formatBalance(row.income.value, currency),
+                  Formatter.currency.formatBalance(row.balance.value, currency),
                   row.expenseShare.toFixed(1) + '%',
                 ])}
               />
@@ -87,7 +89,7 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
                     row.paymentMethod.name,
                     String(row.transactionCount.value),
                     row.usageShare.toFixed(1) + '%',
-                    Formatter.currency.formatBalance(row.expenses.value),
+                    Formatter.currency.formatBalance(row.expenses.value, currency),
                   ])}
               />
             </Card.Body>
@@ -108,9 +110,9 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
               rightAlignedColumns={[1, 2, 3, 4]}
               rows={report.budgets.map(row => [
                 row.name,
-                Formatter.currency.formatBalance(row.budget),
-                Formatter.currency.formatBalance(row.spent),
-                Formatter.currency.formatBalance(row.remaining),
+                Formatter.currency.formatBalance(row.budget, currency),
+                Formatter.currency.formatBalance(row.spent, currency),
+                Formatter.currency.formatBalance(row.remaining, currency),
                 row.utilization.toFixed(1) + '%',
               ])}
             />

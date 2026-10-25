@@ -12,6 +12,7 @@ import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {endOfLocalMonthDateOnly, formatLocalDateOnly} from '../dateOnly';
 
 export type RecurringPaymentType = 'INCOME' | 'EXPENSE';
@@ -85,6 +86,7 @@ export type RecurringPaymentPieChartProps = {
 };
 
 export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> = ({withViewMore = false}) => {
+  const currency = useCurrencyPreference();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [recurringPaymentType, setRecurringPaymentType] = React.useState<RecurringPaymentType>('INCOME');
   const today = new Date();
@@ -163,9 +165,9 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
     return (
       <DonutChart
         data={chartData}
-        primaryText={Formatter.currency.formatBalance(totalValue)}
+        primaryText={Formatter.currency.formatBalance(totalValue, currency)}
         secondaryText={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].label}
-        valueFormatter={value => Formatter.currency.formatBalance(value)}
+        valueFormatter={value => Formatter.currency.formatBalance(value, currency)}
       />
     );
   };

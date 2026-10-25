@@ -1,4 +1,6 @@
 import {format, isSameYear, startOfMonth, subMonths} from 'date-fns';
+import {enUS} from 'date-fns/locale/en-US';
+const locale = enUS;
 
 export class DateFormatter {
   static asDate(value: string | null, fallback: Date) {
@@ -7,15 +9,15 @@ export class DateFormatter {
     return Number.isNaN(date.getTime()) ? fallback : date;
   }
 
-  static formatWithPattern(date: Date | string, pattern: string = 'dd.MM.yyyy'): string {
-    return format(date instanceof Date ? date : new Date(date), pattern);
+  static formatWithPattern(date: Date | string, pattern: string = 'MM/dd/yyyy'): string {
+    return format(date instanceof Date ? date : new Date(date), pattern, {locale});
   }
 
   static format(date: Date | string, beautiful: boolean = false): string {
     const d = date instanceof Date ? date : new Date(date);
     return DateFormatter.formatWithPattern(
       d,
-      beautiful ? (isSameYear(d, new Date()) ? 'dd.MM' : 'dd.MM.yyyy') : undefined,
+      beautiful ? (isSameYear(d, new Date()) ? 'MMM d' : 'MMM d, yyyy') : undefined,
     );
   }
 

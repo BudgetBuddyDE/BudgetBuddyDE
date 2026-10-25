@@ -18,6 +18,7 @@ import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {BasicTable, type ColumnDefinition} from '@/components/Table';
 import {ZoomTransition} from '@/components/Transition';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import type {TransactionDialogState} from './TransactionDialogState';
 
 export type TransactionDialogProps = TransactionDialogState & Pick<DialogProps, 'onClose'>;
@@ -29,6 +30,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
   error,
   onClose,
 }) => {
+  const currency = useCurrencyPreference();
   const theme = useTheme();
   const isFullscreen = useMediaQuery(theme.breakpoints.down('md'));
   const dialogMaxWidth: DialogProps['maxWidth'] = isFullscreen ? undefined : 'md';
@@ -98,7 +100,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
                 key: 'transferAmount',
                 label: 'Amount',
                 align: 'right',
-                renderCell: (_, row) => Formatter.currency.formatBalance(row.transferAmount),
+                renderCell: (_, row) => Formatter.currency.formatBalance(row.transferAmount, currency),
               },
             ] satisfies ColumnDefinition<TExpandedTransaction>[]
           }

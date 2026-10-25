@@ -8,13 +8,29 @@ describe('CurrencyFormatter', () => {
   describe('formatBalance', () => {
     it('formats a number as EUR currency by default', () => {
       const result = CurrencyFormatter.formatBalance(1234.5);
-      expect(result).toMatch(/1\.234,50/);
+      expect(result).toMatch(/1,234\.50/);
       expect(result).toMatch(/€/);
     });
 
     it('formats with a custom currency code', () => {
       const result = CurrencyFormatter.formatBalance(100, 'USD');
       expect(result).toMatch(/100/);
+      expect(result).toMatch(/\$/);
+    });
+
+    it('formats the selected currency and locale', () => {
+      expect(CurrencyFormatter.formatBalance(1234.5, 'EUR', 2, 2, 'en-US')).toContain('1,234.50');
+      expect(CurrencyFormatter.formatBalance(1234.5, 'USD', 2, 2, 'en-US')).toContain('$');
+    });
+
+    it('uses the active preference currency when no currency is passed', () => {
+      document.documentElement.dataset.currency = 'USD';
+      expect(CurrencyFormatter.formatBalance(100)).toContain('$');
+      delete document.documentElement.dataset.currency;
+    });
+
+    it('uses the selected currency for compact values', () => {
+      expect(CurrencyFormatter.shortenBalance(1500, 'USD')).toContain('$');
     });
 
     it('formats negative values correctly', () => {
@@ -27,8 +43,8 @@ describe('CurrencyFormatter', () => {
 
 describe('DateFormatter', () => {
   describe('formatWithPattern', () => {
-    it('formats a date with the default dd.MM.yyyy pattern', () => {
-      expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('15.01.2024');
+    it('formats a date with the default US pattern', () => {
+      expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('01/15/2024');
     });
 
     it('formats a date with a custom pattern', () => {
@@ -38,7 +54,7 @@ describe('DateFormatter', () => {
 
   describe('formatNullable', () => {
     it('formats a date when present', () => {
-      expect(DateFormatter.formatNullable(new Date(2024, 0, 15))).toBe('15.01.2024');
+      expect(DateFormatter.formatNullable(new Date(2024, 0, 15))).toBe('01/15/2024');
     });
 
     it('returns the fallback for missing dates', () => {

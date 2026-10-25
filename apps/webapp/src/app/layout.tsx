@@ -1,4 +1,5 @@
 import type {Metadata, Viewport} from 'next';
+import {getLocale, getMessages} from 'next-intl/server';
 import type React from 'react';
 import {colors} from '@/theme/DarkTheme/colors';
 import {LayoutWrapper} from './layout-wrapper';
@@ -22,12 +23,16 @@ export const viewport: Viewport = {
     },
   ],
 };
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default async function RootLayout({children}: {children: React.ReactNode}) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
     <StoreProvider>
-      <html lang="en" suppressHydrationWarning>
+      <html lang={locale} suppressHydrationWarning>
         <body>
-          <LayoutWrapper>{children}</LayoutWrapper>
+          <LayoutWrapper locale={locale} messages={messages}>
+            {children}
+          </LayoutWrapper>
         </body>
       </html>
     </StoreProvider>

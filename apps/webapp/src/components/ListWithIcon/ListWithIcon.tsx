@@ -4,6 +4,7 @@ import {ActionPaper} from '@/components/ActionPaper';
 import {Icon} from '@/components/Icon';
 import {Image} from '@/components/Image';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type TListWithIconProps = {
   icon?: React.ReactNode;
@@ -15,6 +16,7 @@ export type TListWithIconProps = {
 };
 
 export const ListWithIcon: React.FC<TListWithIconProps> = ({icon, imageUrl, title, subtitle, amount, onClick}) => {
+  const currency = useCurrencyPreference();
   return (
     <Box
       sx={{
@@ -78,7 +80,7 @@ export const ListWithIcon: React.FC<TListWithIconProps> = ({icon, imageUrl, titl
               ? amount
               : typeof amount === 'object'
                 ? amount
-                : Formatter.currency.formatBalance(amount as number)}
+                : Formatter.currency.formatBalance(amount as number, currency)}
           </Typography>
         </Box>
       )}

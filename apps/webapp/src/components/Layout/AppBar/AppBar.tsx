@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import {useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {signOut} from '@/authClient';
 import {Brand} from '@/components/Brand';
@@ -29,25 +30,26 @@ export type AppBarProps = {
 };
 
 export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
+  const t = useTranslations('AppBar');
   const router = useRouter();
   const {showSnackbar} = useSnackbarContext();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const isUserMenuOpen = anchorElUser !== null;
 
   const MenuLinks = [
-    {label: 'Website', href: 'https://budgetbuddy.dev'},
-    {label: 'GitHub', href: 'https://github.com/BudgetBuddyDE'},
+    {label: t('website'), href: 'https://budgetbuddy.dev'},
+    {label: t('github'), href: 'https://github.com/BudgetBuddyDE'},
   ];
 
   const handleLogOut = async () => {
     await signOut(
       () => {
-        showSnackbar({message: 'You have been logged out.'});
+        showSnackbar({message: t('loggedOut')});
       },
       () => {
         showSnackbar({
-          message: 'Logout failed. Please try again.',
-          action: <Button onClick={handleLogOut}>Retry</Button>,
+          message: t('logoutFailed'),
+          action: <Button onClick={handleLogOut}>{t('retry')}</Button>,
         });
       },
     );
@@ -56,12 +58,12 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
   const ProfileMenu = [
     {
       icon: <SettingsIcon />,
-      label: 'Settings',
+      label: t('settings'),
       onClick: () => router.push('/settings/profile'),
     },
     {
       icon: <LogoutIcon />,
-      label: 'Logout',
+      label: t('logout'),
       onClick: handleLogOut,
     },
   ];
@@ -111,10 +113,10 @@ export const AppBar: React.FC<AppBarProps> = ({showBrand = false}) => {
             </Box>
 
             {/* Profile */}
-            <Tooltip title="Profile">
+            <Tooltip title={t('profile')}>
               <IconButton
                 onClick={handleOpenUserMenu}
-                aria-label="Profile"
+                aria-label={t('profile')}
                 aria-haspopup="true"
                 aria-expanded={isUserMenuOpen}
                 aria-controls={isUserMenuOpen ? 'menu-appbar' : undefined}

@@ -4,6 +4,7 @@ import type {TCategoryStats} from '@budgetbuddyde/api/category';
 import {DonutChart, type DonutDataPoint} from '@budgetbuddyde/charts';
 import {Box, Button, Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import NextLink from 'next/link';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
@@ -11,6 +12,7 @@ import {ErrorAlert as ErrorComp} from '@/components/ErrorAlert';
 import {CircularProgress} from '@/components/Loading';
 import {NoResults} from '@/components/NoResults';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type CategoryPieChartTimeframe = 'MONTH' | 'YTD' | 'ALL_TIME';
 export type CategoryPieChartTransactionType = 'INCOME' | 'EXPENSE';
@@ -110,7 +112,9 @@ export function CategoryPieChart({
   transactionsType,
   withViewMore = false,
 }: CategoryPieChartProps) {
+  const t = useTranslations('CategoryPieChart');
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const currency = useCurrencyPreference();
   const [currentTimeframe, setCurrentTimeframe] = React.useState<CategoryPieChartTimeframe>(defaultTimeframe);
 
   // Track mount status to avoid setState on unmounted component
@@ -193,7 +197,7 @@ export function CategoryPieChart({
             value={currentTimeframe}
             onChange={handleTimeframeChange}
             exclusive
-            aria-label="Select timeframe"
+            aria-label={t('selectTimeframe')}
             disabled={isLoading} // <-- important change
           >
             {TIMEFRAMES.map(tf => (
@@ -212,9 +216,9 @@ export function CategoryPieChart({
         ) : chartData.length > 0 ? (
           <DonutChart
             data={chartData}
-            primaryText={Formatter.currency.formatBalance(totalValue)}
-            secondaryText={transactionsType === 'EXPENSE' ? 'Expenses' : 'Income'}
-            valueFormatter={value => Formatter.currency.formatBalance(value)}
+            primaryText={Formatter.currency.formatBalance(totalValue, currency)}
+            secondaryText={transactionsType === 'EXPENSE' ? t('expenses') : t('income')}
+            valueFormatter={value => Formatter.currency.formatBalance(value, currency)}
           />
         ) : (
           <NoResults text={TIMEFRAME_META[currentTimeframe].emptyText} />
@@ -228,8 +232,8 @@ export function CategoryPieChart({
               justifyContent: 'flex-end',
             }}
           >
-            <Button LinkComponent={NextLink} href="/transactions" aria-label="View more transactions">
-              View more...
+            <Button LinkComponent={NextLink} href="/transactions" aria-label={t('viewMoreAria')}>
+              {t('viewMore')}
             </Button>
           </Stack>
         </Card.Footer>
