@@ -413,6 +413,9 @@ importers:
       '@types/node':
         specifier: ^24.0.3
         version: 24.13.6
+      drizzle-kit:
+        specifier: 0.31.11
+        version: 0.31.11
       rimraf:
         specifier: ^6.0.1
         version: 6.1.3
