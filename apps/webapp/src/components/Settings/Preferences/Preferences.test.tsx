@@ -1,7 +1,7 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {NextIntlClientProvider} from 'next-intl';
 import {describe, expect, it, vi} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
+import {fireEvent, render, screen, waitFor} from '@/test/testing-library';
 import {Preferences} from './Preferences';
 
 const {get, update, showSnackbar} = vi.hoisted(() => ({get: vi.fn(), update: vi.fn(), showSnackbar: vi.fn()}));

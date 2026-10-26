@@ -1,7 +1,7 @@
-import {fireEvent, render, screen} from '@testing-library/react';
 import {NextIntlClientProvider} from 'next-intl';
 import {describe, expect, it} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
+import {fireEvent, render, screen} from '@/test/testing-library';
 import {BudgetOverviewCard} from './BudgetOverviewCard';
 
 const renderCard = (props: React.ComponentProps<typeof BudgetOverviewCard>) =>

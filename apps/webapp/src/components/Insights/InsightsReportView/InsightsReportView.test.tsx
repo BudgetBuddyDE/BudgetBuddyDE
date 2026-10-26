@@ -1,7 +1,7 @@
-import {cleanup, render as rtlRender, screen} from '@testing-library/react';
 import {NextIntlClientProvider} from 'next-intl';
 import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
+import {cleanup, render as rtlRender, screen} from '@/test/testing-library';
 import {buildReport, buildTransaction, categoryOption} from '../InsightsReport.fixtures';
 import {InsightsReportView} from './InsightsReportView';
 

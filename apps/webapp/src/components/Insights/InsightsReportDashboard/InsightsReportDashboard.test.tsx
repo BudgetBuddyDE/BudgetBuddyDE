@@ -1,7 +1,7 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
-import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {cleanup, fireEvent, render, screen, waitFor} from '@/test/testing-library';
 import {buildReport, buildTransaction, categoryOption, paymentMethodOption} from '../InsightsReport.fixtures';
 import {InsightsReportDashboard} from './InsightsReportDashboard';
 

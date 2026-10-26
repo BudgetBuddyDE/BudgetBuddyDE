@@ -1,5 +1,6 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it} from 'vite-plus/test';
+import {renderWithLocale} from '@/test/render';
+import {cleanup, fireEvent, render, screen} from '@/test/testing-library';
 import {buildReport} from '../InsightsReport.fixtures';
 import {InsightsReportAnalysis} from './InsightsReportAnalysis';
 
@@ -8,9 +9,9 @@ afterEach(() => cleanup());
 describe('InsightsReportAnalysis', () => {
   it('renders category rows with the selected expenses metric by default', () => {
     const report = buildReport();
-    render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
+    renderWithLocale(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />, 'de-DE');
 
-    expect(screen.getByText('Category analysis')).toBeInTheDocument();
+    expect(screen.getByText('Kategorieanalyse')).toBeInTheDocument();
     expect(screen.getByText('Groceries')).toBeInTheDocument();
     expect(screen.getByText('Housing')).toBeInTheDocument();
     // "Selected metric" column mirrors expenses for the default metric
@@ -21,10 +22,10 @@ describe('InsightsReportAnalysis', () => {
 
   it('recomputes the selected metric column when the metric changes', () => {
     const report = buildReport();
-    render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
+    renderWithLocale(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />, 'de-DE');
 
-    fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Metric'}));
-    fireEvent.click(screen.getByRole('option', {name: 'Income'}));
+    fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Kennzahl'}));
+    fireEvent.click(screen.getByRole('option', {name: 'Einnahmen'}));
 
     // Income column and the "Selected metric" column both show the income value
     expect(screen.getAllByText(/600,00/)).toHaveLength(2);
@@ -34,7 +35,7 @@ describe('InsightsReportAnalysis', () => {
 
   it('sorts payment methods by usage count by default', () => {
     const report = buildReport();
-    render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
+    renderWithLocale(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />, 'de-DE');
 
     const rows = screen
       .getAllByRole('row')
@@ -45,7 +46,7 @@ describe('InsightsReportAnalysis', () => {
 
   it('re-sorts payment methods by expenses volume', () => {
     const report = buildReport();
-    render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
+    renderWithLocale(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
 
     fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Rank by'}));
     fireEvent.click(screen.getByRole('option', {name: 'Volume'}));
@@ -71,9 +72,9 @@ describe('InsightsReportAnalysis', () => {
         },
       ],
     });
-    render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
+    renderWithLocale(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />, 'de-DE');
 
-    expect(screen.getByText('Current month budget health')).toBeInTheDocument();
+    expect(screen.getByText('Budgetstatus des aktuellen Monats')).toBeInTheDocument();
     expect(screen.getByText('Groceries budget')).toBeInTheDocument();
     expect(screen.getByText('70.0%')).toBeInTheDocument();
   });
@@ -82,13 +83,13 @@ describe('InsightsReportAnalysis', () => {
     const report = buildReport({budgets: null});
     render(<InsightsReportAnalysis report={report} selectedCategoryRows={report.categories} />);
 
-    expect(screen.queryByText('Current month budget health')).not.toBeInTheDocument();
+    expect(screen.queryByText('Budgetstatus des aktuellen Monats')).not.toBeInTheDocument();
   });
 
   it('renders an empty state for the category table without matching rows', () => {
     const report = buildReport();
-    render(<InsightsReportAnalysis report={report} selectedCategoryRows={[]} />);
+    renderWithLocale(<InsightsReportAnalysis report={report} selectedCategoryRows={[]} />, 'de-DE');
 
-    expect(screen.getByText('No data for the selected filters.')).toBeInTheDocument();
+    expect(screen.getByText('Keine Daten für die ausgewählten Filter.')).toBeInTheDocument();
   });
 });

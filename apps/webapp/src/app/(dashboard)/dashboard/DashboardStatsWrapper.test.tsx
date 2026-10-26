@@ -1,7 +1,7 @@
-import {cleanup, render, screen} from '@testing-library/react';
 import {NextIntlClientProvider} from 'next-intl';
 import {afterEach, describe, expect, it} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
+import {cleanup, render, screen} from '@/test/testing-library';
 import {CurrencyContext} from '@/utils/Formatter/PreferenceContext';
 import {DashboardStatsWrapper} from './DashboardStatsWrapper';
 

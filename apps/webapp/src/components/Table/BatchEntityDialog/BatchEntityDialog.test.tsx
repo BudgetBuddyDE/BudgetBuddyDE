@@ -1,5 +1,6 @@
-import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vite-plus/test';
+import {renderWithLocale} from '@/test/render';
+import {fireEvent, screen, waitFor, within} from '@/test/testing-library';
 import {BatchEntityDialog, type BatchEntityDialogProps} from './BatchEntityDialog';
 
 type TestRow = {
@@ -58,7 +59,7 @@ describe('BatchEntityDialog', () => {
       type ValueRow = {id: string; value: Date | number | boolean | string};
       const initialValues = {date: new Date(2026, 9, 17), number: 10, boolean: false, singleSelect: 'first'};
       const onClose = vi.fn();
-      render(
+      renderWithLocale(
         <BatchEntityDialog<ValueRow, ValueRow>
           open
           title="Batch values"
@@ -116,7 +117,7 @@ describe('BatchEntityDialog', () => {
 
     it.each(['close', 'Cancel', 'Escape'] as const)('closes an unchanged draft through %s', async control => {
       const props = modeProps();
-      render(<BatchEntityDialog {...props} />);
+      renderWithLocale(<BatchEntityDialog {...props} />);
       await screen.findByRole('gridcell', {name: 'Original'});
 
       closeDialog(control);
@@ -127,7 +128,7 @@ describe('BatchEntityDialog', () => {
 
     it.each(['close', 'Cancel', 'Escape'] as const)('confirms changed drafts through %s', async control => {
       const props = modeProps();
-      render(<BatchEntityDialog {...props} />);
+      renderWithLocale(<BatchEntityDialog {...props} />);
       await editName('Changed');
 
       closeDialog(control);
@@ -145,7 +146,7 @@ describe('BatchEntityDialog', () => {
 
     it('keeps the draft when close or discard is attempted during submission', async () => {
       const props = createProps({initialRows: [{id: 'existing', name: 'Original'}], mode: 'EDIT'});
-      const {rerender} = render(<BatchEntityDialog {...props} />);
+      const {rerender} = renderWithLocale(<BatchEntityDialog {...props} />);
 
       await editName('Changed');
       rerender(<BatchEntityDialog {...props} isSubmitting />);
@@ -166,7 +167,7 @@ describe('BatchEntityDialog', () => {
 
     it.each(['Keep editing', 'Escape', 'backdrop'] as const)('preserves active input after %s', async action => {
       const props = modeProps();
-      render(<BatchEntityDialog {...props} />);
+      renderWithLocale(<BatchEntityDialog {...props} />);
       const input = await startEditing();
       fireEvent.change(input, {target: {value: 'Uncommitted'}});
       fireEvent.keyDown(input, {key: 'Escape'});
@@ -196,7 +197,7 @@ describe('BatchEntityDialog', () => {
 
     it('does not prompt after reverting an edit or selecting a row', async () => {
       const props = modeProps();
-      render(<BatchEntityDialog {...props} />);
+      renderWithLocale(<BatchEntityDialog {...props} />);
       await editName('Changed');
       await editName('Original', 'Changed');
       fireEvent.click(screen.getAllByRole('checkbox')[1]);
@@ -208,7 +209,7 @@ describe('BatchEntityDialog', () => {
 
   it('compares an unchanged active cell against the opening snapshot', async () => {
     const props = createProps({mode: 'EDIT', initialRows: [{id: 'existing', name: 'Original'}]});
-    render(<BatchEntityDialog {...props} />);
+    renderWithLocale(<BatchEntityDialog {...props} />);
     const input = await startEditing();
     fireEvent.keyDown(input, {key: 'Escape'});
     expect(props.onClose).toHaveBeenCalledTimes(1);
@@ -217,7 +218,7 @@ describe('BatchEntityDialog', () => {
 
   it('protects an added empty row and becomes unchanged when that row is removed', async () => {
     const props = createProps();
-    render(<BatchEntityDialog {...props} />);
+    renderWithLocale(<BatchEntityDialog {...props} />);
     await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(2));
     fireEvent.click(screen.getByRole('button', {name: 'Add row'}));
     closeDialog('Cancel');
@@ -231,7 +232,7 @@ describe('BatchEntityDialog', () => {
 
   it('preserves edits on parent refresh and clears discard state after external close and reopening', async () => {
     const props = createProps({mode: 'EDIT', initialRows: [{id: 'existing', name: 'Original'}]});
-    const {rerender} = render(<BatchEntityDialog {...props} />);
+    const {rerender} = renderWithLocale(<BatchEntityDialog {...props} />);
     await editName('Changed');
     const refreshedProps = {...props, initialRows: [{id: 'existing', name: 'Refreshed'}]};
     rerender(<BatchEntityDialog {...refreshedProps} />);
@@ -248,7 +249,9 @@ describe('BatchEntityDialog', () => {
   });
 
   it('renders a full-screen create grid and can add/remove rows', async () => {
-    render(<BatchEntityDialog {...createProps({createEmptyRow: () => ({id: crypto.randomUUID(), name: 'empty'})})} />);
+    renderWithLocale(
+      <BatchEntityDialog {...createProps({createEmptyRow: () => ({id: crypto.randomUUID(), name: 'empty'})})} />,
+    );
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', {name: 'Batch users'})).toBeInTheDocument();
@@ -270,7 +273,7 @@ describe('BatchEntityDialog', () => {
       issues: [{rowId: 'new', message: 'Name is required'}],
     }));
 
-    render(
+    renderWithLocale(
       <BatchEntityDialog
         {...createProps({
           createEmptyRow: () => ({id: 'new', name: ''}),
@@ -292,7 +295,7 @@ describe('BatchEntityDialog', () => {
       initialRows: [{id: 'existing', name: 'Original'}],
       mapRowsToPayload: () => ({success: false, issues: [{rowId: 'existing', message: 'Invalid name'}]}),
     });
-    render(<BatchEntityDialog {...props} />);
+    renderWithLocale(<BatchEntityDialog {...props} />);
     await editName('Invalid');
     fireEvent.click(screen.getByRole('button', {name: 'Save'}));
     expect(await screen.findByText('Row 1: Invalid name')).toBeInTheDocument();
@@ -312,7 +315,7 @@ describe('BatchEntityDialog', () => {
       .mockResolvedValue(undefined);
 
     const onClose = vi.fn();
-    render(
+    renderWithLocale(
       <BatchEntityDialog
         {...createProps({createEmptyRow: () => ({id: 'new', name: 'Original'}), onSubmit, onClose})}
       />,

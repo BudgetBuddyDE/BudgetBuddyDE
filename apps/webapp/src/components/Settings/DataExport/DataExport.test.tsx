@@ -1,6 +1,6 @@
-import {fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {SnackbarProvider} from '@/components/Snackbar';
+import {fireEvent, render, screen} from '@/test/testing-library';
 import {DataExport} from './DataExport';
 
 const {exportApplicationArchive, exportAuthArchive} = vi.hoisted(() => ({
@@ -63,7 +63,8 @@ describe('DataExport', () => {
     const archive = new Blob(['archive'], {type: 'application/zip'});
     exportAuthArchive.mockResolvedValue([archive, null]);
     exportApplicationArchive.mockResolvedValue([archive, null]);
-    vi.stubGlobal('URL', {createObjectURL: vi.fn(() => 'blob:archive'), revokeObjectURL: vi.fn()});
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:archive');
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
 
     render(
       <SnackbarProvider>
@@ -81,5 +82,7 @@ describe('DataExport', () => {
       resources: ['transactions', 'recurring-payments', 'budgets', 'payment-methods', 'categories'],
     });
     expect(exportApplicationArchive).toHaveBeenCalledWith({format: 'json', resources: ['attachments']});
+    createObjectURL.mockRestore();
+    revokeObjectURL.mockRestore();
   });
 });

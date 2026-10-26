@@ -1,5 +1,5 @@
-import {render, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vite-plus/test';
+import {render, screen} from '@/test/testing-library';
 
 import {ContentGrid} from './ContentGrid';
 
