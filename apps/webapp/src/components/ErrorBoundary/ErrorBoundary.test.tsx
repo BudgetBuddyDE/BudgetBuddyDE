@@ -1,5 +1,5 @@
-import {fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vite-plus/test';
+import {fireEvent, render, screen} from '@/test/testing-library';
 
 import ErrorBoundary from './ErrorBoundary';
 
@@ -25,7 +25,7 @@ describe('ErrorBoundary', () => {
         <ThrowingComponent shouldThrow={true} />
       </ErrorBoundary>,
     );
-    expect(screen.getByText("Something wen't wrong")).toBeInTheDocument();
+    expect(screen.getByText('We could not load this section')).toBeInTheDocument();
     expect(screen.getByText('Test error')).toBeInTheDocument();
     consoleError.mockRestore();
   });
@@ -77,9 +77,9 @@ describe('ErrorBoundary', () => {
         <DynamicComponent />
       </ErrorBoundary>,
     );
-    expect(screen.getByText("Something wen't wrong")).toBeInTheDocument();
+    expect(screen.getByText('We could not load this section')).toBeInTheDocument();
     shouldThrow = false;
-    fireEvent.click(screen.getByRole('button', {name: 'Retry'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Try again'}));
     expect(screen.getByText('Normal content')).toBeInTheDocument();
     consoleError.mockRestore();
   });

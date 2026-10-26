@@ -19,6 +19,9 @@ import {
   Typography,
 } from '@mui/material';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {de} from 'date-fns/locale/de';
+import {enUS} from 'date-fns/locale/en-US';
+import {useLocale, useTranslations} from 'next-intl';
 import React from 'react';
 import {appConfig} from '@/appConfig';
 import {authClient} from '@/authClient';
@@ -43,6 +46,8 @@ import {getApiKeySummary, getDaysUntilDate, isActive, isExpired} from '../utils'
 import {ApiKeyDetail} from './ApiKeyDetail';
 import {ApiKeyStatistic} from './ApiKeyStatistic';
 export const ApiKeyTable: React.FC = () => {
+  const t = useTranslations('ApiKeyTable');
+  const locale = useLocale();
   const {showSnackbar} = useSnackbarContext();
 
   const [apiKeys, setApiKeys] = React.useState<ApiKey[]>([]);
@@ -76,7 +81,7 @@ export const ApiKeyTable: React.FC = () => {
       });
 
       if (fetchError) {
-        setError(fetchError.message ?? 'Failed to fetch API keys');
+        setError(t('fetchError', {error: fetchError.message ?? ''}));
         return;
       }
 
@@ -87,11 +92,11 @@ export const ApiKeyTable: React.FC = () => {
     } catch (err) {
       if (err instanceof Error) logger.error('Error fetching API keys', err);
       else logger.error('Error fetching API keys', {reason: String(err)});
-      setError('An unexpected error occurred while loading API keys');
+      setError(t('unexpectedFetchError'));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   React.useEffect(() => {
     fetchApiKeys();
@@ -119,13 +124,13 @@ export const ApiKeyTable: React.FC = () => {
   const handleFormSubmission: EntityDrawerFormHandler<ApiKeyFormFields> = async (payload, onSuccess) => {
     const name = payload.name?.trim();
     if (!name) {
-      showSnackbar({message: 'Please provide a name for the API key'});
+      showSnackbar({message: t('nameRequired')});
       return;
     }
 
     const expiresInDays = payload.expiresAt ? getDaysUntilDate(payload.expiresAt) : null;
     if (expiresInDays !== null && expiresInDays <= 0) {
-      showSnackbar({message: 'Expiration date must be in the future'});
+      showSnackbar({message: t('expirationMustBeFuture')});
       return;
     }
 
@@ -139,22 +144,22 @@ export const ApiKeyTable: React.FC = () => {
 
       if (createError) {
         showSnackbar({
-          message: `Failed to create API key: ${createError.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          message: t('createError', {error: createError.message ?? ''}),
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
         return;
       }
 
       const createdKey = (data as {key?: string} | null)?.key;
       if (!createdKey) {
-        showSnackbar({message: 'API key created, but the key value was not returned'});
+        showSnackbar({message: t('createdKeyMissing')});
       } else {
         setCreatedKeyDialog({
           key: createdKey,
           copied: false,
           acknowledged: false,
         });
-        showSnackbar({message: 'API key created successfully'});
+        showSnackbar({message: t('createdSuccessfully')});
       }
 
       dispatchDrawerAction({type: 'CLOSE'});
@@ -163,7 +168,7 @@ export const ApiKeyTable: React.FC = () => {
     } catch (err) {
       if (err instanceof Error) logger.error('Error creating API key', err);
       else logger.error('Error creating API key', {reason: String(err)});
-      showSnackbar({message: 'An unexpected error occurred while creating the API key'});
+      showSnackbar({message: t('unexpectedCreateError')});
     } finally {
       setIsCreating(false);
     }
@@ -176,13 +181,13 @@ export const ApiKeyTable: React.FC = () => {
       keyIds.map(async keyId => {
         const {error: deleteError} = await authClient.apiKey.delete({keyId});
         if (deleteError) {
-          throw new Error(deleteError.message ?? 'Failed to delete API key');
+          throw new Error(deleteError.message ?? t('deleteErrorFallback'));
         }
       }),
     );
 
     showSnackbar({
-      message: keyIds.length === 1 ? 'API key deleted successfully' : `${keyIds.length} API keys deleted successfully`,
+      message: keyIds.length === 1 ? t('deletedOne') : t('deletedMany', {count: keyIds.length}),
     });
     fetchApiKeys();
   };
@@ -192,8 +197,8 @@ export const ApiKeyTable: React.FC = () => {
       if (err instanceof Error) logger.error('Error deleting API key', err);
       else logger.error('Error deleting API key', {reason: String(err)});
       showSnackbar({
-        message: err instanceof Error ? err.message : 'An unexpected error occurred while deleting the API key',
-        action: <Button onClick={() => handleDeleteConfirm(target)}>Retry</Button>,
+        message: err instanceof Error ? err.message : t('unexpectedDeleteError'),
+        action: <Button onClick={() => handleDeleteConfirm(target)}>{t('retry')}</Button>,
       });
     });
   };
@@ -203,12 +208,12 @@ export const ApiKeyTable: React.FC = () => {
       .writeText(key)
       .then(() => {
         setCreatedKeyDialog(prev => ({...prev, copied: true}));
-        showSnackbar({message: 'API key copied to clipboard'});
+        showSnackbar({message: t('copied')});
       })
       .catch(err => {
         if (err instanceof Error) logger.error('Error copying API key', err);
         else logger.error('Error copying API key', {reason: String(err)});
-        showSnackbar({message: 'Failed to copy API key'});
+        showSnackbar({message: t('copyError')});
       });
   };
 
@@ -272,10 +277,10 @@ export const ApiKeyTable: React.FC = () => {
             component="h2"
             sx={{fontWeight: 600, fontSize: '1.25rem', lineHeight: 1.6, letterSpacing: '0.0075em'}}
           >
-            API keys
+            {t('title')}
           </Card.Title>
           <Button onClick={handleCreateEntity} startIcon={<AddRounded />} variant="text" size="small">
-            Create API key
+            {t('create')}
           </Button>
         </Card.Header>
 
@@ -290,14 +295,14 @@ export const ApiKeyTable: React.FC = () => {
             })}
           >
             <Grid size={{xs: 6, md: 4}}>
-              <ApiKeyStatistic label="Active keys" value={isInitialLoading ? null : summary.activeCount} />
+              <ApiKeyStatistic label={t('activeKeys')} value={isInitialLoading ? null : summary.activeCount} />
             </Grid>
             <Grid size={{xs: 6, md: 4}} sx={{position: 'relative', pl: {xs: 2, sm: 0}}}>
               <Divider
                 orientation="vertical"
                 sx={{position: 'absolute', top: {xs: 1, sm: 0}, bottom: {xs: 1, sm: 0}, left: 0, height: 'auto'}}
               />
-              <ApiKeyStatistic label="Disabled / expired" value={isInitialLoading ? null : summary.inactiveCount} />
+              <ApiKeyStatistic label={t('inactiveKeys')} value={isInitialLoading ? null : summary.inactiveCount} />
             </Grid>
             <Grid size={{xs: 12, md: 4}} sx={{position: 'relative'}}>
               <Divider orientation="horizontal" sx={{display: {xs: 'block', md: 'none'}}} />
@@ -313,13 +318,16 @@ export const ApiKeyTable: React.FC = () => {
                 }}
               />
               <ApiKeyStatistic
-                label="Last created"
+                label={t('lastCreated')}
                 value={
                   isInitialLoading
                     ? null
                     : summary.lastCreated
-                      ? formatDistanceToNowStrict(new Date(summary.lastCreated), {addSuffix: true})
-                      : 'None yet'
+                      ? formatDistanceToNowStrict(new Date(summary.lastCreated), {
+                          addSuffix: true,
+                          locale: locale === 'de-DE' ? de : enUS,
+                        })
+                      : t('noneYet')
                 }
                 valueTooltip={summary.lastCreated ? Formatter.date.format(summary.lastCreated) : undefined}
               />
@@ -331,9 +339,9 @@ export const ApiKeyTable: React.FC = () => {
           {!isLoading && !error && apiKeys.length === 0 && (
             <NoResults
               variant="create"
-              title="Create your first API key"
-              description="API keys provide programmatic access to your Budget Buddy account."
-              createLabel="Create API key"
+              title={t('emptyTitle')}
+              description={t('emptyDescription')}
+              createLabel={t('create')}
               onCreate={handleCreateEntity}
               sx={{m: 2}}
             />
@@ -341,10 +349,10 @@ export const ApiKeyTable: React.FC = () => {
 
           {apiKeys.length > 0 && (
             <TableContainer>
-              <Table size="small" aria-label="API keys">
+              <Table size="small" aria-label={t('title')}>
                 <TableHead>
                   <TableRow>
-                    {['Name', 'Key', 'Status', 'Created'].map(label => (
+                    {[t('name'), t('key'), t('status'), t('created')].map(label => (
                       <TableCell key={label}>
                         <Typography variant="body2" sx={{fontWeight: 'bold'}}>
                           {label}
@@ -359,14 +367,14 @@ export const ApiKeyTable: React.FC = () => {
                     const expanded = expandedKeyId === apiKey.id;
                     const active = isActive(apiKey);
                     const expired = isExpired(apiKey.expiresAt);
-                    const status = !apiKey.enabled ? 'Disabled' : expired ? 'Expired' : 'Active';
+                    const status = !apiKey.enabled ? t('disabled') : expired ? t('expired') : t('active');
 
                     return (
                       <React.Fragment key={apiKey.id}>
                         <TableRow hover>
                           <TableCell>
                             <Typography variant="body2" sx={{fontWeight: 600}}>
-                              {apiKey.name || 'Unnamed'}
+                              {apiKey.name || t('unnamed')}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -374,7 +382,7 @@ export const ApiKeyTable: React.FC = () => {
                               variant="body2"
                               sx={{color: 'text.secondary', fontFamily: 'monospace', whiteSpace: 'nowrap'}}
                             >
-                              {apiKey.start ? `${apiKey.start}...` : 'Hidden'}
+                              {apiKey.start ? `${apiKey.start}...` : t('hidden')}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -389,10 +397,12 @@ export const ApiKeyTable: React.FC = () => {
                             <Typography variant="body2">{Formatter.date.format(apiKey.createdAt)}</Typography>
                           </TableCell>
                           <TableCell align="right" sx={{whiteSpace: 'nowrap'}}>
-                            <Tooltip title={expanded ? 'Hide details' : 'Show details'}>
+                            <Tooltip title={expanded ? t('hideDetails') : t('showDetails')}>
                               <IconButton
                                 size="small"
-                                aria-label={`${expanded ? 'Hide' : 'Show'} details for API key ${apiKey.name || apiKey.id}`}
+                                aria-label={t(expanded ? 'hideKeyDetails' : 'showKeyDetails', {
+                                  name: apiKey.name || apiKey.id,
+                                })}
                                 aria-expanded={expanded}
                                 aria-controls={`api-key-details-${apiKey.id}`}
                                 onClick={() => setExpandedKeyId(expanded ? null : apiKey.id)}
@@ -400,11 +410,11 @@ export const ApiKeyTable: React.FC = () => {
                                 {expanded ? <KeyboardArrowUpRounded /> : <KeyboardArrowDownRounded />}
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Delete API key">
+                            <Tooltip title={t('delete')}>
                               <IconButton
                                 size="small"
                                 color="error"
-                                aria-label={`Delete API key ${apiKey.name || apiKey.id}`}
+                                aria-label={t('deleteKey', {name: apiKey.name || apiKey.id})}
                                 onClick={() => handleDeleteApiKeyClick(apiKey.id)}
                               >
                                 <DeleteRounded fontSize="small" />
@@ -424,23 +434,23 @@ export const ApiKeyTable: React.FC = () => {
                                   }}
                                 >
                                   <ApiKeyDetail
-                                    label="Expires"
+                                    label={t('expires')}
                                     value={Formatter.date.formatNullable(apiKey.expiresAt)}
                                   />
                                   <ApiKeyDetail
-                                    label="Last request"
+                                    label={t('lastRequest')}
                                     value={Formatter.date.formatNullable(apiKey.lastRequest)}
                                   />
                                   <ApiKeyDetail
                                     label="Usage"
-                                    value={`${apiKey.requestCount} requests`}
+                                    value={t('requests', {count: apiKey.requestCount})}
                                     valueInformation={
                                       apiKey.remaining === null
-                                        ? 'Unlimited remaining'
-                                        : `${apiKey.remaining} remaining`
+                                        ? t('unlimitedRemaining')
+                                        : t('remaining', {count: apiKey.remaining})
                                     }
                                   />
-                                  <ApiKeyDetail label="Rate limit" value={formatRateLimit(apiKey)} />
+                                  <ApiKeyDetail label={t('rateLimit')} value={formatRateLimit(apiKey, t)} />
                                 </Box>
                               </Box>
                             </Collapse>
@@ -499,15 +509,15 @@ export const ApiKeyTable: React.FC = () => {
       />
 
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label="Create API key" />
+        <AddFab onClick={handleCreateEntity} label={t('create')} />
       </FabContainer>
     </React.Fragment>
   );
 };
 
-const formatRateLimit = (apiKey: ApiKey) => {
-  if (!apiKey.rateLimitEnabled || !apiKey.rateLimitMax) return 'Off';
+const formatRateLimit = (apiKey: ApiKey, t: ReturnType<typeof useTranslations<'ApiKeyTable'>>) => {
+  if (!apiKey.rateLimitEnabled || !apiKey.rateLimitMax) return t('off');
 
   const duration = Formatter.duration.formatMilliseconds(apiKey.rateLimitTimeWindow);
-  return `${apiKey.rateLimitMax}/${duration ?? 'window'}`;
+  return t('rateLimitValue', {count: apiKey.rateLimitMax, duration: duration ?? t('window')});
 };

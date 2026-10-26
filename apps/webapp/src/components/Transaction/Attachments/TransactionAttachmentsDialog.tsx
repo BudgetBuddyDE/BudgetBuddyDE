@@ -1,5 +1,6 @@
 import type {TExpandedTransaction} from '@budgetbuddyde/api/transaction';
 import {Dialog, DialogContent, DialogTitle, Typography} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {CloseIconButton} from '@/components/Button';
 import {ErrorAlert} from '@/components/ErrorAlert';
@@ -25,6 +26,7 @@ export const TransactionAttachmentsDialog: React.FC<TransactionAttachmentsDialog
   transaction,
   onClose,
 }) => {
+  const t = useTranslations('TransactionAttachments');
   return (
     <Dialog
       open={open}
@@ -35,7 +37,7 @@ export const TransactionAttachmentsDialog: React.FC<TransactionAttachmentsDialog
       slotProps={{paper: {elevation: 0}}}
     >
       <DialogTitle>
-        Attachments
+        {t('title')}
         {transaction && (
           <Typography
             variant="body2"
@@ -61,7 +63,7 @@ export const TransactionAttachmentsDialog: React.FC<TransactionAttachmentsDialog
         {transaction ? (
           <TransactionAttachments transactionId={transaction.id} />
         ) : (
-          <ErrorAlert error="No transaction selected. Please select a transaction to view its attachments." />
+          <ErrorAlert error={t('noTransactionSelected')} />
         )}
       </DialogContent>
     </Dialog>

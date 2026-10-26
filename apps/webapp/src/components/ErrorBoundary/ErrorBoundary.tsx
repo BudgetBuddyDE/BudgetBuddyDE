@@ -2,6 +2,7 @@
 
 import {Alert, AlertTitle, Button} from '@mui/material';
 import {usePathname} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 
 export type ErrorBoundaryFallbackProps = {
@@ -117,20 +118,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
         return fallback;
       }
 
-      return (
-        <Alert
-          variant="standard"
-          severity="error"
-          action={
-            <Button color="inherit" size="small" onClick={this.reset}>
-              Retry
-            </Button>
-          }
-        >
-          <AlertTitle>Something wen't wrong</AlertTitle>
-          {props.error.message}
-        </Alert>
-      );
+      return <DefaultErrorFallback error={props.error} reset={this.reset} />;
     }
 
     return this.props.children;
@@ -147,6 +135,24 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     }
     return false;
   }
+}
+
+function DefaultErrorFallback({error, reset}: ErrorBoundaryFallbackProps) {
+  const t = useTranslations('RouteError');
+  return (
+    <Alert
+      variant="standard"
+      severity="error"
+      action={
+        <Button color="inherit" size="small" onClick={reset}>
+          {t('retry')}
+        </Button>
+      }
+    >
+      <AlertTitle>{t('title')}</AlertTitle>
+      {error.message}
+    </Alert>
+  );
 }
 
 /**

@@ -23,7 +23,12 @@
     "period": "Zeitraum",
     "income": "Einnahmen",
     "expenses": "Ausgaben",
-    "balance": "Saldo"
+    "balance": "Saldo",
+    "category": "Kategorie",
+    "emptyMessage": "Erstelle eine Transaktion, um deine Aktivitäten zu verfolgen.",
+    "title": "Historische Salden ({count})",
+    "groupedByDateAndCategory": "Nach Datum und Kategorie gruppiert",
+    "groupedByDate": "Nach Datum gruppiert"
   },
   "DataTable": {
     "noRows": "Keine Einträge gefunden"
@@ -126,12 +131,42 @@
     "goBack": "Zurück",
     "toggle": "Navigation umschalten",
     "openMenu": "Menü öffnen",
-    "menu": "Menü"
+    "menu": "Menü",
+    "showApiKeys": "API-Schlüssel anzeigen",
+    "showAttachment": "Anhang anzeigen"
+  },
+  "Actions": {
+    "add": "Hinzufügen",
+    "close": "Schließen"
+  },
+  "CommandPaletteEntities": {
+    "transaction": "Transaktion",
+    "transactions": "Transaktionen",
+    "recurringPayment": "Wiederkehrende Zahlung",
+    "recurringPayments": "Wiederkehrende Zahlungen",
+    "paymentMethod": "Zahlungsmethode",
+    "paymentMethods": "Zahlungsmethoden",
+    "category": "Kategorie",
+    "categories": "Kategorien",
+    "budget": "Budget",
+    "budgets": "Budgets",
+    "attachment": "Anhang",
+    "attachments": "Anhänge",
+    "apiKey": "API-Schlüssel",
+    "apiKeys": "API-Schlüssel"
   },
   "BatchDialog": {
     "validationErrors": "Validierungsfehler",
     "cancel": "Abbrechen",
-    "discardChanges": "Ungespeicherte Änderungen verwerfen?"
+    "discardChanges": "Ungespeicherte Änderungen verwerfen?",
+    "discardTitle": "Ungespeicherte Änderungen verwerfen?",
+    "discardDescription": "Deine ungespeicherten Änderungen gehen verloren. Möchtest du sie verwerfen?",
+    "keepEditing": "Weiter bearbeiten",
+    "discardChangesAction": "Änderungen verwerfen",
+    "save": "Speichern",
+    "addRow": "Zeile hinzufügen",
+    "removeSelected": "Auswahl entfernen",
+    "rowValidationIssue": "Zeile {row}: {issue}"
   },
   "Filters": {
     "title": "Filter",
@@ -208,6 +243,7 @@
     "information": "Informationen",
     "next": "Nächste",
     "frequency": "Häufigkeit",
+    "retry": "Erneut versuchen",
     "amount": "Betrag",
     "noInformation": "Keine Informationen",
     "resume": "Fortsetzen",
@@ -246,7 +282,15 @@
     "notFound": "Wiederkehrende Zahlung nicht gefunden",
     "failedToExecutePayment": "Zahlung konnte nicht ausgeführt werden: {error}",
     "transactionCreatedSuccessfully": "Transaktion erstellt",
-    "deletedSuccessfully": "Wiederkehrende Zahlung gelöscht"
+    "deletedSuccessfully": "Wiederkehrende Zahlung gelöscht",
+    "plan": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle zwei Wochen",
+      "monthly": "Monatlich",
+      "quarterly": "Vierteljährlich",
+      "yearly": "Jährlich"
+    }
   },
   "RecurringPaymentOccurrenceTable": {
     "date": "Datum",
@@ -258,9 +302,19 @@
     "title": "Fälligkeiten",
     "subtitle": "Konkrete Termine wiederkehrender Zahlungen",
     "includePaused": "Pausierte einschließen",
-    "emptyMessage": "Keine Fälligkeiten wiederkehrender Zahlungen in diesem Zeitraum"
+    "emptyMessage": "Keine Fälligkeiten wiederkehrender Zahlungen in diesem Zeitraum",
+    "plan": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle zwei Wochen",
+      "monthly": "Monatlich",
+      "quarterly": "Vierteljährlich",
+      "yearly": "Jährlich"
+    }
   },
   "TransactionAttachments": {
+    "title": "Anhänge",
+    "noTransactionSelected": "Keine Transaktion ausgewählt. Wähle eine Transaktion aus, um ihre Anhänge anzuzeigen.",
     "showing": "{shown} von {total} Anhängen angezeigt",
     "loadMore": "Weitere Anhänge laden",
     "empty": "Noch keine Anhänge",
@@ -372,182 +426,40 @@
     "remaining": "Verbleibend",
     "usage": "Auslastung"
   },
-  "ReportTable": {
-    "noData": "Keine Daten für die ausgewählten Filter."
-  },
-  "CommandPalette": {
-    "keyboardShortcuts": "Tastenkürzel",
-    "searchCommands": "Befehle suchen...",
-    "navigate": "Navigieren",
-    "select": "Auswählen",
-    "back": "Zurück"
-  },
-  "PageTitles": {
-    "categories": "Kategorien",
-    "transactions": "Transaktionen",
-    "paymentMethods": "Zahlungsmethoden",
-    "recurringPayments": "Wiederkehrende Zahlungen"
-  },
-  "PaymentMethodTable": {
-    "add": "Zahlungsmethode hinzufügen"
-  },
-  "EditUser": {
-    "noSessionData": "Keine Sitzungsdaten verfügbar",
-    "nameUpdated": "Dein Name wurde in {name} geändert",
-    "emailChangeSent": "Eine Anfrage zur Änderung deiner E-Mail-Adresse wurde an {email} gesendet. Prüfe deinen Posteingang.",
-    "tryAgain": "Erneut versuchen",
-    "changesDiscarded": "Änderungen verworfen",
-    "deleteAccountError": "Dein Konto konnte nicht gelöscht werden",
-    "deletionVerificationSent": "Die abschließende Bestätigungs-E-Mail zur Kontolöschung wurde gesendet. Prüfe deinen Posteingang, um den Vorgang abzuschließen.",
-    "emailAlreadyVerified": "Deine E-Mail-Adresse ist bereits bestätigt",
-    "verificationEmailError": "Fehler beim Senden der Bestätigungs-E-Mail: {error}",
-    "verificationEmailSent": "Bestätigungs-E-Mail gesendet. Prüfe deinen Posteingang.",
-    "editBeforeSaving": "Aktiviere zuerst den Bearbeitungsmodus, indem du auf „Bearbeiten“ klickst.",
-    "profile": "Profil",
-    "description": "Ändere deine Kontodaten",
-    "uuid": "UUID",
-    "name": "Name",
-    "email": "E-Mail",
-    "verifyEmailPrompt": "Bitte bestätige deine E-Mail-Adresse, um alle Funktionen von Budget Buddy nutzen zu können.",
-    "verifyEmail": "E-Mail bestätigen",
-    "deleteAccount": "Konto löschen",
-    "discard": "Verwerfen",
-    "saveChanges": "Änderungen speichern",
-    "edit": "Bearbeiten"
-  },
-  "UserAccounts": {
-    "title": "Verknüpfte Konten",
-    "description": "Verwalte deine verknüpften Konten"
-  },
-  "AccountList": {
-    "empty": "Keine verknüpften Konten gefunden.",
-    "sessionRevalidateError": "Sitzung konnte nach dem Entfernen des Kontos nicht erneut geprüft werden",
-    "unlinked": "Konto bei {provider} erfolgreich getrennt",
+  "TransactionTable": {
     "retry": "Erneut versuchen",
-    "unlink": "Konto trennen",
-    "provider": "Anbieter",
-    "createdAt": "Erstellt am"
+    "new": "Neu",
+    "viewAttachments": "Anhänge anzeigen",
+    "addTransaction": "Transaktion hinzufügen"
   },
-  "UserSessions": {
-    "title": "Benutzersitzungen",
-    "description": "Verwalte deine aktiven Sitzungen"
-  },
-  "SessionList": {
-    "empty": "Keine aktiven Sitzungen gefunden.",
-    "revoked": "Sitzung widerrufen.",
+  "CategoryTable": {
     "retry": "Erneut versuchen",
-    "unknownUserAgent": "Unbekannter User-Agent",
-    "unknownIpAddress": "Unbekannte IP-Adresse",
-    "revoke": "Sitzung widerrufen",
-    "ip": "IP",
-    "userAgent": "User-Agent",
-    "createdAt": "Erstellt am",
-    "expiresAt": "Läuft ab am"
+    "addCategory": "Kategorie hinzufügen"
   },
-  "AttachmentThumbnail": {
-    "download": "Herunterladen",
-    "delete": "Löschen"
-  },
-  "AttachmentLightbox": {
-    "download": "Herunterladen",
-    "close": "Schließen"
-  },
-  "DataManagement": {
-    "view": "Ansicht wiederkehrender Zahlungen",
-    "export": "Exportieren",
-    "import": "Importieren",
-    "exportDescription": "Lade eine Kopie deiner Konto- und Anwendungsdaten herunter.",
-    "importDescription": "Stelle Anwendungsdaten aus einem BudgetBuddy-Exportarchiv wieder her."
-  },
-  "DataExport": {
-    "downloadStarted": "Dein Export wird heruntergeladen.",
-    "exportFailed": "Der Export konnte nicht erstellt werden.",
-    "tryAgain": "Erneut versuchen",
-    "exportData": "Daten exportieren",
-    "description": "Lade eine Kopie deiner Konto- und Anwendungsdaten herunter",
-    "format": "Format",
-    "include": "Einschließen",
-    "authData": "Authentifizierungsdaten",
-    "authDataDescription": "Profil, Sitzungen, verknüpfte Konten und API-Schlüssel-Metadaten. Geheimnisse werden niemals exportiert.",
-    "applicationData": "Anwendungsdaten",
-    "resources": {
-      "transactions": "Transaktionen",
-      "recurring-payments": "Wiederkehrende Zahlungen",
-      "budgets": "Budgets",
-      "payment-methods": "Zahlungsmethoden",
-      "categories": "Kategorien"
-    },
-    "attachments": "Anhänge",
-    "attachmentsDescription": "Hochgeladene Dateien, Anhang-Metadaten und Transaktionszuordnungen.",
-    "archiveDescription": "Jede ausgewählte Hauptkategorie wird als separates ZIP-Archiv heruntergeladen. Das Archiv enthält eine Datei pro ausgewählter Ressource und ein Exportmanifest.",
-    "cancel": "Abbrechen",
-    "export": "Exportieren"
-  },
-  "DataImport": {
-    "importCompleted": "Import abgeschlossen.",
-    "importFailed": "Das Archiv konnte nicht importiert werden.",
-    "resources": {
-      "categories": "Kategorien",
-      "payment-methods": "Zahlungsmethoden",
-      "transactions": "Transaktionen",
-      "recurring-payments": "Wiederkehrende Zahlungen",
-      "budgets": "Budgets"
-    },
-    "archiveLine": "Archivzeile",
-    "status": "Status",
-    "reason": "Grund",
-    "noRecords": "Keine Datensätze in diesem Archiv gefunden.",
-    "selectArchiveDescription": "Wähle ein ZIP-Archiv aus, das mit dem Export der Anwendungsdaten erstellt wurde. Authentifizierungsdaten und Anhänge werden nicht importiert.",
-    "chooseArchive": "Exportarchiv auswählen",
-    "selectedFile": "Ausgewählt: {name}",
-    "previewSummary": "{received} Datensätze gefunden. {created} können importiert werden, bei {failed} gibt es Validierungs- oder Referenzfehler.",
-    "preview": "Vorschau",
-    "successSummary": "Importiert: {created}, übersprungen, da bereits vorhanden: {skipped}.",
-    "successfulImports": "Erfolgreiche Importe",
-    "failedSummary": "Fehlgeschlagene Importe: {failed}.",
-    "failedImports": "Fehlgeschlagene Importe",
-    "noFailures": "Alle Importe waren erfolgreich.",
-    "finishedSummary": "Import abgeschlossen. Importiert: {created}, übersprungen: {skipped}, fehlgeschlagen: {failed}.",
-    "reviewFailures": "Prüfe fehlgeschlagene Datensätze und versuche es mit einem korrigierten Exportarchiv erneut.",
-    "previewFiles": "Dateien prüfen",
-    "showFailedImports": "Fehlgeschlagene Importe anzeigen",
-    "showImportResults": "Importergebnisse anzeigen",
-    "importRecords": "{count} Datensätze importieren",
-    "finish": "Abschließen",
-    "close": "Schließen",
-    "importData": "Daten importieren",
-    "description": "Stelle Anwendungsdaten aus einem BudgetBuddy-Exportarchiv wieder her",
-    "steps": {
-      "uploadFile": "Datei hochladen",
-      "previewFiles": "Dateien prüfen",
-      "successfulImports": "Erfolgreiche Importe",
-      "failedImports": "Fehlgeschlagene Importe",
-      "finish": "Abschließen"
-    },
-    "cancel": "Abbrechen",
-    "back": "Zurück"
-  },
-  "InsightsAnalysis": {
-    "categoryAnalysis": "Kategorieanalyse",
-    "metric": "Kennzahl",
-    "expenses": "Ausgaben",
-    "income": "Einnahmen",
-    "balance": "Saldo",
-    "category": "Kategorie",
-    "selectedMetric": "Ausgewählte Kennzahl",
-    "share": "Anteil",
-    "paymentMethodUsage": "Nutzung der Zahlungsmethoden",
-    "rankBy": "Sortieren nach",
-    "uses": "Verwendungen",
-    "volume": "Volumen",
-    "method": "Methode",
-    "currentMonthBudgetHealth": "Budgetstatus des aktuellen Monats",
-    "budgetIndependentPeriod": "Budgets werden unabhängig vom Berichtszeitraum ausgewertet",
-    "budget": "Budget",
+  "MergeDialog": {
+    "retry": "Erneut versuchen",
+    "source": "Quelle",
     "target": "Ziel",
-    "spent": "Ausgegeben",
-    "remaining": "Verbleibend",
-    "usage": "Auslastung"
+    "selectSourceCategories": "Quellkategorien zum Zusammenführen auswählen",
+    "selectTargetCategory": "Zielkategorie auswählen, in die zusammengeführt werden soll",
+    "noCategoriesAvailable": "Keine Kategorien verfügbar",
+    "categoryMergeFailed": "Kategorien konnten nicht zusammengeführt werden: {error}",
+    "categoriesMerged": "Kategorien zusammengeführt",
+    "mergeCategories": "Kategorien zusammenführen",
+    "mergeCategoriesDescription": "Mehrere Kategorien zu einer Kategorie zusammenführen.",
+    "selectSourcePaymentMethods": "Quellzahlungsmethoden zum Zusammenführen auswählen",
+    "selectTargetPaymentMethod": "Zielzahlungsmethode auswählen, in die zusammengeführt werden soll",
+    "noPaymentMethodsAvailable": "Keine Zahlungsmethoden verfügbar",
+    "paymentMethodMergeFailed": "Zahlungsmethoden konnten nicht zusammengeführt werden: {error}",
+    "paymentMethodsMerged": "Zahlungsmethoden zusammengeführt",
+    "mergePaymentMethods": "Zahlungsmethoden zusammenführen",
+    "mergePaymentMethodsDescription": "Mehrere Zahlungsmethoden zu einer Zahlungsmethode zusammenführen."
+  },
+  "DrawerProfile": {
+    "retry": "Erneut versuchen",
+    "basic": "Standard",
+    "loggedOut": "Du wurdest abgemeldet.",
+    "logoutFailed": "Abmeldung fehlgeschlagen. Bitte versuche es erneut."
   },
   "ReportTable": {
     "noData": "Keine Daten für die ausgewählten Filter."
@@ -557,7 +469,20 @@
     "searchCommands": "Befehle suchen...",
     "navigate": "Navigieren",
     "select": "Auswählen",
-    "back": "Zurück"
+    "back": "Zurück",
+    "loading": "Wird geladen...",
+    "title": "Befehle",
+    "chooseEntity": "Eintrag auswählen",
+    "searchEntity": "{entity} suchen",
+    "searchEntityFallback": "Eintrag suchen...",
+    "noMatchingRecords": "Keine passenden Einträge",
+    "noResultsQuery": "Keine Ergebnisse für '{query}'!",
+    "createAction": "Erstellen...",
+    "editAction": "Bearbeiten...",
+    "deleteAction": "Löschen...",
+    "entitiesSection": "Einträge",
+    "useId": "ID \"{id}\" verwenden",
+    "failedToLoadTargets": "Einträge konnten nicht geladen werden"
   },
   "PageTitles": {
     "categories": "Kategorien",
@@ -566,226 +491,266 @@
     "recurringPayments": "Wiederkehrende Zahlungen"
   },
   "PaymentMethodTable": {
-    "add": "Zahlungsmethode hinzufügen"
-  },
-  "EditUser": {
-    "noSessionData": "Keine Sitzungsdaten verfügbar",
-    "nameUpdated": "Dein Name wurde in {name} geändert",
-    "emailChangeSent": "Eine Anfrage zur Änderung deiner E-Mail-Adresse wurde an {email} gesendet. Prüfe deinen Posteingang.",
-    "tryAgain": "Erneut versuchen",
-    "changesDiscarded": "Änderungen verworfen",
-    "deleteAccountError": "Dein Konto konnte nicht gelöscht werden",
-    "deletionVerificationSent": "Die abschließende Bestätigungs-E-Mail zur Kontolöschung wurde gesendet. Prüfe deinen Posteingang, um den Vorgang abzuschließen.",
-    "emailAlreadyVerified": "Deine E-Mail-Adresse ist bereits bestätigt",
-    "verificationEmailError": "Fehler beim Senden der Bestätigungs-E-Mail: {error}",
-    "verificationEmailSent": "Bestätigungs-E-Mail gesendet. Prüfe deinen Posteingang.",
-    "editBeforeSaving": "Aktiviere zuerst den Bearbeitungsmodus, indem du auf „Bearbeiten“ klickst.",
-    "profile": "Profil",
-    "description": "Ändere deine Kontodaten",
-    "uuid": "UUID",
-    "name": "Name",
-    "email": "E-Mail",
-    "verifyEmailPrompt": "Bitte bestätige deine E-Mail-Adresse, um alle Funktionen von Budget Buddy nutzen zu können.",
-    "verifyEmail": "E-Mail bestätigen",
-    "deleteAccount": "Konto löschen",
-    "discard": "Verwerfen",
-    "saveChanges": "Änderungen speichern",
-    "edit": "Bearbeiten"
-  },
-  "UserAccounts": {
-    "title": "Verknüpfte Konten",
-    "description": "Verwalte deine verknüpften Konten"
-  },
-  "AccountList": {
-    "empty": "Keine verknüpften Konten gefunden.",
-    "sessionRevalidateError": "Sitzung konnte nach dem Entfernen des Kontos nicht erneut geprüft werden",
-    "unlinked": "Konto bei {provider} erfolgreich getrennt",
-    "retry": "Erneut versuchen",
-    "unlink": "Konto trennen",
-    "provider": "Anbieter",
-    "createdAt": "Erstellt am"
-  },
-  "UserSessions": {
-    "title": "Benutzersitzungen",
-    "description": "Verwalte deine aktiven Sitzungen"
-  },
-  "SessionList": {
-    "empty": "Keine aktiven Sitzungen gefunden.",
-    "revoked": "Sitzung widerrufen.",
-    "retry": "Erneut versuchen",
-    "unknownUserAgent": "Unbekannter User-Agent",
-    "unknownIpAddress": "Unbekannte IP-Adresse",
-    "revoke": "Sitzung widerrufen",
-    "ip": "IP",
-    "userAgent": "User-Agent",
-    "createdAt": "Erstellt am",
-    "expiresAt": "Läuft ab am"
-  },
-  "AttachmentThumbnail": {
-    "download": "Herunterladen",
-    "delete": "Löschen"
-  },
-  "AttachmentLightbox": {
-    "download": "Herunterladen",
-    "close": "Schließen"
-  },
-  "DataManagement": {
-    "view": "Ansicht wiederkehrender Zahlungen",
-    "export": "Exportieren",
-    "import": "Importieren",
-    "exportDescription": "Lade eine Kopie deiner Konto- und Anwendungsdaten herunter.",
-    "importDescription": "Stelle Anwendungsdaten aus einem BudgetBuddy-Exportarchiv wieder her."
-  },
-  "DataExport": {
-    "downloadStarted": "Dein Export wird heruntergeladen.",
-    "exportFailed": "Der Export konnte nicht erstellt werden.",
-    "tryAgain": "Erneut versuchen",
-    "exportData": "Daten exportieren",
-    "description": "Lade eine Kopie deiner Konto- und Anwendungsdaten herunter",
-    "format": "Format",
-    "include": "Einschließen",
-    "authData": "Authentifizierungsdaten",
-    "authDataDescription": "Profil, Sitzungen, verknüpfte Konten und API-Schlüssel-Metadaten. Geheimnisse werden niemals exportiert.",
-    "applicationData": "Anwendungsdaten",
-    "resources": {
-      "transactions": "Transaktionen",
-      "recurring-payments": "Wiederkehrende Zahlungen",
-      "budgets": "Budgets",
-      "payment-methods": "Zahlungsmethoden",
-      "categories": "Kategorien"
-    },
-    "attachments": "Anhänge",
-    "attachmentsDescription": "Hochgeladene Dateien, Anhang-Metadaten und Transaktionszuordnungen.",
-    "archiveDescription": "Jede ausgewählte Hauptkategorie wird als separates ZIP-Archiv heruntergeladen. Das Archiv enthält eine Datei pro ausgewählter Ressource und ein Exportmanifest.",
-    "cancel": "Abbrechen",
-    "export": "Exportieren"
-  },
-  "DataImport": {
-    "importCompleted": "Import abgeschlossen.",
-    "importFailed": "Das Archiv konnte nicht importiert werden.",
-    "resources": {
-      "categories": "Kategorien",
-      "payment-methods": "Zahlungsmethoden",
-      "transactions": "Transaktionen",
-      "recurring-payments": "Wiederkehrende Zahlungen",
-      "budgets": "Budgets"
-    },
-    "archiveLine": "Archivzeile",
-    "status": "Status",
-    "reason": "Grund",
-    "noRecords": "Keine Datensätze in diesem Archiv gefunden.",
-    "selectArchiveDescription": "Wähle ein ZIP-Archiv aus, das mit dem Export der Anwendungsdaten erstellt wurde. Authentifizierungsdaten und Anhänge werden nicht importiert.",
-    "chooseArchive": "Exportarchiv auswählen",
-    "selectedFile": "Ausgewählt: {name}",
-    "previewSummary": "{received} Datensätze gefunden. {created} können importiert werden, bei {failed} gibt es Validierungs- oder Referenzfehler.",
-    "preview": "Vorschau",
-    "successSummary": "Importiert: {created}, übersprungen, da bereits vorhanden: {skipped}.",
-    "successfulImports": "Erfolgreiche Importe",
-    "failedSummary": "Fehlgeschlagene Importe: {failed}.",
-    "failedImports": "Fehlgeschlagene Importe",
-    "noFailures": "Alle Importe waren erfolgreich.",
-    "finishedSummary": "Import abgeschlossen. Importiert: {created}, übersprungen: {skipped}, fehlgeschlagen: {failed}.",
-    "reviewFailures": "Prüfe fehlgeschlagene Datensätze und versuche es mit einem korrigierten Exportarchiv erneut.",
-    "previewFiles": "Dateien prüfen",
-    "showFailedImports": "Fehlgeschlagene Importe anzeigen",
-    "showImportResults": "Importergebnisse anzeigen",
-    "importRecords": "{count} Datensätze importieren",
-    "finish": "Abschließen",
-    "close": "Schließen",
-    "importData": "Daten importieren",
-    "description": "Stelle Anwendungsdaten aus einem BudgetBuddy-Exportarchiv wieder her",
-    "steps": {
-      "uploadFile": "Datei hochladen",
-      "previewFiles": "Dateien prüfen",
-      "successfulImports": "Erfolgreiche Importe",
-      "failedImports": "Fehlgeschlagene Importe",
-      "finish": "Abschließen"
-    },
-    "cancel": "Abbrechen",
-    "back": "Zurück"
-  },
-  "InsightsFilters": {
-    "title": "Berichtsfilter",
-    "subtitle": "Alle Analysen verwenden dieselbe Auswahl",
-    "grouping": "Gruppierung",
-    "automatic": "Automatisch",
-    "day": "Tag",
-    "week": "Woche",
-    "month": "Monat",
-    "compare": "Vergleich",
-    "previousPeriod": "Vorheriger Zeitraum",
-    "noComparison": "Kein Vergleich",
-    "categories": "Kategorien",
-    "paymentMethods": "Zahlungsmethoden"
-  },
-  "InsightsAnalysis": {
-    "categoryAnalysis": "Kategorieanalyse",
-    "metric": "Kennzahl",
-    "expenses": "Ausgaben",
-    "income": "Einnahmen",
-    "balance": "Saldo",
-    "category": "Kategorie",
-    "selectedMetric": "Ausgewählte Kennzahl",
-    "share": "Anteil",
-    "paymentMethodUsage": "Nutzung der Zahlungsmethoden",
-    "rankBy": "Sortieren nach",
-    "uses": "Verwendungen",
-    "volume": "Volumen",
-    "method": "Methode",
-    "currentMonthBudgetHealth": "Budgetstatus des aktuellen Monats",
-    "budgetIndependentPeriod": "Budgets werden unabhängig vom Berichtszeitraum ausgewertet",
-    "budget": "Budget",
-    "target": "Ziel",
-    "spent": "Ausgegeben",
-    "remaining": "Verbleibend",
-    "usage": "Auslastung"
-  },
-  "RouteError": {
-    "title": "Dieser Bereich konnte nicht geladen werden",
-    "description": "Bitte versuche es erneut. Die übrigen Seitenbereiche sind weiterhin verfügbar.",
-    "reference": "Fehlerreferenz: {digest}",
+    "add": "Zahlungsmethode hinzufügen",
     "retry": "Erneut versuchen"
   },
-  "ApiKeyCreate": {
+  "EditUser": {
+    "noSessionData": "Keine Sitzungsdaten verfügbar",
+    "nameUpdated": "Dein Name wurde in {name} geändert",
+    "emailChangeSent": "Eine Anfrage zur Änderung deiner E-Mail-Adresse wurde an {email} gesendet. Prüfe deinen Posteingang.",
+    "tryAgain": "Erneut versuchen",
+    "changesDiscarded": "Änderungen verworfen",
+    "deleteAccountError": "Dein Konto konnte nicht gelöscht werden",
+    "deletionVerificationSent": "Die abschließende Bestätigungs-E-Mail zur Kontolöschung wurde gesendet. Prüfe deinen Posteingang, um den Vorgang abzuschließen.",
+    "emailAlreadyVerified": "Deine E-Mail-Adresse ist bereits bestätigt",
+    "verificationEmailError": "Fehler beim Senden der Bestätigungs-E-Mail: {error}",
+    "verificationEmailSent": "Bestätigungs-E-Mail gesendet. Prüfe deinen Posteingang.",
+    "editBeforeSaving": "Aktiviere zuerst den Bearbeitungsmodus, indem du auf „Bearbeiten“ klickst.",
+    "profile": "Profil",
+    "description": "Ändere deine Kontodaten",
+    "uuid": "UUID",
     "name": "Name",
-    "namePlaceholder": "z. B. persönliche Automatisierung",
-    "expiresAt": "Läuft ab am",
-    "neverExpires": "Für unbegrenzte Gültigkeit leer lassen",
+    "email": "E-Mail",
+    "verifyEmailPrompt": "Bitte bestätige deine E-Mail-Adresse, um alle Funktionen von Budget Buddy nutzen zu können.",
+    "verifyEmail": "E-Mail bestätigen",
+    "deleteAccount": "Konto löschen",
+    "discard": "Verwerfen",
+    "saveChanges": "Änderungen speichern",
+    "edit": "Bearbeiten"
+  },
+  "UserAccounts": {
+    "title": "Verknüpfte Konten",
+    "description": "Verwalte deine verknüpften Konten"
+  },
+  "AccountList": {
+    "empty": "Keine verknüpften Konten gefunden.",
+    "sessionRevalidateError": "Sitzung konnte nach dem Entfernen des Kontos nicht erneut geprüft werden",
+    "unlinked": "Konto bei {provider} erfolgreich getrennt",
+    "retry": "Erneut versuchen",
+    "unlink": "Konto trennen",
+    "provider": "Anbieter",
+    "createdAt": "Erstellt am"
+  },
+  "UserSessions": {
+    "title": "Benutzersitzungen",
+    "description": "Verwalte deine aktiven Sitzungen"
+  },
+  "SessionList": {
+    "empty": "Keine aktiven Sitzungen gefunden.",
+    "revoked": "Sitzung widerrufen.",
+    "retry": "Erneut versuchen",
+    "unknownUserAgent": "Unbekannter User-Agent",
+    "unknownIpAddress": "Unbekannte IP-Adresse",
+    "revoke": "Sitzung widerrufen",
+    "ip": "IP",
+    "userAgent": "User-Agent",
+    "createdAt": "Erstellt am",
+    "expiresAt": "Läuft ab am"
+  },
+  "AttachmentThumbnail": {
+    "download": "Herunterladen",
+    "delete": "Löschen"
+  },
+  "AttachmentLightbox": {
+    "download": "Herunterladen",
+    "close": "Schließen"
+  },
+  "DataManagement": {
+    "view": "Ansicht wiederkehrender Zahlungen",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "exportDescription": "Lade eine Kopie deiner Konto- und Anwendungsdaten herunter.",
+    "importDescription": "Stelle Anwendungsdaten aus einem BudgetBuddy-Exportarchiv wieder her."
+  },
+  "DataExport": {
+    "downloadStarted": "Dein Export wird heruntergeladen.",
+    "exportFailed": "Der Export konnte nicht erstellt werden.",
+    "tryAgain": "Erneut versuchen",
+    "exportData": "Daten exportieren",
+    "description": "Lade eine Kopie deiner Konto- und Anwendungsdaten herunter",
+    "format": "Format",
+    "include": "Einschließen",
+    "authData": "Authentifizierungsdaten",
+    "authDataDescription": "Profil, Sitzungen, verknüpfte Konten und API-Schlüssel-Metadaten. Geheimnisse werden niemals exportiert.",
+    "applicationData": "Anwendungsdaten",
+    "resources": {
+      "transactions": "Transaktionen",
+      "recurring-payments": "Wiederkehrende Zahlungen",
+      "budgets": "Budgets",
+      "payment-methods": "Zahlungsmethoden",
+      "categories": "Kategorien"
+    },
+    "attachments": "Anhänge",
+    "attachmentsDescription": "Hochgeladene Dateien, Anhang-Metadaten und Transaktionszuordnungen.",
+    "archiveDescription": "Jede ausgewählte Hauptkategorie wird als separates ZIP-Archiv heruntergeladen. Das Archiv enthält eine Datei pro ausgewählter Ressource und ein Exportmanifest.",
+    "cancel": "Abbrechen",
+    "export": "Exportieren"
+  },
+  "DataImport": {
+    "importCompleted": "Import abgeschlossen.",
+    "importFailed": "Das Archiv konnte nicht importiert werden.",
+    "resources": {
+      "categories": "Kategorien",
+      "payment-methods": "Zahlungsmethoden",
+      "transactions": "Transaktionen",
+      "recurring-payments": "Wiederkehrende Zahlungen",
+      "budgets": "Budgets"
+    },
+    "archiveLine": "Archivzeile",
+    "status": "Status",
+    "reason": "Grund",
+    "noRecords": "Keine Datensätze in diesem Archiv gefunden.",
+    "selectArchiveDescription": "Wähle ein ZIP-Archiv aus, das mit dem Export der Anwendungsdaten erstellt wurde. Authentifizierungsdaten und Anhänge werden nicht importiert.",
+    "chooseArchive": "Exportarchiv auswählen",
+    "selectedFile": "Ausgewählt: {name}",
+    "previewSummary": "{received} Datensätze gefunden. {created} können importiert werden, bei {failed} gibt es Validierungs- oder Referenzfehler.",
+    "preview": "Vorschau",
+    "successSummary": "Importiert: {created}, übersprungen, da bereits vorhanden: {skipped}.",
+    "successfulImports": "Erfolgreiche Importe",
+    "failedSummary": "Fehlgeschlagene Importe: {failed}.",
+    "failedImports": "Fehlgeschlagene Importe",
+    "noFailures": "Alle Importe waren erfolgreich.",
+    "finishedSummary": "Import abgeschlossen. Importiert: {created}, übersprungen: {skipped}, fehlgeschlagen: {failed}.",
+    "reviewFailures": "Prüfe fehlgeschlagene Datensätze und versuche es mit einem korrigierten Exportarchiv erneut.",
+    "previewFiles": "Dateien prüfen",
+    "showFailedImports": "Fehlgeschlagene Importe anzeigen",
+    "showImportResults": "Importergebnisse anzeigen",
+    "importRecords": "{count} Datensätze importieren",
+    "finish": "Abschließen",
+    "close": "Schließen",
+    "importData": "Daten importieren",
+    "description": "Stelle Anwendungsdaten aus einem BudgetBuddy-Exportarchiv wieder her",
+    "steps": {
+      "uploadFile": "Datei hochladen",
+      "previewFiles": "Dateien prüfen",
+      "successfulImports": "Erfolgreiche Importe",
+      "failedImports": "Fehlgeschlagene Importe",
+      "finish": "Abschließen"
+    },
+    "cancel": "Abbrechen",
+    "back": "Zurück"
+  },
+  "Form": {
+    "password": "Passwort",
+    "enterPassword": "Passwort eingeben",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort ausblenden",
+    "search": "Suchen...",
+    "searchInputLabel": "Suche",
+    "clearSearch": "Suche leeren"
+  },
+  "Pagination": {
+    "rowsPerPage": "Zeilen:"
+  },
+  "DeleteDialog": {
+    "cancel": "Abbrechen"
+  },
+  "EntityDrawer": {
+    "close": "Schließen",
+    "save": "Speichern"
+  },
+  "NoResults": {
+    "empty": {
+      "title": "Noch nichts vorhanden",
+      "description": "Einträge erscheinen hier, sobald sie verfügbar sind."
+    },
+    "filtered": {
+      "title": "Keine passenden Ergebnisse",
+      "description": "Versuche einen anderen Suchbegriff oder entferne einen Filter.",
+      "queryTitle": "Keine Ergebnisse für \"{query}\""
+    },
+    "create": {
+      "title": "Erstelle deinen ersten Eintrag",
+      "description": "Füge deinen ersten Eintrag hinzu, um loszulegen und alles im Blick zu behalten."
+    },
+    "createAction": "Eintrag erstellen"
+  },
+  "AttachmentPreview": {
+    "view": "Anzeigen",
+    "preview": "Vorschau"
+  },
+  "AppInformation": {
+    "title": "App-Informationen",
+    "description": "Eine Web-App, mit der du deine Finanzen und dein Monatsbudget verwalten kannst.",
+    "website": "Website",
+    "contact": "Kontakt",
+    "sourceCode": "Quellcode",
+    "version": "Version {version}"
+  },
+  "RecurringPaymentsNav": {
+    "viewLabel": "Ansicht wiederkehrender Zahlungen",
+    "schedules": "Zahlungspläne",
+    "occurrences": "Fälligkeiten"
+  },
+  "RecurringPaymentPieChart": {
+    "income": "Einnahmen",
+    "expenses": "Ausgaben",
+    "noRecurringIncome": "Keine wiederkehrenden Einnahmen gefunden.",
+    "noRecurringExpenses": "Keine wiederkehrenden Ausgaben gefunden.",
+    "title": "Wiederkehrende Zahlungen",
+    "subtitle": "Geplante Fälligkeiten in diesem Monat",
+    "viewMore": "Weitere wiederkehrende Zahlungen anzeigen",
+    "typeLabel": "Art der wiederkehrenden Zahlung"
+  },
+  "RecurringPaymentList": {
+    "create": "Wiederkehrende Zahlung erstellen",
+    "next": "Nächste: {date}",
+    "empty": "Es gibt keine wiederkehrenden Zahlungen"
+  },
+  "UpcomingRecurringPaymentList": {
+    "title": "Bevorstehende wiederkehrende Zahlungen",
+    "subtitle": "Deine bevorstehenden wiederkehrenden Zahlungen",
+    "empty": "Du hast keine bevorstehenden wiederkehrenden Zahlungen"
+  },
+  "ApiKeyTable": {
     "title": "API-Schlüssel",
-    "subtitle": "Neuen API-Schlüssel erstellen",
-    "warningTitle": "Behandle API-Schlüssel wie Passwörter",
-    "warningDescription": "Ein API-Schlüssel handelt im Namen deines Benutzerkontos. Speichere ihn nur in vertrauenswürdigen Secret-Managern oder serverseitigen Umgebungen. Committe ihn niemals in die Versionsverwaltung und lösche ihn sofort, falls er offengelegt wurde."
-  },
-  "CreatedApiKey": {
-    "title": "Kopiere deinen API-Schlüssel jetzt",
-    "description": "Der vollständige API-Schlüssel wird nur dieses eine Mal angezeigt. Kopiere ihn und speichere ihn sicher, bevor du diesen Dialog schließt.",
-    "copyTooltip": "API-Schlüssel kopieren",
-    "copiedAndStored": "Ich habe diesen API-Schlüssel kopiert und sicher gespeichert.",
-    "copied": "Kopiert",
-    "copy": "Kopieren",
-    "understandClose": "Verstanden, schließen"
-  },
-  "EmailConfirmation": {
-    "changedTitle": "E-Mail-Adresse geändert",
-    "verificationTitle": "E-Mail-Adresse bestätigen",
-    "notSignedInMessage": "Du bist offenbar nicht angemeldet. Bitte melde dich zuerst an...",
-    "changedMessage": "Deine E-Mail-Adresse wurde erfolgreich in {email} geändert.",
-    "verifiedMessage": "Danke, dass du deine E-Mail-Adresse bestätigt hast. Du kannst jetzt alle Funktionen von Budget Buddy nutzen. Schließe diese Seite und fahre mit dem Dashboard fort.",
-    "verificationFailed": "Deine E-Mail-Adresse konnte nicht bestätigt werden. Bitte versuche es erneut oder kontaktiere den Support.",
-    "notSignedIn": "Nicht angemeldet?",
-    "signInFirst": "Zuerst anmelden...",
-    "createAccount": "Konto erstellen"
-  },
-  "PageTitles": {
-    "categories": "Kategorien",
-    "transactions": "Transaktionen",
-    "paymentMethods": "Zahlungsmethoden",
-    "recurringPayments": "Wiederkehrende Zahlungen"
-  },
-  "PaymentMethodTable": {
-    "add": "Zahlungsmethode hinzufügen"
-  },
-  "InsightsView": {
-    "refreshing": "Einblicke werden aktualisiert"
+    "create": "API-Schlüssel erstellen",
+    "activeKeys": "Aktive Schlüssel",
+    "inactiveKeys": "Deaktiviert / abgelaufen",
+    "lastCreated": "Zuletzt erstellt",
+    "noneYet": "Noch keine",
+    "emptyTitle": "Erstelle deinen ersten API-Schlüssel",
+    "emptyDescription": "API-Schlüssel ermöglichen den programmatischen Zugriff auf dein Budget-Buddy-Konto.",
+    "fetchError": "API-Schlüssel konnten nicht geladen werden: {error}",
+    "unexpectedFetchError": "Beim Laden der API-Schlüssel ist ein unerwarteter Fehler aufgetreten.",
+    "nameRequired": "Bitte gib einen Namen für den API-Schlüssel ein.",
+    "expirationMustBeFuture": "Das Ablaufdatum muss in der Zukunft liegen.",
+    "createError": "API-Schlüssel konnte nicht erstellt werden: {error}",
+    "retry": "Erneut versuchen",
+    "createdKeyMissing": "API-Schlüssel erstellt, aber der Schlüsselwert wurde nicht zurückgegeben.",
+    "createdSuccessfully": "API-Schlüssel erfolgreich erstellt.",
+    "unexpectedCreateError": "Beim Erstellen des API-Schlüssels ist ein unerwarteter Fehler aufgetreten.",
+    "deleteErrorFallback": "API-Schlüssel konnte nicht gelöscht werden.",
+    "deletedOne": "API-Schlüssel erfolgreich gelöscht.",
+    "deletedMany": "{count} API-Schlüssel erfolgreich gelöscht.",
+    "unexpectedDeleteError": "Beim Löschen des API-Schlüssels ist ein unerwarteter Fehler aufgetreten.",
+    "copied": "API-Schlüssel in die Zwischenablage kopiert.",
+    "copyError": "API-Schlüssel konnte nicht kopiert werden.",
+    "name": "Name",
+    "key": "Schlüssel",
+    "status": "Status",
+    "created": "Erstellt",
+    "disabled": "Deaktiviert",
+    "expired": "Abgelaufen",
+    "active": "Aktiv",
+    "unnamed": "Unbenannt",
+    "hidden": "Ausgeblendet",
+    "hideDetails": "Details ausblenden",
+    "showDetails": "Details anzeigen",
+    "hideKeyDetails": "Details für API-Schlüssel {name} ausblenden",
+    "showKeyDetails": "Details für API-Schlüssel {name} anzeigen",
+    "delete": "API-Schlüssel löschen",
+    "deleteKey": "API-Schlüssel {name} löschen",
+    "expires": "Läuft ab",
+    "lastRequest": "Letzte Anfrage",
+    "requests": "{count} Anfragen",
+    "unlimitedRemaining": "Unbegrenzt verfügbar",
+    "remaining": "Noch {count} verfügbar",
+    "rateLimit": "Ratenbegrenzung",
+    "off": "Aus",
+    "window": "Zeitraum",
+    "rateLimitValue": "{count}/{duration}",
+    "deleteDialogTitle": "API-Schlüssel löschen",
+    "deleteDialogDescription": "Möchtest du diesen API-Schlüssel wirklich löschen? Anwendungen, die ihn verwenden, verlieren sofort den Zugriff. Diese Aktion kann nicht rückgängig gemacht werden."
   }
 }

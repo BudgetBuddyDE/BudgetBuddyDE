@@ -40,7 +40,7 @@ import {
   formatLocalDateOnly,
   parseLocalDateOnly,
 } from '@/components/RecurringPayment/dateOnly';
-import {executionPlanLabels, executionPlanOptions} from '@/components/RecurringPayment/executionPlan';
+import {executionPlanOptions} from '@/components/RecurringPayment/executionPlan';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {BatchEntityDialog, type ColumnDefinition, EntityMenu, type EntitySlice, EntityTable} from '@/components/Table';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
@@ -141,7 +141,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           action: action === 'CREATE' ? t('create').toLowerCase() : t('update').toLowerCase(),
           issues,
         }),
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
       });
       return;
     }
@@ -162,7 +162,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       if (!createdRecurringPayment || error) {
         return showSnackbar({
           message: t('failedToCreate', {error: error.message}),
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({
@@ -176,7 +176,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       if (!entityId) {
         return showSnackbar({
           message: t('failedToUpdateMissingId'),
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       const {executionPlan, startsOn, category, paymentMethod, receiver, information, transferAmount} =
@@ -193,7 +193,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       if (!updatedRecurringPayment || error) {
         return showSnackbar({
           message: t('failedToUpdate', {error: error.message}),
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({
@@ -368,7 +368,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     if (!updatedRecurringPayment || error) {
       return showSnackbar({
         message: t('failedToUpdate', {error: error.message}),
-        action: <Button onClick={() => handleTogglePauseOnEntity(entity)}>Retry</Button>,
+        action: <Button onClick={() => handleTogglePauseOnEntity(entity)}>{t('retry')}</Button>,
       });
     }
     showSnackbar({
@@ -383,7 +383,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     if (!result || error) {
       return showSnackbar({
         message: t('failedToExecutePayment', {error: error.message}),
-        action: <Button onClick={() => handleExecutePayment(entity)}>Retry</Button>,
+        action: <Button onClick={() => handleExecutePayment(entity)}>{t('retry')}</Button>,
       });
     }
     showSnackbar({
@@ -397,7 +397,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
     if (!deletedRecurringPayment || error) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('retry')}</Button>,
       });
     }
 
@@ -459,7 +459,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         {
           type: 'select',
           name: 'executionPlan',
-          options: executionPlanOptions,
+          options: executionPlanOptions.map(option => ({value: option.value, label: t(`plan.${option.labelKey}`)})),
           exclusive: true,
           size: {xs: 12},
         },
@@ -608,7 +608,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         key: 'executionPlan',
         label: t('frequency'),
         width: 152,
-        renderCell: value => <Typography variant="body2">{executionPlanLabels[value as TExecutionPlan]}</Typography>,
+        renderCell: value => <Typography variant="body2">{t(`plan.${String(value)}`)}</Typography>,
       },
       {
         key: 'category',

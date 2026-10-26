@@ -49,7 +49,7 @@ const getConfirmation = () => screen.findByRole('dialog', {name: 'Discard unsave
 
 const closeDialog = (control: 'close' | 'Cancel' | 'Escape') => {
   if (control === 'Escape') fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
-  else fireEvent.click(screen.getByRole('button', {name: control}));
+  else fireEvent.click(screen.getByRole('button', {name: control === 'close' ? 'Close' : control}));
 };
 
 describe('BatchEntityDialog', () => {

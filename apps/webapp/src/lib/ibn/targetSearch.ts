@@ -2,7 +2,6 @@ import {apiClient} from '@/apiClient';
 import {authClient} from '@/authClient';
 import {Formatter} from '@/utils/Formatter';
 import {formatDateOnlyForDisplay} from '@/components/RecurringPayment/dateOnly';
-import {executionPlanLabels} from '@/components/RecurringPayment/executionPlan';
 import type {IntentEntity} from './types';
 
 /** Search result that can be selected as an edit or delete intent target. */
@@ -56,7 +55,7 @@ export async function searchIntentTargets(entity: IntentEntity, query: string): 
       if (error) throw new Error(error.message);
       options = (result?.data ?? []).map(payment => ({
         id: payment.id,
-        label: `${payment.receiver} · ${Formatter.currency.formatBalance(payment.transferAmount)} · ${executionPlanLabels[payment.executionPlan]} from ${formatDateOnlyForDisplay(payment.startsOn)}`,
+          label: `${payment.receiver} · ${Formatter.currency.formatBalance(payment.transferAmount)} · ${payment.executionPlan} from ${formatDateOnlyForDisplay(payment.startsOn)}`,
         description: payment.information ?? undefined,
         keywords: [payment.receiver, payment.category.name, payment.paymentMethod.name, payment.information ?? ''],
       }));

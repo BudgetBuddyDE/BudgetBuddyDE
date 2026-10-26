@@ -102,7 +102,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     if (showCategory) {
       baseColumns.splice(1, 0, {
         field: 'category',
-        headerName: 'Category',
+        headerName: t('category'),
         flex: 1,
         minWidth: 120,
         valueGetter: (_value, row) => ('category' in row ? row.category?.name : '-'),
@@ -118,7 +118,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       columns={columns}
       isLoading={isLoading}
       error={error}
-      emptyMessage="Create a transaction to begin tracking your activity."
+      emptyMessage={t('emptyMessage')}
       density={dense ? 'compact' : 'standard'}
       autoHeight
       pagination
@@ -130,8 +130,8 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       }}
       sx={{border: 'none'}}
       toolbar={{
-        title: `Historical balances (${data?.length ?? 0})`,
-        subtitle: showCategory ? 'Grouped by date and category' : 'Grouped by date',
+        title: t('title', {count: data?.length ?? 0}),
+        subtitle: showCategory ? t('groupedByDateAndCategory') : t('groupedByDate'),
         actions: [
           {
             id: 'date-range-picker',

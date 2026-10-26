@@ -9,6 +9,7 @@ import {
 } from '@mui/icons-material';
 import {Button, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
@@ -57,6 +58,7 @@ export type CategoryTableProps = {
 };
 
 export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) => {
+  const t = useTranslations('CategoryTable');
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = categorySlice.actions;
   const dispatch = useAppDispatch();
@@ -147,7 +149,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
       showSnackbar({
         message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} category: ${issues}`,
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
       });
       return;
     }
@@ -157,7 +159,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       if (!createdCategory || error) {
         return showSnackbar({
           message: `Failed to create category: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({message: createdCategory.message || 'Category created'});
@@ -169,14 +171,14 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       if (!entityId) {
         return showSnackbar({
           message: `Failed to update category: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       const [updatedCategory, error] = await apiClient.backend.category.updateById(entityId, parsedPayload.data);
       if (error) {
         return showSnackbar({
           message: `Failed to update category: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({message: updatedCategory.message || 'Category updated'});
@@ -269,7 +271,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     if (error || !deletedCategory) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('retry')}</Button>,
       });
     }
 
@@ -528,7 +530,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       />
       <TransactionDialog {...transactionDialogState} onClose={handleCloseTransactionDialog} />
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label="Add category" />
+        <AddFab onClick={handleCreateEntity} label={t('addCategory')} />
       </FabContainer>
     </React.Fragment>
   );

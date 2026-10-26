@@ -3,19 +3,19 @@ import AppSettingsAltRounded from '@mui/icons-material/AppSettingsAltRounded';
 import CodeRounded from '@mui/icons-material/CodeRounded';
 import LanguageRounded from '@mui/icons-material/LanguageRounded';
 import {Box, Link, Stack, Typography} from '@mui/material';
+import {useTranslations} from 'next-intl';
 
 import {Card} from '@/components/Card';
 import {webappConfig} from '@/config';
 
 export const AppInformation = () => {
+  const t = useTranslations('AppInformation');
   return (
     <Card>
       <Card.Header>
         <Box>
-          <Card.Title>App information</Card.Title>
-          <Card.Subtitle>
-            ReactJS bases web-app to keep track of your finances and manage your montly budget.
-          </Card.Subtitle>
+          <Card.Title>{t('title')}</Card.Title>
+          <Card.Subtitle>{t('description')}</Card.Subtitle>
         </Box>
       </Card.Header>
       <Card.Body>
@@ -29,7 +29,7 @@ export const AppInformation = () => {
         >
           <LanguageRounded />
           <Link href="https://budget-buddy.de" target="_blank">
-            Website
+            {t('website')}
           </Link>
         </Stack>
 
@@ -42,7 +42,7 @@ export const AppInformation = () => {
           }}
         >
           <AlternateEmailRounded />
-          <Link href="mailto:contact@budget-buddy.de">Contact</Link>
+          <Link href="mailto:contact@budget-buddy.de">{t('contact')}</Link>
         </Stack>
 
         <Stack
@@ -55,7 +55,7 @@ export const AppInformation = () => {
         >
           <CodeRounded />
           <Link href="https://github.com/BudgetBuddyDE/BudgetBuddyDE" target="_blank">
-            Source Code
+            {t('sourceCode')}
           </Link>
         </Stack>
 
@@ -68,7 +68,7 @@ export const AppInformation = () => {
           }}
         >
           <AppSettingsAltRounded />
-          <Typography noWrap>Version {webappConfig.version}</Typography>
+          <Typography noWrap>{t('version', {version: webappConfig.version})}</Typography>
         </Stack>
       </Card.Body>
     </Card>

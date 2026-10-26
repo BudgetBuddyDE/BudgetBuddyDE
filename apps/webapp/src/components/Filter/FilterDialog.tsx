@@ -16,7 +16,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import type React from 'react';
 import {CloseIconButton} from '@/components/Button';
 import type {FilterAction, FilterState} from '@/components/Filter/FilterReducer';
@@ -64,6 +64,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
   paymentMethodOptions,
 }) => {
   const t = useTranslations('Filters');
+  const locale = useLocale();
   const theme = useTheme();
   const isFullscreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -96,7 +97,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = ({
               <DateRangePicker
                 defaultValue={{startDate: state.dateRange.startDate, endDate: state.dateRange.endDate}}
                 onDateRangeChange={(start, end) => dispatch({action: 'SET_DATE_RANGE', startDate: start, endDate: end})}
-                dateFormat="MM/dd/yyyy"
+                dateFormat={locale === 'de-DE' ? 'dd.MM.yyyy' : 'MM/dd/yyyy'}
                 slotProps={{
                   startDatePicker: {
                     slotProps: {

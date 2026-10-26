@@ -1,5 +1,5 @@
-import {act, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {act, fireEvent, render, screen} from '@/test/testing-library';
 
 import {SearchInput} from './SearchInput';
 
@@ -15,7 +15,7 @@ describe('SearchInput', () => {
 
   it('renders a search input', () => {
     render(<SearchInput onSearch={vi.fn()} />);
-    expect(screen.getByRole('textbox', {name: 'search'})).toBeInTheDocument();
+    expect(screen.getByRole('textbox', {name: 'Search'})).toBeInTheDocument();
   });
 
   it('renders with a custom placeholder', () => {
@@ -23,30 +23,30 @@ describe('SearchInput', () => {
     expect(screen.getByPlaceholderText('Find something…')).toBeInTheDocument();
   });
 
-  it('uses default placeholder "Search…"', () => {
+  it('uses the localized default placeholder', () => {
     render(<SearchInput onSearch={vi.fn()} />);
-    expect(screen.getByPlaceholderText('Search…')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
   });
 
   it('shows the clear button after typing', () => {
     render(<SearchInput onSearch={vi.fn()} />);
-    const input = screen.getByRole('textbox', {name: 'search'});
+    const input = screen.getByRole('textbox', {name: 'Search'});
     fireEvent.change(input, {target: {value: 'hello'}});
-    expect(screen.getByLabelText('clear search')).toBeInTheDocument();
+    expect(screen.getByLabelText('Clear search')).toBeInTheDocument();
   });
 
   it('hides the clear button when input is empty', () => {
     render(<SearchInput onSearch={vi.fn()} />);
-    expect(screen.queryByLabelText('clear search')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Clear search')).not.toBeInTheDocument();
   });
 
   it('clears the input and calls onSearch with empty string when clear button is clicked', () => {
     const onSearch = vi.fn();
     render(<SearchInput onSearch={onSearch} debounceWaitInMilliseconds={0} />);
-    const input = screen.getByRole('textbox', {name: 'search'});
+    const input = screen.getByRole('textbox', {name: 'Search'});
 
     fireEvent.change(input, {target: {value: 'test'}});
-    fireEvent.click(screen.getByLabelText('clear search'));
+    fireEvent.click(screen.getByLabelText('Clear search'));
 
     expect(input).toHaveValue('');
     expect(onSearch).toHaveBeenCalledWith('');
@@ -55,7 +55,7 @@ describe('SearchInput', () => {
   it('calls onSearch with the typed value after debounce', () => {
     const onSearch = vi.fn();
     render(<SearchInput onSearch={onSearch} debounceWaitInMilliseconds={300} />);
-    const input = screen.getByRole('textbox', {name: 'search'});
+    const input = screen.getByRole('textbox', {name: 'Search'});
 
     fireEvent.change(input, {target: {value: 'budget'}});
     expect(onSearch).not.toHaveBeenCalled();
@@ -68,16 +68,16 @@ describe('SearchInput', () => {
 
   it('renders as disabled when disabled prop is true', () => {
     render(<SearchInput onSearch={vi.fn()} disabled />);
-    expect(screen.getByRole('textbox', {name: 'search'})).toBeDisabled();
+    expect(screen.getByRole('textbox', {name: 'Search'})).toBeDisabled();
   });
 
   it('renders as disabled when enabled is false', () => {
     render(<SearchInput onSearch={vi.fn()} enabled={false} />);
-    expect(screen.getByRole('textbox', {name: 'search'})).toBeDisabled();
+    expect(screen.getByRole('textbox', {name: 'Search'})).toBeDisabled();
   });
 
   it('renders with a defaultValue', () => {
     render(<SearchInput onSearch={vi.fn()} defaultValue="initial" />);
-    expect(screen.getByRole('textbox', {name: 'search'})).toHaveValue('initial');
+    expect(screen.getByRole('textbox', {name: 'Search'})).toHaveValue('initial');
   });
 });

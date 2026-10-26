@@ -1,5 +1,5 @@
-import {fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vite-plus/test';
+import {fireEvent, render, screen} from '@/test/testing-library';
 
 import {PasswordInput} from './PasswordInput';
 
@@ -12,10 +12,11 @@ describe('PasswordInput', () => {
   it('toggles password visibility when the toggle button is clicked', () => {
     render(<PasswordInput />);
     const input = screen.getByPlaceholderText('Enter password');
-    const toggle = screen.getByLabelText('toggle password visibility');
+    const toggle = screen.getByLabelText('Show password');
 
     fireEvent.click(toggle);
     expect(input).toHaveAttribute('type', 'text');
+    expect(screen.getByLabelText('Hide password')).toBeInTheDocument();
 
     fireEvent.click(toggle);
     expect(input).toHaveAttribute('type', 'password');

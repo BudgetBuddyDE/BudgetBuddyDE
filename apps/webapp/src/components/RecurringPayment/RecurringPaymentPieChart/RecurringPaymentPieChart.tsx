@@ -5,6 +5,7 @@ import type {TRecurringPaymentOccurrence} from '@budgetbuddyde/api/recurringPaym
 import {DonutChart, type DonutDataPoint} from '@budgetbuddyde/charts';
 import {Box, Button, Stack, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import NextLink from 'next/link';
+import {useLocale, useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {Card} from '@/components/Card';
@@ -24,14 +25,14 @@ type RecurringPaymentStats = {
 
 const RECURRING_PAYMENT_TYPES: readonly RecurringPaymentType[] = ['INCOME', 'EXPENSE'] as const;
 
-const RECURRING_PAYMENT_TYPE_META: Record<RecurringPaymentType, {label: string; emptyText: string}> = {
+const RECURRING_PAYMENT_TYPE_META: Record<RecurringPaymentType, {labelKey: string; emptyKey: string}> = {
   INCOME: {
-    label: 'Income',
-    emptyText: 'No recurring income found!',
+    labelKey: 'income',
+    emptyKey: 'noRecurringIncome',
   },
   EXPENSE: {
-    label: 'Expenses',
-    emptyText: 'No recurring expenses found!',
+    labelKey: 'expenses',
+    emptyKey: 'noRecurringExpenses',
   },
 } as const;
 
@@ -86,6 +87,8 @@ export type RecurringPaymentPieChartProps = {
 };
 
 export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> = ({withViewMore = false}) => {
+  const t = useTranslations('RecurringPaymentPieChart');
+  const locale = useLocale();
   const currency = useCurrencyPreference();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [recurringPaymentType, setRecurringPaymentType] = React.useState<RecurringPaymentType>('INCOME');
@@ -160,14 +163,16 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
   const renderContent = () => {
     if (state.isLoading) return <CircularProgress />;
     if (state.error) return <ErrorComp error={state.error} />;
-    if (chartData.length === 0) return <NoResults text={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].emptyText} />;
+    if (chartData.length === 0) {
+      return <NoResults text={t(RECURRING_PAYMENT_TYPE_META[recurringPaymentType].emptyKey)} />;
+    }
 
     return (
       <DonutChart
         data={chartData}
-        primaryText={Formatter.currency.formatBalance(totalValue, currency)}
-        secondaryText={RECURRING_PAYMENT_TYPE_META[recurringPaymentType].label}
-        valueFormatter={value => Formatter.currency.formatBalance(value, currency)}
+        primaryText={Formatter.currency.formatBalance(totalValue, currency, 2, 2, locale)}
+        secondaryText={t(RECURRING_PAYMENT_TYPE_META[recurringPaymentType].labelKey)}
+        valueFormatter={value => Formatter.currency.formatBalance(value, currency, 2, 2, locale)}
       />
     );
   };
@@ -176,8 +181,8 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
     <Card>
       <Card.Header>
         <Box>
-          <Card.Title>Recurring Payments</Card.Title>
-          <Card.Subtitle>Scheduled occurrences this month</Card.Subtitle>
+          <Card.Title>{t('title')}</Card.Title>
+          <Card.Subtitle>{t('subtitle')}</Card.Subtitle>
         </Box>
         <Card.HeaderActions sx={{display: 'flex', flexDirection: 'row'}}>
           <ToggleButtonGroup
@@ -186,12 +191,13 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
             value={recurringPaymentType}
             onChange={(_, value: RecurringPaymentType) => setRecurringPaymentType(value)}
             exclusive
+            aria-label={t('typeLabel')}
           >
             {RECURRING_PAYMENT_TYPES.map(type => {
               const meta = RECURRING_PAYMENT_TYPE_META[type];
               return (
                 <ToggleButton key={type} value={type}>
-                  {meta.label}
+                  {t(meta.labelKey)}
                 </ToggleButton>
               );
             })}
@@ -207,8 +213,8 @@ export const RecurringPaymentPieChart: React.FC<RecurringPaymentPieChartProps> =
               justifyContent: 'flex-end',
             }}
           >
-            <Button LinkComponent={NextLink} href={occurrenceViewHref} aria-label="View more recurring payments">
-              View more...
+            <Button LinkComponent={NextLink} href={occurrenceViewHref} aria-label={t('viewMore')}>
+              {t('viewMore')}
             </Button>
           </Stack>
         </Card.Footer>

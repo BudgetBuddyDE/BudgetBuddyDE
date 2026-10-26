@@ -1,5 +1,6 @@
 import CloseRounded from '@mui/icons-material/CloseRounded';
 import {IconButton, Stack, Typography} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 
@@ -10,6 +11,7 @@ export type EntityHeaderProps = {
 };
 
 export const EntityHeader: React.FC<EntityHeaderProps> = ({title, subtitle, onClose}) => {
+  const t = useTranslations('EntityDrawer');
   return (
     <Stack
       direction={'row'}
@@ -41,7 +43,7 @@ export const EntityHeader: React.FC<EntityHeaderProps> = ({title, subtitle, onCl
         )}
       </Stack>
       <ActionPaper>
-        <IconButton color="primary" aria-label="Close" onClick={onClose}>
+        <IconButton color="primary" aria-label={t('close')} onClick={onClose}>
           <CloseRounded />
         </IconButton>
       </ActionPaper>

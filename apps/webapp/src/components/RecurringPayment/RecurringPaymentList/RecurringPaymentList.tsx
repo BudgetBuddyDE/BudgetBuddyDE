@@ -2,6 +2,7 @@
 
 import AddIcon from '@mui/icons-material/AddRounded';
 import {Box, Chip, type ChipProps, CircularProgress, IconButton} from '@mui/material';
+import {useLocale, useTranslations} from 'next-intl';
 import type React from 'react';
 import {Card} from '@/components/Card';
 import {CategoryChip} from '@/components/Category/CategoryChip';
@@ -12,6 +13,7 @@ import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import type {EntityListProps} from '@/components/Transaction/TransactionList';
 import {EntityIcon} from '@/lib/ibn';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type RecurringPaymentListProps = EntityListProps<{
   ID: string;
@@ -35,8 +37,11 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
   data,
   onAddEntity,
   cardProps,
-  noResultsMessage = 'There are no recurring payments',
+  noResultsMessage,
 }) => {
+  const t = useTranslations('RecurringPaymentList');
+  const locale = useLocale();
+  const currency = useCurrencyPreference();
   const chipProps: ChipProps = {
     variant: 'outlined',
     size: 'small',
@@ -52,14 +57,14 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
         </Box>
         <Card.HeaderActions>
           {onAddEntity ? (
-            <IconButton color="primary" onClick={onAddEntity}>
+            <IconButton color="primary" onClick={onAddEntity} aria-label={t('create')}>
               <AddIcon />
             </IconButton>
           ) : (
             <IntentButton
               intent={{entity: 'recurringPayment', action: 'create'}}
               iconButton
-              aria-label="Create Recurring-Payment"
+              aria-label={t('create')}
               color="primary"
             >
               <AddIcon />
@@ -80,7 +85,7 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
                 subtitle={
                   <Box>
                     <Chip
-                      label={`Next ${Formatter.date.format(recurringPayment.nextExecution, true)}`}
+                      label={t('next', {date: new Intl.DateTimeFormat(locale).format(recurringPayment.nextExecution)})}
                       sx={{mr: 1}}
                       {...chipProps}
                     />
@@ -88,12 +93,12 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
                     <PaymentMethodChip paymentMethodName={recurringPayment.paymentMethod.name} {...chipProps} />
                   </Box>
                 }
-                amount={recurringPayment.transferAmount}
+                amount={Formatter.currency.formatBalance(recurringPayment.transferAmount, currency, 2, 2, locale)}
               />
             );
           })
         ) : (
-          <NoResults text={noResultsMessage} />
+          <NoResults text={noResultsMessage ?? t('empty')} />
         )}
       </Card.Body>
     </Card>

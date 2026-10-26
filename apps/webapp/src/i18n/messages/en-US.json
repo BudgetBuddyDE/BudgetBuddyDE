@@ -23,7 +23,12 @@
     "period": "Period",
     "income": "Income",
     "expenses": "Expenses",
-    "balance": "Balance"
+    "balance": "Balance",
+    "category": "Category",
+    "emptyMessage": "Create a transaction to begin tracking your activity.",
+    "title": "Historical balances ({count})",
+    "groupedByDateAndCategory": "Grouped by date and category",
+    "groupedByDate": "Grouped by date"
   },
   "DataTable": {
     "noRows": "No items found"
@@ -126,12 +131,42 @@
     "goBack": "Go back",
     "toggle": "Toggle navigation",
     "openMenu": "Open menu",
-    "menu": "Menu"
+    "menu": "Menu",
+    "showApiKeys": "Show API keys",
+    "showAttachment": "View attachment"
+  },
+  "Actions": {
+    "add": "Add",
+    "close": "Close"
+  },
+  "CommandPaletteEntities": {
+    "transaction": "Transaction",
+    "transactions": "Transactions",
+    "recurringPayment": "Recurring payment",
+    "recurringPayments": "Recurring payments",
+    "paymentMethod": "Payment method",
+    "paymentMethods": "Payment methods",
+    "category": "Category",
+    "categories": "Categories",
+    "budget": "Budget",
+    "budgets": "Budgets",
+    "attachment": "Attachment",
+    "attachments": "Attachments",
+    "apiKey": "API key",
+    "apiKeys": "API keys"
   },
   "BatchDialog": {
     "validationErrors": "Validation errors",
     "cancel": "Cancel",
-    "discardChanges": "Discard unsaved changes?"
+    "discardChanges": "Discard unsaved changes?",
+    "discardTitle": "Discard unsaved changes?",
+    "discardDescription": "Your unsaved changes will be lost. Do you want to discard them?",
+    "keepEditing": "Keep editing",
+    "discardChangesAction": "Discard changes",
+    "save": "Save",
+    "addRow": "Add row",
+    "removeSelected": "Remove selected",
+    "rowValidationIssue": "Row {row}: {issue}"
   },
   "Filters": {
     "title": "Filters",
@@ -208,6 +243,7 @@
     "information": "Information",
     "next": "Next",
     "frequency": "Frequency",
+    "retry": "Retry",
     "amount": "Amount",
     "noInformation": "No information",
     "resume": "Resume",
@@ -246,21 +282,39 @@
     "notFound": "Recurring payment not found",
     "failedToExecutePayment": "Failed to execute payment: {error}",
     "transactionCreatedSuccessfully": "Transaction created successfully",
-    "deletedSuccessfully": "Recurring payment deleted successfully"
+    "deletedSuccessfully": "Recurring payment deleted successfully",
+    "plan": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Every two weeks",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    }
   },
   "RecurringPaymentOccurrenceTable": {
     "date": "Date",
     "planFrequency": "Plan / Frequency",
     "receiver": "Receiver",
     "category": "Category",
-    "paymentMethod": "Payment Method",
+    "paymentMethod": "Payment method",
     "amount": "Amount",
     "title": "Occurrences",
     "subtitle": "Concrete recurring payment dates",
     "includePaused": "Include paused",
-    "emptyMessage": "No recurring payment occurrences in this date range"
+    "emptyMessage": "No recurring payment occurrences in this date range",
+    "plan": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Every two weeks",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    }
   },
   "TransactionAttachments": {
+    "title": "Attachments",
+    "noTransactionSelected": "No transaction selected. Please select a transaction to view its attachments.",
     "showing": "Showing {shown} of {total} attachments",
     "loadMore": "Load more attachments",
     "empty": "No attachments yet",
@@ -380,7 +434,20 @@
     "searchCommands": "Search commands...",
     "navigate": "Navigate",
     "select": "Select",
-    "back": "Back"
+    "back": "Back",
+    "loading": "Loading...",
+    "title": "Commands",
+    "chooseEntity": "Choose entity",
+    "searchEntity": "Search {entity}",
+    "searchEntityFallback": "Search entity...",
+    "noMatchingRecords": "No matching records",
+    "noResultsQuery": "No results for '{query}'!",
+    "createAction": "Create...",
+    "editAction": "Edit...",
+    "deleteAction": "Delete...",
+    "entitiesSection": "Entities",
+    "useId": "Use ID \"{id}\"",
+    "failedToLoadTargets": "Failed to load targets"
   },
   "PageTitles": {
     "categories": "Categories",
@@ -389,7 +456,8 @@
     "recurringPayments": "Recurring Payments"
   },
   "PaymentMethodTable": {
-    "add": "Add payment method"
+    "add": "Add payment method",
+    "retry": "Retry"
   },
   "EditUser": {
     "noSessionData": "No session data available",
@@ -526,5 +594,163 @@
     },
     "cancel": "Cancel",
     "back": "Back"
+  },
+  "Form": {
+    "password": "Password",
+    "enterPassword": "Enter password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "search": "Search...",
+    "searchInputLabel": "Search",
+    "clearSearch": "Clear search"
+  },
+  "Pagination": {
+    "rowsPerPage": "Rows:"
+  },
+  "DeleteDialog": {
+    "cancel": "Cancel"
+  },
+  "EntityDrawer": {
+    "close": "Close",
+    "save": "Save"
+  },
+  "NoResults": {
+    "empty": {
+      "title": "Nothing to show yet",
+      "description": "Items will appear here as soon as they are available."
+    },
+    "filtered": {
+      "title": "No matching results",
+      "description": "Try a different search term or clear one of your filters.",
+      "queryTitle": "No results for \"{query}\""
+    },
+    "create": {
+      "title": "Create your first item",
+      "description": "Add your first item to get started and keep everything organized."
+    },
+    "createAction": "Create item"
+  },
+  "AttachmentPreview": {
+    "view": "View",
+    "preview": "Preview"
+  },
+  "AppInformation": {
+    "title": "App information",
+    "description": "A web app to keep track of your finances and manage your monthly budget.",
+    "website": "Website",
+    "contact": "Contact",
+    "sourceCode": "Source code",
+    "version": "Version {version}"
+  },
+  "RecurringPaymentsNav": {
+    "viewLabel": "Recurring payment view",
+    "schedules": "Schedules",
+    "occurrences": "Occurrences"
+  },
+  "RecurringPaymentPieChart": {
+    "income": "Income",
+    "expenses": "Expenses",
+    "noRecurringIncome": "No recurring income found.",
+    "noRecurringExpenses": "No recurring expenses found.",
+    "title": "Recurring payments",
+    "subtitle": "Scheduled occurrences this month",
+    "viewMore": "View more recurring payments",
+    "typeLabel": "Recurring payment type"
+  },
+  "RecurringPaymentList": {
+    "create": "Create recurring payment",
+    "next": "Next {date}",
+    "empty": "There are no recurring payments"
+  },
+  "UpcomingRecurringPaymentList": {
+    "title": "Upcoming recurring payments",
+    "subtitle": "Your upcoming recurring payments",
+    "empty": "You don't have any upcoming recurring payments"
+  },
+  "ApiKeyTable": {
+    "title": "API keys",
+    "create": "Create API key",
+    "activeKeys": "Active keys",
+    "inactiveKeys": "Disabled / expired",
+    "lastCreated": "Last created",
+    "noneYet": "None yet",
+    "emptyTitle": "Create your first API key",
+    "emptyDescription": "API keys provide programmatic access to your Budget Buddy account.",
+    "fetchError": "Failed to fetch API keys: {error}",
+    "unexpectedFetchError": "An unexpected error occurred while loading API keys",
+    "nameRequired": "Please provide a name for the API key",
+    "expirationMustBeFuture": "Expiration date must be in the future",
+    "createError": "Failed to create API key: {error}",
+    "retry": "Retry",
+    "createdKeyMissing": "API key created, but the key value was not returned",
+    "createdSuccessfully": "API key created successfully",
+    "unexpectedCreateError": "An unexpected error occurred while creating the API key",
+    "deleteErrorFallback": "Failed to delete API key",
+    "deletedOne": "API key deleted successfully",
+    "deletedMany": "{count} API keys deleted successfully",
+    "unexpectedDeleteError": "An unexpected error occurred while deleting the API key",
+    "copied": "API key copied to clipboard",
+    "copyError": "Failed to copy API key",
+    "name": "Name",
+    "key": "Key",
+    "status": "Status",
+    "created": "Created",
+    "disabled": "Disabled",
+    "expired": "Expired",
+    "active": "Active",
+    "unnamed": "Unnamed",
+    "hidden": "Hidden",
+    "hideDetails": "Hide details",
+    "showDetails": "Show details",
+    "hideKeyDetails": "Hide details for API key {name}",
+    "showKeyDetails": "Show details for API key {name}",
+    "delete": "Delete API key",
+    "deleteKey": "Delete API key {name}",
+    "expires": "Expires",
+    "lastRequest": "Last request",
+    "requests": "{count} requests",
+    "unlimitedRemaining": "Unlimited remaining",
+    "remaining": "{count} remaining",
+    "rateLimit": "Rate limit",
+    "off": "Off",
+    "window": "window",
+    "rateLimitValue": "{count}/{duration}",
+    "deleteDialogTitle": "Delete API key",
+    "deleteDialogDescription": "Are you sure you want to delete this API key? Applications using it will lose access immediately. This action cannot be undone."
+  },
+  "TransactionTable": {
+    "retry": "Retry",
+    "new": "New",
+    "viewAttachments": "View attachments",
+    "addTransaction": "Add transaction"
+  },
+  "CategoryTable": {
+    "retry": "Retry",
+    "addCategory": "Add category"
+  },
+  "MergeDialog": {
+    "retry": "Retry",
+    "source": "Source",
+    "target": "Target",
+    "selectSourceCategories": "Select source categories to merge",
+    "selectTargetCategory": "Select target category to merge into",
+    "noCategoriesAvailable": "No categories available",
+    "categoryMergeFailed": "Failed to merge categories: {error}",
+    "categoriesMerged": "Categories merged",
+    "mergeCategories": "Merge categories",
+    "mergeCategoriesDescription": "Merge multiple categories into a single one.",
+    "selectSourcePaymentMethods": "Select source payment methods to merge",
+    "selectTargetPaymentMethod": "Select target payment method to merge into",
+    "noPaymentMethodsAvailable": "No payment methods available",
+    "paymentMethodMergeFailed": "Failed to merge payment methods: {error}",
+    "paymentMethodsMerged": "Payment methods merged",
+    "mergePaymentMethods": "Merge payment methods",
+    "mergePaymentMethodsDescription": "Merge multiple payment methods into a single one."
+  },
+  "DrawerProfile": {
+    "retry": "Retry",
+    "basic": "Basic",
+    "loggedOut": "You have been logged out.",
+    "logoutFailed": "Logout failed. Please try again."
   }
 }

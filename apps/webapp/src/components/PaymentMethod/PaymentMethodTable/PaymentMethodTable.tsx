@@ -143,7 +143,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
       showSnackbar({
         message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} payment method: ${issues}`,
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
       });
       return;
     }
@@ -153,7 +153,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       if (!createdPaymentMethod || error) {
         return showSnackbar({
           message: `Failed to create payment method: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({
@@ -167,7 +167,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       if (!entityId) {
         return showSnackbar({
           message: `Failed to update payment method: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       const [updatedPaymentMethod, error] = await apiClient.backend.paymentMethod.updateById(
@@ -177,7 +177,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       if (error) {
         return showSnackbar({
           message: `Failed to update payment method: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({
@@ -253,7 +253,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     if (error || !deletedPaymentMethod) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('retry')}</Button>,
       });
     }
 

@@ -1,9 +1,9 @@
 'use client';
 
-import type {TExecutionPlan, TRecurringPaymentOccurrence} from '@budgetbuddyde/api/recurringPayment';
+import type {TRecurringPaymentOccurrence} from '@budgetbuddyde/api/recurringPayment';
 import {FormControlLabel, Stack, Switch, Typography} from '@mui/material';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {CategoryChip} from '@/components/Category/CategoryChip';
@@ -14,14 +14,14 @@ import {EntityTable, type ColumnDefinition} from '@/components/Table';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
 import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
-import {formatDateOnlyForDisplay, formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
-import {executionPlanLabels} from '../executionPlan';
+import {formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
 import type {OccurrenceRange} from './occurrenceRange';
 
 type OccurrenceRow = TRecurringPaymentOccurrence & {rowId: string};
 
 export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: OccurrenceRange}> = ({initialRange}) => {
   const t = useTranslations('RecurringPaymentOccurrenceTable');
+  const locale = useLocale();
   const currency = useCurrencyPreference();
   const router = useRouter();
   const pathname = usePathname();
@@ -120,13 +120,13 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
         key: 'scheduledFor',
         label: t('date'),
         width: 120,
-        renderCell: value => formatDateOnlyForDisplay(value as string),
+        renderCell: value => new Intl.DateTimeFormat(locale).format(parseLocalDateOnly(value as string)),
       },
       {
         key: 'recurringPayment.executionPlan',
         label: t('planFrequency'),
         width: 152,
-        renderCell: (_value, row) => executionPlanLabels[row.recurringPayment.executionPlan as TExecutionPlan],
+        renderCell: (_value, row) => t(`plan.${row.recurringPayment.executionPlan}`),
       },
       {key: 'recurringPayment.receiver', label: t('receiver'), width: 168},
       {
@@ -155,7 +155,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
         ),
       },
     ],
-    [currency, t],
+    [currency, locale, t],
   );
 
   return (
@@ -178,7 +178,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
             <DateRangePicker
               key={`${dateFrom}-${dateTo}`}
               defaultValue={{startDate: parseLocalDateOnly(dateFrom), endDate: parseLocalDateOnly(dateTo)}}
-              dateFormat="MM/dd/yyyy"
+              dateFormat={locale === 'de-DE' ? 'dd.MM.yyyy' : 'MM/dd/yyyy'}
               size="small"
               slotProps={{stack: {direction: {xs: 'column', sm: 'row'}}}}
               onDateRangeChange={(start, end) => {
