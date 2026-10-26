@@ -9,7 +9,7 @@ export default getRequestConfig(async () => {
     locale,
     messages:
       locale === 'de-DE'
-        ? (await import('../messages/de-DE.json')).default
-        : (await import('../messages/en-US.json')).default,
+        ? (await import('./messages/de-DE.json')).default
+        : (await import('./messages/en-US.json')).default,
   };
 });
