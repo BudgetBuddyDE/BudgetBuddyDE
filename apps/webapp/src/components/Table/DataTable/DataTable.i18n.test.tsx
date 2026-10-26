@@ -2,7 +2,7 @@ import {enUS} from '@mui/x-data-grid/locales';
 import {render} from '@testing-library/react';
 import {NextIntlClientProvider} from 'next-intl';
 import {describe, expect, it} from 'vite-plus/test';
-import messages from '@/messages/en-US.json';
+import messages from '@/i18n/messages/en-US.json';
 import {DataTable} from './DataTable';
 
 describe('DataTable localization', () => {
