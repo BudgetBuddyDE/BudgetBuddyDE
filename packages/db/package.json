@@ -76,7 +76,7 @@
     "dotenv": "^16.6.1",
     "drizzle-orm": "0.45.4",
     "drizzle-zod": "0.8.3",
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   },
   "peerDependencies": {
     "uuidv7": "^1.1.0"
