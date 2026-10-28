@@ -29,6 +29,12 @@ describe('CurrencyFormatter', () => {
       delete document.documentElement.dataset.currency;
     });
 
+    it('formats a supplied locale independently of the active DOM locale', () => {
+      document.documentElement.lang = 'en-US';
+      expect(CurrencyFormatter.formatBalance(100, 'EUR', 2, 2, 'de-DE')).toContain('100,00');
+      document.documentElement.lang = 'en-US';
+    });
+
     it('uses the selected currency for compact values', () => {
       expect(CurrencyFormatter.shortenBalance(1500, 'USD')).toContain('$');
     });

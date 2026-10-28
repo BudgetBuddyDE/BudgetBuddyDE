@@ -1,6 +1,6 @@
 import {Box, Container} from '@mui/material';
 import {cookies, headers} from 'next/headers';
-import {getLocale, getMessages} from 'next-intl/server';
+import {getMessages} from 'next-intl/server';
 import type React from 'react';
 import {apiClient} from '@/apiClient';
 import {
@@ -22,7 +22,7 @@ export default async function Layout({children}: React.PropsWithChildren) {
     cache: 'no-store',
   });
   if (preferenceError) throw preferenceError;
-  const locale = normalizeLocale(await getLocale());
+  const locale = normalizeLocale(preferenceResult.data.language);
   const messages = await getMessages();
   const cookieStore = await cookies();
   const selectedCurrency = cookieStore.get('budgetbuddy-currency')?.value;
