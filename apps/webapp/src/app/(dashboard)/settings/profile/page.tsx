@@ -4,7 +4,7 @@ import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {CircularProgress} from '@/components/Loading';
 import {AppInformation} from '@/components/Settings/AppInformation';
 import {DataManagement} from '@/components/Settings/DataManagement';
-import {Preferences} from '@/components/Settings/Preferences';
+import {UserPreferences} from '@/components/Settings/UserPreferences';
 import {EditUser} from '@/components/User/EditUser';
 import {UserAccounts} from '@/components/User/UserAccounts';
 import {UserSessions} from '@/components/User/UserSessions';
@@ -35,7 +35,7 @@ export default function SettingsProfilePage() {
           </PathnameErrorBoundary>
         </Grid>
         <Grid size={{xs: 12}}>
-          <Preferences />
+          <UserPreferences />
         </Grid>
       </Grid>
 
