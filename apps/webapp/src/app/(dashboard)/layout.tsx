@@ -25,8 +25,7 @@ export default async function Layout({children}: React.PropsWithChildren) {
   const locale = normalizeLocale(await getLocale());
   const messages = await getMessages();
   const cookieStore = await cookies();
-  const selectedCurrency = cookieStore.get('budgetbuddy-currency')?.value;
-  const currency = selectedCurrency === 'USD' ? 'USD' : preferenceResult.data.currency === 'USD' ? 'USD' : 'EUR';
+  const currency = preferenceResult.data.currency === 'USD' ? 'USD' : 'EUR';
   const persistedDrawerState = cookieStore.get('budgetbuddy-drawer-state')?.value;
   const hasPersistedDrawerState = persistedDrawerState === 'shown' || persistedDrawerState === 'hidden';
   const initialDrawerState = persistedDrawerState === 'hidden' ? 'hidden' : 'shown';

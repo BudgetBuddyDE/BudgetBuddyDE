@@ -9,6 +9,8 @@ import {deDE as datePickerDeDE, enUS as datePickerEnUS} from '@mui/x-date-picker
 import {NextIntlClientProvider} from 'next-intl';
 import React, {useMemo, useState} from 'react';
 import {SnackbarProvider} from '@/components/Snackbar';
+import deMessages from '@/i18n/messages/de-DE.json';
+import enMessages from '@/i18n/messages/en-US.json';
 import {AppTheme} from '@/theme/AppTheme';
 import {CurrencyContext, LocaleContext} from '@/utils/Formatter/PreferenceContext';
 
@@ -26,11 +28,17 @@ export const LayoutWrapper: React.FC<
   const [activeCurrency, setActiveCurrency] = useState(currency);
   const currencyValue = useMemo(() => activeCurrency, [activeCurrency]);
   React.useEffect(() => {
+    setActiveCurrency(currency);
+  }, [currency]);
+  React.useEffect(() => {
     document.documentElement.dataset.currency = activeCurrency;
   }, [activeCurrency]);
   React.useEffect(() => {
     setActiveLocale(locale ?? 'en-US');
   }, [locale]);
+  React.useEffect(() => {
+    document.documentElement.lang = activeLocale;
+  }, [activeLocale]);
   React.useEffect(() => {
     const handleLocaleChange = (event: Event) => {
       const nextLocale = (event as CustomEvent<'en-US' | 'de-DE'>).detail;
@@ -55,7 +63,17 @@ export const LayoutWrapper: React.FC<
           {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
           <CssBaseline />
           <SnackbarProvider>
-            <NextIntlClientProvider locale={activeLocale} messages={messages ?? {}} timeZone="UTC">
+            <NextIntlClientProvider
+              locale={activeLocale}
+              messages={
+                locale === activeLocale
+                  ? (messages ?? (activeLocale === 'de-DE' ? deMessages : enMessages))
+                  : activeLocale === 'de-DE'
+                    ? deMessages
+                    : enMessages
+              }
+              timeZone="UTC"
+            >
               <LocaleContext.Provider value={activeLocale}>
                 <CurrencyContext.Provider value={currencyValue}>{children}</CurrencyContext.Provider>
               </LocaleContext.Provider>
