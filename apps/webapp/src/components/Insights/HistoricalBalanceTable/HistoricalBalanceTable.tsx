@@ -9,7 +9,8 @@ import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangeP
 import {DataTable, type DataTableColumn} from '@/components/Table';
 import {useFetch} from '@/hooks/useFetch';
 import {logger} from '@/logger';
-import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
+import {Formatter} from '@/utils/Formatter/Formatter';
+import {useCurrencyPreference, useLocalePreference} from '@/utils/Formatter/PreferenceContext';
 
 export type HistoricalDataType = 'BASIC' | 'GROUPED_BY_CATEGORY';
 
@@ -24,6 +25,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
   const t = useTranslations('HistoricalBalanceTable');
   const format = useFormatter();
   const currency = useCurrencyPreference();
+  const locale = useLocalePreference();
   const DEFAULT_DATE_RANGE = {
     startDate: subMonths(new Date(), type === 'BASIC' ? 12 : 1),
     endDate: new Date(),
@@ -77,7 +79,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => format.number(value as number, {style: 'currency', currency}),
+        valueFormatter: value => Formatter.currency.formatBalanceForLocale(value as number, currency, locale),
       },
       {
         field: 'expenses',
@@ -86,7 +88,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => format.number(value as number, {style: 'currency', currency}),
+        valueFormatter: value => Formatter.currency.formatBalanceForLocale(value as number, currency, locale),
       },
       {
         field: 'balance',
@@ -95,7 +97,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => format.number(value as number, {style: 'currency', currency}),
+        valueFormatter: value => Formatter.currency.formatBalanceForLocale(value as number, currency, locale),
       },
     ];
 
@@ -110,7 +112,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     }
 
     return baseColumns;
-  }, [currency, format, showCategory, t]);
+  }, [currency, format, locale, showCategory, t]);
 
   return (
     <DataTable

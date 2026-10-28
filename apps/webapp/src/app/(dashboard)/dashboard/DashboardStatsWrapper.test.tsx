@@ -2,15 +2,14 @@ import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {cleanup, render, screen} from '@/test/testing-library';
 import {DashboardStatsWrapper} from './DashboardStatsWrapper';
 
-const {getTranslations, getFormatter, preferenceGet, cookies} = vi.hoisted(() => ({
+const {getTranslations, getLocale, preferenceGet} = vi.hoisted(() => ({
   getTranslations: vi.fn(),
-  getFormatter: vi.fn(),
+  getLocale: vi.fn(),
   preferenceGet: vi.fn(),
-  cookies: vi.fn(),
 }));
 
-vi.mock('next-intl/server', () => ({getTranslations, getFormatter}));
-vi.mock('next/headers', () => ({headers: vi.fn(), cookies}));
+vi.mock('next-intl/server', () => ({getTranslations, getLocale}));
+vi.mock('next/headers', () => ({headers: vi.fn()}));
 vi.mock('@/apiClient', () => ({apiClient: {backend: {preference: {get: preferenceGet}}}}));
 
 afterEach(() => cleanup());
@@ -21,13 +20,10 @@ const estimated = {
   freeAmount: 950,
 };
 
-async function renderStats(currency: 'EUR' | 'USD' = 'EUR') {
+async function renderStats(currency: 'EUR' | 'USD' = 'EUR', locale: 'en-US' | 'de-DE' = 'en-US') {
   getTranslations.mockResolvedValue((key: string) => key);
-  getFormatter.mockResolvedValue({
-    number: (value: number, options: Intl.NumberFormatOptions) => value.toLocaleString('en-US', options),
-  });
+  getLocale.mockResolvedValue(locale);
   preferenceGet.mockResolvedValue([{data: {currency}}, null]);
-  cookies.mockResolvedValue({get: () => undefined});
   return render(await DashboardStatsWrapper({estimated}));
 }
 
@@ -45,5 +41,11 @@ describe('DashboardStatsWrapper', () => {
     expect(screen.getByText('$1,200.00')).toBeInTheDocument();
     expect(screen.getByText('$300.00')).toBeInTheDocument();
     expect(screen.getByText('$900.00')).toBeInTheDocument();
+  });
+
+  it('formats the selected currency using the active locale', async () => {
+    await renderStats('EUR', 'de-DE');
+
+    expect(screen.getByText(value => value.includes('1.200,00') && value.includes('€'))).toBeInTheDocument();
   });
 });

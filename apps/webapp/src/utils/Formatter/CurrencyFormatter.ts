@@ -24,6 +24,10 @@ export class CurrencyFormatter {
     });
   }
 
+  static formatBalanceForLocale(balance: number, currency: 'EUR' | 'USD', locale: string): string {
+    return this.formatBalance(balance, currency, 2, 2, locale);
+  }
+
   static shortenBalance(value: number, currency = getCurrentCurrency(), locale = getCurrentLocale()) {
     const absoluteValue = Math.abs(value);
     if (absoluteValue < 1_000) return this.formatBalance(value, currency, 2, 2, locale);

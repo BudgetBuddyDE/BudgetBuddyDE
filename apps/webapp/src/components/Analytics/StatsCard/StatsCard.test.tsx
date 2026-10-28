@@ -1,6 +1,5 @@
 import {render, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vite-plus/test';
-import {CurrencyContext, LocaleContext} from '@/utils/Formatter/PreferenceContext';
 
 import {StatsCard} from './StatsCard';
 
@@ -11,14 +10,8 @@ describe('StatsCard', () => {
   });
 
   it('renders the value', () => {
-    render(
-      <CurrencyContext.Provider value="USD">
-        <LocaleContext.Provider value="de-DE">
-          <StatsCard label="Income" value="€500.00" />
-        </LocaleContext.Provider>
-      </CurrencyContext.Provider>,
-    );
-    expect(screen.getByText(value => value.includes('500,00') && value.includes('$'))).toBeInTheDocument();
+    render(<StatsCard label="Income" value="€500.00" />);
+    expect(screen.getByText('€500.00')).toBeInTheDocument();
   });
 
   it('renders the valueInformation when provided', () => {

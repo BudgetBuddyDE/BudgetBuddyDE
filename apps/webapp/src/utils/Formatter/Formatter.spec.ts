@@ -23,6 +23,11 @@ describe('CurrencyFormatter', () => {
       expect(CurrencyFormatter.formatBalance(1234.5, 'USD', 2, 2, 'en-US')).toContain('$');
     });
 
+    it('formats server-provided currency and locale consistently', () => {
+      expect(CurrencyFormatter.formatBalanceForLocale(1234.5, 'EUR', 'de-DE')).toContain('1.234,50');
+      expect(CurrencyFormatter.formatBalanceForLocale(1234.5, 'USD', 'en-US')).toContain('$');
+    });
+
     it('uses the active preference currency when no currency is passed', () => {
       document.documentElement.dataset.currency = 'USD';
       expect(CurrencyFormatter.formatBalance(100)).toContain('$');

@@ -1,15 +1,17 @@
 import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
 import {Grid} from '@mui/material';
 import {headers} from 'next/headers';
-import {getFormatter, getTranslations} from 'next-intl/server';
+import {getLocale, getTranslations} from 'next-intl/server';
 import {apiClient} from '@/apiClient';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
+import {normalizeLocale} from '@/i18n/config';
+import {Formatter} from '@/utils/Formatter/Formatter';
 
 export const DashboardStatsWrapper = async ({estimated}: {estimated: TEstimatedBudget}) => {
-  const [t, formatter, requestHeaders] = await Promise.all([
+  const [t, requestHeaders, requestLocale] = await Promise.all([
     getTranslations('DashboardStats'),
-    getFormatter(),
     headers(),
+    getLocale(),
   ]);
   const [preference, preferenceError] = await apiClient.backend.preference.get({
     headers: requestHeaders,
@@ -17,7 +19,8 @@ export const DashboardStatsWrapper = async ({estimated}: {estimated: TEstimatedB
   });
   if (preferenceError) throw preferenceError;
   const currency = preference.data.currency === 'USD' ? 'USD' : 'EUR';
-  const formatCurrency = (value: number) => formatter.number(value, {style: 'currency', currency});
+  const formatCurrency = (value: number) =>
+    Formatter.currency.formatBalanceForLocale(value, currency, normalizeLocale(requestLocale));
   const currentBalance = estimated.income.received - estimated.expenses.paid;
   const estimatedBalance =
     estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);
