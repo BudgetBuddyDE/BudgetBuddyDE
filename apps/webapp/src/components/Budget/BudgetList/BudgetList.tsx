@@ -35,6 +35,7 @@ import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {type Budget, BudgetItem, type BudgetItemProps} from './BudgetItem';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 type EntityFormFields = FirstLevelNullable<
   Pick<TBudget, 'id' | 'type' | 'name' | 'budget' | 'description'> & {
@@ -59,6 +60,7 @@ function toBudgetItemModel(entity: TBudget): Budget {
 
 export const BudgetList: React.FC<BudgetListProps> = () => {
   const t = useTranslations('BudgetList');
+  const currency = useCurrencyPreference();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage} = budgetSlice.actions;
   const dispatch = useAppDispatch();
@@ -318,7 +320,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
         placeholder: t('amountPlaceholder'),
         slotProps: {
           input: {
-            endAdornment: <InputAdornment position="end">&euro;</InputAdornment>,
+            endAdornment: <InputAdornment position="end">{currency === 'USD' ? '$' : '€'}</InputAdornment>,
           },
         },
       },
