@@ -12,9 +12,13 @@ export const DashboardStatsWrapper = async ({estimated}: {estimated: TEstimatedB
     headers(),
     cookies(),
   ]);
-  const [preference, preferenceError] = await apiClient.backend.preference.get({headers: requestHeaders, cache: 'no-store'});
+  const [preference, preferenceError] = await apiClient.backend.preference.get({
+    headers: requestHeaders,
+    cache: 'no-store',
+  });
   if (preferenceError) throw preferenceError;
-  const currency = cookieStore.get('budgetbuddy-currency')?.value === 'USD' || preference.data.currency === 'USD' ? 'USD' : 'EUR';
+  const currency =
+    cookieStore.get('budgetbuddy-currency')?.value === 'USD' || preference.data.currency === 'USD' ? 'USD' : 'EUR';
   const formatCurrency = (value: number) => formatter.number(value, {style: 'currency', currency});
   const currentBalance = estimated.income.received - estimated.expenses.paid;
   const estimatedBalance =

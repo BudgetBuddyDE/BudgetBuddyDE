@@ -34,8 +34,8 @@ import {budgetSlice} from '@/lib/features/budgets/budgetSlice';
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
-import {type Budget, BudgetItem, type BudgetItemProps} from './BudgetItem';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
+import {type Budget, BudgetItem, type BudgetItemProps} from './BudgetItem';
 
 type EntityFormFields = FirstLevelNullable<
   Pick<TBudget, 'id' | 'type' | 'name' | 'budget' | 'description'> & {

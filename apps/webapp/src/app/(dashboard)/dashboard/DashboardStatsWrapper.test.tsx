@@ -23,8 +23,8 @@ const estimated = {
 
 async function renderStats(currency: 'EUR' | 'USD' = 'EUR') {
   getTranslations.mockResolvedValue((key: string) => key);
-  getFormatter.mockResolvedValue({number: (value: number, options: Intl.NumberFormatOptions) =>
-    value.toLocaleString('en-US', options),
+  getFormatter.mockResolvedValue({
+    number: (value: number, options: Intl.NumberFormatOptions) => value.toLocaleString('en-US', options),
   });
   preferenceGet.mockResolvedValue([{data: {currency}}, null]);
   cookies.mockResolvedValue({get: () => undefined});
