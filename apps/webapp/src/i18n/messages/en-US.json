@@ -429,6 +429,16 @@
   "ReportTable": {
     "noData": "No data for the selected filters."
   },
+  "InsightsReportTransactions": {
+    "title": "Executed transactions ({count})",
+    "description": "Filtered transactions behind this report.",
+    "volume": "Volume",
+    "date": "Date",
+    "receiver": "Receiver",
+    "category": "Category",
+    "paymentMethod": "Payment method",
+    "amount": "Amount"
+  },
   "CommandPalette": {
     "keyboardShortcuts": "Keyboard shortcuts",
     "searchCommands": "Search commands...",
@@ -608,7 +618,10 @@
     "rowsPerPage": "Rows:"
   },
   "DeleteDialog": {
-    "cancel": "Cancel"
+    "title": "Attention",
+    "content": "Are you sure you want to delete these entries?",
+    "cancel": "Cancel",
+    "confirm": "Yes, delete"
   },
   "EntityDrawer": {
     "close": "Close",

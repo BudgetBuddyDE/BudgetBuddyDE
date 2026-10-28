@@ -53,6 +53,13 @@ describe('DeleteDialog', () => {
     expect(screen.getByText('Custom content')).toBeInTheDocument();
   });
 
+  it('translates the default confirmation action', async () => {
+    await act(async () => {
+      render(<DeleteDialog open={true} onCancel={vi.fn()} onConfirm={vi.fn()} onClose={vi.fn()} />);
+    });
+    expect(screen.getByRole('button', {name: 'Yes, delete'})).toBeInTheDocument();
+  });
+
   it('renders with transition when withTransition is true', async () => {
     await act(async () => {
       render(<DeleteDialog open={true} onCancel={vi.fn()} onConfirm={vi.fn()} onClose={vi.fn()} withTransition />);

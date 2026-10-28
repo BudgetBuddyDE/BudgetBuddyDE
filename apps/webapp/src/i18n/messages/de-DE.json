@@ -464,6 +464,16 @@
   "ReportTable": {
     "noData": "Keine Daten für die ausgewählten Filter."
   },
+  "InsightsReportTransactions": {
+    "title": "Ausgeführte Transaktionen ({count})",
+    "description": "Gefilterte Transaktionen in diesem Bericht.",
+    "volume": "Gesamtvolumen",
+    "date": "Datum",
+    "receiver": "Empfänger",
+    "category": "Kategorie",
+    "paymentMethod": "Zahlungsmethode",
+    "amount": "Betrag"
+  },
   "CommandPalette": {
     "keyboardShortcuts": "Tastenkürzel",
     "searchCommands": "Befehle suchen...",
@@ -643,7 +653,10 @@
     "rowsPerPage": "Zeilen:"
   },
   "DeleteDialog": {
-    "cancel": "Abbrechen"
+    "title": "Achtung",
+    "content": "Möchtest du diese Einträge wirklich löschen?",
+    "cancel": "Abbrechen",
+    "confirm": "Ja, löschen"
   },
   "EntityDrawer": {
     "close": "Schließen",

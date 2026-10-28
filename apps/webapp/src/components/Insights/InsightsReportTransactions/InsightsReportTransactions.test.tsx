@@ -57,6 +57,15 @@ describe('InsightsReportTransactions', () => {
     expect(screen.getByText(/140\.00/)).toBeInTheDocument();
   });
 
+  it('translates the report labels into German', () => {
+    renderWithLocale(<Harness transactionCount={20} initialPage={0} />, 'de-DE');
+
+    expect(screen.getByText('Ausgeführte Transaktionen (20)')).toBeInTheDocument();
+    expect(screen.getByText('Empfänger')).toBeInTheDocument();
+    expect(screen.getByText('Zahlungsmethode')).toBeInTheDocument();
+    expect(screen.getByText('Betrag')).toBeInTheDocument();
+  });
+
   it('navigates to the next page and keeps the current page', () => {
     renderWithLocale(<Harness transactionCount={25} initialPage={0} />);
 
