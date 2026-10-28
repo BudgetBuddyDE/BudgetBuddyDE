@@ -15,7 +15,7 @@ import {Skeleton, type SxProps, type Theme, Typography} from '@mui/material';
 import React from 'react';
 import {Card} from '@/components/Card';
 import {CurrencyFormatter} from '@/utils/Formatter/CurrencyFormatter';
-import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
+import {useCurrencyPreference, useLocalePreference} from '@/utils/Formatter/PreferenceContext';
 
 export type TStatsCardProps = {
   label: string | number;
@@ -48,11 +48,12 @@ const ICONS = {
 
 export const StatsCard: React.FC<TStatsCardProps> = ({label, value, valueInformation, icon, isLoading = false}) => {
   const currency = useCurrencyPreference();
+  const locale = useLocalePreference();
   const IconComponent = icon ? ICONS[icon] : QuestionMarkRounded;
   const formatCurrency = (text: string | number) =>
     typeof text === 'string'
       ? text.replace(/(?:€|\$)\s?(-?[\d,.]+)/g, (_match, amount: string) =>
-          CurrencyFormatter.formatBalance(Number(amount.replace(/,/g, '')), currency),
+          CurrencyFormatter.formatBalance(Number(amount.replace(/,/g, '')), currency, 2, 2, locale),
         )
       : text;
 

@@ -84,6 +84,21 @@ describe('Preferences', () => {
     expect(screen.getByRole('button', {name: 'Save preferences'})).toBeEnabled();
   });
 
+  it('allows retrying after the save request rejects', async () => {
+    get.mockResolvedValueOnce([{data: {language: 'en_US', currency: 'EUR'}}, null]);
+    update.mockReset().mockRejectedValueOnce(new Error('offline'));
+    render(
+      <NextIntlClientProvider locale="en-US" messages={messages}>
+        <Preferences />
+      </NextIntlClientProvider>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', {name: 'Edit'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Save preferences'}));
+    expect(await screen.findByText('Could not save preferences. Please try again.')).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Save preferences'})).toBeEnabled();
+  });
+
   it('saves the German preference locale using the API locale format', async () => {
     get.mockResolvedValueOnce([{data: {language: 'en_US', currency: 'EUR'}}, null]);
     update.mockReset().mockResolvedValueOnce([{data: {language: 'de_DE', currency: 'EUR'}}, null]);

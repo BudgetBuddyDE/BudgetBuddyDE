@@ -60,12 +60,15 @@ export const Preferences = () => {
     if (!currency || !isEditing) return;
     setSaving(true);
     setError(null);
-    const [result, requestError] = await apiClient.backend.preference.update({
-      language: toPreferenceLanguage(language),
-      currency,
-    });
-    if (requestError) setError(t('saveError'));
-    else {
+    try {
+      const [result, requestError] = await apiClient.backend.preference.update({
+        language: toPreferenceLanguage(language),
+        currency,
+      });
+      if (requestError) {
+        setError(t('saveError'));
+        return;
+      }
       const nextLanguage = normalizeLocale(result.data.language);
       const nextCurrency = currencies.includes(result.data.currency as (typeof currencies)[number])
         ? (result.data.currency as (typeof currencies)[number])
@@ -79,8 +82,11 @@ export const Preferences = () => {
       setIsEditing(false);
       showSnackbar({message: t('saved')});
       router.refresh();
+    } catch {
+      setError(t('saveError'));
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleEdit = () => {
