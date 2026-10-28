@@ -1,9 +1,17 @@
-import {NextIntlClientProvider} from 'next-intl';
-import {afterEach, describe, expect, it} from 'vite-plus/test';
-import messages from '@/i18n/messages/en-US.json';
+import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import {cleanup, render, screen} from '@/test/testing-library';
-import {CurrencyContext} from '@/utils/Formatter/PreferenceContext';
 import {DashboardStatsWrapper} from './DashboardStatsWrapper';
+
+const {getTranslations, getFormatter, preferenceGet, cookies} = vi.hoisted(() => ({
+  getTranslations: vi.fn(),
+  getFormatter: vi.fn(),
+  preferenceGet: vi.fn(),
+  cookies: vi.fn(),
+}));
+
+vi.mock('next-intl/server', () => ({getTranslations, getFormatter}));
+vi.mock('next/headers', () => ({headers: vi.fn(), cookies}));
+vi.mock('@/apiClient', () => ({apiClient: {backend: {preference: {get: preferenceGet}}}}));
 
 afterEach(() => cleanup());
 
@@ -13,31 +21,26 @@ const estimated = {
   freeAmount: 950,
 };
 
-function renderStats(currency: 'EUR' | 'USD' = 'EUR') {
-  return render(
-    <NextIntlClientProvider locale="en-US" messages={messages}>
-      <CurrencyContext.Provider value={currency}>
-        <DashboardStatsWrapper estimated={estimated} />
-      </CurrencyContext.Provider>
-    </NextIntlClientProvider>,
-  );
+async function renderStats(currency: 'EUR' | 'USD' = 'EUR') {
+  getTranslations.mockResolvedValue((key: string) => key);
+  getFormatter.mockResolvedValue({number: (value: number, options: Intl.NumberFormatOptions) =>
+    value.toLocaleString('en-US', options),
+  });
+  preferenceGet.mockResolvedValue([{data: {currency}}, null]);
+  cookies.mockResolvedValue({get: () => undefined});
+  return render(await DashboardStatsWrapper({estimated}));
 }
 
 describe('DashboardStatsWrapper', () => {
-  it('renders dashboard figures in the selected currency', () => {
-    const {rerender} = renderStats('EUR');
+  it('renders dashboard figures in the selected currency', async () => {
+    await renderStats('EUR');
 
     expect(screen.getByText('€1,200.00')).toBeInTheDocument();
     expect(screen.getByText('€300.00')).toBeInTheDocument();
     expect(screen.getByText('€900.00')).toBeInTheDocument();
 
-    rerender(
-      <NextIntlClientProvider locale="en-US" messages={messages}>
-        <CurrencyContext.Provider value="USD">
-          <DashboardStatsWrapper estimated={estimated} />
-        </CurrencyContext.Provider>
-      </NextIntlClientProvider>,
-    );
+    cleanup();
+    await renderStats('USD');
 
     expect(screen.getByText('$1,200.00')).toBeInTheDocument();
     expect(screen.getByText('$300.00')).toBeInTheDocument();
