@@ -1,15 +1,23 @@
-'use client';
-
 import type {TEstimatedBudget} from '@budgetbuddyde/api/budget';
 import {Grid} from '@mui/material';
-import {useTranslations} from 'next-intl';
+import {headers} from 'next/headers';
+import {getFormatter, getTranslations} from 'next-intl/server';
+import {apiClient} from '@/apiClient';
 import {StatsCard, type TStatsCardProps} from '@/components/Analytics/StatsCard';
-import {Formatter} from '@/utils/Formatter';
-import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
-export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}) => {
-  const t = useTranslations('DashboardStats');
-  const currency = useCurrencyPreference();
+export const DashboardStatsWrapper = async ({estimated}: {estimated: TEstimatedBudget}) => {
+  const [t, formatter, requestHeaders] = await Promise.all([
+    getTranslations('DashboardStats'),
+    getFormatter(),
+    headers(),
+  ]);
+  const [preference, preferenceError] = await apiClient.backend.preference.get({
+    headers: requestHeaders,
+    cache: 'no-store',
+  });
+  if (preferenceError) throw preferenceError;
+  const currency = preference.data.currency === 'USD' ? 'USD' : 'EUR';
+  const formatCurrency = (value: number) => formatter.number(value, {style: 'currency', currency});
   const currentBalance = estimated.income.received - estimated.expenses.paid;
   const estimatedBalance =
     estimated.income.received + estimated.income.upcoming - (estimated.expenses.paid + estimated.expenses.upcoming);
@@ -17,20 +25,20 @@ export const DashboardStatsWrapper = ({estimated}: {estimated: TEstimatedBudget}
     {
       icon: 'add',
       label: t('income'),
-      value: Formatter.currency.formatBalance(estimated.income.received, currency),
-      valueInformation: `${t('upcoming')}: ${Formatter.currency.formatBalance(estimated.income.upcoming, currency)}`,
+      value: formatCurrency(estimated.income.received),
+      valueInformation: `${t('upcoming')}: ${formatCurrency(estimated.income.upcoming)}`,
     },
     {
       icon: 'remove',
       label: t('spendings'),
-      value: Formatter.currency.formatBalance(estimated.expenses.paid, currency),
-      valueInformation: `${t('upcoming')}: ${Formatter.currency.formatBalance(estimated.expenses.upcoming, currency)}`,
+      value: formatCurrency(estimated.expenses.paid),
+      valueInformation: `${t('upcoming')}: ${formatCurrency(estimated.expenses.upcoming)}`,
     },
     {
       icon: 'balance',
       label: t('balance'),
-      value: Formatter.currency.formatBalance(currentBalance, currency),
-      valueInformation: `${t('estimated')}: ${Formatter.currency.formatBalance(estimatedBalance, currency)}`,
+      value: formatCurrency(currentBalance),
+      valueInformation: `${t('estimated')}: ${formatCurrency(estimatedBalance)}`,
     },
   ];
 

@@ -2,7 +2,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {describe, expect, it, vi} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
 import {fireEvent, render, screen, waitFor} from '@/test/testing-library';
-import {Preferences} from './Preferences';
+import {UserPreferences} from './UserPreferences';
 
 const {get, update, showSnackbar} = vi.hoisted(() => ({get: vi.fn(), update: vi.fn(), showSnackbar: vi.fn()}));
 
@@ -10,14 +10,14 @@ vi.mock('@/apiClient', () => ({apiClient: {backend: {preference: {get, update}}}
 vi.mock('next/navigation', () => ({useRouter: () => ({refresh: vi.fn()})}));
 vi.mock('@/components/Snackbar', () => ({useSnackbarContext: () => ({showSnackbar})}));
 
-describe('Preferences', () => {
+describe('UserPreferences', () => {
   it('keeps values read-only until edit is enabled, then saves them', async () => {
     update.mockReset();
     get.mockResolvedValueOnce([{data: {language: 'en_US', currency: 'EUR'}}, null]);
     update.mockResolvedValueOnce([{data: {language: 'en_US', currency: 'EUR'}}, null]);
     render(
       <NextIntlClientProvider locale="en-US" messages={messages}>
-        <Preferences />
+        <UserPreferences />
       </NextIntlClientProvider>,
     );
 
@@ -41,7 +41,7 @@ describe('Preferences', () => {
       .mockResolvedValueOnce([{data: {language: 'en_US', currency: 'USD'}}, null]);
     render(
       <NextIntlClientProvider locale="en-US" messages={messages}>
-        <Preferences />
+        <UserPreferences />
       </NextIntlClientProvider>,
     );
 
@@ -58,7 +58,7 @@ describe('Preferences', () => {
     get.mockResolvedValueOnce([null, new Error('offline')]);
     render(
       <NextIntlClientProvider locale="en-US" messages={messages}>
-        <Preferences />
+        <UserPreferences />
       </NextIntlClientProvider>,
     );
 
@@ -72,7 +72,7 @@ describe('Preferences', () => {
     update.mockReset().mockResolvedValueOnce([null, new Error('offline')]);
     render(
       <NextIntlClientProvider locale="en-US" messages={messages}>
-        <Preferences />
+        <UserPreferences />
       </NextIntlClientProvider>,
     );
 
@@ -89,7 +89,7 @@ describe('Preferences', () => {
     update.mockReset().mockRejectedValueOnce(new Error('offline'));
     render(
       <NextIntlClientProvider locale="en-US" messages={messages}>
-        <Preferences />
+        <UserPreferences />
       </NextIntlClientProvider>,
     );
 
@@ -104,7 +104,7 @@ describe('Preferences', () => {
     update.mockReset().mockResolvedValueOnce([{data: {language: 'de_DE', currency: 'EUR'}}, null]);
     render(
       <NextIntlClientProvider locale="en-US" messages={messages}>
-        <Preferences />
+        <UserPreferences />
       </NextIntlClientProvider>,
     );
 
@@ -123,7 +123,7 @@ describe('Preferences', () => {
     update.mockReset();
     render(
       <NextIntlClientProvider locale="en-US" messages={messages}>
-        <Preferences />
+        <UserPreferences />
       </NextIntlClientProvider>,
     );
 

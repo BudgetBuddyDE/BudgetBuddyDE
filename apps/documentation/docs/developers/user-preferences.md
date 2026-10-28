@@ -35,9 +35,9 @@ The API client is available as `apiClient.backend.preference`; use its `get()` a
 
 ## Web application language and currency
 
-The web application initially supports English (`en_US`) and display currencies EUR and USD. It normalizes the stored language code to `en-US` for browser formatting. Missing or unsupported language values fall back to English. Missing or unsupported currencies fall back to EUR. Fallbacks do not overwrite stored values unless the user saves settings. The language selector is structured as an explicit allowlist for adding supported locales and message catalogs later.
+The web application supports English (`en_US`) and German (`de_DE`) and display currencies EUR and USD. It normalizes stored language codes to `en-US` and `de-DE` for browser formatting. Missing or unsupported language values fall back to English. Missing or unsupported currencies fall back to EUR. Fallbacks do not overwrite stored values unless the user saves settings. The language selector is structured as an explicit allowlist for adding supported locales and message catalogs later.
 
-Changing the display currency changes formatting only. It does not convert transaction, budget, or recurring-payment amounts. English is the only shipped translation catalog; additional locales require a catalog and an explicit supported-locale entry.
+Changing the display currency changes formatting only. It does not convert transaction, budget, or recurring-payment amounts. English and German translation catalogs are shipped; additional locales require a catalog and an explicit supported-locale entry.
 
 ## Existing installations: recommended one-time SQL backfill
 

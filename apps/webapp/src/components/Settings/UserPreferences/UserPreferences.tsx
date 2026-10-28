@@ -18,7 +18,7 @@ function setCurrentLanguage(language: string) {
   setCurrentLocale(locale);
 }
 
-export const Preferences = () => {
+export const UserPreferences = () => {
   const router = useRouter();
   const t = useTranslations('Preferences');
   const {showSnackbar} = useSnackbarContext();
