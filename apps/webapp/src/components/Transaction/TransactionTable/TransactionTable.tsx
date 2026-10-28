@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import {Button, Chip, createFilterOptions, IconButton, InputAdornment, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -44,6 +45,7 @@ import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {
   columns as transactionBatchColumns,
   createEmptyRow as createEmptyTransactionRow,
@@ -69,6 +71,8 @@ export type TransactionTableProps = {
 };
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilters}) => {
+  const t = useTranslations('TransactionTable');
+  const currency = useCurrencyPreference();
   const {showSnackbar} = useSnackbarContext();
   const {refresh, getPage, setPage, setRowsPerPage, applyFilters, setFilters} = transactionSlice.actions;
   const dispatch = useAppDispatch();
@@ -132,7 +136,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
       showSnackbar({
         message: `Failed to ${action === 'CREATE' ? 'create' : 'update'} transaction: ${issues}`,
-        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+        action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
       });
       return;
     }
@@ -150,7 +154,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       if (error) {
         return showSnackbar({
           message: `Failed to create transaction: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({message: `Transaction created successfully`});
@@ -162,7 +166,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       if (!entityId) {
         return showSnackbar({
           message: `Failed to update transaction: Missing entity ID`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       const {processedAt, category, paymentMethod, receiver, information, transferAmount} = parsedPayload.data;
@@ -177,7 +181,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       if (error) {
         return showSnackbar({
           message: `Failed to update transaction: ${error.message}`,
-          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>Retry</Button>,
+          action: <Button onClick={() => handleFormSubmission(payload, onSuccess)}>{t('retry')}</Button>,
         });
       }
       showSnackbar({message: `Transaction updated successfully`});
@@ -346,7 +350,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
     if (error || !deletedTransaction) {
       return showSnackbar({
         message: error.message,
-        action: <Button onClick={() => handleDeleteEntity(entityId)}>Retry</Button>,
+        action: <Button onClick={() => handleDeleteEntity(entityId)}>{t('retry')}</Button>,
       });
     }
 
@@ -498,7 +502,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             const isNew = 'new' in option;
             return (
               <li {...props} key={option.receiver}>
-                {isNew && <Chip label="New" size="small" sx={{mr: 0.5}} />}
+                {isNew && <Chip label={t('new')} size="small" sx={{mr: 0.5}} />}
                 {option.receiver}
               </li>
             );
@@ -586,7 +590,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         width: 112,
         renderCell: value => (
           <Typography variant="body2" noWrap>
-            {Formatter.currency.formatBalance(value as number)}
+            {Formatter.currency.formatBalance(value as number, currency)}
           </Typography>
         ),
       },
@@ -624,7 +628,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           ) : (
             <ActionPaper sx={{width: 'min-content'}}>
               <IconButton
-                aria-label="View attachments"
+                aria-label={t('viewAttachments')}
                 onClick={() => {
                   setAttachmentsDialog({open: true, transaction: row});
                 }}
@@ -820,7 +824,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       />
 
       <FabContainer>
-        <AddFab onClick={handleCreateEntity} label="Add transaction" />
+        <AddFab onClick={handleCreateEntity} label={t('addTransaction')} />
       </FabContainer>
 
       <TransactionAttachmentsDialog

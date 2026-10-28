@@ -8,6 +8,8 @@ import {
   type GridRowSelectionModel,
   type GridValidRowModel,
 } from '@mui/x-data-grid';
+import {enUS} from '@mui/x-data-grid/locales';
+import {useTranslations} from 'next-intl';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {TableToolbar, type TableToolbarProps} from '../TableToolbar';
 
@@ -57,6 +59,7 @@ export const DataTable = <T extends GridValidRowModel & {id: string | number}>({
   sx,
   dataGridProps,
 }: DataTableProps<T>) => {
+  const t = useTranslations('DataTable');
   const hasError = !!(error && (typeof error === 'object' || (typeof error === 'string' && error.length > 0)));
   const errorMessage = error instanceof Error ? error.message : error;
 
@@ -84,7 +87,8 @@ export const DataTable = <T extends GridValidRowModel & {id: string | number}>({
             processRowUpdate={processRowUpdate}
             onProcessRowUpdateError={onProcessRowUpdateError}
             localeText={{
-              noRowsLabel: emptyMessage,
+              ...enUS.components.MuiDataGrid.defaultProps.localeText,
+              noRowsLabel: emptyMessage === 'No items found' ? t('noRows') : emptyMessage,
             }}
             sx={{
               border: 'none',

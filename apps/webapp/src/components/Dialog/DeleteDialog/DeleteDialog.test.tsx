@@ -1,5 +1,5 @@
-import {act, fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vite-plus/test';
+import {act, fireEvent, render, screen} from '@/test/testing-library';
 
 import {DeleteDialog} from './DeleteDialog';
 
@@ -51,6 +51,13 @@ describe('DeleteDialog', () => {
     });
     expect(screen.getByText('Custom title')).toBeInTheDocument();
     expect(screen.getByText('Custom content')).toBeInTheDocument();
+  });
+
+  it('translates the default confirmation action', async () => {
+    await act(async () => {
+      render(<DeleteDialog open={true} onCancel={vi.fn()} onConfirm={vi.fn()} onClose={vi.fn()} />);
+    });
+    expect(screen.getByRole('button', {name: 'Yes, delete'})).toBeInTheDocument();
   });
 
   it('renders with transition when withTransition is true', async () => {

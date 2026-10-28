@@ -1,8 +1,8 @@
 import {apiClient} from '@/apiClient';
 import {authClient} from '@/authClient';
 import {Formatter} from '@/utils/Formatter';
+import {getCurrentCurrency, getCurrentLocale} from '@/utils/Formatter/preferenceFormat';
 import {formatDateOnlyForDisplay} from '@/components/RecurringPayment/dateOnly';
-import {executionPlanLabels} from '@/components/RecurringPayment/executionPlan';
 import type {IntentEntity} from './types';
 
 /** Search result that can be selected as an edit or delete intent target. */
@@ -24,6 +24,8 @@ const withUuidFallback = (query: string, options: IntentTargetOption[]) => {
  */
 export async function searchIntentTargets(entity: IntentEntity, query: string): Promise<IntentTargetOption[]> {
   const search = query.trim();
+  const currency = getCurrentCurrency();
+  const locale = getCurrentLocale();
   let options: IntentTargetOption[] = [];
 
   switch (entity) {
@@ -36,7 +38,7 @@ export async function searchIntentTargets(entity: IntentEntity, query: string): 
       if (error) throw new Error(error.message);
       options = (result?.data ?? []).map(transaction => ({
         id: transaction.id,
-        label: `${transaction.receiver} · ${Formatter.currency.formatBalance(transaction.transferAmount)} · ${Formatter.date.format(transaction.processedAt)}`,
+        label: `${transaction.receiver} · ${Formatter.currency.formatBalance(transaction.transferAmount, currency, 2, 2, locale)} · ${Formatter.date.format(transaction.processedAt)}`,
         description: transaction.information ?? undefined,
         keywords: [
           transaction.receiver,
@@ -56,7 +58,7 @@ export async function searchIntentTargets(entity: IntentEntity, query: string): 
       if (error) throw new Error(error.message);
       options = (result?.data ?? []).map(payment => ({
         id: payment.id,
-        label: `${payment.receiver} · ${Formatter.currency.formatBalance(payment.transferAmount)} · ${executionPlanLabels[payment.executionPlan]} from ${formatDateOnlyForDisplay(payment.startsOn)}`,
+        label: `${payment.receiver} · ${Formatter.currency.formatBalance(payment.transferAmount, currency, 2, 2, locale)} · ${payment.executionPlan} from ${formatDateOnlyForDisplay(payment.startsOn)}`,
         description: payment.information ?? undefined,
         keywords: [payment.receiver, payment.category.name, payment.paymentMethod.name, payment.information ?? ''],
       }));

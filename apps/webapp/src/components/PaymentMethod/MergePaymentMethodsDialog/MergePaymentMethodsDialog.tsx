@@ -2,6 +2,7 @@
 
 import {PaymentMethod, type PaymentMethodVH, type TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {Button} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
@@ -29,6 +30,7 @@ export type MergePaymentMethodsDialogProps = {
 };
 
 export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps> = ({source, isOpen, onClose}) => {
+  const t = useTranslations('MergeDialog');
   const {showSnackbar} = useSnackbarContext();
   const {refresh} = categorySlice.actions;
   const dispatch = useAppDispatch();
@@ -45,12 +47,12 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'sourcePaymentMethods',
-        label: 'Source',
-        placeholder: 'Select source payment methods to merge',
+        label: t('source'),
+        placeholder: t('selectSourcePaymentMethods'),
         required: true,
         multiple: true,
         disableCloseOnSelect: true,
-        noOptionsText: 'No payment methods available',
+        noOptionsText: t('noPaymentMethodsAvailable'),
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
@@ -69,10 +71,10 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'targetPaymentMethod',
-        label: 'Target',
-        placeholder: 'Select target payment method to merge into',
+        label: t('target'),
+        placeholder: t('selectTargetPaymentMethod'),
         required: true,
-        noOptionsText: 'No payment methods available',
+        noOptionsText: t('noPaymentMethodsAvailable'),
         async retrieveOptionsFunc(_keywords) {
           const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
           if (error) {
@@ -89,7 +91,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
         },
       },
     ] as EntityDrawerField<MergePaymentMethodsForm>[];
-  }, []);
+  }, [t]);
 
   const handleSubmit: EntityDrawerFormHandler<MergePaymentMethodsForm> = async (payload, onSuccess) => {
     const parsedPayload = z
@@ -104,8 +106,8 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
     if (!parsedPayload.success) {
       const issues: string = parsedPayload.error.issues.map(issue => issue.message).join(', ');
       showSnackbar({
-        message: `Failed to merge payment methods: ${issues}`,
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>Retry</Button>,
+        message: t('paymentMethodMergeFailed', {error: issues}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('retry')}</Button>,
       });
       return;
     }
@@ -113,11 +115,11 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
     const [mergedPaymentMethods, error] = await apiClient.backend.paymentMethod.merge(parsedPayload.data);
     if (!mergedPaymentMethods || error) {
       return showSnackbar({
-        message: `Failed to merge payment methods: ${error.message}`,
-        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>Retry</Button>,
+        message: t('paymentMethodMergeFailed', {error: error.message}),
+        action: <Button onClick={() => handleSubmit(payload, onSuccess)}>{t('retry')}</Button>,
       });
     }
-    showSnackbar({message: 'Payment methods merged'});
+    showSnackbar({message: t('paymentMethodsMerged')});
     onClose(); // close the drawer
     onSuccess?.();
     dispatch(refresh());
@@ -125,8 +127,8 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
 
   return (
     <EntityDrawer<MergePaymentMethodsForm>
-      title={'Merge payment methods'}
-      subtitle={'Merge multiple payment methods into a single one.'}
+      title={t('mergePaymentMethods')}
+      subtitle={t('mergePaymentMethodsDescription')}
       open={isOpen}
       onSubmit={handleSubmit}
       onClose={onClose}

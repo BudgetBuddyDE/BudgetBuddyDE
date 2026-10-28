@@ -2,6 +2,7 @@ import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TInsightsReport} from '@budgetbuddyde/api/insights';
 import type {TExpandedTransaction} from '@budgetbuddyde/api/types';
 import {Box, LinearProgress, Skeleton, Stack} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {ErrorAlert} from '@/components/ErrorAlert';
 import {InsightsReportAnalysis} from '../InsightsReportAnalysis/InsightsReportAnalysis';
@@ -34,6 +35,7 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
 }) => {
+  const t = useTranslations('InsightsView');
   const initialLoading = loading && !report;
   const refreshing = loading && Boolean(report);
   const categoryIds = new Set<string>(categories.map(category => category.id));
@@ -49,7 +51,7 @@ export const InsightsReportView: React.FC<InsightsReportViewProps> = ({
         <Box sx={{position: 'relative'}}>
           {refreshing && (
             <LinearProgress
-              aria-label="Refreshing insights report"
+              aria-label={t('refreshing')}
               sx={{position: 'absolute', top: -8, left: 0, right: 0, zIndex: 1, borderRadius: 1}}
             />
           )}

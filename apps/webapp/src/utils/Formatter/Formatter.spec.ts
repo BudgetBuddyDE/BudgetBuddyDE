@@ -8,13 +8,40 @@ describe('CurrencyFormatter', () => {
   describe('formatBalance', () => {
     it('formats a number as EUR currency by default', () => {
       const result = CurrencyFormatter.formatBalance(1234.5);
-      expect(result).toMatch(/1\.234,50/);
+      expect(result).toMatch(/1,234\.50/);
       expect(result).toMatch(/€/);
     });
 
     it('formats with a custom currency code', () => {
       const result = CurrencyFormatter.formatBalance(100, 'USD');
       expect(result).toMatch(/100/);
+      expect(result).toMatch(/\$/);
+    });
+
+    it('formats the selected currency and locale', () => {
+      expect(CurrencyFormatter.formatBalance(1234.5, 'EUR', 2, 2, 'en-US')).toContain('1,234.50');
+      expect(CurrencyFormatter.formatBalance(1234.5, 'USD', 2, 2, 'en-US')).toContain('$');
+    });
+
+    it('formats server-provided currency and locale consistently', () => {
+      expect(CurrencyFormatter.formatBalanceForLocale(1234.5, 'EUR', 'de-DE')).toContain('1.234,50');
+      expect(CurrencyFormatter.formatBalanceForLocale(1234.5, 'USD', 'en-US')).toContain('$');
+    });
+
+    it('uses the active preference currency when no currency is passed', () => {
+      document.documentElement.dataset.currency = 'USD';
+      expect(CurrencyFormatter.formatBalance(100)).toContain('$');
+      delete document.documentElement.dataset.currency;
+    });
+
+    it('formats a supplied locale independently of the active DOM locale', () => {
+      document.documentElement.lang = 'en-US';
+      expect(CurrencyFormatter.formatBalance(100, 'EUR', 2, 2, 'de-DE')).toContain('100,00');
+      document.documentElement.lang = 'en-US';
+    });
+
+    it('uses the selected currency for compact values', () => {
+      expect(CurrencyFormatter.shortenBalance(1500, 'USD')).toContain('$');
     });
 
     it('formats negative values correctly', () => {
@@ -27,18 +54,24 @@ describe('CurrencyFormatter', () => {
 
 describe('DateFormatter', () => {
   describe('formatWithPattern', () => {
-    it('formats a date with the default dd.MM.yyyy pattern', () => {
-      expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('15.01.2024');
+    it('formats a date with the default US pattern', () => {
+      expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('01/15/2024');
     });
 
     it('formats a date with a custom pattern', () => {
       expect(DateFormatter.formatWithPattern(new Date(2024, 5, 10), 'yyyy/MM/dd')).toBe('2024/06/10');
     });
+
+    it('formats German dates with the German locale and default pattern', () => {
+      document.documentElement.lang = 'de-DE';
+      expect(DateFormatter.formatWithPattern(new Date(2024, 0, 15))).toBe('15.01.2024');
+      document.documentElement.lang = 'en-US';
+    });
   });
 
   describe('formatNullable', () => {
     it('formats a date when present', () => {
-      expect(DateFormatter.formatNullable(new Date(2024, 0, 15))).toBe('15.01.2024');
+      expect(DateFormatter.formatNullable(new Date(2024, 0, 15))).toBe('01/15/2024');
     });
 
     it('returns the fallback for missing dates', () => {

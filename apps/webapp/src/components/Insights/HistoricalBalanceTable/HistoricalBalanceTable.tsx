@@ -2,13 +2,15 @@
 
 import type {THistoricalBalance, THistoricalCategoryBalance} from '@budgetbuddyde/api/insights';
 import {subMonths} from 'date-fns';
+import {useFormatter, useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {DateRangePicker, type DateRangeState} from '@/components/Form/DateRangePicker';
 import {DataTable, type DataTableColumn} from '@/components/Table';
 import {useFetch} from '@/hooks/useFetch';
 import {logger} from '@/logger';
-import {Formatter} from '@/utils/Formatter';
+import {Formatter} from '@/utils/Formatter/Formatter';
+import {useCurrencyPreference, useLocalePreference} from '@/utils/Formatter/PreferenceContext';
 
 export type HistoricalDataType = 'BASIC' | 'GROUPED_BY_CATEGORY';
 
@@ -20,6 +22,10 @@ export type HistoricalBalanceTableProps = {
 type RowData = (THistoricalBalance | THistoricalCategoryBalance) & {id: string};
 
 export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({type, dense = false}) => {
+  const t = useTranslations('HistoricalBalanceTable');
+  const format = useFormatter();
+  const currency = useCurrencyPreference();
+  const locale = useLocalePreference();
   const DEFAULT_DATE_RANGE = {
     startDate: subMonths(new Date(), type === 'BASIC' ? 12 : 1),
     endDate: new Date(),
@@ -61,44 +67,44 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     const baseColumns: DataTableColumn<RowData>[] = [
       {
         field: 'date',
-        headerName: 'Period',
+        headerName: t('period'),
         flex: 1,
         minWidth: 120,
-        valueFormatter: value => Formatter.date.formatWithPattern(new Date(value as string), 'MMMM yyyy'),
+        valueFormatter: value => format.dateTime(new Date(value as string), {month: 'long', year: 'numeric'}),
       },
       {
         field: 'income',
-        headerName: 'Income',
+        headerName: t('income'),
         flex: 1,
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+        valueFormatter: value => Formatter.currency.formatBalanceForLocale(value as number, currency, locale),
       },
       {
         field: 'expenses',
-        headerName: 'Expenses',
+        headerName: t('expenses'),
         flex: 1,
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+        valueFormatter: value => Formatter.currency.formatBalanceForLocale(value as number, currency, locale),
       },
       {
         field: 'balance',
-        headerName: 'Balance',
+        headerName: t('balance'),
         flex: 1,
         minWidth: 100,
         align: 'right',
         headerAlign: 'right',
-        valueFormatter: value => Formatter.currency.formatBalance(value as number),
+        valueFormatter: value => Formatter.currency.formatBalanceForLocale(value as number, currency, locale),
       },
     ];
 
     if (showCategory) {
       baseColumns.splice(1, 0, {
         field: 'category',
-        headerName: 'Category',
+        headerName: t('category'),
         flex: 1,
         minWidth: 120,
         valueGetter: (_value, row) => ('category' in row ? row.category?.name : '-'),
@@ -106,7 +112,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
     }
 
     return baseColumns;
-  }, [showCategory]);
+  }, [currency, format, locale, showCategory, t]);
 
   return (
     <DataTable
@@ -114,7 +120,7 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       columns={columns}
       isLoading={isLoading}
       error={error}
-      emptyMessage="Create a transaction to begin tracking your activity."
+      emptyMessage={t('emptyMessage')}
       density={dense ? 'compact' : 'standard'}
       autoHeight
       pagination
@@ -126,8 +132,8 @@ export const HistoricalBalanceTable: React.FC<HistoricalBalanceTableProps> = ({t
       }}
       sx={{border: 'none'}}
       toolbar={{
-        title: `Historical balances (${data?.length ?? 0})`,
-        subtitle: showCategory ? 'Grouped by date and category' : 'Grouped by date',
+        title: t('title', {count: data?.length ?? 0}),
+        subtitle: showCategory ? t('groupedByDateAndCategory') : t('groupedByDate'),
         actions: [
           {
             id: 'date-range-picker',

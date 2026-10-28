@@ -1,4 +1,5 @@
 import {Grid} from '@mui/material';
+import {getTranslations} from 'next-intl/server';
 import React from 'react';
 import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {parseKeywordFilterFromParams} from '@/components/Filter';
@@ -13,9 +14,10 @@ export default async function PaymentMethodsPage({
 }) {
   const params = await searchParams;
   const {keyword} = parseKeywordFilterFromParams(params);
+  const t = await getTranslations('PageTitles');
 
   return (
-    <ContentGrid title="Payment Methods">
+    <ContentGrid title={t('paymentMethods')}>
       <Grid size={{xs: 12, md: 12}}>
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

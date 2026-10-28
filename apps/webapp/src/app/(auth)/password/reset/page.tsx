@@ -4,6 +4,7 @@ import SendRounded from '@mui/icons-material/SendRounded';
 import {Box, Button, Divider, Grid, Typography} from '@mui/material';
 import NextLink from 'next/link';
 import {redirect, useSearchParams} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import {authClient} from '@/authClient';
 import {Brand} from '@/components/Brand';
 import {Card} from '@/components/Card';
@@ -11,6 +12,7 @@ import {PasswordInput} from '@/components/Form/PasswordInput';
 import {useSnackbarContext} from '@/components/Snackbar';
 
 export default function ResetPasswordPage() {
+  const t = useTranslations('Auth');
   const {showSnackbar} = useSnackbarContext();
   const searchParams = useSearchParams();
 
@@ -18,10 +20,10 @@ export default function ResetPasswordPage() {
     const token = searchParams.get('token');
     if (!token) {
       showSnackbar({
-        message: 'No password reset token found in your URL.',
+        message: t('noResetToken'),
         action: (
           <Button LinkComponent={NextLink} href="/password/request-reset">
-            Restart process
+            {t('restartProcess')}
           </Button>
         ),
       });
@@ -32,7 +34,7 @@ export default function ResetPasswordPage() {
     const confirmPassword = formData.get('confirm-password');
 
     if (password !== confirmPassword) {
-      showSnackbar({message: 'Passwords do not match'});
+      showSnackbar({message: t('passwordsDoNotMatch')});
       return;
     }
 
@@ -42,7 +44,7 @@ export default function ResetPasswordPage() {
     });
 
     showSnackbar({
-      message: 'Your password has been reset! You can now sign in.',
+      message: t('passwordResetSuccess'),
     });
     redirect('/sign-in');
   }
@@ -72,7 +74,7 @@ export default function ResetPasswordPage() {
                 mt: 2,
               }}
             >
-              Reset password
+              {t('resetPassword')}
             </Typography>
           </Box>
 
@@ -85,7 +87,7 @@ export default function ResetPasswordPage() {
               <Grid size={{xs: 12}}>
                 <PasswordInput
                   outlinedInputProps={{
-                    label: 'Confirm password',
+                    label: t('confirmPassword'),
                     name: 'confirm-password',
                   }}
                 />
@@ -94,19 +96,19 @@ export default function ResetPasswordPage() {
 
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
               <Button type="submit" variant="contained" endIcon={<SendRounded />} sx={{mt: 1}}>
-                Save new password
+                {t('saveNewPassword')}
               </Button>
             </Box>
           </form>
 
-          <Divider sx={{my: 2}}>or</Divider>
+          <Divider sx={{my: 2}}>{t('or')}</Divider>
 
           <Button LinkComponent={NextLink} href="/sign-in" variant="contained" fullWidth sx={{mb: 2}}>
-            Sign in
+            {t('signIn')}
           </Button>
 
           <Button LinkComponent={NextLink} href="/sign-up" variant="contained" fullWidth>
-            Create an account
+            {t('createAccount')}
           </Button>
         </Card>
       </Grid>

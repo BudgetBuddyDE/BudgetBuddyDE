@@ -3,6 +3,7 @@
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import {Button, Divider, IconButton, List, ListItem, ListItemText, Stack, Tooltip, Typography} from '@mui/material';
 import type {Session} from 'better-auth';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {authClient, revalidateSession} from '@/authClient';
 import {NoResults} from '@/components/NoResults';
@@ -15,9 +16,10 @@ export type SessionListProps = {
 };
 
 export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
+  const t = useTranslations('SessionList');
   const {showSnackbar} = useSnackbarContext();
   if (sessions.length === 0) {
-    return <NoResults text="No active sessions found." sx={{mx: 2}} />;
+    return <NoResults text={t('empty')} sx={{mx: 2}} />;
   }
   const handleRevokeSession = async (token: string) => {
     try {
@@ -25,14 +27,14 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
       if (error) throw error;
 
       await revalidateSession();
-      showSnackbar({message: 'The session was revoked!'});
+      showSnackbar({message: t('revoked')});
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (e instanceof Error) logger.error('Error revoking session', e);
       else logger.error('Error revoking session', {reason: msg});
       showSnackbar({
         message: msg,
-        action: <Button onClick={() => handleRevokeSession(token)}>Retry</Button>,
+        action: <Button onClick={() => handleRevokeSession(token)}>{t('retry')}</Button>,
       });
     }
   };
@@ -42,21 +44,16 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
         const token = session.token;
         const createdAt = Formatter.date.format(session.createdAt);
         const expiresAt = Formatter.date.format(session.expiresAt);
-        const userAgent = session.userAgent || 'Unknown User Agent';
-        const ipAddress = session.ipAddress || 'Unknown IP Address';
+        const userAgent = session.userAgent || t('unknownUserAgent');
+        const ipAddress = session.ipAddress || t('unknownIpAddress');
         const key = session.id || session.token || idx;
         const elements = [
           <ListItem
             key={key}
             dense
             secondaryAction={
-              <Tooltip title="Revoke session">
-                <IconButton
-                  edge="end"
-                  aria-label="Revoke session"
-                  onClick={() => handleRevokeSession(token)}
-                  size="small"
-                >
+              <Tooltip title={t('revoke')}>
+                <IconButton edge="end" aria-label={t('revoke')} onClick={() => handleRevokeSession(token)} size="small">
                   <DeleteRounded />
                 </IconButton>
               </Tooltip>
@@ -66,11 +63,11 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
               primary={
                 <React.Fragment>
                   <Typography variant="body2" sx={{mt: 1}}>
-                    <strong>IP:</strong> {ipAddress}
+                    <strong>{t('ip')}:</strong> {ipAddress}
                   </Typography>
                   <Tooltip title={userAgent}>
                     <Typography variant="body2" sx={{mt: 0.5}}>
-                      <strong>User Agent:</strong>{' '}
+                      <strong>{t('userAgent')}:</strong>{' '}
                       {userAgent.length > 32 ? `${userAgent.substring(0, 32)}...` : userAgent}
                     </Typography>
                   </Tooltip>
@@ -93,7 +90,7 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
                         color: 'text.primary',
                       }}
                     >
-                      Created at
+                      {t('createdAt')}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -115,7 +112,7 @@ export const SessionList: React.FC<SessionListProps> = ({sessions}) => {
                         color: 'text.primary',
                       }}
                     >
-                      Expires at
+                      {t('expiresAt')}
                     </Typography>
                     <Typography
                       variant="body2"

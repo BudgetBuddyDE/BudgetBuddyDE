@@ -1,6 +1,7 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {afterEach, describe, expect, it} from 'vite-plus/test';
+import {renderWithLocale} from '@/test/render';
+import {cleanup, fireEvent, screen} from '@/test/testing-library';
 import {buildTransaction} from '../InsightsReport.fixtures';
 import {InsightsReportTransactions} from './InsightsReportTransactions';
 
@@ -40,24 +41,33 @@ const Harness: React.FC<HarnessProps> = ({transactionCount, initialPage, initial
 
 describe('InsightsReportTransactions', () => {
   it('formats the executed transaction rows', () => {
-    render(<Harness transactionCount={20} initialPage={0} />);
+    renderWithLocale(<Harness transactionCount={20} initialPage={0} />);
 
     expect(screen.getByText('Executed transactions (20)')).toBeInTheDocument();
     expect(screen.getByText('Receiver 1')).toBeInTheDocument();
     expect(screen.getByText('Receiver 2')).toBeInTheDocument();
     expect(screen.getAllByText('01.02.2026')).toHaveLength(2);
-    expect(screen.getAllByText(/42,50/)).toHaveLength(2);
+    expect(screen.getAllByText(/42\.50/)).toHaveLength(2);
     expect(screen.getAllByText('Groceries')).toHaveLength(2);
   });
 
   it('renders the combined volume of income and expenses', () => {
-    render(<Harness transactionCount={20} initialPage={0} />);
+    renderWithLocale(<Harness transactionCount={20} initialPage={0} />);
 
-    expect(screen.getByText(/140,00/)).toBeInTheDocument();
+    expect(screen.getByText(/140\.00/)).toBeInTheDocument();
+  });
+
+  it('translates the report labels into German', () => {
+    renderWithLocale(<Harness transactionCount={20} initialPage={0} />, 'de-DE');
+
+    expect(screen.getByText('Ausgeführte Transaktionen (20)')).toBeInTheDocument();
+    expect(screen.getByText('Empfänger')).toBeInTheDocument();
+    expect(screen.getByText('Zahlungsmethode')).toBeInTheDocument();
+    expect(screen.getByText('Betrag')).toBeInTheDocument();
   });
 
   it('navigates to the next page and keeps the current page', () => {
-    render(<Harness transactionCount={25} initialPage={0} />);
+    renderWithLocale(<Harness transactionCount={25} initialPage={0} />);
 
     expect(screen.getByTestId('current-page')).toHaveTextContent('0');
     fireEvent.click(screen.getByTitle('Go to next page'));
@@ -66,7 +76,7 @@ describe('InsightsReportTransactions', () => {
   });
 
   it('navigates back to the previous page', () => {
-    render(<Harness transactionCount={25} initialPage={2} />);
+    renderWithLocale(<Harness transactionCount={25} initialPage={2} />);
 
     fireEvent.click(screen.getByTitle('Go to previous page'));
 
@@ -74,21 +84,21 @@ describe('InsightsReportTransactions', () => {
   });
 
   it('disables Previous on the first page', () => {
-    render(<Harness transactionCount={25} initialPage={0} />);
+    renderWithLocale(<Harness transactionCount={25} initialPage={0} />);
 
     expect(screen.getByTitle('Go to previous page')).toBeDisabled();
     expect(screen.getByTitle('Go to next page')).toBeEnabled();
   });
 
   it('disables Next on the last page', () => {
-    render(<Harness transactionCount={20} initialPage={1} />);
+    renderWithLocale(<Harness transactionCount={20} initialPage={1} />);
 
     expect(screen.getByTitle('Go to previous page')).toBeEnabled();
     expect(screen.getByTitle('Go to next page')).toBeDisabled();
   });
 
   it('changes the rows per page and resets to the first page', () => {
-    render(<Harness transactionCount={100} initialPage={2} />);
+    renderWithLocale(<Harness transactionCount={100} initialPage={2} />);
 
     fireEvent.mouseDown(screen.getByRole('combobox'));
     fireEvent.click(screen.getByRole('option', {name: '25'}));

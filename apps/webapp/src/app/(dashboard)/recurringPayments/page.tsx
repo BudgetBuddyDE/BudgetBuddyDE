@@ -1,4 +1,5 @@
 import {Grid, Stack} from '@mui/material';
+import {getTranslations} from 'next-intl/server';
 import React from 'react';
 import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
 import {parseRecurringPaymentFiltersFromParams} from '@/components/Filter';
@@ -14,9 +15,10 @@ export default async function RecurringPaymentsPage({
 }) {
   const params = await searchParams;
   const initialFilters = parseRecurringPaymentFiltersFromParams(params);
+  const t = await getTranslations('PageTitles');
 
   return (
-    <ContentGrid title="Recurring Payments">
+    <ContentGrid title={t('recurringPayments')}>
       <Grid size="grow">
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

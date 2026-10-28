@@ -1,4 +1,5 @@
 import {Button, CircularProgress, Stack} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 
 export type EntityFooterProps = {
@@ -7,6 +8,7 @@ export type EntityFooterProps = {
 };
 
 export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProps>(({isLoading, onClose}, ref) => {
+  const t = useTranslations('EntityDrawer');
   return (
     <Stack
       direction={'row'}
@@ -18,7 +20,7 @@ export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProp
       }}
     >
       <Button sx={{mr: 2}} onClick={onClose}>
-        Close
+        {t('close')}
       </Button>
       <Button
         ref={ref}
@@ -27,7 +29,7 @@ export const EntityFooter = React.forwardRef<HTMLButtonElement, EntityFooterProp
         startIcon={isLoading ? <CircularProgress color="inherit" size={16} /> : undefined}
         tabIndex={0}
       >
-        Save
+        {t('save')}
       </Button>
     </Stack>
   );

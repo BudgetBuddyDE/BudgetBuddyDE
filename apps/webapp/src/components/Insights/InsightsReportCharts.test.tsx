@@ -1,6 +1,8 @@
-import {cleanup, render} from '@testing-library/react';
+import {NextIntlClientProvider} from 'next-intl';
 import React from 'react';
 import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
+import messages from '@/i18n/messages/en-US.json';
+import {cleanup, render} from '@/test/testing-library';
 import {buildReport} from './InsightsReport.fixtures';
 
 const {composedChartProps} = vi.hoisted(() => ({composedChartProps: vi.fn()}));
@@ -19,6 +21,13 @@ afterEach(() => {
   composedChartProps.mockReset();
 });
 
+const renderChart = (report: ReturnType<typeof buildReport>) =>
+  render(
+    <NextIntlClientProvider locale="en-US" messages={messages}>
+      <InsightsReportCharts report={report} />
+    </NextIntlClientProvider>,
+  );
+
 describe('InsightsReportCharts reference lines', () => {
   it('shows average period income and expenses, with cumulative balance on a separate axis', () => {
     const report = buildReport({
@@ -28,7 +37,7 @@ describe('InsightsReportCharts reference lines', () => {
       ],
     });
 
-    render(<InsightsReportCharts report={report} />);
+    renderChart(report);
 
     const [cashflowChart] = composedChartProps.mock.calls.map(([props]) => props);
     expect(cashflowChart.referenceLines).toEqual([
@@ -54,7 +63,7 @@ describe('InsightsReportCharts reference lines', () => {
       ],
     });
 
-    render(<InsightsReportCharts report={report} />);
+    renderChart(report);
 
     const [, categoryChart] = composedChartProps.mock.calls.map(([props]) => props);
     expect(categoryChart.referenceLines).toEqual([
@@ -68,7 +77,7 @@ describe('InsightsReportCharts reference lines', () => {
 
   it('omits reference lines when there are no periods', () => {
     const report = buildReport({timeline: [], categoryTimeline: []});
-    render(<InsightsReportCharts report={report} />);
+    renderChart(report);
     expect(composedChartProps.mock.calls.map(([props]) => props.referenceLines)).toEqual([[], []]);
   });
 });

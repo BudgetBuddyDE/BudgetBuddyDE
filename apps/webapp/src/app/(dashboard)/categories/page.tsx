@@ -1,4 +1,5 @@
 import {Grid} from '@mui/material';
+import {getTranslations} from 'next-intl/server';
 import React from 'react';
 import {CategoryTable} from '@/components/Category/CategoryTable';
 import {PathnameErrorBoundary} from '@/components/ErrorBoundary';
@@ -13,9 +14,10 @@ export default async function CategoriesPage({
 }) {
   const params = await searchParams;
   const {keyword} = parseKeywordFilterFromParams(params);
+  const t = await getTranslations('PageTitles');
 
   return (
-    <ContentGrid title="Categories">
+    <ContentGrid title={t('categories')}>
       <Grid size={{xs: 12, md: 12}}>
         <PathnameErrorBoundary>
           <React.Suspense fallback={<CircularProgress />}>

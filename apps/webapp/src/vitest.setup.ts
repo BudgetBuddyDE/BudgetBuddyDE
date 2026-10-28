@@ -1,6 +1,13 @@
 import '@testing-library/jest-dom/vitest';
+import {cleanup} from '@testing-library/react';
 import React from 'react';
 import {vi} from 'vite-plus/test';
+
+afterEach(() => {
+  cleanup();
+  document.documentElement.lang = 'en-US';
+  delete document.documentElement.dataset.currency;
+});
 
 // Render next/image as a plain <img> in tests — strips NextImage-only props
 // so they don't land on the DOM element and cause React warnings.

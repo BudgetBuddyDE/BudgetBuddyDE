@@ -9,6 +9,7 @@ import {
   DialogTitle,
   type DialogProps as MuiDialogProps,
 } from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {SlideTransition} from '@/components/Transition';
 
@@ -32,6 +33,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
   text,
   transitionDuration,
 }) => {
+  const t = useTranslations('DeleteDialog');
   return (
     <Dialog
       open={open}
@@ -48,7 +50,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
       }}
     >
       <DialogTitle variant="h2" sx={{textAlign: 'center'}}>
-        {text?.title || 'Attention'}
+        {text?.title || t('title')}
       </DialogTitle>
       <DialogContent>
         <DialogContentText
@@ -57,13 +59,13 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
             textAlign: 'center',
           }}
         >
-          {text?.content || 'Are you sure you want to delete these entries?'}
+          {text?.content || t('content')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{t('cancel')}</Button>
         <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
-          Yes, delete
+          {t('confirm')}
         </Button>
       </DialogActions>
     </Dialog>

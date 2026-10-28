@@ -2,6 +2,7 @@
 
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import EditRounded from '@mui/icons-material/EditRounded';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {useSnackbarContext} from '@/components/Snackbar';
 import {
@@ -54,16 +55,19 @@ const targetToLeafCommand = (
   action: Extract<IntentAction, 'edit' | 'delete'>,
   option: IntentTargetOption,
   navigateIntent: (intent: Intent) => void,
+  section: string,
 ): Command => ({
   id: `ibn-${action}-${entity}-${option.id}`,
   label: option.label,
   shortcut: option.description,
-  section: IBN_TARGETS[entity].pluralLabel,
+  section,
   keywords: option.keywords,
   onSelect: () => navigateIntent(buildEntityIntent(entity, action, option.id)),
 });
 
 export const RegisterIntentCommands: React.FC = () => {
+  const t = useTranslations('CommandPalette');
+  const entities = useTranslations('CommandPaletteEntities');
   const {register, unregister} = useCommandPalette();
   const {navigateIntent} = useIntentNavigation();
   const {showSnackbar} = useSnackbarContext();
@@ -71,13 +75,15 @@ export const RegisterIntentCommands: React.FC = () => {
   React.useEffect(() => {
     const entityCommand = (entity: IntentEntity, action: IntentAction): Command => {
       const config = IBN_TARGETS[entity];
+      const entityLabel = entities(entity);
+      const pluralLabel = entities(config.pluralLabel.toLowerCase().replaceAll(' ', ''));
       if (action === 'create' && entity !== 'attachment') {
         return {
           id: `ibn-${action}-${entity}`,
-          label: config.label,
-          section: 'Entities',
+          label: entityLabel,
+          section: t('entitiesSection'),
           icon: <EntityIcon entity={entity} />,
-          keywords: [config.pluralLabel, entity],
+          keywords: [pluralLabel, entity],
           onSelect: () => {
             const intent = createIntentByEntity[entity];
             if (intent) navigateIntent(intent);
@@ -87,12 +93,12 @@ export const RegisterIntentCommands: React.FC = () => {
       const resolvedEntity = entity === 'attachment' ? 'transaction' : entity;
       return {
         id: `ibn-${action}-${entity}`,
-        label: config.label,
-        section: 'Entities',
+        label: entityLabel,
+        section: t('entitiesSection'),
         icon: <EntityIcon entity={entity} />,
-        keywords: [config.pluralLabel, entity],
-        placeholder: `Search ${config.label.toLowerCase()}...`,
-        emptyLabel: `No matching ${config.pluralLabel.toLowerCase()}`,
+        keywords: [pluralLabel, entity],
+        placeholder: t('searchCommands'),
+        emptyLabel: t('noMatchingRecords'),
         resolve: async query => {
           try {
             const targets = await searchIntentTargets(resolvedEntity, query);
@@ -102,7 +108,7 @@ export const RegisterIntentCommands: React.FC = () => {
                     id: `ibn-create-attachment-${target.id}`,
                     label: target.label,
                     shortcut: target.description,
-                    section: config.pluralLabel,
+                    section: pluralLabel,
                     keywords: target.keywords,
                     onSelect: () =>
                       navigateIntent({
@@ -117,10 +123,11 @@ export const RegisterIntentCommands: React.FC = () => {
                     action as Extract<IntentAction, 'edit' | 'delete'>,
                     target,
                     navigateIntent,
+                    pluralLabel,
                   ),
             );
           } catch (error) {
-            showSnackbar({message: error instanceof Error ? error.message : 'Failed to load targets'});
+            showSnackbar({message: error instanceof Error ? error.message : t('failedToLoadTargets')});
             return [];
           }
         },
@@ -134,16 +141,22 @@ export const RegisterIntentCommands: React.FC = () => {
     const commands: Command[] = [
       {
         id: 'ibn-create',
-        label: 'Create...',
-        section: 'Actions',
+        label: t('createAction'),
+        section: t('entitiesSection'),
         icon: <EntityIcon entity="transaction" />,
         children: entitiesFor('create'),
       },
-      {id: 'ibn-edit', label: 'Edit...', section: 'Actions', icon: <EditRounded />, children: entitiesFor('edit')},
+      {
+        id: 'ibn-edit',
+        label: t('editAction'),
+        section: t('entitiesSection'),
+        icon: <EditRounded />,
+        children: entitiesFor('edit'),
+      },
       {
         id: 'ibn-delete',
-        label: 'Delete...',
-        section: 'Actions',
+        label: t('deleteAction'),
+        section: t('entitiesSection'),
         icon: <DeleteRounded />,
         children: entitiesFor('delete'),
       },
@@ -151,7 +164,7 @@ export const RegisterIntentCommands: React.FC = () => {
 
     register(commands);
     return () => unregister(commands.map(command => command.id));
-  }, [navigateIntent, register, showSnackbar, unregister]);
+  }, [entities, navigateIntent, register, showSnackbar, t, unregister]);
 
   return null;
 };

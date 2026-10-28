@@ -1,5 +1,5 @@
-import {act, fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vite-plus/test';
+import {act, fireEvent, render, screen} from '@/test/testing-library';
 
 import {EntityMenu} from './EntityMenu';
 

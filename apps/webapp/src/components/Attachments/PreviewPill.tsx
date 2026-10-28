@@ -3,6 +3,7 @@
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {VisibilityRounded} from '@mui/icons-material';
 import {alpha, Stack, Typography, useTheme} from '@mui/material';
+import {useTranslations} from 'next-intl';
 
 export type PreviewPillProps = {
   attachment: TAttachmentWithUrl;
@@ -10,6 +11,7 @@ export type PreviewPillProps = {
 };
 
 export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) => {
+  const t = useTranslations('AttachmentPreview');
   const theme = useTheme();
   return (
     <Stack
@@ -17,7 +19,7 @@ export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) =
       type="button"
       direction="row"
       spacing={0.75}
-      aria-label="View"
+      aria-label={t('view')}
       onClick={() => onClick(attachment)}
       sx={{
         alignItems: 'center',
@@ -40,7 +42,7 @@ export const PreviewPill: React.FC<PreviewPillProps> = ({attachment, onClick}) =
           fontWeight: 600,
         }}
       >
-        Preview
+        {t('preview')}
       </Typography>
     </Stack>
   );

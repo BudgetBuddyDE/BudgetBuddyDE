@@ -1,6 +1,7 @@
 'use client';
 
 import {AlertTitle} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {EntityDrawer, type EntityDrawerField, type EntityDrawerFormHandler} from '@/components/Drawer';
 import type {ApiKeyFormFields} from './types';
@@ -20,29 +21,30 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const t = useTranslations('ApiKeyCreate');
   const fields: EntityDrawerField<ApiKeyFormFields>[] = React.useMemo(
     () => [
       {
         type: 'text',
         name: 'name',
-        label: 'Name',
-        placeholder: 'e.g. Personal automation',
+        label: t('name'),
+        placeholder: t('namePlaceholder'),
         required: true,
       },
       {
         type: 'date',
         name: 'expiresAt',
-        label: 'Expires at',
-        placeholder: 'Leave empty for no expiration',
+        label: t('expiresAt'),
+        placeholder: t('neverExpires'),
       },
     ],
-    [],
+    [t],
   );
 
   return (
     <EntityDrawer<ApiKeyFormFields>
-      title="API Key"
-      subtitle="Create new API key"
+      title={t('title')}
+      subtitle={t('subtitle')}
       open={open}
       onSubmit={onSubmit}
       onClose={onClose}
@@ -60,9 +62,8 @@ export const ApiKeyCreateDrawer: React.FC<ApiKeyCreateDrawerProps> = ({
           severity: 'warning',
           children: (
             <React.Fragment>
-              <AlertTitle>Handle API keys like passwords</AlertTitle>
-              An API key acts on behalf of your user account. Store it only in trusted secret managers or server-side
-              environments, never commit it to source control, and delete it immediately if it may have been exposed.
+              <AlertTitle>{t('warningTitle')}</AlertTitle>
+              {t('warningDescription')}
             </React.Fragment>
           ),
         },

@@ -1,6 +1,7 @@
 'use client';
 
 import {TablePagination} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 
 export type PaginationProps = {
@@ -20,12 +21,13 @@ export const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   onRowsPerPageChange,
 }) => {
+  const t = useTranslations('Pagination');
   return (
     <TablePagination
       component="div"
       count={count}
       page={page}
-      labelRowsPerPage="Rows:"
+      labelRowsPerPage={t('rowsPerPage')}
       rowsPerPageOptions={rowsPerPageOptions}
       rowsPerPage={rowsPerPage}
       onPageChange={(_, newPage) => onPageChange(newPage)}

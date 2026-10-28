@@ -1,6 +1,7 @@
 'use client';
 
 import {Stack, type StackProps} from '@mui/material';
+import {useLocale, useTranslations} from 'next-intl';
 import React from 'react';
 import {DatePicker, type DateTickerProps} from '../DatePicker';
 
@@ -34,8 +35,10 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onDateRangeChange,
   defaultValue,
   size = 'medium',
-  dateFormat = 'MMM yyyy',
+  dateFormat,
 }) => {
+  const t = useTranslations('DateRangePicker');
+  const locale = useLocale();
   const [value, setValue] = React.useState<DateRangeState>({
     startDate: defaultValue?.startDate ?? null,
     endDate: defaultValue?.endDate ?? null,
@@ -67,7 +70,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   return (
     <Stack direction={'row'} spacing={2} {...slotProps?.stack}>
       <DatePicker
-        label="Start"
+        label={t('start')}
         defaultValue={value.startDate}
         onChange={handleStartDateChange}
         open={openField === 'START'}
@@ -75,7 +78,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           // Open next calendar when actually closing this input
           setOpenField('END');
         }}
-        format={dateFormat}
+        format={dateFormat ?? (locale === 'de-DE' ? 'MMM yyyy' : 'MMM yyyy')}
         slotProps={mergeSlotProps(slotProps?.startDatePicker, {
           field: {
             clearable: true,
@@ -100,7 +103,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         })}
       />
       <DatePicker
-        label="End"
+        label={t('end')}
         defaultValue={value.endDate}
         onChange={handleEndDateChange}
         minDate={value.startDate ?? undefined}

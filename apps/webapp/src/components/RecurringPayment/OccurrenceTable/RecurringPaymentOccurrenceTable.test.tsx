@@ -1,8 +1,8 @@
 import type {TCategory} from '@budgetbuddyde/api/category';
 import type {TPaymentMethod} from '@budgetbuddyde/api/paymentMethod';
 import type {TRecurringPaymentOccurrence} from '@budgetbuddyde/api/recurringPayment';
-import {render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vite-plus/test';
+import {render, screen, waitFor} from '@/test/testing-library';
 import {RecurringPaymentOccurrenceTable} from './RecurringPaymentOccurrenceTable';
 
 const getOccurrences = vi.hoisted(() => vi.fn());

@@ -1,6 +1,6 @@
 import AddRounded from '@mui/icons-material/AddRounded';
-import {fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vite-plus/test';
+import {fireEvent, render, screen} from '@/test/testing-library';
 import {BasicTable, type ColumnDefinition} from './BasicTable';
 
 type TestEntity = {

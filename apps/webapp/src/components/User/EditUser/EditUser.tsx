@@ -2,6 +2,7 @@
 
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
 import {Alert, Box, Button, Grid, Stack, TextField} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {authClient, revalidateSession} from '@/authClient';
 import {Card} from '@/components/Card';
@@ -12,6 +13,7 @@ import {DeleteUserDialog} from './DeleteUserDialog';
 
 // TODO: Re-implement account deletion functionality
 export const EditUser = () => {
+  const t = useTranslations('EditUser');
   const {isPending: isSessionPending, data: sessionData, error: sessionError} = authClient.useSession();
   if (sessionError) throw sessionError;
   const {showSnackbar} = useSnackbarContext();
@@ -26,7 +28,7 @@ export const EditUser = () => {
       logger.info('Submitting user profile changes');
       if (!sessionData) {
         logger.error('No session data available');
-        showSnackbar({message: 'No session data available'});
+        showSnackbar({message: t('noSessionData')});
         return;
       }
 
@@ -38,7 +40,7 @@ export const EditUser = () => {
         if (result.error) {
           throw result.error;
         }
-        showSnackbar({message: `Your name has been updated to ${name}`});
+        showSnackbar({message: t('nameUpdated', {name: String(name)})});
       }
 
       if (email && email !== sessionData.user.email) {
@@ -51,7 +53,7 @@ export const EditUser = () => {
           throw result.error;
         }
         showSnackbar({
-          message: `An email change request has been sent to ${email}. Check your inbox`,
+          message: t('emailChangeSent', {email: String(email)}),
         });
       }
 
@@ -64,7 +66,7 @@ export const EditUser = () => {
       else logger.error('Error while updating user profile', {reason: msg});
       showSnackbar({
         message: msg,
-        action: <Button onClick={() => onSubmit(formData)}>Try again</Button>,
+        action: <Button onClick={() => onSubmit(formData)}>{t('tryAgain')}</Button>,
       });
     }
   }
@@ -76,7 +78,7 @@ export const EditUser = () => {
   const handleDiscard = () => {
     formRef.current?.reset();
     setFormEditable(false);
-    showSnackbar({message: 'Changes were discarded'});
+    showSnackbar({message: t('changesDiscarded')});
   };
 
   const accountDeletionHandler = {
@@ -94,15 +96,14 @@ export const EditUser = () => {
       if (error) {
         logger.error('Error while deleting user account', {reason: error.message});
         showSnackbar({
-          message: error.message ?? 'Error while deleting your account',
-          action: <Button onClick={accountDeletionHandler.onClickDelete}>Try again</Button>,
+          message: error.message ?? t('deleteAccountError'),
+          action: <Button onClick={accountDeletionHandler.onClickDelete}>{t('tryAgain')}</Button>,
         });
         return;
       }
 
       showSnackbar({
-        message:
-          'The final account deletion verification mail has been sent to your inbox. Please check your email to complete the process.',
+        message: t('deletionVerificationSent'),
       });
 
       accountDeletionHandler.onCancelDeletion();
@@ -117,7 +118,7 @@ export const EditUser = () => {
 
     if (sessionData.user.emailVerified) {
       logger.warn('Email is already verified, no need to send verification email');
-      showSnackbar({message: 'Your email is already verified'});
+      showSnackbar({message: t('emailAlreadyVerified')});
       return;
     }
 
@@ -129,13 +130,13 @@ export const EditUser = () => {
     if (error) {
       logger.error('Error while sending verification email', {reason: error.message});
       showSnackbar({
-        message: `Error while sending verification email: ${error.message}`,
+        message: error.message ? t('verificationEmailError', {error: error.message}) : t('deleteAccountError'),
       });
       return;
     }
 
     showSnackbar({
-      message: 'Verification email sent. Please check your inbox.',
+      message: t('verificationEmailSent'),
     });
   };
 
@@ -144,7 +145,7 @@ export const EditUser = () => {
     e => {
       if (!saveBtnRef.current || !isFormEditable) {
         return showSnackbar({
-          message: 'Make the form editable first by clicking the Edit button',
+          message: t('editBeforeSaving'),
         });
       }
       e.preventDefault();
@@ -168,8 +169,8 @@ export const EditUser = () => {
       <Card ref={cardRef}>
         <Card.Header>
           <Box>
-            <Card.Title>Profile</Card.Title>
-            <Card.Subtitle>Make changes to your account</Card.Subtitle>
+            <Card.Title>{t('profile')}</Card.Title>
+            <Card.Subtitle>{t('description')}</Card.Subtitle>
           </Box>
         </Card.Header>
         <Card.Body>
@@ -181,7 +182,7 @@ export const EditUser = () => {
                   disabled
                   id="uuid"
                   name="uuid"
-                  label="UUID"
+                  label={t('uuid')}
                   defaultValue={sessionData.user.id}
                   sx={{mt: 2}}
                   required
@@ -191,7 +192,7 @@ export const EditUser = () => {
                 <TextField
                   id="name"
                   name="name"
-                  label="Name"
+                  label={t('name')}
                   defaultValue={sessionData.user.name}
                   sx={{mt: 2}}
                   fullWidth
@@ -205,7 +206,7 @@ export const EditUser = () => {
                   fullWidth
                   id="email"
                   name="email"
-                  label="E-Mail"
+                  label={t('email')}
                   defaultValue={sessionData.user.email}
                   sx={{mt: 2}}
                   disabled={!isFormEditable}
@@ -213,10 +214,10 @@ export const EditUser = () => {
                 />
 
                 {!sessionData.user.emailVerified && (
-                  <Alert severity="warning" title="E-Mail" sx={{mt: 2}}>
-                    Please verify your email address to access all features of Budget Buddy.
+                  <Alert severity="warning" title={t('email')} sx={{mt: 2}}>
+                    {t('verifyEmailPrompt')}
                     <Button size="small" variant="text" color="warning" onClick={handleSendVerificationEmail}>
-                      Verify email
+                      {t('verifyEmail')}
                     </Button>
                   </Alert>
                 )}
@@ -231,22 +232,22 @@ export const EditUser = () => {
               }}
             >
               <Button startIcon={<DeleteRounded />} color="error" onClick={accountDeletionHandler.onClickDelete}>
-                Delete account
+                {t('deleteAccount')}
               </Button>
 
               {isFormEditable ? (
                 <Box>
                   <Button variant="text" sx={{mr: 1}} onClick={handleDiscard}>
-                    Discard
+                    {t('discard')}
                   </Button>
 
                   <Button ref={saveBtnRef} type="submit" variant="contained">
-                    Save changes
+                    {t('saveChanges')}
                   </Button>
                 </Box>
               ) : (
                 <Button variant="contained" onClick={handleEdit}>
-                  Edit
+                  {t('edit')}
                 </Button>
               )}
             </Stack>

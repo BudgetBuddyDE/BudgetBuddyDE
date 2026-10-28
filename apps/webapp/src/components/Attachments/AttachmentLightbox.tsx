@@ -3,6 +3,7 @@
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import {Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {Image} from '@/components/Image';
 import {ZoomTransition} from '@/components/Transition';
@@ -22,6 +23,7 @@ export type AttachmentLightboxProps = {
  * The dialog opens whenever `attachment` is non-null and closes via `onClose`.
  */
 export const AttachmentLightbox: React.FC<AttachmentLightboxProps> = ({attachment, onClose, onDownload}) => {
+  const t = useTranslations('AttachmentLightbox');
   return (
     <Dialog
       open={attachment !== null}
@@ -58,10 +60,10 @@ export const AttachmentLightbox: React.FC<AttachmentLightboxProps> = ({attachmen
       <DialogActions>
         {attachment && (
           <Button startIcon={<DownloadRounded />} onClick={() => onDownload(attachment)}>
-            Download
+            {t('download')}
           </Button>
         )}
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose}>{t('close')}</Button>
       </DialogActions>
     </Dialog>
   );

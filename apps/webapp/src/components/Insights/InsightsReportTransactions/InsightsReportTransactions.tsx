@@ -1,10 +1,12 @@
 import type {TExpandedTransaction} from '@budgetbuddyde/api/types';
 import {Stack} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 import {Card} from '@/components/Card';
 import {Pagination} from '@/components/Table/Pagination';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {ReportTable} from '../ReportTable/ReportTable';
 
 export type InsightsReportTransactionsProps = {
@@ -28,26 +30,28 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
   onTransactionPageChange,
   onTransactionRowsPerPageChange,
 }) => {
+  const t = useTranslations('InsightsReportTransactions');
+  const currency = useCurrencyPreference();
   return (
     <Card>
       <Card.Header>
         <Stack>
-          <Card.Title>Executed transactions ({transactionCount})</Card.Title>
+          <Card.Title>{t('title', {count: transactionCount})}</Card.Title>
           <Card.Subtitle>
-            Filtered transactions behind this report. Volume: {Formatter.currency.formatBalance(income + expenses)}
+            {t('description')} {t('volume')}: {Formatter.currency.formatBalance(income + expenses, currency)}
           </Card.Subtitle>
         </Stack>
       </Card.Header>
       <Card.Body>
         <ReportTable
-          headers={['Date', 'Receiver', 'Category', 'Payment method', 'Amount']}
+          headers={[t('date'), t('receiver'), t('category'), t('paymentMethod'), t('amount')]}
           rightAlignedColumns={[4]}
           rows={transactions.map(transaction => [
             Formatter.date.formatWithPattern(new Date(transaction.processedAt), 'dd.MM.yyyy'),
             transaction.receiver,
             transaction.category.name,
             transaction.paymentMethod.name,
-            Formatter.currency.formatBalance(transaction.transferAmount),
+            Formatter.currency.formatBalance(transaction.transferAmount, currency),
           ])}
         />
       </Card.Body>

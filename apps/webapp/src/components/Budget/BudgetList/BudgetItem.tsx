@@ -4,11 +4,13 @@ import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import ThumbUpAltRounded from '@mui/icons-material/ThumbUpAltRounded';
 import WarningRounded from '@mui/icons-material/WarningRounded';
 import {Box, Chip, Stack, Typography} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {Icon} from '@/components/Icon';
 import {EntityMenu} from '@/components/Table/EntityMenu';
 import {HideHorizontalScrollbarStyle} from '@/theme/style';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type Budget = {
   ID: string;
@@ -28,6 +30,8 @@ export type BudgetItemProps = {
 };
 
 export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onDeleteBudget, onClickBudget}) => {
+  const t = useTranslations('BudgetList');
+  const currency = useCurrencyPreference();
   const isOverBudget: boolean = (budget.balance ?? 0) > budget.budget;
 
   return (
@@ -73,7 +77,7 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
             >
               {budget.name}
             </Typography>
-            <Chip label={budget.type === 'i' ? 'Include' : 'Exclude'} variant="outlined" />
+            <Chip label={budget.type === 'i' ? t('include') : t('exclude')} variant="outlined" />
           </Stack>
           <Stack
             sx={{
@@ -100,8 +104,8 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
               fontWeight: 'bold',
             }}
           >
-            {Formatter.currency.formatBalance(budget.balance <= 0 ? 0 : budget.balance)} /{' '}
-            {Formatter.currency.formatBalance(budget.budget)}
+            {Formatter.currency.formatBalance(budget.balance <= 0 ? 0 : budget.balance, currency)} /{' '}
+            {Formatter.currency.formatBalance(budget.budget, currency)}
           </Typography>
         </Box>
       </Stack>

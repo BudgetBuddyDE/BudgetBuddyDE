@@ -3,6 +3,7 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {Stack} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {Autocomplete} from '@/components/Form/Autocomplete';
@@ -20,15 +21,15 @@ import {
 } from './quickFilters';
 
 const transactionDateQuickFilterLabels: Record<TransactionDateQuickFilter, string> = {
-  today: 'Today',
-  thisWeek: 'This Week',
-  thisMonth: 'This Month',
-  lastMonth: 'Last Month',
+  today: 'today',
+  thisWeek: 'thisWeek',
+  thisMonth: 'thisMonth',
+  lastMonth: 'lastMonth',
 };
 
 const recurringPaymentStatusQuickFilterLabels: Record<RecurringPaymentStatusQuickFilter, string> = {
-  active: 'Active',
-  inactive: 'Inactive',
+  active: 'active',
+  inactive: 'inactive',
 };
 
 export type FilterWrapperProps = Pick<
@@ -51,6 +52,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
   transactionDateQuickFilters = [],
   recurringPaymentStatusQuickFilters = [],
 }) => {
+  const t = useTranslations('Filters');
   const [open, setOpen] = React.useState(false);
   const [dialogKey, setDialogKey] = React.useState(0);
   const [state, dispatch] = React.useReducer(FilterReducer, getInitialFilterState());
@@ -182,7 +184,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
       {transactionDateQuickFilters.length > 0 && (
         <Autocomplete<TransactionDateQuickFilter>
           name="filter-date-range"
-          label="Time period"
+          label={t('timePeriod')}
           size="small"
           searchAsYouType={false}
           retrieveOptionsFunc={() => transactionDateQuickFilters}
@@ -190,15 +192,15 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           onChange={(_, filter) =>
             applyQuickFilter(filter ? getTransactionDateQuickFilterRange(filter) : {dateFrom: null, dateTo: null})
           }
-          getOptionLabel={filter => transactionDateQuickFilterLabels[filter]}
-          noOptionsText="No time periods found"
+          getOptionLabel={filter => t(transactionDateQuickFilterLabels[filter])}
+          noOptionsText={t('noTimePeriods')}
           sx={{width: 176, minWidth: 0}}
         />
       )}
       {recurringPaymentStatusQuickFilters.length > 0 && (
         <Autocomplete<RecurringPaymentStatusQuickFilter>
           name="filter-recurring-payment-status"
-          label="Status"
+          label={t('status')}
           size="small"
           searchAsYouType={false}
           retrieveOptionsFunc={() => recurringPaymentStatusQuickFilters}
@@ -206,16 +208,16 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           onChange={(_, filter) =>
             applyQuickFilter(filter ? getRecurringPaymentStatusQuickFilter(filter) : {paused: null})
           }
-          getOptionLabel={filter => recurringPaymentStatusQuickFilterLabels[filter]}
-          noOptionsText="No statuses found"
+          getOptionLabel={filter => t(recurringPaymentStatusQuickFilterLabels[filter])}
+          noOptionsText={t('noStatuses')}
           sx={{width: 148, minWidth: 0}}
         />
       )}
       {withCategories && (
         <Autocomplete<TCategoryVH, true>
           name="filter-categories"
-          label="Category"
-          placeholder="Any category"
+          label={t('category')}
+          placeholder={t('anyCategory')}
           multiple
           disableCloseOnSelect
           size="small"
@@ -225,15 +227,15 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           onChange={(_, categories) => applyQuickFilter({categories: categories.map(category => category.id)})}
           getOptionLabel={category => category.name}
           isOptionEqualToValue={(category, value) => category.id === value.id}
-          noOptionsText="No categories found"
+          noOptionsText={t('noCategories')}
           sx={{width: 184, minWidth: 0}}
         />
       )}
       {withPaymentMethods && (
         <Autocomplete<TPaymentMethodVH, true>
           name="filter-payment-methods"
-          label="Payment method"
-          placeholder="Any payment method"
+          label={t('paymentMethod')}
+          placeholder={t('anyPaymentMethod')}
           multiple
           disableCloseOnSelect
           size="small"
@@ -247,7 +249,7 @@ export const FilterWrapper: React.FC<FilterWrapperProps> = ({
           }
           getOptionLabel={paymentMethod => paymentMethod.name}
           isOptionEqualToValue={(paymentMethod, value) => paymentMethod.id === value.id}
-          noOptionsText="No payment methods found"
+          noOptionsText={t('noPaymentMethods')}
           sx={{width: 216, minWidth: 0}}
         />
       )}

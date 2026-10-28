@@ -2,12 +2,14 @@
 
 import {ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
 
 export type RecurringPaymentView = 'schedules' | 'occurrences';
 
 export const RecurringPaymentsNav: React.FC<{view: RecurringPaymentView}> = ({view}) => {
+  const t = useTranslations('RecurringPaymentsNav');
   const router = useRouter();
 
   return (
@@ -32,11 +34,11 @@ export const RecurringPaymentsNav: React.FC<{view: RecurringPaymentView}> = ({vi
           if (!nextView) return;
           router.push(nextView === 'occurrences' ? '/recurringPayments/occurrences' : '/recurringPayments');
         }}
-        aria-label="Recurring payment view"
+        aria-label={t('viewLabel')}
         sx={{alignSelf: {xs: 'stretch', sm: 'flex-start'}, '& .MuiToggleButton-root': {flex: {xs: 1, sm: 'none'}}}}
       >
-        <ToggleButton value="schedules">Schedules</ToggleButton>
-        <ToggleButton value="occurrences">Occurrences</ToggleButton>
+        <ToggleButton value="schedules">{t('schedules')}</ToggleButton>
+        <ToggleButton value="occurrences">{t('occurrences')}</ToggleButton>
       </ToggleButtonGroup>
     </ActionPaper>
   );

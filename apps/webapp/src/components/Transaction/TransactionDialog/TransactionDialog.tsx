@@ -11,6 +11,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {CloseIconButton} from '@/components/Button';
 import {CategoryChip} from '@/components/Category/CategoryChip';
@@ -18,6 +19,7 @@ import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {BasicTable, type ColumnDefinition} from '@/components/Table';
 import {ZoomTransition} from '@/components/Transition';
 import {Formatter} from '@/utils/Formatter';
+import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import type {TransactionDialogState} from './TransactionDialogState';
 
 export type TransactionDialogProps = TransactionDialogState & Pick<DialogProps, 'onClose'>;
@@ -29,6 +31,8 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
   error,
   onClose,
 }) => {
+  const t = useTranslations('TransactionDialog');
+  const currency = useCurrencyPreference();
   const theme = useTheme();
   const isFullscreen = useMediaQuery(theme.breakpoints.down('md'));
   const dialogMaxWidth: DialogProps['maxWidth'] = isFullscreen ? undefined : 'md';
@@ -54,7 +58,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
         },
       }}
     >
-      <DialogTitle id="scroll-dialog-title">Transactions ({transactions.length})</DialogTitle>
+      <DialogTitle id="scroll-dialog-title">{t('title', {count: transactions.length})}</DialogTitle>
       <CloseIconButton
         onClick={event => handleDialogClose(event, 'escapeKeyDown')}
         sx={theme => ({
@@ -77,28 +81,28 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
             [
               {
                 key: 'processedAt',
-                label: 'Date',
+                label: t('date'),
                 renderCell: (_, row) => Formatter.date.format(row.processedAt),
               },
               {
                 key: 'category',
-                label: 'Category',
+                label: t('category'),
                 renderCell: (_, row) => <CategoryChip categoryName={row.category.name} size="small" sx={{mr: 1}} />,
               },
               {
                 key: 'paymentMethod',
-                label: 'Payment Method',
+                label: t('paymentMethod'),
                 renderCell: (_, row) => <PaymentMethodChip paymentMethodName={row.paymentMethod.name} size="small" />,
               },
               {
                 key: 'receiver',
-                label: 'Receiver',
+                label: t('receiver'),
               },
               {
                 key: 'transferAmount',
-                label: 'Amount',
+                label: t('amount'),
                 align: 'right',
-                renderCell: (_, row) => Formatter.currency.formatBalance(row.transferAmount),
+                renderCell: (_, row) => Formatter.currency.formatBalance(row.transferAmount, currency),
               },
             ] satisfies ColumnDefinition<TExpandedTransaction>[]
           }
@@ -110,7 +114,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
             handleDialogClose(event, 'escapeKeyDown');
           }}
         >
-          Close
+          {t('close')}
         </Button>
       </DialogActions>
     </Dialog>

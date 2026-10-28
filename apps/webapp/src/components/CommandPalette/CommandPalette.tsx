@@ -16,6 +16,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {NoResults} from '../NoResults';
 import {type Command, useCommandPalette} from './CommandPaletteContext';
@@ -35,6 +36,7 @@ const SECTION_ORDER: Record<string, number> = {
 };
 
 export const CommandPalette: React.FC = () => {
+  const t = useTranslations('CommandPalette');
   const {open, setOpen, commands} = useCommandPalette();
   const [query, setQuery] = React.useState('');
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
@@ -190,15 +192,19 @@ export const CommandPalette: React.FC = () => {
     selectedIndex,
   ]);
 
-  const title = levels.length ? 'Choose entity' : activeCommand ? activeCommand.label : 'Commands';
+  const title = levels.length ? t('chooseEntity') : activeCommand ? activeCommand.label : t('title');
   const placeholder =
     activeCommand?.placeholder ??
     (activeCommand
-      ? `Search ${activeCommand.label.toLowerCase()}`
+      ? t('searchEntity', {entity: activeCommand.label.toLowerCase()})
       : levels.length
-        ? 'Search entity...'
-        : 'Search commands...');
+        ? t('searchEntityFallback')
+        : t('searchCommands'));
   const breadcrumb = [...levels.map(level => level.label), activeCommand?.label].filter(Boolean).join('  ›  ');
+  const keyboardShortcutsLabel = t('keyboardShortcuts');
+  const navigateLabel = t('navigate');
+  const selectLabel = t('select');
+  const backLabel = t('back');
 
   return (
     <Dialog
@@ -239,7 +245,7 @@ export const CommandPalette: React.FC = () => {
             <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
-                  <ListItemText primary="Loading..." />
+                  <ListItemText primary={t('loading')} />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -248,13 +254,13 @@ export const CommandPalette: React.FC = () => {
             <List dense disablePadding>
               <ListItem disablePadding>
                 <ListItemButton disabled>
-                  <ListItemText primary={activeCommand.emptyLabel ?? 'No matching records'} />
+                  <ListItemText primary={activeCommand.emptyLabel ?? t('noMatchingRecords')} />
                 </ListItemButton>
               </ListItem>
             </List>
           )}
           {!isResolving && !groupedCommands.length && !isResolverMode && (
-            <NoResults text={`No results for '${query}'!`} sx={{m: 2}} />
+            <NoResults text={t('noResultsQuery', {query})} sx={{m: 2}} />
           )}
           {!isResolving &&
             groupedCommands.map(([section, items], groupIndex) => (
@@ -292,7 +298,7 @@ export const CommandPalette: React.FC = () => {
           direction="row"
           spacing={1.5}
           useFlexGap
-          aria-label="Keyboard shortcuts"
+          aria-label={keyboardShortcutsLabel}
           sx={{
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -304,10 +310,10 @@ export const CommandPalette: React.FC = () => {
           }}
         >
           {[
-            ['↑↓', 'Navigate'],
-            ['↵', 'Select'],
-            ['Esc', 'Back'],
-            ['⌫', 'Back'],
+            ['↑↓', navigateLabel],
+            ['↵', selectLabel],
+            ['Esc', backLabel],
+            ['⌫', backLabel],
           ].map(([key, label]) => (
             <Box key={`${key}-${label}`} component="span" sx={{display: 'inline-flex', alignItems: 'center', gap: 0.5}}>
               <Box

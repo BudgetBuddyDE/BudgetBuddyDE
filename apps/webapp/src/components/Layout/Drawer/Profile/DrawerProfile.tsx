@@ -3,6 +3,7 @@
 import LogoutIcon from '@mui/icons-material/LogoutRounded';
 import {Box, Button, type ButtonProps, Chip, Divider, Typography, useTheme} from '@mui/material';
 import {useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {authClient, signOut} from '@/authClient';
 import {useSnackbarContext} from '@/components/Snackbar';
@@ -14,6 +15,7 @@ import {useDrawerContext} from '../DrawerContext';
 export type DrawerProfileProps = {};
 
 export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
+  const t = useTranslations('DrawerProfile');
   const theme = useTheme();
   const router = useRouter();
   const screenSize = useScreenSize();
@@ -24,12 +26,12 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
   const handleLogout = async () => {
     await signOut(
       () => {
-        showSnackbar({message: 'You have been logged out.'});
+        showSnackbar({message: t('loggedOut')});
       },
       () => {
         showSnackbar({
-          message: 'Logout failed. Please try again.',
-          action: <Button onClick={handleLogout}>Retry</Button>,
+          message: t('logoutFailed'),
+          action: <Button onClick={handleLogout}>{t('retry')}</Button>,
         });
       },
     );
@@ -86,7 +88,7 @@ export const DrawerProfile: React.FC<DrawerProfileProps> = () => {
             >
               {sessionData.user.name}
             </Typography>
-            <Chip label={'Basic'} variant="outlined" size="small" />
+            <Chip label={t('basic')} variant="outlined" size="small" />
           </Box>
         </Box>
         <LogoutButton

@@ -2,6 +2,7 @@
 
 import {AddRounded, InboxRounded, SearchOffRounded} from '@mui/icons-material';
 import {Box, type BoxProps, Button, type ButtonProps, Stack, Typography} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {Card} from '@/components/Card';
 
@@ -28,18 +29,6 @@ export type NoResultsProps = Pick<BoxProps, 'sx'> & {
   text?: string | React.ReactNode;
 };
 
-const defaultTitle: Record<NoResultsVariant, string> = {
-  empty: 'Nothing to show yet',
-  filtered: 'No matching results',
-  create: 'Create your first item',
-};
-
-const defaultDescription: Partial<Record<NoResultsVariant, string>> = {
-  empty: 'Items will appear here as soon as they are available.',
-  filtered: 'Try a different search term or clear one of your filters.',
-  create: 'Add your first item to get started and keep everything organized.',
-};
-
 const defaultIcon: Record<NoResultsVariant, React.ReactNode> = {
   empty: <InboxRounded />,
   filtered: <SearchOffRounded />,
@@ -54,20 +43,21 @@ export const NoResults: React.FC<NoResultsProps> = ({
   query,
   action,
   onCreate,
-  createLabel = 'Create item',
+  createLabel,
   text,
   sx,
 }) => {
-  const resolvedTitle = title ?? (typeof text === 'string' ? text : undefined) ?? defaultTitle[variant];
+  const t = useTranslations('NoResults');
+  const resolvedTitle = title ?? (typeof text === 'string' ? text : undefined) ?? t(`${variant}.title`);
   const resolvedDescription =
-    description ?? (typeof text === 'string' || text === undefined ? defaultDescription[variant] : text);
+    description ?? (typeof text === 'string' || text === undefined ? t(`${variant}.description`) : text);
   const resolvedIcon = icon ?? defaultIcon[variant];
   const isCreateState = variant === 'create';
   const resolvedAction =
     action ??
     (isCreateState && onCreate ? (
       <Button color="inherit" onClick={onCreate} variant="outlined">
-        {createLabel}
+        {createLabel ?? t('createAction')}
       </Button>
     ) : null);
   const surfaceSx = [
@@ -102,7 +92,7 @@ export const NoResults: React.FC<NoResultsProps> = ({
       </Box>
       <Stack spacing={0.5} sx={{alignItems: 'center'}}>
         <Typography component="h2" variant="subtitle2" sx={{fontWeight: 600, letterSpacing: '-0.01em'}}>
-          {variant === 'filtered' && query ? `No results for "${query}"` : resolvedTitle}
+          {variant === 'filtered' && query ? t('filtered.queryTitle', {query}) : resolvedTitle}
         </Typography>
         {resolvedDescription && (
           <Typography color="text.secondary" sx={{lineHeight: 1.6, maxWidth: 400}} variant="body2">
