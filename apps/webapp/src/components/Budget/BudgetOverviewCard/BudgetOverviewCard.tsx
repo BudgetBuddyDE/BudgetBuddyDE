@@ -72,6 +72,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
             <Tooltip
               title={`${isOverBudget ? t('overdrawn') : t('available')} · ${Formatter.currency.formatBalance(
                 isOverBudget ? overBudgetAmount : available,
+                currency,
               )}`}
             >
               <Box

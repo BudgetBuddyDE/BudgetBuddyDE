@@ -2,12 +2,15 @@ import {NextIntlClientProvider} from 'next-intl';
 import {describe, expect, it} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
 import {fireEvent, render, screen} from '@/test/testing-library';
+import {CurrencyContext} from '@/utils/Formatter/PreferenceContext';
 import {BudgetOverviewCard} from './BudgetOverviewCard';
 
-const renderCard = (props: React.ComponentProps<typeof BudgetOverviewCard>) =>
+const renderCard = (props: React.ComponentProps<typeof BudgetOverviewCard>, currency: 'EUR' | 'USD' = 'EUR') =>
   render(
     <NextIntlClientProvider locale="en-US" messages={messages}>
-      <BudgetOverviewCard {...props} />
+      <CurrencyContext.Provider value={currency}>
+        <BudgetOverviewCard {...props} />
+      </CurrencyContext.Provider>
     </NextIntlClientProvider>,
   );
 
@@ -44,5 +47,13 @@ describe('BudgetOverviewCard', () => {
     fireEvent.mouseOver(screen.getByLabelText('Spent'));
     expect(await screen.findByRole('tooltip')).toHaveTextContent(/Spent/);
     expect(screen.getByRole('tooltip')).toHaveTextContent(/100\.00/);
+  });
+
+  it('formats the available tooltip in the selected currency', async () => {
+    renderCard({totalBudget: 200, spent: 100, futureExpenses: 40}, 'USD');
+
+    fireEvent.mouseOver(screen.getByLabelText('Available'));
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('$60.00');
   });
 });
