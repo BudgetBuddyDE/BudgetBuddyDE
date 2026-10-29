@@ -3,32 +3,32 @@ import {EntityIcon} from '@/lib/ibn';
 
 export const DrawerLinks = [
   {
-    text: 'Dashboard',
+    text: 'dashboard',
     path: '/dashboard',
     icon: DashboardViewIconMapping['/dashboard'],
   },
   {
-    text: 'Transactions',
+    text: 'transactions',
     path: '/transactions',
     icon: <EntityIcon entity="transaction" />,
   },
   {
-    text: 'Recurring Payments',
+    text: 'recurringPayments',
     path: '/recurringPayments',
     icon: <EntityIcon entity="recurringPayment" />,
   },
   {
-    text: 'Payment Methods',
+    text: 'paymentMethods',
     path: '/paymentMethods',
     icon: <EntityIcon entity="paymentMethod" />,
   },
   {
-    text: 'Categories',
+    text: 'categories',
     path: '/categories',
     icon: <EntityIcon entity="category" />,
   },
   {
-    text: 'Attachments',
+    text: 'attachments',
     path: '/attachments',
     icon: <EntityIcon entity="attachment" />,
   },

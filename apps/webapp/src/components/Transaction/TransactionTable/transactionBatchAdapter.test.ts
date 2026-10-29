@@ -70,6 +70,14 @@ describe('transaction batch adapter', () => {
     const transactionColumns = columns({
       categories: [{id: categoryId, name: 'Utilities'}],
       paymentMethods: [{id: paymentMethodId, name: 'Checking'}],
+      labels: {
+        processedAt: 'Date',
+        category: 'Category',
+        paymentMethod: 'Payment method',
+        receiver: 'Receiver',
+        amount: 'Amount',
+        information: 'Information',
+      },
     });
     expect(transactionColumns).toEqual(
       expect.arrayContaining([

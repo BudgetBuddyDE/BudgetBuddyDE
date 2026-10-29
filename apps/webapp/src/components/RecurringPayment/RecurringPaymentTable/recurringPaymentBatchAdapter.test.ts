@@ -12,19 +12,22 @@ describe('recurring payment batch adapter', () => {
     expect(row.startsOn).toBeInstanceOf(Date);
     expect(row.paused).toBe(false);
 
-    const result = mapRowsToPayload([
-      {
-        ...row,
-        executionPlan: 'biweekly',
-        startsOn: new Date(2026, 7, 31),
-        paused: true,
-        categoryId,
-        paymentMethodId,
-        receiver: 'Rent',
-        transferAmount: 900,
-        information: '',
-      },
-    ]);
+    const result = mapRowsToPayload(
+      [
+        {
+          ...row,
+          executionPlan: 'biweekly',
+          startsOn: new Date(2026, 7, 31),
+          paused: true,
+          categoryId,
+          paymentMethodId,
+          receiver: 'Rent',
+          transferAmount: 900,
+          information: '',
+        },
+      ],
+      'First execution date is required',
+    );
     expect(result).toEqual({
       success: true,
       payload: [
@@ -69,16 +72,19 @@ describe('recurring payment batch adapter', () => {
     expect(fromEntity(entity)).toMatchObject({id: entity.id, executionPlan: 'weekly', paused: true});
     expect(fromEntity(entity).startsOn).toEqual(new Date(2026, 7, 15));
 
-    const result = mapRowsToPayload([
-      {
-        ...createEmptyRow(),
-        id: 'invalid-row',
-        startsOn: new Date('invalid'),
-        categoryId,
-        paymentMethodId,
-        receiver: 'Rent',
-      },
-    ]);
+    const result = mapRowsToPayload(
+      [
+        {
+          ...createEmptyRow(),
+          id: 'invalid-row',
+          startsOn: new Date('invalid'),
+          categoryId,
+          paymentMethodId,
+          receiver: 'Rent',
+        },
+      ],
+      'First execution date is required',
+    );
     expect(result.success).toBe(false);
     if (!result.success) expect(result.issues[0]?.rowId).toBe('invalid-row');
   });
@@ -87,6 +93,17 @@ describe('recurring payment batch adapter', () => {
     const recurringColumns = columns({
       categories: [{id: categoryId, name: 'Housing'}],
       paymentMethods: [{id: paymentMethodId, name: 'Checking'}],
+      labels: {
+        executionPlan: 'Plan',
+        startsOn: 'First execution date',
+        paused: 'Paused',
+        category: 'Category',
+        paymentMethod: 'Payment method',
+        receiver: 'Receiver',
+        amount: 'Amount',
+        information: 'Information',
+      },
+      executionPlanOptions: [{value: 'monthly', label: 'Monthly'}],
     });
     expect(recurringColumns).toEqual(
       expect.arrayContaining([

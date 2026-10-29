@@ -342,7 +342,10 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
     [handleEditEntity],
   );
 
-  const batchColumns = React.useMemo(() => categoryBatchColumns(), []);
+  const batchColumns = React.useMemo(
+    () => categoryBatchColumns({labels: {name: t('name'), description: t('description')}}),
+    [t],
+  );
 
   const slice: EntitySlice<TCategory> = React.useMemo(
     () => ({
@@ -401,11 +404,11 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
         dataKey="id"
         columns={columns}
         toolbar={{
-          title: 'Categories',
-          subtitle: 'Manage your categories',
+          title: t('title'),
+          subtitle: t('subtitle'),
           showCount: true,
           showSearch: true,
-          searchPlaceholder: 'Search categories…',
+          searchPlaceholder: t('searchPlaceholder'),
           searchDefaultValue: initialKeyword,
           onSearch: handleTextSearch,
           actions: [
@@ -424,7 +427,7 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           ],
         }}
         onRowClick={handleClickEntity}
-        emptyMessage={filters.keyword ? `No categories found for "${filters.keyword}"` : 'No categories found'}
+        emptyMessage={filters.keyword ? t('noCategoriesFoundFor', {keyword: filters.keyword}) : t('noCategoriesFound')}
         emptyState={
           categories !== null && totalEntityCount === 0 && !hasActiveFilters
             ? {
@@ -463,8 +466,8 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
       />
 
       <EntityDrawer<EntityFormFields>
-        title={'Category'}
-        subtitle={drawerState.action === 'CREATE' ? 'Create new category' : 'Edit category'}
+        title={t('category')}
+        subtitle={drawerState.action === 'CREATE' ? t('createNewCategory') : t('editCategory')}
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -481,15 +484,15 @@ export const CategoryTable: React.FC<CategoryTableProps> = ({initialKeyword}) =>
           {
             type: 'text',
             name: 'name',
-            label: 'Name',
-            placeholder: 'Name',
+            label: t('name'),
+            placeholder: t('name'),
             required: true,
           },
           {
             type: 'text',
             name: 'description',
-            label: 'Description',
-            placeholder: 'Description',
+            label: t('description'),
+            placeholder: t('description'),
             area: true,
             rows: 2,
           },

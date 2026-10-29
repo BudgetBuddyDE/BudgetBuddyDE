@@ -55,12 +55,24 @@ export const fromEntity = (entity: TExpandedTransaction): DraftRow => ({
 export type TransactionBatchColumnOptions = {
   categories: readonly Pick<TCategoryVH, 'id' | 'name'>[];
   paymentMethods: readonly Pick<TPaymentMethodVH, 'id' | 'name'>[];
+  labels: {
+    processedAt: string;
+    category: string;
+    paymentMethod: string;
+    receiver: string;
+    amount: string;
+    information: string;
+  };
 };
 
-export const columns = (options: TransactionBatchColumnOptions): GridColDef<DraftRow>[] => [
+export const columns = ({
+  categories,
+  paymentMethods,
+  labels,
+}: TransactionBatchColumnOptions): GridColDef<DraftRow>[] => [
   {
     field: 'processedAt',
-    headerName: 'Date',
+    headerName: labels.processedAt,
     type: 'date',
     flex: 1,
     minWidth: 160,
@@ -68,18 +80,18 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
   },
   {
     field: 'categoryId',
-    headerName: 'Category',
+    headerName: labels.category,
     type: 'singleSelect',
-    valueOptions: options.categories.map(category => ({value: category.id, label: category.name})),
+    valueOptions: categories.map(category => ({value: category.id, label: category.name})),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'paymentMethodId',
-    headerName: 'Payment method',
+    headerName: labels.paymentMethod,
     type: 'singleSelect',
-    valueOptions: options.paymentMethods.map(paymentMethod => ({
+    valueOptions: paymentMethods.map(paymentMethod => ({
       value: paymentMethod.id,
       label: paymentMethod.name,
     })),
@@ -89,14 +101,14 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
   },
   {
     field: 'receiver',
-    headerName: 'Receiver',
+    headerName: labels.receiver,
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'transferAmount',
-    headerName: 'Amount',
+    headerName: labels.amount,
     type: 'number',
     flex: 1,
     minWidth: 140,
@@ -104,7 +116,7 @@ export const columns = (options: TransactionBatchColumnOptions): GridColDef<Draf
   },
   {
     field: 'information',
-    headerName: 'Information',
+    headerName: labels.information,
     flex: 2,
     minWidth: 240,
     editable: true,

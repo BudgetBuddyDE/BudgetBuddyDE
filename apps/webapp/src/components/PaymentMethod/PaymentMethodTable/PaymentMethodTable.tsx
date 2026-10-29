@@ -334,7 +334,18 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
     [handleEditEntity],
   );
 
-  const batchColumns = React.useMemo(() => paymentMethodBatchColumns(), []);
+  const batchColumns = React.useMemo(
+    () =>
+      paymentMethodBatchColumns({
+        labels: {
+          name: t('name'),
+          provider: t('provider'),
+          address: t('address'),
+          description: t('description'),
+        },
+      }),
+    [t],
+  );
 
   const slice: EntitySlice<TPaymentMethod> = React.useMemo(
     () => ({
@@ -393,11 +404,11 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
         dataKey="id"
         columns={columns}
         toolbar={{
-          title: 'Payment Methods',
-          subtitle: 'Manage your payment methods',
+          title: t('title'),
+          subtitle: t('subtitle'),
           showCount: true,
           showSearch: true,
-          searchPlaceholder: 'Search payment methods…',
+          searchPlaceholder: t('searchPlaceholder'),
           searchDefaultValue: initialKeyword,
           onSearch: handleTextSearch,
           actions: [
@@ -416,7 +427,7 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
           ],
         }}
         emptyMessage={
-          filters.keyword ? `No payment methods found for "${filters.keyword}"` : 'No payment methods found'
+          filters.keyword ? t('noPaymentMethodsFoundFor', {keyword: filters.keyword}) : t('noPaymentMethodsFound')
         }
         emptyState={
           paymentMethods !== null && totalEntityCount === 0 && !hasActiveFilters
@@ -459,8 +470,8 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
       />
 
       <EntityDrawer<EntityFormFields>
-        title={'Payment Method'}
-        subtitle={drawerState.action === 'CREATE' ? 'Create new payment method' : 'Edit payment method'}
+        title={t('paymentMethod')}
+        subtitle={drawerState.action === 'CREATE' ? t('createNewPaymentMethod') : t('editPaymentMethod')}
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -479,29 +490,29 @@ export const PaymentMethodTable: React.FC<PaymentMethodTableProps> = ({initialKe
           {
             type: 'text',
             name: 'name',
-            label: 'Name',
-            placeholder: 'Name',
+            label: t('name'),
+            placeholder: t('name'),
             required: true,
           },
           {
             type: 'text',
             name: 'address',
-            label: 'Address',
-            placeholder: 'IBAN, E-Mail, Wallet Address, etc.',
+            label: t('address'),
+            placeholder: t('addressPlaceholder'),
             required: true,
           },
           {
             type: 'text',
             name: 'provider',
-            label: 'Provider',
-            placeholder: 'Visa, Mastercard, PayPal, etc.',
+            label: t('provider'),
+            placeholder: t('providerPlaceholder'),
             required: true,
           },
           {
             type: 'text',
             name: 'description',
-            label: 'Description',
-            placeholder: 'Description',
+            label: t('description'),
+            placeholder: t('description'),
             area: true,
             rows: 2,
           },

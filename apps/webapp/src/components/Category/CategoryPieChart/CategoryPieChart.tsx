@@ -27,38 +27,25 @@ export type CategoryPieChartProps = {
   withViewMore?: boolean;
 };
 
-/**
- * Meta configuration for each timeframe:
- * - Display label
- * - Date range function
- * - Empty-state text
- */
-const TIMEFRAME_META: Record<CategoryPieChartTimeframe, {label: string; range: () => [Date, Date]; emptyText: string}> =
-  {
-    MONTH: {
-      label: 'Month',
-      range: () => {
-        const now = new Date();
-        return [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
-      },
-      emptyText: 'There are no transactions for this month!',
+const TIMEFRAME_META: Record<CategoryPieChartTimeframe, {range: () => [Date, Date]}> = {
+  MONTH: {
+    range: () => {
+      const now = new Date();
+      return [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
     },
-    YTD: {
-      label: 'YTD',
-      range: () => {
-        const now = new Date();
-        return [new Date(now.getFullYear(), 0, 1), now];
-      },
-      emptyText: 'There are no transactions for this year!',
+  },
+  YTD: {
+    range: () => {
+      const now = new Date();
+      return [new Date(now.getFullYear(), 0, 1), now];
     },
-    ALL_TIME: {
-      label: 'All Time',
-      range: () => {
-        return [new Date('1900-01-01'), new Date('2999-12-31')];
-      },
-      emptyText: 'There are no transactions for all time!',
+  },
+  ALL_TIME: {
+    range: () => {
+      return [new Date('1900-01-01'), new Date('2999-12-31')];
     },
-  };
+  },
+};
 
 const TIMEFRAMES: CategoryPieChartTimeframe[] = ['MONTH', 'YTD', 'ALL_TIME'];
 
@@ -201,8 +188,8 @@ export function CategoryPieChart({
             disabled={isLoading} // <-- important change
           >
             {TIMEFRAMES.map(tf => (
-              <ToggleButton key={tf} value={tf} aria-label={TIMEFRAME_META[tf].label}>
-                {TIMEFRAME_META[tf].label}
+              <ToggleButton key={tf} value={tf} aria-label={t(`timeframes.${tf}`)}>
+                {t(`timeframes.${tf}`)}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
@@ -221,7 +208,7 @@ export function CategoryPieChart({
             valueFormatter={value => Formatter.currency.formatBalance(value, currency)}
           />
         ) : (
-          <NoResults text={TIMEFRAME_META[currentTimeframe].emptyText} />
+          <NoResults text={t(`noResults.${currentTimeframe}`)} />
         )}
       </Card.Body>
       {!isLoading && withViewMore && (

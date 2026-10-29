@@ -1,6 +1,7 @@
 'use client';
 
 import {Divider, List, Drawer as MuiDrawer} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import React from 'react';
 import {useDrawerContext} from './DrawerContext';
 import {DrawerHeader} from './Header';
@@ -14,13 +15,21 @@ import {StyledDrawer} from './StyledDrawer';
  */
 export const Drawer = () => {
   const {isOpen, toggleVisibility} = useDrawerContext();
+  const t = useTranslations('DrawerLinks');
+  const dashboardT = useTranslations('DashboardNavigation');
   const DrawerItems: React.FC<{open: boolean; closeOnClick?: boolean}> = ({open, closeOnClick = false}) => {
     return (
       <React.Fragment>
         <Divider />
         <List>
           {DrawerLinks.map(link => (
-            <DrawerItem key={link.path} open={open} {...link} closeOnClick={closeOnClick} />
+            <DrawerItem
+              key={link.path}
+              open={open}
+              {...link}
+              text={link.text === 'dashboard' ? dashboardT('dashboard') : t(link.text)}
+              closeOnClick={closeOnClick}
+            />
           ))}
         </List>
       </React.Fragment>

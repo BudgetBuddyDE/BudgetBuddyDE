@@ -43,33 +43,35 @@ export const fromEntity = (entity: TPaymentMethod): DraftRow => ({
   description: entity.description,
 });
 
-export type PaymentMethodBatchColumnOptions = Record<never, never>;
+export type PaymentMethodBatchColumnOptions = {
+  labels: {name: string; provider: string; address: string; description: string};
+};
 
-export const columns = (_options?: PaymentMethodBatchColumnOptions): GridColDef<DraftRow>[] => [
+export const columns = ({labels}: PaymentMethodBatchColumnOptions): GridColDef<DraftRow>[] => [
   {
     field: 'name',
-    headerName: 'Name',
+    headerName: labels.name,
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'provider',
-    headerName: 'Provider',
+    headerName: labels.provider,
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'address',
-    headerName: 'Address',
+    headerName: labels.address,
     flex: 1,
     minWidth: 220,
     editable: true,
   },
   {
     field: 'description',
-    headerName: 'Description',
+    headerName: labels.description,
     flex: 2,
     minWidth: 240,
     editable: true,

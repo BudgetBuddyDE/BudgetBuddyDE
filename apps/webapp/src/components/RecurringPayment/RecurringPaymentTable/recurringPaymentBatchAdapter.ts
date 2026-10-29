@@ -10,7 +10,6 @@ import {
 } from '@budgetbuddyde/api/recurringPayment';
 import type {GridColDef} from '@mui/x-data-grid';
 import {formatLocalDateOnly, parseLocalDateOnly} from '@/components/RecurringPayment/dateOnly';
-import {executionPlanOptions} from '@/components/RecurringPayment/executionPlan';
 import type {BatchEntityDialogProps} from '@/components/Table/BatchEntityDialog';
 import {mapDraftRowsToPayload} from '@/components/Table/BatchEntityDialog/mapRowsToPayload';
 export type RecurringPaymentDraftRow = {
@@ -61,12 +60,28 @@ export const fromEntity = (entity: TExpandedRecurringPayment): DraftRow => ({
 export type RecurringPaymentBatchColumnOptions = {
   categories: readonly Pick<TCategoryVH, 'id' | 'name'>[];
   paymentMethods: readonly Pick<TPaymentMethodVH, 'id' | 'name'>[];
+  labels: {
+    executionPlan: string;
+    startsOn: string;
+    paused: string;
+    category: string;
+    paymentMethod: string;
+    receiver: string;
+    amount: string;
+    information: string;
+  };
+  executionPlanOptions: Array<{value: TExecutionPlan; label: string}>;
 };
 
-export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef<DraftRow>[] => [
+export const columns = ({
+  categories,
+  paymentMethods,
+  labels,
+  executionPlanOptions,
+}: RecurringPaymentBatchColumnOptions): GridColDef<DraftRow>[] => [
   {
     field: 'executionPlan',
-    headerName: 'Plan',
+    headerName: labels.executionPlan,
     type: 'singleSelect',
     valueOptions: executionPlanOptions,
     flex: 1,
@@ -75,7 +90,7 @@ export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef
   },
   {
     field: 'startsOn',
-    headerName: 'First execution date',
+    headerName: labels.startsOn,
     type: 'date',
     flex: 1,
     minWidth: 180,
@@ -83,7 +98,7 @@ export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef
   },
   {
     field: 'paused',
-    headerName: 'Paused',
+    headerName: labels.paused,
     type: 'boolean',
     flex: 1,
     minWidth: 120,
@@ -91,18 +106,18 @@ export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef
   },
   {
     field: 'categoryId',
-    headerName: 'Category',
+    headerName: labels.category,
     type: 'singleSelect',
-    valueOptions: options.categories.map(category => ({value: category.id, label: category.name})),
+    valueOptions: categories.map(category => ({value: category.id, label: category.name})),
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'paymentMethodId',
-    headerName: 'Payment method',
+    headerName: labels.paymentMethod,
     type: 'singleSelect',
-    valueOptions: options.paymentMethods.map(paymentMethod => ({
+    valueOptions: paymentMethods.map(paymentMethod => ({
       value: paymentMethod.id,
       label: paymentMethod.name,
     })),
@@ -112,14 +127,14 @@ export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef
   },
   {
     field: 'receiver',
-    headerName: 'Receiver',
+    headerName: labels.receiver,
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'transferAmount',
-    headerName: 'Amount',
+    headerName: labels.amount,
     type: 'number',
     flex: 1,
     minWidth: 140,
@@ -127,17 +142,19 @@ export const columns = (options: RecurringPaymentBatchColumnOptions): GridColDef
   },
   {
     field: 'information',
-    headerName: 'Information',
+    headerName: labels.information,
     flex: 2,
     minWidth: 240,
     editable: true,
   },
 ];
 
-export const mapRowsToPayload: BatchEntityDialogProps<
-  DraftRow,
-  TCreateOrUpdateRecurringPaymentPayload
->['mapRowsToPayload'] = rows =>
+export const mapRowsToPayload = (
+  rows: DraftRow[],
+  startsOnValidationMessage: string,
+): ReturnType<
+  NonNullable<BatchEntityDialogProps<DraftRow, TCreateOrUpdateRecurringPaymentPayload>['mapRowsToPayload']>
+> =>
   mapDraftRowsToPayload(
     rows,
     recurringPaymentDraftSchema,
@@ -152,7 +169,5 @@ export const mapRowsToPayload: BatchEntityDialogProps<
       information: row.information && row.information.length > 0 ? row.information : null,
     }),
     row =>
-      !(row.startsOn instanceof Date) || Number.isNaN(row.startsOn.getTime())
-        ? 'First execution date is required'
-        : undefined,
+      !(row.startsOn instanceof Date) || Number.isNaN(row.startsOn.getTime()) ? startsOnValidationMessage : undefined,
   );

@@ -2,6 +2,7 @@
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
 import {Button, Grid} from '@mui/material';
+import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {useCallback, useMemo, useState} from 'react';
 import {apiClient} from '@/apiClient';
@@ -29,6 +30,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
   initialAttachments,
   initialTotalCount = initialAttachments.length,
 }) => {
+  const t = useTranslations('AllAttachments');
   const {showSnackbar} = useSnackbarContext();
   const [attachments, setAttachments] = useState(initialAttachments);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
@@ -137,11 +139,7 @@ export const AllAttachmentsClient: React.FC<AllAttachmentsClientProps> = ({
   return (
     <>
       {attachments.length === 0 ? (
-        <NoResults
-          icon={<EntityIcon entity="attachment" />}
-          text="No attachments have been added yet"
-          sx={{boxShadow: 6}}
-        />
+        <NoResults icon={<EntityIcon entity="attachment" />} text={t('noAttachments')} sx={{boxShadow: 6}} />
       ) : (
         <Grid container spacing={2}>
           {visibleAttachments.map((attachment, index) => (

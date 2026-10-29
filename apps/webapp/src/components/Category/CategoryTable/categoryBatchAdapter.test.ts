@@ -29,6 +29,8 @@ describe('category batch adapter', () => {
   });
 
   it('provides editable columns', () => {
-    expect(columns()).toEqual(expect.arrayContaining([expect.objectContaining({field: 'name', editable: true})]));
+    expect(columns({labels: {name: 'Name', description: 'Description'}})).toEqual(
+      expect.arrayContaining([expect.objectContaining({field: 'name', editable: true})]),
+    );
   });
 });

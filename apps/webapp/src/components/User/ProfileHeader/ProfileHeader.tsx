@@ -3,15 +3,17 @@
 import {SettingsRounded, VpnKeyRounded} from '@mui/icons-material';
 import {Box, Stack, Tab, Tabs, Typography} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import {authClient} from '@/authClient';
 import {Avatar} from '../Avatar';
 
 const TABS = [
-  {label: 'Profile', icon: <SettingsRounded />, path: '/settings/profile'},
-  {label: 'API Keys', icon: <VpnKeyRounded />, path: '/settings/api-keys'},
+  {label: 'profile', icon: <SettingsRounded />, path: '/settings/profile'},
+  {label: 'apiKeys', icon: <VpnKeyRounded />, path: '/settings/api-keys'},
 ];
 
 export const ProfileHeader = () => {
+  const t = useTranslations('ProfileHeader');
   const router = useRouter();
   const pathname = usePathname();
   const currentTab = TABS.findIndex(tab => pathname.startsWith(tab.path));
@@ -85,7 +87,7 @@ export const ProfileHeader = () => {
                   key={tab.path}
                   // icon={tab.icon}
                   iconPosition="start"
-                  label={tab.label}
+                  label={t(tab.label)}
                 />
               ))}
             </Tabs>

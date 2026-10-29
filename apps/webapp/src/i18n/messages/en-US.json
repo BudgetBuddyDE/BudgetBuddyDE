@@ -55,6 +55,20 @@
   },
   "CategoryPieChart": {
     "selectTimeframe": "Select timeframe",
+    "categoryExpensesTitle": "Category Expenses",
+    "expensesPerCategory": "Expenses per category",
+    "categoryIncomeTitle": "Category Income",
+    "incomePerCategory": "Income per category",
+    "timeframes": {
+      "MONTH": "Month",
+      "YTD": "YTD",
+      "ALL_TIME": "All Time"
+    },
+    "noResults": {
+      "MONTH": "There are no transactions for this month!",
+      "YTD": "There are no transactions for this year!",
+      "ALL_TIME": "There are no transactions for all time!"
+    },
     "expenses": "Expenses",
     "income": "Income",
     "viewMoreAria": "View more transactions",
@@ -135,6 +149,13 @@
     "showApiKeys": "Show API keys",
     "showAttachment": "View attachment"
   },
+  "DrawerLinks": {
+    "transactions": "Transactions",
+    "recurringPayments": "Recurring Payments",
+    "paymentMethods": "Payment Methods",
+    "categories": "Categories",
+    "attachments": "Attachments"
+  },
   "Actions": {
     "add": "Add",
     "close": "Close"
@@ -144,8 +165,10 @@
     "transactions": "Transactions",
     "recurringPayment": "Recurring payment",
     "recurringPayments": "Recurring payments",
+    "recurringpayments": "Recurring payments",
     "paymentMethod": "Payment method",
     "paymentMethods": "Payment methods",
+    "paymentmethods": "Payment methods",
     "category": "Category",
     "categories": "Categories",
     "budget": "Budget",
@@ -153,7 +176,8 @@
     "attachment": "Attachment",
     "attachments": "Attachments",
     "apiKey": "API key",
-    "apiKeys": "API keys"
+    "apiKeys": "API keys",
+    "apikeys": "API keys"
   },
   "BatchDialog": {
     "validationErrors": "Validation errors",
@@ -231,6 +255,12 @@
     "confirmDelete": "Are you sure you want to delete this budget?"
   },
   "RecurringPaymentTable": {
+    "batchCategory": "Category",
+    "batchPaymentMethod": "Payment method",
+    "batchAmount": "Amount",
+    "firstExecutionDateRequired": "First execution date is required",
+    "executionPlan": "Execution plan",
+    "paused": "Paused",
     "firstExecutionDate": "First execution date",
     "category": "Category",
     "noCategoriesFound": "No categories found",
@@ -440,6 +470,15 @@
     "amount": "Amount"
   },
   "CommandPalette": {
+    "openDashboard": "Open Dashboard",
+    "openSettings": "Open Settings",
+    "openApiKeys": "Open API Keys",
+    "logout": "Logout",
+    "loggedOut": "You have been logged out.",
+    "logoutFailed": "Logout failed. Please try again.",
+    "navigationSection": "Navigation",
+    "settingsSection": "Settings",
+    "sessionSection": "Session",
     "keyboardShortcuts": "Keyboard shortcuts",
     "searchCommands": "Search commands...",
     "navigate": "Navigate",
@@ -463,9 +502,36 @@
     "categories": "Categories",
     "transactions": "Transactions",
     "paymentMethods": "Payment Methods",
-    "recurringPayments": "Recurring Payments"
+    "recurringPayments": "Recurring Payments",
+    "attachments": "Attachments",
+    "attachmentsDescription": "All your transaction attachments in one place"
+  },
+  "AllAttachments": {
+    "noAttachments": "No attachments have been added yet"
+  },
+  "ProfileHeader": {
+    "profile": "Profile",
+    "apiKeys": "API Keys"
   },
   "PaymentMethodTable": {
+    "batchName": "Name",
+    "batchProvider": "Provider",
+    "batchAddress": "Address",
+    "batchDescription": "Description",
+    "title": "Payment Methods",
+    "subtitle": "Manage your payment methods",
+    "searchPlaceholder": "Search payment methods…",
+    "noPaymentMethodsFound": "No payment methods found",
+    "noPaymentMethodsFoundFor": "No payment methods found for \"{keyword}\"",
+    "paymentMethod": "Payment Method",
+    "createNewPaymentMethod": "Create new payment method",
+    "editPaymentMethod": "Edit payment method",
+    "name": "Name",
+    "address": "Address",
+    "addressPlaceholder": "IBAN, E-Mail, Wallet Address, etc.",
+    "provider": "Provider",
+    "providerPlaceholder": "Visa, Mastercard, PayPal, etc.",
+    "description": "Description",
     "add": "Add payment method",
     "retry": "Retry"
   },
@@ -732,12 +798,48 @@
     "deleteDialogDescription": "Are you sure you want to delete this API key? Applications using it will lose access immediately. This action cannot be undone."
   },
   "TransactionTable": {
+    "confirmDeleteSingle": "Are you sure you want to delete this transaction?",
+    "confirmDeleteMultiple": "{count, plural, one {Are you sure you want to delete this transaction?} other {Are you sure you want to delete these # transactions?}}",
+    "batchProcessedAt": "Date",
+    "batchAmount": "Amount",
+    "batchCategory": "Category",
+    "batchPaymentMethod": "Payment method",
+    "title": "Transactions",
+    "subtitle": "Manage your transactions",
+    "searchPlaceholder": "Search transactions…",
+    "searchInputPlaceholder": "Search transactions...",
+    "noTransactionsFound": "No transactions found",
+    "noTransactionsFoundFor": "No transactions found for \"{keyword}\"",
+    "transaction": "Transaction",
+    "createNewTransaction": "Create new transaction",
+    "editTransaction": "Edit transaction",
+    "processedAt": "Processed at",
+    "category": "Category",
+    "paymentMethod": "Payment Method",
+    "receiver": "Receiver",
+    "transferAmount": "Transfer Amount",
+    "information": "Information",
+    "noCategoriesFound": "No categories found",
+    "noPaymentMethodsFound": "No payment methods found",
+    "noReceiversFound": "No receivers found",
     "retry": "Retry",
     "new": "New",
     "viewAttachments": "View attachments",
     "addTransaction": "Add transaction"
   },
   "CategoryTable": {
+    "batchName": "Name",
+    "batchDescription": "Description",
+    "title": "Categories",
+    "subtitle": "Manage your categories",
+    "searchPlaceholder": "Search categories…",
+    "noCategoriesFound": "No categories found",
+    "noCategoriesFoundFor": "No categories found for \"{keyword}\"",
+    "category": "Category",
+    "createNewCategory": "Create new category",
+    "editCategory": "Edit category",
+    "name": "Name",
+    "description": "Description",
     "retry": "Retry",
     "addCategory": "Add category"
   },

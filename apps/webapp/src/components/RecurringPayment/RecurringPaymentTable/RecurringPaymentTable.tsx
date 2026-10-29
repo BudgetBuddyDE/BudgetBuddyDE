@@ -704,8 +704,26 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
   );
 
   const batchColumns = React.useMemo(
-    () => recurringPaymentBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods}),
-    [batchCategories, batchPaymentMethods],
+    () =>
+      recurringPaymentBatchColumns({
+        categories: batchCategories,
+        paymentMethods: batchPaymentMethods,
+        labels: {
+          executionPlan: t('executionPlan'),
+          startsOn: t('firstExecutionDate'),
+          paused: t('paused'),
+          category: t('batchCategory'),
+          paymentMethod: t('batchPaymentMethod'),
+          receiver: t('receiver'),
+          amount: t('batchAmount'),
+          information: t('information'),
+        },
+        executionPlanOptions: executionPlanOptions.map(option => ({
+          value: option.value,
+          label: t(`plan.${option.labelKey}`),
+        })),
+      }),
+    [batchCategories, batchPaymentMethods, t],
   );
 
   const slice: EntitySlice<TExpandedRecurringPayment> = React.useMemo(
@@ -812,7 +830,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         initialRows={batchDialogState.initialRows}
         columns={batchColumns}
         createEmptyRow={createEmptyRecurringPaymentRow}
-        mapRowsToPayload={mapRecurringPaymentRowsToPayload}
+        mapRowsToPayload={rows => mapRecurringPaymentRowsToPayload(rows, t('firstExecutionDateRequired'))}
         onSubmit={handleBatchSubmit}
         onClose={() => setBatchDialogState(current => ({...current, open: false}))}
         isSubmitting={isBatchSubmitting}

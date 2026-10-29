@@ -33,6 +33,8 @@ describe('payment method batch adapter', () => {
   });
 
   it('provides editable columns', () => {
-    expect(columns()).toEqual(expect.arrayContaining([expect.objectContaining({field: 'provider', editable: true})]));
+    expect(
+      columns({labels: {name: 'Name', provider: 'Provider', address: 'Address', description: 'Description'}}),
+    ).toEqual(expect.arrayContaining([expect.objectContaining({field: 'provider', editable: true})]));
   });
 });

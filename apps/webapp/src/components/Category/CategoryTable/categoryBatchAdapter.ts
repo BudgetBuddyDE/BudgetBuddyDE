@@ -34,19 +34,19 @@ export const fromEntity = (entity: TCategory): DraftRow => ({
   description: entity.description,
 });
 
-export type CategoryBatchColumnOptions = Record<never, never>;
+export type CategoryBatchColumnOptions = {labels: {name: string; description: string}};
 
-export const columns = (_options?: CategoryBatchColumnOptions): GridColDef<DraftRow>[] => [
+export const columns = ({labels}: CategoryBatchColumnOptions): GridColDef<DraftRow>[] => [
   {
     field: 'name',
-    headerName: 'Name',
+    headerName: labels.name,
     flex: 1,
     minWidth: 180,
     editable: true,
   },
   {
     field: 'description',
-    headerName: 'Description',
+    headerName: labels.description,
     flex: 2,
     minWidth: 240,
     editable: true,

@@ -55,6 +55,20 @@
   },
   "CategoryPieChart": {
     "selectTimeframe": "Zeitraum auswählen",
+    "categoryExpensesTitle": "Ausgaben",
+    "expensesPerCategory": "Pro Kategorie",
+    "categoryIncomeTitle": "Einnahmen",
+    "incomePerCategory": "Pro Kategorie",
+    "timeframes": {
+      "MONTH": "Monat",
+      "YTD": "YTD",
+      "ALL_TIME": "Gesamt"
+    },
+    "noResults": {
+      "MONTH": "Für diesen Monat gibt es keine Transaktionen.",
+      "YTD": "Für dieses Jahr gibt es keine Transaktionen.",
+      "ALL_TIME": "Es gibt keine Transaktionen."
+    },
     "expenses": "Ausgaben",
     "income": "Einnahmen",
     "viewMoreAria": "Weitere Transaktionen anzeigen",
@@ -135,6 +149,15 @@
     "showApiKeys": "API-Schlüssel anzeigen",
     "showAttachment": "Anhang anzeigen"
   },
+  "DrawerLinks": {
+    "transactions": "Transaktionen",
+    "recurringPayments": "Wiederkehrende Zahlungen",
+    "recurringpayments": "Wiederkehrende Zahlungen",
+    "paymentMethods": "Zahlungsmethoden",
+    "paymentmethods": "Zahlungsmethoden",
+    "categories": "Kategorien",
+    "attachments": "Anhänge"
+  },
   "Actions": {
     "add": "Hinzufügen",
     "close": "Schließen"
@@ -153,7 +176,8 @@
     "attachment": "Anhang",
     "attachments": "Anhänge",
     "apiKey": "API-Schlüssel",
-    "apiKeys": "API-Schlüssel"
+    "apiKeys": "API-Schlüssel",
+    "apikeys": "API-Schlüssel"
   },
   "BatchDialog": {
     "validationErrors": "Validierungsfehler",
@@ -231,6 +255,12 @@
     "confirmDelete": "Möchtest du dieses Budget wirklich löschen?"
   },
   "RecurringPaymentTable": {
+    "executionPlan": "Ausführungsplan",
+    "paused": "Pausiert",
+    "batchCategory": "Kategorie",
+    "batchPaymentMethod": "Zahlungsmethode",
+    "batchAmount": "Betrag",
+    "firstExecutionDateRequired": "Das erste Ausführungsdatum ist erforderlich",
     "firstExecutionDate": "Erstes Ausführungsdatum",
     "category": "Kategorie",
     "noCategoriesFound": "Keine Kategorien gefunden",
@@ -427,12 +457,48 @@
     "usage": "Auslastung"
   },
   "TransactionTable": {
+    "confirmDeleteSingle": "Möchtest du diese Transaktion wirklich löschen?",
+    "confirmDeleteMultiple": "{count, plural, one {Möchtest du diese Transaktion wirklich löschen?} other {Möchtest du diese # Transaktionen wirklich löschen?}}",
+    "batchProcessedAt": "Datum",
+    "batchAmount": "Betrag",
+    "batchCategory": "Kategorie",
+    "batchPaymentMethod": "Zahlungsmethode",
+    "title": "Transaktionen",
+    "subtitle": "Verwalte deine Transaktionen",
+    "searchPlaceholder": "Transaktionen suchen…",
+    "searchInputPlaceholder": "Transaktionen suchen...",
+    "noTransactionsFound": "Keine Transaktionen gefunden",
+    "noTransactionsFoundFor": "Keine Transaktionen für \"{keyword}\" gefunden",
+    "transaction": "Transaktion",
+    "createNewTransaction": "Neue Transaktion erstellen",
+    "editTransaction": "Transaktion bearbeiten",
+    "processedAt": "Buchungsdatum",
+    "category": "Kategorie",
+    "paymentMethod": "Zahlungsmethode",
+    "receiver": "Empfänger",
+    "transferAmount": "Betrag",
+    "information": "Informationen",
+    "noCategoriesFound": "Keine Kategorien gefunden",
+    "noPaymentMethodsFound": "Keine Zahlungsmethoden gefunden",
+    "noReceiversFound": "Keine Empfänger gefunden",
     "retry": "Erneut versuchen",
     "new": "Neu",
     "viewAttachments": "Anhänge anzeigen",
     "addTransaction": "Transaktion hinzufügen"
   },
   "CategoryTable": {
+    "batchName": "Name",
+    "batchDescription": "Beschreibung",
+    "title": "Kategorien",
+    "subtitle": "Verwalte deine Kategorien",
+    "searchPlaceholder": "Kategorien suchen…",
+    "noCategoriesFound": "Keine Kategorien gefunden",
+    "noCategoriesFoundFor": "Keine Kategorien für \"{keyword}\" gefunden",
+    "category": "Kategorie",
+    "createNewCategory": "Neue Kategorie erstellen",
+    "editCategory": "Kategorie bearbeiten",
+    "name": "Name",
+    "description": "Beschreibung",
     "retry": "Erneut versuchen",
     "addCategory": "Kategorie hinzufügen"
   },
@@ -475,6 +541,15 @@
     "amount": "Betrag"
   },
   "CommandPalette": {
+    "openDashboard": "Dashboard öffnen",
+    "openSettings": "Einstellungen öffnen",
+    "openApiKeys": "API-Schlüssel öffnen",
+    "logout": "Abmelden",
+    "loggedOut": "Du wurdest abgemeldet.",
+    "logoutFailed": "Abmeldung fehlgeschlagen. Bitte versuche es erneut.",
+    "navigationSection": "Navigation",
+    "settingsSection": "Einstellungen",
+    "sessionSection": "Sitzung",
     "keyboardShortcuts": "Tastenkürzel",
     "searchCommands": "Befehle suchen...",
     "navigate": "Navigieren",
@@ -498,9 +573,36 @@
     "categories": "Kategorien",
     "transactions": "Transaktionen",
     "paymentMethods": "Zahlungsmethoden",
-    "recurringPayments": "Wiederkehrende Zahlungen"
+    "recurringPayments": "Wiederkehrende Zahlungen",
+    "attachments": "Anhänge",
+    "attachmentsDescription": "Alle Anhänge deiner Transaktionen an einem Ort"
+  },
+  "AllAttachments": {
+    "noAttachments": "Es wurden noch keine Anhänge hinzugefügt"
+  },
+  "ProfileHeader": {
+    "profile": "Profil",
+    "apiKeys": "API-Schlüssel"
   },
   "PaymentMethodTable": {
+    "batchName": "Name",
+    "batchProvider": "Anbieter",
+    "batchAddress": "Adresse",
+    "batchDescription": "Beschreibung",
+    "title": "Zahlungsmethoden",
+    "subtitle": "Verwalte deine Zahlungsmethoden",
+    "searchPlaceholder": "Zahlungsmethoden suchen…",
+    "noPaymentMethodsFound": "Keine Zahlungsmethoden gefunden",
+    "noPaymentMethodsFoundFor": "Keine Zahlungsmethoden für \"{keyword}\" gefunden",
+    "paymentMethod": "Zahlungsmethode",
+    "createNewPaymentMethod": "Neue Zahlungsmethode erstellen",
+    "editPaymentMethod": "Zahlungsmethode bearbeiten",
+    "name": "Name",
+    "address": "Adresse",
+    "addressPlaceholder": "IBAN, E-Mail-Adresse, Wallet-Adresse usw.",
+    "provider": "Anbieter",
+    "providerPlaceholder": "Visa, Mastercard, PayPal usw.",
+    "description": "Beschreibung",
     "add": "Zahlungsmethode hinzufügen",
     "retry": "Erneut versuchen"
   },

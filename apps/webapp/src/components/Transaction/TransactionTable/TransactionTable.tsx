@@ -412,16 +412,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         {
           type: 'date',
           name: 'processedAt',
-          label: 'Processed at',
-          placeholder: 'Processed at',
+          label: t('processedAt'),
+          placeholder: t('processedAt'),
           required: true,
         },
         {
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'category',
-          label: 'Category',
-          placeholder: 'Category',
+          label: t('category'),
+          placeholder: t('category'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.category.getValueHelp();
@@ -437,14 +437,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           isOptionEqualToValue(option: TCategoryVH, value: TCategoryVH) {
             return option.id === value.id;
           },
-          noOptionsText: 'No categories found',
+          noOptionsText: t('noCategoriesFound'),
         },
         {
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'paymentMethod',
-          label: 'Payment Method',
-          placeholder: 'Payment Method',
+          label: t('paymentMethod'),
+          placeholder: t('paymentMethod'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [paymentMethods, error] = await apiClient.backend.paymentMethod.getValueHelp();
@@ -460,13 +460,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           isOptionEqualToValue(option: TPaymentMethodVH, value: TPaymentMethodVH) {
             return option.id === value.id;
           },
-          noOptionsText: 'No payment methods found',
+          noOptionsText: t('noPaymentMethodsFound'),
         },
         {
           type: 'autocomplete',
           name: 'receiver',
-          label: 'Receiver',
-          placeholder: 'Receiver',
+          label: t('receiver'),
+          placeholder: t('receiver'),
           required: true,
           retrieveOptionsFunc: async () => {
             const [categories, error] = await apiClient.backend.transaction.getReceiverVH();
@@ -507,13 +507,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
               </li>
             );
           },
-          noOptionsText: 'No receivers found',
+          noOptionsText: t('noReceiversFound'),
         },
         {
           type: 'number',
           name: 'transferAmount',
-          label: 'Transfer Amount',
-          placeholder: 'Transfer Amount',
+          label: t('transferAmount'),
+          placeholder: t('transferAmount'),
           required: true,
           slotProps: {
             input: {
@@ -524,8 +524,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         {
           type: 'text',
           name: 'information',
-          label: 'Information',
-          placeholder: 'Information',
+          label: t('information'),
+          placeholder: t('information'),
           area: true,
           rows: 2,
         },
@@ -659,8 +659,20 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
   );
 
   const batchColumns = React.useMemo(
-    () => transactionBatchColumns({categories: batchCategories, paymentMethods: batchPaymentMethods}),
-    [batchCategories, batchPaymentMethods],
+    () =>
+      transactionBatchColumns({
+        categories: batchCategories,
+        paymentMethods: batchPaymentMethods,
+        labels: {
+          processedAt: t('batchProcessedAt'),
+          category: t('batchCategory'),
+          paymentMethod: t('batchPaymentMethod'),
+          receiver: t('receiver'),
+          amount: t('batchAmount'),
+          information: t('information'),
+        },
+      }),
+    [batchCategories, batchPaymentMethods, t],
   );
 
   const slice: EntitySlice<TExpandedTransaction> = React.useMemo(
@@ -697,11 +709,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         dataKey="id"
         columns={columns}
         toolbar={{
-          title: 'Transactions',
-          subtitle: 'Manage your transactions',
+          title: t('title'),
+          subtitle: t('subtitle'),
           showCount: true,
           showSearch: true,
-          searchPlaceholder: 'Search transactions…',
+          searchPlaceholder: t('searchInputPlaceholder'),
           searchDefaultValue: initialFilters?.keyword ?? undefined,
           onSearch: handleTextSearch,
           actions: [
@@ -729,7 +741,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             />
           ),
         }}
-        emptyMessage={filters.keyword ? `No transactions found for "${filters.keyword}"` : 'No transactions found'}
+        emptyMessage={
+          filters.keyword ? t('noTransactionsFoundFor', {keyword: filters.keyword}) : t('noTransactionsFound')
+        }
         emptyState={
           transactions !== null && totalEntityCount === 0 && !hasActiveFilters
             ? {
@@ -774,8 +788,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       />
 
       <EntityDrawer<EntityFormFields>
-        title={'Transaction'}
-        subtitle={drawerState.action === 'CREATE' ? 'Create new transaction' : 'Edit transaction'}
+        title={t('transaction')}
+        subtitle={drawerState.action === 'CREATE' ? t('createNewTransaction') : t('editTransaction')}
         open={drawerState.isOpen}
         onSubmit={handleFormSubmission}
         onClose={closeEntityDrawer}
@@ -797,9 +811,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
       <DeleteDialog
         open={deleteDialogState.isOpen}
         text={{
-          content: !Array.isArray(deleteDialogState.target)
-            ? 'Are you sure you want to delete this transaction?'
-            : `Are you sure you want to delete these ${deleteDialogState.target.length} transactions?`,
+          content: Array.isArray(deleteDialogState.target)
+            ? t('confirmDeleteMultiple', {count: deleteDialogState.target.length})
+            : t('confirmDeleteSingle'),
         }}
         onCancel={() => {
           dispatchDeleteDialogAction({action: 'CLOSE'});

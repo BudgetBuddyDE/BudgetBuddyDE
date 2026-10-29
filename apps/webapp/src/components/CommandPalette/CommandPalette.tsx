@@ -31,8 +31,10 @@ const commandMatchesQuery = (command: Command, query: string) => {
 const SECTION_ORDER: Record<string, number> = {
   Navigation: 0,
   Actions: 1,
-  Settings: 2,
-  Session: 3,
+  Einstellungen: 2,
+  Sitzung: 3,
+  Navigieren: 0,
+  Aktionen: 1,
 };
 
 export const CommandPalette: React.FC = () => {

@@ -1,4 +1,5 @@
 import {Grid, Skeleton} from '@mui/material';
+import {getTranslations} from 'next-intl/server';
 import React from 'react';
 import {apiClient} from '@/apiClient';
 import {ErrorAlert} from '@/components/ErrorAlert';
@@ -9,6 +10,7 @@ import {AllAttachmentsClient} from './AllAttachmentsClient';
 const attachmentSkeletonKeys = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5', 'skeleton-6'];
 
 export default async function AttachmentsPage() {
+  const t = await getTranslations('PageTitles');
   const [result, error] = await apiClient.backend.transaction.getAllTransactionAttachments(
     {from: 0, to: 20},
     {headers: await headers()},
@@ -19,7 +21,7 @@ export default async function AttachmentsPage() {
   );
 
   return (
-    <ContentGrid title={'Attachments'} description="All your transaction attachments in one place">
+    <ContentGrid title={t('attachments')} description={t('attachmentsDescription')}>
       <Grid size={{xs: 12}}>
         {error ? <ErrorAlert error={error} /> : null}
         <React.Suspense
