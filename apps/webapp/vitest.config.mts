@@ -22,6 +22,7 @@ export default mergeConfig(
       // VM workers exhaust Windows file handles while loading the MUI icon barrel.
       pool: 'forks',
       maxWorkers: 6,
+      isolate: false,
       // Vitest requires a separate execution group for this project's worker limit.
       sequence: {groupOrder: 1},
       deps: {
