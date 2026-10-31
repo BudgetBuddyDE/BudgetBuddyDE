@@ -2,8 +2,8 @@ import type {TInsightsReport} from '@budgetbuddyde/api/insights';
 import {Box, FormControl, Grid, InputLabel, MenuItem, Select} from '@mui/material';
 import {useTranslations} from 'next-intl';
 import React from 'react';
+import {Balance} from '@/components/Balance';
 import {Card} from '@/components/Card';
-import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {ReportTable} from '../ReportTable/ReportTable';
 
@@ -49,10 +49,10 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
                 rightAlignedColumns={[1, 2, 3, 4, 5]}
                 rows={selectedCategoryRows.map(row => [
                   row.category.name,
-                  Formatter.currency.formatBalance(row[categoryMetric].value, currency),
-                  Formatter.currency.formatBalance(row.expenses.value, currency),
-                  Formatter.currency.formatBalance(row.income.value, currency),
-                  Formatter.currency.formatBalance(row.balance.value, currency),
+                  <Balance amount={row[categoryMetric].value} currency={currency} />,
+                  <Balance amount={row.expenses.value} currency={currency} />,
+                  <Balance amount={row.income.value} currency={currency} />,
+                  <Balance amount={row.balance.value} currency={currency} />,
                   row.expenseShare.toFixed(1) + '%',
                 ])}
               />
@@ -91,7 +91,7 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
                     row.paymentMethod.name,
                     String(row.transactionCount.value),
                     row.usageShare.toFixed(1) + '%',
-                    Formatter.currency.formatBalance(row.expenses.value, currency),
+                    <Balance amount={row.expenses.value} currency={currency} />,
                   ])}
               />
             </Card.Body>
@@ -112,9 +112,9 @@ export const InsightsReportAnalysis: React.FC<InsightsReportAnalysisProps> = ({r
               rightAlignedColumns={[1, 2, 3, 4]}
               rows={report.budgets.map(row => [
                 row.name,
-                Formatter.currency.formatBalance(row.budget, currency),
-                Formatter.currency.formatBalance(row.spent, currency),
-                Formatter.currency.formatBalance(row.remaining, currency),
+                <Balance amount={row.budget} currency={currency} />,
+                <Balance amount={row.spent} currency={currency} />,
+                <Balance amount={row.remaining} currency={currency} />,
                 row.utilization.toFixed(1) + '%',
               ])}
             />

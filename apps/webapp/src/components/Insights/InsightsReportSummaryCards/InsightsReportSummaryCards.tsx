@@ -3,7 +3,7 @@ import {Grid} from '@mui/material';
 import {useFormatter, useTranslations} from 'next-intl';
 import React from 'react';
 import {StatsCard} from '@/components/Analytics/StatsCard';
-import {Formatter} from '@/utils/Formatter';
+import {Balance} from '@/components/Balance';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 type SummaryMetric = TInsightsReport['summary']['income'];
@@ -25,25 +25,25 @@ export const InsightsReportSummaryCards: React.FC<InsightsReportSummaryCardsProp
     icon: 'balance' | 'receipt' | 'requestQuote' | 'savings' | 'trendingDown' | 'trendingUp';
     label: string;
     metric: SummaryMetric;
-    format: (value: number) => string;
+    format: (value: number) => React.ReactNode;
   }[] = [
     {
       icon: 'trendingUp',
       label: t('income'),
       metric: summary.income,
-      format: value => Formatter.currency.formatBalance(value, currency),
+      format: value => <Balance amount={value} currency={currency} />,
     },
     {
       icon: 'trendingDown',
       label: t('expenses'),
       metric: summary.expenses,
-      format: value => Formatter.currency.formatBalance(value, currency),
+      format: value => <Balance amount={value} currency={currency} />,
     },
     {
       icon: 'balance',
       label: t('netCashFlow'),
       metric: summary.balance,
-      format: value => Formatter.currency.formatBalance(value, currency),
+      format: value => <Balance amount={value} currency={currency} />,
     },
     {
       icon: 'savings',
@@ -61,7 +61,7 @@ export const InsightsReportSummaryCards: React.FC<InsightsReportSummaryCardsProp
       icon: 'requestQuote',
       label: t('averageExpense'),
       metric: summary.expenses,
-      format: value => Formatter.currency.formatBalance(value, currency),
+      format: value => <Balance amount={value} currency={currency} />,
     },
   ];
 

@@ -5,7 +5,7 @@ import {Card} from '@/components/Card';
 
 export type ReportTableProps = {
   headers: string[];
-  rows: string[][];
+  rows: React.ReactNode[][];
   rightAlignedColumns?: number[];
 };
 

@@ -23,6 +23,7 @@ import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
 import {ActionPaper} from '@/components/ActionPaper';
+import {Balance} from '@/components/Balance';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -590,7 +591,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         width: 112,
         renderCell: value => (
           <Typography variant="body2" noWrap>
-            {Formatter.currency.formatBalance(value as number, currency)}
+            <Balance amount={value as number} currency={currency} />
           </Typography>
         ),
       },
