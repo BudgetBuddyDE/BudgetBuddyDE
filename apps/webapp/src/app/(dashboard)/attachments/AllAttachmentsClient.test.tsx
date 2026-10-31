@@ -1,10 +1,11 @@
 'use client';
 
 import type {TAttachmentWithUrl} from '@budgetbuddyde/api/attachment';
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vite-plus/test';
 
 import {apiClient} from '@/apiClient';
+import {renderWithLocale} from '@/test/render';
 
 const {noResultsMock} = vi.hoisted(() => ({noResultsMock: vi.fn()}));
 
@@ -53,7 +54,7 @@ const makeAttachment = (id: number): TAttachmentWithUrl => ({
 
 describe('AllAttachmentsClient', () => {
   it('elevates the empty state above the page background', () => {
-    render(<AllAttachmentsClient initialAttachments={[]} />);
+    renderWithLocale(<AllAttachmentsClient initialAttachments={[]} />);
 
     expect(noResultsMock).toHaveBeenCalledWith(expect.objectContaining({sx: {boxShadow: 6}}), undefined);
   });
@@ -66,7 +67,7 @@ describe('AllAttachmentsClient', () => {
       null,
     ]);
 
-    render(<AllAttachmentsClient initialAttachments={initialAttachments} initialTotalCount={25} />);
+    renderWithLocale(<AllAttachmentsClient initialAttachments={initialAttachments} initialTotalCount={25} />);
 
     expect(screen.getAllByText(/attachment-\d+\.png/)).toHaveLength(20);
     fireEvent.click(screen.getByRole('button', {name: /load more/i}));
