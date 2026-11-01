@@ -457,7 +457,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             return paymentMethods ?? [];
           },
           getOptionLabel: (option: TPaymentMethodVH) => {
-            return option.name;
+            return `${option.name} (${option.provider})`;
           },
           isOptionEqualToValue(option: TPaymentMethodVH, value: TPaymentMethodVH) {
             return option.id === value.id;
