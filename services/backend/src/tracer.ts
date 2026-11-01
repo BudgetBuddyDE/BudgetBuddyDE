@@ -22,6 +22,7 @@ export const setupTracing = (serviceName: string) => {
     spanProcessors: [new BatchSpanProcessor({exporter})],
     sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
   });
+  tracerProvider = provider;
   registerInstrumentations({
     tracerProvider: provider,
     instrumentations: [
@@ -36,12 +37,18 @@ export const setupTracing = (serviceName: string) => {
 
   // This shutdown is important to ensure that buffered tracing data is
   // flushed on process shutdown (e.g. for `pnpm run client`).
-  process.once('beforeExit', async () => {
-    await provider.shutdown();
+  process.once('beforeExit', () => {
+    void provider.shutdown().catch(() => undefined);
   });
 
   return trace.getTracer(serviceName);
 };
+
+let tracerProvider: NodeTracerProvider | undefined;
+
+export async function shutdownTracing(): Promise<void> {
+  await tracerProvider?.shutdown();
+}
 
 type FilterFunction = (spanName: string, spanKind: SpanKind, attributes: Attributes) => boolean;
 

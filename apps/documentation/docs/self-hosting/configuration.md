@@ -33,7 +33,10 @@ The backend serves domain routes, Better Auth under `/api/auth/*`, and MCP at `/
 | `LOG_LEVEL`                                   | No          | `INFO`                                       | Log verbosity.                                                                                                                                |
 | `LOG_HIDE_META`                               | No          | `false`                                      | Hide request metadata from logs.                                                                                                              |
 | `TIMEZONE`                                    | No          | `Europe/Berlin`                              | Recurring-payment job and monthly budget calculations.                                                                                        |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`                 | No          | `http://localhost:4318`                      | Trace destination when started with instrumentation.                                                                                          |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`                 | No          | Unset                                        | Enables backend OTLP/HTTP log and trace export to this base URL.                                                                              |
+| `OTEL_SERVICE_NAME`                           | No          | Backend package name                         | Service name used for exported logs and traces.                                                                                               |
+| `OTEL_EXPORTER_OTLP_PROTOCOL`                 | No          | `http/protobuf`                              | OTLP transport; use `http/protobuf` for the Grafana stack.                                                                                    |
+| `OTEL_EXPORTER_OTLP_HEADERS`                  | No          | Unset                                        | OTLP headers, for example Basic Auth; store as a secret.                                                                                      |
 
 All five `AWS_*` values must be set together for attachments. Auth and cache Redis may use the same server with separate database indices.
 
@@ -84,15 +87,20 @@ All transactional emails go through [Resend](https://resend.com). Create an API 
 
 Attachments work with any S3-compatible storage. Set all five `AWS_*` variables in `services/backend/.env`. BudgetBuddy uses virtual-hosted-style addressing, so the endpoint must support it. The bucket needs permissions for read, write, and delete of objects.
 
-## Tracing (OpenTelemetry)
+## Backend logs and traces (OpenTelemetry)
 
-The backend ships with OpenTelemetry tracing for the HTTP and Express layers, including MCP. Regular `pnpm start` runs without tracing; start the backend with instrumentation to enable it:
+The normal backend and Docker production start loads instrumentation before HTTP and Express. Set `OTEL_EXPORTER_OTLP_ENDPOINT` to enable OTLP/HTTP log and trace export; when it is unset, export is disabled and console logging remains available. The existing `start:instrumentation` command remains supported. The `dev` command does not preload instrumentation.
 
 ```bash
-pnpm --filter @budgetbuddyde/backend run start:instrumentation
+OTEL_SERVICE_NAME=budgetbuddy-backend
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otel.example.com
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic%20BASE64_USERNAME_AND_PASSWORD
 ```
 
-Traces are exported via OTLP to the endpoint configured with `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), so any OTLP-compatible collector or backend such as Jaeger or Grafana Tempo works. Health-check requests to `/health` are filtered out and not sampled.
+Use the base URL without `/v1/logs` or `/v1/traces`; the exporter adds the appropriate path. For the homelab stack use its OTLP gateway and an individual service credential. Generate the header from the gateway credentials and store it in your deployment's secret manager, not in a committed file. Basic Auth is not encryption: use HTTPS for a remote collector. Local host-only testing can use `http://127.0.0.1:14318`.
+
+HTTP and Express requests, including MCP, are traced; `/health` server spans are filtered. Existing console logs are also exported with their metadata and active trace context. Known credential fields and recognizable credentials in text are redacted before log export, but arbitrary secrets cannot be detected reliably. Existing logs may contain user IDs, IP addresses, and URLs; review their contents and your retention policy before enabling export. Export failures do not block requests, and shutdown waits at most five seconds for telemetry to flush.
 
 The web app uses Next.js' built-in instrumentation instead. Server-side tracing is enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` (Next.js spans for routing, rendering, and fetch are emitted automatically; set `NEXT_OTEL_VERBOSE=1` to see more). Client-side tracing is enabled by setting `NEXT_PUBLIC_OTEL_ENDPOINT` - it is inlined at build time, so set it before `vp run build`. Because the browser sends spans directly to the collector, the collector must allow cross-origin requests from your web app origin (for example, Jaeger with `--collector.otlp.http.cors.allowed-origins=https://your-app-origin`).
 

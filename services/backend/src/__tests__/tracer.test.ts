@@ -58,12 +58,12 @@ beforeEach(() => {
   parentSample.mockReturnValue({decision: SamplingDecision.RECORD_AND_SAMPLED});
 });
 afterEach(() => vi.restoreAllMocks());
-it('registers HTTP and Express instrumentation and flushes on shutdown', async () => {
-  let beforeExit: (() => Promise<void>) | undefined;
+it('registers HTTP and Express instrumentation and flushes on shutdown', () => {
+  let beforeExit: (() => void) | undefined;
   const originalOnce = process.once.bind(process);
   vi.spyOn(process, 'once').mockImplementation(((event: string, callback: (...args: unknown[]) => void) => {
     if (event === 'beforeExit') {
-      beforeExit = callback as () => Promise<void>;
+      beforeExit = callback as () => void;
       return process;
     }
     return originalOnce(event, callback);
@@ -76,7 +76,7 @@ it('registers HTTP and Express instrumentation and flushes on shutdown', async (
     instrumentations: [expect.anything(), expect.anything()],
   });
   expect(provider.register).toHaveBeenCalledOnce();
-  await beforeExit!();
+  beforeExit!();
   expect(provider.shutdown).toHaveBeenCalledOnce();
 });
 it('suppresses server health spans while sampling other routes and client calls', () => {
@@ -99,10 +99,30 @@ it('suppresses server health spans while sampling other routes and client calls'
 it('initializes instrumentation with the configured service name', async () => {
   vi.resetModules();
   const setup = vi.fn();
+  const setupLogs = vi.fn();
+  vi.stubEnv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://localhost:4318');
+  vi.stubEnv('OTEL_SERVICE_NAME', 'backend-unit');
   vi.doMock('../tracer', () => ({setupTracing: setup}));
-  vi.doMock('../config', () => ({config: {service: 'backend-unit'}}));
+  vi.doMock('../telemetry', () => ({setupLogs}));
   await import('../instrumentation');
   expect(setup).toHaveBeenCalledWith('backend-unit');
+  expect(setupLogs).toHaveBeenCalledWith('backend-unit');
   vi.doUnmock('../tracer');
-  vi.doUnmock('../config');
+  vi.doUnmock('../telemetry');
+  vi.unstubAllEnvs();
+});
+
+it('leaves export disabled without an endpoint', async () => {
+  vi.resetModules();
+  const setup = vi.fn();
+  const setupLogs = vi.fn();
+  vi.stubEnv('OTEL_EXPORTER_OTLP_ENDPOINT', '');
+  vi.doMock('../tracer', () => ({setupTracing: setup}));
+  vi.doMock('../telemetry', () => ({setupLogs}));
+  await import('../instrumentation');
+  expect(setup).not.toHaveBeenCalled();
+  expect(setupLogs).not.toHaveBeenCalled();
+  vi.doUnmock('../tracer');
+  vi.doUnmock('../telemetry');
+  vi.unstubAllEnvs();
 });
