@@ -421,6 +421,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           type: 'autocomplete',
           name: 'category',
           label: t('category'),
+          keyName: 'id',
           placeholder: t('category'),
           required: true,
           retrieveOptionsFunc: async () => {
@@ -444,6 +445,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           type: 'autocomplete',
           name: 'paymentMethod',
           label: t('paymentMethod'),
+          keyName: 'id',
           placeholder: t('paymentMethod'),
           required: true,
           retrieveOptionsFunc: async () => {
@@ -455,7 +457,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
             return paymentMethods ?? [];
           },
           getOptionLabel: (option: TPaymentMethodVH) => {
-            return option.name;
+            return `${option.name} (${option.provider})`;
           },
           isOptionEqualToValue(option: TPaymentMethodVH, value: TPaymentMethodVH) {
             return option.id === value.id;
@@ -465,6 +467,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
         {
           type: 'autocomplete',
           name: 'receiver',
+          keyName: 'receiver',
           label: t('receiver'),
           placeholder: t('receiver'),
           required: true,
