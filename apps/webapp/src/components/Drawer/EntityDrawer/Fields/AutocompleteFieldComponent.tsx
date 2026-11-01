@@ -9,6 +9,7 @@ export type AutocompleteField<T extends FieldValues, Value> = Omit<
   BaseAttributes<
     {
       type: 'autocomplete';
+      keyName: string;
     },
     T
   >,
@@ -65,6 +66,7 @@ export const AutocompleteFieldComponent = <T extends FieldValues>({
             // REVISIT: autoSelect
             autoComplete
             isOptionEqualToValue={field.isOptionEqualToValue}
+            getOptionKey={option => String((option as Record<string, unknown>)[field.keyName])}
             filterOptions={field.filterOptions}
             renderOption={field.renderOption}
             multiple={field.multiple}
