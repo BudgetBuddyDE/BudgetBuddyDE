@@ -47,6 +47,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
       {
         type: 'autocomplete',
         name: 'sourceCategories',
+        keyName: 'id',
         label: t('source'),
         placeholder: t('selectSourceCategories'),
         required: true,
@@ -71,6 +72,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
       {
         type: 'autocomplete',
         name: 'targetCategory',
+        keyName: 'id',
         label: t('target'),
         placeholder: t('selectTargetCategory'),
         required: true,

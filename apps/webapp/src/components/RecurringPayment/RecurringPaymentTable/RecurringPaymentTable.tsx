@@ -474,6 +474,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'category',
+          keyName: 'id',
           label: t('category'),
           placeholder: t('category'),
           required: true,
@@ -497,6 +498,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           size: {xs: 12, md: 6},
           type: 'autocomplete',
           name: 'paymentMethod',
+          keyName: 'id',
           label: t('paymentMethod'),
           placeholder: t('paymentMethod'),
           required: true,
@@ -519,6 +521,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         {
           type: 'autocomplete',
           name: 'receiver',
+          keyName: 'receiver',
           label: t('receiver'),
           placeholder: t('receiver'),
           required: true,

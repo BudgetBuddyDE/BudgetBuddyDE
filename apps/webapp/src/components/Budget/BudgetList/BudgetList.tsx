@@ -327,6 +327,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
       {
         type: 'autocomplete',
         name: 'toCategories',
+        keyName: 'id',
         label: t('categories'),
         placeholder: t('selectCategories'),
         required: true,

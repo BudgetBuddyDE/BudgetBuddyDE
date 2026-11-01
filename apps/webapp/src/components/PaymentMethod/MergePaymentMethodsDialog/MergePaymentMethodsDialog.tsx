@@ -47,6 +47,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'sourcePaymentMethods',
+        keyName: 'id',
         label: t('source'),
         placeholder: t('selectSourcePaymentMethods'),
         required: true,
@@ -71,6 +72,7 @@ export const MergePaymentMethodsDialog: React.FC<MergePaymentMethodsDialogProps>
       {
         type: 'autocomplete',
         name: 'targetPaymentMethod',
+        keyName: 'id',
         label: t('target'),
         placeholder: t('selectTargetPaymentMethod'),
         required: true,
