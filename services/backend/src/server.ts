@@ -28,6 +28,7 @@ import {
   RecurringPaymentRouter,
   TransactionRouter,
 } from './router';
+import {shutdownTelemetry} from './telemetry';
 
 const HEALTH_CHECK_TIMEOUT_MS = 2000;
 
@@ -191,6 +192,7 @@ async function stopServer(server: Server, signal: NodeJS.Signals): Promise<void>
   await Promise.allSettled([pool.end(), closeRedis()]);
   destroyS3Client();
   logger.info('Shutdown complete');
+  await shutdownTelemetry();
   process.exit(0);
 }
 
