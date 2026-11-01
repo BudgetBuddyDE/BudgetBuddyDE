@@ -48,11 +48,14 @@ The example client's `BUDGETBUDDY_BACKEND_URL` remains supported, as documented 
 
 ## Web app (`apps/webapp/.env`)
 
-| Variable                           | Required | Default | Description                                                          |
-| ---------------------------------- | -------- | ------- | -------------------------------------------------------------------- |
-| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Yes      | -       | Public URL of the backend, for example `http://localhost:9000`.      |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`      | No       | -       | Set to enable server-side tracing via the OTLP endpoint (see below). |
-| `NEXT_PUBLIC_OTEL_ENDPOINT`        | No       | -       | Set to enable client-side tracing via the OTLP endpoint (see below). |
+| Variable                           | Required | Default             | Description                                                          |
+| ---------------------------------- | -------- | ------------------- | -------------------------------------------------------------------- |
+| `NEXT_PUBLIC_BACKEND_SERVICE_HOST` | Yes      | -                   | Public URL of the backend, for example `http://localhost:9000`.      |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`      | No       | -                   | Set to enable server-side OTLP logs and traces (see below).          |
+| `OTEL_SERVICE_NAME`                | No       | Webapp package name | Server-side service name, for example `budgetbuddy-webapp`.          |
+| `OTEL_EXPORTER_OTLP_PROTOCOL`      | No       | `http/protobuf`     | OTLP/HTTP transport for the Grafana stack.                           |
+| `OTEL_EXPORTER_OTLP_HEADERS`       | No       | -                   | Server-side OTLP headers; store Basic Auth in runtime secrets.       |
+| `NEXT_PUBLIC_OTEL_ENDPOINT`        | No       | -                   | Set to enable client-side tracing via the OTLP endpoint (see below). |
 
 > `NEXT_PUBLIC_*` variables are inlined during the build. Set them before running `vp run build`, and rebuild after changing them.
 
@@ -102,7 +105,20 @@ Use the base URL without `/v1/logs` or `/v1/traces`; the exporter adds the appro
 
 HTTP and Express requests, including MCP, are traced; `/health` server spans are filtered. Existing console logs are also exported with their metadata and active trace context. Known credential fields and recognizable credentials in text are redacted before log export, but arbitrary secrets cannot be detected reliably. Existing logs may contain user IDs, IP addresses, and URLs; review their contents and your retention policy before enabling export. Export failures do not block requests, and shutdown waits at most five seconds for telemetry to flush.
 
-The web app uses Next.js' built-in instrumentation instead. Server-side tracing is enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` (Next.js spans for routing, rendering, and fetch are emitted automatically; set `NEXT_OTEL_VERBOSE=1` to see more). Client-side tracing is enabled by setting `NEXT_PUBLIC_OTEL_ENDPOINT` - it is inlined at build time, so set it before `vp run build`. Because the browser sends spans directly to the collector, the collector must allow cross-origin requests from your web app origin (for example, Jaeger with `--collector.otlp.http.cors.allowed-origins=https://your-app-origin`).
+## Web app logs and traces (OpenTelemetry)
+
+The Node.js web app uses Next.js instrumentation to export server-side logs and traces when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. Set the following **runtime environment variables on the server**, not as `NEXT_PUBLIC_*` variables:
+
+```text
+OTEL_SERVICE_NAME=budgetbuddy-webapp
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otel.example.com
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic%20BASE64_USERNAME_AND_PASSWORD
+```
+
+Use the collector base URL without `/v1/logs` or `/v1/traces`. Store the header as a secret and use HTTPS for remote collectors. With the endpoint unset, the web app keeps console logging and does not export server telemetry. Existing server logs retain their metadata; known credential fields and recognizable credentials in text are redacted before export. This cannot identify every secret in free text. Next.js spans cover routing, rendering, and fetch; `NEXT_OTEL_VERBOSE=1` enables more spans. Shutdown starts a bounded best-effort flush alongside Next.js shutdown; abrupt termination can lose buffered data.
+
+Client-side tracing remains separately enabled only by `NEXT_PUBLIC_OTEL_ENDPOINT`, which is inlined at build time. Do not expose Basic Auth credentials in `NEXT_PUBLIC_*` variables or browser code. A browser collector endpoint must allow cross-origin requests from your web app origin.
 
 ## Next step
 

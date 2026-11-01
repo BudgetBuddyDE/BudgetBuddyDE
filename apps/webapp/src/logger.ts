@@ -1,9 +1,10 @@
 import {createLogger} from '@budgetbuddyde/logger';
 import {createConsoleSink, formatConsoleEvent} from '@budgetbuddyde/logger/console';
 import {webappConfig} from './config';
+import {forwardServerLog} from './telemetry-sink';
 
 export const logger = createLogger({
-  sinks: [createConsoleSink({formatter: formatConsoleEvent})],
+  sinks: [createConsoleSink({formatter: formatConsoleEvent}), forwardServerLog],
   context: {
     service: webappConfig.service,
     version: webappConfig.version,
