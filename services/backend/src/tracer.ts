@@ -4,6 +4,7 @@
  */
 
 import {trace, SpanKind, Attributes} from '@opentelemetry/api';
+import {AsyncLocalStorageContextManager} from '@opentelemetry/context-async-hooks';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-proto';
 import {registerInstrumentations} from '@opentelemetry/instrumentation';
 import {ExpressInstrumentation} from '@opentelemetry/instrumentation-express';
@@ -33,7 +34,7 @@ export const setupTracing = (serviceName: string) => {
   });
 
   // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
-  provider.register();
+  provider.register({contextManager: new AsyncLocalStorageContextManager().enable()});
 
   return trace.getTracer(serviceName);
 };

@@ -161,5 +161,6 @@ describe('integrated authentication configuration', () => {
       },
     });
     expect(config.cors.allowedHeaders).toContain('X-Api-Key');
+    expect(config.cors.allowedHeaders).toEqual(expect.arrayContaining(['traceparent', 'tracestate', 'baggage']));
   });
 });
