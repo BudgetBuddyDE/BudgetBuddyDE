@@ -1,7 +1,5 @@
 import {createLogger} from '@budgetbuddyde/logger';
-import {createConsoleSink, formatConsoleEvent} from '@budgetbuddyde/logger/console';
 import {config} from '../config';
-import {otelLogSink} from '../telemetry';
 
 export const logger = createLogger({
   context: {
@@ -10,5 +8,4 @@ export const logger = createLogger({
     runtime: config.runtime,
   },
   threshold: config.log?.level ?? 'info',
-  sinks: [createConsoleSink({formatter: formatConsoleEvent}), otelLogSink],
 });

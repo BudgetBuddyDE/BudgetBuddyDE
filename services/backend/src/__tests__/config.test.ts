@@ -1,5 +1,7 @@
+import {createServer} from 'node:http';
 import {BackendConfig} from '@budgetbuddyde/core/config/BackendConfig';
 import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSetError';
+import cors from 'cors';
 import {describe, expect, it} from 'vite-plus/test';
 import {AppConfig} from '../config';
 
@@ -13,6 +15,48 @@ function createConfig(environment: NodeJS.ProcessEnv = {}): AppConfig {
 }
 
 describe('AppConfig', () => {
+  it('allows W3C propagation headers in browser preflight requests from trusted origins', async () => {
+    const config = createConfig({
+      NODE_ENV: 'production',
+      BASE_URL: 'https://api.example.test',
+      TRUSTED_ORIGINS: 'https://app.example.test',
+    });
+    const corsMiddleware = cors(config.cors);
+    const server = createServer((request, response) => corsMiddleware(request, response, () => response.end()));
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+
+    try {
+      const address = server.address();
+      if (!address || typeof address === 'string') throw new Error('Expected an ephemeral TCP port');
+      const response = await fetch(`http://127.0.0.1:${address.port}/api/transactions`, {
+        method: 'OPTIONS',
+        headers: {
+          Origin: 'https://app.example.test',
+          'Access-Control-Request-Method': 'GET',
+          'Access-Control-Request-Headers': 'traceparent,tracestate,baggage',
+        },
+      });
+
+      expect(response.status).toBe(204);
+      expect(response.headers.get('access-control-allow-origin')).toBe('https://app.example.test');
+      expect(response.headers.get('access-control-allow-headers')).toContain('traceparent');
+      expect(response.headers.get('access-control-allow-headers')).toContain('tracestate');
+      expect(response.headers.get('access-control-allow-headers')).toContain('baggage');
+
+      const untrusted = await fetch(`http://127.0.0.1:${address.port}/api/transactions`, {
+        method: 'OPTIONS',
+        headers: {
+          Origin: 'https://evil.example.test',
+          'Access-Control-Request-Method': 'GET',
+          'Access-Control-Request-Headers': 'traceparent',
+        },
+      });
+      expect(untrusted.headers.has('access-control-allow-origin')).toBe(false);
+    } finally {
+      await new Promise<void>((resolve, reject) => server.close(error => (error ? reject(error) : resolve())));
+    }
+  });
+
   it('extends BackendConfig and applies backend defaults', () => {
     const config = createConfig({PORT: '9010', TIMEZONE: 'UTC'});
 
@@ -161,5 +205,6 @@ describe('integrated authentication configuration', () => {
       },
     });
     expect(config.cors.allowedHeaders).toContain('X-Api-Key');
+    expect(config.cors.allowedHeaders).toEqual(expect.arrayContaining(['traceparent', 'tracestate', 'baggage']));
   });
 });

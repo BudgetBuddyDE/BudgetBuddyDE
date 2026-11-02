@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node --require ./build/src/instrumentation.js build/src/server.js",
     "start:instrumentation": "pnpm run build && pnpm run start",
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --import ./src/instrumentation.ts src/server.ts",
     "build": "pnpm exec rimraf build && pnpm exec tsc",
     "pretest": "pnpm run check",
     "test": "vp test run --coverage",
@@ -39,6 +39,7 @@
     "@modelcontextprotocol/sdk": "^1.32.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.222.0",
+    "@opentelemetry/context-async-hooks": "^2.11.0",
     "@opentelemetry/exporter-logs-otlp-proto": "^0.222.0",
     "@opentelemetry/exporter-trace-otlp-proto": "^0.222.0",
     "@opentelemetry/instrumentation": "^0.222.0",

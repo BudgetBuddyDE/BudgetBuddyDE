@@ -4,6 +4,7 @@
  */
 
 import {trace, SpanKind, Attributes} from '@opentelemetry/api';
+import {AsyncLocalStorageContextManager} from '@opentelemetry/context-async-hooks';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-proto';
 import {registerInstrumentations} from '@opentelemetry/instrumentation';
 import {ExpressInstrumentation} from '@opentelemetry/instrumentation-express';
@@ -33,13 +34,7 @@ export const setupTracing = (serviceName: string) => {
   });
 
   // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
-  provider.register();
-
-  // This shutdown is important to ensure that buffered tracing data is
-  // flushed on process shutdown (e.g. for `pnpm run client`).
-  process.once('beforeExit', () => {
-    void provider.shutdown().catch(() => undefined);
-  });
+  provider.register({contextManager: new AsyncLocalStorageContextManager().enable()});
 
   return trace.getTracer(serviceName);
 };
