@@ -14,7 +14,7 @@ export interface LoggingOptions {
   level?: LogThreshold;
 }
 
-const levels = {trace: 0, debug: 1, info: 2, warn: 3, error: 4, silent: 5};
+const levels = {error: 0, warn: 1, info: 2, debug: 3, trace: 4};
 const severity: Record<LogEvent['level'], SeverityNumber> = {
   trace: SeverityNumber.TRACE,
   debug: SeverityNumber.DEBUG,
@@ -73,9 +73,11 @@ export function initializeLogging(options: LoggingOptions = {}): void {
   }
 
   const threshold = options.level ?? 'info';
+  const thresholdPriority = threshold === 'silent' ? Number.POSITIVE_INFINITY : levels[threshold];
   const appLogger = winston.createLogger({
     levels,
-    level: threshold,
+    level: threshold === 'silent' ? 'error' : threshold,
+    silent: threshold === 'silent',
     format: winston.format.printf(info => {
       const event = info.event as LogEvent | undefined;
       if (!event) return '';
@@ -110,6 +112,7 @@ export function initializeLogging(options: LoggingOptions = {}): void {
     transports: [new winston.transports.Console()],
   });
   registerLoggerDispatcher(event => {
+    if (levels[event.level] > thresholdPriority) return;
     try {
       appLogger.log({level: event.level, message: event.message, event});
     } catch {
