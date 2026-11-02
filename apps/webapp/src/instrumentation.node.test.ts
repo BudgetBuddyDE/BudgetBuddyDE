@@ -19,13 +19,18 @@ vi.mock('./telemetry-sink', () => ({registerServerLogSink: registerSink}));
 it('starts once and tolerates exporter failure during bounded shutdown', async () => {
   shutdown.mockRejectedValueOnce(new Error('collector unavailable'));
   const once = vi.spyOn(process, 'once').mockReturnValue(process);
+  const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
   const {shutdownTelemetry} = await import('./instrumentation.node');
   expect(start).toHaveBeenCalledOnce();
   expect(registerSink).toHaveBeenCalledOnce();
+  expect(info).toHaveBeenCalledWith(
+    '[OpenTelemetry] Server-side log and trace export is configured. Delivery has not been verified.',
+  );
   await expect(shutdownTelemetry()).resolves.toBeUndefined();
   await expect(shutdownTelemetry()).resolves.toBeUndefined();
   expect(shutdown).toHaveBeenCalledOnce();
   expect(once).toHaveBeenCalledTimes(3);
+  info.mockRestore();
   once.mockRestore();
 });
 
@@ -34,10 +39,12 @@ it('finishes shutdown when the exporter never responds', async () => {
   vi.useFakeTimers();
   shutdown.mockImplementationOnce(() => new Promise<void>(() => undefined));
   const once = vi.spyOn(process, 'once').mockReturnValue(process);
+  const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
   const {shutdownTelemetry} = await import('./instrumentation.node');
   const done = shutdownTelemetry();
   await vi.advanceTimersByTimeAsync(5000);
   await expect(done).resolves.toBeUndefined();
   once.mockRestore();
+  info.mockRestore();
   vi.useRealTimers();
 });

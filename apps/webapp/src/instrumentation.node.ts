@@ -19,6 +19,7 @@ const sdk = new NodeSDK({
 });
 sdk.start();
 registerServerLogSink(otelLogSink);
+console.info('[OpenTelemetry] Server-side log and trace export is configured. Delivery has not been verified.');
 
 let shuttingDown: Promise<void> | undefined;
 export function shutdownTelemetry(): Promise<void> {
