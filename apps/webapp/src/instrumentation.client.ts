@@ -8,15 +8,12 @@ import {name} from '../package.json';
 import {webappConfig} from './config';
 import {createBackendTraceUrlPattern} from './tracePropagation';
 
+const endpoint = process.env.NEXT_PUBLIC_OTEL_ENDPOINT?.trim().replace(/\/+$/, '');
 const provider = new WebTracerProvider({
   resource: resourceFromAttributes({
     [ATTR_SERVICE_NAME]: `${name}-browser`,
   }),
-  spanProcessors: [
-    new BatchSpanProcessor(
-      new OTLPTraceExporter({url: `${process.env.NEXT_PUBLIC_OTEL_ENDPOINT?.replace(/\/+$/, '')}/v1/traces`}),
-    ),
-  ],
+  spanProcessors: endpoint ? [new BatchSpanProcessor(new OTLPTraceExporter({url: `${endpoint}/v1/traces`}))] : [],
 });
 provider.register();
 
