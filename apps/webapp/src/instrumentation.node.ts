@@ -1,27 +1,38 @@
 import {getLogLevel} from '@budgetbuddyde/logger';
 import {initializeLogging, shutdownLogging} from '@budgetbuddyde/logger/node';
+import {AsyncLocalStorageContextManager} from '@opentelemetry/context-async-hooks';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-proto';
+import {registerInstrumentations} from '@opentelemetry/instrumentation';
+import {UndiciInstrumentation} from '@opentelemetry/instrumentation-undici';
 import {resourceFromAttributes} from '@opentelemetry/resources';
-import {NodeSDK} from '@opentelemetry/sdk-node';
+import {BatchSpanProcessor} from '@opentelemetry/sdk-trace';
+import {NodeTracerProvider} from '@opentelemetry/sdk-trace-node';
 import {ATTR_SERVICE_NAME} from '@opentelemetry/semantic-conventions';
 import {name} from '../package.json';
 import {webappConfig} from './config';
+const backendOrigin = new URL(webappConfig.backendServiceHost).origin;
+let provider: NodeTracerProvider | undefined;
 const service = process.env.OTEL_SERVICE_NAME?.trim() || name;
 initializeLogging({context: {service}, level: webappConfig.log.level ?? getLogLevel(process.env.LOG_LEVEL)});
-const sdk = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim()
-  ? new NodeSDK({
-      resource: resourceFromAttributes({[ATTR_SERVICE_NAME]: service}),
-      traceExporter: new OTLPTraceExporter(),
-      metricReaders: [],
-    })
-  : undefined;
-sdk?.start();
+if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim()) {
+  provider = new NodeTracerProvider({
+    resource: resourceFromAttributes({[ATTR_SERVICE_NAME]: service}),
+    spanProcessors: [new BatchSpanProcessor({exporter: new OTLPTraceExporter()})],
+  });
+  provider.register({contextManager: new AsyncLocalStorageContextManager().enable()});
+  registerInstrumentations({
+    tracerProvider: provider,
+    instrumentations: [
+      new UndiciInstrumentation({ignoreRequestHook: request => new URL(request.origin).origin !== backendOrigin}),
+    ],
+  });
+}
 
 let shuttingDown: Promise<void> | undefined;
 export function shutdownTelemetry(): Promise<void> {
   if (!shuttingDown) {
     shuttingDown = Promise.race([
-      Promise.allSettled([sdk?.shutdown(), shutdownLogging()]).then(() => undefined),
+      Promise.allSettled([provider?.shutdown(), shutdownLogging()]).then(() => undefined),
       new Promise<void>(resolve => {
         const timer = setTimeout(resolve, 5000);
         timer.unref();
