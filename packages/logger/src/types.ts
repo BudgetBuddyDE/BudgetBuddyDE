@@ -29,3 +29,9 @@ export interface LoggerOptions {
   context?: LogContext;
   threshold?: LogThreshold;
 }
+
+export interface ServiceContext extends LogContext {
+  service: string;
+  version?: string;
+  runtime?: string;
+}

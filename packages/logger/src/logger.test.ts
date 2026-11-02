@@ -99,6 +99,7 @@ describe('message normalization', () => {
     const event = normalizeLogEvent('error', 'Failed: %s', [error, 'retry', {requestId: 'request'}]);
 
     expect(event).toMatchObject({level: 'error', message: 'Failed: retry', requestId: 'request'});
-    expect(event.error).toBe(error);
+    expect(event.error).not.toBe(error);
+    expect(event.error).toMatchObject({message: 'failure'});
   });
 });

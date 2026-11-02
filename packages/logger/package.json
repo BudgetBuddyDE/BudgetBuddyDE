@@ -34,8 +34,8 @@
     "@types/node": "^24.0.14",
     "rimraf": "^6.0.1",
     "typescript": "^5.7.3",
-    "vitest": "5.0.5",
-    "vite-plus": "1.3.0"
+    "vite-plus": "1.3.0",
+    "vitest": "5.0.5"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -44,6 +44,11 @@
       "dev-source": "./src/index.ts",
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
+    },
+    "./node": {
+      "dev-source": "./src/node.ts",
+      "types": "./lib/node.d.ts",
+      "default": "./lib/node.js"
     },
     "./console": {
       "dev-source": "./src/console.ts",
@@ -56,10 +61,22 @@
       "*": [
         "./lib/index.d.ts"
       ],
+      "node": [
+        "./lib/node.d.ts"
+      ],
       "console": [
         "./lib/console.d.ts"
       ]
     }
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/api-logs": "^0.222.0",
+    "@opentelemetry/exporter-logs-otlp-proto": "^0.222.0",
+    "@opentelemetry/resources": "^2.11.0",
+    "@opentelemetry/sdk-logs": "^0.222.0",
+    "@opentelemetry/semantic-conventions": "^1.43.0",
+    "winston": "^3.19.0"
+  }
 }

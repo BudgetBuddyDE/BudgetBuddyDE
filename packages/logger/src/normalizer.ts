@@ -1,6 +1,40 @@
 import type {LogContext, LogEvent, LogLevel} from './types';
 
 const reservedEventFields = new Set(['level', 'message', 'error']);
+const sensitiveKey = /password|passwd|secret|token|authorization|api[-_.]?key|cookie|credential/i;
+const redacted = '[REDACTED]';
+
+export function redactText(value: string): string {
+  return value
+    .replace(/\b((?:set-)?cookie|authorization)\s*:\s*[^\r\n]*/gi, `$1: ${redacted}`)
+    .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9+/=_%-]+/gi, `$1 ${redacted}`)
+    .replace(/(https?:\/\/)[^\s/@:]+:[^\s/@]+@/gi, `$1${redacted}@`)
+    .replace(
+      /((?:["']?)(?:password|passwd|secret|[\w.-]*token|authorization|api[-_.]?key|cookie|credential)(?:["']?)\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s&,;}]+)/gi,
+      `$1${redacted}`,
+    );
+}
+
+function sanitize(value: unknown, seen = new WeakSet<object>(), depth = 0): unknown {
+  if (typeof value === 'string') return redactText(value);
+  if (typeof value === 'bigint') return value.toString();
+  if (value === null || typeof value !== 'object') return value;
+  if (depth > 8 || seen.has(value)) return '[Circular or too deep]';
+  seen.add(value);
+  if (value instanceof Error) {
+    const error = new Error(redactText(value.message));
+    error.name = value.name;
+    if (value.stack) error.stack = redactText(value.stack);
+    return error;
+  }
+  if (Array.isArray(value)) return value.map(item => sanitize(item, seen, depth + 1));
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [
+      key,
+      sensitiveKey.test(key) ? redacted : sanitize(item, seen, depth + 1),
+    ]),
+  );
+}
 
 function isPlainObject(value: unknown): value is LogContext {
   if (value === null || typeof value !== 'object') return false;
@@ -91,8 +125,8 @@ export function normalizeLogEvent(
     options.childContext,
     hasCallMetadata ? trailingArgument : undefined,
   );
-  const event: LogEvent = {...context, level, message: formatLogMessage(template, formatArgs)};
+  const event: LogEvent = {...context, level, message: redactText(formatLogMessage(template, formatArgs))};
 
-  if (errors[0]) event.error = errors[0];
-  return event;
+  if (errors[0]) event.error = sanitize(errors[0]) as Error;
+  return sanitize(event) as LogEvent;
 }
