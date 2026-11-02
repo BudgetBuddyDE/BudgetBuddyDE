@@ -71,12 +71,12 @@
   },
   "private": true,
   "dependencies": {
-    "@opentelemetry/api": "^1.9.1",
-    "@opentelemetry/api-logs": "^0.222.0",
-    "@opentelemetry/exporter-logs-otlp-proto": "^0.222.0",
+    "@opentelemetry/api": "^1.10.0",
+    "@opentelemetry/api-logs": "^0.223.0",
+    "@opentelemetry/exporter-logs-otlp-proto": "^0.300.0",
     "@opentelemetry/resources": "^2.11.0",
     "@opentelemetry/sdk-logs": "^0.222.0",
-    "@opentelemetry/semantic-conventions": "^1.43.0",
+    "@opentelemetry/semantic-conventions": "^1.44.0",
     "winston": "^3.19.0"
   }
 }
