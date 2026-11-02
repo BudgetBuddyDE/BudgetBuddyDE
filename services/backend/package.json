@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node --require ./build/src/instrumentation.js build/src/server.js",
     "start:instrumentation": "pnpm run build && pnpm run start",
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --import ./src/instrumentation.ts src/server.ts",
     "build": "pnpm exec rimraf build && pnpm exec tsc",
     "pretest": "pnpm run check",
     "test": "vp test run --coverage",

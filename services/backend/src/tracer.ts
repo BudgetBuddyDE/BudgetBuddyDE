@@ -35,12 +35,6 @@ export const setupTracing = (serviceName: string) => {
   // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
   provider.register();
 
-  // This shutdown is important to ensure that buffered tracing data is
-  // flushed on process shutdown (e.g. for `pnpm run client`).
-  process.once('beforeExit', () => {
-    void provider.shutdown().catch(() => undefined);
-  });
-
   return trace.getTracer(serviceName);
 };
 

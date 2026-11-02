@@ -58,16 +58,8 @@ beforeEach(() => {
   parentSample.mockReturnValue({decision: SamplingDecision.RECORD_AND_SAMPLED});
 });
 afterEach(() => vi.restoreAllMocks());
-it('registers HTTP and Express instrumentation and flushes on shutdown', () => {
-  let beforeExit: (() => void) | undefined;
-  const originalOnce = process.once.bind(process);
-  vi.spyOn(process, 'once').mockImplementation(((event: string, callback: (...args: unknown[]) => void) => {
-    if (event === 'beforeExit') {
-      beforeExit = callback as () => void;
-      return process;
-    }
-    return originalOnce(event, callback);
-  }) as typeof process.once);
+it('registers HTTP and Express instrumentation without owning process shutdown', () => {
+  const once = vi.spyOn(process, 'once').mockReturnValue(process);
   getTracer.mockReturnValueOnce({name: 'tracer'});
   expect(setupTracing('backend')).toEqual({name: 'tracer'});
   expect(resource).toHaveBeenCalledWith({[ATTR_SERVICE_NAME]: 'backend'});
@@ -76,8 +68,7 @@ it('registers HTTP and Express instrumentation and flushes on shutdown', () => {
     instrumentations: [expect.anything(), expect.anything()],
   });
   expect(provider.register).toHaveBeenCalledOnce();
-  beforeExit!();
-  expect(provider.shutdown).toHaveBeenCalledOnce();
+  expect(once).not.toHaveBeenCalled();
 });
 it('suppresses server health spans while sampling other routes and client calls', () => {
   vi.spyOn(process, 'once').mockReturnValue(process);
@@ -99,30 +90,30 @@ it('suppresses server health spans while sampling other routes and client calls'
 it('initializes instrumentation with the configured service name', async () => {
   vi.resetModules();
   const setup = vi.fn();
-  const setupLogs = vi.fn();
+  const initializeLogging = vi.fn();
   vi.stubEnv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://localhost:4318');
   vi.stubEnv('OTEL_SERVICE_NAME', 'backend-unit');
   vi.doMock('../tracer', () => ({setupTracing: setup}));
-  vi.doMock('../telemetry', () => ({setupLogs}));
+  vi.doMock('@budgetbuddyde/logger/node', () => ({initializeLogging}));
   await import('../instrumentation');
   expect(setup).toHaveBeenCalledWith('backend-unit');
-  expect(setupLogs).toHaveBeenCalledWith('backend-unit');
+  expect(initializeLogging).toHaveBeenCalledWith(expect.objectContaining({context: {service: 'backend-unit'}}));
   vi.doUnmock('../tracer');
-  vi.doUnmock('../telemetry');
+  vi.doUnmock('@budgetbuddyde/logger/node');
   vi.unstubAllEnvs();
 });
 
 it('leaves export disabled without an endpoint', async () => {
   vi.resetModules();
   const setup = vi.fn();
-  const setupLogs = vi.fn();
+  const initializeLogging = vi.fn();
   vi.stubEnv('OTEL_EXPORTER_OTLP_ENDPOINT', '');
   vi.doMock('../tracer', () => ({setupTracing: setup}));
-  vi.doMock('../telemetry', () => ({setupLogs}));
+  vi.doMock('@budgetbuddyde/logger/node', () => ({initializeLogging}));
   await import('../instrumentation');
   expect(setup).not.toHaveBeenCalled();
-  expect(setupLogs).not.toHaveBeenCalled();
+  expect(initializeLogging).toHaveBeenCalledOnce();
   vi.doUnmock('../tracer');
-  vi.doUnmock('../telemetry');
+  vi.doUnmock('@budgetbuddyde/logger/node');
   vi.unstubAllEnvs();
 });
