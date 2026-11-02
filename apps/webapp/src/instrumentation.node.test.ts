@@ -1,50 +1,38 @@
-const {start, shutdown, registerSink} = vi.hoisted(() => ({
+const {start, sdkShutdown, initializeLogging, shutdownLogging} = vi.hoisted(() => ({
   start: vi.fn(),
-  shutdown: vi.fn(),
-  registerSink: vi.fn(),
+  sdkShutdown: vi.fn().mockResolvedValue(undefined),
+  initializeLogging: vi.fn(),
+  shutdownLogging: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@opentelemetry/sdk-node', () => ({
   NodeSDK: class {
     start = start;
-    shutdown = shutdown;
+    shutdown = sdkShutdown;
   },
 }));
-vi.mock('@opentelemetry/exporter-logs-otlp-proto', () => ({OTLPLogExporter: class {}}));
-vi.mock('@opentelemetry/exporter-trace-otlp-proto', () => ({OTLPTraceExporter: class {}}));
-vi.mock('@opentelemetry/sdk-logs', () => ({BatchLogRecordProcessor: class {}}));
-vi.mock('@opentelemetry/sdk-trace-node', () => ({BatchSpanProcessor: class {}}));
-vi.mock('./telemetry-sink', () => ({registerServerLogSink: registerSink}));
+vi.mock('@budgetbuddyde/logger/node', () => ({initializeLogging, shutdownLogging}));
 
-it('starts once and tolerates exporter failure during bounded shutdown', async () => {
-  shutdown.mockRejectedValueOnce(new Error('collector unavailable'));
-  const once = vi.spyOn(process, 'once').mockReturnValue(process);
-  const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+beforeEach(() => vi.clearAllMocks());
+
+it('initializes the logger and trace SDK, then coordinates bounded shutdown', async () => {
+  vi.stubEnv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://localhost:4318');
   const {shutdownTelemetry} = await import('./instrumentation.node');
+
+  expect(initializeLogging).toHaveBeenCalledOnce();
   expect(start).toHaveBeenCalledOnce();
-  expect(registerSink).toHaveBeenCalledOnce();
-  expect(info).toHaveBeenCalledWith(
-    '[OpenTelemetry] Server-side log and trace export is configured. Delivery has not been verified.',
-  );
-  await expect(shutdownTelemetry()).resolves.toBeUndefined();
-  await expect(shutdownTelemetry()).resolves.toBeUndefined();
-  expect(shutdown).toHaveBeenCalledOnce();
-  expect(once).toHaveBeenCalledTimes(3);
-  info.mockRestore();
-  once.mockRestore();
+  await shutdownTelemetry();
+  await shutdownTelemetry();
+  expect(shutdownLogging).toHaveBeenCalledOnce();
+  expect(sdkShutdown).toHaveBeenCalledOnce();
+  vi.unstubAllEnvs();
 });
 
-it('finishes shutdown when the exporter never responds', async () => {
+it('initializes logging without starting trace export when no endpoint is configured', async () => {
   vi.resetModules();
-  vi.useFakeTimers();
-  shutdown.mockImplementationOnce(() => new Promise<void>(() => undefined));
-  const once = vi.spyOn(process, 'once').mockReturnValue(process);
-  const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
-  const {shutdownTelemetry} = await import('./instrumentation.node');
-  const done = shutdownTelemetry();
-  await vi.advanceTimersByTimeAsync(5000);
-  await expect(done).resolves.toBeUndefined();
-  once.mockRestore();
-  info.mockRestore();
-  vi.useRealTimers();
+  vi.stubEnv('OTEL_EXPORTER_OTLP_ENDPOINT', '');
+  await import('./instrumentation.node');
+  expect(initializeLogging).toHaveBeenCalledOnce();
+  expect(start).not.toHaveBeenCalled();
+  vi.unstubAllEnvs();
 });
