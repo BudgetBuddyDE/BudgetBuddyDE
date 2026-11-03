@@ -11,6 +11,7 @@ import {config} from '../config';
 import {db} from '../db';
 import {buildInsightsReport} from '../lib/insights/report';
 import {ApiResponse, HTTPStatusCode} from '../models';
+import {withSpan} from '../telemetry/tracing';
 
 export const insightsRouter = Router();
 
@@ -41,7 +42,12 @@ insightsRouter.get('/report', validateRequest({query: InsightsReportQuery}), asy
     ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
     return;
   }
-  const result = await buildInsightsReport(userId, reportQuery(req.query));
+  const query = reportQuery(req.query);
+  const result = await withSpan(
+    'insights.report',
+    {'insights.granularity': query.$granularity ?? 'auto', 'insights.comparison': query.$comparison ?? 'previous'},
+    () => buildInsightsReport(userId, query),
+  );
   ApiResponse.builder()
     .withStatus(HTTPStatusCode.OK)
     .withMessage("Fetched user's insights report successfully")
