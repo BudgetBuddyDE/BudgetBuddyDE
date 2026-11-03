@@ -16,13 +16,6 @@ import multer from 'multer';
 import RedisStore from 'rate-limit-redis';
 import {config} from '../config';
 import {db} from '../db';
-import {applicationExportRateLimitKey} from './applicationExportRateLimit';
-import {ApplicationImportFormatError, importApplicationArchive, type TApplicationImportMode} from './applicationImport';
-import {getRedisClient} from '../db/redis';
-import {logger} from '../lib/logger';
-import {getS3Client} from '../lib/s3';
-import {invalidateUserCaches} from '../middleware/cache.middleware';
-import {ApiResponse, HTTPStatusCode} from '../models';
 import {
   attachmentExportPath,
   applicationExportQuerySchema,
@@ -33,7 +26,15 @@ import {
   type TApplicationExportResource,
   type TApplicationExportRow,
 } from './applicationExport';
+import {applicationExportRateLimitKey} from './applicationExportRateLimit';
+import {ApplicationImportFormatError, importApplicationArchive, type TApplicationImportMode} from './applicationImport';
+import {getRedisClient} from '../db/redis';
 import {mapWithConcurrency} from '../lib/concurrency';
+import {logger} from '../lib/logger';
+import {getS3Client} from '../lib/s3';
+import {invalidateUserCaches} from '../middleware/cache.middleware';
+import {ApiResponse, HTTPStatusCode} from '../models';
+import {withSpan} from '../telemetry/tracing';
 
 export const applicationRouter = Router();
 const importUpload = multer({
@@ -84,7 +85,11 @@ applicationRouter.post('/import', importUpload.single('archive'), async (req, re
     return;
   }
   try {
-    const result = await importApplicationArchive(req.file.buffer, userId, mode as TApplicationImportMode);
+    const result = await withSpan(
+      'application.import',
+      {'import.mode': mode, 'import.archive_bytes': req.file.buffer.byteLength},
+      () => importApplicationArchive(req.file!.buffer, userId, mode as TApplicationImportMode),
+    );
     if (mode === 'commit' && result.summary.created > 0) {
       await invalidateUserCaches(userId, [
         '/api/category',
@@ -171,47 +176,52 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
   const {format, resources} = req.query;
   const selectedResources = new Set(resources);
   const [categoryRows, paymentMethodRows, transactionRows, recurringPaymentRows, budgetRows, attachmentRows] =
-    await Promise.all([
-      selectedResources.has('categories')
-        ? db.query.categories.findMany({where: eq(categories.ownerId, userId), orderBy: asc(categories.id)})
-        : Promise.resolve([]),
-      selectedResources.has('payment-methods')
-        ? db.query.paymentMethods.findMany({where: eq(paymentMethods.ownerId, userId), orderBy: asc(paymentMethods.id)})
-        : Promise.resolve([]),
-      selectedResources.has('transactions')
-        ? db.query.transactions.findMany({where: eq(transactions.ownerId, userId), orderBy: asc(transactions.id)})
-        : Promise.resolve([]),
-      selectedResources.has('recurring-payments')
-        ? db.query.recurringPayments.findMany({
-            where: eq(recurringPayments.ownerId, userId),
-            orderBy: asc(recurringPayments.id),
-          })
-        : Promise.resolve([]),
-      selectedResources.has('budgets')
-        ? db.query.budgets.findMany({
-            where: eq(budgets.ownerId, userId),
-            orderBy: asc(budgets.id),
-            with: {categories: {columns: {categoryId: true}}},
-          })
-        : Promise.resolve([]),
-      selectedResources.has('attachments')
-        ? db
-            .select({
-              id: attachments.id,
-              ownerId: attachments.ownerId,
-              fileName: attachments.fileName,
-              fileExtension: attachments.fileExtension,
-              contentType: attachments.contentType,
-              location: attachments.location,
-              createdAt: attachments.createdAt,
-              transactionId: transactionAttachments.transactionId,
+    await withSpan('application.export.load', {'export.resource_count': selectedResources.size}, () =>
+      Promise.all([
+        selectedResources.has('categories')
+          ? db.query.categories.findMany({where: eq(categories.ownerId, userId), orderBy: asc(categories.id)})
+          : Promise.resolve([]),
+        selectedResources.has('payment-methods')
+          ? db.query.paymentMethods.findMany({
+              where: eq(paymentMethods.ownerId, userId),
+              orderBy: asc(paymentMethods.id),
             })
-            .from(attachments)
-            .leftJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
-            .where(eq(attachments.ownerId, userId))
-            .orderBy(asc(attachments.id), asc(transactionAttachments.transactionId))
-        : Promise.resolve([]),
-    ]);
+          : Promise.resolve([]),
+        selectedResources.has('transactions')
+          ? db.query.transactions.findMany({where: eq(transactions.ownerId, userId), orderBy: asc(transactions.id)})
+          : Promise.resolve([]),
+        selectedResources.has('recurring-payments')
+          ? db.query.recurringPayments.findMany({
+              where: eq(recurringPayments.ownerId, userId),
+              orderBy: asc(recurringPayments.id),
+            })
+          : Promise.resolve([]),
+        selectedResources.has('budgets')
+          ? db.query.budgets.findMany({
+              where: eq(budgets.ownerId, userId),
+              orderBy: asc(budgets.id),
+              with: {categories: {columns: {categoryId: true}}},
+            })
+          : Promise.resolve([]),
+        selectedResources.has('attachments')
+          ? db
+              .select({
+                id: attachments.id,
+                ownerId: attachments.ownerId,
+                fileName: attachments.fileName,
+                fileExtension: attachments.fileExtension,
+                contentType: attachments.contentType,
+                location: attachments.location,
+                createdAt: attachments.createdAt,
+                transactionId: transactionAttachments.transactionId,
+              })
+              .from(attachments)
+              .leftJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
+              .where(eq(attachments.ownerId, userId))
+              .orderBy(asc(attachments.id), asc(transactionAttachments.transactionId))
+          : Promise.resolve([]),
+      ]),
+    );
 
   const attachmentExports = new Map<
     string,
@@ -282,18 +292,21 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
     try {
       const {bucketName} = config.getRequiredObjectStorageConfig();
       let attachmentBytes = 0;
-      const attachmentFiles = await mapWithConcurrency(
-        attachmentExportRows,
-        config.export.attachmentConcurrency,
-        async attachment => {
-          const object = await getS3Client().send(new GetObjectCommand({Bucket: bucketName, Key: attachment.location}));
-          const content = await objectBodyToBuffer(object.Body, object.ContentEncoding);
-          attachmentBytes += content.length;
-          if (exportedMetadataBytes + attachmentBytes > config.export.maxBytes) {
-            throw new ExportSizeLimitExceededError();
-          }
-          return {name: attachment.contentPath, content};
-        },
+      const attachmentFiles = await withSpan(
+        'application.export.attachments',
+        {'export.attachment_count': attachmentExportRows.length},
+        () =>
+          mapWithConcurrency(attachmentExportRows, config.export.attachmentConcurrency, async attachment => {
+            const object = await getS3Client().send(
+              new GetObjectCommand({Bucket: bucketName, Key: attachment.location}),
+            );
+            const content = await objectBodyToBuffer(object.Body, object.ContentEncoding);
+            attachmentBytes += content.length;
+            if (exportedMetadataBytes + attachmentBytes > config.export.maxBytes) {
+              throw new ExportSizeLimitExceededError();
+            }
+            return {name: attachment.contentPath, content};
+          }),
       );
       files.push(...attachmentFiles);
     } catch (error) {
@@ -332,7 +345,9 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
     ),
   });
 
-  const archive = await createZipArchive(files, new Date(exportedAt));
+  const archive = await withSpan('application.export.zip', {'export.resource_count': files.length}, () =>
+    createZipArchive(files, new Date(exportedAt)),
+  );
   res.status(HTTPStatusCode.OK);
   res.setHeader('Content-Type', 'application/zip');
   res.setHeader(
