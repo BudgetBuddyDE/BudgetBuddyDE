@@ -7,6 +7,7 @@ import {config} from '../config';
 import {db} from '../db';
 import {logger} from '../lib';
 import {invalidateUserCaches} from '../middleware/cache.middleware';
+import {withSpan} from '../telemetry/tracing';
 import {executeScheduledRecurringPayment} from '../utils/executeScheduledRecurringPayment';
 
 const RECURRING_PAYMENT_BATCH_SIZE = 10;
@@ -22,10 +23,12 @@ export async function processRecurringPayments() {
   });
 
   try {
-    const candidatePayments = await db.query.recurringPayments.findMany({
-      where: and(eq(recurringPayments.paused, false), lte(recurringPayments.startsOn, scheduledFor)),
+    const duePayments = await withSpan('recurring_payments.discover', {}, async () => {
+      const candidatePayments = await db.query.recurringPayments.findMany({
+        where: and(eq(recurringPayments.paused, false), lte(recurringPayments.startsOn, scheduledFor)),
+      });
+      return candidatePayments.filter(payment => isOccurrenceDate(payment, scheduledFor));
     });
-    const duePayments = candidatePayments.filter(payment => isOccurrenceDate(payment, scheduledFor));
 
     logger.info(`Found ${duePayments.length} recurring payments scheduled for ${scheduledFor}.`, {scheduledFor});
 
@@ -39,8 +42,8 @@ export async function processRecurringPayments() {
     let failedCount = 0;
     for (let start = 0; start < duePayments.length; start += RECURRING_PAYMENT_BATCH_SIZE) {
       const batch = duePayments.slice(start, start + RECURRING_PAYMENT_BATCH_SIZE);
-      const results = await Promise.allSettled(
-        batch.map(payment => executeScheduledRecurringPayment(payment, scheduledFor, today)),
+      const results = await withSpan('recurring_payments.batch', {'batch.size': batch.length}, () =>
+        Promise.allSettled(batch.map(payment => executeScheduledRecurringPayment(payment, scheduledFor, today))),
       );
       const affectedUserIds = new Set<string>();
 
