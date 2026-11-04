@@ -3,6 +3,7 @@ import {Stack} from '@mui/material';
 import {useTranslations} from 'next-intl';
 import React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
+import {Balance} from '@/components/Balance';
 import {Card} from '@/components/Card';
 import {Pagination} from '@/components/Table/Pagination';
 import {Formatter} from '@/utils/Formatter';
@@ -38,7 +39,7 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
         <Stack>
           <Card.Title>{t('title', {count: transactionCount})}</Card.Title>
           <Card.Subtitle>
-            {t('description')} {t('volume')}: {Formatter.currency.formatBalance(income + expenses, currency)}
+            {t('description')} {t('volume')}: <Balance amount={income + expenses} currency={currency} />
           </Card.Subtitle>
         </Stack>
       </Card.Header>
@@ -51,7 +52,7 @@ export const InsightsReportTransactions: React.FC<InsightsReportTransactionsProp
             transaction.receiver,
             transaction.category.name,
             transaction.paymentMethod.name,
-            Formatter.currency.formatBalance(transaction.transferAmount, currency),
+            <Balance amount={transaction.transferAmount} currency={currency} />,
           ])}
         />
       </Card.Body>

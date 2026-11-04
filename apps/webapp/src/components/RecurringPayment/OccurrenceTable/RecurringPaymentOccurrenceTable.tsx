@@ -6,13 +6,13 @@ import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {useLocale, useTranslations} from 'next-intl';
 import React from 'react';
 import {apiClient} from '@/apiClient';
+import {Balance} from '@/components/Balance';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {FilterWrapper} from '@/components/Filter';
 import {DateRangePicker} from '@/components/Form/DateRangePicker';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import {EntityTable, type ColumnDefinition} from '@/components/Table';
 import type {EntityFilters} from '@/lib/features/createEntitySlice';
-import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {formatLocalDateOnly, parseLocalDateOnly} from '../dateOnly';
 import type {OccurrenceRange} from './occurrenceRange';
@@ -150,7 +150,7 @@ export const RecurringPaymentOccurrenceTable: React.FC<{initialRange: Occurrence
         width: 120,
         renderCell: (_value, row) => (
           <Typography variant="body2">
-            {Formatter.currency.formatBalance(row.recurringPayment.transferAmount, currency)}
+            <Balance amount={row.recurringPayment.transferAmount} currency={currency} />
           </Typography>
         ),
       },
