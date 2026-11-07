@@ -109,7 +109,7 @@ The repository is a pnpm-workspace monorepo orchestrated by Turborepo:
   </a>
 </p>
 
-For self-hosting, configure the backend, PostgreSQL, Redis and object storage using the [production guide](https://docs.budget-buddy.de/self-hosting/production). The [updating guide](https://docs.budget-buddy.de/self-hosting/updating) covers database migrations, backups and deployment upgrades. The one-click Railway template may not include every optional integration, such as attachment object storage. Railway operators should also follow the [Infrastructure as Code migration guide](.railway/README.md).
+For self-hosting, configure the backend, PostgreSQL, Redis and object storage using the [production guide](https://docs.budget-buddy.de/self-hosting/production). The [updating guide](https://docs.budget-buddy.de/self-hosting/updating) covers database migrations, backups and deployment upgrades. The one-click Railway template may not include every optional integration, such as attachment object storage.
 
 ## Resources
 
