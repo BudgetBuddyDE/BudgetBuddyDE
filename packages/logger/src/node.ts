@@ -1,7 +1,7 @@
 import {context, trace} from '@opentelemetry/api';
 import {logs, SeverityNumber} from '@opentelemetry/api-logs';
 import {OTLPLogExporter} from '@opentelemetry/exporter-logs-otlp-proto';
-import {resourceFromAttributes} from '@opentelemetry/resources';
+import {defaultResource, detectResources, envDetector, resourceFromAttributes} from '@opentelemetry/resources';
 import {BatchLogRecordProcessor, LoggerProvider} from '@opentelemetry/sdk-logs';
 import {ATTR_SERVICE_NAME} from '@opentelemetry/semantic-conventions';
 import winston from 'winston';
@@ -58,12 +58,25 @@ export function initializeLogging(options: LoggingOptions = {}): void {
   const state = getState();
   if (state.initialized) return;
   state.initialized = true;
-  const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
-  if (endpoint) {
+  const endpoint =
+    process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT?.trim() || process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
+  const protocol =
+    process.env.OTEL_EXPORTER_OTLP_LOGS_PROTOCOL?.trim() || process.env.OTEL_EXPORTER_OTLP_PROTOCOL?.trim();
+  if (endpoint && protocol && protocol !== 'http/protobuf') {
+    console.warn('OTLP log export supports only http/protobuf; log export is disabled.');
+  }
+  if (
+    endpoint &&
+    (!protocol || protocol === 'http/protobuf') &&
+    process.env.OTEL_LOGS_EXPORTER !== 'none' &&
+    process.env.OTEL_SDK_DISABLED !== 'true'
+  ) {
     try {
       const serviceName = process.env.OTEL_SERVICE_NAME?.trim() || options.context?.service || 'budgetbuddyde';
       state.provider = new LoggerProvider({
-        resource: resourceFromAttributes({[ATTR_SERVICE_NAME]: serviceName}),
+        resource: defaultResource()
+          .merge(resourceFromAttributes({[ATTR_SERVICE_NAME]: serviceName}))
+          .merge(detectResources({detectors: [envDetector]})),
         processors: [new BatchLogRecordProcessor({exporter: new OTLPLogExporter()})],
       });
       logs.setGlobalLoggerProvider(state.provider);

@@ -56,6 +56,7 @@
         "NEXT_PUBLIC_APP_VERSION",
         "NEXT_PUBLIC_BACKEND_SERVICE_HOST",
         "NEXT_PUBLIC_LOG_LEVEL",
+        "NEXT_PUBLIC_OTEL_ENDPOINT",
         "RAILWAY_PUBLIC_DOMAIN"
       ],
       "outputs": ["lib/**", "build/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
