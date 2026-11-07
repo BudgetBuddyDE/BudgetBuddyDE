@@ -43,6 +43,7 @@ const nextConfig = {
     ],
   },
   transpilePackages: ['better-auth'],
+  serverExternalPackages: ['@opentelemetry/auto-instrumentations-node', '@opentelemetry/sdk-node'],
   turbopack: {
     resolveAlias: {
       'better-auth/react$': path.resolve(__dirname, 'node_modules/better-auth/dist/client/react/index.cjs'),

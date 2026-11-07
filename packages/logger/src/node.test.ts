@@ -26,6 +26,7 @@ describe('Node logging thresholds', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
     (console as any)._stdout = originalStdout;
     (globalThis as any)[stateKey] = undefined;
     (globalThis as any)[dispatcherKey] = undefined;
@@ -53,5 +54,21 @@ describe('Node logging thresholds', () => {
 
     expect(output.map(line => line.match(/\[(TRACE|DEBUG|INFO|WARN|ERROR)\]/)?.[1])).toEqual(expected);
     expect(exported).toEqual(expected);
+  });
+
+  it('exports logs using a signal-specific endpoint', () => {
+    vi.stubEnv('OTEL_EXPORTER_OTLP_ENDPOINT', '');
+    vi.stubEnv('OTEL_EXPORTER_OTLP_LOGS_ENDPOINT', 'http://localhost:4318/v1/logs');
+    initializeLogging();
+    logger.info('message');
+    expect(exported).toEqual(['INFO']);
+  });
+
+  it('honors OTEL_LOGS_EXPORTER=none while retaining console output', () => {
+    vi.stubEnv('OTEL_LOGS_EXPORTER', 'none');
+    initializeLogging();
+    logger.info('message');
+    expect(exported).toEqual([]);
+    expect(output).toHaveLength(1);
   });
 });

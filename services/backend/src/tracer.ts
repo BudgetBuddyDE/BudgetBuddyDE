@@ -1,66 +1,50 @@
-/*
- * Copyright The OpenTelemetry Authors
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import {trace, SpanKind, Attributes} from '@opentelemetry/api';
-import {AsyncLocalStorageContextManager} from '@opentelemetry/context-async-hooks';
+import {sanitizeSpan} from '@budgetbuddyde/core/telemetry/sanitizeSpan';
+import {trace} from '@opentelemetry/api';
+import {getNodeAutoInstrumentations} from '@opentelemetry/auto-instrumentations-node';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-proto';
-import {registerInstrumentations} from '@opentelemetry/instrumentation';
-import {ExpressInstrumentation} from '@opentelemetry/instrumentation-express';
-import {HttpInstrumentation} from '@opentelemetry/instrumentation-http';
-import {resourceFromAttributes} from '@opentelemetry/resources';
-import {Sampler, AlwaysOnSampler, SamplingDecision, BatchSpanProcessor} from '@opentelemetry/sdk-trace';
-import {NodeTracerProvider} from '@opentelemetry/sdk-trace-node';
-import {ATTR_SERVICE_NAME, ATTR_HTTP_ROUTE} from '@opentelemetry/semantic-conventions';
+import {defaultResource, envDetector, resourceFromAttributes} from '@opentelemetry/resources';
+import {NodeSDK} from '@opentelemetry/sdk-node';
+import {BatchSpanProcessor, type SpanExporter} from '@opentelemetry/sdk-trace';
+import {ATTR_SERVICE_NAME} from '@opentelemetry/semantic-conventions';
 
-export const setupTracing = (serviceName: string) => {
-  const exporter = new OTLPTraceExporter({});
-  const provider = new NodeTracerProvider({
-    resource: resourceFromAttributes({
-      [ATTR_SERVICE_NAME]: serviceName,
-    }),
-    spanProcessors: [new BatchSpanProcessor({exporter})],
-    sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
-  });
-  tracerProvider = provider;
-  registerInstrumentations({
-    tracerProvider: provider,
+let sdk: NodeSDK | undefined;
+
+export function setupTracing(serviceName: string, traceExporter?: SpanExporter) {
+  if (sdk) return trace.getTracer(serviceName);
+  const exporter = traceExporter ?? new OTLPTraceExporter();
+  const safeExporter: SpanExporter = {
+    export: (spans, callback) => exporter.export(spans.map(sanitizeSpan), callback),
+    shutdown: () => exporter.shutdown(),
+    forceFlush: () => exporter.forceFlush?.() ?? Promise.resolve(),
+  };
+  sdk = new NodeSDK({
+    resource: defaultResource().merge(resourceFromAttributes({[ATTR_SERVICE_NAME]: serviceName})),
+    resourceDetectors: [envDetector],
+    metricReaders: [],
+    spanProcessors:
+      process.env.OTEL_TRACES_EXPORTER === 'none' ? [] : [new BatchSpanProcessor({exporter: safeExporter})],
     instrumentations: [
-      // Express instrumentation expects HTTP layer to be instrumented
-      new HttpInstrumentation(),
-      new ExpressInstrumentation(),
+      getNodeAutoInstrumentations({
+        '@opentelemetry/instrumentation-http': {
+          ignoreIncomingRequestHook: request => request.url?.split('?')[0] === '/health',
+        },
+        '@opentelemetry/instrumentation-pg': {enhancedDatabaseReporting: false},
+        '@opentelemetry/instrumentation-ioredis': {dbStatementSerializer: command => command},
+      }),
     ],
   });
-
-  // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
-  provider.register({contextManager: new AsyncLocalStorageContextManager().enable()});
-
+  // The shared logger owns log export; prevent the Node SDK installing a second provider.
+  const previousLogsExporter = process.env.OTEL_LOGS_EXPORTER;
+  process.env.OTEL_LOGS_EXPORTER = 'none';
+  try {
+    sdk.start();
+  } finally {
+    if (previousLogsExporter === undefined) delete process.env.OTEL_LOGS_EXPORTER;
+    else process.env.OTEL_LOGS_EXPORTER = previousLogsExporter;
+  }
   return trace.getTracer(serviceName);
-};
-
-let tracerProvider: NodeTracerProvider | undefined;
+}
 
 export async function shutdownTracing(): Promise<void> {
-  await tracerProvider?.shutdown();
-}
-
-type FilterFunction = (spanName: string, spanKind: SpanKind, attributes: Attributes) => boolean;
-
-function filterSampler(filterFn: FilterFunction, parent: Sampler): Sampler {
-  return {
-    shouldSample(ctx, tid, spanName, spanKind, attr, links) {
-      if (!filterFn(spanName, spanKind, attr)) {
-        return {decision: SamplingDecision.NOT_RECORD};
-      }
-      return parent.shouldSample(ctx, tid, spanName, spanKind, attr, links);
-    },
-    toString() {
-      return `FilterSampler(${parent.toString()})`;
-    },
-  };
-}
-
-function ignoreHealthCheck(_spanName: string, spanKind: SpanKind, attributes: Attributes) {
-  return spanKind !== SpanKind.SERVER || attributes[ATTR_HTTP_ROUTE] !== '/health';
+  await sdk?.shutdown();
 }

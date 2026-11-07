@@ -1,13 +1,11 @@
 import {SpanStatusCode, trace, type Span} from '@opentelemetry/api';
 
-export const backendTracer = trace.getTracer('budgetbuddyde-backend');
-
 export async function withSpan<T>(
   name: string,
   attributes: Record<string, string | number | boolean>,
   operation: (span: Span) => Promise<T>,
 ): Promise<T> {
-  return backendTracer.startActiveSpan(name, {attributes}, async span => {
+  return trace.getTracer('budgetbuddyde-backend').startActiveSpan(name, {attributes}, async span => {
     try {
       return await operation(span);
     } catch (error) {
