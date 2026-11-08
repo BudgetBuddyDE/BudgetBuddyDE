@@ -45,11 +45,6 @@
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
-    "./node": {
-      "dev-source": "./src/node.ts",
-      "types": "./lib/node.d.ts",
-      "default": "./lib/node.js"
-    },
     "./console": {
       "dev-source": "./src/console.ts",
       "types": "./lib/console.d.ts",
@@ -61,22 +56,10 @@
       "*": [
         "./lib/index.d.ts"
       ],
-      "node": [
-        "./lib/node.d.ts"
-      ],
       "console": [
         "./lib/console.d.ts"
       ]
     }
   },
-  "private": true,
-  "dependencies": {
-    "@opentelemetry/api": "^1.10.0",
-    "@opentelemetry/api-logs": "^0.223.0",
-    "@opentelemetry/exporter-logs-otlp-proto": "^0.300.0",
-    "@opentelemetry/resources": "^2.11.0",
-    "@opentelemetry/sdk-logs": "^0.222.0",
-    "@opentelemetry/semantic-conventions": "^1.44.0",
-    "winston": "^3.19.0"
-  }
+  "private": true
 }

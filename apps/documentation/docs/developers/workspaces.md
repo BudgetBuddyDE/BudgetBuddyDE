@@ -16,7 +16,7 @@ Next.js 15 App Router application. Server route pages parse URL/search filters a
 - `src/app` - route groups `(auth)` and `(dashboard)` plus internal Next routes under `api/`.
 - `src/components` - domain UI grouped by area (Transaction, Budget, Category, Charts, User, and so on).
 - `src/lib/features` - Redux Toolkit slices for paged entity state.
-- `src/instrumentation.ts` / `src/instrumentation-client.ts` - OpenTelemetry setup; server-side registers when an OTLP trace endpoint is set, client-side when `NEXT_PUBLIC_OTEL_ENDPOINT` is set (see [Configuration](/self-hosting/configuration#tracing-opentelemetry)).
+- `src/logger.ts` - structured console logging through the shared logger package.
 
 ### `apps/documentation` - this site
 
@@ -33,7 +33,7 @@ Express API under `/api/*`. Routers validate with Zod, enforce ownership, and an
 - `src/middleware` - request context, auth, cache, logging.
 - `src/lib` - S3 client, attachment handler, logger.
 - `src/mcp` - stateless Streamable HTTP transport, tools, and local API-key authentication.
-- `src/tracer.ts` / `src/instrumentation.ts` - OpenTelemetry setup, preloaded by normal, development and Docker startup.
+- `src/lib/logger.ts` - structured console logging through the shared logger package.
 
 ## Packages
 

@@ -37,7 +37,7 @@ The stateless Streamable HTTP endpoint runs at `<backend URL>/mcp`, locally `htt
 
 Send a valid key using `x-api-key` or `Authorization: Bearer <API key>`; `x-api-key` takes precedence. Keys are validated locally for every request, including initialization; cookies alone do not authenticate MCP. Missing or invalid keys receive `401`, and unexpected auth failures receive a generic `503`.
 
-Browser MCP origins must be included in `TRUSTED_ORIGINS`; untrusted origins receive `403`, while clients without an Origin header remain allowed. In production the independent MCP limit is 120 requests/minute/IP, using cache Redis when available or memory otherwise. API-key limits also apply. Backend health, logging, tracing, and shutdown cover MCP; each request owns its server and transport without session IDs.
+Browser MCP origins must be included in `TRUSTED_ORIGINS`; untrusted origins receive `403`, while clients without an Origin header remain allowed. In production the independent MCP limit is 120 requests/minute/IP, using cache Redis when available or memory otherwise. API-key limits also apply. Backend health and logging cover MCP; each request owns its server and transport without session IDs.
 
 Follow the [MCP cutover guide](https://docs.budget-buddy.de/self-hosting/updating#integrated-mcp-cutover) to update clients and proxies and retire the previous deployment and pipeline. Existing API keys remain valid; no schema migration is required. The API-key example retains its `BUDGETBUDDY_BACKEND_URL` setting.
 

@@ -103,7 +103,7 @@ For local services, use `docker compose up -d` for PostgreSQL, Redis, and the Dr
 - Attachment storage cleanup is request-scoped with retries, not a durable outbox. Database cascades alone do not remove storage objects; preserve explicit storage cleanup and cache invalidation when changing deletion flows.
 - Documentation uses the `@budgetbuddyde/documentation` pnpm workspace and Fumapress/Fumadocs; content lives in `apps/documentation/docs`, with `press.config.tsx`, `source.config.ts`, and a static `dist/` build served by nginx in its Dockerfile. Follow the existing Waku override in the root/package manifests. Fumapress requires Node.js 24 or later.
 - Build the documentation Dockerfile with repository root as context so the root pnpm lockfile and workspace manifests are available.
-- Optional OpenTelemetry instrumentation exists in the backend and webapp. Preserve the existing configuration and entry points (`OTEL_EXPORTER_OTLP_ENDPOINT` server-side, `NEXT_PUBLIC_OTEL_ENDPOINT` browser-side).
+- The backend and webapp use the shared structured console logger. Do not add telemetry exporters without an explicit requirement.
 
 ## Testing & QA
 

@@ -1,8 +1,4 @@
-import {context, SpanStatusCode, trace} from '@opentelemetry/api';
-import {AsyncLocalStorageContextManager} from '@opentelemetry/context-async-hooks';
-import {InMemorySpanExporter, SimpleSpanProcessor} from '@opentelemetry/sdk-trace';
-import {NodeTracerProvider} from '@opentelemetry/sdk-trace-node';
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 
 const {findMany, createTransaction, info, error, invalidateUserCaches} = vi.hoisted(() => ({
   findMany: vi.fn(),
@@ -26,20 +22,10 @@ vi.mock('../middleware/cache.middleware', () => ({invalidateUserCaches}));
 import {processRecurringPayments} from '../jobs/processRecurringPayments';
 
 describe('processRecurringPayments', () => {
-  const exporter = new InMemorySpanExporter();
-  const provider = new NodeTracerProvider({spanProcessors: [new SimpleSpanProcessor({exporter})]});
-
-  beforeAll(() => provider.register({contextManager: new AsyncLocalStorageContextManager()}));
-  afterAll(async () => {
-    await provider.shutdown();
-    trace.disable();
-    context.disable();
-  });
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-08-28T12:00:00.000Z'));
     vi.resetAllMocks();
-    exporter.reset();
     invalidateUserCaches.mockResolvedValue(undefined);
     createTransaction.mockResolvedValue({status: 'created', transaction: {id: 'transaction'}});
   });
@@ -69,14 +55,6 @@ describe('processRecurringPayments', () => {
     await processRecurringPayments();
 
     expect(createTransaction).not.toHaveBeenCalled();
-    await vi.runAllTimersAsync();
-    await provider.forceFlush();
-    const spans = exporter.getFinishedSpans();
-    const job = spans.find(span => span.name === 'recurring_payments.run');
-    const discovery = spans.find(span => span.name === 'recurring_payments.discover');
-    expect(job?.attributes['job.processed']).toBe(0);
-    expect(discovery?.parentSpanContext?.spanId).toBe(job?.spanContext().spanId);
-    expect(discovery?.spanContext().traceId).toBe(job?.spanContext().traceId);
   });
 
   it('passes changed payments to the content-aware executor on every run', async () => {
@@ -165,16 +143,6 @@ describe('processRecurringPayments', () => {
     createTransaction.mockRejectedValueOnce(new Error('insert failed'));
 
     await processRecurringPayments();
-
-    await vi.runAllTimersAsync();
-    await provider.forceFlush();
-    const spans = exporter.getFinishedSpans();
-    const job = spans.find(span => span.name === 'recurring_payments.run');
-    const batch = spans.find(span => span.name === 'recurring_payments.batch');
-    expect(job?.status.code).toBe(SpanStatusCode.ERROR);
-    expect(job?.attributes['job.failed']).toBe(1);
-    expect(batch?.status.code).toBe(SpanStatusCode.ERROR);
-    expect(batch?.parentSpanContext?.spanId).toBe(job?.spanContext().spanId);
 
     expect(invalidateUserCaches).toHaveBeenCalledTimes(1);
     expect(invalidateUserCaches).toHaveBeenCalledWith('user-c', ['/api/transaction', '/api/budget', '/api/insights']);
