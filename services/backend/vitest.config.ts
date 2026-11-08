@@ -21,7 +21,6 @@ const isolatedSuites = [
   'src/__tests__/preference.router.test.ts',
   'src/__tests__/processRecurringPayments.test.ts',
   'src/__tests__/recurringPayment.execute.router.test.ts',
-  'src/__tests__/tracingBootstrap.test.ts',
   'src/__tests__/transaction.router.test.ts',
 ];
 

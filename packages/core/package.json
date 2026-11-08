@@ -19,11 +19,6 @@
     "url": "https://github.com/BudgetBuddyDE/BudgetBuddyDE/issues"
   },
   "exports": {
-    "./telemetry/sanitizeSpan": {
-      "dev-source": "./src/telemetry/sanitizeSpan.ts",
-      "types": "./lib/telemetry/sanitizeSpan.d.ts",
-      "default": "./lib/telemetry/sanitizeSpan.js"
-    },
     "./config/Config": {
       "dev-source": "./src/config/Config.ts",
       "types": "./lib/config/Config.d.ts",
@@ -67,9 +62,6 @@
   },
   "typesVersions": {
     "*": {
-      "telemetry/sanitizeSpan": [
-        "./lib/telemetry/sanitizeSpan.d.ts"
-      ],
       "config/Config": [
         "./lib/config/Config.d.ts"
       ],

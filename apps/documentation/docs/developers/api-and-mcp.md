@@ -70,7 +70,7 @@ See the runnable [`examples/api-key-client`](https://github.com/BudgetBuddyDE/Bu
 - **Tools:** all 28 existing names, input schemas, text responses, and `isError` contracts are preserved. They cover categories, payment methods, transactions, recurring payments, budgets, and attachments.
 - **Origins:** backend `TRUSTED_ORIGINS` applies to browser clients; untrusted Origins receive `403`. Clients without an Origin header remain allowed.
 - **Rate limit:** independent 120 requests per minute and IP in production, using backend cache Redis when configured or an in-memory fallback. The API-key limit also applies; the domain HTTP limiter does not.
-- **Health and lifecycle:** backend `/health`, logging, and tracing cover MCP. Request completion, errors, client aborts, and backend shutdown close the corresponding transports and servers.
+- **Health and lifecycle:** backend `/health` and logging cover MCP. Request completion, errors, client aborts, and backend shutdown close the corresponding transports and servers.
 
 Shared domain services receive the key owner explicitly and preserve REST validation, pagination, ownership, transactions, and error behavior. Successful MCP mutations invalidate the same owner-scoped response caches as REST mutations. MCP reads access the services directly rather than the REST response cache.
 
