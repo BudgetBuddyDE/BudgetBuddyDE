@@ -3,7 +3,6 @@ import type {NextFunction, Request, Response} from 'express';
 import {type CacheRouteConfig, config} from '../config';
 import {getRedisClient} from '../db/redis';
 import {logger} from '../lib/logger';
-import {withSpan} from '../telemetry/tracing';
 
 const cacheLogger = logger.child({module: 'cache', middleware: 'cache'});
 
@@ -60,17 +59,15 @@ async function getCacheGeneration(route: CacheRouteConfig, userId: string): Prom
 export async function invalidateUserCaches(userId: string, routePaths: readonly string[]): Promise<void> {
   if (!isCacheAvailable()) return;
   try {
-    await withSpan('cache.invalidate', {'cache.route_count': routePaths.length}, async () => {
-      const redis = getRedisClient();
-      const routes = config.cache.routes.filter(route => routePaths.includes(route.path));
-      await Promise.all(
-        routes.map(async route => {
-          const key = buildGenerationKey(route, userId);
-          const generation = await redis.incr(key);
-          cacheLogger.debug('Advanced cache generation for %s to %d', route.path, generation, {userId, key});
-        }),
-      );
-    });
+    const redis = getRedisClient();
+    const routes = config.cache.routes.filter(route => routePaths.includes(route.path));
+    await Promise.all(
+      routes.map(async route => {
+        const key = buildGenerationKey(route, userId);
+        const generation = await redis.incr(key);
+        cacheLogger.debug('Advanced cache generation for %s to %d', route.path, generation, {userId, key});
+      }),
+    );
   } catch (err) {
     cacheLogger.error('Cache invalidation failed', new CacheError('Cache invalidation failed', {cause: err}));
   }
@@ -106,11 +103,7 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
     const generation = await getCacheGeneration(route, userId);
     const cacheKey = buildCacheKey(route, userId, req.originalUrl, generation);
 
-    const cached = await withSpan('cache.lookup', {'http.route': route.path}, async span => {
-      const value = await redis.get(cacheKey);
-      span.setAttribute('cache.outcome', value === null ? 'miss' : 'hit');
-      return value;
-    });
+    const cached = await redis.get(cacheKey);
     if (cached !== null) {
       res.setHeader('X-Cache', 'HIT');
       res.json(JSON.parse(cached));
