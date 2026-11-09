@@ -24,7 +24,7 @@
     "@budgetbuddyde/charts": "workspace:*",
     "@budgetbuddyde/core": "workspace:*",
     "@budgetbuddyde/logger": "workspace:*",
-    "@dicebear/core": "^9.4.3",
+    "@dicebear/core": "^10.7.0",
     "@dicebear/thumbs": "^9.4.2",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
