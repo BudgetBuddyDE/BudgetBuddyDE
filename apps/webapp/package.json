@@ -19,7 +19,7 @@
     "post-update": "echo \"codesandbox preview only, need an update\" && pnpm update --latest"
   },
   "dependencies": {
-    "@better-auth/api-key": "1.5.6",
+    "@better-auth/api-key": "1.7.18",
     "@budgetbuddyde/api": "workspace:*",
     "@budgetbuddyde/charts": "workspace:*",
     "@budgetbuddyde/core": "workspace:*",
@@ -52,7 +52,7 @@
     "@opentelemetry/sdk-trace-web": "^2.12.0",
     "@opentelemetry/semantic-conventions": "^1.44.0",
     "@reduxjs/toolkit": "^2.14.0",
-    "better-auth": "1.5.6",
+    "better-auth": "1.7.18",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
     "lodash.debounce": "^4.0.8",
