@@ -22,6 +22,7 @@ import {useTranslations} from 'next-intl';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
+import {Balance} from '@/components/Balance';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
@@ -48,7 +49,6 @@ import {recurringPaymentSlice} from '@/lib/features/recurringPayments/recurringP
 import {useAppDispatch, useAppSelector} from '@/lib/hooks';
 import {useConsumeIntent} from '@/lib/ibn';
 import {logger} from '@/logger';
-import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 import {
   columns as recurringPaymentBatchColumns,
@@ -654,7 +654,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
         width: 112,
         renderCell: value => (
           <Typography variant="body2" noWrap>
-            {Formatter.currency.formatBalance(value as number, currency)}
+            <Balance amount={value as number} currency={currency} />
           </Typography>
         ),
       },

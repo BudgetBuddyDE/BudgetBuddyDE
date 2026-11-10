@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/AddRounded';
 import {Box, Chip, type ChipProps, CircularProgress, IconButton} from '@mui/material';
 import {useLocale, useTranslations} from 'next-intl';
 import type React from 'react';
+import {Balance} from '@/components/Balance';
 import {Card} from '@/components/Card';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {IntentButton} from '@/components/IBN';
@@ -12,7 +13,6 @@ import {NoResults} from '@/components/NoResults';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
 import type {EntityListProps} from '@/components/Transaction/TransactionList';
 import {EntityIcon} from '@/lib/ibn';
-import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type RecurringPaymentListProps = EntityListProps<{
@@ -93,7 +93,7 @@ export const RecurringPaymentList: React.FC<RecurringPaymentListProps> = ({
                     <PaymentMethodChip paymentMethodName={recurringPayment.paymentMethod.name} {...chipProps} />
                   </Box>
                 }
-                amount={Formatter.currency.formatBalance(recurringPayment.transferAmount, currency, 2, 2, locale)}
+                amount={<Balance amount={recurringPayment.transferAmount} currency={currency} locale={locale} />}
               />
             );
           })
