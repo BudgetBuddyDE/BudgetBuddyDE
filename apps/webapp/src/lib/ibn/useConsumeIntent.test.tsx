@@ -34,6 +34,7 @@ describe('useConsumeIntent', () => {
     vi.mocked(usePathname).mockReturnValue('/transactions');
     setParams();
     window.history.replaceState(null, '', '/transactions');
+    window.location.hash = '';
   });
 
   afterEach(() => {
