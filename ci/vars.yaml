@@ -1,0 +1,13 @@
+git:
+  name: Thorben Klein
+  email: 38816229+tklein1801@users.noreply.github.com
+repository:
+  owner: budgetbuddyde
+  name: budgetbuddyde
+  branch: main
+pull-request:
+  target-branch: main
+dependency-update:
+  interval: 168h
+database-backup:
+  interval: 24h

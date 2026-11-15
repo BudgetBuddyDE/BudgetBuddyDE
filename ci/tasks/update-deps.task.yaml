@@ -1,0 +1,41 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: ghcr.io/voidzero-dev/vite-plus
+    tag: '1.3.0'
+  version:
+    digest: sha256:61860c1b58bf35878605280802809973c668f1594675298c3be553a98ac06e59
+inputs:
+  - name: repository
+outputs:
+  - name: repository
+params:
+  CI: 'true'
+  HUSKY: '0'
+  FORCE_COLOR: 1
+  NEXT_TELEMETRY_DISABLED: 1
+  GIT_NAME:
+  GIT_EMAIL:
+run:
+  user: root
+  path: sh
+  dir: repository
+  args:
+    - -ec
+    - |
+      : "${GIT_NAME:?GIT_NAME is required}"
+      : "${GIT_EMAIL:?GIT_EMAIL is required}"
+      vp --version
+      node --version
+      pnpm --version
+      test "$(node --version)" = "v$(cat .node-version)"
+      test "$(pnpm --version)" = "$(node -p "require('./package.json').packageManager.replace(/^pnpm@/, '')")"
+      vp install --frozen-lockfile
+      vp update --latest
+      vp pm audit --fix
+      pnpm run ci
+      git add package.json pnpm-lock.yaml pnpm-workspace.yaml ':(glob)packages/*/package.json' ':(glob)services/*/package.json' ':(glob)apps/*/package.json' ':(glob)examples/*/package.json'
+      if ! git diff --cached --quiet; then
+        git -c user.name="$GIT_NAME" -c user.email="$GIT_EMAIL" commit -m 'build(dependencies): Automated update of dependencies'
+      fi
