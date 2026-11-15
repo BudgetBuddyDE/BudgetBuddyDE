@@ -81,7 +81,7 @@ importers:
         version: '@fumadocs/base-ui@16.17.7(eca2ce06c6f263d8ce3b9ef0d8c7fd59)'
       fumapress:
         specifier: ^1.6.2
-        version: 1.6.2(e56c7dbe90a0d8271e39af3beb54282b)
+        version: 1.6.2(e7876eeda9865b85ebad28dfb3fb41f4)
       lucide-react:
         specifier: ^0.511.0
         version: 0.511.0(react@19.3.1)
@@ -5829,8 +5829,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.13.8:
-    resolution: {integrity: sha512-/Gng7NfoykZl2pjukW5Z6+8Yxm3BPRf86GTbQnt0SbySkvax4fyL4H3HhY1cCpBGmiW9XDRFzRV+CXK2W8QudQ==}
+  hono@4.13.18:
+    resolution: {integrity: sha512-H9q/E1XizaWstJxUW881dmLxEj+t/TrGGnyxINkm4+sK0qUwsMtFdo2BWI9Vs3cIS19MU6b6iCijoUoEf4f3DA==}
     engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@4.0.0:
@@ -8886,9 +8886,9 @@ snapshots:
       protobufjs: 7.6.6
       yargs: 17.7.3
 
-  '@hono/node-server@2.1.1(hono@4.13.8)':
+  '@hono/node-server@2.1.1(hono@4.13.18)':
     dependencies:
-      hono: 4.13.8
+      hono: 4.13.18
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -9177,7 +9177,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.32.2(supports-color@8.1.1)(zod@4.6.7)':
     dependencies:
-      '@hono/node-server': 2.1.1(hono@4.13.8)
+      '@hono/node-server': 2.1.1(hono@4.13.18)
       ajv: 8.20.0
       ajv-formats: 3.0.1
       content-type: 1.0.5
@@ -9187,7 +9187,7 @@ snapshots:
       eventsource-parser: 3.1.1
       express: 5.3.0(supports-color@8.1.1)
       express-rate-limit: 8.7.3(express@5.3.0(supports-color@8.1.1))(supports-color@8.1.1)
-      hono: 4.13.8
+      hono: 4.13.18
       jose: 6.2.12
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -12776,7 +12776,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  fumapress@1.6.2(e56c7dbe90a0d8271e39af3beb54282b):
+  fumapress@1.6.2(e7876eeda9865b85ebad28dfb3fb41f4):
     dependencies:
       '@fuma-translate/react': 1.0.2(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       class-variance-authority: 0.7.1
@@ -12796,7 +12796,7 @@ snapshots:
       '@types/mdx': 2.0.14
       '@types/react': 19.3.0
       fumadocs-mdx: 15.5.0(b8320e5d0ddd95d374bf9a71900fec81)
-      hono: 4.13.8
+      hono: 4.13.18
       sharp: 0.34.5
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
@@ -13050,7 +13050,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.13.8: {}
+  hono@4.13.18: {}
 
   html-encoding-sniffer@4.0.0:
     dependencies:
@@ -15934,11 +15934,11 @@ snapshots:
 
   waku@1.0.0-rc.1(@types/node@24.13.6)(esbuild@0.28.2)(jiti@2.7.0)(react-dom@19.3.1(react@19.3.1))(react-server-dom-webpack@19.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(webpack@5.111.1(@swc/core@1.16.20(@swc/helpers@0.5.23))(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.31)(sharp@0.34.5)))(react@19.3.1)(terser@5.51.2)(tsx@4.23.15)(typescript@7.0.2)(yaml@2.9.1):
     dependencies:
-      '@hono/node-server': 2.1.1(hono@4.13.8)
+      '@hono/node-server': 2.1.1(hono@4.13.18)
       '@vitejs/plugin-react': 6.2.1(@voidzero-dev/vite-plus-core@1.3.0(@types/node@24.13.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(typescript@7.0.2)(yaml@2.9.1))
       '@vitejs/plugin-rsc': 0.5.38(@voidzero-dev/vite-plus-core@1.3.0(@types/node@24.13.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(typescript@7.0.2)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react-server-dom-webpack@19.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(webpack@5.111.1(@swc/core@1.16.20(@swc/helpers@0.5.23))(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.31)(sharp@0.34.5)))(react@19.3.1)
       dotenv: 17.4.2
-      hono: 4.13.8
+      hono: 4.13.18
       magic-string: 1.4.3
       picocolors: 1.1.1
       react: 19.3.1
