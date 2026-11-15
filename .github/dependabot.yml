@@ -4,44 +4,12 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      day: monday
-      time: '06:00'
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 5
-    versioning-strategy: increase
-    commit-message:
-      prefix: chore
-      include: scope
-    labels:
-      - dependencies
+    open-pull-requests-limit: 1
     groups:
-      react:
-        patterns:
-          - react
-          - react-dom
-          - '@types/react'
-          - '@types/react-dom'
-      mui:
-        patterns:
-          - '@mui/*'
-          - '@emotion/*'
-      vite-plus:
-        patterns:
-          - vite-plus
-          - vite
-          - '@voidzero-dev/vite-plus-core'
-          - vitest
-          - '@vitest/*'
-      drizzle:
-        patterns:
-          - drizzle-*
-      auth:
-        patterns:
-          - better-auth
-          - '@better-auth/*'
-      minor-and-patch:
+      all-dependencies:
         patterns:
           - '*'
-        update-types:
-          - minor
-          - patch
+      security-dependencies:
+        applies-to: security-updates
+        patterns:
+          - '*'

@@ -1,0 +1,228 @@
+groups:
+  - name: all
+    jobs:
+      - '*'
+  - name: build
+    jobs:
+      - build
+  - name: pull-request
+    jobs:
+      - pr-checks
+      - auto-merge-dependabot
+  - name: database
+    jobs:
+      - update-*-database
+      - database-backup
+  - name: maintenance
+    jobs:
+      - update-dependencies
+resource_types:
+  - name: pull-request
+    type: registry-image
+    source:
+      repository: cfcommunity/github-pr-resource
+      tag: '0.26.0'
+  - name: cogito
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: pix4d/cogito
+      tag: '0.17.3'
+resources:
+  - name: repository
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repository.owner))/((repository.name)).git
+      branch: ((repository.branch))
+      private_key: ((github.private_key))
+  - name: db-definition-repository
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:((repository.owner))/((repository.name)).git
+      private_key: ((github.private_key))
+      branch: ((repository.branch))
+      paths: [packages/db/**]
+  - name: gh-commit-status
+    type: cogito
+    icon: github
+    check_every: never
+    source:
+      owner: ((repository.owner))
+      repo: ((repository.name))
+      access_token: ((github.pat))
+  - name: pull-request
+    type: pull-request
+    icon: github
+    source:
+      repository: ((repository.owner))/((repository.name))
+      access_token: ((github.pat))
+      base_branch: ((pull-request.target-branch))
+  - name: db-bucket
+    type: s3
+    icon: database-import
+    source:
+      bucket: ((s3-db-backup.bucket))
+      region_name: ((s3-db-backup.region))
+      access_key_id: ((s3-db-backup.access_key_id))
+      secret_access_key: ((s3-db-backup.access_key_secret))
+      regexp: backup_(.*).dump
+  - name: db-backup-timer
+    type: time
+    icon: clock
+    source:
+      interval: ((database-backup.interval))
+  - name: update-dependencies-timer
+    type: time
+    icon: clock-outline
+    source:
+      interval: ((dependency-update.interval))
+jobs:
+  - name: build
+    public: true
+    serial_groups: [release]
+    on_success:
+      put: gh-commit-status
+      inputs: [repository]
+      params: {state: success}
+    on_failure:
+      put: gh-commit-status
+      inputs: [repository]
+      params: {state: failure}
+    on_error:
+      put: gh-commit-status
+      inputs: [repository]
+      params: {state: error}
+    on_abort:
+      put: gh-commit-status
+      inputs: [repository]
+      params: {state: abort}
+    plan:
+      - in_parallel:
+          - get: repository
+            trigger: true
+      - put: gh-commit-status
+        inputs: [repository]
+        params: {state: pending}
+      - task: build
+        file: repository/ci/tasks/build.task.yaml
+  - name: pr-checks
+    public: true
+    on_failure:
+      put: pull-request
+      params: {path: pull-request, status: failure}
+    on_error:
+      put: pull-request
+      params: {path: pull-request, status: error}
+    on_abort:
+      put: pull-request
+      params: {path: pull-request, status: error}
+    plan:
+      - in_parallel:
+          - get: repository
+          - get: pull-request
+            trigger: true
+            version: every
+      - put: pull-request
+        params: {path: pull-request, status: pending}
+      - task: build-pr
+        file: repository/ci/tasks/build.task.yaml
+        input_mapping:
+          repository: pull-request
+      - put: pull-request
+        params: {path: pull-request, status: success}
+  - name: auto-merge-dependabot
+    public: true
+    plan:
+      - get: repository
+      - get: pull-request
+        trigger: true
+        passed: [pr-checks]
+        version: every
+      - task: enable-auto-merge
+        file: repository/ci/tasks/auto-merge-dependabot.task.yaml
+        params:
+          GH_TOKEN: ((github.pat))
+          GITHUB_REPOSITORY: ((repository.owner))/((repository.name))
+  - name: update-dependencies
+    public: true
+    serial: true
+    plan:
+      - in_parallel:
+          - get: repository
+          - get: update-dependencies-timer
+            trigger: true
+      - task: npm-update
+        file: repository/ci/tasks/update-deps.task.yaml
+        params:
+          GIT_NAME: ((git.name))
+          GIT_EMAIL: ((git.email))
+        on_success:
+          put: repository
+          inputs: [repository]
+          no_get: true
+          params:
+            repository: repository
+  - name: update-test-database
+    public: false
+    plan:
+      - in_parallel:
+          - get: repository
+          - get: db-definition-repository
+            resource: db-definition-repository
+            trigger: true
+      - task: apply-migrations
+        file: repository/ci/tasks/apply-db-migration.task.yaml
+        input_mapping:
+          repository: db-definition-repository
+        params:
+          REPO_PATH: packages/db/drizzle
+          DATABASE_URL: ((database.test-database-url))
+  - name: update-prod-database
+    public: false
+    plan:
+      - in_parallel:
+          - get: repository
+          - get: db-definition-repository
+            resource: db-definition-repository
+            passed: [update-test-database]
+      - task: apply-migrations
+        file: repository/ci/tasks/apply-db-migration.task.yaml
+        input_mapping:
+          repository: db-definition-repository
+        params:
+          REPO_PATH: packages/db/drizzle
+          DATABASE_URL: ((database.prod-database-url))
+  - name: database-backup
+    public: false
+    plan:
+      - get: db-backup-timer
+        trigger: true
+      - task: dump-database
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: postgres
+              tag: '17'
+          outputs:
+            - name: backup
+          params:
+            CI: 'true'
+            FORCE_COLOR: 1
+            DATABASE_URL: ((database.prod-database-url))
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+                FILE="backup_${TIMESTAMP}.dump"
+                echo "Creating PostgreSQL dump..."
+                pg_dump "$DATABASE_URL" -Fc -f "backup/$FILE" >> /dev/null
+                echo "Backup created!"
+      - put: db-bucket
+        params:
+          file: backup/*.dump

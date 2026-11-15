@@ -1,0 +1,43 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: alpine
+    tag: '3.22'
+inputs:
+  - name: pull-request
+params:
+  GH_TOKEN:
+  GITHUB_REPOSITORY:
+run:
+  path: sh
+  dir: pull-request
+  args:
+    - -ec
+    - |
+      author="$(cat .git/resource/author)"
+      pr="$(cat .git/resource/pr)"
+
+      # The resource version contains the commit that passed the pr-checks job.
+      sha="$(sed -n 's/.*"commit"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        .git/resource/version.json)"
+
+      if [ "$author" != "dependabot[bot]" ]; then
+        echo "PR #$pr was opened by $author; skipping auto-merge."
+        exit 0
+      fi
+
+      if [ -z "$sha" ]; then
+        echo "Could not read the commit SHA from the resource version."
+        exit 1
+      fi
+
+      apk add --no-cache github-cli
+
+      echo "Enabling auto-merge for Dependabot PR #$pr at commit $sha."
+
+      gh pr merge "$pr" \
+        --repo "$GITHUB_REPOSITORY" \
+        --squash \
+        --auto \
+        --match-head-commit "$sha"
