@@ -1,0 +1,22 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: pragent/pr-agent
+    tag: ((image-tag))
+  version:
+    digest: ((image-digest))
+inputs:
+  - name: repository
+  - name: pull-request
+outputs:
+  - name: review-decision
+params:
+  GH_TOKEN:
+  EXPECTED_REPOSITORY:
+  EXPECTED_BASE_BRANCH:
+run:
+  path: python
+  args:
+    - -I
+    - repository/ci/scripts/prepare-ai-review.py

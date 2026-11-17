@@ -1,0 +1,20 @@
+[config]
+model = 'openai/code-review'
+fallback_models = []
+response_language = 'de-DE'
+persistent_inline_comments = true
+
+[pr_reviewer]
+persistent_comment = true
+inline_key_issues = true
+extra_instructions = '''
+Prioritize concrete bugs and substantiated risks over cosmetic style issues.
+Pay particular attention to user ownership and authentication, REST and MCP contracts,
+transactions, cache invalidation, TResult and Zod validation, recurring payments,
+attachment deletion, imports, and missing tests for changed behavior.
+Identify affected locations and impacts. Label uncertain assumptions as such.
+'''
+
+[pr_code_suggestions]
+committable_code_suggestions = true
+focus_only_on_problems = true

@@ -8,6 +8,7 @@ groups:
   - name: pull-request
     jobs:
       - pr-checks
+      - ai-code-review
       - auto-merge-dependabot
   - name: database
     jobs:
@@ -55,6 +56,7 @@ resources:
   - name: pull-request
     type: pull-request
     icon: github
+    check_every: 1m
     source:
       repository: ((repository.owner))/((repository.name))
       access_token: ((github.pat))
@@ -132,6 +134,43 @@ jobs:
           repository: pull-request
       - put: pull-request
         params: {path: pull-request, status: success}
+  - name: ai-code-review
+    public: false
+    serial: true
+    plan:
+      - in_parallel:
+          - get: repository
+          - get: pull-request
+            trigger: true
+            version: every
+            params:
+              integration_tool: checkout
+      - task: prepare-review
+        file: repository/ci/tasks/prepare-ai-review.task.yaml
+        timeout: 1m
+        vars:
+          image-tag: ((ai-review.image-tag))
+          image-digest: ((ai-review.image-digest))
+        params:
+          GH_TOKEN: ((github.pat))
+          EXPECTED_REPOSITORY: ((repository.owner))/((repository.name))
+          EXPECTED_BASE_BRANCH: ((pull-request.target-branch))
+      - load_var: review-urls
+        file: review-decision/urls.json
+      - across:
+          - var: review-url
+            values: ((.:review-urls))
+        task: review
+        file: repository/ci/tasks/ai-review.task.yaml
+        timeout: 10m
+        vars:
+          image-tag: ((ai-review.image-tag))
+          image-digest: ((ai-review.image-digest))
+          pr-url: ((.:review-url))
+        params:
+          GITHUB__USER_TOKEN: ((github.pat))
+          OPENAI__KEY: ((ai-review.api-key))
+          OPENAI__API_BASE: ((ai-review.api-base))
   - name: auto-merge-dependabot
     public: true
     plan:

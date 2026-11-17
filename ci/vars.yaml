@@ -7,6 +7,9 @@ repository:
   branch: main
 pull-request:
   target-branch: main
+ai-review-image:
+  image-tag: '0.50.0'
+  image-digest: sha256:8978ae8f025883159ccc6f5bec51e6553347c77d14dbc5ca4bf3bb4a8726eb43
 dependency-update:
   interval: 168h
 database-backup:

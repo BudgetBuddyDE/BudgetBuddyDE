@@ -1,0 +1,23 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: pragent/pr-agent
+    tag: ((image-tag))
+  version:
+    digest: ((image-digest))
+params:
+  GITHUB__USER_TOKEN:
+  OPENAI__KEY:
+  OPENAI__API_BASE:
+  CONFIG__GIT_PROVIDER: github
+  CONFIG__PROPAGATE_COMMAND_ERRORS: 'true'
+run:
+  path: python
+  dir: /app
+  args:
+    - -m
+    - pr_agent.cli
+    - --pr_url
+    - ((pr-url))
+    - review
