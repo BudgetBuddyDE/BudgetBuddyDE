@@ -2,7 +2,6 @@ import {ATTACHMENT_CONTENT_TYPES} from '@budgetbuddyde/api/attachment';
 import {
   BackendConfig,
   type BackendConfigOptions,
-  getOptionalEnvironmentValue,
   getPort,
   getRedisDatabase,
   getRuntime,
@@ -15,12 +14,24 @@ import type {CorsOptions} from 'cors';
 import 'dotenv/config';
 import type {Options as RateLimitOptions} from 'express-rate-limit';
 import {name, version} from '../package.json';
+import {parseEnvironment, type EnvironmentInput, type ValidatedBackendEnvironment} from './env';
 import {HTTPStatusCode} from './models/HttpStatusCode';
 
-function getRequiredEnvironmentValue(environment: NodeJS.ProcessEnv, name: string): string {
-  const value = getOptionalEnvironmentValue(environment, name);
-  if (value === undefined) throw new EnvironmentNotSetError(name);
+function getRequiredEnvironmentValue(
+  environment: ValidatedBackendEnvironment,
+  name: 'BASE_URL' | 'AUTH_SECRET' | 'RESEND_API_KEY' | 'DATABASE_URL',
+): string {
+  const value = environment[name];
+  if (value === undefined || value.trim() === '') throw new EnvironmentNotSetError(name);
   return value;
+}
+
+function runtimeRequiredEnvironmentNames(
+  environment: EnvironmentInput,
+): ('DATABASE_URL' | 'AUTH_SECRET' | 'RESEND_API_KEY' | 'BASE_URL')[] {
+  return environment.NODE_ENV?.toLowerCase() === 'production'
+    ? ['DATABASE_URL', 'AUTH_SECRET', 'RESEND_API_KEY', 'BASE_URL']
+    : ['DATABASE_URL', 'AUTH_SECRET', 'RESEND_API_KEY'];
 }
 
 /** Complete, centrally constructed runtime configuration for the backend service. */
@@ -197,21 +208,38 @@ export class AppConfig extends BackendConfig {
   }
 
   /** Builds the backend configuration from a process environment. */
-  static fromEnvironment(environment: NodeJS.ProcessEnv = process.env): AppConfig {
-    const runtime = getRuntime(environment.NODE_ENV);
+  static fromEnvironment(environment: EnvironmentInput = process.env): AppConfig {
+    const env = parseEnvironment(environment);
+    const required = runtimeRequiredEnvironmentNames(environment);
+    if (getRuntime(env.NODE_ENV) === 'production' && (env.TRUSTED_ORIGINS ?? '').trim() === '') {
+      throw new EnvironmentNotSetError('TRUSTED_ORIGINS');
+    }
+    const missing = required.filter(name => {
+      const value = env[name];
+      return value === undefined || value.trim() === '';
+    });
+    if (missing.length > 0) throw new EnvironmentNotSetError(missing[0]!);
+    const validatedEnv: ValidatedBackendEnvironment = {
+      ...env,
+      DATABASE_URL: env.DATABASE_URL!,
+      AUTH_SECRET: env.AUTH_SECRET!,
+      BASE_URL: env.BASE_URL!,
+      RESEND_API_KEY: env.RESEND_API_KEY!,
+    };
+    const runtime = getRuntime(env.NODE_ENV);
     const service = name;
-    const timezone = getOptionalEnvironmentValue(environment, 'TIMEZONE') ?? 'Europe/Berlin';
-    const redisUrl = getOptionalEnvironmentValue(environment, 'REDIS_URL');
-    const authRedisUrl = getOptionalEnvironmentValue(environment, 'AUTH_REDIS_URL');
-    const trustedOrigins = getTrustedOrigins(environment.TRUSTED_ORIGINS);
-    const port = getPort(environment.PORT, 9000);
+    const timezone = env.TIMEZONE ?? 'Europe/Berlin';
+    const redisUrl = env.REDIS_URL;
+    const authRedisUrl = env.AUTH_REDIS_URL;
+    const trustedOrigins = getTrustedOrigins(env.TRUSTED_ORIGINS);
+    const port = getPort(env.PORT, 9000);
     if (runtime === 'production' && trustedOrigins.length === 0) {
       throw new EnvironmentNotSetError('TRUSTED_ORIGINS');
     }
     const baseUrl =
       runtime === 'production'
-        ? getRequiredEnvironmentValue(environment, 'BASE_URL')
-        : (getOptionalEnvironmentValue(environment, 'BASE_URL') ?? `http://localhost:${port}`);
+        ? getRequiredEnvironmentValue(validatedEnv, 'BASE_URL')
+        : (env.BASE_URL ?? `http://localhost:${port}`);
     const publicUrl = new URL(baseUrl);
     if (
       !['http:', 'https:'].includes(publicUrl.protocol) ||
@@ -231,21 +259,21 @@ export class AppConfig extends BackendConfig {
       runtime,
       auth: {
         baseUrl: publicUrl.origin,
-        secret: getRequiredEnvironmentValue(environment, 'AUTH_SECRET'),
+        secret: getRequiredEnvironmentValue(validatedEnv, 'AUTH_SECRET'),
         trustedOrigins: trustedOrigins.length > 0 ? trustedOrigins : ['http://localhost:3000'],
-        disableCsrfCheck: environment.DISABLE_CSRF_CHECK === 'true',
-        disableSignUp: environment.DISABLE_SIGNUP === 'true',
+        disableCsrfCheck: env.DISABLE_CSRF_CHECK === 'true',
+        disableSignUp: env.DISABLE_SIGNUP === 'true',
         socialProviders: {
           github: {
-            clientId: getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_ID'),
-            clientSecret: getOptionalEnvironmentValue(environment, 'GITHUB_CLIENT_SECRET'),
+            clientId: env.GITHUB_CLIENT_ID,
+            clientSecret: env.GITHUB_CLIENT_SECRET,
           },
           google: {
-            clientId: getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_ID'),
-            clientSecret: getOptionalEnvironmentValue(environment, 'GOOGLE_CLIENT_SECRET'),
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
           },
         },
-        redis: {url: authRedisUrl, database: getRedisDatabase(environment.AUTH_REDIS_DB, 0)},
+        redis: {url: authRedisUrl, database: getRedisDatabase(env.AUTH_REDIS_DB, 0)},
         rateLimit: {
           enabled: runtime === 'production' && (redisUrl !== undefined || authRedisUrl !== undefined),
           keyPrefix: `rate-limit:${service}:auth:`,
@@ -272,32 +300,30 @@ export class AppConfig extends BackendConfig {
         },
       },
       mcp: {rateLimit: {enabled: runtime === 'production', windowMs: 60_000, limit: 120}},
-      email: {resendApiKey: getRequiredEnvironmentValue(environment, 'RESEND_API_KEY')},
+      email: {resendApiKey: getRequiredEnvironmentValue(validatedEnv, 'RESEND_API_KEY')},
       database: {
-        connectionString: getRequiredEnvironmentValue(environment, 'DATABASE_URL'),
+        connectionString: getRequiredEnvironmentValue(validatedEnv, 'DATABASE_URL'),
         connectionTimeoutMillis: 5000,
         maxConnections: 20,
       },
       redis: {
         url: redisUrl,
-        database: getRedisDatabase(environment.REDIS_DB, 1),
+        database: getRedisDatabase(env.REDIS_DB, 1),
       },
       objectStorage: {
-        endpoint: getOptionalEnvironmentValue(environment, 'AWS_ENDPOINT_URL'),
-        bucketName: getOptionalEnvironmentValue(environment, 'AWS_S3_BUCKET_NAME'),
-        region: getOptionalEnvironmentValue(environment, 'AWS_DEFAULT_REGION'),
-        accessKeyId: getOptionalEnvironmentValue(environment, 'AWS_ACCESS_KEY_ID'),
-        secretAccessKey: getOptionalEnvironmentValue(environment, 'AWS_SECRET_ACCESS_KEY'),
+        endpoint: env.AWS_ENDPOINT_URL,
+        bucketName: env.AWS_S3_BUCKET_NAME,
+        region: env.AWS_DEFAULT_REGION,
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
         forcePathStyle: false,
       },
       log: {
-        level: getLogLevel(environment.LOG_LEVEL),
+        level: getLogLevel(env.LOG_LEVEL),
       },
       cors: {
         origin:
-          runtime === 'production'
-            ? getTrustedOrigins(environment.TRUSTED_ORIGINS)
-            : [/^(http|https):\/\/localhost(:\d+)?$/],
+          runtime === 'production' ? getTrustedOrigins(env.TRUSTED_ORIGINS) : [/^(http|https):\/\/localhost(:\d+)?$/],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: [
           'Content-Type',
@@ -314,7 +340,7 @@ export class AppConfig extends BackendConfig {
         exposedHeaders: ['MCP-Protocol-Version', 'Mcp-Session-Id'],
         credentials: true,
       },
-      trustProxy: getTrustProxy(environment.TRUST_PROXY, runtime),
+      trustProxy: getTrustProxy(env.TRUST_PROXY, runtime),
       rateLimit: {
         enabled: runtime === 'production' && redisUrl !== undefined,
         keyPrefix: `rate-limit:${service}:`,

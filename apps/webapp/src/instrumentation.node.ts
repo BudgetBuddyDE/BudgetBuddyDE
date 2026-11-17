@@ -9,6 +9,7 @@ import {BatchSpanProcessor, type SpanExporter} from '@opentelemetry/sdk-trace';
 import {ATTR_SERVICE_NAME} from '@opentelemetry/semantic-conventions';
 import {name} from '../package.json';
 import {webappConfig} from './config';
+import {runtimeEnv} from './runtime-env.node';
 
 const backendOrigin = new URL(webappConfig.backendServiceHost).origin;
 const stateKey = Symbol.for('@budgetbuddyde/webapp/telemetry');
@@ -16,11 +17,11 @@ type TelemetryGlobal = typeof globalThis & {
   [stateKey]?: {sdk?: NodeSDK; shutdown?: Promise<void>; hooksInstalled?: boolean};
 };
 const state = ((globalThis as TelemetryGlobal)[stateKey] ??= {});
-const service = process.env.OTEL_SERVICE_NAME?.trim() || name;
+const service = runtimeEnv.OTEL_SERVICE_NAME?.trim() || name;
 const endpoint =
-  process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT?.trim() || process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
+  runtimeEnv.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT?.trim() || runtimeEnv.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
 const protocol =
-  process.env.OTEL_EXPORTER_OTLP_TRACES_PROTOCOL?.trim() || process.env.OTEL_EXPORTER_OTLP_PROTOCOL?.trim();
+  runtimeEnv.OTEL_EXPORTER_OTLP_TRACES_PROTOCOL?.trim() || runtimeEnv.OTEL_EXPORTER_OTLP_PROTOCOL?.trim();
 if (endpoint && protocol && protocol !== 'http/protobuf') {
   console.warn('OTLP trace export supports only http/protobuf; trace export is disabled.');
 }
@@ -36,7 +37,7 @@ if (!state.sdk && endpoint && (!protocol || protocol === 'http/protobuf')) {
     resourceDetectors: [envDetector],
     metricReaders: [],
     spanProcessors:
-      process.env.OTEL_TRACES_EXPORTER === 'none' ? [] : [new BatchSpanProcessor({exporter: safeExporter})],
+      runtimeEnv.OTEL_TRACES_EXPORTER === 'none' ? [] : [new BatchSpanProcessor({exporter: safeExporter})],
     instrumentations: [
       getNodeAutoInstrumentations({
         // Next.js owns inbound routing spans; avoid duplicate HTTP and Express spans.
@@ -58,7 +59,7 @@ if (!state.sdk && endpoint && (!protocol || protocol === 'http/protobuf')) {
     else process.env.OTEL_LOGS_EXPORTER = previousLogsExporter;
   }
 }
-initializeLogging({context: {service}, level: webappConfig.log.level ?? getLogLevel(process.env.LOG_LEVEL)});
+initializeLogging({context: {service}, level: webappConfig.log.level ?? getLogLevel(runtimeEnv.LOG_LEVEL)});
 
 export function shutdownTelemetry(): Promise<void> {
   if (!state.shutdown) {
