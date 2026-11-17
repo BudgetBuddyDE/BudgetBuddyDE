@@ -107,6 +107,8 @@ jobs:
       - put: gh-commit-status
         inputs: [repository]
         params: {state: pending}
+      - task: test-ci-contracts
+        file: repository/ci/tasks/test-ci-contracts.task.yaml
       - task: build
         file: repository/ci/tasks/build.task.yaml
   - name: pr-checks
@@ -128,6 +130,10 @@ jobs:
             version: every
       - put: pull-request
         params: {path: pull-request, status: pending}
+      - task: test-ci-contracts
+        file: repository/ci/tasks/test-ci-contracts.task.yaml
+        input_mapping:
+          repository: pull-request
       - task: build-pr
         file: repository/ci/tasks/build.task.yaml
         input_mapping:
@@ -148,11 +154,11 @@ jobs:
       - task: prepare-review
         file: repository/ci/tasks/prepare-ai-review.task.yaml
         timeout: 1m
-        vars:
-          image-tag: ((ai-review.image-tag))
-          image-digest: ((ai-review.image-digest))
-        params:
-          GH_TOKEN: ((github.pat))
+        vars: &ai-review-image
+          image-tag: ((ai-review-image.image-tag))
+          image-digest: ((ai-review-image.image-digest))
+        params: &ai-review-preparation-params
+          GH_TOKEN: ((github.ai-review-read-pat))
           EXPECTED_REPOSITORY: ((repository.owner))/((repository.name))
           EXPECTED_BASE_BRANCH: ((pull-request.target-branch))
       - load_var: review-urls
@@ -160,17 +166,38 @@ jobs:
       - across:
           - var: review-url
             values: ((.:review-urls))
-        task: review
-        file: repository/ci/tasks/ai-review.task.yaml
-        timeout: 10m
-        vars:
-          image-tag: ((ai-review.image-tag))
-          image-digest: ((ai-review.image-digest))
-          pr-url: ((.:review-url))
-        params:
-          GITHUB__USER_TOKEN: ((github.pat))
-          OPENAI__KEY: ((ai-review.api-key))
-          OPENAI__API_BASE: ((ai-review.api-base))
+        do:
+          - task: review
+            file: repository/ci/tasks/ai-review.task.yaml
+            timeout: 10m
+            vars:
+              <<: *ai-review-image
+              pr-url: ((.:review-url))
+              pr-agent-command: review
+            params: &ai-review-agent-params
+              GITHUB__USER_TOKEN: ((github.ai-review-pat))
+              OPENAI__KEY: ((ai-review.api-key))
+              OPENAI__API_BASE: ((ai-review.api-base))
+          - task: recheck-pr-before-improve
+            file: repository/ci/tasks/prepare-ai-review.task.yaml
+            timeout: 1m
+            vars: *ai-review-image
+            params: *ai-review-preparation-params
+            output_mapping:
+              review-decision: improve-decision
+          - load_var: improve-urls
+            file: improve-decision/urls.json
+          - across:
+              - var: improve-url
+                values: ((.:improve-urls))
+            task: improve
+            file: repository/ci/tasks/ai-review.task.yaml
+            timeout: 10m
+            vars:
+              <<: *ai-review-image
+              pr-url: ((.:improve-url))
+              pr-agent-command: improve
+            params: *ai-review-agent-params
   - name: auto-merge-dependabot
     public: true
     plan:

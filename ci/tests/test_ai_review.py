@@ -34,7 +34,6 @@ class PrepareAiReviewTests(unittest.TestCase):
             'EXPECTED_REPOSITORY': REPOSITORY,
             'EXPECTED_BASE_BRANCH': 'main',
             'GH_TOKEN': 'test-token',
-            'REVIEW_MAX_INPUT_TOKENS': '32000',
         }))
         self.urlopen = self.enterContext(patch('urllib.request.urlopen'))
         self.stderr = self.enterContext(redirect_stderr(io.StringIO()))
@@ -56,12 +55,6 @@ class PrepareAiReviewTests(unittest.TestCase):
 
     def assert_decision(self, urls):
         self.assertEqual(json.loads(self.decision.read_text(encoding='utf-8')), urls)
-
-    def test_invalid_token_limits_fail_before_github_request(self):
-        for limit in ('', '0', '-1', '32k'):
-            with self.subTest(limit=limit), patch.dict(os.environ, {'REVIEW_MAX_INPUT_TOKENS': limit}):
-                self.assert_fails_closed('Review input-token limit must be a positive integer.')
-                self.urlopen.assert_not_called()
 
     def assert_skips(self, **response):
         self.run_prepare(**response)
@@ -131,6 +124,12 @@ class PrepareAiReviewTests(unittest.TestCase):
 
 
 class PrAgentConfigTests(unittest.TestCase):
+    def test_defines_positive_model_input_token_limit(self):
+        with PR_AGENT_CONFIG.open('rb') as config_file:
+            limit = tomllib.load(config_file)['config']['custom_model_max_tokens']
+        self.assertIs(type(limit), int)
+        self.assertGreater(limit, 0)
+
     def test_enables_committable_suggestions_for_problems(self):
         with PR_AGENT_CONFIG.open('rb') as config_file:
             settings = tomllib.load(config_file)['pr_code_suggestions']

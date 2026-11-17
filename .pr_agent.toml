@@ -1,5 +1,6 @@
 [config]
 model = 'openai/code-review'
+custom_model_max_tokens = 64000
 fallback_models = []
 response_language = 'de-DE'
 persistent_inline_comments = true

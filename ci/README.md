@@ -26,30 +26,50 @@ manager. Never commit secrets. No package or container publishing is configured.
 The independent `ai-code-review` job uses the existing PR resource and does not
 block `pr-checks` or Dependabot auto-merge. It reviews open, non-draft PRs whose
 head repository is this repository. Fork PRs are skipped. The job checks the
-current head SHA before invoking PR-Agent, but a push can still race with the
-review. A draft marked ready without a new commit may not trigger a new resource
-version. Rerun its build or push a commit to request a review.
+current head SHA before each CLI command. PR-Agent fetches the PR by URL, so a
+push can still race with either command. Marking a draft ready without a new
+commit may not trigger a new resource version. Rerun its build or push a commit
+to request a review.
 
-Before enabling the job, verify the PR-Agent release and digest in `ci/vars.yaml`.
-Supply the LiteLLM OpenAI-compatible API URL as `ai-review.api-base` when setting the pipeline.
-Supply `github.ai-review-pat` and `ai-review.api-key` through the credential
-manager. All these values are required when applying the full pipeline, even
-if the review job stays paused. The GitHub token needs repository read and pull
-request comment write permissions. LiteLLM manages model routing, budgets and limits. The model is
-configured in `.pr_agent.toml`, which PR-Agent reads from the default branch.
-Validate the model's context limit and the image's CLI and settings before use.
+`ci/vars.yaml` pins the PR-Agent image under `ai-review-image`, separate from
+connection settings. Provide these runtime values through the credential manager:
+
+- `github.ai-review-read-pat`: repository-scoped token with pull request read access for preparation.
+- `github.ai-review-pat`: repository-scoped token with contents read and pull request write access for PR-Agent.
+- `ai-review.api-base`: approved LiteLLM OpenAI-compatible API base URL, without `/chat/completions`.
+- `ai-review.api-key`: LiteLLM key limited to the `code-review` route.
+
+PR-Agent reads the model and `custom_model_max_tokens` from `.pr_agent.toml` on
+the default branch. It uses the input limit to size the diff. The initial limit
+is 64,000 tokens. Before rollout, verify it against the lowest supported input
+limit across the models behind `code-review`. LiteLLM still manages routing and budgets.
 
 The preparation task and its script come from the protected repository branch,
 not the PR. The PR checkout is used only for metadata. Preparation gets a GitHub
 token but no LiteLLM key. It outputs an empty URL list when the PR is excluded;
-Concourse then skips the review task. Otherwise the review task invokes
-`python -m pr_agent.cli --pr_url <url> review` directly. Verify the empty-list
-behavior and CLI invocation on the deployed Concourse version and pinned image.
+Concourse then skips both CLI commands. For an eligible PR, the job runs
+`python -m pr_agent.cli --pr_url <url> review` for the summary and inline findings.
+After a successful review, the job checks eligibility again against the same
+resource version. It runs `python -m pr_agent.cli --pr_url <url> improve` only if
+the PR still qualifies. PR-Agent publishes applicable fixes as GitHub suggestions.
+Someone must accept a suggestion in GitHub to apply it. `improve` can make
+multiple additional LiteLLM calls depending on the diff. If it fails, the AI job
+fails, but an already published review stays visible.
+A resource checkout can fail before preparation, for example when a fork uses
+the same branch name as the base.
 Do not run PR code or load configuration from a PR branch. Restrict network access to GitHub and the
 approved LiteLLM endpoint. Treat PR text as untrusted model input and obtain
 approval before sending code to the endpoint. Polling runs every minute; no
 webhook is required. Job failures indicate technical errors, not review verdicts.
 Pause `ai-code-review` to disable reviews without stopping the remaining jobs.
+
+Before unpausing the job, run a staging smoke test on a Concourse worker:
+
+1. Open a same-repository, non-draft PR with a known, fixable issue. Confirm `review`, then `improve`, and the `code-review` route in LiteLLM. Verify that GitHub shows **Commit suggestion** without applying it.
+2. Test a draft, a fork, and an older SHA. Confirm neither command runs and LiteLLM receives no request.
+3. Push a new commit between `review` and the second eligibility check. Confirm the older build skips `improve`.
+4. Simulate an `improve` failure in staging. Confirm the AI job fails, the review stays visible, and `pr-checks` stays independent.
+5. Rerun the same SHA and check for duplicate inline suggestions.
 
 Local verification:
 
@@ -61,3 +81,5 @@ pnpm run ci
 
 Pipeline validation does not execute jobs. Do not run migration, backup, update,
 or auto-merge jobs merely to validate the pipeline: they have remote side effects.
+`pnpm run test:ci-contracts` needs Python 3 locally. Concourse runs these tests
+in a separate pinned Python task, so the workspace build image does not need Python.

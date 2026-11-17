@@ -11,7 +11,7 @@ params:
   OPENAI__KEY:
   OPENAI__API_BASE:
   CONFIG__GIT_PROVIDER: github
-  CONFIG__PROPAGATE_COMMAND_ERRORS: 'true'
+  CONFIG__PROPAGATE_TOOL_ERRORS: 'true'
 run:
   path: python
   dir: /app
@@ -20,4 +20,4 @@ run:
     - pr_agent.cli
     - --pr_url
     - ((pr-url))
-    - review
+    - ((pr-agent-command))
