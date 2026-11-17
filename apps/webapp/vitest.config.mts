@@ -19,8 +19,9 @@ export default mergeConfig(
       // and DOM operations while remaining fully compatible with @testing-library/react
       environment: 'happy-dom',
       setupFiles: ['./src/vitest.setup.ts'],
-      // VM workers exhaust Windows file handles while loading the MUI icon barrel.
-      pool: 'forks',
+      // Threads avoid the process startup cost measured with forks. Keep isolation
+      // enabled because files replace shared module mocks with different shapes.
+      pool: 'threads',
       maxWorkers: 6,
       // Vitest requires a separate execution group for this project's worker limit.
       sequence: {groupOrder: 1},
