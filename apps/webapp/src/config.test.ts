@@ -53,4 +53,16 @@ describe('WebappConfig', () => {
     expect(config.runtime).toBe('test');
     expect(config.log.level).toBe('info');
   });
+
+  it('parses public settings and ignores private environment variables', () => {
+    const environment = {
+      NODE_ENV: 'production',
+      NEXT_PUBLIC_BACKEND_SERVICE_HOST: ' https://api.example.test ',
+      DATABASE_URL: 'must-not-be-used',
+    };
+    const config = WebappConfig.fromEnvironment(environment);
+
+    expect(config.backendServiceHost).toBe('https://api.example.test');
+    expect(config.runtime).toBe('production');
+  });
 });
