@@ -1,0 +1,13 @@
+{
+  "name": "@budgetbuddyde/mockups",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "mockups": "tsx src/cli.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^24.0.3",
+    "tsx": "^4.23.15"
+  }
+}
