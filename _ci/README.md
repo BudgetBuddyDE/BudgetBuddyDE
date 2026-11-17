@@ -29,11 +29,6 @@ There is no package versioning, Git tag creation, npm publishing or Docker
 image publishing in this pipeline. `database.pipeline.yml` remains independent
 and retains its backup and migration tasks.
 
-Automated pull request reviews run in the separate GitHub Actions workflow at
-`.github/workflows/pr-agent.yml`; they are not part of the Concourse pipelines.
-See [PR-Agent setup](../.github/pr-agent.md) for its GitHub App, LiteLLM, and
-security configuration.
-
 Both pipelines use the `ci-source` Git resource to load task definitions from the
 repository and branch configured by `ci.source.owner`, `ci.source.name`, and
 `ci.source.branch` in `ci/vars.yml`, via `file: ci-source/ci/tasks/<file>`.
