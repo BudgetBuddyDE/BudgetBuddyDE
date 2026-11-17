@@ -22,6 +22,7 @@
     "build-services": "turbo run build --filter=./services/*",
     "build-apps": "turbo run build --filter=./apps/*",
     "build-examples": "turbo run build --filter='./examples/*'",
+    "mockups": "turbo run mockups --filter=@budgetbuddyde/mockups",
     "typecheck": "turbo run typecheck",
     "ci": "pnpm run format:check && pnpm run lint:check && pnpm run typecheck && pnpm run test:ci-contracts && pnpm test && pnpm run build",
     "test:ci-contracts": "node --test ci/tests/*.test.mjs"
