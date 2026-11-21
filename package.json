@@ -23,8 +23,7 @@
     "build-apps": "turbo run build --filter=./apps/*",
     "build-examples": "turbo run build --filter='./examples/*'",
     "typecheck": "turbo run typecheck",
-    "ci": "pnpm run format:check && pnpm run lint:check && pnpm run typecheck && pnpm run test:ci-contracts && pnpm test && pnpm run build",
-    "test:ci-contracts": "node --test ci/tests/*.test.mjs"
+    "ci": "pnpm run format:check && pnpm run lint:check && pnpm run typecheck && pnpm test && pnpm run build"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.4.5",

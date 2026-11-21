@@ -8,6 +8,7 @@ groups:
   - name: pull-request
     jobs:
       - pr-checks
+      - pr-ai-review
       - auto-merge-dependabot
   - name: database
     jobs:
@@ -132,13 +133,74 @@ jobs:
           repository: pull-request
       - put: pull-request
         params: {path: pull-request, status: success}
+  - name: pr-ai-review
+    public: false
+    serial: true
+    on_error:
+      put: pull-request
+      no_get: true
+      params: {path: pull-request, context: ai-review, status: error}
+    on_abort:
+      put: pull-request
+      no_get: true
+      params: {path: pull-request, context: ai-review, status: error}
+    plan:
+      - in_parallel:
+          - get: repository
+          - get: pull-request
+            trigger: true
+            version: every
+            passed: [pr-checks]
+            params: {integration_tool: checkout}
+      - do:
+          - put: pull-request
+            no_get: true
+            params: {path: pull-request, context: ai-review, status: pending}
+          - task: review-pr
+            timeout: 30m
+            file: repository/ci/tasks/pr-ai-review.task.yaml
+            params:
+              OCR_LLM_URL: ((review.url))
+              OCR_LLM_TOKEN: ((review.token))
+              OCR_LLM_MODEL: ((review.model))
+              OCR_LLM_PROTOCOL: ((review.protocol))
+              OCR_LLM_TIMEOUT: ((review.request-timeout))
+              OCR_MAX_TOKENS_BUDGET: ((review.max-tokens-budget))
+          - task: publish-review
+            timeout: 5m
+            file: repository/ci/tasks/publish-pr-ai-review.task.yaml
+            params:
+              GH_TOKEN: ((github.pat))
+              GITHUB_REPOSITORY: ((repository.owner))/((repository.name))
+          - load_var: ai-review-status
+            file: review-status/status.json
+            format: json
+          - put: pull-request
+            no_get: true
+            params: {path: pull-request, context: ai-review, status: ((.:ai-review-status))}
+        on_failure:
+          put: pull-request
+          no_get: true
+          params: {path: pull-request, context: ai-review, status: error}
+      # Outside the error handler so a critical finding keeps its failure status.
+      - task: enforce-review-result
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: {repository: alpine, tag: '3.22'}
+          params:
+            REVIEW_STATUS: ((.:ai-review-status))
+          run:
+            path: sh
+            args: [-ec, 'test "$REVIEW_STATUS" = success']
   - name: auto-merge-dependabot
     public: true
     plan:
       - get: repository
       - get: pull-request
         trigger: true
-        passed: [pr-checks]
+        passed: [pr-ai-review]
         version: every
       - task: enable-auto-merge
         file: repository/ci/tasks/auto-merge-dependabot.task.yaml
