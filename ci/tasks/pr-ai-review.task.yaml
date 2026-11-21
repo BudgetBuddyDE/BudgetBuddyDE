@@ -1,0 +1,53 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source: {repository: node, tag: '24.21.0-trixie'}
+  version:
+    digest: sha256:1278a37eb510ec1606fba0e80f554bcc941ae0b44f35ae373c4822ae7717c64d
+inputs:
+  - name: pull-request
+outputs:
+  - name: review
+params:
+  OCR_LLM_URL:
+  OCR_LLM_TOKEN:
+  OCR_LLM_MODEL:
+  OCR_LLM_PROTOCOL:
+  OCR_LLM_TIMEOUT:
+  OCR_MAX_TOKENS_BUDGET:
+run:
+  path: sh
+  args:
+    - -eu
+    - -c
+    - |
+      export HOME="$(mktemp -d)" OCR_ENABLE_TELEMETRY=0 OCR_CONTENT_LOGGING=0 OCR_NO_UPDATE=1
+      export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
+      # Resolve the pinned launcher outside the PR checkout.
+      ocr="$(cd "$HOME" && env -u OCR_LLM_TOKEN npx --yes --package=@alibaba-group/open-code-review@1.14.0 \
+        -- sh -ec 'command -v ocr')"
+
+      case "$OCR_LLM_PROTOCOL" in
+        openai|openai-responses|anthropic) ;;
+        *) echo 'Unsupported OCR model protocol.' >&2; exit 1 ;;
+      esac
+      : "${OCR_LLM_URL:?}" "${OCR_LLM_MODEL:?}" "${OCR_LLM_TOKEN:?}"
+      "$ocr" config set llm.url "$OCR_LLM_URL" >/dev/null 2>&1
+      "$ocr" config set llm.model "$OCR_LLM_MODEL" >/dev/null 2>&1
+      "$ocr" config set llm.protocol "$OCR_LLM_PROTOCOL" >/dev/null 2>&1
+      "$ocr" config set llm.auth_token_cmd 'printf "%s" "$OCR_LLM_TOKEN"' >/dev/null 2>&1
+      "$ocr" config set language English >/dev/null 2>&1
+
+      cd pull-request
+      head=$(node -e 'const {commit} = JSON.parse(require("node:fs").readFileSync(".git/resource/version.json")); if (!/^[a-f0-9]{40}$/.test(commit)) process.exit(1); console.log(commit)')
+      base=$(cat .git/resource/base_sha)
+      case "$base" in *[!a-f0-9]*|'') exit 1 ;; esac
+      test "${#base}" = 40
+      git merge-base "$base" "$head" >/dev/null
+      git -c core.hooksPath=/dev/null checkout --detach "$base" >/dev/null 2>&1
+
+      if ! "$ocr" review --from "$base" --to "$head" --format json --audience agent \
+        --max-tokens-budget "$OCR_MAX_TOKENS_BUDGET" --output ../review/report.json >/dev/null 2>&1; then
+        echo 'Open Code Review failed to produce a successful review run.' >&2
+        exit 1
+      fi
