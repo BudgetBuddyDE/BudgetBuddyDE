@@ -5,18 +5,16 @@ import {betterAuth, type BetterAuthOptions} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
 import Redis from 'ioredis';
-import {Resend} from 'resend';
 import {normalizeKey} from 'unstorage';
-import {config} from './config';
-import {db} from './database';
+import {getConfig} from './config';
+import {getDatabase} from './database';
+import {logger, logLevel} from './logger';
+import {sendEmail} from './resend';
 
-const mail = new Resend(config.RESEND_API_KEY);
-async function sendLink(to: string, subject: string, url: string) {
-  const {error} = await mail.emails.send({
-    from: config.production ? 'System <auth@mail.budget-buddy.de>' : 'Acme <onboarding@resend.dev>',
-    to, subject, text: `${subject}: ${url}`,
-  });
-  if (error) console.error('Auth email delivery failed:', error.name);
+const authLogger = logger.child({module: 'auth'});
+
+function sendLink(to: string, subject: string, url: string) {
+  return sendEmail({to, subject, text: `${subject}: ${url}`});
 }
 
 // Reuse the mounted client for atomic commands that Nitro's KV API does not expose.
@@ -49,16 +47,27 @@ const secondaryStorage = {
   },
 } satisfies NonNullable<BetterAuthOptions['secondaryStorage']>;
 
-export const auth = betterAuth({
+function createAuth() {
+  const config = getConfig();
+  const db = getDatabase();
+  return betterAuth({
   appName: '@budgetbuddyde/backend', secret: config.AUTH_SECRET, baseURL: config.BASE_URL, basePath: '/api/auth',
   trustedOrigins: config.TRUSTED_ORIGINS,
   database: drizzleAdapter(db, {provider: 'pg', schema: authSchema}),
   secondaryStorage: config.AUTH_REDIS_URL ? secondaryStorage : undefined,
+  logger: {
+    disabled: logLevel === 'silent',
+    level: logLevel === 'trace' ? 'debug' : logLevel === 'silent' ? 'error' : logLevel,
+    log(level, message) {
+      // Better Auth diagnostics may include request URLs or sensitive details in their arguments.
+      authLogger[level](message.replace(/\b[a-z][\w+.-]*:\/\/[^\s"'<>]+/gi, '[REDACTED URL]'));
+    },
+  },
   databaseHooks: {user: {create: {async after(user) {
     try {
       await db.insert(preferences).values({ownerId: user.id, onboardingCompleted: false}).onConflictDoNothing({target: preferences.ownerId});
     } catch {
-      console.error('Could not initialize preferences for newly registered user');
+      authLogger.error('Could not initialize preferences for newly registered user');
     }
   }}}},
   session: {cookieCache: {enabled: true, maxAge: 30 * 60}},
@@ -89,4 +98,8 @@ export const auth = betterAuth({
   plugins: [apiKey({defaultPrefix: 'bb-', enableSessionForAPIKeys: true, requireName: true,
     rateLimit: {enabled: true, maxRequests: 250, timeWindow: 5 * 60 * 1000}, permissions: {defaultPermissions: () => ({})}}),
     ...(config.production ? [] : [openAPI()])],
-});
+  });
+}
+
+let auth: ReturnType<typeof createAuth> | undefined;
+export const getAuth = () => (auth ??= createAuth());

@@ -1,6 +1,7 @@
 import redisDriver from 'unstorage/drivers/redis';
-import {config} from '../lib/config';
-import {pool} from '../lib/database';
+import {authRedisSchema, invalidConfigFields, kvRedisSchema, readRedisEnv} from '../lib/config';
+import {closeDatabase} from '../lib/database';
+import {logger} from '../lib/logger';
 
 export default defineNitroPlugin(app => {
   const storage = useStorage();
@@ -9,7 +10,11 @@ export default defineNitroPlugin(app => {
     storage.mount(name, redisDriver({url, db, connectTimeout: 5000, commandTimeout: 5000, maxRetriesPerRequest: 1}));
     app.hooks.hook('close', () => storage.unmount(name));
   }
-  mount('auth', config.AUTH_REDIS_URL, config.AUTH_REDIS_DB);
-  mount('kv', config.REDIS_URL, config.REDIS_DB);
-  app.hooks.hook('close', () => pool.end());
+  const env = readRedisEnv(process.env);
+  const auth = authRedisSchema.safeParse(env);
+  const kv = kvRedisSchema.safeParse(env);
+  if (auth.success) mount('auth', auth.data.AUTH_REDIS_URL, auth.data.AUTH_REDIS_DB);
+  if (kv.success) mount('kv', kv.data.REDIS_URL, kv.data.REDIS_DB);
+  else logger.error('Invalid Redis configuration', {module: 'storage', fields: invalidConfigFields(kv.error)});
+  app.hooks.hook('close', closeDatabase);
 });
