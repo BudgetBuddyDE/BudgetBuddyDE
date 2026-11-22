@@ -5,9 +5,23 @@
   "scripts": {
     "dev": "nitro dev --port 9100",
     "build": "nitro build",
-    "start": "node build/server/index.mjs"
+    "start": "node --env-file-if-exists=.env build/server/index.mjs",
+    "typecheck": "nitro prepare && tsc --noEmit"
+  },
+  "dependencies": {
+    "@better-auth/api-key": "1.5.6",
+    "@budgetbuddyde/db": "workspace:*",
+    "better-auth": "1.5.6",
+    "drizzle-orm": "0.45.4",
+    "ioredis": "^5.8.2",
+    "pg": "^8.23.1",
+    "resend": "^6.37.0",
+    "unstorage": "1.17.6",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "nitropack": "^2.13.6"
+    "@types/pg": "^8.15.4",
+    "nitropack": "^2.13.6",
+    "typescript": "^5.9.3"
   }
 }
