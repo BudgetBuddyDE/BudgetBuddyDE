@@ -1,0 +1,13 @@
+{
+  "name": "@budgetbuddyde/new-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nitro dev --port 9100",
+    "build": "nitro build",
+    "start": "node build/server/index.mjs"
+  },
+  "devDependencies": {
+    "nitropack": "^2.13.6"
+  }
+}
