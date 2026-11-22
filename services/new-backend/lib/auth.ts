@@ -4,7 +4,9 @@ import {preferences} from '@budgetbuddyde/db/backend';
 import {betterAuth, type BetterAuthOptions} from 'better-auth';
 import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
+import Redis from 'ioredis';
 import {Resend} from 'resend';
+import {normalizeKey} from 'unstorage';
 import {config} from './config';
 import {db} from './database';
 
@@ -17,15 +19,34 @@ async function sendLink(to: string, subject: string, url: string) {
   if (error) console.error('Auth email delivery failed:', error.name);
 }
 
-// unstorage's normal getItem parses JSON; Better Auth needs the original string.
+// Reuse the mounted client for atomic commands that Nitro's KV API does not expose.
+function authRedis(): Redis {
+  const client: unknown = useStorage().getMount('auth').driver.getInstance?.();
+  if (!(client instanceof Redis)) throw new Error('Auth Redis mount is unavailable');
+  return client;
+}
+
 const secondaryStorage = {
   async get(key) {
+    // Unlike getItem, getItemRaw does not parse Better Auth's JSON strings.
     const value: unknown = await useStorage('auth').getItemRaw(key);
     if (value !== null && typeof value !== 'string') throw new Error('Invalid auth session storage value');
     return value;
   },
   set: (key, value, ttl) => useStorage('auth').setItemRaw(key, value, {ttl: ttl || 10}),
   delete: key => useStorage('auth').removeItem(key),
+  getAndDelete: key => authRedis().getdel(normalizeKey(key)),
+  async increment(key, ttl) {
+    const count: unknown = await authRedis().eval(
+      `if redis.call('SET', KEYS[1], '1', 'EX', ARGV[1], 'NX') then return 1 end
+       return redis.call('INCR', KEYS[1])`,
+      1,
+      normalizeKey(key),
+      ttl,
+    );
+    if (typeof count !== 'number') throw new Error('Invalid Redis counter result');
+    return count;
+  },
 } satisfies NonNullable<BetterAuthOptions['secondaryStorage']>;
 
 export const auth = betterAuth({

@@ -63,6 +63,11 @@ try {
   const lookup = await request(nitro, 'get-session', undefined, {cookie});
   assert.equal(lookup.headers.get('access-control-allow-origin'), origin);
   assert.equal((await lookup.json()).user.id, user.id);
+  const legacyKeyResponse = await request(legacy, 'api-key/create', {name: 'legacy-smoke'}, {cookie});
+  assert.equal(legacyKeyResponse.status, 200);
+  const {key: legacyKey} = await legacyKeyResponse.json();
+  assert.match(legacyKey, /^bb-/);
+  assert.equal((await (await request(nitro, 'get-session', undefined, {'x-api-key': legacyKey})).json()).user.id, user.id);
   const signin = await request(nitro, 'sign-in/email', body);
   const newCookie = sessionCookie(signin);
   assert.ok(newCookie);
