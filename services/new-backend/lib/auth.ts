@@ -6,9 +6,9 @@ import {drizzleAdapter} from 'better-auth/adapters/drizzle';
 import {openAPI} from 'better-auth/plugins';
 import Redis from 'ioredis';
 import {normalizeKey} from 'unstorage';
-import {getConfig} from './config';
+import {BackendConfig} from './config';
 import {getDatabase} from './database';
-import {logger, logLevel} from './logger';
+import {logger} from './logger';
 import {sendEmail} from './resend';
 
 const authLogger = logger.child({module: 'auth'});
@@ -48,13 +48,15 @@ const secondaryStorage = {
 } satisfies NonNullable<BetterAuthOptions['secondaryStorage']>;
 
 function createAuth() {
-  const config = getConfig();
+  const config = BackendConfig.getInstance();
+  const {secret, baseUrl, trustedOrigins, disableSignUp, github, google} = config.auth;
+  const logLevel = config.logging.level;
   const db = getDatabase();
   return betterAuth({
-  appName: '@budgetbuddyde/backend', secret: config.AUTH_SECRET, baseURL: config.BASE_URL, basePath: '/api/auth',
-  trustedOrigins: config.TRUSTED_ORIGINS,
+  appName: '@budgetbuddyde/backend', secret, baseURL: baseUrl, basePath: '/api/auth',
+  trustedOrigins: [...trustedOrigins],
   database: drizzleAdapter(db, {provider: 'pg', schema: authSchema}),
-  secondaryStorage: config.AUTH_REDIS_URL ? secondaryStorage : undefined,
+  secondaryStorage: config.redis.auth ? secondaryStorage : undefined,
   logger: {
     disabled: logLevel === 'silent',
     level: logLevel === 'trace' ? 'debug' : logLevel === 'silent' ? 'error' : logLevel,
@@ -78,7 +80,7 @@ function createAuth() {
   },
   emailAndPassword: {
     enabled: true, autoSignIn: true, requireEmailVerification: false, revokeSessionsOnPasswordReset: true,
-    disableSignUp: config.DISABLE_SIGNUP,
+    disableSignUp,
     sendResetPassword: ({user, url}) => sendLink(user.email, 'Reset your password', url),
   },
   emailVerification: {autoSignInAfterVerification: true, sendOnSignUp: true, sendOnSignIn: true,
@@ -92,8 +94,8 @@ function createAuth() {
   account: {updateAccountOnSignIn: true, accountLinking: {enabled: true, allowUnlinkingAll: false,
     allowDifferentEmails: false, trustedProviders: ['email-password', 'github', 'google']}},
   socialProviders: {
-    ...(config.GITHUB_CLIENT_ID && config.GITHUB_CLIENT_SECRET && {github: {clientId: config.GITHUB_CLIENT_ID, clientSecret: config.GITHUB_CLIENT_SECRET}}),
-    ...(config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET && {google: {clientId: config.GOOGLE_CLIENT_ID, clientSecret: config.GOOGLE_CLIENT_SECRET}}),
+    ...(github && {github}),
+    ...(google && {google}),
   },
   plugins: [apiKey({defaultPrefix: 'bb-', enableSessionForAPIKeys: true, requireName: true,
     rateLimit: {enabled: true, maxRequests: 250, timeWindow: 5 * 60 * 1000}, permissions: {defaultPermissions: () => ({})}}),

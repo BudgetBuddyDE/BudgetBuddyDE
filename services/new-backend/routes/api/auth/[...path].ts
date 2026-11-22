@@ -1,13 +1,20 @@
 import {z} from 'zod';
 import {getAuth} from '../../../lib/auth';
-import {getConfig, invalidConfigFields} from '../../../lib/config';
+import {BackendConfig, invalidConfigFields} from '../../../lib/config';
 import {logger} from '../../../lib/logger';
 
 const authLogger = logger.child({module: 'auth'});
 
+/** Requires valid auth configuration and dependencies before handling the request. */
 function requireAuthConfig() {
   try {
-    return getConfig();
+    const config = BackendConfig.getInstance();
+    const auth = config.auth;
+    // Validate before handling CORS or initializing Better Auth.
+    void config.database;
+    void config.email;
+    void config.redis.auth;
+    return auth;
   } catch (error) {
     if (!(error instanceof z.ZodError)) throw error;
     authLogger.error('Invalid auth configuration', {fields: invalidConfigFields(error)});
@@ -15,15 +22,16 @@ function requireAuthConfig() {
   }
 }
 
+/** Validates the request origin, handles CORS preflight, and delegates the request to Better Auth. */
 export default defineEventHandler(event => {
-  const config = requireAuthConfig();
+  const {baseUrl, trustedOrigins} = requireAuthConfig();
   const origin = getHeader(event, 'origin');
-  if (origin && origin !== config.BASE_URL && !config.TRUSTED_ORIGINS.includes(origin)) {
+  if (origin && origin !== baseUrl && !trustedOrigins.includes(origin)) {
     throw createError({statusCode: 403, statusMessage: 'Untrusted origin'});
   }
   if (
     handleCors(event, {
-      origin: config.TRUSTED_ORIGINS,
+      origin: [...trustedOrigins],
       credentials: true,
       methods: ['GET', 'POST', 'OPTIONS'],
       allowHeaders: ['Content-Type', 'Authorization', 'X-Api-Key'],

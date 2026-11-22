@@ -6,4 +6,6 @@ From the workspace root, run `docker compose up -d db cache`. Apply the existing
 
 `GET /health` returns `200 OK` only when PostgreSQL and KV Redis respond. If `AUTH_REDIS_URL` is set, Auth Redis must respond too. Missing configuration, outages, and timeouts return `503 Service Unavailable`. The check does not require mail or auth secrets and does not verify database migrations.
 
+`BackendConfig.getInstance()` reads the environment once per running server process. Restart the server to apply changes. See `.env.example` for required values, optional settings, and defaults. Authentication returns `503` when required configuration is missing or invalid; `BASE_URL` and `TRUSTED_ORIGINS` are required explicitly in production.
+
 The webapp still targets the existing backend. The custom auth export and production HTTP rate limits must be ported before cutover.

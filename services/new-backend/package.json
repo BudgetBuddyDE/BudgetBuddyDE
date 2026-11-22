@@ -6,6 +6,7 @@
     "dev": "nitro dev --port 9100",
     "build": "nitro build",
     "start": "node --env-file-if-exists=.env build/server/index.mjs",
+    "test": "vp test run",
     "typecheck": "nitro prepare && tsc --noEmit"
   },
   "dependencies": {

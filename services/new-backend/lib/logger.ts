@@ -1,10 +1,9 @@
-import {createLogger, getLogLevel} from '@budgetbuddyde/logger';
+import {createLogger} from '@budgetbuddyde/logger';
+import {BackendConfig} from './config';
 
-// Read runtime environment values rather than Nitro's build-time NODE_ENV constant.
-const {NODE_ENV, LOG_LEVEL} = process.env;
-export const logLevel = getLogLevel(LOG_LEVEL);
+const {runtime, level} = BackendConfig.getInstance().logging;
 
 export const logger = createLogger({
-  context: {service: '@budgetbuddyde/new-backend', runtime: NODE_ENV || 'development'},
-  threshold: logLevel,
+  context: {service: '@budgetbuddyde/new-backend', runtime},
+  threshold: level,
 });
