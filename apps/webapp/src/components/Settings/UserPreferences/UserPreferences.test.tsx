@@ -20,10 +20,11 @@ describe('UserPreferences', () => {
       </NextIntlClientProvider>,
     );
 
-    await waitFor(() => expect(screen.getByLabelText('Language')).toBeInTheDocument());
+    const editButton = screen.getByRole('button', {name: 'Edit'});
+    await waitFor(() => expect(editButton).toBeEnabled());
     expect(screen.getByLabelText('Language')).toBeDisabled();
     expect(screen.getByLabelText('Currency')).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
+    fireEvent.click(editButton);
     expect(screen.getByLabelText('Language')).toBeEnabled();
     expect(screen.getByLabelText('Currency')).toBeEnabled();
     expect(screen.getByRole('button', {name: 'Save preferences'})).toBeEnabled();
