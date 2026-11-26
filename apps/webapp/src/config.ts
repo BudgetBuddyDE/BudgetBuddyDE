@@ -1,6 +1,7 @@
 import {Config, type ConfigOptions} from '@budgetbuddyde/core/config/Config';
 import {getLogLevel, type LogThreshold} from '@budgetbuddyde/logger';
 import packageJson from '../package.json';
+import {parsePublicEnvironment, publicEnv, type PublicEnvironment} from './env';
 
 const {name, version} = packageJson;
 
@@ -18,16 +19,16 @@ export class WebappConfig extends Config {
   }
 
   /** Builds browser-safe webapp configuration from public build-time environment values. */
-  static fromEnvironment(environment: Record<string, string | undefined> = process.env): WebappConfig {
+  static fromEnvironment(environment: PublicEnvironment = process.env): WebappConfig {
+    const env = parsePublicEnvironment(environment);
     return new WebappConfig({
       service: name,
-      version: WebappConfig.getOptionalEnvironmentValue(environment, 'NEXT_PUBLIC_APP_VERSION') ?? version,
-      runtime: WebappConfig.getRuntime(environment.NODE_ENV),
+      version: WebappConfig.getOptionalEnvironmentValue(env, 'NEXT_PUBLIC_APP_VERSION') ?? version,
+      runtime: WebappConfig.getRuntime(env.NODE_ENV),
       backendServiceHost:
-        WebappConfig.getOptionalEnvironmentValue(environment, 'NEXT_PUBLIC_BACKEND_SERVICE_HOST') ??
-        'http://localhost:9000',
+        WebappConfig.getOptionalEnvironmentValue(env, 'NEXT_PUBLIC_BACKEND_SERVICE_HOST') ?? 'http://localhost:9000',
       log: {
-        level: getLogLevel(environment.NEXT_PUBLIC_LOG_LEVEL),
+        level: getLogLevel(env.NEXT_PUBLIC_LOG_LEVEL),
       },
     });
   }
@@ -55,9 +56,4 @@ export class WebappConfig extends Config {
 }
 
 // Keep public environment reads explicit so Next.js inlines them into browser bundles at build time.
-export const webappConfig = WebappConfig.fromEnvironment({
-  NODE_ENV: process.env.NODE_ENV,
-  NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
-  NEXT_PUBLIC_BACKEND_SERVICE_HOST: process.env.NEXT_PUBLIC_BACKEND_SERVICE_HOST,
-  NEXT_PUBLIC_LOG_LEVEL: process.env.NEXT_PUBLIC_LOG_LEVEL,
-});
+export const webappConfig = WebappConfig.fromEnvironment(publicEnv);

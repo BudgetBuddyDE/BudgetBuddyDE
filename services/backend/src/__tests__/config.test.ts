@@ -4,6 +4,7 @@ import {EnvironmentNotSetError} from '@budgetbuddyde/core/error/EnvironmentNotSe
 import cors from 'cors';
 import {describe, expect, it} from 'vite-plus/test';
 import {AppConfig} from '../config';
+import {parseEnvironment} from '../env';
 
 function createConfig(environment: NodeJS.ProcessEnv = {}): AppConfig {
   return AppConfig.fromEnvironment({
@@ -15,6 +16,11 @@ function createConfig(environment: NodeJS.ProcessEnv = {}): AppConfig {
 }
 
 describe('AppConfig', () => {
+  it('validates environment values and reports names without exposing contents', () => {
+    expect(() => parseEnvironment({DATABASE_URL: 123} as unknown as NodeJS.ProcessEnv)).toThrow('DATABASE_URL');
+    expect(() => AppConfig.fromEnvironment({DATABASE_URL: 'private-value'})).toThrow('AUTH_SECRET');
+  });
+
   it('allows W3C propagation headers in browser preflight requests from trusted origins', async () => {
     const config = createConfig({
       NODE_ENV: 'production',
@@ -133,7 +139,8 @@ describe('AppConfig', () => {
   });
 
   it('rejects blank required environment values', () => {
-    expect(() => createConfig({DATABASE_URL: '  '})).toThrow(EnvironmentNotSetError);
+    expect(() => createConfig({DATABASE_URL: '  '})).toThrow('DATABASE_URL');
+    expect(() => createConfig({DATABASE_URL: ''})).toThrow('DATABASE_URL');
   });
 });
 
