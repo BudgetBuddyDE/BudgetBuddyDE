@@ -4,6 +4,7 @@ packages:
   - 'apps/webapp'
   - 'apps/documentation'
   - 'examples/*'
+  - 'tools/*'
 
 catalog:
   react: ^19.3.1

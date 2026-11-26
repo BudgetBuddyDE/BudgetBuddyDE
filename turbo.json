@@ -48,6 +48,10 @@
       "cache": false,
       "persistent": true
     },
+    "mockups": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
