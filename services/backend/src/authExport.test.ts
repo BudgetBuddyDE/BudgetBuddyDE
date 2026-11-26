@@ -1,14 +1,16 @@
 import {account, apikey, session, user} from '@budgetbuddyde/db/auth';
 import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {getSession} from './__tests__/mocks/auth';
+import {db} from './__tests__/mocks/db';
 
-const mocks = vi.hoisted(() => ({select: vi.fn(), eq: vi.fn(), getSession: vi.fn()}));
-vi.mock('./db', () => ({db: {select: mocks.select}}));
-vi.mock('./auth', () => ({auth: {api: {getSession: mocks.getSession}}}));
+const {eq} = vi.hoisted(() => ({eq: vi.fn()}));
 vi.mock('drizzle-orm', async importOriginal => ({
   ...(await importOriginal<typeof import('drizzle-orm')>()),
-  eq: mocks.eq,
+  eq,
 }));
 import {authExportHandler} from './authExport';
+
+const mocks = {select: db.select, eq, getSession};
 
 function response() {
   return {set: vi.fn().mockReturnThis(), status: vi.fn().mockReturnThis(), send: vi.fn(), json: vi.fn()};

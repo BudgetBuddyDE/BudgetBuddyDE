@@ -1,7 +1,8 @@
 import {transactions} from '@budgetbuddyde/db/backend';
+import {db} from './mocks/db';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
-const {insert, values, returning} = vi.hoisted(() => ({insert: vi.fn(), values: vi.fn(), returning: vi.fn()}));
-vi.mock('../db', () => ({db: {insert}}));
+const {values, returning} = vi.hoisted(() => ({values: vi.fn(), returning: vi.fn()}));
+const insert = db.insert;
 beforeEach(() => {
   vi.resetAllMocks();
   insert.mockReturnValue({values});

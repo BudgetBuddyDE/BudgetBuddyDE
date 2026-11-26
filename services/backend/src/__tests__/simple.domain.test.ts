@@ -4,12 +4,11 @@ import {PgDialect} from 'drizzle-orm/pg-core';
 import * as budgetDomain from '../domain/budget';
 import * as categoryDomain from '../domain/category';
 import * as paymentMethodDomain from '../domain/paymentMethod';
+import {invalidateDomainMutation} from './mocks/cache';
+import {db} from './mocks/db';
 
-const mocks = vi.hoisted(() => {
-  const query = Object.fromEntries(
-    ['categories', 'paymentMethods', 'budgets'].map(name => [name, {findMany: vi.fn(), findFirst: vi.fn()}]),
-  );
-  const chain = {
+const {chain} = vi.hoisted(() => ({
+  chain: {
     then: vi.fn(),
     values: vi.fn(),
     set: vi.fn(),
@@ -18,17 +17,9 @@ const mocks = vi.hoisted(() => {
     returning: vi.fn(),
     limit: vi.fn(),
     groupBy: vi.fn(),
-  };
-  return {
-    db: {query, insert: vi.fn(), update: vi.fn(), delete: vi.fn(), select: vi.fn(), transaction: vi.fn()},
-    chain,
-    invalidate: vi.fn(),
-  };
-});
-vi.mock('../db', () => ({db: mocks.db}));
-vi.mock('../domain/cache', () => ({invalidateDomainMutation: mocks.invalidate}));
-vi.mock('../config', () => ({config: {pagination: {maxPageSize: 100}}}));
-vi.mock('../lib/logger', () => ({logger: {error: vi.fn()}}));
+  },
+}));
+const mocks = {db, chain, invalidate: invalidateDomainMutation};
 
 const ID = '00000000-0000-4000-8000-000000000001';
 const CATEGORY = '00000000-0000-4000-8000-000000000002';

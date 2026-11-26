@@ -1,4 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {db} from './mocks/db';
 import {createZipArchive} from '../router/applicationExport';
 import {
   ApplicationImportFormatError,
@@ -6,20 +7,7 @@ import {
   parseApplicationImportArchive,
 } from '../router/applicationImport';
 
-const {transaction} = vi.hoisted(() => ({transaction: vi.fn()}));
-
-vi.mock('../db', () => ({
-  db: {
-    query: {
-      categories: {findMany: vi.fn().mockResolvedValue([])},
-      paymentMethods: {findMany: vi.fn().mockResolvedValue([])},
-      transactions: {findMany: vi.fn().mockResolvedValue([])},
-      recurringPayments: {findMany: vi.fn().mockResolvedValue([])},
-      budgets: {findMany: vi.fn().mockResolvedValue([])},
-    },
-    transaction,
-  },
-}));
+const transaction = db.transaction;
 
 async function categoriesArchive(categories: Array<{id: string; name: string; description: null}>) {
   return createZipArchive([

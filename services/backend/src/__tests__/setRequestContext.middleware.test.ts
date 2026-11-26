@@ -1,22 +1,9 @@
 import type {NextFunction, Request, Response} from 'express';
 import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {getSession} from './mocks/auth';
+import {logger} from './mocks/logger';
 
-const {getSession, loggerFunctions} = vi.hoisted(() => ({
-  getSession: vi.fn(),
-  loggerFunctions: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
-vi.mock('../auth', () => ({auth: {api: {getSession}}}));
-vi.mock('../lib/logger', () => ({
-  logger: {
-    child: () => loggerFunctions,
-  },
-}));
+const loggerFunctions = logger;
 
 import {setRequestContext} from '../middleware/setRequestContext.middleware';
 

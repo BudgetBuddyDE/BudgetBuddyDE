@@ -1,6 +1,8 @@
 import * as tables from '@budgetbuddyde/db/backend';
 import * as operators from 'drizzle-orm';
 import {PgDialect} from 'drizzle-orm/pg-core';
+import {setConfigOverrides} from './mocks/configState';
+import {dbQuery} from './mocks/db';
 import {
   buildInsightsReport,
   loadReportTransactionPage,
@@ -8,22 +10,9 @@ import {
   periodFromQuery,
 } from '../lib/insights/report';
 
-const {transactions, paymentMethods, budgets, config} = vi.hoisted(() => ({
-  transactions: vi.fn(),
-  paymentMethods: vi.fn(),
-  budgets: vi.fn(),
-  config: {timezone: 'UTC'},
-}));
-vi.mock('../config', () => ({config}));
-vi.mock('../db', () => ({
-  db: {
-    query: {
-      transactions: {findMany: transactions},
-      paymentMethods: {findMany: paymentMethods},
-      budgets: {findMany: budgets},
-    },
-  },
-}));
+const transactions = dbQuery.transactions.findMany;
+const paymentMethods = dbQuery.paymentMethods.findMany;
+const budgets = dbQuery.budgets.findMany;
 const query = {
   $dateFrom: new Date('2026-01-01T12:00:00Z'),
   $dateTo: new Date('2026-01-03T12:00:00Z'),
@@ -45,7 +34,7 @@ function row(id: string, amount: number, categoryId = 'category-1', date = '2026
 }
 beforeEach(() => {
   vi.resetAllMocks();
-  config.timezone = 'UTC';
+  setConfigOverrides({timezone: 'UTC'});
   transactions.mockResolvedValue([]);
   paymentMethods.mockResolvedValue([method, {id: 'unused', name: 'Cash', provider: 'Cash'}]);
   budgets.mockResolvedValue([]);
@@ -56,7 +45,7 @@ afterEach(() => vi.useRealTimers());
 
 describe('insights report data boundaries', () => {
   it('converts local calendar day limits across the DST transition', () => {
-    config.timezone = 'Europe/Berlin';
+    setConfigOverrides({timezone: 'Europe/Berlin'});
     expect(
       periodFromQuery({
         ...query,

@@ -17,59 +17,28 @@ import {
   removeTransaction,
   updateTransaction,
 } from '../domain/transaction';
+import {attachmentService} from './mocks/attachment';
+import {invalidateDomainMutation} from './mocks/cache';
+import {dbQuery, db} from './mocks/db';
 
-const mocks = vi.hoisted(() => ({
-  transactionFindFirst: vi.fn(),
-  transactionFindMany: vi.fn(),
-  recurringFindFirst: vi.fn(),
-  recurringFindMany: vi.fn(),
-  categoryFindMany: vi.fn(),
-  paymentMethodFindMany: vi.fn(),
+const mocks = {
+  transactionFindFirst: dbQuery.transactions.findFirst,
+  transactionFindMany: dbQuery.transactions.findMany,
+  recurringFindFirst: dbQuery.recurringPayments.findFirst,
+  recurringFindMany: dbQuery.recurringPayments.findMany,
+  categoryFindMany: dbQuery.categories.findMany,
+  paymentMethodFindMany: dbQuery.paymentMethods.findMany,
   returning: vi.fn(),
-  insert: vi.fn(),
-  update: vi.fn(),
-  remove: vi.fn(),
-  select: vi.fn(),
-  verifyOwnership: vi.fn(),
-  generateSignedUrl: vi.fn(),
-  generateSignedUrls: vi.fn(),
-  findAttachmentsByTransactionId: vi.fn(),
-  invalidate: vi.fn(),
-}));
-vi.mock('../db', () => ({
-  db: {
-    query: {
-      transactions: {findFirst: mocks.transactionFindFirst, findMany: mocks.transactionFindMany},
-      recurringPayments: {findFirst: mocks.recurringFindFirst, findMany: mocks.recurringFindMany},
-      categories: {findMany: mocks.categoryFindMany},
-      paymentMethods: {findMany: mocks.paymentMethodFindMany},
-    },
-    insert: mocks.insert,
-    update: mocks.update,
-    delete: mocks.remove,
-    select: mocks.select,
-  },
-}));
-vi.mock('../domain/cache', () => ({invalidateDomainMutation: mocks.invalidate}));
-vi.mock('../config', () => ({
-  config: {
-    timezone: 'Europe/Berlin',
-    pagination: {maxPageSize: 100},
-    attachments: {transactionPreviewLimit: 3},
-    getRequiredObjectStorageConfig: () => ({bucketName: 'test'}),
-  },
-}));
-vi.mock('../lib', () => ({logger: {child: () => ({error: vi.fn()})}}));
-vi.mock('../lib/attachment', () => ({
-  TransactionAttachmentHandler: vi.fn(function () {
-    return {
-      verifyOwnership: mocks.verifyOwnership,
-      generateSignedUrl: mocks.generateSignedUrl,
-      generateSignedUrls: mocks.generateSignedUrls,
-      findAttachmentsByTransactionId: mocks.findAttachmentsByTransactionId,
-    };
-  }),
-}));
+  insert: db.insert,
+  update: db.update,
+  remove: db.delete,
+  select: db.select,
+  verifyOwnership: attachmentService.verifyOwnership,
+  generateSignedUrl: attachmentService.generateSignedUrl,
+  generateSignedUrls: attachmentService.generateSignedUrls,
+  findAttachmentsByTransactionId: attachmentService.findAttachmentsByTransactionId,
+  invalidate: invalidateDomainMutation,
+};
 const id = '00000000-0000-4000-8000-000000000001';
 const categoryId = '00000000-0000-4000-8000-000000000002';
 const paymentMethodId = '00000000-0000-4000-8000-000000000003';

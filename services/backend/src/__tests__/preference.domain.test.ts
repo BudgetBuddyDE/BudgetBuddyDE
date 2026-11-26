@@ -1,57 +1,19 @@
 import {PgDialect} from 'drizzle-orm/pg-core';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {invalidateDomainMutation} from './mocks/cache';
+import {db} from './mocks/db';
+import {logger} from './mocks/logger';
 
-const mocks = vi.hoisted(() => ({
+const state = vi.hoisted(() => ({
   rows: [] as Array<Record<string, unknown>>,
   inserted: [] as Array<Record<string, unknown>>,
   updates: [] as Array<Record<string, unknown>>,
   where: vi.fn(),
-  invalidate: vi.fn(),
-  warn: vi.fn(),
   insertError: null as Error | null,
   skipInsert: false,
   concurrentRow: null as Record<string, unknown> | null,
 }));
-
-vi.mock('../domain/cache', () => ({invalidateDomainMutation: mocks.invalidate}));
-vi.mock('../lib/logger', () => ({logger: {warn: mocks.warn}}));
-vi.mock('../db', () => ({
-  db: {
-    select: () => ({
-      from: () => ({
-        where: (predicate: Parameters<PgDialect['sqlToQuery']>[0]) => {
-          const ownerId = new PgDialect().sqlToQuery(predicate).params[0];
-          const rows = mocks.rows.filter(row => row.ownerId === ownerId);
-          return {limit: async () => rows};
-        },
-      }),
-    }),
-    insert: () => ({
-      values: (value: Record<string, unknown>) => {
-        return {
-          onConflictDoNothing: async () => {
-            if (mocks.insertError) throw mocks.insertError;
-            if (mocks.concurrentRow) mocks.rows.push(mocks.concurrentRow);
-            mocks.inserted.push(value);
-            if (!mocks.skipInsert && !mocks.rows.some(row => row.ownerId === value.ownerId))
-              mocks.rows.push({...current, ...value});
-          },
-        };
-      },
-    }),
-    update: () => ({
-      set: (value: Record<string, unknown>) => {
-        mocks.updates.push(value);
-        return {
-          where: (predicate: unknown) => {
-            mocks.where(predicate);
-            return {returning: async () => [{...mocks.rows[0], ...value}]};
-          },
-        };
-      },
-    }),
-  },
-}));
+const mocks = {...state, warn: logger.warn, invalidate: invalidateDomainMutation};
 
 import * as preference from '../domain/preference';
 import {initializePreferences} from '../lib/preferences';
@@ -75,6 +37,46 @@ describe('preference domain', () => {
     mocks.skipInsert = false;
     mocks.concurrentRow = null;
     vi.clearAllMocks();
+    db.select.mockImplementation(
+      () =>
+        ({
+          from: () => ({
+            where: (predicate: Parameters<PgDialect['sqlToQuery']>[0]) => {
+              const ownerId = new PgDialect().sqlToQuery(predicate).params[0];
+              const rows = mocks.rows.filter(row => row.ownerId === ownerId);
+              return {limit: async () => rows};
+            },
+          }),
+        }) as never,
+    );
+    db.insert.mockImplementation(
+      () =>
+        ({
+          values: (value: Record<string, unknown>) => ({
+            onConflictDoNothing: async () => {
+              if (mocks.insertError) throw mocks.insertError;
+              if (mocks.concurrentRow) mocks.rows.push(mocks.concurrentRow);
+              mocks.inserted.push(value);
+              if (!mocks.skipInsert && !mocks.rows.some(row => row.ownerId === value.ownerId))
+                mocks.rows.push({...current, ...value});
+            },
+          }),
+        }) as never,
+    );
+    db.update.mockImplementation(
+      () =>
+        ({
+          set: (value: Record<string, unknown>) => {
+            mocks.updates.push(value);
+            return {
+              where: (predicate: unknown) => {
+                mocks.where(predicate);
+                return {returning: async () => [{...mocks.rows[0], ...value}]};
+              },
+            };
+          },
+        }) as never,
+    );
   });
 
   afterEach(() => vi.restoreAllMocks());

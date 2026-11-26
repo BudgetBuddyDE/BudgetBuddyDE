@@ -1,13 +1,14 @@
 import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {preferences} from '@budgetbuddyde/db/backend';
+import {db} from '../__tests__/mocks/db';
 import {initializePreferences} from './preferences';
 
-const mocks = vi.hoisted(() => ({values: vi.fn(), conflict: vi.fn()}));
-vi.mock('../db', () => ({db: {insert: () => ({values: mocks.values})}}));
+const mocks = {values: vi.fn(), conflict: vi.fn()};
 
 describe('preferences initialization', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    db.insert.mockImplementation(() => ({values: mocks.values}) as never);
     mocks.values.mockReturnValue({onConflictDoNothing: mocks.conflict});
   });
 
