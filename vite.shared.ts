@@ -1,6 +1,13 @@
 import ts from 'typescript';
 import {defineConfig} from 'vite-plus';
 
+/**
+ * Keep passing tests quiet and replay their console output only when a test
+ * fails. Project containers also set this explicitly because the reporter reads
+ * `silent` from the root config, not from the child projects.
+ */
+export const silentConsole = 'passed-only' as const;
+
 export default defineConfig({
   plugins: [
     {
@@ -21,7 +28,10 @@ export default defineConfig({
     // Concurrent Turbo runners must not prune each other's transformed modules.
     fsModuleCachePath: `${process.cwd()}/node_modules/.vitest-cache`,
     globals: true,
-    silent: 'passed-only',
+    // Keep passing tests quiet and replay their console output only when a test
+    // fails. Workspaces that declare `test.projects` must also set `silent` on
+    // the container, because the reporter reads it from the root config.
+    silent: silentConsole,
     // Reuse the transformed module graph across test files in a worker. Projects
     // whose suites intentionally reset modules or exercise real infrastructure
     // must override this with their own isolated project.

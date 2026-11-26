@@ -1,5 +1,5 @@
 import {defineConfig, mergeConfig} from 'vite-plus';
-import baseConfig from '../../vite.shared';
+import baseConfig, {silentConsole} from '../../vite.shared';
 
 /**
  * Files that intentionally reset the module registry, build real infrastructure
@@ -65,8 +65,11 @@ const isolatedSuite = mergeConfig(
   }),
 );
 
+// Inline projects extend this container. The reporter reads `silent` from here,
+// so set it explicitly; the child projects already inherit it from the merge.
 export default defineConfig({
   test: {
+    silent: silentConsole,
     projects: [unitSuite, isolatedSuite],
   },
 });

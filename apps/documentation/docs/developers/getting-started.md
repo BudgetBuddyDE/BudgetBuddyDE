@@ -56,7 +56,7 @@ Built-ins do not replace scripts: `vp dev` starts Vite, while `vp run dev` runs 
 
 ## Test conventions
 
-Vitest runs in every tested workspace. Root defaults are `isolate: false`, global APIs, a Node environment, and exclusions for `build/**` and `node_modules/**`. Reusing the module graph is the main speed win; keep shared mocks stable and reset their state instead of re-declaring `vi.mock` factories per file.
+Vitest runs in every tested workspace. Root defaults are `isolate: false`, global APIs, `silent: 'passed-only'`, a Node environment, and exclusions for `build/**` and `node_modules/**`. Reusing the module graph is the main speed win; keep shared mocks stable and reset their state instead of re-declaring `vi.mock` factories per file. Passing tests stay quiet, while a failing test replays its console and logger output. Container configs with `test.projects` must set `silent` explicitly (use the exported `silentConsole` constant) so the reporter receives it; avoid the `--silent` flag, which hides failure logs too.
 
 - Package tests are usually colocated with the source under `src`.
 - Service tests live in `src/__tests__` and load `.env.test` where configured. The backend declares two projects: `backend` (unit, shared doubles from `src/__tests__/mocks` registered in `setup.ts`) and `backend-integration` (`isolate: true` for module resets, whole-module mocks, and real infrastructure).

@@ -1,5 +1,5 @@
 import {defineConfig, mergeConfig} from 'vite-plus';
-import baseConfig from '../../vite.shared';
+import baseConfig, {silentConsole} from '../../vite.shared';
 import react from '@vitejs/plugin-react';
 
 /**
@@ -56,8 +56,11 @@ const createProject = (name: string, isolate: boolean, include?: string[]) =>
     }),
   );
 
+// Inline projects extend this container. The reporter reads `silent` from here,
+// so set it explicitly; the child projects already inherit it from the merge.
 export default defineConfig({
   test: {
+    silent: silentConsole,
     projects: [createProject('webapp', false), createProject('webapp-integration', true, isolatedSuites)],
   },
 });

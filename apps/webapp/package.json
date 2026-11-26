@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "pretest": "pnpm run check",
-    "test": "vp test run --silent",
+    "test": "vp test run",
     "test:watch": "vp test",
     "check": "pnpm run format:check && pnpm run lint:check",
     "typecheck": "tsc --noEmit",
