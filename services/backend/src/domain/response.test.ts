@@ -3,7 +3,6 @@ import {z} from 'zod';
 import {ApiResponse, NotFoundError} from '../models';
 import {executeDomain, normalizeResponse} from './response';
 
-vi.mock('../lib/logger', () => ({logger: {error: vi.fn()}}));
 function response() {
   return {
     locals: {},

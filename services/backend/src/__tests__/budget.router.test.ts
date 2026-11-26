@@ -1,30 +1,13 @@
 import {PgDialect} from 'drizzle-orm/pg-core';
 import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {db} from './mocks/db';
 import {requestRouter} from './router.test-utils';
 import {budgetRouter} from '../router/budget.router';
 
-const {budgetFindFirst, categoryFindMany, select, transaction} = vi.hoisted(() => ({
-  budgetFindFirst: vi.fn(),
-  categoryFindMany: vi.fn(),
-  transaction: vi.fn(),
-  select: vi.fn(),
-}));
-
-vi.mock('../config', () => ({
-  config: {timezone: 'Europe/Berlin'},
-}));
-
-vi.mock('../db', () => ({
-  db: {
-    query: {
-      categories: {findMany: categoryFindMany},
-      budgets: {findMany: vi.fn(), findFirst: budgetFindFirst},
-      recurringPayments: {findMany: vi.fn()},
-    },
-    transaction,
-    select,
-  },
-}));
+const budgetFindFirst = db.query.budgets.findFirst;
+const categoryFindMany = db.query.categories.findMany;
+const transaction = db.transaction;
+const select = db.select;
 
 const USER_ID = 'user-1';
 const OWNED_CATEGORY_ID = '00000000-0000-4000-8000-000000000001';

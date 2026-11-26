@@ -7,7 +7,6 @@ import {UserPreferences} from './UserPreferences';
 const {get, update, showSnackbar} = vi.hoisted(() => ({get: vi.fn(), update: vi.fn(), showSnackbar: vi.fn()}));
 
 vi.mock('@/apiClient', () => ({apiClient: {backend: {preference: {get, update}}}}));
-vi.mock('next/navigation', () => ({useRouter: () => ({refresh: vi.fn()})}));
 vi.mock('@/components/Snackbar', () => ({useSnackbarContext: () => ({showSnackbar})}));
 
 describe('UserPreferences', () => {
@@ -21,10 +20,11 @@ describe('UserPreferences', () => {
       </NextIntlClientProvider>,
     );
 
-    await waitFor(() => expect(screen.getByLabelText('Language')).toBeInTheDocument());
+    const editButton = screen.getByRole('button', {name: 'Edit'});
+    await waitFor(() => expect(editButton).toBeEnabled());
     expect(screen.getByLabelText('Language')).toBeDisabled();
     expect(screen.getByLabelText('Currency')).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
+    fireEvent.click(editButton);
     expect(screen.getByLabelText('Language')).toBeEnabled();
     expect(screen.getByLabelText('Currency')).toBeEnabled();
     expect(screen.getByRole('button', {name: 'Save preferences'})).toBeEnabled();

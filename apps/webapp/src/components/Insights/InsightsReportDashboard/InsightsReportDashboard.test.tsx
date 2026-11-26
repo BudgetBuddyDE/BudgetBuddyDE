@@ -1,25 +1,19 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {composedChartMock} from '@/test/mocks/charts';
+import {navigationMock} from '@/test/mocks/navigation';
 import {cleanup, fireEvent, render, screen, waitFor} from '@/test/testing-library';
 import {buildReport, buildTransaction, categoryOption, paymentMethodOption} from '../InsightsReport.fixtures';
 import {InsightsReportDashboard} from './InsightsReportDashboard';
 
-const {
-  getReportMock,
-  transactionGetAllMock,
-  categoryValueHelpMock,
-  paymentMethodValueHelpMock,
-  replaceMock,
-  navigation,
-} = vi.hoisted(() => ({
+const {getReportMock, transactionGetAllMock, categoryValueHelpMock, paymentMethodValueHelpMock} = vi.hoisted(() => ({
   getReportMock: vi.fn(),
   transactionGetAllMock: vi.fn(),
   categoryValueHelpMock: vi.fn(),
   paymentMethodValueHelpMock: vi.fn(),
-  replaceMock: vi.fn(),
-  navigation: {params: new URLSearchParams()},
 }));
+const replaceMock = navigationMock.router.replace;
 
 vi.mock('@/apiClient', () => ({
   apiClient: {
@@ -32,32 +26,19 @@ vi.mock('@/apiClient', () => ({
   },
 }));
 
-vi.mock('next/navigation', () => ({
-  useSearchParams: () => navigation.params,
-  useRouter: () => ({replace: replaceMock}),
-  usePathname: () => '/dashboard/insights',
-}));
-
-vi.mock('@budgetbuddyde/charts', () => ({
-  ComposedChart: () => <div>timeline chart</div>,
-}));
-
-vi.mock('@/components/Form/DateRangePicker', () => ({
-  DateRangePicker: () => <div>date range</div>,
-}));
-
 const categories: TCategoryVH[] = [categoryOption('cat-1', 'Food'), categoryOption('cat-2', 'Rent')];
 const paymentMethods: TPaymentMethodVH[] = [paymentMethodOption('pm-1', 'Card'), paymentMethodOption('pm-2', 'Cash')];
 const report = buildReport();
 const transactions = [buildTransaction(1)];
 
 beforeEach(() => {
-  navigation.params = new URLSearchParams();
+  navigationMock.params = new URLSearchParams();
+  navigationMock.pathname = '/dashboard/insights';
+  composedChartMock.render = () => <div>timeline chart</div>;
   getReportMock.mockReset();
   transactionGetAllMock.mockReset();
   categoryValueHelpMock.mockReset();
   paymentMethodValueHelpMock.mockReset();
-  replaceMock.mockReset();
   categoryValueHelpMock.mockResolvedValue([categories, null]);
   paymentMethodValueHelpMock.mockResolvedValue([paymentMethods, null]);
   getReportMock.mockResolvedValue([{data: report}, null]);
@@ -101,7 +82,7 @@ describe('InsightsReportDashboard', () => {
   });
 
   it('restores the initial filters from the URL', async () => {
-    navigation.params = new URLSearchParams(
+    navigationMock.params = new URLSearchParams(
       'from=2026-01-01&to=2026-01-31&granularity=month&comparison=none&cat=cat-1&pm=pm-1',
     );
     render(<InsightsReportDashboard />);

@@ -1,23 +1,12 @@
 import {paymentMethods, recurringPayments, transactions} from '@budgetbuddyde/db/backend';
 import {PgDialect} from 'drizzle-orm/pg-core';
 import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {db} from './mocks/db';
 import {requestRouter} from './router.test-utils';
 import {paymentMethodRouter} from '../router/paymentMethod.router';
 
-const {findMany, transaction, info} = vi.hoisted(() => ({
-  findMany: vi.fn(),
-  transaction: vi.fn(),
-  info: vi.fn(),
-}));
-
-vi.mock('../db', () => ({
-  db: {
-    query: {paymentMethods: {findMany}},
-    transaction,
-  },
-}));
-
-vi.mock('../lib', () => ({logger: {info}}));
+const findMany = db.query.paymentMethods.findMany;
+const transaction = db.transaction;
 
 const USER_ID = 'user-1';
 const SOURCE_ID = '00000000-0000-4000-8000-000000000001';

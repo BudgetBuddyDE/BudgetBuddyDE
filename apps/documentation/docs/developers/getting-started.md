@@ -56,11 +56,12 @@ Built-ins do not replace scripts: `vp dev` starts Vite, while `vp run dev` runs 
 
 ## Test conventions
 
-Vitest runs in every tested workspace. Root defaults are global APIs, a Node environment, and exclusions for `build/**` and `node_modules/**`.
+Vitest runs in every tested workspace. Root defaults are `isolate: false`, global APIs, `silent: 'passed-only'`, a Node environment, and exclusions for `build/**` and `node_modules/**`. Reusing the module graph is the main speed win; keep shared mocks stable and reset their state instead of re-declaring `vi.mock` factories per file. Passing tests stay quiet, while a failing test replays its console and logger output. Container configs with `test.projects` must set `silent` explicitly (use the exported `silentConsole` constant) so the reporter receives it; avoid the `--silent` flag, which hides failure logs too.
 
 - Package tests are usually colocated with the source under `src`.
-- Service tests live in `src/__tests__` and load `.env.test` where configured.
-- Web app utilities use `.spec.ts`; component tests use `.test.tsx` with Testing Library and `happy-dom`. The setup file is `apps/webapp/src/vitest.setup.ts`; Next.js navigation and image APIs are mocked globally.
+- Service tests live in `src/__tests__` and load `.env.test` where configured. The backend declares two projects: `backend` (unit, shared doubles from `src/__tests__/mocks` registered in `setup.ts`) and `backend-integration` (`isolate: true` for module resets, whole-module mocks, and real infrastructure).
+- Web app utilities use `.spec.ts`; component tests use `.test.tsx` with Testing Library and `happy-dom`. The setup file is `apps/webapp/src/vitest.setup.ts`; Next.js navigation/image/link, `@/authClient`, `DateRangePicker`, and chart primitives are mocked globally from `apps/webapp/src/test/mocks`. Configure those doubles in the test instead of adding another `vi.mock`. The `webapp-integration` project isolates tracing and module-reset suites.
+- A shared worker evaluates each module once, so the first `vi.mock` for a specifier wins. Suites that call `vi.resetModules`, register OpenTelemetry providers, patch native fetch, or replace a source module must run in an isolated project. Avoid per-file mock factories for modules that the setup file also mocks.
 
 Test boundaries and observable behavior - Zod validation, query serialization, `TResult` error tuples, auth context, owner isolation, cache behavior, and UI state transitions - not implementation details. Backend unit tests enforce 80% coverage for statements, branches, functions, and lines, with mocked database, Redis, email, storage, and HTTP boundaries. Other workspaces retain their existing coverage defaults.
 

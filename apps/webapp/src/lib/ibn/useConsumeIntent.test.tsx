@@ -45,6 +45,7 @@ describe('useConsumeIntent', () => {
     setParams('q=food&ibnEntity=transaction&ibnAction=create');
     const state = {__NA: true, __PRIVATE_NEXTJS_INTERNALS_TREE: ['transactions'], custom: 'preserve'};
     window.history.replaceState(state, '', '/transactions?q=food&ibnEntity=transaction&ibnAction=create#details');
+    await waitFor(() => expect(window.location.hash).toBe('#details'));
     const nativeReplace = window.history.replaceState.bind(window.history);
     const synchronizeRouter = vi.fn();
     const replace = vi.spyOn(window.history, 'replaceState').mockImplementation((data, unused, url) => {

@@ -1,16 +1,8 @@
+import {attachmentService} from './mocks/attachment';
+import {logger} from './mocks/logger';
 import {requestRouter} from './router.test-utils';
 import {attachmentRouter} from '../router/attachment.router';
-const {service, log} = vi.hoisted(() => ({
-  service: {verifyOwnership: vi.fn(), generateSignedUrl: vi.fn(), deleteAttachments: vi.fn()},
-  log: {error: vi.fn(), child: vi.fn().mockReturnThis()},
-}));
-vi.mock('../lib', () => ({logger: {...log, child: () => log}}));
-vi.mock('../config', () => ({config: {getRequiredObjectStorageConfig: () => ({bucketName: 'test'})}}));
-vi.mock('../lib/attachment', () => ({
-  TransactionAttachmentHandler: vi.fn(function () {
-    return service;
-  }),
-}));
+const {service, log} = {service: attachmentService, log: logger};
 const ID = '00000000-0000-4000-8000-000000000001';
 const attachment = {
   id: ID,

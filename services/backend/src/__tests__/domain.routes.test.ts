@@ -1,6 +1,9 @@
 import * as tables from '@budgetbuddyde/db/backend';
 import * as operators from 'drizzle-orm';
 import {PgDialect} from 'drizzle-orm/pg-core';
+import {attachmentService} from './mocks/attachment';
+import {db} from './mocks/db';
+import {logger} from './mocks/logger';
 import {requestRouter} from './router.test-utils';
 import {budgetRouter} from '../router/budget.router';
 import {categoryRouter} from '../router/category.router';
@@ -8,14 +11,8 @@ import {paymentMethodRouter} from '../router/paymentMethod.router';
 import {recurringPaymentRouter} from '../router/recurringPayment.router';
 import {transactionRouter} from '../router/transaction.router';
 
-const mocks = vi.hoisted(() => {
-  const query = Object.fromEntries(
-    ['categories', 'paymentMethods', 'transactions', 'recurringPayments', 'budgets'].map(name => [
-      name,
-      {findMany: vi.fn(), findFirst: vi.fn()},
-    ]),
-  );
-  const chain = {
+const {chain} = vi.hoisted(() => ({
+  chain: {
     then: vi.fn(),
     values: vi.fn(),
     set: vi.fn(),
@@ -26,40 +23,18 @@ const mocks = vi.hoisted(() => {
     groupBy: vi.fn(),
     orderBy: vi.fn(),
     leftJoin: vi.fn(),
-  };
-  const db = {query, insert: vi.fn(), update: vi.fn(), delete: vi.fn(), select: vi.fn(), transaction: vi.fn()};
-  return {
-    chain,
-    db,
-    log: {info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), child: vi.fn().mockReturnThis()},
-    attachments: {
-      findAttachmentsByTransactionId: vi.fn(),
-      generateSignedUrls: vi.fn(),
-      deleteAttachmentsByTransactionId: vi.fn(),
-    },
-  };
-});
-vi.mock('../db', () => ({db: mocks.db}));
-vi.mock('../lib', () => ({logger: mocks.log}));
-vi.mock('../lib/cache/attachment.cache', () => ({AttachmentCache: vi.fn()}));
-vi.mock('../lib/attachment', () => ({
-  TransactionAttachmentHandler: Object.assign(
-    vi.fn(function () {
-      return mocks.attachments;
-    }),
-    {resolveMimeType: vi.fn(), hasValidImageSignature: vi.fn()},
-  ),
-}));
-vi.mock('../config', () => ({
-  config: {
-    timezone: 'UTC',
-    pagination: {maxPageSize: 100},
-    attachments: {upload: {maxFilesPerRequest: 10, maxFileSizeBytes: 10000}, transactionPreviewLimit: 3},
-    getRequiredObjectStorageConfig: () => ({bucketName: 'mock'}),
   },
 }));
-vi.mock('../middleware/cache.middleware', () => ({invalidateUserCaches: vi.fn()}));
-vi.mock('../utils/createTransactionFromRecurringPayment', () => ({createTransactionFromRecurringPayment: vi.fn()}));
+const mocks = {
+  chain,
+  db,
+  log: logger,
+  attachments: {
+    findAttachmentsByTransactionId: attachmentService.findAttachmentsByTransactionId,
+    generateSignedUrls: attachmentService.generateSignedUrls,
+    deleteAttachmentsByTransactionId: attachmentService.deleteAttachmentsByTransactionId,
+  },
+};
 
 const ID = '00000000-0000-4000-8000-000000000001';
 const CATEGORY = '00000000-0000-4000-8000-000000000002';
@@ -102,7 +77,6 @@ const entities = [
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.log.child.mockReturnValue(mocks.log);
   for (const method of ['values', 'set', 'where', 'from', 'leftJoin'] as const)
     mocks.chain[method].mockReturnValue(mocks.chain);
   mocks.chain.then.mockImplementation((resolve: (value: unknown[]) => unknown) => Promise.resolve([]).then(resolve));

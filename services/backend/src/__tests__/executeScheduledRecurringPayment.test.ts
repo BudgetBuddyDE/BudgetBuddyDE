@@ -1,9 +1,9 @@
 import {recurringPaymentExecutions, transactions} from '@budgetbuddyde/db/backend';
+import {db} from './mocks/db';
 import {executeScheduledRecurringPayment} from '../utils/executeScheduledRecurringPayment';
 import {createPaymentSnapshot, hashPaymentSnapshot} from '../utils/recurringPaymentSnapshot';
 
 const {
-  transaction,
   insert,
   update,
   select,
@@ -14,7 +14,6 @@ const {
   values,
   set,
 } = vi.hoisted(() => ({
-  transaction: vi.fn(),
   insert: vi.fn(),
   update: vi.fn(),
   select: vi.fn(),
@@ -25,8 +24,7 @@ const {
   values: vi.fn(),
   set: vi.fn(),
 }));
-
-vi.mock('../db', () => ({db: {transaction}}));
+const transaction = db.transaction;
 
 const payment = {
   id: '00000000-0000-4000-8000-000000000001',

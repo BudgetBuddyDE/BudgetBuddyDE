@@ -1,15 +1,16 @@
 import {EventEmitter} from 'node:events';
 import type {NextFunction, Request, Response} from 'express';
+import {setConfigOverrides} from './mocks/configState';
+import {logger} from './mocks/logger';
 import {handleError} from '../middleware/handleError.middleware';
 import {logRequest} from '../middleware/logRequest.middleware';
 import {servedBy} from '../middleware/servedBy.middleware';
 
-const {log} = vi.hoisted(() => ({
-  log: {info: vi.fn(), warn: vi.fn(), error: vi.fn(), child: vi.fn().mockReturnThis()},
-}));
-vi.mock('../lib/logger', () => ({logger: log}));
-vi.mock('../config', () => ({config: {port: 9000, service: 'backend', version: '1.0'}}));
-beforeEach(() => vi.clearAllMocks());
+const log = logger;
+beforeEach(() => {
+  vi.clearAllMocks();
+  setConfigOverrides({port: 9000, service: 'backend', version: '1.0'});
+});
 function response() {
   return Object.assign(new EventEmitter(), {
     statusCode: 200,

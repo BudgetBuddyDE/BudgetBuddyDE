@@ -1,13 +1,7 @@
 import type {NextFunction, Request, Response} from 'express';
 import {beforeEach, describe, expect, it, suite, vi} from 'vite-plus/test';
-
-// ---------------------------------------------------------------------------
-// Module mocks – must be declared before the module under test is imported
-// ---------------------------------------------------------------------------
-
-const mockRedisGet = vi.fn();
-const mockRedisSetex = vi.fn();
-const mockRedisIncr = vi.fn();
+import {setConfigOverrides} from './mocks/configState';
+import {redisClient} from './mocks/redis';
 
 const {mockConfig} = vi.hoisted(() => ({
   mockConfig: {
@@ -29,36 +23,12 @@ const {mockConfig} = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../db/redis', () => ({
-  getRedisClient: () => ({
-    get: mockRedisGet,
-    setex: mockRedisSetex,
-    incr: mockRedisIncr,
-  }),
-}));
-
-const {mockLogFunctions} = vi.hoisted(() => ({
-  mockLogFunctions: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
-vi.mock('../lib/logger', () => ({
-  logger: {
-    child: () => ({
-      ...mockLogFunctions,
-      child: () => ({...mockLogFunctions}),
-    }),
-  },
-}));
-
-// Provide a stable config that the middleware can import
-vi.mock('../config', () => ({
-  config: mockConfig,
-}));
+const mockRedisGet = redisClient.get;
+const mockRedisSetex = redisClient.setex;
+const mockRedisIncr = redisClient.incr;
+beforeEach(() => {
+  setConfigOverrides({redis: mockConfig.redis, cache: mockConfig.cache});
+});
 
 import {
   buildCacheKey,

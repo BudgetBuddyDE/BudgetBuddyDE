@@ -6,8 +6,13 @@ import cors from 'cors';
 import express from 'express';
 import {z} from 'zod';
 import {extractApiKey} from './authentication';
+import {closeMcpServers, createMcpRouter, validateMcpOrigin} from './router';
+import {getSession} from '../__tests__/mocks/auth';
+import {setConfigOverrides} from '../__tests__/mocks/configState';
+import {logger} from '../__tests__/mocks/logger';
+import {redisClient} from '../__tests__/mocks/redis';
 
-const mocks = vi.hoisted(() => ({
+const mocks = {
   config: {
     service: 'backend',
     version: '1.0',
@@ -15,14 +20,10 @@ const mocks = vi.hoisted(() => ({
     auth: {trustedOrigins: ['http://localhost:3000']},
     mcp: {rateLimit: {enabled: false, windowMs: 60_000, limit: 2}},
   },
-  redisCall: vi.fn(),
-  getSession: vi.fn(),
-  logger: {error: vi.fn()},
-}));
-vi.mock('../config', () => ({config: mocks.config}));
-vi.mock('../auth', () => ({auth: {api: {getSession: mocks.getSession}}}));
-vi.mock('../lib/logger', () => ({logger: mocks.logger}));
-vi.mock('../db/redis', () => ({getRedisClient: () => ({call: mocks.redisCall})}));
+  redisCall: redisClient.call,
+  getSession,
+  logger,
+};
 vi.mock('./tools', () => ({
   registerAllTools: (server: McpServer, userId: string) => {
     server.registerTool('owner', {inputSchema: {delay: z.number().optional()}}, async ({delay}) => {
@@ -31,13 +32,18 @@ vi.mock('./tools', () => ({
     });
   },
 }));
-import {closeMcpServers, createMcpRouter, validateMcpOrigin} from './router';
-
 let server: Server;
 let base: string;
 beforeEach(async () => {
   vi.restoreAllMocks();
   vi.clearAllMocks();
+  setConfigOverrides({
+    service: mocks.config.service,
+    version: mocks.config.version,
+    redis: mocks.config.redis,
+    auth: mocks.config.auth,
+    mcp: mocks.config.mcp,
+  });
   mocks.config.mcp.rateLimit.enabled = false;
   mocks.config.redis.url = undefined;
   mocks.redisCall.mockImplementation(async (command: string) => (command === 'SCRIPT' ? 'sha' : [1, 60_000]));

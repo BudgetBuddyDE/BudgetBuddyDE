@@ -1,20 +1,18 @@
+import {setConfigOverrides} from './mocks/configState';
+import {logger} from './mocks/logger';
+import {redisClient} from './mocks/redis';
 import {AttachmentCache} from '../lib/cache/attachment.cache';
 
-const {config, redis, log, pipeline} = vi.hoisted(() => {
-  const pipeline = {set: vi.fn().mockReturnThis(), exec: vi.fn()};
-  return {
-    config: {redis: {url: 'redis://mock'}, attachments: {cacheNamespace: 'attachments'}},
-    redis: {set: vi.fn(), get: vi.fn(), del: vi.fn(), mget: vi.fn(), pipeline: vi.fn(() => pipeline)},
-    log: {debug: vi.fn(), error: vi.fn()},
-    pipeline,
-  };
-});
-vi.mock('../config', () => ({config}));
-vi.mock('../db/redis', () => ({getRedisClient: () => redis}));
-vi.mock('../lib/logger', () => ({logger: {child: () => log}}));
+const {config} = vi.hoisted(() => ({
+  config: {redis: {url: 'redis://mock', database: 1}},
+}));
+const redis = redisClient;
+const log = logger;
+const pipeline = redisClient.pipelineMock;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  setConfigOverrides({redis: config.redis, attachments: {cacheNamespace: 'attachments'}});
   config.redis.url = 'redis://mock';
   redis.set.mockResolvedValue('OK');
   redis.get.mockResolvedValue(null);

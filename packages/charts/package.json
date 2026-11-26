@@ -22,7 +22,7 @@
   "scripts": {
     "build": "rimraf lib && tsc",
     "pretest": "pnpm run check",
-    "test": "vp test run --silent",
+    "test": "vp test run",
     "test:watch": "vp test",
     "check": "pnpm run format:check && pnpm run lint:check",
     "check:write": "pnpm run lint && pnpm run format",

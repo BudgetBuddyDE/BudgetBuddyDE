@@ -5,8 +5,6 @@ import {mapWithConcurrency, mapWithConcurrencySettled} from '../lib/concurrency'
 import {assembleFilter} from '../router/assembleFilter';
 import {paginationFields, paginationWindow, refinePagination} from '../router/pagination';
 
-vi.mock('../config', () => ({config: {pagination: {maxPageSize: 100}}}));
-
 describe('pagination contract', () => {
   const schema = z.object(paginationFields).superRefine(refinePagination);
   it.each([
