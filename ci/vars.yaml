@@ -7,11 +7,6 @@ repository:
   branch: main
 pull-request:
   target-branch: main
-review-config:
-  model: openai/code-view
-  protocol: openai
-  request-timeout: '120'
-  max-tokens-budget: '250000'
 dependency-update:
   interval: 168h
 database-backup:
