@@ -6,10 +6,10 @@ import WarningRounded from '@mui/icons-material/WarningRounded';
 import {Box, Chip, Stack, Typography} from '@mui/material';
 import {useTranslations} from 'next-intl';
 import type React from 'react';
+import {Balance} from '@/components/Balance';
 import {Icon} from '@/components/Icon';
 import {EntityMenu} from '@/components/Table/EntityMenu';
 import {HideHorizontalScrollbarStyle} from '@/theme/style';
-import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type Budget = {
@@ -104,8 +104,8 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
               fontWeight: 'bold',
             }}
           >
-            {Formatter.currency.formatBalance(budget.balance <= 0 ? 0 : budget.balance, currency)} /{' '}
-            {Formatter.currency.formatBalance(budget.budget, currency)}
+            <Balance amount={budget.balance <= 0 ? 0 : budget.balance} currency={currency} /> /{' '}
+            <Balance amount={budget.budget} currency={currency} />
           </Typography>
         </Box>
       </Stack>

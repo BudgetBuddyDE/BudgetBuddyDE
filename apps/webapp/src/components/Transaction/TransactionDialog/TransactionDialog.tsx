@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import {useTranslations} from 'next-intl';
 import type React from 'react';
+import {Balance} from '@/components/Balance';
 import {CloseIconButton} from '@/components/Button';
 import {CategoryChip} from '@/components/Category/CategoryChip';
 import {PaymentMethodChip} from '@/components/PaymentMethod/PaymentMethodChip';
@@ -102,7 +103,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
                 key: 'transferAmount',
                 label: t('amount'),
                 align: 'right',
-                renderCell: (_, row) => Formatter.currency.formatBalance(row.transferAmount, currency),
+                renderCell: (_, row) => <Balance amount={row.transferAmount} currency={currency} />,
               },
             ] satisfies ColumnDefinition<TExpandedTransaction>[]
           }

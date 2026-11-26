@@ -3,6 +3,7 @@
 import {Box, Stack, Tooltip, Typography} from '@mui/material';
 import {useTranslations} from 'next-intl';
 import type React from 'react';
+import {Balance} from '@/components/Balance';
 import {Card} from '@/components/Card';
 import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
@@ -46,7 +47,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
             {t('title')}
           </Typography>
           <Typography variant="h5" component="p" sx={{fontWeight: 600}}>
-            {Formatter.currency.formatBalance(totalBudget, currency)}
+            <Balance amount={totalBudget} currency={currency} component="span" />
           </Typography>
         </Box>
       </Card.Header>
@@ -95,7 +96,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
-                {Formatter.currency.formatBalance(spent, currency)}
+                <Balance amount={spent} currency={currency} component="span" />
               </Typography>
             </Stack>
 
@@ -107,7 +108,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500}}>
-                {Formatter.currency.formatBalance(futureExpenses, currency)}
+                <Balance amount={futureExpenses} currency={currency} component="span" />
               </Typography>
             </Stack>
 
@@ -127,7 +128,7 @@ export const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({totalBudg
                 </Typography>
               </Stack>
               <Typography component="dd" sx={{m: 0, fontWeight: 500, color: isOverBudget ? 'error.main' : undefined}}>
-                {Formatter.currency.formatBalance(isOverBudget ? overBudgetAmount : available, currency)}
+                <Balance amount={isOverBudget ? overBudgetAmount : available} currency={currency} component="span" />
               </Typography>
             </Stack>
           </Stack>

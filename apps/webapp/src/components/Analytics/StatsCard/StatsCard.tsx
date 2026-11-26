@@ -17,7 +17,7 @@ import {Card} from '@/components/Card';
 
 export type TStatsCardProps = {
   label: string | number;
-  value: string | number;
+  value: React.ReactNode;
   valueInformation?: string;
   icon?: 'add' | 'balance' | 'receipt' | 'remove' | 'requestQuote' | 'savings' | 'trendingDown' | 'trendingUp';
   isLoading?: boolean;

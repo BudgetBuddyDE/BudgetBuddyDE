@@ -1,9 +1,9 @@
 import {Box, Chip, Typography} from '@mui/material';
 import type React from 'react';
 import {ActionPaper} from '@/components/ActionPaper';
+import {Balance} from '@/components/Balance';
 import {Icon} from '@/components/Icon';
 import {Image} from '@/components/Image';
-import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
 export type TListWithIconProps = {
@@ -76,11 +76,13 @@ export const ListWithIcon: React.FC<TListWithIconProps> = ({icon, imageUrl, titl
               fontWeight: 'bold',
             }}
           >
-            {typeof amount === 'string'
-              ? amount
-              : typeof amount === 'object'
-                ? amount
-                : Formatter.currency.formatBalance(amount as number, currency)}
+            {typeof amount === 'string' ? (
+              amount
+            ) : typeof amount === 'object' ? (
+              amount
+            ) : (
+              <Balance amount={amount as number} currency={currency} />
+            )}
           </Typography>
         </Box>
       )}
