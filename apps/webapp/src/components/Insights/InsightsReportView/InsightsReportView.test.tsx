@@ -1,13 +1,14 @@
 import {NextIntlClientProvider} from 'next-intl';
-import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
+import {composedChartMock} from '@/test/mocks/charts';
 import {cleanup, render as rtlRender, screen} from '@/test/testing-library';
 import {buildReport, buildTransaction, categoryOption} from '../InsightsReport.fixtures';
 import {InsightsReportView} from './InsightsReportView';
 
-vi.mock('@budgetbuddyde/charts', () => ({
-  ComposedChart: () => <div>timeline chart</div>,
-}));
+beforeEach(() => {
+  composedChartMock.render = () => <div>timeline chart</div>;
+});
 
 afterEach(() => cleanup());
 

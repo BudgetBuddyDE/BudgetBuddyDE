@@ -7,7 +7,6 @@ import {UserPreferences} from './UserPreferences';
 const {get, update, showSnackbar} = vi.hoisted(() => ({get: vi.fn(), update: vi.fn(), showSnackbar: vi.fn()}));
 
 vi.mock('@/apiClient', () => ({apiClient: {backend: {preference: {get, update}}}}));
-vi.mock('next/navigation', () => ({useRouter: () => ({refresh: vi.fn()})}));
 vi.mock('@/components/Snackbar', () => ({useSnackbarContext: () => ({showSnackbar})}));
 
 describe('UserPreferences', () => {

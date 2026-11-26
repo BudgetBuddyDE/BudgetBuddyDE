@@ -1,25 +1,27 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import type {TPaymentMethodVH} from '@budgetbuddyde/api/paymentMethod';
-import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vite-plus/test';
+import {dateRangePickerMock} from '@/test/mocks/dateRangePicker';
 import {cleanup, fireEvent, render, screen, waitFor} from '@/test/testing-library';
 import {categoryOption, paymentMethodOption} from '../InsightsReport.fixtures';
 import {InsightsReportFilters} from './InsightsReportFilters';
 
-vi.mock('@/components/Form/DateRangePicker', () => ({
-  DateRangePicker: ({
-    onDateRangeChange,
-  }: {
-    onDateRangeChange?: (startDate: Date | null, endDate: Date | null) => void;
-  }) => (
-    <button
-      type="button"
-      data-testid="date-range"
-      onClick={() => onDateRangeChange?.(new Date('2026-02-01T00:00:00.000Z'), new Date('2026-02-28T00:00:00.000Z'))}
-    >
-      Set range
-    </button>
-  ),
-}));
+beforeEach(() => {
+  dateRangePickerMock.render = props => {
+    const {onDateRangeChange} = props as {
+      onDateRangeChange?: (startDate: Date | null, endDate: Date | null) => void;
+    };
+    return (
+      <button
+        type="button"
+        data-testid="date-range"
+        onClick={() => onDateRangeChange?.(new Date('2026-02-01T00:00:00.000Z'), new Date('2026-02-28T00:00:00.000Z'))}
+      >
+        Set range
+      </button>
+    );
+  };
+});
 
 const from = new Date('2026-01-01T00:00:00.000Z');
 const to = new Date('2026-12-31T00:00:00.000Z');

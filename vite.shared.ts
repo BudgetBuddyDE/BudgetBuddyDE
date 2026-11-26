@@ -22,6 +22,10 @@ export default defineConfig({
     fsModuleCachePath: `${process.cwd()}/node_modules/.vitest-cache`,
     globals: true,
     silent: 'passed-only',
+    // Reuse the transformed module graph across test files in a worker. Projects
+    // whose suites intentionally reset modules or exercise real infrastructure
+    // must override this with their own isolated project.
+    isolate: false,
     environment: 'node',
     exclude: ['**/build/**', '**/node_modules/**'],
     coverage: {

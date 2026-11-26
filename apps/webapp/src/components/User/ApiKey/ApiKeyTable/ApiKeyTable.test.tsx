@@ -1,25 +1,16 @@
 import type {PropsWithChildren} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vite-plus/test';
 import {appConfig} from '@/appConfig';
+import {authClient} from '@/authClient';
 import {fireEvent, render, screen, waitFor, within} from '@/test/testing-library';
 import {Formatter} from '@/utils/Formatter';
 import {ApiKeyTable} from './ApiKeyTable';
 import type {ApiKey} from '../types';
 
 const mocks = vi.hoisted(() => ({
-  listApiKeys: vi.fn(),
   showSnackbar: vi.fn(),
 }));
-
-vi.mock('@/authClient', () => ({
-  authClient: {
-    apiKey: {
-      list: mocks.listApiKeys,
-      create: vi.fn(),
-      delete: vi.fn(),
-    },
-  },
-}));
+const listApiKeys = vi.mocked(authClient.apiKey.list);
 
 vi.mock('@/components/Snackbar', () => ({
   useSnackbarContext: () => ({showSnackbar: mocks.showSnackbar}),
@@ -60,7 +51,7 @@ const makeApiKey = (overrides: Partial<ApiKey> = {}): ApiKey =>
 describe('ApiKeyTable', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.listApiKeys.mockResolvedValue({
+    listApiKeys.mockResolvedValue({
       data: {
         apiKeys: [
           makeApiKey(),
@@ -124,13 +115,13 @@ describe('ApiKeyTable', () => {
     const apiKeys = Array.from({length: appConfig.tables.itemPerPage + 1}, (_, index) =>
       makeApiKey({id: `key-${index}`, name: `API key ${index}`, start: `bb-${index}`}),
     );
-    mocks.listApiKeys.mockResolvedValue({data: {apiKeys, total: apiKeys.length}, error: null});
+    listApiKeys.mockResolvedValue({data: {apiKeys, total: apiKeys.length}, error: null});
 
     render(<ApiKeyTable />);
 
     expect(await screen.findByText('API key 0')).toBeInTheDocument();
     expect(screen.queryByText(`API key ${appConfig.tables.itemPerPage}`)).not.toBeInTheDocument();
-    expect(mocks.listApiKeys).toHaveBeenCalledWith({query: {sortBy: 'createdAt', sortDirection: 'desc'}});
+    expect(listApiKeys).toHaveBeenCalledWith({query: {sortBy: 'createdAt', sortDirection: 'desc'}});
 
     fireEvent.click(screen.getByRole('button', {name: 'Go to next page'}));
 

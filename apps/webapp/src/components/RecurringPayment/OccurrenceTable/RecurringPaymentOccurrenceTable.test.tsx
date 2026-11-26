@@ -11,7 +11,6 @@ vi.mock('@/apiClient', () => ({
   apiClient: {backend: {recurringPayment: {getOccurrences}}},
 }));
 
-vi.mock('@/components/Form/DateRangePicker', () => ({DateRangePicker: () => <div>Date range</div>}));
 vi.mock('@/components/Filter', () => ({FilterWrapper: () => null}));
 vi.mock('@/components/Category/CategoryChip', () => ({CategoryChip: () => null}));
 vi.mock('@/components/PaymentMethod/PaymentMethodChip', () => ({PaymentMethodChip: () => null}));

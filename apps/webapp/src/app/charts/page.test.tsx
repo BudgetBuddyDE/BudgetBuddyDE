@@ -1,12 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
 import ChartsPage from './page';
 
-vi.mock('next/navigation', () => ({
-  notFound: () => {
-    throw new Error('NEXT_NOT_FOUND');
-  },
-}));
-
 vi.mock('@/components/ChartsShowcase/ChartsShowcase', () => ({
   ChartsShowcase: () => null,
 }));

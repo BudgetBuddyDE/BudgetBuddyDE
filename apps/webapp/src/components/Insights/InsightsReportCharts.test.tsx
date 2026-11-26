@@ -1,24 +1,16 @@
 import {NextIntlClientProvider} from 'next-intl';
 import React from 'react';
-import {afterEach, describe, expect, it, vi} from 'vite-plus/test';
+import {afterEach, describe, expect, it} from 'vite-plus/test';
 import messages from '@/i18n/messages/en-US.json';
+import {composedChartMock} from '@/test/mocks/charts';
 import {cleanup, render} from '@/test/testing-library';
 import {buildReport} from './InsightsReport.fixtures';
-
-const {composedChartProps} = vi.hoisted(() => ({composedChartProps: vi.fn()}));
-
-vi.mock('@budgetbuddyde/charts', () => ({
-  ComposedChart: (props: unknown) => {
-    composedChartProps(props);
-    return <div data-testid="composed-chart" />;
-  },
-}));
-
 import {InsightsReportCharts} from './InsightsReportCharts';
+
+const composedChartProps = composedChartMock.onProps;
 
 afterEach(() => {
   cleanup();
-  composedChartProps.mockReset();
 });
 
 const renderChart = (report: ReturnType<typeof buildReport>) =>
