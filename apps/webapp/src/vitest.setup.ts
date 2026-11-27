@@ -83,7 +83,6 @@ vi.mock('next/link', () => ({
   }),
 }));
 
-vi.mock('next/navigation', async () => await import('./test/mocks/navigation'));
 vi.mock('@/authClient', async () => await import('./test/mocks/authClient'));
 vi.mock('@/components/Form/DateRangePicker', async () => await import('./test/mocks/dateRangePicker'));
 vi.mock('@budgetbuddyde/charts', async importOriginal => {

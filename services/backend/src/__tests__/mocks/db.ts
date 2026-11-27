@@ -51,6 +51,8 @@ export function createChain(result: unknown = []): MockChain {
 export const db = {
   query: dbQuery,
   select: mock(),
+  selectDistinct: mock(),
+  execute: mock(),
   insert: mock(),
   update: mock(),
   delete: mock(),
@@ -67,10 +69,11 @@ export function resetDbMock(): void {
     relation.findFirst.mockResolvedValue(undefined);
     relation.findMany.mockResolvedValue([]);
   }
-  for (const method of ['select', 'insert', 'update', 'delete'] as const) {
+  for (const method of ['select', 'selectDistinct', 'insert', 'update', 'delete'] as const) {
     db[method].mockReset();
     db[method].mockImplementation(() => createChain());
   }
+  db.execute.mockReset().mockResolvedValue([]);
   db.transaction.mockReset();
   db.transaction.mockImplementation(async (callback: (transaction: typeof db) => unknown) => callback(db));
   pool.end.mockReset();

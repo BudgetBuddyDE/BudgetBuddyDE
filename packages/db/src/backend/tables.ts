@@ -1,4 +1,16 @@
-import {boolean, date, doublePrecision, index, primaryKey, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  date,
+  doublePrecision,
+  foreignKey,
+  index,
+  primaryKey,
+  text,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import {uuidv7} from 'uuidv7';
 import {user} from '../auth';
 import {budgetType, executionPlanType} from './enums';
@@ -21,7 +33,10 @@ export const paymentMethods = backendSchema.table(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  table => [index('payment_method_owner_updated_at_idx').on(table.ownerId, table.updatedAt)],
+  table => [
+    index('payment_method_owner_updated_at_idx').on(table.ownerId, table.updatedAt),
+    unique('payment_method_owner_id_unique').on(table.ownerId, table.id),
+  ],
 );
 
 export const preferences = backendSchema.table('preference', {
@@ -44,6 +59,7 @@ export const categories = backendSchema.table(
   'category',
   {
     id: uuid('category_id').primaryKey().defaultRandom(),
+    parentId: uuid('parent_id'),
     ownerId: varchar('owner_id')
       .notNull()
       .references(() => user.id, {onDelete: 'cascade'}),
@@ -55,7 +71,16 @@ export const categories = backendSchema.table(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  table => [index('category_owner_updated_at_idx').on(table.ownerId, table.updatedAt)],
+  table => [
+    index('category_owner_updated_at_idx').on(table.ownerId, table.updatedAt),
+    index('category_owner_parent_idx').on(table.ownerId, table.parentId),
+    unique('category_owner_id_unique').on(table.ownerId, table.id),
+    foreignKey({
+      name: 'category_owner_parent_fk',
+      columns: [table.ownerId, table.parentId],
+      foreignColumns: [table.ownerId, table.id],
+    }).onDelete('cascade'),
+  ],
 );
 
 export const transactions = backendSchema.table(
@@ -82,6 +107,16 @@ export const transactions = backendSchema.table(
       .notNull(),
   },
   table => [
+    foreignKey({
+      name: 'transaction_owner_category_fk',
+      columns: [table.ownerId, table.categoryId],
+      foreignColumns: [categories.ownerId, categories.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'transaction_owner_payment_method_fk',
+      columns: [table.ownerId, table.paymentMethodId],
+      foreignColumns: [paymentMethods.ownerId, paymentMethods.id],
+    }).onDelete('cascade'),
     index('transaction_owner_processed_at_idx').on(table.ownerId, table.processedAt),
     index('transaction_owner_category_idx').on(table.ownerId, table.categoryId),
     index('transaction_owner_payment_method_idx').on(table.ownerId, table.paymentMethodId),
@@ -114,6 +149,16 @@ export const recurringPayments = backendSchema.table(
       .notNull(),
   },
   table => [
+    foreignKey({
+      name: 'recurring_payment_owner_category_fk',
+      columns: [table.ownerId, table.categoryId],
+      foreignColumns: [categories.ownerId, categories.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'recurring_payment_owner_payment_method_fk',
+      columns: [table.ownerId, table.paymentMethodId],
+      foreignColumns: [paymentMethods.ownerId, paymentMethods.id],
+    }).onDelete('cascade'),
     index('recurring_payment_recurrence_idx').on(table.ownerId, table.paused, table.startsOn),
     index('recurring_payment_job_idx').on(table.paused, table.startsOn),
   ],
@@ -159,12 +204,16 @@ export const budgets = backendSchema.table(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  table => [index('budget_owner_updated_at_idx').on(table.ownerId, table.updatedAt)],
+  table => [
+    index('budget_owner_updated_at_idx').on(table.ownerId, table.updatedAt),
+    unique('budget_owner_id_unique').on(table.ownerId, table.id),
+  ],
 );
 
 export const budgetCategories = backendSchema.table(
   'budget_category',
   {
+    ownerId: varchar('owner_id').notNull(),
     budgetId: uuid('budget_id')
       .notNull()
       .references(() => budgets.id, {onDelete: 'cascade'}),
@@ -173,6 +222,16 @@ export const budgetCategories = backendSchema.table(
       .references(() => categories.id, {onDelete: 'cascade'}),
   },
   table => [
+    foreignKey({
+      name: 'budget_link_owner_category_fk',
+      columns: [table.ownerId, table.categoryId],
+      foreignColumns: [categories.ownerId, categories.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'budget_link_owner_budget_fk',
+      columns: [table.ownerId, table.budgetId],
+      foreignColumns: [budgets.ownerId, budgets.id],
+    }).onDelete('cascade'),
     primaryKey({
       name: 'budget_category_pkey',
       columns: [table.budgetId, table.categoryId],

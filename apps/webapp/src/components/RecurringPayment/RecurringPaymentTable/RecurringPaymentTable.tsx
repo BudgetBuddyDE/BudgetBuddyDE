@@ -23,6 +23,7 @@ import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
 import {CategoryChip} from '@/components/Category/CategoryChip';
+import {getCategoryOptions} from '@/components/Category/categoryOptions';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
   EntityDrawer,
@@ -218,7 +219,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
 
   const loadBatchValueHelp = React.useCallback(async () => {
     const [categoriesResult, paymentMethodsResult] = await Promise.all([
-      apiClient.backend.category.getValueHelp(),
+      getCategoryOptions(),
       apiClient.backend.paymentMethod.getValueHelp(),
     ]);
     const [categories, categoriesError] = categoriesResult;
@@ -278,7 +279,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
   );
 
   const handleEditEntity = React.useCallback(
-    ({
+    async ({
       id,
       executionPlan,
       startsOn,
@@ -288,6 +289,8 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
       transferAmount,
       information,
     }: TExpandedRecurringPayment) => {
+      const [options] = await getCategoryOptions();
+      const categoryOption = options?.find(option => option.id === category.id) ?? category;
       dispatchDrawerAction({
         type: 'OPEN',
         action: 'EDIT',
@@ -296,11 +299,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           executionPlan,
           startsOn: parseLocalDateOnly(startsOn),
           receiver: {receiver: receiver},
-          category: {
-            id: category.id,
-            name: category.name,
-            description: category.description,
-          },
+          category: categoryOption,
           paymentMethod: {
             id: paymentMethod.id,
             name: paymentMethod.name,
@@ -479,7 +478,7 @@ export const RecurringPaymentTable: React.FC<RecurringPaymentTableProps> = ({ini
           placeholder: t('category'),
           required: true,
           retrieveOptionsFunc: async () => {
-            const [categories, error] = await apiClient.backend.category.getValueHelp();
+            const [categories, error] = await getCategoryOptions();
             if (error) {
               logger.error('Failed to fetch category options', error);
               return [];

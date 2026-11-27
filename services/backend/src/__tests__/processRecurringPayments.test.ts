@@ -25,6 +25,8 @@ vi.mock('../middleware/cache.middleware', () => ({invalidateUserCaches}));
 
 import {processRecurringPayments} from '../jobs/processRecurringPayments';
 
+const transactionCacheRoutes = ['/api/transaction', '/api/category', '/api/budget', '/api/insights'];
+
 describe('processRecurringPayments', () => {
   const exporter = new InMemorySpanExporter();
   const provider = new NodeTracerProvider({spanProcessors: [new SimpleSpanProcessor({exporter})]});
@@ -125,8 +127,8 @@ describe('processRecurringPayments', () => {
     await processRecurringPayments();
 
     expect(invalidateUserCaches).toHaveBeenCalledTimes(2);
-    expect(invalidateUserCaches).toHaveBeenCalledWith('user-a', ['/api/transaction', '/api/budget', '/api/insights']);
-    expect(invalidateUserCaches).toHaveBeenCalledWith('user-b', ['/api/transaction', '/api/budget', '/api/insights']);
+    expect(invalidateUserCaches).toHaveBeenCalledWith('user-a', transactionCacheRoutes);
+    expect(invalidateUserCaches).toHaveBeenCalledWith('user-b', transactionCacheRoutes);
   });
 
   it('logs candidate query failures without rejecting the job', async () => {
@@ -177,7 +179,7 @@ describe('processRecurringPayments', () => {
     expect(batch?.parentSpanContext?.spanId).toBe(job?.spanContext().spanId);
 
     expect(invalidateUserCaches).toHaveBeenCalledTimes(1);
-    expect(invalidateUserCaches).toHaveBeenCalledWith('user-c', ['/api/transaction', '/api/budget', '/api/insights']);
+    expect(invalidateUserCaches).toHaveBeenCalledWith('user-c', transactionCacheRoutes);
     expect(info).toHaveBeenLastCalledWith(expect.any(String), {
       scheduledFor: '2026-08-28',
       processedCount: 1,

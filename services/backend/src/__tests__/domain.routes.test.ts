@@ -2,9 +2,10 @@ import * as tables from '@budgetbuddyde/db/backend';
 import * as operators from 'drizzle-orm';
 import {PgDialect} from 'drizzle-orm/pg-core';
 import {attachmentService} from './mocks/attachment';
+import {invalidateDomainMutation} from './mocks/cache';
 import {db} from './mocks/db';
-import {logger} from './mocks/logger';
 import {requestRouter} from './router.test-utils';
+import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {budgetRouter} from '../router/budget.router';
 import {categoryRouter} from '../router/category.router';
 import {paymentMethodRouter} from '../router/paymentMethod.router';
@@ -23,12 +24,14 @@ const {chain} = vi.hoisted(() => ({
     groupBy: vi.fn(),
     orderBy: vi.fn(),
     leftJoin: vi.fn(),
+    innerJoin: vi.fn(),
+    for: vi.fn(),
+    onConflictDoNothing: vi.fn(),
   },
 }));
 const mocks = {
   chain,
   db,
-  log: logger,
   attachments: {
     findAttachmentsByTransactionId: attachmentService.findAttachmentsByTransactionId,
     generateSignedUrls: attachmentService.generateSignedUrls,
@@ -76,17 +79,21 @@ const entities = [
 ];
 
 beforeEach(() => {
-  vi.resetAllMocks();
-  for (const method of ['values', 'set', 'where', 'from', 'leftJoin'] as const)
+  for (const method of Object.values(chain)) method.mockReset();
+  for (const method of ['values', 'set', 'where', 'from', 'leftJoin', 'innerJoin'] as const)
     mocks.chain[method].mockReturnValue(mocks.chain);
+  mocks.chain.for.mockResolvedValue([{id: ID, parentId: null}]);
+  mocks.chain.onConflictDoNothing.mockResolvedValue(undefined);
+  mocks.chain.orderBy.mockReturnValue(mocks.chain);
   mocks.chain.then.mockImplementation((resolve: (value: unknown[]) => unknown) => Promise.resolve([]).then(resolve));
   mocks.chain.returning.mockResolvedValue([
     {id: ID, ownerId: OWNER, name: 'Record', categories: [], type: 'i', budget: 100},
   ]);
   mocks.chain.limit.mockResolvedValue([{count: 1}]);
   mocks.chain.groupBy.mockResolvedValue([]);
-  mocks.chain.orderBy.mockResolvedValue([]);
-  for (const method of ['insert', 'update', 'delete', 'select'] as const) mocks.db[method].mockReturnValue(mocks.chain);
+
+  for (const method of ['insert', 'update', 'delete', 'select', 'selectDistinct'] as const)
+    mocks.db[method].mockReturnValue(mocks.chain);
   mocks.db.transaction.mockImplementation(async callback => callback(mocks.db));
   for (const relation of Object.values(mocks.db.query)) {
     relation.findMany.mockResolvedValue([]);
@@ -97,6 +104,137 @@ beforeEach(() => {
   mocks.attachments.findAttachmentsByTransactionId.mockResolvedValue({attachments: [], totalCount: 0});
   mocks.attachments.generateSignedUrls.mockResolvedValue({signedUrls: new Map()});
   mocks.attachments.deleteAttachmentsByTransactionId.mockResolvedValue(0);
+});
+
+describe('category mutation invariants', () => {
+  it.each(['/', '/batch'])('locks before creating and maps a wrapped hierarchy constraint error on %s', async path => {
+    mocks.chain.returning.mockRejectedValueOnce(
+      new Error('query failed', {cause: {code: '23514', constraint: 'category_two_levels'}}),
+    );
+    const data = {...categoryBody, parentId: PAYMENT};
+    const response = await requestRouter(categoryRouter, OWNER, path, {
+      method: 'POST',
+      body: path === '/' ? data : [data],
+    });
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({message: expect.stringContaining('Choose an existing root')});
+    expect(mocks.db.transaction).toHaveBeenCalledOnce();
+    expect(mocks.db.execute).toHaveBeenCalledBefore(mocks.db.insert);
+    expect(invalidateUserCaches).not.toHaveBeenCalled();
+  });
+
+  it.each([PAYMENT, null])('rejects batch placement %j without an expected parent before any write', async parentId => {
+    const response = await requestRouter(categoryRouter, OWNER, '/batch', {
+      method: 'PUT',
+      body: {updates: [{id: CATEGORY, data: {parentId}}]},
+    });
+    expect(response.status).toBe(400);
+    expect(mocks.db.transaction).not.toHaveBeenCalled();
+    expect(mocks.db.update).not.toHaveBeenCalled();
+  });
+
+  it('checks a batch move under the hierarchy lock and rejects stale placement', async () => {
+    const response = await requestRouter(categoryRouter, OWNER, '/batch', {
+      method: 'PUT',
+      body: {updates: [{id: CATEGORY, data: {parentId: PAYMENT, expectedParentId: ID}}]},
+    });
+    expect(response.status).toBe(409);
+    expect(mocks.db.execute).toHaveBeenCalledBefore(mocks.chain.for);
+    expect(mocks.db.update).not.toHaveBeenCalled();
+    expect(invalidateUserCaches).not.toHaveBeenCalled();
+  });
+
+  it('updates only mutable fields and keeps the route category ID even when the body supplies another ID', async () => {
+    const response = await requestRouter(categoryRouter, OWNER, `/${ID}`, {
+      method: 'PUT',
+      body: {id: CATEGORY, ownerId: 'another-owner', name: 'Renamed', createdAt: new Date(0)},
+    });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({data: [{id: ID}]});
+    expect(mocks.chain.set).toHaveBeenCalledExactlyOnceWith({name: 'Renamed', updatedAt: expect.any(Date)});
+    const where = new PgDialect().sqlToQuery(mocks.chain.where.mock.calls[0][0]);
+    expect(where.params).toEqual([OWNER, ID]);
+    expect(mocks.db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects a stale move before writing or invalidating, even when the new parent is already current', async () => {
+    mocks.chain.for.mockResolvedValueOnce([{parentId: PAYMENT}]);
+    const response = await requestRouter(categoryRouter, OWNER, `/${ID}`, {
+      method: 'PUT',
+      body: {parentId: PAYMENT, expectedParentId: CATEGORY, name: 'Unconfirmed rename'},
+    });
+    expect(response.status).toBe(409);
+    expect(mocks.db.execute).toHaveBeenCalledBefore(mocks.chain.for);
+    expect(mocks.chain.for).toHaveBeenCalledWith('update');
+    expect(mocks.db.update).not.toHaveBeenCalled();
+    expect(invalidateUserCaches).not.toHaveBeenCalled();
+  });
+
+  it('moves a category when its locked parent matches the confirmation, including a root', async () => {
+    const response = await requestRouter(categoryRouter, OWNER, `/${ID}`, {
+      method: 'PUT',
+      body: {parentId: PAYMENT, expectedParentId: null},
+    });
+    expect(response.status).toBe(200);
+    expect(mocks.chain.for).toHaveBeenCalledBefore(mocks.db.update);
+    expect(mocks.chain.set).toHaveBeenCalledExactlyOnceWith({parentId: PAYMENT, updatedAt: expect.any(Date)});
+  });
+
+  it.each([undefined, [], [PAYMENT]])(
+    'requires the exact child scope before deleting a subtree (%j)',
+    async childIds => {
+      mocks.chain.for.mockReset().mockResolvedValueOnce([
+        {id: ID, parentId: null},
+        {id: CATEGORY, parentId: ID},
+      ]);
+      const response = await requestRouter(categoryRouter, OWNER, `/${ID}`, {
+        method: 'DELETE',
+        body: childIds ? {confirmedChildIds: childIds} : undefined,
+      });
+      expect(response.status).toBe(400);
+      expect(mocks.db.execute).toHaveBeenCalled();
+      expect(mocks.db.delete).not.toHaveBeenCalled();
+    },
+  );
+
+  it('accepts a confirmation matching the locked child scope', async () => {
+    mocks.chain.for.mockReset().mockResolvedValueOnce([
+      {id: ID, parentId: null},
+      {id: CATEGORY, parentId: ID},
+    ]);
+    mocks.chain.for.mockResolvedValue([]);
+    const response = await requestRouter(categoryRouter, OWNER, `/${ID}`, {
+      method: 'DELETE',
+      body: {confirmedChildIds: [CATEGORY]},
+    });
+    expect(response.status).toBe(200);
+    expect(mocks.db.delete).toHaveBeenCalledExactlyOnceWith(tables.categories);
+  });
+
+  it.each(['POST', 'PUT'] as const)('awaits owner cache invalidation for batch %s', async method => {
+    const actualCache = await vi.importActual<typeof import('../domain/cache')>('../domain/cache');
+    invalidateDomainMutation.mockImplementationOnce(actualCache.invalidateDomainMutation);
+    const invalidation = Promise.withResolvers<void>();
+    const started = Promise.withResolvers<void>();
+    vi.mocked(invalidateUserCaches).mockImplementationOnce(() => {
+      started.resolve();
+      return invalidation.promise;
+    });
+    const response = requestRouter(categoryRouter, OWNER, '/batch', {
+      method,
+      body: method === 'POST' ? [categoryBody] : {updates: [{id: CATEGORY, data: categoryBody}]},
+    });
+    try {
+      expect(await Promise.race([started.promise.then(() => 'started'), response])).toBe('started');
+      expect(vi.mocked(invalidateUserCaches)).toHaveBeenCalledWith(OWNER, expect.arrayContaining(['/api/category']));
+      expect(await Promise.race([response, new Promise(resolve => setTimeout(() => resolve('pending'), 30))])).toBe(
+        'pending',
+      );
+    } finally {
+      invalidation.resolve();
+    }
+    expect((await response).status).toBe(200);
+  });
 });
 
 for (const entity of entities) {
@@ -159,8 +297,10 @@ for (const entity of entities) {
       expect(response.status).toBe(404);
     });
     it('deletes only an owned record', async () => {
+      if (entity.name === 'categories')
+        mocks.chain.for.mockResolvedValue([]).mockResolvedValueOnce([{id: ID, parentId: null}]);
       expect((await requestRouter(entity.router, OWNER, `/${ID}`, {method: 'DELETE'})).status).toBe(200);
-      const sql = new PgDialect().sqlToQuery(mocks.chain.where.mock.calls[0][0]);
+      const sql = new PgDialect().sqlToQuery(mocks.chain.where.mock.lastCall![0]);
       expect(sql.params).toEqual([OWNER, ID]);
     });
     it('lists owned records with pagination and search', async () => {
@@ -243,13 +383,19 @@ describe('category and payment method merge safeguards', () => {
     expect(
       (await requestRouter(router, OWNER, '/merge', {method: 'POST', body: {source: [ID], target: CATEGORY}})).status,
     ).toBe(400);
+    if (name === 'categories') {
+      expect(mocks.db.transaction).toHaveBeenCalledOnce();
+      expect(mocks.db.delete).not.toHaveBeenCalled();
+      expect(new PgDialect().sqlToQuery(mocks.chain.where.mock.calls[0][0]).params).toContain(OWNER);
+      return;
+    }
     expect(mocks.db.transaction).not.toHaveBeenCalled();
     const options = mocks.db.query[name].findMany.mock.calls[0][0];
-    const table = name === 'categories' ? tables.categories : tables.paymentMethods;
-    expect(new PgDialect().sqlToQuery(options.where(table, operators)).params).toContain(OWNER);
+    expect(new PgDialect().sqlToQuery(options.where(tables.paymentMethods, operators)).params).toContain(OWNER);
   });
   it('merges categories and reassigns dependent references in one transaction', async () => {
-    mocks.db.query.categories.findMany.mockResolvedValueOnce([{id: ID}, {id: CATEGORY}]);
+    mocks.chain.limit.mockResolvedValueOnce([]);
+    mocks.chain.for.mockResolvedValueOnce([{id: ID}, {id: CATEGORY}]);
     mocks.chain.returning
       .mockResolvedValueOnce([{id: 'transaction'}])
       .mockResolvedValueOnce([{id: 'recurring'}])
@@ -262,11 +408,12 @@ describe('category and payment method merge safeguards', () => {
     expect(response.body).toMatchObject({data: {source: [ID], target: CATEGORY}});
     expect(mocks.db.transaction).toHaveBeenCalledOnce();
     expect(mocks.chain.set.mock.calls).toEqual([[{categoryId: CATEGORY}], [{categoryId: CATEGORY}]]);
-    for (const [where] of mocks.chain.where.mock.calls.slice(0, 2))
+    for (const [where] of mocks.chain.where.mock.calls.slice(2, 4))
       expect(new PgDialect().sqlToQuery(where).params).toEqual([OWNER, ID]);
   });
   it('avoids duplicate target budget links and reassigns the remaining budgets', async () => {
-    mocks.db.query.categories.findMany.mockResolvedValueOnce([{id: ID}, {id: CATEGORY}]);
+    mocks.chain.limit.mockResolvedValueOnce([]);
+    mocks.chain.for.mockResolvedValueOnce([{id: ID}, {id: CATEGORY}]);
     mocks.chain.returning
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
@@ -278,10 +425,11 @@ describe('category and payment method merge safeguards', () => {
       (await requestRouter(categoryRouter, OWNER, '/merge', {method: 'POST', body: {source: [ID], target: CATEGORY}}))
         .status,
     ).toBe(200);
-    expect(mocks.chain.values).toHaveBeenCalledWith([{budgetId: 'b2', categoryId: CATEGORY}]);
+    expect(mocks.chain.values).toHaveBeenCalledWith([{ownerId: OWNER, budgetId: 'b2', categoryId: CATEGORY}]);
   });
   it('skips link insertion when affected budgets already contain the target', async () => {
-    mocks.db.query.categories.findMany.mockResolvedValueOnce([{id: ID}, {id: CATEGORY}]);
+    mocks.chain.limit.mockResolvedValueOnce([]);
+    mocks.chain.for.mockResolvedValueOnce([{id: ID}, {id: CATEGORY}]);
     mocks.chain.returning
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
@@ -294,6 +442,17 @@ describe('category and payment method merge safeguards', () => {
         .status,
     ).toBe(200);
     expect(mocks.db.insert).not.toHaveBeenCalled();
+  });
+  it('H06 refuses a populated merge source before any assignments are moved', async () => {
+    mocks.chain.for.mockResolvedValueOnce([{id: ID}, {id: CATEGORY}]);
+    mocks.chain.limit.mockResolvedValueOnce([{id: PAYMENT}]);
+    const result = await requestRouter(categoryRouter, OWNER, '/merge', {
+      method: 'POST',
+      body: {source: [ID], target: CATEGORY},
+    });
+    expect(result.status).toBe(400);
+    expect(mocks.db.update).not.toHaveBeenCalled();
+    expect(mocks.db.delete).not.toHaveBeenCalled();
   });
 });
 
@@ -503,7 +662,7 @@ describe('category statistics and budget balances', () => {
     });
     expect(response.status).toBe(200);
     expect(mocks.db.transaction).toHaveBeenCalledOnce();
-    expect(mocks.chain.values).toHaveBeenCalledWith([{budgetId: ID, categoryId: CATEGORY}]);
+    expect(mocks.chain.values).toHaveBeenCalledWith([{ownerId: OWNER, budgetId: ID, categoryId: CATEGORY}]);
   });
   it('changes only added and removed budget links', async () => {
     mocks.chain.then.mockImplementation((resolve: (value: unknown[]) => unknown) =>
@@ -518,7 +677,7 @@ describe('category statistics and budget balances', () => {
       ).status,
     ).toBe(200);
     expect(mocks.db.delete).toHaveBeenCalledWith(tables.budgetCategories);
-    expect(mocks.chain.values).toHaveBeenCalledWith([{budgetId: ID, categoryId: CATEGORY}]);
+    expect(mocks.chain.values).toHaveBeenCalledWith([{ownerId: OWNER, budgetId: ID, categoryId: CATEGORY}]);
   });
   it.each(['POST', 'PUT'] as const)('fails explicitly when %s budget reread is missing', async method => {
     mocks.db.query.budgets.findFirst.mockResolvedValueOnce(undefined);

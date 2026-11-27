@@ -5,6 +5,9 @@ import {z} from 'zod';
 import {callTool} from './helpers';
 import * as domain from '../../domain/category';
 
+const legacyPayload = CreateOrUpdateCategoryPayload.omit({parentId: true});
+const legacyCategory = Category.omit({parentId: true});
+
 export function registerCategoryTools(server: McpServer, userId: string): void {
   server.registerTool(
     'list_categories',
@@ -17,7 +20,10 @@ export function registerCategoryTools(server: McpServer, userId: string): void {
       },
     },
     async (params, _extra) => {
-      return callTool(() => domain.list(userId, params), responses.GetAllCategoriesResponse);
+      return callTool(
+        () => domain.list(userId, params),
+        responses.GetAllCategoriesResponse.extend({data: z.array(legacyCategory).nullable()}),
+      );
     },
   );
 
@@ -30,7 +36,10 @@ export function registerCategoryTools(server: McpServer, userId: string): void {
       },
     },
     async ({id}, _extra) => {
-      return callTool(() => domain.get(userId, id), responses.GetCategoryResponse);
+      return callTool(
+        () => domain.get(userId, id),
+        responses.GetCategoryResponse.extend({data: legacyCategory.nullable()}),
+      );
     },
   );
 
@@ -38,10 +47,13 @@ export function registerCategoryTools(server: McpServer, userId: string): void {
     'create_category',
     {
       description: 'Create a new category',
-      inputSchema: CreateOrUpdateCategoryPayload,
+      inputSchema: legacyPayload,
     },
     async (payload, _extra) => {
-      return callTool(() => domain.create(userId, payload), responses.CreateCategoryResponse);
+      return callTool(
+        () => domain.create(userId, payload),
+        responses.CreateCategoryResponse.extend({data: z.array(legacyCategory).nullable()}),
+      );
     },
   );
 
@@ -49,12 +61,15 @@ export function registerCategoryTools(server: McpServer, userId: string): void {
     'update_category',
     {
       description: 'Update an existing category',
-      inputSchema: CreateOrUpdateCategoryPayload.partial().extend({
+      inputSchema: legacyPayload.partial().extend({
         id: Category.shape.id.describe('Category UUID'),
       }),
     },
     async ({id, ...payload}, _extra) => {
-      return callTool(() => domain.update(userId, id, payload), responses.UpdateCategoryResponse);
+      return callTool(
+        () => domain.update(userId, id, payload),
+        responses.UpdateCategoryResponse.extend({data: z.array(legacyCategory).nullable()}),
+      );
     },
   );
 
@@ -67,7 +82,10 @@ export function registerCategoryTools(server: McpServer, userId: string): void {
       },
     },
     async ({id}, _extra) => {
-      return callTool(() => domain.remove(userId, id), responses.DeleteCategoryResponse);
+      return callTool(
+        () => domain.remove(userId, id),
+        responses.DeleteCategoryResponse.extend({data: z.array(legacyCategory).nullable()}),
+      );
     },
   );
 }

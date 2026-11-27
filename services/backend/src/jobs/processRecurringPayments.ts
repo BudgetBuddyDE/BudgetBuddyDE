@@ -6,8 +6,8 @@ import {toZonedTime} from 'date-fns-tz';
 import {and, eq, lte} from 'drizzle-orm';
 import {config} from '../config';
 import {db} from '../db';
+import {invalidateDomainMutation} from '../domain/cache';
 import {logger} from '../lib';
-import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {withSpan} from '../telemetry/tracing';
 import {executeScheduledRecurringPayment} from '../utils/executeScheduledRecurringPayment';
 
@@ -85,11 +85,7 @@ export async function processRecurringPayments() {
             });
           });
 
-          await Promise.all(
-            [...affectedUserIds].map(userId =>
-              invalidateUserCaches(userId, ['/api/transaction', '/api/budget', '/api/insights']),
-            ),
-          );
+          await Promise.all([...affectedUserIds].map(userId => invalidateDomainMutation(userId, '/api/transaction')));
         }
 
         logger.info(

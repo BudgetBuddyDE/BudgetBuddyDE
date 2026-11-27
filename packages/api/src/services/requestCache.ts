@@ -32,13 +32,27 @@ export async function fetchWithCache(
   init?: RequestInit,
   ttlMs = DEFAULT_TTL_MS,
 ): Promise<Response> {
-  const method = (init?.method ?? 'GET').toUpperCase();
-  const canCache = isBrowser() && method === 'GET' && init?.cache !== 'no-store';
+  const requestInput = typeof Request !== 'undefined' && input instanceof Request;
+  const method = (init?.method ?? (requestInput ? input.method : 'GET')).toUpperCase();
+  const headers = new Headers(init?.headers);
+  // Cookies can change independently of the SDK. Only share explicitly anonymous reads.
+  const canCache =
+    isBrowser() &&
+    method === 'GET' &&
+    !requestInput &&
+    init?.credentials === 'omit' &&
+    (!init.cache || init.cache === 'default') &&
+    [...headers.keys()].every(name => name === 'accept') &&
+    !init.signal;
 
   if (!canCache) {
-    const response = await fetch(input, init);
-    if (method !== 'GET') responseCache.clear();
-    return response;
+    if (method === 'GET') return fetch(input, isBrowser() ? {...init, cache: 'no-store'} : init);
+    clearRequestCache();
+    try {
+      return await fetch(input, init);
+    } finally {
+      clearRequestCache();
+    }
   }
 
   const key = cacheKey(input, init);
@@ -56,13 +70,15 @@ export async function fetchWithCache(
     const response = await request;
     if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
       const body = await response.clone().text();
-      responseCache.set(key, {
-        body,
-        headers: [...response.headers.entries()],
-        status: response.status,
-        statusText: response.statusText,
-        expiresAt: Date.now() + ttlMs,
-      });
+      if (inFlightRequests.get(key) === request) {
+        responseCache.set(key, {
+          body,
+          headers: [...response.headers.entries()],
+          status: response.status,
+          statusText: response.statusText,
+          expiresAt: Date.now() + ttlMs,
+        });
+      }
     }
     return response.clone();
   } finally {
@@ -72,9 +88,9 @@ export async function fetchWithCache(
 
 export function clearRequestCache() {
   responseCache.clear();
+  inFlightRequests.clear();
 }
 
 export function resetRequestCacheForTests() {
-  responseCache.clear();
-  inFlightRequests.clear();
+  clearRequestCache();
 }

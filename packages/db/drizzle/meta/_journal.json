@@ -99,6 +99,34 @@
       "when": 1792275829602,
       "tag": "0013_thankful_sheva_callister",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795620881680,
+      "tag": "0014_category_hierarchy",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1795624999394,
+      "tag": "0015_category_owner_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795642772893,
+      "tag": "0016_payment_method_owner_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795680300000,
+      "tag": "0017_category_owner_guard",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ import {SlideTransition} from '@/components/Transition';
 export type DeleteDialogProps = Pick<MuiDialogProps, 'open' | 'onClose' | 'maxWidth' | 'transitionDuration'> & {
   onCancel: () => void;
   onConfirm: () => void;
+  confirmDisabled?: boolean;
   withTransition?: boolean;
   text?: Partial<{title: string; content: string}>;
 };
@@ -29,6 +30,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
   maxWidth = 'xs',
   onCancel,
   onConfirm,
+  confirmDisabled = false,
   withTransition = false,
   text,
   transitionDuration,
@@ -49,7 +51,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
         transition: withTransition ? SlideTransition : undefined,
       }}
     >
-      <DialogTitle variant="h2" sx={{textAlign: 'center'}}>
+      <DialogTitle variant="h2" sx={{textAlign: 'center', color: 'text.primary'}}>
         {text?.title || t('title')}
       </DialogTitle>
       <DialogContent>
@@ -64,7 +66,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel}>{t('cancel')}</Button>
-        <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
+        <Button onClick={onConfirm} disabled={confirmDisabled} color="error" variant="contained" autoFocus>
           {t('confirm')}
         </Button>
       </DialogActions>

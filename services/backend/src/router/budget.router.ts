@@ -100,6 +100,7 @@ budgetRouter.get(
   validateRequest({
     query: z.object({
       search: z.string().optional(),
+      month: z.iso.date().optional(),
       ...paginationFields,
     }),
   }),

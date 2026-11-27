@@ -18,7 +18,7 @@ import {paginationFields, paginationWindow, refinePagination} from '../router/pa
 const attachmentLogger = logger.child({module: 'transactions.attachments'});
 let attachmentService: TransactionAttachmentHandler | undefined;
 
-function getAttachmentService(): TransactionAttachmentHandler {
+export function getAttachmentService(): TransactionAttachmentHandler {
   attachmentService ??= new TransactionAttachmentHandler(config.getRequiredObjectStorageConfig().bucketName);
   return attachmentService;
 }

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
     budgets: vi.fn(),
   },
   attachmentRows: vi.fn(),
+  transaction: vi.fn(),
   where: vi.fn(),
   send: vi.fn(),
   importArchive: vi.fn(),
@@ -33,12 +34,13 @@ vi.mock('../db', () => {
     orderBy: mocks.attachmentRows,
   };
   mocks.where.mockReturnValue(chain);
-  return {
-    db: {
+  mocks.transaction.mockImplementation(async callback =>
+    callback({
       query: Object.fromEntries(Object.entries(mocks.find).map(([name, fn]) => [name, {findMany: fn}])),
       select: vi.fn(() => chain),
-    },
-  };
+    }),
+  );
+  return {db: {transaction: mocks.transaction}};
 });
 vi.mock('../lib/logger', () => {
   const logger = {error: vi.fn(), child: vi.fn()};
@@ -102,6 +104,7 @@ beforeEach(() => {
   mocks.importArchive.mockReset().mockResolvedValue({summary: {created: 1}});
   mocks.invalidate.mockReset().mockResolvedValue(undefined);
   mocks.where.mockClear();
+  mocks.transaction.mockClear();
   mocks.config.export.maxBytes = 104857600;
 });
 
@@ -188,6 +191,14 @@ describe('application exports', () => {
       {...base, transactionId: null},
       {...base, id: 'unassigned', transactionId: null},
     ]);
+    mocks.send.mockImplementation(async () => {
+      expect(mocks.transaction).toHaveBeenCalledExactlyOnceWith(expect.any(Function), {
+        isolationLevel: 'repeatable read',
+        accessMode: 'read only',
+      });
+      expect(await mocks.transaction.mock.results[0].value).toHaveLength(6);
+      return {Body: Buffer.from('receipt')};
+    });
     const result = await request('/export?format=json&resources=attachments');
     expect(result.status).toBe(200);
     const files = await readZipEntries(result.bytes);

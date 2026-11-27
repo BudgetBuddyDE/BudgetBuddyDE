@@ -120,7 +120,7 @@ applicationRouter.post('/import', importUpload.single('archive'), async (req, re
 });
 
 const exportColumns: Record<TApplicationExportResource, readonly string[]> = {
-  categories: ['id', 'ownerId', 'name', 'description', 'createdAt', 'updatedAt'],
+  categories: ['id', 'ownerId', 'name', 'description', 'parentId', 'createdAt', 'updatedAt'],
   'payment-methods': ['id', 'ownerId', 'name', 'provider', 'address', 'description', 'createdAt', 'updatedAt'],
   transactions: [
     'id',
@@ -177,50 +177,54 @@ applicationRouter.get('/export', validateRequest({query: applicationExportQueryS
   const selectedResources = new Set(resources);
   const [categoryRows, paymentMethodRows, transactionRows, recurringPaymentRows, budgetRows, attachmentRows] =
     await withSpan('application.export.load', {'export.resource_count': selectedResources.size}, () =>
-      Promise.all([
-        selectedResources.has('categories')
-          ? db.query.categories.findMany({where: eq(categories.ownerId, userId), orderBy: asc(categories.id)})
-          : Promise.resolve([]),
-        selectedResources.has('payment-methods')
-          ? db.query.paymentMethods.findMany({
-              where: eq(paymentMethods.ownerId, userId),
-              orderBy: asc(paymentMethods.id),
-            })
-          : Promise.resolve([]),
-        selectedResources.has('transactions')
-          ? db.query.transactions.findMany({where: eq(transactions.ownerId, userId), orderBy: asc(transactions.id)})
-          : Promise.resolve([]),
-        selectedResources.has('recurring-payments')
-          ? db.query.recurringPayments.findMany({
-              where: eq(recurringPayments.ownerId, userId),
-              orderBy: asc(recurringPayments.id),
-            })
-          : Promise.resolve([]),
-        selectedResources.has('budgets')
-          ? db.query.budgets.findMany({
-              where: eq(budgets.ownerId, userId),
-              orderBy: asc(budgets.id),
-              with: {categories: {columns: {categoryId: true}}},
-            })
-          : Promise.resolve([]),
-        selectedResources.has('attachments')
-          ? db
-              .select({
-                id: attachments.id,
-                ownerId: attachments.ownerId,
-                fileName: attachments.fileName,
-                fileExtension: attachments.fileExtension,
-                contentType: attachments.contentType,
-                location: attachments.location,
-                createdAt: attachments.createdAt,
-                transactionId: transactionAttachments.transactionId,
-              })
-              .from(attachments)
-              .leftJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
-              .where(eq(attachments.ownerId, userId))
-              .orderBy(asc(attachments.id), asc(transactionAttachments.transactionId))
-          : Promise.resolve([]),
-      ]),
+      db.transaction(
+        tx =>
+          Promise.all([
+            selectedResources.has('categories')
+              ? tx.query.categories.findMany({where: eq(categories.ownerId, userId), orderBy: asc(categories.id)})
+              : Promise.resolve([]),
+            selectedResources.has('payment-methods')
+              ? tx.query.paymentMethods.findMany({
+                  where: eq(paymentMethods.ownerId, userId),
+                  orderBy: asc(paymentMethods.id),
+                })
+              : Promise.resolve([]),
+            selectedResources.has('transactions')
+              ? tx.query.transactions.findMany({where: eq(transactions.ownerId, userId), orderBy: asc(transactions.id)})
+              : Promise.resolve([]),
+            selectedResources.has('recurring-payments')
+              ? tx.query.recurringPayments.findMany({
+                  where: eq(recurringPayments.ownerId, userId),
+                  orderBy: asc(recurringPayments.id),
+                })
+              : Promise.resolve([]),
+            selectedResources.has('budgets')
+              ? tx.query.budgets.findMany({
+                  where: eq(budgets.ownerId, userId),
+                  orderBy: asc(budgets.id),
+                  with: {categories: {columns: {categoryId: true}}},
+                })
+              : Promise.resolve([]),
+            selectedResources.has('attachments')
+              ? tx
+                  .select({
+                    id: attachments.id,
+                    ownerId: attachments.ownerId,
+                    fileName: attachments.fileName,
+                    fileExtension: attachments.fileExtension,
+                    contentType: attachments.contentType,
+                    location: attachments.location,
+                    createdAt: attachments.createdAt,
+                    transactionId: transactionAttachments.transactionId,
+                  })
+                  .from(attachments)
+                  .leftJoin(transactionAttachments, eq(transactionAttachments.attachmentId, attachments.id))
+                  .where(eq(attachments.ownerId, userId))
+                  .orderBy(asc(attachments.id), asc(transactionAttachments.transactionId))
+              : Promise.resolve([]),
+          ]),
+        {isolationLevel: 'repeatable read', accessMode: 'read only'},
+      ),
     );
 
   const attachmentExports = new Map<

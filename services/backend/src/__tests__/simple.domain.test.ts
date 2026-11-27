@@ -17,6 +17,11 @@ const {chain} = vi.hoisted(() => ({
     returning: vi.fn(),
     limit: vi.fn(),
     groupBy: vi.fn(),
+    leftJoin: vi.fn(),
+    orderBy: vi.fn(),
+    innerJoin: vi.fn(),
+    for: vi.fn(),
+    onConflictDoNothing: vi.fn(),
   },
 }));
 const mocks = {db, chain, invalidate: invalidateDomainMutation};
@@ -49,13 +54,18 @@ const entities = [
 ];
 
 beforeEach(() => {
-  vi.resetAllMocks();
-  for (const method of ['values', 'set', 'where', 'from'] as const) mocks.chain[method].mockReturnValue(mocks.chain);
+  for (const method of Object.values(chain)) method.mockReset();
+  for (const method of ['values', 'set', 'where', 'from', 'leftJoin', 'innerJoin'] as const)
+    mocks.chain[method].mockReturnValue(mocks.chain);
+  mocks.chain.for.mockResolvedValue([]).mockResolvedValueOnce([{id: ID, parentId: null}]);
+  mocks.chain.onConflictDoNothing.mockResolvedValue(undefined);
+  mocks.chain.orderBy.mockReturnValue(mocks.chain);
   mocks.chain.then.mockImplementation((resolve: (value: unknown[]) => unknown) => Promise.resolve([]).then(resolve));
   mocks.chain.returning.mockResolvedValue([{id: ID, ownerId: OWNER, categories: [], type: 'i'}]);
   mocks.chain.limit.mockResolvedValue([{count: 1}]);
   mocks.chain.groupBy.mockResolvedValue([]);
-  for (const method of ['insert', 'update', 'delete', 'select'] as const) mocks.db[method].mockReturnValue(mocks.chain);
+  for (const method of ['insert', 'update', 'delete', 'select', 'selectDistinct'] as const)
+    mocks.db[method].mockReturnValue(mocks.chain);
   mocks.db.transaction.mockImplementation(async callback => callback(mocks.db));
   for (const relation of Object.values(mocks.db.query)) {
     relation.findMany.mockResolvedValue([]);
@@ -112,7 +122,8 @@ for (const entity of entities) {
     it('prevents ownership reassignment through update input', async () => {
       const result = await entity.domain.update(OWNER, ID, {...entity.body, ownerId: 'foreign-owner'} as never);
       expect(result.status).toBe(200);
-      expect(mocks.chain.set).toHaveBeenCalledWith(expect.objectContaining({ownerId: OWNER}));
+      if (entity.relation === 'categories') expect(mocks.chain.set.mock.calls[0][0]).not.toHaveProperty('ownerId');
+      else expect(mocks.chain.set).toHaveBeenCalledWith(expect.objectContaining({ownerId: OWNER}));
       const predicate = new PgDialect().sqlToQuery(mocks.chain.where.mock.calls[0][0]);
       expect(predicate.params).toContain(OWNER);
       expect(predicate.params).toContain(ID);

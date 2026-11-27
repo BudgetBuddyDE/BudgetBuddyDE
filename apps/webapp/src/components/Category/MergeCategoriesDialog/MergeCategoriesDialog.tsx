@@ -6,6 +6,7 @@ import {useTranslations} from 'next-intl';
 import React from 'react';
 import z from 'zod';
 import {apiClient} from '@/apiClient';
+import {withCategoryPaths} from '@/components/Category/categoryOptions';
 import {
   EntityDrawer,
   type EntityDrawerField,
@@ -35,12 +36,27 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
   const {refresh} = categorySlice.actions;
   const dispatch = useAppDispatch();
 
+  const [options, setOptions] = React.useState<TCategoryVH[]>([]);
+  React.useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    void apiClient.backend.category.getValueHelp({cache: 'no-store'}).then(([rows, error]) => {
+      if (!active) return;
+      if (rows) setOptions(rows);
+      else showSnackbar({message: error.message});
+    });
+    return () => {
+      active = false;
+    };
+  }, [isOpen, showSnackbar]);
   const defaultValues: EntityDrawerProps<MergeCategoriesForm>['defaultValues'] = React.useMemo(() => {
     return {
-      sourceCategories: source,
+      sourceCategories: withCategoryPaths(options).filter(
+        row => source.some(item => item.id === row.id) && !options.some(child => child.parentId === row.id),
+      ),
       targetCategory: null,
     };
-  }, [source]);
+  }, [source, options]);
 
   const fields: EntityDrawerField<MergeCategoriesForm>[] = React.useMemo(() => {
     return [
@@ -60,7 +76,8 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
             logger.error('Failed to fetch category options', error);
             return [];
           }
-          return categories ?? [];
+          const parents = new Set(categories.map(row => row.parentId));
+          return withCategoryPaths(categories).filter(row => !parents.has(row.id));
         },
         getOptionLabel(option: TCategoryVH) {
           return option.name;
@@ -83,7 +100,7 @@ export const MergeCategoriesDialog: React.FC<MergeCategoriesDialogProps> = ({sou
             logger.error('Failed to fetch category options', error);
             return [];
           }
-          return categories ?? [];
+          return withCategoryPaths(categories);
         },
         getOptionLabel(option: TCategoryVH) {
           return option.name;

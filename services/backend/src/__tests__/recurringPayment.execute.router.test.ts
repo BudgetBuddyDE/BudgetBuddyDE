@@ -40,11 +40,16 @@ describe('manual recurring payment execution', () => {
     createTransaction.mockResolvedValue({id: 'transaction-1'});
   });
 
-  it('invalidates transaction, budget, and insight caches after execution', async () => {
+  it('invalidates transaction, category, budget, and insight caches after execution', async () => {
     const response = await requestRouter(recurringPaymentRouter, USER_ID, `/${PAYMENT_ID}/execute`, {method: 'POST'});
 
     expect(response.status).toBe(200);
-    expect(invalidateUserCaches).toHaveBeenCalledWith(USER_ID, ['/api/transaction', '/api/budget', '/api/insights']);
+    expect(invalidateUserCaches).toHaveBeenCalledWith(USER_ID, [
+      '/api/transaction',
+      '/api/category',
+      '/api/budget',
+      '/api/insights',
+    ]);
   });
 
   it('does not invalidate dependent caches when execution fails', async () => {

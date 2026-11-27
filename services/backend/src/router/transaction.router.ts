@@ -8,7 +8,8 @@ import multer from 'multer';
 import z from 'zod';
 import {config} from '../config';
 import {db} from '../db';
-import {executeDomain} from '../domain/response';
+import {invalidateDomainMutation} from '../domain/cache';
+import {executeDomain, sendDomainResponse} from '../domain/response';
 import {logger} from '../lib';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
@@ -273,12 +274,16 @@ transactionRouter.post(
           throw new Error('Batch transaction create returned an unexpected row count');
         return records;
       });
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Transactions created successfully')
-        .withData(createdRecords)
-        .withFrom('db')
-        .buildAndSend(res);
+      await invalidateDomainMutation(userId, '/api/transaction');
+      sendDomainResponse(
+        res,
+        ApiResponse.builder()
+          .withStatus(HTTPStatusCode.OK)
+          .withMessage('Transactions created successfully')
+          .withData(createdRecords)
+          .withFrom('db')
+          .build(),
+      );
     } catch (err) {
       ApiResponse.builder()
         .fromError(err instanceof Error ? err : new Error(String(err)))
@@ -348,12 +353,16 @@ transactionRouter.put(
           update => `Transaction ${update.id} could not be updated`,
         ),
       );
-      ApiResponse.builder()
-        .withStatus(HTTPStatusCode.OK)
-        .withMessage('Transactions updated successfully')
-        .withData(updatedRecords)
-        .withFrom('db')
-        .buildAndSend(res);
+      await invalidateDomainMutation(userId, '/api/transaction');
+      sendDomainResponse(
+        res,
+        ApiResponse.builder()
+          .withStatus(HTTPStatusCode.OK)
+          .withMessage('Transactions updated successfully')
+          .withData(updatedRecords)
+          .withFrom('db')
+          .build(),
+      );
     } catch (err) {
       ApiResponse.builder()
         .fromError(err instanceof Error ? err : new Error(String(err)))

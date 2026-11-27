@@ -44,6 +44,17 @@ export const SelectFieldComponent = <T extends FieldValues>({
                 if (newValue !== null) controllerField.onChange(newValue);
               }}
               fullWidth
+              sx={{
+                display: {xs: 'grid', sm: 'flex'},
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: {xs: 0.5, sm: 0},
+                '& .MuiToggleButtonGroup-grouped': {
+                  m: {xs: 0},
+                  border: {xs: '1px solid'},
+                  borderColor: {xs: 'divider'},
+                  borderRadius: {xs: 1},
+                },
+              }}
               exclusive={field.exclusive}
             >
               {field.options.map(({value, label, description, descriptionPlacement}) => (

@@ -6,8 +6,10 @@ import {
   recurringPayments,
   transactions,
 } from '@budgetbuddyde/db/backend';
+import {and, eq, inArray} from 'drizzle-orm';
 import z from 'zod';
 import {db} from '../db';
+import {lockCategoryHierarchy} from '../domain/categoryHierarchy';
 
 export const applicationImportResources = [
   'categories',
@@ -73,23 +75,26 @@ const archiveManifestSchema = z.object({
   schemaVersion: z.literal(1),
 });
 
+// PostgreSQL UUID order matches lexicographic order on canonical lowercase UUIDs.
+const importId = z.uuid().toLowerCase();
 const categorySchema = z.object({
   description: z.string().nullable().optional(),
-  id: z.uuid(),
+  id: importId,
   name: z.string().min(1).max(40),
+  parentId: importId.nullable().optional(),
 });
 const paymentMethodSchema = z.object({
   address: z.string().min(1).max(32),
   description: z.string().nullable().optional(),
-  id: z.uuid(),
+  id: importId,
   name: z.string().min(1).max(40),
   provider: z.string().min(1).max(32),
 });
 const transactionSchema = z.object({
-  categoryId: z.uuid(),
-  id: z.uuid(),
+  categoryId: importId,
+  id: importId,
   information: z.string().nullable().optional(),
-  paymentMethodId: z.uuid(),
+  paymentMethodId: importId,
   processedAt: z.iso.datetime().transform(value => new Date(value)),
   receiver: z.string().min(1).max(100),
   transferAmount: z.coerce.number().finite(),
@@ -101,9 +106,9 @@ const recurringPaymentSchema = transactionSchema.omit({processedAt: true}).exten
 });
 const budgetSchema = z.object({
   budget: z.coerce.number().finite().min(0),
-  categoryIds: z.array(z.uuid()),
+  categoryIds: z.array(importId),
   description: z.string().nullable().optional(),
-  id: z.uuid(),
+  id: importId,
   name: z.string().min(1).max(32),
   type: z.enum(['i', 'e']),
 });
@@ -116,8 +121,8 @@ const MAX_ARCHIVE_SIZE = 20 * 1024 * 1024;
 const MAX_ARCHIVE_ENTRY_SIZE = 5 * 1024 * 1024;
 const MAX_ARCHIVE_ENTRIES = applicationImportResources.length + 1;
 const MAX_ROWS_PER_RESOURCE = 10_000;
-/** Keeps each insert comfortably below PostgreSQL's parameter limit. */
-const INSERT_CHUNK_SIZE = 1000;
+/** Keeps lookup and insert statements comfortably below PostgreSQL's parameter limit. */
+const QUERY_CHUNK_SIZE = 1000;
 
 function createResourceResult(): TApplicationImportResourceResult {
   return {created: [], skipped: [], failed: []};
@@ -145,7 +150,7 @@ function createResult(mode: TApplicationImportMode): TApplicationImportResult {
 }
 
 const previewFields: Record<TApplicationImportResource, readonly string[]> = {
-  categories: ['id', 'name', 'description'],
+  categories: ['id', 'name', 'description', 'parentId'],
   'payment-methods': ['id', 'name', 'provider', 'address', 'description'],
   transactions: ['id', 'categoryId', 'paymentMethodId', 'processedAt', 'receiver', 'transferAmount', 'information'],
   'recurring-payments': [
@@ -242,8 +247,9 @@ function normalizeCsvRow(resource: TApplicationImportResource, row: Record<strin
   for (const key of ['description', 'information']) {
     if (normalized[key] === '') normalized[key] = null;
   }
+  if (resource === 'categories' && normalized.parentId === '') normalized.parentId = null;
   if (resource === 'transactions' || resource === 'recurring-payments') {
-    normalized.transferAmount = Number(row.transferAmount);
+    normalized.transferAmount = Number(normalized.transferAmount);
   }
   if (resource === 'recurring-payments') normalized.paused = row.paused === 'true';
   if (resource === 'budgets') {
@@ -368,7 +374,7 @@ function addValidationFailure(
 
 type TImportRecord<T> = {row: number; sourceId: string; value: T};
 
-function chunked<T>(items: readonly T[], size: number = INSERT_CHUNK_SIZE): T[][] {
+function chunked<T>(items: readonly T[], size: number = QUERY_CHUNK_SIZE): T[][] {
   const chunks: T[][] = [];
   for (let start = 0; start < items.length; start += size) chunks.push(items.slice(start, start + size));
   return chunks;
@@ -379,13 +385,16 @@ async function loadExistingOwners(
   relation: any,
   ids: readonly string[],
 ): Promise<Map<string, string>> {
-  if (ids.length === 0) return new Map();
-  const rows: {id: string; ownerId: string}[] = await relation.findMany({
-    columns: {id: true, ownerId: true},
-    // biome-ignore lint/suspicious/noExplicitAny: drizzle field/operator helpers are structurally typed
-    where: (fields: any, operators: any) => operators.inArray(fields.id, ids),
-  });
-  return new Map(rows.map(row => [row.id, row.ownerId]));
+  const owners = new Map<string, string>();
+  for (const batch of chunked(ids)) {
+    const rows: {id: string; ownerId: string}[] = await relation.findMany({
+      columns: {id: true, ownerId: true},
+      // biome-ignore lint/suspicious/noExplicitAny: drizzle field/operator helpers are structurally typed
+      where: (fields: any, operators: any) => operators.inArray(fields.id, batch),
+    });
+    for (const row of rows) owners.set(row.id, row.ownerId);
+  }
+  return owners;
 }
 
 function collectParsed<S extends z.ZodType>(
@@ -459,221 +468,259 @@ export async function importApplicationArchive(
   );
   const parsedBudgets = collectParsed('budgets', archiveRows.budgets ?? [], budgetSchema, result);
 
-  // Resolve ownership conflicts and existing records with one bulk query per resource.
-  const [existingCategories, existingPaymentMethods, existingTransactions, existingRecurringPayments, existingBudgets] =
-    await Promise.all([
+  type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+  const resolve = async (tx?: Tx) => {
+    const connection = tx ?? db;
+    if (tx) await lockCategoryHierarchy(tx, userId);
+    const categoryIds = parsedCategories.map(({value}) => value.id);
+    const paymentIds = parsedPaymentMethods.map(({value}) => value.id);
+    const categoryRefs = [
+      ...new Set([
+        ...categoryIds,
+        ...parsedCategories.flatMap(({value}) => (value.parentId ? [value.parentId] : [])),
+        ...[...parsedTransactions, ...parsedRecurringPayments].map(({value}) => value.categoryId),
+        ...parsedBudgets.flatMap(({value}) => value.categoryIds),
+      ]),
+    ];
+    const paymentRefs = [
+      ...new Set([
+        ...paymentIds,
+        ...[...parsedTransactions, ...parsedRecurringPayments].map(({value}) => value.paymentMethodId),
+      ]),
+    ];
+    // Take owner-scoped locks in table order, then in UUID order across all batches.
+    const ownedCategories: Pick<typeof categories.$inferSelect, 'id' | 'parentId'>[] = [];
+    for (const batch of chunked(categoryRefs.sort())) {
+      const where = and(eq(categories.ownerId, userId), inArray(categories.id, batch));
+      const rows = tx
+        ? await tx
+            .select({id: categories.id, parentId: categories.parentId})
+            .from(categories)
+            .where(where)
+            .orderBy(categories.id)
+            .for('share')
+        : await db.query.categories.findMany({columns: {id: true, parentId: true}, where});
+      ownedCategories.push(...rows);
+    }
+    const ownedPayments: Pick<typeof paymentMethods.$inferSelect, 'id'>[] = [];
+    for (const batch of chunked(paymentRefs.sort())) {
+      const where = and(eq(paymentMethods.ownerId, userId), inArray(paymentMethods.id, batch));
+      const rows = tx
+        ? await tx
+            .select({id: paymentMethods.id})
+            .from(paymentMethods)
+            .where(where)
+            .orderBy(paymentMethods.id)
+            .for('share')
+        : await db.query.paymentMethods.findMany({columns: {id: true}, where});
+      ownedPayments.push(...rows);
+    }
+    // Global ID conflicts do not authorize dependencies and do not take row locks.
+    const [
+      existingCategoryRows,
+      existingPaymentMethods,
+      existingTransactions,
+      existingRecurringPayments,
+      existingBudgets,
+    ] = await Promise.all([
+      loadExistingOwners(connection.query.categories, categoryIds),
+      loadExistingOwners(connection.query.paymentMethods, paymentIds),
       loadExistingOwners(
-        db.query.categories,
-        parsedCategories.map(record => record.value.id),
-      ),
-      loadExistingOwners(
-        db.query.paymentMethods,
-        parsedPaymentMethods.map(record => record.value.id),
-      ),
-      loadExistingOwners(
-        db.query.transactions,
+        connection.query.transactions,
         parsedTransactions.map(record => record.value.id),
       ),
       loadExistingOwners(
-        db.query.recurringPayments,
+        connection.query.recurringPayments,
         parsedRecurringPayments.map(record => record.value.id),
       ),
       loadExistingOwners(
-        db.query.budgets,
+        connection.query.budgets,
         parsedBudgets.map(record => record.value.id),
       ),
     ]);
 
-  const availableCategories = new Set<string>();
-  const availablePaymentMethods = new Set<string>();
+    const availableCategories = new Set(ownedCategories.map(row => row.id));
+    const availablePaymentMethods = new Set(ownedPayments.map(row => row.id));
+    const existingCategories = existingCategoryRows;
+    const roots = new Set(ownedCategories.filter(row => row.parentId == null).map(row => row.id));
+    for (const {value} of parsedCategories) {
+      if (!value.parentId && !existingCategories.has(value.id)) roots.add(value.id);
+    }
 
-  const categoriesToCreate: TImportRecord<z.output<typeof categorySchema>>[] = [];
-  for (const record of parsedCategories) {
-    const owner = existingCategories.get(record.value.id);
-    if (owner !== undefined) {
-      if (owner === userId) {
-        availableCategories.add(record.value.id);
-        addResult(result, 'categories', 'skipped', {
-          sourceId: record.sourceId,
-          row: record.row,
-          code: 'conflict',
-          message: 'Category already exists and was skipped',
-        });
-      } else {
+    const categoriesToCreate: TImportRecord<z.output<typeof categorySchema>>[] = [];
+    for (const record of parsedCategories) {
+      const owner = existingCategories.get(record.value.id);
+      if (owner !== undefined) {
+        if (owner === userId) {
+          addResult(result, 'categories', 'skipped', {
+            sourceId: record.sourceId,
+            row: record.row,
+            code: 'conflict',
+            message: 'Category already exists and was skipped',
+          });
+        } else {
+          addResult(result, 'categories', 'failed', {
+            sourceId: record.sourceId,
+            row: record.row,
+            code: 'conflict',
+            message: 'Category ID belongs to another user',
+          });
+        }
+        continue;
+      }
+      if (record.value.parentId && !roots.has(record.value.parentId)) {
         addResult(result, 'categories', 'failed', {
           sourceId: record.sourceId,
           row: record.row,
-          code: 'conflict',
-          message: 'Category ID belongs to another user',
+          code: 'reference',
+          message: 'Referenced parent must be an existing or imported root category owned by this user',
         });
+        continue;
       }
-      continue;
+      availableCategories.add(record.value.id);
+      categoriesToCreate.push(record);
+      addResult(result, 'categories', 'created', {
+        sourceId: record.sourceId,
+        row: record.row,
+        code: 'persistence',
+        message: mode === 'preview' ? 'Ready to import' : 'Imported',
+      });
     }
-    availableCategories.add(record.value.id);
-    categoriesToCreate.push(record);
-    addResult(result, 'categories', 'created', {
-      sourceId: record.sourceId,
-      row: record.row,
-      code: 'persistence',
-      message: mode === 'preview' ? 'Ready to import' : 'Imported',
-    });
-  }
 
-  const paymentMethodsToCreate: TImportRecord<z.output<typeof paymentMethodSchema>>[] = [];
-  for (const record of parsedPaymentMethods) {
-    const owner = existingPaymentMethods.get(record.value.id);
-    if (owner !== undefined) {
-      if (owner === userId) {
-        availablePaymentMethods.add(record.value.id);
-        addResult(result, 'payment-methods', 'skipped', {
+    const paymentMethodsToCreate: TImportRecord<z.output<typeof paymentMethodSchema>>[] = [];
+    for (const record of parsedPaymentMethods) {
+      const owner = existingPaymentMethods.get(record.value.id);
+      if (owner !== undefined) {
+        if (owner === userId) {
+          addResult(result, 'payment-methods', 'skipped', {
+            sourceId: record.sourceId,
+            row: record.row,
+            code: 'conflict',
+            message: 'Payment method already exists and was skipped',
+          });
+        } else {
+          addResult(result, 'payment-methods', 'failed', {
+            sourceId: record.sourceId,
+            row: record.row,
+            code: 'conflict',
+            message: 'Payment method ID belongs to another user',
+          });
+        }
+        continue;
+      }
+      availablePaymentMethods.add(record.value.id);
+      paymentMethodsToCreate.push(record);
+      addResult(result, 'payment-methods', 'created', {
+        sourceId: record.sourceId,
+        row: record.row,
+        code: 'persistence',
+        message: mode === 'preview' ? 'Ready to import' : 'Imported',
+      });
+    }
+
+    const transactionsToCreate: TImportRecord<z.output<typeof transactionSchema>>[] = [];
+    for (const record of parsedTransactions) {
+      const {categoryId, paymentMethodId} = record.value;
+      if (!availableCategories.has(categoryId) || !availablePaymentMethods.has(paymentMethodId)) {
+        addResult(result, 'transactions', 'failed', {
+          sourceId: record.sourceId,
+          row: record.row,
+          code: 'reference',
+          message: 'Referenced category or payment method was not imported',
+        });
+        continue;
+      }
+      const owner = existingTransactions.get(record.value.id);
+      if (owner !== undefined) {
+        addResult(result, 'transactions', owner === userId ? 'skipped' : 'failed', {
           sourceId: record.sourceId,
           row: record.row,
           code: 'conflict',
-          message: 'Payment method already exists and was skipped',
+          message:
+            owner === userId
+              ? 'transactions already exists and was skipped'
+              : 'transactions ID belongs to another user',
         });
-      } else {
-        addResult(result, 'payment-methods', 'failed', {
+        continue;
+      }
+      transactionsToCreate.push(record);
+      addResult(result, 'transactions', 'created', {
+        sourceId: record.sourceId,
+        row: record.row,
+        code: 'persistence',
+        message: mode === 'preview' ? 'Ready to import' : 'Imported',
+      });
+    }
+
+    const recurringPaymentsToCreate: TImportRecord<z.output<typeof recurringPaymentSchema>>[] = [];
+    for (const record of parsedRecurringPayments) {
+      const {categoryId, paymentMethodId} = record.value;
+      if (!availableCategories.has(categoryId) || !availablePaymentMethods.has(paymentMethodId)) {
+        addResult(result, 'recurring-payments', 'failed', {
+          sourceId: record.sourceId,
+          row: record.row,
+          code: 'reference',
+          message: 'Referenced category or payment method was not imported',
+        });
+        continue;
+      }
+      const owner = existingRecurringPayments.get(record.value.id);
+      if (owner !== undefined) {
+        addResult(result, 'recurring-payments', owner === userId ? 'skipped' : 'failed', {
           sourceId: record.sourceId,
           row: record.row,
           code: 'conflict',
-          message: 'Payment method ID belongs to another user',
+          message:
+            owner === userId
+              ? 'recurring-payments already exists and was skipped'
+              : 'recurring-payments ID belongs to another user',
         });
+        continue;
       }
-      continue;
+      recurringPaymentsToCreate.push(record);
+      addResult(result, 'recurring-payments', 'created', {
+        sourceId: record.sourceId,
+        row: record.row,
+        code: 'persistence',
+        message: mode === 'preview' ? 'Ready to import' : 'Imported',
+      });
     }
-    availablePaymentMethods.add(record.value.id);
-    paymentMethodsToCreate.push(record);
-    addResult(result, 'payment-methods', 'created', {
-      sourceId: record.sourceId,
-      row: record.row,
-      code: 'persistence',
-      message: mode === 'preview' ? 'Ready to import' : 'Imported',
-    });
-  }
 
-  // Resolve references that point at records already owned by the user but not part of the archive.
-  const referencedCategoryIds = new Set<string>();
-  const referencedPaymentMethodIds = new Set<string>();
-  for (const record of [...parsedTransactions, ...parsedRecurringPayments]) {
-    referencedCategoryIds.add(record.value.categoryId);
-    referencedPaymentMethodIds.add(record.value.paymentMethodId);
-  }
-  for (const record of parsedBudgets) {
-    for (const categoryId of record.value.categoryIds) referencedCategoryIds.add(categoryId);
-  }
-  const [externalCategories, externalPaymentMethods] = await Promise.all([
-    loadExistingOwners(
-      db.query.categories,
-      [...referencedCategoryIds].filter(id => !availableCategories.has(id)),
-    ),
-    loadExistingOwners(
-      db.query.paymentMethods,
-      [...referencedPaymentMethodIds].filter(id => !availablePaymentMethods.has(id)),
-    ),
-  ]);
-  for (const [id, owner] of externalCategories) if (owner === userId) availableCategories.add(id);
-  for (const [id, owner] of externalPaymentMethods) if (owner === userId) availablePaymentMethods.add(id);
+    const budgetsToCreate: TImportRecord<z.output<typeof budgetSchema>>[] = [];
+    for (const record of parsedBudgets) {
+      if (record.value.categoryIds.some(categoryId => !availableCategories.has(categoryId))) {
+        addResult(result, 'budgets', 'failed', {
+          sourceId: record.sourceId,
+          row: record.row,
+          code: 'reference',
+          message: 'One or more budget categories were not imported',
+        });
+        continue;
+      }
+      const owner = existingBudgets.get(record.value.id);
+      if (owner !== undefined) {
+        addResult(result, 'budgets', owner === userId ? 'skipped' : 'failed', {
+          sourceId: record.sourceId,
+          row: record.row,
+          code: 'conflict',
+          message: owner === userId ? 'Budget already exists and was skipped' : 'Budget ID belongs to another user',
+        });
+        continue;
+      }
+      budgetsToCreate.push(record);
+      addResult(result, 'budgets', 'created', {
+        sourceId: record.sourceId,
+        row: record.row,
+        code: 'persistence',
+        message: mode === 'preview' ? 'Ready to import' : 'Imported',
+      });
+    }
 
-  const transactionsToCreate: TImportRecord<z.output<typeof transactionSchema>>[] = [];
-  for (const record of parsedTransactions) {
-    const {categoryId, paymentMethodId} = record.value;
-    if (!availableCategories.has(categoryId) || !availablePaymentMethods.has(paymentMethodId)) {
-      addResult(result, 'transactions', 'failed', {
-        sourceId: record.sourceId,
-        row: record.row,
-        code: 'reference',
-        message: 'Referenced category or payment method was not imported',
-      });
-      continue;
-    }
-    const owner = existingTransactions.get(record.value.id);
-    if (owner !== undefined) {
-      addResult(result, 'transactions', owner === userId ? 'skipped' : 'failed', {
-        sourceId: record.sourceId,
-        row: record.row,
-        code: 'conflict',
-        message:
-          owner === userId ? 'transactions already exists and was skipped' : 'transactions ID belongs to another user',
-      });
-      continue;
-    }
-    transactionsToCreate.push(record);
-    addResult(result, 'transactions', 'created', {
-      sourceId: record.sourceId,
-      row: record.row,
-      code: 'persistence',
-      message: mode === 'preview' ? 'Ready to import' : 'Imported',
-    });
-  }
-
-  const recurringPaymentsToCreate: TImportRecord<z.output<typeof recurringPaymentSchema>>[] = [];
-  for (const record of parsedRecurringPayments) {
-    const {categoryId, paymentMethodId} = record.value;
-    if (!availableCategories.has(categoryId) || !availablePaymentMethods.has(paymentMethodId)) {
-      addResult(result, 'recurring-payments', 'failed', {
-        sourceId: record.sourceId,
-        row: record.row,
-        code: 'reference',
-        message: 'Referenced category or payment method was not imported',
-      });
-      continue;
-    }
-    const owner = existingRecurringPayments.get(record.value.id);
-    if (owner !== undefined) {
-      addResult(result, 'recurring-payments', owner === userId ? 'skipped' : 'failed', {
-        sourceId: record.sourceId,
-        row: record.row,
-        code: 'conflict',
-        message:
-          owner === userId
-            ? 'recurring-payments already exists and was skipped'
-            : 'recurring-payments ID belongs to another user',
-      });
-      continue;
-    }
-    recurringPaymentsToCreate.push(record);
-    addResult(result, 'recurring-payments', 'created', {
-      sourceId: record.sourceId,
-      row: record.row,
-      code: 'persistence',
-      message: mode === 'preview' ? 'Ready to import' : 'Imported',
-    });
-  }
-
-  const budgetsToCreate: TImportRecord<z.output<typeof budgetSchema>>[] = [];
-  for (const record of parsedBudgets) {
-    if (record.value.categoryIds.some(categoryId => !availableCategories.has(categoryId))) {
-      addResult(result, 'budgets', 'failed', {
-        sourceId: record.sourceId,
-        row: record.row,
-        code: 'reference',
-        message: 'One or more budget categories were not imported',
-      });
-      continue;
-    }
-    const owner = existingBudgets.get(record.value.id);
-    if (owner !== undefined) {
-      addResult(result, 'budgets', owner === userId ? 'skipped' : 'failed', {
-        sourceId: record.sourceId,
-        row: record.row,
-        code: 'conflict',
-        message: owner === userId ? 'Budget already exists and was skipped' : 'Budget ID belongs to another user',
-      });
-      continue;
-    }
-    budgetsToCreate.push(record);
-    addResult(result, 'budgets', 'created', {
-      sourceId: record.sourceId,
-      row: record.row,
-      code: 'persistence',
-      message: mode === 'preview' ? 'Ready to import' : 'Imported',
-    });
-  }
-
-  if (mode === 'commit') {
-    await db.transaction(async tx => {
-      for (const chunk of chunked(categoriesToCreate)) {
-        await tx.insert(categories).values(chunk.map(record => ({...record.value, ownerId: userId})));
+    if (tx) {
+      for (const children of [false, true]) {
+        for (const chunk of chunked(categoriesToCreate.filter(({value}) => Boolean(value.parentId) === children))) {
+          await tx.insert(categories).values(chunk.map(record => ({...record.value, ownerId: userId})));
+        }
       }
       for (const chunk of chunked(paymentMethodsToCreate)) {
         await tx.insert(paymentMethods).values(chunk.map(record => ({...record.value, ownerId: userId})));
@@ -692,12 +739,15 @@ export async function importApplicationArchive(
           }),
         );
         const links = chunk.flatMap(({value}) =>
-          value.categoryIds.map(categoryId => ({budgetId: value.id, categoryId})),
+          value.categoryIds.map(categoryId => ({ownerId: userId, budgetId: value.id, categoryId})),
         );
-        if (links.length > 0) await tx.insert(budgetCategories).values(links);
+        for (const linkChunk of chunked(links)) {
+          await tx.insert(budgetCategories).values(linkChunk);
+        }
       }
-    });
-  }
-
+    }
+  };
+  if (mode === 'commit') await db.transaction(tx => resolve(tx));
+  else await resolve();
   return result;
 }

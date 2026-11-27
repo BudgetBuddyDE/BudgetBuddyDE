@@ -273,6 +273,51 @@ vp run db:migrate
 
 This will execute all pending migrations in the correct order.
 
+### Category hierarchy upgrade: owner integrity preflight
+
+Before upgrading to the category hierarchy release, put the backend (including recurring jobs, imports, and other
+database writers) into maintenance mode. Take a restorable PostgreSQL backup and rehearse the upgrade on a restored
+copy. Keep writers stopped until all migrations, including `0017_category_owner_guard`, have succeeded on the target.
+
+From the repository root, run the read-only report as an operator with access to all owners:
+
+```bash
+psql -X "$DATABASE_URL" -f packages/db/scripts/preflight-owner-integrity.sql
+```
+
+**Require zero result rows**, not just exit code zero. The report includes transaction and recurring category and
+payment-method assignments, plus budget/category links. It exposes internal record and owner IDs; store its output
+privately. Run it before `0015` on pre-feature databases: `0015` itself validates its foreign keys, so it can stop the
+upgrade before `0017` runs. On databases already at `0015` or `0016`, `0017` checks existing assignments and verifies
+the category and budget-link foreign keys are validated. The report works before `0015`; `0017` additionally checks
+the stored link owner against both referenced rows. Neither guard reconciles data automatically.
+
+If conflicts exist, leave the app stopped and review each record with the responsible data owner. A reference with no
+reported owner is missing. Identify or create the correct category or payment method owned by the record's owner;
+do not infer a replacement from a shared name or change a financial record's owner. For each approved correction,
+use an explicit SQL transaction that qualifies the update by record ID, recorded owner, and original reference ID.
+Verify the replacement belongs to that owner and exactly one intended record was updated before committing. For a
+budget link, replace only the approved association, retaining the budget and avoiding a duplicate link. Record the old
+and new IDs in the change record, and leave ambiguous records untouched until resolved. For a missing budget, verify
+the original association from backup and have the owner approve an explicit link correction before proceeding.
+Do not delete financial records,
+disable constraints, or mark migrations applied to get past an error.
+
+Run the report again, require zero rows, then run `pnpm --filter @budgetbuddyde/db run db:migrate`. If migration fails,
+keep writers stopped and investigate rather than starting the new backend.
+
+After reconciliation and successful migrations, and **before smoke checks or reopening traffic**, rotate the API
+response cache to an unused, dedicated Redis logical database or instance (`REDIS_URL` / `REDIS_DB`), or purge only
+API response-cache keys in the configured response-cache database. Keep old backend instances stopped so they cannot
+repopulate stale data. For a targeted purge, use `SCAN` with `MATCH 'cache:*'`, then `UNLINK` only confirmed response
+payload and `cache:generation:*` keys owned by this deployment. If that namespace is shared with other applications,
+use a dedicated response-cache database instead. Never use `FLUSHDB` or `FLUSHALL`, and never flush or repoint
+auth/session Redis (`AUTH_REDIS_URL` / `AUTH_REDIS_DB`).
+
+With public traffic still blocked, smoke-test owner-scoped category, transaction, recurring-payment, and budget reads.
+On cache-enabled routes, verify the first read is a cache miss and matches the reconciled data. Reopen traffic only
+after the checks pass.
+
 ### Database Studio
 
 Drizzle Kit provides a web-based database browser:

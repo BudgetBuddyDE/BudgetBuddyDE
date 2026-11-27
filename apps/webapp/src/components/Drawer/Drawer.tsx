@@ -64,6 +64,11 @@ export const Drawer: React.FC<DrawerProps> = ({children, closeOnBackdropClick, c
             elevation: 0,
             ...props.slotProps?.paper,
             sx: {
+              width: '100%',
+              maxWidth: '100vw',
+              maxHeight: '90dvh',
+              overflowX: 'hidden',
+              boxSizing: 'border-box',
               borderTopLeftRadius: theme => `${theme.shape.borderRadius}px`,
               borderTopRightRadius: theme => `${theme.shape.borderRadius}px`,
               // REVISIT: ...props.slotProps?.paper?.sx,

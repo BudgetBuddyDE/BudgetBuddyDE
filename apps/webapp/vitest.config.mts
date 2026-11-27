@@ -4,10 +4,11 @@ import react from '@vitejs/plugin-react';
 
 /**
  * Suites that register global tracing providers, reset the module registry,
- * or replace native fetch on purpose. They must not share a module graph with
- * the unit suite, because their instrumentation would leak into later files.
+ * replace native fetch, or mock app modules. They must not share a module
+ * graph with the unit suite.
  */
 const isolatedSuites = [
+  'src/components/Transaction/TransactionDialog/staleDetailRequests.test.tsx',
   'src/browserPropagation.test.ts',
   'src/instrumentation.node.test.ts',
   'src/instrumentation.test.ts',
@@ -27,6 +28,13 @@ const createProject = (name: string, isolate: boolean, include?: string[]) =>
       plugins: [react()],
       test: {
         name,
+        // Resolve to the shared double before Next's real router can be loaded.
+        alias: [
+          {
+            find: /^next\/navigation$/,
+            replacement: new URL('./src/test/mocks/navigation.ts', import.meta.url).pathname,
+          },
+        ],
         include,
         exclude: include
           ? ['**/build/**', '**/node_modules/**']

@@ -21,7 +21,7 @@ export const ExpandedTransaction = Transaction.omit({
   categoryId: true,
   paymentMethodId: true,
 }).extend({
-  category: Category,
+  category: Category.omit({parentId: true}),
   paymentMethod: PaymentMethod,
   attachments: z.array(AttachmentWithUrl).optional(),
   attachmentCount: z.number().optional(),

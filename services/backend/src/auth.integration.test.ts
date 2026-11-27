@@ -83,11 +83,12 @@ beforeEach(async function registerTestUser() {
 });
 
 describe('migrated authentication with real Better Auth', () => {
+  // Real password verification uses the production KDF; allow the same contention budget as the next test.
   it('initializes preferences on registration but not on subsequent sign-in', async () => {
     expect(state.initializePreferences).toHaveBeenCalledExactlyOnceWith(userId);
     await auth.api.signInEmail({body: {email: 'auth-unit@example.invalid', password: 'unit-password-long-enough'}});
     expect(state.initializePreferences).toHaveBeenCalledTimes(1);
-  });
+  }, 15_000);
 
   it('allows registration and sign-in when preferences initialization fails', async () => {
     state.initializePreferences.mockRejectedValueOnce(new Error('Preferences database unavailable'));
