@@ -15,7 +15,7 @@ function createConfig(environment: NodeJS.ProcessEnv = {}): AppConfig {
 }
 
 describe('AppConfig', () => {
-  it('allows W3C propagation headers in browser preflight requests from trusted origins', async () => {
+  it('rejects untrusted browser origins during preflight requests', async () => {
     const config = createConfig({
       NODE_ENV: 'production',
       BASE_URL: 'https://api.example.test',
@@ -33,22 +33,20 @@ describe('AppConfig', () => {
         headers: {
           Origin: 'https://app.example.test',
           'Access-Control-Request-Method': 'GET',
-          'Access-Control-Request-Headers': 'traceparent,tracestate,baggage',
+          'Access-Control-Request-Headers': 'X-Api-Key',
         },
       });
 
       expect(response.status).toBe(204);
       expect(response.headers.get('access-control-allow-origin')).toBe('https://app.example.test');
-      expect(response.headers.get('access-control-allow-headers')).toContain('traceparent');
-      expect(response.headers.get('access-control-allow-headers')).toContain('tracestate');
-      expect(response.headers.get('access-control-allow-headers')).toContain('baggage');
+      expect(response.headers.get('access-control-allow-headers')).toContain('X-Api-Key');
 
       const untrusted = await fetch(`http://127.0.0.1:${address.port}/api/transactions`, {
         method: 'OPTIONS',
         headers: {
           Origin: 'https://evil.example.test',
           'Access-Control-Request-Method': 'GET',
-          'Access-Control-Request-Headers': 'traceparent',
+          'Access-Control-Request-Headers': 'X-Api-Key',
         },
       });
       expect(untrusted.headers.has('access-control-allow-origin')).toBe(false);
@@ -205,6 +203,5 @@ describe('integrated authentication configuration', () => {
       },
     });
     expect(config.cors.allowedHeaders).toContain('X-Api-Key');
-    expect(config.cors.allowedHeaders).toEqual(expect.arrayContaining(['traceparent', 'tracestate', 'baggage']));
   });
 });

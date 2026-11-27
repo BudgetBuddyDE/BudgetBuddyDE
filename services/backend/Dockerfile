@@ -65,4 +65,4 @@ COPY --from=build /tmp/node /usr/local/bin/node
 
 USER 10001:10001
 
-CMD ["node", "--require", "./services/backend/build/src/instrumentation.js", "services/backend/build/src/server.js"]
+CMD ["node", "services/backend/build/src/server.js"]

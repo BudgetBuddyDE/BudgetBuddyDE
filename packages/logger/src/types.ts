@@ -11,7 +11,7 @@ export interface LogEvent {
   [key: string]: unknown;
 }
 
-/** Receives one normalized log event. Configure one or more sinks on a logger client. */
+/** Receives one normalized log event. */
 export type LogSink = (event: LogEvent) => void;
 
 export interface Logger {
@@ -24,14 +24,8 @@ export interface Logger {
 }
 
 export interface LoggerOptions {
-  /** Destinations that receive normalized events in declaration order. */
+  /** Destinations that receive normalized events in declaration order. If omitted or empty, uses the global console. */
   sinks?: readonly LogSink[];
   context?: LogContext;
   threshold?: LogThreshold;
-}
-
-export interface ServiceContext extends LogContext {
-  service: string;
-  version?: string;
-  runtime?: string;
 }

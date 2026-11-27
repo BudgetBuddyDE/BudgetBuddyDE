@@ -1,7 +1,29 @@
-import {createLogger, createNoopLogger, getLogLevel} from './logger';
+import {createLogger, createNoopLogger, getLogLevel} from './index';
 import {formatLogMessage, normalizeLogEvent} from './normalizer';
 
 describe('logger facade', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('writes normalized events to the matching console method by default', () => {
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+    createLogger().child({requestId: 'request'}).info('Saved %s', 'entity');
+
+    expect(info).toHaveBeenCalledExactlyOnceWith({level: 'info', message: 'Saved entity', requestId: 'request'});
+  });
+
+  it('falls back to console.log when an empty sink list has no matching console method', () => {
+    const target = {log: vi.fn()};
+    vi.stubGlobal('console', target);
+
+    createLogger({sinks: []}).warn('Saved');
+
+    expect(target.log).toHaveBeenCalledExactlyOnceWith({level: 'warn', message: 'Saved'});
+  });
+
   it('writes every supported level and observes the threshold', () => {
     const events: unknown[] = [];
     const logger = createLogger({sinks: [event => events.push(event)], threshold: 'info'});
@@ -41,6 +63,7 @@ describe('logger facade', () => {
   });
 
   it('forwards each normalized event to every sink in declaration order', () => {
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {});
     const received: string[] = [];
     const logger = createLogger({
       sinks: [event => received.push(`first:${event.message}`), event => received.push(`second:${event.message}`)],
@@ -49,6 +72,7 @@ describe('logger facade', () => {
     logger.info('Saved', {entityId: 'entity'});
 
     expect(received).toEqual(['first:Saved', 'second:Saved']);
+    expect(info).not.toHaveBeenCalled();
   });
 
   it('does not invoke sinks below the configured threshold', () => {
@@ -61,9 +85,12 @@ describe('logger facade', () => {
   });
 
   it('creates a no-op logger whose children remain no-op', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const logger = createNoopLogger({service: 'test'});
 
-    expect(() => logger.child({requestId: 'request'}).error('Ignored', new Error('failure'))).not.toThrow();
+    logger.child({requestId: 'request'}).error('Ignored', new Error('failure'));
+
+    expect(error).not.toHaveBeenCalled();
   });
 
   it('parses thresholds and falls back for unknown values', () => {

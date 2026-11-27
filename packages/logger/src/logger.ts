@@ -1,3 +1,4 @@
+import {writeConsoleEvent} from './console-output';
 import {normalizeLogEvent} from './normalizer';
 import type {LogContext, LogLevel, Logger, LoggerOptions, LogSink, LogThreshold} from './types';
 
@@ -8,14 +9,6 @@ const levelPriority: Record<LogLevel, number> = {
   warn: 3,
   error: 4,
 };
-
-const dispatcherKey = Symbol.for('@budgetbuddyde/logger/dispatcher');
-type LoggerGlobal = typeof globalThis & {[dispatcherKey]?: (event: import('./types').LogEvent) => void};
-
-/** Registers the Node implementation through a process-wide key shared by separate bundles. */
-export function registerLoggerDispatcher(dispatcher: (event: import('./types').LogEvent) => void): void {
-  (globalThis as LoggerGlobal)[dispatcherKey] = dispatcher;
-}
 
 function shouldWrite(level: LogLevel, threshold: LogThreshold): boolean {
   return threshold !== 'silent' && levelPriority[level] >= levelPriority[threshold];
@@ -60,27 +53,15 @@ class EventLogger implements Logger {
       rootContext: this.rootContext,
       childContext: this.childContext,
     });
-    if (this.sinks.length) {
-      for (const sink of this.sinks) sink(event);
+    if (!this.sinks.length) {
+      writeConsoleEvent(globalThis.console, event);
       return;
     }
-
-    const dispatcher = (globalThis as LoggerGlobal)[dispatcherKey];
-    if (dispatcher) {
-      try {
-        dispatcher(event);
-      } catch {
-        // Logging must not interrupt requests or rendering.
-      }
-      return;
-    }
-
-    const method = globalThis.console?.[level] ?? globalThis.console?.log;
-    if (typeof method === 'function') method.call(globalThis.console, event);
+    for (const sink of this.sinks) sink(event);
   }
 }
 
-/** Creates a runtime-neutral logger that sends normalized events to configured sinks. */
+/** Creates a logger that sends normalized events to configured sinks or the global console. */
 export function createLogger(options: LoggerOptions = {}): Logger {
   return new EventLogger(options.sinks ?? [], options.context ?? {}, {}, options.threshold ?? 'trace');
 }
@@ -89,9 +70,6 @@ export function createLogger(options: LoggerOptions = {}): Logger {
 export function createNoopLogger(context: LogContext = {}): Logger {
   return createLogger({context, threshold: 'silent'});
 }
-
-/** The shared logger uses the Node dispatcher when initialized, otherwise browser console output. */
-export const logger: Logger = createLogger();
 
 /** Parses environment-style values and maps the legacy `crit` level to `error`. */
 export function getLogLevel(value: string | undefined): LogThreshold {
