@@ -24,7 +24,7 @@ describe('fetchWithCache', () => {
     vi.unstubAllGlobals();
   });
 
-  it('deduplicates concurrent browser GET requests and returns independent responses', async () => {
+  it('deduplicates explicitly anonymous browser GET requests and returns independent responses', async () => {
     vi.stubGlobal('window', {});
     const fetchMock = vi.fn(
       () =>
@@ -37,7 +37,8 @@ describe('fetchWithCache', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const [first, second] = await Promise.all([fetchWithCache('/data'), fetchWithCache('/data')]);
+    const anonymous = {credentials: 'omit'} as const;
+    const [first, second] = await Promise.all([fetchWithCache('/data', anonymous), fetchWithCache('/data', anonymous)]);
 
     expect(fetchMock).toHaveBeenCalledOnce();
     await expect(first.json()).resolves.toEqual({ok: true});

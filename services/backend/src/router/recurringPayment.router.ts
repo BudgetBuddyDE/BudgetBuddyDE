@@ -6,6 +6,7 @@ import validateRequest from 'express-zod-safe';
 import z from 'zod';
 import {db} from '../db';
 import {applyBatchUpdates, createBatchSchema, hasAllOwnedIds, ownedIdsFinder, updateBatchSchema} from './batch';
+import {invalidateDomainMutation} from '../domain/cache';
 import {
   createRecurringPayment,
   getRecurringPayment,
@@ -19,7 +20,6 @@ import {
   updateRecurringPaymentSchema,
 } from '../domain/recurringPayment';
 import {executeDomain} from '../domain/response';
-import {invalidateUserCaches} from '../middleware/cache.middleware';
 import {ApiResponse, HTTPStatusCode} from '../models';
 import {createTransactionFromRecurringPayment} from '../utils/createTransactionFromRecurringPayment';
 
@@ -261,7 +261,7 @@ recurringPaymentRouter.post(
 
     try {
       const createdTransaction = await createTransactionFromRecurringPayment(payment);
-      await invalidateUserCaches(userId, ['/api/transaction', '/api/budget', '/api/insights']);
+      await invalidateDomainMutation(userId, '/api/transaction');
       ApiResponse.builder()
         .withStatus(HTTPStatusCode.OK)
         .withMessage('Transaction created successfully')

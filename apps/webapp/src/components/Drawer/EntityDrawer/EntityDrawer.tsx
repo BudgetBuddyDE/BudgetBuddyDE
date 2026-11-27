@@ -171,7 +171,7 @@ export const EntityDrawer = <T extends FieldValues>({
         component="form"
         onSubmit={form.handleSubmit(data => handlers.handleSubmit(preProcessFormPayload(data, fields)))}
         noValidate
-        sx={{display: 'flex', flexDirection: 'column', flex: 1}}
+        sx={{display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0}}
       >
         <Grid container spacing={2} sx={{m: 2}}>
           {slots && slots.alert !== undefined && (

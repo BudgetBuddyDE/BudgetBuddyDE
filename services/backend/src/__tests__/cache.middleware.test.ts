@@ -219,6 +219,52 @@ suite('Cache', () => {
       mockConfig.redis.url = 'redis://localhost:6379';
     });
 
+    it('misses warmed direct, root and child stats immediately after a transaction mutation, scoped to the owner', async () => {
+      const {invalidateUserCaches} = await vi.importActual<typeof import('../middleware/cache.middleware')>(
+        '../middleware/cache.middleware',
+      );
+      const {invalidateUserCaches: invalidateUserCachesMock} = await import('./mocks/cache');
+      invalidateUserCachesMock.mockImplementationOnce(invalidateUserCaches);
+      const {invalidateDomainMutation} = await vi.importActual<typeof import('../domain/cache')>('../domain/cache');
+      const redis = new Map<string, string>();
+      mockRedisGet.mockImplementation(async key => redis.get(key) ?? null);
+      mockRedisSetex.mockImplementation(async (key, _ttl, value) => redis.set(key, value));
+      mockRedisIncr.mockImplementation(async key => {
+        const value = Number(redis.get(key) ?? 0) + 1;
+        redis.set(key, String(value));
+        return value;
+      });
+      let expenses = 20;
+      const read = async (userId: string, level: string) => {
+        const req = makeRequest({
+          path: '/api/category/stats',
+          originalUrl: `/api/category/stats?from=2026-10-01&to=2026-10-31${level}`,
+          context: {user: {id: userId}} as Request['context'],
+        });
+        const res = makeResponse();
+        await cacheResponse(req, res, () => res.json({expenses}));
+        return res._jsonBody;
+      };
+      try {
+        const levels = ['', '&level=root', '&level=child'];
+        for (const level of levels) {
+          expect(await read('user-1', level)).toEqual({expenses: 20});
+          expect(await read('user-2', level)).toEqual({expenses: 20});
+        }
+        expenses = 80;
+        for (const level of levels) expect(await read('user-1', level)).toEqual({expenses: 20});
+        await invalidateDomainMutation('user-1', '/api/transaction');
+        for (const level of levels) {
+          expect(await read('user-1', level)).toEqual({expenses: 80});
+          expect(await read('user-2', level)).toEqual({expenses: 20});
+        }
+      } finally {
+        mockRedisGet.mockReset();
+        mockRedisSetex.mockReset();
+        mockRedisIncr.mockReset();
+      }
+    });
+
     it('calls next() for GET requests without touching Redis', async () => {
       const req = makeRequest({method: 'GET'});
       const res = makeResponse();
@@ -299,7 +345,7 @@ suite('Cache', () => {
       await invalidateCache(req, res, next);
       await listeners.finish();
 
-      expect(mockRedisIncr).toHaveBeenCalledTimes(5);
+      expect(mockRedisIncr).toHaveBeenCalledTimes(6);
     });
 
     it('does not invalidate successful shared-domain mutations twice', async () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import {CreateOrUpdateBudgetPayload, type TBudget} from '@budgetbuddyde/api/budget';
-import type {TCategoryVH} from '@budgetbuddyde/api/category';
+import {effectiveCategoryIds, type TCategoryVH} from '@budgetbuddyde/api/category';
 import AddRounded from '@mui/icons-material/AddRounded';
 import {Box, Button, IconButton, InputAdornment, Stack} from '@mui/material';
 import {endOfMonth} from 'date-fns';
@@ -84,6 +84,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     TransactionDialogReducer,
     generateDefaultTransactionDialogState(),
   );
+  const detailRequest = React.useRef(0);
 
   const handleCreateEntity = React.useCallback(() => {
     dispatchDrawerAction({
@@ -173,17 +174,33 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
     dispatch(refresh());
   };
 
-  const handleClickEntity: BudgetItemProps['onClickBudget'] = async (_event, budget) => {
+  const handleClickEntity: BudgetItemProps['onClickBudget'] = async budget => {
+    const request = ++detailRequest.current;
     dispatchTransactionDialogAction({action: 'OPEN_AND_FETCH_DATA'});
 
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const relatedCategories = budget.categories.map(category => category.id);
-    const [relatedTransactions, error] = await apiClient.backend.transaction.getAll({
-      $dateFrom: firstDayOfMonth,
-      $dateTo: endOfMonth(today),
-      [budget.type === 'i' ? '$categories' : '$excl_categories']: relatedCategories,
-    });
+    const explicit = budget.categories.map(category => category.id);
+    if (!explicit.length) {
+      dispatchTransactionDialogAction({action: 'FETCH_SUCCESS', transactions: []});
+      return;
+    }
+    const [categories, categoryError] = await apiClient.backend.category.getValueHelp({cache: 'no-store'});
+    if (request !== detailRequest.current) return;
+    if (categoryError) {
+      dispatchTransactionDialogAction({action: 'FETCH_ERROR', error: categoryError});
+      return;
+    }
+    const relatedCategories = Array.from(effectiveCategoryIds(explicit, categories));
+    const [relatedTransactions, error] = await apiClient.backend.transaction.getAll(
+      {
+        $dateFrom: firstDayOfMonth,
+        $dateTo: endOfMonth(today),
+        [budget.type === 'i' ? '$categories' : '$excl_categories']: relatedCategories,
+      },
+      {cache: 'no-store'},
+    );
+    if (request !== detailRequest.current) return;
     if (error) {
       dispatchTransactionDialogAction({action: 'FETCH_ERROR', error});
       return;
@@ -196,6 +213,7 @@ export const BudgetList: React.FC<BudgetListProps> = () => {
   };
 
   const handleCloseTransactionDialog: TransactionDialogProps['onClose'] = () => {
+    ++detailRequest.current;
     dispatchTransactionDialogAction({action: 'CLEAR'});
   };
 

@@ -24,6 +24,7 @@ import z from 'zod';
 import {apiClient} from '@/apiClient';
 import {ActionPaper} from '@/components/ActionPaper';
 import {CategoryChip} from '@/components/Category/CategoryChip';
+import {getCategoryOptions} from '@/components/Category/categoryOptions';
 import {DeleteDialog, deleteDialogReducer, getInitialDeleteDialogState} from '@/components/Dialog';
 import {
   EntityDrawer,
@@ -203,7 +204,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
 
   const loadBatchValueHelp = React.useCallback(async () => {
     const [categoriesResult, paymentMethodsResult] = await Promise.all([
-      apiClient.backend.category.getValueHelp(),
+      getCategoryOptions(),
       apiClient.backend.paymentMethod.getValueHelp(),
     ]);
     const [categories, categoriesError] = categoriesResult;
@@ -263,7 +264,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
   );
 
   const handleEditEntity = React.useCallback(
-    ({id, processedAt, receiver, category, paymentMethod, transferAmount, information}: TExpandedTransaction) => {
+    async ({id, processedAt, receiver, category, paymentMethod, transferAmount, information}: TExpandedTransaction) => {
+      const [options] = await getCategoryOptions();
+      const categoryOption = options?.find(option => option.id === category.id) ?? category;
       dispatchDrawerAction({
         type: 'OPEN',
         action: 'EDIT',
@@ -271,11 +274,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           id,
           processedAt: processedAt instanceof Date ? processedAt : new Date(processedAt),
           receiver: {receiver: receiver},
-          category: {
-            id: category.id,
-            name: category.name,
-            description: category.description,
-          },
+          category: categoryOption,
           paymentMethod: {
             id: paymentMethod.id,
             name: paymentMethod.name,
@@ -425,7 +424,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({initialFilter
           placeholder: t('category'),
           required: true,
           retrieveOptionsFunc: async () => {
-            const [categories, error] = await apiClient.backend.category.getValueHelp();
+            const [categories, error] = await getCategoryOptions();
             if (error) {
               logger.error('Failed to fetch category options', error);
               return [];

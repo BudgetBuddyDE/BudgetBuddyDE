@@ -8,6 +8,7 @@ import react from '@vitejs/plugin-react';
  * the unit suite, because their instrumentation would leak into later files.
  */
 const isolatedSuites = [
+  'src/components/Transaction/TransactionDialog/staleDetailRequests.test.tsx',
   'src/browserPropagation.test.ts',
   'src/instrumentation.node.test.ts',
   'src/instrumentation.test.ts',

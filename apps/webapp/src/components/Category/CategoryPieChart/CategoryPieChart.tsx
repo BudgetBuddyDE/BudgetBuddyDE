@@ -122,9 +122,10 @@ export function CategoryPieChart({
 
       try {
         const [start, end] = TIMEFRAME_META[timeframe].range();
-        const [categoryStats, err] = await apiClient.backend.category.getCategoryStats({
+        const [categoryStats, err] = await apiClient.backend.category.getRootCategoryStats({
           from: start,
           to: end,
+          exact: timeframe === 'YTD',
         });
         if (err) throw err;
 

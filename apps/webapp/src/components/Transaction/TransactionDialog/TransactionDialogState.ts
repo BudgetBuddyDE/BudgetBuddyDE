@@ -28,10 +28,9 @@ export function reducer(state: TransactionDialogState, action: StateAction): Tra
   switch (action.action) {
     case 'OPEN_AND_FETCH_DATA':
       return {
-        ...state,
+        ...generateDefaultState(),
         isOpen: true,
         isLoading: true,
-        error: null,
       };
     case 'FETCH_DATA':
       return {

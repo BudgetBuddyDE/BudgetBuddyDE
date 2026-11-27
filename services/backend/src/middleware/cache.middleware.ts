@@ -4,22 +4,9 @@ import {type CacheRouteConfig, config} from '../config';
 import {getRedisClient} from '../db/redis';
 import {logger} from '../lib/logger';
 import {withSpan} from '../telemetry/tracing';
+import {mutationCacheRoutes} from '../utils/mutationCacheRoutes';
 
 const cacheLogger = logger.child({module: 'cache', middleware: 'cache'});
-
-const invalidatedRoutePaths: Record<string, readonly string[]> = {
-  '/api/category': ['/api/category', '/api/transaction', '/api/recurringPayment', '/api/budget', '/api/insights'],
-  '/api/paymentMethod': [
-    '/api/paymentMethod',
-    '/api/transaction',
-    '/api/recurringPayment',
-    '/api/budget',
-    '/api/insights',
-  ],
-  '/api/transaction': ['/api/transaction', '/api/budget', '/api/insights'],
-  '/api/recurringPayment': ['/api/recurringPayment', '/api/budget'],
-  '/api/budget': ['/api/budget'],
-};
 
 /**
  * Returns true when caching should be attempted (Redis URL is set and caching is globally enabled).
@@ -142,7 +129,7 @@ export async function cacheResponse(req: Request, res: Response, next: NextFunct
 /**
  * Middleware that invalidates cached GET responses after a successful mutating request (POST, PUT, DELETE).
  *
- * All cached keys for the matched route and current user are removed via Redis SCAN + DEL.
+ * Advances generations for the matched route and its dependencies for the current user.
  */
 export async function invalidateCache(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (!isCacheAvailable() || !['POST', 'PUT', 'DELETE'].includes(req.method)) {
@@ -164,7 +151,7 @@ export async function invalidateCache(req: Request, res: Response, next: NextFun
 
   res.on('finish', () => {
     if (!res.locals?.domainMutationHandled && res.statusCode >= 200 && res.statusCode < 300) {
-      void invalidateUserCaches(userId, invalidatedRoutePaths[route.path] ?? [route.path]);
+      void invalidateUserCaches(userId, mutationCacheRoutes(route.path));
     }
   });
 

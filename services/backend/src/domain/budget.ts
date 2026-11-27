@@ -1,4 +1,11 @@
-import {BudgetWithCategoriesSchema, budgetCategories, budgets, transactionHistoryView} from '@budgetbuddyde/db/backend';
+import {effectiveCategoryIds} from '@budgetbuddyde/api/category';
+import {
+  BudgetWithCategoriesSchema,
+  budgetCategories,
+  budgets,
+  categories,
+  transactionHistoryView,
+} from '@budgetbuddyde/db/backend';
 import {and, eq, inArray, sql} from 'drizzle-orm';
 import {z} from 'zod';
 import {db} from '../db';
@@ -9,7 +16,9 @@ import {assembleFilter} from '../router/assembleFilter';
 import {hasAllOwnedIds, ownedIdsFinder} from '../router/batch';
 import {paginationFields, paginationWindow, refinePagination} from '../router/pagination';
 
-const listSchema = z.object({search: z.string().optional(), ...paginationFields}).superRefine(refinePagination);
+const listSchema = z
+  .object({search: z.string().optional(), month: z.iso.date().optional(), ...paginationFields})
+  .superRefine(refinePagination);
 const createSchema = BudgetWithCategoriesSchema.insert
   .omit({ownerId: true})
   .extend({ownerId: BudgetWithCategoriesSchema.insert.shape.ownerId.optional()});
@@ -61,7 +70,11 @@ export async function list(userId: string, queryInput: z.input<typeof listSchema
         }),
       ]);
 
-      const balances = await calculateBudgetBalances(userId, records);
+      const balances = await calculateBudgetBalances(
+        userId,
+        records,
+        query.month ? new Date(`${query.month}T12:00:00`) : undefined,
+      );
       const updatedBudgets = records.map((budget, index) => ({
         ...budget,
         balance: balances[index],
@@ -149,6 +162,7 @@ export async function create(userId: string, body: z.input<typeof createSchema>)
           if (categoryIds && categoryIds.length > 0) {
             const budgetCategoryLinks = categoryIds.map(catId => ({
               budgetId: createdBudget.id,
+              ownerId: userId,
               categoryId: catId,
             }));
             await tx.insert(budgetCategories).values(budgetCategoryLinks);
@@ -249,6 +263,7 @@ export async function update(userId: string, id: string, body: Partial<z.input<t
               await tx.insert(budgetCategories).values(
                 toAdd.map(catId => ({
                   budgetId: budgetId,
+                  ownerId: userId,
                   categoryId: catId,
                 })),
               );
@@ -354,9 +369,11 @@ async function calculateBudgetBalances(
   const rows = await db
     .select({
       categoryId: transactionHistoryView.categoryId,
+      parentId: categories.parentId,
       balance: sql<number>`COALESCE(SUM(${transactionHistoryView.balance}), 0)`.as('balance'),
     })
     .from(transactionHistoryView)
+    .leftJoin(categories, and(eq(categories.id, transactionHistoryView.categoryId), eq(categories.ownerId, ownerId)))
     .where(
       and(
         eq(transactionHistoryView.ownerId, ownerId),
@@ -364,24 +381,28 @@ async function calculateBudgetBalances(
         eq(transactionHistoryView.year, currentYear),
       ),
     )
-    .groupBy(transactionHistoryView.categoryId);
+    .groupBy(sql`${transactionHistoryView.categoryId}, ${categories.parentId}`);
 
-  const netExpensesByCategory = new Map<string, number>();
+  const netExpensesByCategory = new Map<string, {netExpenses: number; parentId: string | null}>();
   let totalNetExpenses = 0;
   for (const row of rows) {
     if (row.categoryId === null) continue;
     const netExpenses = -row.balance;
-    netExpensesByCategory.set(row.categoryId, netExpenses);
+    netExpensesByCategory.set(row.categoryId, {netExpenses, parentId: row.parentId});
     totalNetExpenses += netExpenses;
   }
 
+  const membership = rows.flatMap(row => (row.categoryId ? [{id: row.categoryId, parentId: row.parentId}] : []));
   return budgets.map(budget => {
-    const categories = budget.categories.map(category => category.categoryId);
-    if (categories.length === 0) return 0;
-    const assignedNetExpenses = categories.reduce(
-      (sum, categoryId) => sum + (netExpensesByCategory.get(categoryId) ?? 0),
-      0,
+    const selected = effectiveCategoryIds(
+      budget.categories.map(category => category.categoryId),
+      membership,
     );
+    if (selected.size === 0) return 0;
+    let assignedNetExpenses = 0;
+    for (const [id, {netExpenses}] of netExpensesByCategory) {
+      if (selected.has(id)) assignedNetExpenses += netExpenses;
+    }
     return Math.max(0, budget.type === 'i' ? assignedNetExpenses : totalNetExpenses - assignedNetExpenses);
   });
 }

@@ -350,30 +350,27 @@ export class TransactionAttachmentHandler {
   protected async cleanupStorageObjects(locations: readonly string[]): Promise<void> {
     if (locations.length === 0) return;
 
-    const command = new DeleteObjectsCommand({
-      Bucket: this.bucketName,
-      Delete: {Objects: locations.map(Key => ({Key}))},
-    });
-
+    let pending = [...locations];
+    let failure: Error | undefined;
     for (let attempt = 1; attempt <= STORAGE_CLEANUP_ATTEMPTS; attempt += 1) {
       try {
-        await this.s3Client.send(command);
-        return;
+        const response = await this.s3Client.send(new DeleteObjectsCommand({
+          Bucket: this.bucketName,
+          Delete: {Objects: pending.map(Key => ({Key})), Quiet: true},
+        }));
+        const failures = response?.Errors ?? [];
+        if (!failures.length) return;
+        const failedKeys = new Set(failures.map(entry => entry.Key));
+        if (!failedKeys.has(undefined)) pending = pending.filter(key => failedKeys.has(key));
+        if (!pending.length) return;
+        failure = new Error('Object storage reported unsuccessful key deletions');
       } catch (error) {
-        if (attempt === STORAGE_CLEANUP_ATTEMPTS) {
-          this.logger.error(
-            'Unable to clean up attachment objects from storage',
-            error instanceof Error ? error : new Error(String(error)),
-            {
-              locations,
-            },
-          );
-          return;
-        }
-
-        this.logger.warn('Retrying attachment object cleanup', {attempt, locations});
+        failure = error instanceof Error ? error : new Error(String(error));
       }
+      if (attempt < STORAGE_CLEANUP_ATTEMPTS) this.logger.warn('Retrying attachment object cleanup', {attempt, locations: pending});
     }
+    // Request-scoped reconciliation: retain the bucket and remaining keys in structured logs.
+    this.logger.error('Unable to clean up attachment objects from storage', failure, {bucket: this.bucketName, locations: pending});
   }
 
   /**
@@ -392,14 +389,17 @@ export class TransactionAttachmentHandler {
     await db.delete(attachments).where(and(eq(attachments.ownerId, userId), inArray(attachments.id, attachmentIds)));
     this.logger.info('Deleted %d attachment entries from database for user %s', attachmentIds.length, userId);
 
-    // ponytail: request-scoped cleanup retries; persist an outbox if crash recovery is required.
-    await this.cleanupStorageObjects(targetAttachments.map(({location}) => location));
-    this.logger.debug('Deleted %d attachments from S3', targetAttachments.length);
-
-    // Clear cache for deleted attachments
-    await Promise.all(targetAttachments.map(({id}) => this.cache.deleteSignedAttachmentUrl(id)));
-
+    await this.cleanupDeletedAttachments(targetAttachments);
     return targetAttachments.length;
+  }
+
+  /** Clean up objects and signed URLs after the metadata deletion has committed. */
+  public async cleanupDeletedAttachments(targetAttachments: readonly {id: string; location: string}[]): Promise<void> {
+    // S3 DeleteObjects accepts at most 1000 keys; reuse request-scoped retries per chunk.
+    for (let offset = 0; offset < targetAttachments.length; offset += 1000) {
+      await this.cleanupStorageObjects(targetAttachments.slice(offset, offset + 1000).map(({location}) => location));
+    }
+    await Promise.all(targetAttachments.map(({id}) => this.cache.deleteSignedAttachmentUrl(id)));
   }
 
   private generateAttachmentStoragePath(

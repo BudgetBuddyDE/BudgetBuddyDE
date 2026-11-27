@@ -1,8 +1,11 @@
 import z from 'zod';
 import {ApiResponse, UserID} from './common.schema';
 
+export const ConfirmCategoryDeletion = z.strictObject({confirmedChildIds: z.array(z.uuid())});
+
 export const Category = z.object({
   id: z.uuid().brand('CategoryID'),
+  parentId: z.uuid().brand('CategoryID').nullable().optional(),
   ownerId: UserID,
   name: z.string(),
   description: z.string().nullable(),
@@ -13,6 +16,7 @@ export const Category = z.object({
 export const CreateOrUpdateCategoryPayload = Category.pick({
   name: true,
   description: true,
+  parentId: true,
 }).extend({
   description: Category.shape.description.optional(),
 });
@@ -21,6 +25,7 @@ export const CategoryVH = Category.pick({
   id: true,
   name: true,
   description: true,
+  parentId: true,
 });
 
 export const CategoryStats = z.object({
@@ -54,6 +59,15 @@ export const DeleteCategoryResponse = CreateCategoryResponse;
 export const CategoryStatsResponse = ApiResponse.extend({
   data: CategoryStats,
 });
+const CategoryAmounts = z.object({income: z.number(), expenses: z.number()});
+export const CategoryBreakdown = z.object({
+  category: CategoryVH,
+  parentName: z.string().nullable(),
+  total: CategoryAmounts,
+  direct: CategoryAmounts,
+  children: z.array(CategoryAmounts.extend({category: CategoryVH})),
+});
+export const CategoryBreakdownResponse = ApiResponse.extend({data: CategoryBreakdown});
 export const MergeCategoriesResponse = ApiResponse.extend({
   data: z.object({
     source: z.array(Category.shape.id).transform(ids => new Set(ids)),

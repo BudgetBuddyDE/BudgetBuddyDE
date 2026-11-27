@@ -3,12 +3,11 @@
 import type {TCategoryVH} from '@budgetbuddyde/api/category';
 import ThumbUpAltRounded from '@mui/icons-material/ThumbUpAltRounded';
 import WarningRounded from '@mui/icons-material/WarningRounded';
-import {Box, Chip, Stack, Typography} from '@mui/material';
+import {Box, Button, Chip, Stack, Typography} from '@mui/material';
 import {useTranslations} from 'next-intl';
 import type React from 'react';
 import {Icon} from '@/components/Icon';
 import {EntityMenu} from '@/components/Table/EntityMenu';
-import {HideHorizontalScrollbarStyle} from '@/theme/style';
 import {Formatter} from '@/utils/Formatter';
 import {useCurrencyPreference} from '@/utils/Formatter/PreferenceContext';
 
@@ -26,7 +25,7 @@ export type BudgetItemProps = {
   budget: Budget;
   onEditBudget: (budget: Budget) => void;
   onDeleteBudget: (budget: Budget) => void;
-  onClickBudget?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, budget: Budget) => void;
+  onClickBudget?: (budget: Budget) => void;
 };
 
 export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onDeleteBudget, onClickBudget}) => {
@@ -45,22 +44,12 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
       <Stack
         sx={{
           flex: 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-          mr: 2,
-          overflowX: 'scroll',
-          ':hover': onClickBudget
-            ? {
-                borderRadius: theme => `${theme.shape.borderRadius}px`,
-                backgroundColor: theme => theme.palette.action.hover,
-                cursor: 'pointer',
-              }
-            : undefined,
-          ...HideHorizontalScrollbarStyle,
+          minWidth: 0,
+          flexDirection: {xs: 'column', sm: 'row'},
+          alignItems: {xs: 'stretch', sm: 'center'},
+          gap: 1,
+          mr: 1,
         }}
-        {...(onClickBudget && {
-          onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => onClickBudget(e, budget),
-        })}
       >
         <Icon
           icon={isOverBudget ? <WarningRounded /> : <ThumbUpAltRounded />}
@@ -68,32 +57,37 @@ export const BudgetItem: React.FC<BudgetItemProps> = ({budget, onEditBudget, onD
           sx={{mr: 1}}
         />
         <Box sx={{mr: 1}}>
-          <Stack direction="row" spacing={1}>
-            <Typography
-              variant="body1"
-              sx={{
-                fontWeight: 'bolder',
-              }}
-            >
-              {budget.name}
-            </Typography>
+          <Stack direction="row" sx={{gap: 1, flexWrap: 'wrap', alignItems: 'center'}}>
+            {onClickBudget ? (
+              <Button
+                aria-label={`View transactions for ${budget.name}`}
+                onClick={() => onClickBudget(budget)}
+                sx={{p: 0, minWidth: 0, textTransform: 'none', textAlign: 'left', overflowWrap: 'anywhere'}}
+              >
+                {budget.name}
+              </Button>
+            ) : (
+              <Typography sx={{fontWeight: 'bold', overflowWrap: 'anywhere'}}>{budget.name}</Typography>
+            )}
             <Chip label={budget.type === 'i' ? t('include') : t('exclude')} variant="outlined" />
           </Stack>
           <Stack
             sx={{
               flexDirection: 'row',
-              columnGap: 1,
+              gap: 0.5,
+              flexWrap: 'wrap',
             }}
           >
             {budget.categories.map(({id, name}) => (
-              <Chip key={id} label={name} variant="outlined" />
+              <Chip key={id} label={name} variant="outlined" sx={{maxWidth: '100%'}} />
             ))}
           </Stack>
         </Box>
         <Box
           sx={{
-            ml: 'auto',
-            textAlign: 'right',
+            ml: {sm: 'auto'},
+            textAlign: {xs: 'left', sm: 'right'},
+            overflowWrap: 'anywhere',
             flexDirection: {xs: 'column', md: 'row'},
             alignItems: 'baseline',
             columnGap: 0.5,

@@ -1,6 +1,6 @@
-import {sql} from 'drizzle-orm';
+import {and, eq, isNotNull, sql} from 'drizzle-orm';
 import {backendSchema} from './schema';
-import {recurringPayments, transactions} from './tables';
+import {categories, recurringPayments, transactions} from './tables';
 
 export const transactionReceiverView = backendSchema.view('transaction_receiver_view').as(qb =>
   qb
@@ -49,6 +49,46 @@ export const transactionHistoryView = backendSchema.view('transaction_history_vi
       transactions.ownerId,
       transactions.categoryId,
     ),
+);
+
+const historyCategoryJoin = and(
+  eq(transactionHistoryView.categoryId, categories.id),
+  eq(transactionHistoryView.ownerId, categories.ownerId),
+);
+const historyPeriod = {
+  month: transactionHistoryView.month,
+  year: transactionHistoryView.year,
+  date: transactionHistoryView.date,
+  ownerId: transactionHistoryView.ownerId,
+};
+const rootId = sql<string>`coalesce(${categories.parentId}, ${categories.id})`;
+
+export const transactionRootHistoryView = backendSchema.view('transaction_root_history_view').as(qb =>
+  qb
+    .select({
+      ...historyPeriod,
+      categoryId: rootId.as('category_id'),
+      income: sql<number>`sum(${transactionHistoryView.income})`.as('income'),
+      expenses: sql<number>`sum(${transactionHistoryView.expenses})`.as('expenses'),
+      balance: sql<number>`sum(${transactionHistoryView.balance})`.as('balance'),
+    })
+    .from(transactionHistoryView)
+    .innerJoin(categories, historyCategoryJoin)
+    .groupBy(...Object.values(historyPeriod), rootId),
+);
+
+export const transactionChildHistoryView = backendSchema.view('transaction_child_history_view').as(qb =>
+  qb
+    .select({
+      ...historyPeriod,
+      categoryId: categories.id,
+      income: transactionHistoryView.income,
+      expenses: transactionHistoryView.expenses,
+      balance: transactionHistoryView.balance,
+    })
+    .from(transactionHistoryView)
+    .innerJoin(categories, historyCategoryJoin)
+    .where(isNotNull(categories.parentId)),
 );
 
 /**

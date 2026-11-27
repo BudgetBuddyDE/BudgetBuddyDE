@@ -18,7 +18,7 @@ export const Budget = z.object({
     z.object({
       budgetId: z.uuid(),
       categoryId: Category.shape.id,
-      category: Category,
+      category: Category.omit({parentId: true}),
     }),
   ),
 });

@@ -19,6 +19,7 @@ const {
   mockRedisMget,
   mockRedisPipeline,
   mockGetSignedUrl,
+  mockCleanupError,
 } = vi.hoisted(() => ({
   mockS3Send: vi.fn(),
   mockDbInsert: vi.fn(),
@@ -37,6 +38,7 @@ const {
   mockRedisMget: vi.fn(),
   mockRedisPipeline: vi.fn(),
   mockGetSignedUrl: vi.fn(),
+  mockCleanupError: vi.fn(),
 }));
 
 // Mock @budgetbuddyde/db/backend to prevent drizzle-zod schema generation at import time
@@ -76,7 +78,7 @@ vi.mock('../lib/logger', () => ({
       debug: vi.fn(),
       info: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn(),
+      error: mockCleanupError,
     }),
   },
 }));
@@ -342,6 +344,24 @@ suite('TransactionAttachmentHandler.deleteAttachments', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     handler = new TransactionAttachmentHandler(BUCKET);
+  });
+
+  it('retries only failed S3 keys and retains exhausted keys for reconciliation', async () => {
+    mockS3Send.mockResolvedValue({Errors: [{Key: 'remaining.png', Code: 'InternalError'}]});
+    await handler.cleanupDeletedAttachments([
+      {id: 'a', location: 'complete.png'},
+      {id: 'b', location: 'remaining.png'},
+    ]);
+    expect(mockS3Send.mock.calls.map(([command]) => command.input.Delete.Objects)).toEqual([
+      [{Key: 'complete.png'}, {Key: 'remaining.png'}],
+      [{Key: 'remaining.png'}],
+      [{Key: 'remaining.png'}],
+    ]);
+    expect(mockCleanupError).toHaveBeenCalledWith(expect.any(String), expect.any(Error), {
+      bucket: BUCKET,
+      locations: ['remaining.png'],
+    });
+    mockS3Send.mockReset();
   });
 
   it('returns 0 when no attachments belong to user', async () => {
