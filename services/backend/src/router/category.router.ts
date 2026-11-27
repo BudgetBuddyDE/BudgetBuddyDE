@@ -282,7 +282,12 @@ categoryRouter.get(
       ApiResponse.builder().withStatus(HTTPStatusCode.UNAUTHORIZED).withMessage('Unauthorized').buildAndSend(res);
       return;
     }
-    const result = await categoryDomain.getMonthlyBreakdown(userId, req.params.id, req.query.month);
+    const month = req.query.month;
+    if (typeof month !== 'string') {
+      ApiResponse.builder().withStatus(HTTPStatusCode.BAD_REQUEST).withMessage('Invalid request').buildAndSend(res);
+      return;
+    }
+    const result = await categoryDomain.getMonthlyBreakdown(userId, req.params.id, month);
     sendDomainResponse(res, result);
   },
 );
