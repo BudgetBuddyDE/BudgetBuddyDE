@@ -1,3 +1,4 @@
+import {writeConsoleEvent} from './console-output';
 import {normalizeLogEvent} from './normalizer';
 import type {LogContext, LogLevel, Logger, LoggerOptions, LogSink, LogThreshold} from './types';
 
@@ -52,11 +53,15 @@ class EventLogger implements Logger {
       rootContext: this.rootContext,
       childContext: this.childContext,
     });
+    if (!this.sinks.length) {
+      writeConsoleEvent(globalThis.console, event);
+      return;
+    }
     for (const sink of this.sinks) sink(event);
   }
 }
 
-/** Creates a runtime-neutral logger that sends normalized events to configured sinks. */
+/** Creates a logger that sends normalized events to configured sinks or the global console. */
 export function createLogger(options: LoggerOptions = {}): Logger {
   return new EventLogger(options.sinks ?? [], options.context ?? {}, {}, options.threshold ?? 'trace');
 }

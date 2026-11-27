@@ -24,7 +24,7 @@ export interface Logger {
 }
 
 export interface LoggerOptions {
-  /** Destinations that receive normalized events in declaration order. */
+  /** Destinations that receive normalized events in declaration order. If omitted or empty, uses the global console. */
   sinks?: readonly LogSink[];
   context?: LogContext;
   threshold?: LogThreshold;

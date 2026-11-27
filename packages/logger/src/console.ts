@@ -1,17 +1,9 @@
+import {writeConsoleEvent} from './console-output';
+import type {ConsoleFormatter, ConsoleLike} from './console-output';
 import {createLogger} from './logger';
-import type {LogContext, LogEvent, Logger, LogSink, LogThreshold} from './types';
+import type {LogContext, Logger, LogSink, LogThreshold} from './types';
 
-export interface ConsoleLike {
-  trace?: (...data: unknown[]) => void;
-  debug?: (...data: unknown[]) => void;
-  info?: (...data: unknown[]) => void;
-  warn?: (...data: unknown[]) => void;
-  error?: (...data: unknown[]) => void;
-  log?: (...data: unknown[]) => void;
-}
-
-/** Formats an event into console arguments. */
-export type ConsoleFormatter = (event: LogEvent) => readonly unknown[];
+export type {ConsoleFormatter, ConsoleLike} from './console-output';
 
 export interface ConsoleSinkOptions {
   target?: ConsoleLike;
@@ -34,14 +26,8 @@ export const formatConsoleEvent: ConsoleFormatter = event => {
 };
 
 /** Creates a browser-safe sink that forwards events through the matching console method. */
-export function createConsoleSink({
-  target = globalThis.console,
-  formatter = event => [event],
-}: ConsoleSinkOptions = {}): LogSink {
-  return event => {
-    const method = target?.[event.level] ?? target?.log;
-    if (typeof method === 'function') method.call(target, ...formatter(event));
-  };
+export function createConsoleSink({target = globalThis.console, formatter}: ConsoleSinkOptions = {}): LogSink {
+  return event => writeConsoleEvent(target, event, formatter);
 }
 
 /** Creates a logger that writes formatted console events for a service. */
